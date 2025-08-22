@@ -13,7 +13,6 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^6.5.0",
     "@mui/material": "^6.5.0",
-    "chatgpt": "^5.2.5",
     "next": "15.5.0",
     "pdfjs-dist": "^4.1.392",
     "react": "19.1.0",

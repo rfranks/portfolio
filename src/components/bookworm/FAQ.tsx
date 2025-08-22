@@ -190,7 +190,7 @@ export default function FAQ() {
               sx={{ maxWidth: { sm: "100%", md: "70%" } }}
             >
               Yes, Bookworm is designed to be accessible anywhere and anytime.
-              Whether you're on the go or at your desk, you can easily upload
+                Whether you&apos;re on the go or at your desk, you can easily upload
               documents and interact with your material without the need for
               extensive reading or manual searching through pages.
             </Typography>
