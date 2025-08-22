@@ -1,6 +1,5 @@
 "use client";
 
-import { ChatGPTAPI } from "chatgpt";
 import * as pdfjs from "pdfjs-dist";
 
 import { ChatMessage } from "@/types/bookworm/types";
@@ -8,17 +7,31 @@ import { aiBufferSize } from "@/consts/bookworm/consts";
 
 import { Buffer } from "buffer";
 
-const apiKey = process.env.REACT_APP_OPENAI_API_KEY || "";
+const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
 
-const api = new ChatGPTAPI({
-  apiKey,
-  completionParams: {
-    model: "gpt-3.5-turbo",
-    temperature: 0.5,
-    top_p: 0.8,
-  },
-  fetch: window.fetch.bind(window),
-});
+const requestCompletion = async (systemMessage: string) => {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-3.5-turbo",
+      temperature: 0.5,
+      top_p: 0.8,
+      messages: [
+        {
+          role: "system",
+          content: systemMessage,
+        },
+      ],
+    }),
+  });
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || "";
+};
 
 export const askOpenAI = async ({
   context,
@@ -61,27 +74,15 @@ export const askOpenAI = async ({
   const newChatIndex = newChatHistory.length - 1;
   const initialContext = `${context}`;
 
-  let response;
+  let responseText = "";
 
   do {
-    let rest = context.substring(Math.min(aiBufferSize + 1, context.length));
+    const rest = context.substring(Math.min(aiBufferSize + 1, context.length));
     context = context.substring(0, Math.min(aiBufferSize, context.length));
-    response = await api.sendMessage("", {
-      systemMessage:
-        `Question: ${user}\n\n` + system.replaceAll("{{context}}", context),
-      onProgress: (partialResponse) => {
-        if (initialContext.length <= aiBufferSize) {
-          newChatHistory[newChatIndex] = {
-            role: "assistant" as "user" | "assistant",
-            message: logMessagesToChatHistory
-              ? partialResponse.text
-              : "Processing PDF...",
-            hasMore: partialResponse.text.length > 0,
-          };
-          onChatHistoryChange?.([...newChatHistory]);
-        }
-      },
-    });
+
+    const systemMessage =
+      `Question: ${user}\n\n` + system.replaceAll("{{context}}", context);
+    responseText = await requestCompletion(systemMessage);
 
     newChatHistory[newChatIndex] = {
       role: "assistant" as "user" | "assistant",
@@ -90,7 +91,7 @@ export const askOpenAI = async ({
           logMessagesToChatHistory ? "I'm thinking..." : "Processing PDF...",
           ""
         ) +
-        (initialContext.length > aiBufferSize ? response.text : "") +
+        (initialContext.length > aiBufferSize ? responseText : "") +
         "\n\n",
       hasMore: !returnFirstResponse && rest.length > 0,
     };
@@ -101,7 +102,7 @@ export const askOpenAI = async ({
         100
     );
 
-    if (returnFirstResponse && response.text) {
+    if (returnFirstResponse && responseText) {
       break;
     }
   } while (context.length > 0);
@@ -111,7 +112,7 @@ export const askOpenAI = async ({
     newChatHistory !== null &&
     newChatHistory[newChatIndex] !== null
   ) {
-    let responseText = newChatHistory[newChatIndex]?.message;
+    const responseText = newChatHistory[newChatIndex]?.message;
 
     newChatHistory[newChatIndex] = {
       message: "Ready! Ask me anything about your PDF.",
@@ -162,8 +163,8 @@ export async function pdfToMarkdown(file: File): Promise<string> {
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
 
-    for (const item of content.items) {
-      markdown += (item as any).str + "\n";
+    for (const item of content.items as unknown as { str: string }[]) {
+      markdown += item.str + "\n";
     }
 
     markdown += "\n\n";

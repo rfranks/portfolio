@@ -186,7 +186,7 @@ export default function Hero() {
 
                   setPdfAsMarkdown(markdown);
 
-                  let context = markdown;
+                    const context = markdown;
 
                   const summary = await askOpenAI({
                     context,
