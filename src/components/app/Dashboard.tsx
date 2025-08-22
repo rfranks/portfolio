@@ -38,6 +38,7 @@ import { ChartMethod, Sequence } from "@/types/dna/types";
 import AppBar from "./AppBar";
 import Copyright from "./Copyright";
 import Drawer from "./Drawer";
+import { blue } from "@mui/material/colors";
 
 const drawerWidth: number = 240;
 
@@ -191,7 +192,11 @@ export default function Dashboard() {
                 },
               }}
               renderInput={(params) => (
-                <TextField {...params} label="Active Sequence" />
+                <TextField
+                  {...params}
+                  label="Active Sequence"
+                  sx={{ backgroundColor: (t) => t.palette.common.white }}
+                />
               )}
               value={activeSequences.map((seq) => {
                 return {
@@ -382,7 +387,7 @@ export default function Dashboard() {
       <Box
         component="main"
         sx={{
-          backgroundColor: "#151515",
+          backgroundColor: blue[50],
           flexGrow: 1,
           height: "100vh",
           overflow: "auto",
