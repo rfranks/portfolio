@@ -9,7 +9,7 @@ import { Buffer } from "buffer";
 
 const apiKey =
   process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
-  "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";
+  "";
 
 const requestCompletion = async (systemMessage: string) => {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
