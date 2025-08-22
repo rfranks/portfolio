@@ -97,7 +97,7 @@ export default function SequenceDisplay({
               base as Base
             ) &&
             (sequences?.length || 0) > 1
-              ? "#fff"
+              ? "#151515"
               : showColors
               ? "#151515"
               : "#fff",
@@ -123,7 +123,7 @@ export default function SequenceDisplay({
         {showProteins && (index + 1) % 3 === 0 && (
           <Box
             sx={{
-              color: "#fff",
+              color: "#151515",
               position: "absolute",
               top: 0,
               left: "-20px",
@@ -132,6 +132,10 @@ export default function SequenceDisplay({
               textAlign: "right",
               mt: "24px",
               zIndex: 0,
+              "&:hover": {
+                fontSize: "12px",
+                fontWeight: "600",
+              },
             }}
           >
             {showTooltip ? (
