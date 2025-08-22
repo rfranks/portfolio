@@ -11,6 +11,7 @@ import { parseSequence } from "@/utils/dna/sequenceUtils";
 import { blue, grey } from "./colors";
 import Title from "../app/Title";
 import { Science } from "@mui/icons-material";
+import { withBasePath } from "@/utils/basePath";
 
 const Textarea = styled(TextareaAutosize)(
   ({ theme }) => `
@@ -64,7 +65,7 @@ export default function AddSequenceCard({
 
   const loadSample = async (sample: string) => {
     const rawSequenceContent = await (
-      await fetch(`/assets/dna/examples/${sample}`)
+      await fetch(withBasePath(`/assets/dna/examples/${sample}`))
     ).text();
 
     parseSequence(rawSequenceContent, sample, (parsedSequence) => {
