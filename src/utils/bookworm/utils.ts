@@ -133,7 +133,15 @@ export const askOpenAI = async ({
   return newChatHistory[newChatIndex];
 };
 
-window.Buffer = window.Buffer || Buffer;
+declare global {
+  interface Window {
+    Buffer: typeof Buffer;
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.Buffer = window.Buffer || Buffer;
+}
 
 export async function pdfToMarkdown(file: File): Promise<string> {
   const reader = new FileReader();
