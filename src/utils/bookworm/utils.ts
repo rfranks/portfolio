@@ -138,7 +138,7 @@ window.Buffer = window.Buffer || Buffer;
 export async function pdfToMarkdown(file: File): Promise<string> {
   const reader = new FileReader();
   const workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.1.392/pdf.worker.min.mjs";
+    `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
   pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
