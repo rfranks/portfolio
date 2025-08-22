@@ -30,7 +30,24 @@ const requestCompletion = async (systemMessage: string) => {
   });
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || "";
+  const content = data?.choices?.[0]?.message?.content;
+
+  // `content` can be a string (old API) or an array of text segments (new API)
+  if (Array.isArray(content)) {
+    return (
+      content
+        .map((c: unknown) => {
+          if (typeof c === "string") return c;
+          if (typeof c === "object" && c !== null && "text" in c) {
+            return (c as { text?: string }).text || "";
+          }
+          return "";
+        })
+        .join("") || ""
+    );
+  }
+
+  return content || "";
 };
 
 export const askOpenAI = async ({
