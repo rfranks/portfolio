@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { PaletteMode } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -14,7 +16,14 @@ import Highlights from "@/components/bookworm/Highlights";
 import FAQ from "@/components/bookworm/FAQ";
 import Footer from "@/components/bookworm/Footer";
 
-export default function LandingPage() {
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+
+import "./page.module.css"; // Ensure global styles are applied
+
+export default function BookwormPage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");
   const defaultTheme = createTheme({ palette: { mode } });
 
