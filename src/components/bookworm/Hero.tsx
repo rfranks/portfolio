@@ -300,6 +300,7 @@ export default function Hero() {
                 )}
                 <Typography
                   variant="body2"
+                  component="div"
                   sx={{
                     whiteSpace: "pre-wrap",
                     color:
