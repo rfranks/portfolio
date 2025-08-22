@@ -63,17 +63,9 @@ export default function AddSequenceCard({
   const loadSampleMenuOpen = Boolean(loadSampleMenuEl);
 
   const loadSample = async (sample: string) => {
-    let rawSequenceContent = await (
-      await fetch(`${window.location.pathname}/assets/dna/examples/${sample}`)
+    const rawSequenceContent = await (
+      await fetch(`/assets/dna/examples/${sample}`)
     ).text();
-
-    const isError = rawSequenceContent.startsWith("<!DOCTYPE html>");
-    isError &&
-      (rawSequenceContent = await (
-        await fetch(
-          `${window.location.pathname}/public/assets/dna/examples/${sample}`
-        )
-      ).text());
 
     parseSequence(rawSequenceContent, sample, (parsedSequence) => {
       parsedSequence.sequence = parsedSequence.sequence.trim();
@@ -162,6 +154,7 @@ export default function AddSequenceCard({
             .sort()
             .map((sample) => (
               <MenuItem
+                key={sample}
                 onClick={() => {
                   loadSample(sample);
                   setLoadSampleMenuEl(null);
