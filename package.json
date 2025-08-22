@@ -19,7 +19,14 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-markdown": "^10.1.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "react-refresh": "^0.11.0",
+    "bio-parsers": "^9.3.6",
+    "dnaviz": "^1.1.1",
+    "lodash": "^4.17.21",
+    "matter-js": "^0.19.0",
+    "recharts": "^2.10.3",
+    "web-vitals": "^2.1.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
