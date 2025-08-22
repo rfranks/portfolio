@@ -108,7 +108,9 @@ export const askOpenAI = async ({
           logMessagesToChatHistory ? "I'm thinking..." : "Processing PDF...",
           ""
         ) +
-        (initialContext.length > aiBufferSize ? responseText : "") +
+        (initialContext.length > aiBufferSize
+          ? responseText
+          : responseText?.substring(0, aiBufferSize)) +
         "\n\n",
       hasMore: !returnFirstResponse && rest.length > 0,
     };
@@ -162,8 +164,7 @@ if (typeof window !== "undefined") {
 
 export async function pdfToMarkdown(file: File): Promise<string> {
   const reader = new FileReader();
-  const workerSrc =
-    `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+  const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
   pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
