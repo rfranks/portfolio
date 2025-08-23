@@ -65,7 +65,7 @@ export default function AddSequenceCard({
 
   const loadSample = async (sample: string) => {
     const rawSequenceContent = await (
-      await fetch(withBasePath(`/assets/dna/examples/${sample}`))
+      await fetch(withBasePath(`/dna/examples/${sample}`))
     ).text();
 
     parseSequence(rawSequenceContent, sample, (parsedSequence) => {
