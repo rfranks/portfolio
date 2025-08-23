@@ -1,4 +1,3 @@
-import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Timeline from "@mui/lab/Timeline";
 import TimelineItem from "@mui/lab/TimelineItem";
@@ -8,10 +7,11 @@ import TimelineContent from "@mui/lab/TimelineContent";
 import TimelineDot from "@mui/lab/TimelineDot";
 import TimelineOppositeContent from "@mui/lab/TimelineOppositeContent";
 import { experience } from "@/consts/resumeData";
+import TronPaper from "@/components/app/TronPaper";
 
 export default function ExperienceTimeline() {
   return (
-    <Paper sx={{ p: 2, mb: 4 }}>
+    <TronPaper>
       <Typography variant="h6" gutterBottom>
         Experience
       </Typography>
@@ -23,8 +23,10 @@ export default function ExperienceTimeline() {
               {exp.end ? ` - ${exp.end}` : ""}
             </TimelineOppositeContent>
             <TimelineSeparator>
-              <TimelineDot />
-              {index < experience.length - 1 && <TimelineConnector />}
+              <TimelineDot color="primary" />
+              {index < experience.length - 1 && (
+                <TimelineConnector sx={{ bgcolor: "primary.main" }} />
+              )}
             </TimelineSeparator>
             <TimelineContent>
               <Typography variant="subtitle1">{exp.company}</Typography>
@@ -50,7 +52,7 @@ export default function ExperienceTimeline() {
           </TimelineItem>
         ))}
       </Timeline>
-    </Paper>
+    </TronPaper>
   );
 }
 

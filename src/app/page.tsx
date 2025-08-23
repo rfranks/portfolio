@@ -35,7 +35,18 @@ import Recognition from "@/components/app/Recognition";
 import ContactCTA from "@/components/app/ContactCTA";
 
 export default function Home() {
-  const defaultTheme = createTheme();
+  const defaultTheme = createTheme({
+    palette: {
+      mode: "dark",
+      primary: { main: "#00f0ff" },
+      secondary: { main: "#ff007f" },
+      background: { default: "#000914", paper: "#001e3c" },
+      text: { primary: "#e0f7ff", secondary: "#8ce2ff" },
+    },
+    typography: {
+      fontFamily: '"Roboto", sans-serif',
+    },
+  });
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
 
@@ -46,7 +57,7 @@ export default function Home() {
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />
-      <Box sx={{ display: "flex" }}>
+      <Box sx={{ display: "flex", bgcolor: "background.default", color: "text.primary" }}>
         <AppBar position="absolute" open={open} drawerWidth={drawerWidth}>
           <Toolbar sx={{ pr: "24px" }}>
             <IconButton
@@ -122,7 +133,15 @@ export default function Home() {
             </ListItemButton>
           </List>
         </Drawer>
-        <Box component="main" sx={{ flexGrow: 1 }}>
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            minHeight: "100vh",
+            backgroundImage:
+              "radial-gradient(circle at 25% 0, rgba(0,240,255,0.15), transparent)",
+          }}
+        >
           <Toolbar />
           <Container>
             <ResumeHero />
