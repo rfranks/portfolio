@@ -6,8 +6,8 @@ import ToggleColorMode from "../bookworm/ToggleColorMode";
 export interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
   drawerWidth?: number;
-  mode: PaletteMode;
-  toggleColorMode: () => void;
+  mode?: PaletteMode;
+  toggleColorMode?: () => void;
 }
 
 interface StyledAppBarProps extends MuiAppBarProps {
@@ -40,8 +40,8 @@ const StyledAppBar = styled(MuiAppBar, {
 export default function AppBar({
   open,
   drawerWidth,
-  mode,
-  toggleColorMode,
+  mode = "light",
+  toggleColorMode = () => {},
   children,
   ...other
 }: AppBarProps) {
@@ -54,4 +54,3 @@ export default function AppBar({
     </StyledAppBar>
   );
 }
-
