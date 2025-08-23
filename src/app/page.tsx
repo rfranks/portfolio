@@ -6,6 +6,7 @@ import Container from "@mui/material/Container";
 import ResumeHero from "@/components/app/ResumeHero";
 import ResumeSummary from "@/components/app/ResumeSummary";
 import CoreCompetencies from "@/components/app/CoreCompetencies";
+import ExperienceTimeline from "@/components/app/ExperienceTimeline";
 
 export default function Home() {
   const defaultTheme = createTheme();
@@ -17,6 +18,7 @@ export default function Home() {
         <ResumeHero />
         <ResumeSummary />
         <CoreCompetencies />
+        <ExperienceTimeline />
       </Container>
     </ThemeProvider>
   );
