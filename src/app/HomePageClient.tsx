@@ -35,6 +35,7 @@ import Education from "@/components/app/Education";
 import Recognition from "@/components/app/Recognition";
 import ContactCTA from "@/components/app/ContactCTA";
 import Grid from "@mui/material/Grid";
+import { withBasePath } from "@/utils/basePath";
 
 export default function HomePageClient() {
   const [mode, setMode] = useState<PaletteMode>("light");
@@ -117,37 +118,37 @@ export default function HomePageClient() {
           </Toolbar>
           <Divider />
           <List component="nav">
-            <ListItemButton component="a" href="/">
+            <ListItemButton component="a" href={withBasePath("/")}>
               <ListItemIcon>
                 <HomeIcon />
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItemButton>
-            <ListItemButton component="a" href="/dna">
+            <ListItemButton component="a" href={withBasePath("/dna")}>
               <ListItemIcon>
                 <Science />
               </ListItemIcon>
               <ListItemText primary="GeneBoard" />
             </ListItemButton>
-            <ListItemButton component="a" href="/bookworm">
+            <ListItemButton component="a" href={withBasePath("/bookworm")}>
               <ListItemIcon>
                 <MenuBook />
               </ListItemIcon>
               <ListItemText primary="Bookworm" />
             </ListItemButton>
-            <ListItemButton component="a" href="/blackjack">
+            <ListItemButton component="a" href={withBasePath("/blackjack")}>
               <ListItemIcon>
                 <Casino />
               </ListItemIcon>
               <ListItemText primary="Blackjack" />
             </ListItemButton>
-            <ListItemButton component="a" href="/warbirds">
+            <ListItemButton component="a" href={withBasePath("/warbirds")}>
               <ListItemIcon>
                 <Flight />
               </ListItemIcon>
               <ListItemText primary="Warbirds" />
             </ListItemButton>
-            <ListItemButton component="a" href="/zombiefish">
+            <ListItemButton component="a" href={withBasePath("/zombiefish")}>
               <ListItemIcon>
                 <BugReport />
               </ListItemIcon>
