@@ -118,6 +118,8 @@ export const competencies = {
   ],
 };
 
+export const coreCompetencies = competencies.skills;
+
 export const experience = [
   {
     company: "Commure",

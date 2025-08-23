@@ -5,6 +5,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Container from "@mui/material/Container";
 import ResumeHero from "@/components/app/ResumeHero";
 import ResumeSummary from "@/components/app/ResumeSummary";
+import CoreCompetencies from "@/components/app/CoreCompetencies";
 
 export default function Home() {
   const defaultTheme = createTheme();
@@ -15,6 +16,7 @@ export default function Home() {
       <Container>
         <ResumeHero />
         <ResumeSummary />
+        <CoreCompetencies />
       </Container>
     </ThemeProvider>
   );
