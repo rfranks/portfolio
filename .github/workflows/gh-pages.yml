@@ -19,6 +19,7 @@ jobs:
       - name: Build blackjack wasm
         run: |
           mkdir -p ./out
+          cd ./go/blackjack
           GOOS=js GOARCH=wasm go build -o out/main.wasm
           cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" out/
       - uses: actions/checkout@v3
