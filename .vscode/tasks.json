@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "gocover",
+            "command": "go",
+            "type": "shell",
+            "args": [
+                "tool",
+                "cover", 
+                "-html=cover.out"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "test"
+        }
+    ]
+}

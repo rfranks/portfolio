@@ -1,6 +1,6 @@
-count: 1
-house: -25
-wins: 1
+count: -2
+house: 0
+wins: 0
 losses: 0
 pushes: 0
 dealer-blackjacks: 0
@@ -23,21 +23,21 @@ bust-counts:
   12: 0
   13: 0
   14: 0
-sidebet-winnings: 0
+sidebet-winnings: 75
 sidebet-losings: 0
 dealer:
   hands:
   - active: true
     busted: false
     cards:
-    - suite: 1
-      value: 12
+    - suite: 0
+      value: 3
       masked: false
       demoted: false
       double-down: false
     - suite: 1
-      value: 7
-      masked: false
+      value: 11
+      masked: true
       demoted: false
       double-down: false
     double-down: false
@@ -62,23 +62,13 @@ players:
   - active: true
     busted: false
     cards:
-    - suite: 1
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 4
+    - suite: 3
+      value: 11
       masked: false
       demoted: false
       double-down: false
     - suite: 3
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 4
+      value: 14
       masked: false
       demoted: false
       double-down: false
@@ -88,112 +78,53 @@ players:
     split: false
     insurance-wager: 0
     stand: false
-    trifecta-wager: 12
+    trifecta-wager: 25
     trifecta-winnings: 0
-    wager: 25
+    wager: 50
     winner: false
   dealer: false
-  stack: 513
-  last-hand-won: true
+  stack: 4925
+  last-hand-won: false
   last-hand-pushed: false
   last-wager: 0
-  win-streak: 1
-  winnings: 25
+  win-streak: 0
+  winnings: 0
+- hands:
+  - active: true
+    busted: false
+    cards:
+    - suite: 3
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    double-down: false
+    even-money: false
+    insured: false
+    split: false
+    insurance-wager: 0
+    stand: false
+    trifecta-wager: 25
+    trifecta-winnings: 0
+    wager: 50
+    winner: false
+  dealer: false
+  stack: 4925
+  last-hand-won: false
+  last-hand-pushed: false
+  last-wager: 0
+  win-streak: 0
+  winnings: 0
 shoe:
   deck:
   - cards:
     - suite: 3
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
       value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 5
       masked: false
       demoted: false
       double-down: false
@@ -203,248 +134,7 @@ shoe:
       demoted: false
       double-down: false
     - suite: 0
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
       value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
-  - cards:
-    - suite: 1
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 14
       masked: false
       demoted: false
       double-down: false
@@ -454,7 +144,7 @@ shoe:
       demoted: false
       double-down: false
     - suite: 1
-      value: 7
+      value: 13
       masked: false
       demoted: false
       double-down: false
@@ -463,344 +153,13 @@ shoe:
       masked: false
       demoted: false
       double-down: false
-    - suite: 2
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
     - suite: 0
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 8
+      value: 13
       masked: false
       demoted: false
       double-down: false
     - suite: 2
       value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-  - cards:
-    - suite: 2
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 11
       masked: false
       demoted: false
       double-down: false
@@ -810,128 +169,7 @@ shoe:
       demoted: false
       double-down: false
     - suite: 3
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
       value: 7
-      masked: false
-      demoted: false
-      double-down: false
-  - cards:
-    - suite: 0
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 8
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 6
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 7
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 13
       masked: false
       demoted: false
       double-down: false
@@ -945,13 +183,18 @@ shoe:
       masked: false
       demoted: false
       double-down: false
-    - suite: 0
-      value: 5
+    - suite: 3
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 3
       masked: false
       demoted: false
       double-down: false
     - suite: 2
-      value: 14
+      value: 13
       masked: false
       demoted: false
       double-down: false
@@ -960,13 +203,78 @@ shoe:
       masked: false
       demoted: false
       double-down: false
+    - suite: 2
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
     - suite: 3
-      value: 13
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 2
       masked: false
       demoted: false
       double-down: false
     - suite: 2
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
       value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 7
       masked: false
       demoted: false
       double-down: false
@@ -976,52 +284,17 @@ shoe:
       demoted: false
       double-down: false
     - suite: 1
-      value: 11
+      value: 8
       masked: false
       demoted: false
       double-down: false
     - suite: 2
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 11
+      value: 7
       masked: false
       demoted: false
       double-down: false
     - suite: 0
       value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 3
       masked: false
       demoted: false
       double-down: false
@@ -1030,8 +303,53 @@ shoe:
       masked: false
       demoted: false
       double-down: false
+    - suite: 2
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
     - suite: 0
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
       value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 8
       masked: false
       demoted: false
       double-down: false
@@ -1041,33 +359,133 @@ shoe:
       demoted: false
       double-down: false
     - suite: 0
-      value: 9
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 2
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 8
+      value: 4
       masked: false
       demoted: false
       double-down: false
   - cards:
     - suite: 3
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
       value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 11
       masked: false
       demoted: false
       double-down: false
@@ -1077,7 +495,464 @@ shoe:
       demoted: false
       double-down: false
     - suite: 2
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
       value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+  - cards:
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+  - cards:
+    - suite: 0
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 11
       masked: false
       demoted: false
       double-down: false
@@ -1091,18 +966,38 @@ shoe:
       masked: false
       demoted: false
       double-down: false
-    - suite: 2
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
     - suite: 3
-      value: 7
+      value: 8
       masked: false
       demoted: false
       double-down: false
-    - suite: 0
-      value: 3
+    - suite: 2
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 6
       masked: false
       demoted: false
       double-down: false
@@ -1112,12 +1007,17 @@ shoe:
       demoted: false
       double-down: false
     - suite: 2
-      value: 2
+      value: 3
       masked: false
       demoted: false
       double-down: false
-    - suite: 2
-      value: 5
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 14
       masked: false
       demoted: false
       double-down: false
@@ -1126,23 +1026,74 @@ shoe:
       masked: false
       demoted: false
       double-down: false
-    - suite: 0
-      value: 8
+    - suite: 3
+      value: 4
       masked: false
       demoted: false
       double-down: false
     - suite: 0
-      value: 7
+      value: 4
       masked: false
       demoted: false
       double-down: false
-    - suite: 2
-      value: 8
+    - suite: 0
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 12
       masked: false
       demoted: false
       double-down: false
     - suite: 3
-      value: 4
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+  - cards:
+    - suite: 0
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 5
       masked: false
       demoted: false
       double-down: false
@@ -1156,43 +1107,13 @@ shoe:
       masked: false
       demoted: false
       double-down: false
-    - suite: 2
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
+    - suite: 3
       value: 11
       masked: false
       demoted: false
       double-down: false
-    - suite: 3
-      value: 5
-      masked: false
-      demoted: false
-      double-down: false
     - suite: 1
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 4
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 2
-      value: 13
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
       value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 9
       masked: false
       demoted: false
       double-down: false
@@ -1202,22 +1123,22 @@ shoe:
       demoted: false
       double-down: false
     - suite: 2
-      value: 3
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 1
-      value: 12
+      value: 8
       masked: false
       demoted: false
       double-down: false
     - suite: 2
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
       value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 6
       masked: false
       demoted: false
       double-down: false
@@ -1231,8 +1152,13 @@ shoe:
       masked: false
       demoted: false
       double-down: false
+    - suite: 1
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
     - suite: 3
-      value: 14
+      value: 13
       masked: false
       demoted: false
       double-down: false
@@ -1241,33 +1167,23 @@ shoe:
       masked: false
       demoted: false
       double-down: false
-    - suite: 2
-      value: 12
-      masked: false
-      demoted: false
-      double-down: false
     - suite: 1
       value: 13
       masked: false
       demoted: false
       double-down: false
-    - suite: 2
-      value: 6
+    - suite: 1
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 12
       masked: false
       demoted: false
       double-down: false
     - suite: 3
-      value: 11
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 0
-      value: 14
-      masked: false
-      demoted: false
-      double-down: false
-    - suite: 3
-      value: 6
+      value: 7
       masked: false
       demoted: false
       double-down: false
@@ -1276,13 +1192,98 @@ shoe:
       masked: false
       demoted: false
       double-down: false
+    - suite: 1
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
     - suite: 0
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
       value: 5
       masked: false
       demoted: false
       double-down: false
     - suite: 3
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
       value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 3
       masked: false
       demoted: false
       double-down: false
@@ -1292,128 +1293,58 @@ shoe:
       demoted: false
       double-down: false
     - suite: 3
-      value: 13
+      value: 8
       masked: false
       demoted: false
       double-down: false
-    - suite: 1
+    - suite: 2
       value: 3
       masked: false
       demoted: false
       double-down: false
+    - suite: 2
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
     - suite: 1
-      value: 7
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 6
       masked: false
       demoted: false
       double-down: false
   cards:
-  - suite: 0
-    value: 4
+  - suite: 3
+    value: 9
     masked: false
     demoted: false
     double-down: false
-  - suite: 1
-    value: 13
+  - suite: 3
+    value: 11
     masked: false
     demoted: false
     double-down: false
-  - suite: 1
+  - suite: 3
     value: 12
     masked: false
     demoted: false
     double-down: false
   - suite: 0
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
     value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 7
     masked: false
     demoted: false
     double-down: false
@@ -1423,22 +1354,7 @@ shoe:
     demoted: false
     double-down: false
   - suite: 2
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
     value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 5
     masked: false
     demoted: false
     double-down: false
@@ -1447,338 +1363,8 @@ shoe:
     masked: false
     demoted: false
     double-down: false
-  - suite: 3
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
   - suite: 1
     value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 14
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 14
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 14
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 12
     masked: false
     demoted: false
     double-down: false
@@ -1788,252 +1374,22 @@ shoe:
     demoted: false
     double-down: false
   - suite: 2
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 14
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
     value: 11
     masked: false
     demoted: false
     double-down: false
-  - suite: 2
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 9
+  - suite: 0
+    value: 2
     masked: false
     demoted: false
     double-down: false
   - suite: 0
-    value: 14
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
     value: 4
     masked: false
     demoted: false
     double-down: false
   - suite: 2
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 14
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
     value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 6
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 14
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 14
     masked: false
     demoted: false
     double-down: false
@@ -2048,76 +1404,26 @@ shoe:
     demoted: false
     double-down: false
   - suite: 1
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 14
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 4
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
     value: 6
     masked: false
     demoted: false
     double-down: false
-  - suite: 0
+  - suite: 3
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
     value: 6
     masked: false
     demoted: false
@@ -2127,18 +1433,8 @@ shoe:
     masked: false
     demoted: false
     double-down: false
-  - suite: 0
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 7
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 3
+  - suite: 2
+    value: 9
     masked: false
     demoted: false
     double-down: false
@@ -2147,8 +1443,193 @@ shoe:
     masked: false
     demoted: false
     double-down: false
+  - suite: 2
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
   - suite: 0
     value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 9
     masked: false
     demoted: false
     double-down: false
@@ -2157,18 +1638,78 @@ shoe:
     masked: false
     demoted: false
     double-down: false
-  - suite: 0
-    value: 3
+  - suite: 2
+    value: 2
     masked: false
     demoted: false
     double-down: false
-  - suite: 0
-    value: 8
+  - suite: 3
+    value: 11
     masked: false
     demoted: false
     double-down: false
-  - suite: 0
+  - suite: 3
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
     value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 4
     masked: false
     demoted: false
     double-down: false
@@ -2178,37 +1719,87 @@ shoe:
     demoted: false
     double-down: false
   - suite: 3
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 12
+    value: 8
     masked: false
     demoted: false
     double-down: false
   - suite: 0
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 12
+    value: 14
     masked: false
     demoted: false
     double-down: false
   - suite: 2
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
     value: 14
     masked: false
     demoted: false
     double-down: false
-  - suite: 0
+  - suite: 1
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
     value: 14
     masked: false
     demoted: false
     double-down: false
   - suite: 3
-    value: 13
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 12
     masked: false
     demoted: false
     double-down: false
@@ -2218,12 +1809,57 @@ shoe:
     demoted: false
     double-down: false
   - suite: 1
-    value: 4
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 11
     masked: false
     demoted: false
     double-down: false
   - suite: 0
-    value: 7
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 14
     masked: false
     demoted: false
     double-down: false
@@ -2233,12 +1869,37 @@ shoe:
     demoted: false
     double-down: false
   - suite: 2
-    value: 5
+    value: 2
     masked: false
     demoted: false
     double-down: false
-  - suite: 0
-    value: 13
+  - suite: 1
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 9
     masked: false
     demoted: false
     double-down: false
@@ -2247,18 +1908,113 @@ shoe:
     masked: false
     demoted: false
     double-down: false
+  - suite: 3
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
   - suite: 0
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
     value: 12
     masked: false
     demoted: false
     double-down: false
   - suite: 3
-    value: 5
+    value: 12
     masked: false
     demoted: false
     double-down: false
-  - suite: 1
-    value: 13
+  - suite: 0
+    value: 6
     masked: false
     demoted: false
     double-down: false
@@ -2272,82 +2028,7 @@ shoe:
     masked: false
     demoted: false
     double-down: false
-  - suite: 0
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 8
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
   - suite: 1
-    value: 14
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 14
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 3
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 11
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 3
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
     value: 12
     masked: false
     demoted: false
@@ -2363,47 +2044,17 @@ shoe:
     demoted: false
     double-down: false
   - suite: 0
-    value: 13
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 5
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 0
     value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 12
     masked: false
     demoted: false
     double-down: false
@@ -2412,27 +2063,102 @@ shoe:
     masked: false
     demoted: false
     double-down: false
-  - suite: 2
-    value: 6
+  - suite: 3
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 2
     masked: false
     demoted: false
     double-down: false
   - suite: 0
-    value: 6
+    value: 8
     masked: false
     demoted: false
     double-down: false
   - suite: 0
-    value: 14
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 7
     masked: false
     demoted: false
     double-down: false
   - suite: 1
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
     value: 14
     masked: false
     demoted: false
     double-down: false
+  - suite: 0
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
   - suite: 2
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
     value: 14
     masked: false
     demoted: false
@@ -2442,38 +2168,43 @@ shoe:
     masked: false
     demoted: false
     double-down: false
-  - suite: 3
-    value: 2
-    masked: false
-    demoted: false
-    double-down: false
   - suite: 1
-    value: 11
+    value: 3
     masked: false
     demoted: false
     double-down: false
-  - suite: 2
+  - suite: 0
     value: 7
     masked: false
     demoted: false
     double-down: false
+  - suite: 2
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
   - suite: 3
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
     value: 11
     masked: false
     demoted: false
     double-down: false
   - suite: 0
-    value: 9
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 2
-    value: 12
-    masked: false
-    demoted: false
-    double-down: false
-  - suite: 1
-    value: 7
+    value: 13
     masked: false
     demoted: false
     double-down: false
@@ -2483,7 +2214,32 @@ shoe:
     demoted: false
     double-down: false
   - suite: 1
-    value: 3
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 5
     masked: false
     demoted: false
     double-down: false
@@ -2492,12 +2248,242 @@ shoe:
     masked: false
     demoted: false
     double-down: false
+  - suite: 2
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
   - suite: 3
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
     value: 7
     masked: false
     demoted: false
     double-down: false
   - suite: 1
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
     value: 7
     masked: false
     demoted: false
@@ -2507,6 +2493,41 @@ shoe:
     masked: false
     demoted: false
     double-down: false
-  cut: 120
+  - suite: 0
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  cut: 162
   index: 7
 rounds: 1
