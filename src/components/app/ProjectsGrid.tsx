@@ -1,3 +1,4 @@
+import Image from "next/image";
 import * as resumeData from "@/consts/resumeData";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -16,7 +17,7 @@ export default function ProjectsGrid() {
           Projects
         </Typography>
         <Grid container spacing={2}>
-          {resumeData.projects.map((project) => (
+          {resumeData.projects.map((project, index) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={project.href}>
               <Card
                 variant="outlined"
@@ -28,6 +29,14 @@ export default function ProjectsGrid() {
                 }}
               >
                 <CardContent>
+                  <Image
+                    src={project.image}
+                    alt={`${project.name} screenshot`}
+                    width={400}
+                    height={300}
+                    priority={index === 0}
+                    style={{ width: "100%", height: "auto" }}
+                  />
                   <Typography variant="subtitle1" color="primary.main">
                     {project.name}
                   </Typography>
