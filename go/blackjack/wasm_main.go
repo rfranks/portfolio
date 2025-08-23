@@ -60,7 +60,7 @@ func Start(this js.Value, args []js.Value) any {
 		cfg.ColorTerminal = jsCfg.ColorTerminal
 	}
 
-	console = web.New()
+	console = web.New(cfg)
 
 	sidebets.TrifectaProgressives = append(sidebets.TrifectaProgressives, int(rand.Float64()*15000000))
 	sidebets.TrifectaProgressives = append(sidebets.TrifectaProgressives, int(rand.Float64()*5000000))

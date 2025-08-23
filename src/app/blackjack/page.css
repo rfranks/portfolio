@@ -1,7 +1,15 @@
 .cards {
   display: flex;
   gap: 0.5rem;
-  font-size: 8rem;
+}
+
+.card {
+  width: 80px;
+  height: auto;
+}
+
+#progressives span {
+  margin-right: 1rem;
 }
 
 #controls {
@@ -16,4 +24,9 @@ button {
 #status {
   margin-top: 1rem;
   font-weight: bold;
+}
+
+#hint {
+  margin-top: 1rem;
+  white-space: pre-line;
 }
