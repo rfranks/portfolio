@@ -1,20 +1,27 @@
 import * as resumeData from "@/consts/resumeData";
-import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import TronPaper from "@/components/app/TronPaper";
 
 export default function Recognition() {
   return (
-    <Paper sx={{ p: 2, mb: 4 }}>
+    <TronPaper>
       <Typography variant="h6" gutterBottom>
         Recognition
       </Typography>
       <Grid container spacing={2} sx={{ mb: 2 }}>
         {resumeData.recognition.snippets.map((snippet, idx) => (
           <Grid item xs={12} sm={4} key={idx}>
-            <Card variant="outlined">
+            <Card
+              variant="outlined"
+              sx={{
+                backgroundColor: "background.default",
+                borderColor: "primary.main",
+                boxShadow: "0 0 6px rgba(0,240,255,0.3)",
+              }}
+            >
               <CardContent>
                 <Typography
                   variant="body2"
@@ -34,7 +41,14 @@ export default function Recognition() {
       <Grid container spacing={2}>
         {resumeData.recognition.recommendations.map((rec) => (
           <Grid item xs={12} key={`${rec.name}-${rec.date}`}>
-            <Card variant="outlined">
+            <Card
+              variant="outlined"
+              sx={{
+                backgroundColor: "background.default",
+                borderColor: "primary.main",
+                boxShadow: "0 0 6px rgba(0,240,255,0.3)",
+              }}
+            >
               <CardContent>
                 <Typography variant="subtitle1" fontWeight="bold" color="primary">
                   {rec.name}
@@ -53,7 +67,7 @@ export default function Recognition() {
           </Grid>
         ))}
       </Grid>
-    </Paper>
+    </TronPaper>
   );
 }
 

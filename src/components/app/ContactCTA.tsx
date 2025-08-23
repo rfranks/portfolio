@@ -1,12 +1,12 @@
-import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import { summary } from "@/consts/resumeData";
+import TronPaper from "@/components/app/TronPaper";
 
 export default function ContactCTA() {
   return (
-    <Paper sx={{ p: 2, mb: 4, textAlign: "center" }}>
+    <TronPaper sx={{ textAlign: "center" }}>
       <Typography variant="h6" gutterBottom>
         Contact
       </Typography>
@@ -23,10 +23,11 @@ export default function ContactCTA() {
           href={summary.contact.linkedin}
           target="_blank"
           rel="noopener"
+          color="secondary"
         >
           LinkedIn
         </Button>
       </Stack>
-    </Paper>
+    </TronPaper>
   );
 }

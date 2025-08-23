@@ -12,6 +12,10 @@ export default styled(MuiDrawer, {
     position: "relative",
     whiteSpace: "nowrap",
     width: drawerWidth,
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    borderRight: `1px solid ${theme.palette.primary.main}`,
+    boxShadow: `0 0 10px ${theme.palette.primary.main}`,
     transition: theme.transitions.create("width", {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
