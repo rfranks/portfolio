@@ -190,26 +190,31 @@ export const projects = [
     name: "Warbirds",
     description: "Dogfight through the skies in this arcade shooter.",
     href: "/warbirds",
+    image: "/images/projects/warbirds.svg",
   },
   {
     name: "ZombieFish",
     description: "Hook undead fish before they bite.",
     href: "/zombiefish",
+    image: "/images/projects/zombiefish.svg",
   },
   {
     name: "Blackjack",
     description: "Classic twenty-one card game against the dealer.",
     href: "/blackjack",
+    image: "/images/projects/blackjack.svg",
   },
   {
     name: "GeneBoard",
     description: "Interactive tools for exploring DNA sequences.",
     href: "/dna",
+    image: "/images/projects/geneboard.svg",
   },
   {
     name: "Bookworm",
     description: "Word puzzle game built with React.",
     href: "/bookworm",
+    image: "/images/projects/bookworm.svg",
   },
 ];
 
