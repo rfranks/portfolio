@@ -43,16 +43,16 @@ export default function HomePageClient() {
       createTheme({
         palette: {
           mode,
-          primary: { main: "#00f0ff" },
-          secondary: { main: "#ff007f" },
+          primary: { main: "#0969da" },
+          secondary: { main: "#8250df" },
           ...(mode === "light"
             ? {
-                background: { default: "#f5f5f5", paper: "#ffffff" },
-                text: { primary: "#001e3c", secondary: "#334e68" },
+                background: { default: "#f6f8fa", paper: "#ffffff" },
+                text: { primary: "#24292f", secondary: "#57606a" },
               }
             : {
-                background: { default: "#000914", paper: "#001e3c" },
-                text: { primary: "#e0f7ff", secondary: "#8ce2ff" },
+                background: { default: "#0d1117", paper: "#161b22" },
+                text: { primary: "#c9d1d9", secondary: "#8b949e" },
               }),
         },
         typography: {
@@ -161,7 +161,7 @@ export default function HomePageClient() {
             flexGrow: 1,
             minHeight: "100vh",
             backgroundImage:
-              "radial-gradient(circle at 25% 0, rgba(0,240,255,0.15), transparent)",
+              "radial-gradient(circle at 25% 0, rgba(9,105,218,0.15), transparent)",
           }}
         >
           <Toolbar />
