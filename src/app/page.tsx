@@ -8,6 +8,7 @@ import ResumeSummary from "@/components/app/ResumeSummary";
 import CoreCompetencies from "@/components/app/CoreCompetencies";
 import ExperienceTimeline from "@/components/app/ExperienceTimeline";
 import ProjectsGrid from "@/components/app/ProjectsGrid";
+import Education from "@/components/app/Education";
 import Recognition from "@/components/app/Recognition";
 
 export default function Home() {
@@ -22,6 +23,7 @@ export default function Home() {
         <CoreCompetencies />
         <ExperienceTimeline />
         <ProjectsGrid />
+        <Education />
         <Recognition />
       </Container>
     </ThemeProvider>
