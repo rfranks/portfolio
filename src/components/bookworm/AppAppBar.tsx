@@ -90,9 +90,15 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
                 px: 0,
               }}
             >
-              <Image src="/logo192.png" style={logoStyle} alt="bookworm logo" />
+              <Image
+                src="/logo192.png"
+                style={logoStyle}
+                alt="bookworm logo"
+                width={192}
+                height={194}
+              />
               <Typography
-              onClick={() => scrollToSection("hero")}
+                onClick={() => scrollToSection("hero")}
                 variant="h4"
                 color="text.primary"
                 sx={{
