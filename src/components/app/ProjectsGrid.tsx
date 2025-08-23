@@ -15,7 +15,7 @@ export default function ProjectsGrid() {
       </Typography>
       <Grid container spacing={2}>
         {resumeData.projects.map((project) => (
-          <Grid item xs={12} sm={6} md={4} key={project.href}>
+          <Grid item xs={12} sm={6} md={4} lg={3} key={project.href}>
             <Card
               variant="outlined"
               sx={{

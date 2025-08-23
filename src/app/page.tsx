@@ -34,6 +34,7 @@ import ProjectsGrid from "@/components/app/ProjectsGrid";
 import Education from "@/components/app/Education";
 import Recognition from "@/components/app/Recognition";
 import ContactCTA from "@/components/app/ContactCTA";
+import Grid from "@mui/material/Grid";
 
 export default function Home() {
   const [mode, setMode] = useState<PaletteMode>("dark");
@@ -166,10 +167,18 @@ export default function Home() {
           <Toolbar />
           <Container>
             <ResumeHero />
-            <ResumeSummary />
-            <CoreCompetencies />
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={12} md={6} lg={6}>
+                <ResumeSummary />
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} lg={6}>
+                <CoreCompetencies />
+              </Grid>
+              <Grid item xs={12} sm={12} md={12} lg={12}>
+                <ProjectsGrid />
+              </Grid>
+            </Grid>
             <ExperienceTimeline />
-            <ProjectsGrid />
             <Education />
             <Recognition />
             <ContactCTA />
