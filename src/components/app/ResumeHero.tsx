@@ -4,6 +4,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import { summary } from "@/consts/resumeData";
+import { withBasePath } from "@/utils/basePath";
 
 export default function ResumeHero() {
   return (
@@ -50,6 +51,9 @@ export default function ResumeHero() {
           rel="noopener"
         >
           LinkedIn
+        </Button>
+        <Button variant="outlined" href={withBasePath("/resume.pdf")} download>
+          Resume
         </Button>
       </Stack>
     </Box>
