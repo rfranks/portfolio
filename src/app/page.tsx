@@ -10,6 +10,7 @@ import ExperienceTimeline from "@/components/app/ExperienceTimeline";
 import ProjectsGrid from "@/components/app/ProjectsGrid";
 import Education from "@/components/app/Education";
 import Recognition from "@/components/app/Recognition";
+import ContactCTA from "@/components/app/ContactCTA";
 
 export default function Home() {
   const defaultTheme = createTheme();
@@ -25,6 +26,7 @@ export default function Home() {
         <ProjectsGrid />
         <Education />
         <Recognition />
+        <ContactCTA />
       </Container>
     </ThemeProvider>
   );
