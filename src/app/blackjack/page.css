@@ -1,10 +1,10 @@
 .cards {
   display: flex;
-  gap: 0.5rem;
+  gap: 1.0rem;
 }
 
 .card {
-  width: 80px;
+  width: 120px;
   height: auto;
 }
 

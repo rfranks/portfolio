@@ -131,7 +131,8 @@ func (w *WebUI) Render(state ui.GameState) {
 		if len(game.State.Dealer.Hands) > 0 {
 			for _, c := range game.State.Dealer.Hands[0].Cards {
 				src := cardToImage(c)
-				html += "<img class=\"card\" src=\"" + src + "\" />"
+				html += "<img class=\"card\" src=\"" + src + "\" onerror=\"this.style.display='none'\"/>"
+				html += "<img class=\"card\" src=\"/portfolio" + src + "\" onerror=\"this.style.display='none'\"/>"
 			}
 		}
 		el.Set("innerHTML", html)
