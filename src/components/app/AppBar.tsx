@@ -1,14 +1,23 @@
-import { styled } from "@mui/material/styles";
+import { PaletteMode, Toolbar } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
+import { styled } from "@mui/material/styles";
+import ToggleColorMode from "../bookworm/ToggleColorMode";
 
-export type AppBarProps = MuiAppBarProps & {
+export interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
   drawerWidth?: number;
-};
+  mode: PaletteMode;
+  toggleColorMode: () => void;
+}
 
-export default styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== "open",
-})<AppBarProps>(({ theme, open, drawerWidth = 240 }) => ({
+interface StyledAppBarProps extends MuiAppBarProps {
+  open?: boolean;
+  drawerWidth?: number;
+}
+
+const StyledAppBar = styled(MuiAppBar, {
+  shouldForwardProp: (prop) => prop !== "open" && prop !== "drawerWidth",
+})<StyledAppBarProps>(({ theme, open, drawerWidth = 240 }) => ({
   zIndex: theme.zIndex.drawer + 1,
   backgroundColor: theme.palette.background.paper,
   color: theme.palette.text.primary,
@@ -27,3 +36,22 @@ export default styled(MuiAppBar, {
     }),
   }),
 }));
+
+export default function AppBar({
+  open,
+  drawerWidth,
+  mode,
+  toggleColorMode,
+  children,
+  ...other
+}: AppBarProps) {
+  return (
+    <StyledAppBar open={open} drawerWidth={drawerWidth} {...other}>
+      <Toolbar sx={{ pr: "24px" }}>
+        {children}
+        <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
+      </Toolbar>
+    </StyledAppBar>
+  );
+}
+

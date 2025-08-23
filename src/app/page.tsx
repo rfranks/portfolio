@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { PaletteMode } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
@@ -35,18 +36,30 @@ import Recognition from "@/components/app/Recognition";
 import ContactCTA from "@/components/app/ContactCTA";
 
 export default function Home() {
-  const defaultTheme = createTheme({
-    palette: {
-      mode: "dark",
-      primary: { main: "#00f0ff" },
-      secondary: { main: "#ff007f" },
-      background: { default: "#000914", paper: "#001e3c" },
-      text: { primary: "#e0f7ff", secondary: "#8ce2ff" },
-    },
-    typography: {
-      fontFamily: '"Roboto", sans-serif',
-    },
-  });
+  const [mode, setMode] = useState<PaletteMode>("dark");
+  const defaultTheme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode,
+          primary: { main: "#00f0ff" },
+          secondary: { main: "#ff007f" },
+          ...(mode === "light"
+            ? {
+                background: { default: "#f5f5f5", paper: "#ffffff" },
+                text: { primary: "#001e3c", secondary: "#334e68" },
+              }
+            : {
+                background: { default: "#000914", paper: "#001e3c" },
+                text: { primary: "#e0f7ff", secondary: "#8ce2ff" },
+              }),
+        },
+        typography: {
+          fontFamily: '"Roboto", sans-serif',
+        },
+      }),
+    [mode]
+  );
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
 
@@ -54,31 +67,39 @@ export default function Home() {
     setOpen(!open);
   };
 
+  const toggleColorMode = () => {
+    setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
+  };
+
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />
       <Box sx={{ display: "flex", bgcolor: "background.default", color: "text.primary" }}>
-        <AppBar position="absolute" open={open} drawerWidth={drawerWidth}>
-          <Toolbar sx={{ pr: "24px" }}>
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={toggleDrawer}
-              sx={{ marginRight: "36px", ...(open && { display: "none" }) }}
-            >
-              <Menu />
-            </IconButton>
-            <Typography
-              component="h1"
-              variant="h6"
-              color="inherit"
-              noWrap
-              sx={{ flexGrow: 1 }}
-            >
-              Portfolio
-            </Typography>
-          </Toolbar>
+        <AppBar
+          position="absolute"
+          open={open}
+          drawerWidth={drawerWidth}
+          mode={mode}
+          toggleColorMode={toggleColorMode}
+        >
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="open drawer"
+            onClick={toggleDrawer}
+            sx={{ marginRight: "36px", ...(open && { display: "none" }) }}
+          >
+            <Menu />
+          </IconButton>
+          <Typography
+            component="h1"
+            variant="h6"
+            color="inherit"
+            noWrap
+            sx={{ flexGrow: 1 }}
+          >
+            Portfolio
+          </Typography>
         </AppBar>
         <Drawer variant="permanent" open={open} drawerWidth={drawerWidth}>
           <Toolbar
