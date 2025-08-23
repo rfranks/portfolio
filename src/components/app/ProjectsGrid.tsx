@@ -8,6 +8,7 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
+import { withBasePath } from "@/utils/basePath";
 
 export default function ProjectsGrid() {
   return (
@@ -44,7 +45,7 @@ export default function ProjectsGrid() {
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  <Button size="small" href={project.href} color="secondary">
+                  <Button size="small" href={withBasePath(project.href)} color="secondary">
                     Launch
                   </Button>
                 </CardActions>
