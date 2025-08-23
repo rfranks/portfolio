@@ -131,8 +131,8 @@ func (w *WebUI) Render(state ui.GameState) {
 		if len(game.State.Dealer.Hands) > 0 {
 			for _, c := range game.State.Dealer.Hands[0].Cards {
 				src := cardToImage(c)
-				html += "<img class=\"card\" src=\"" + src + "\" onerror=\"this.style.display='none'\"/>"
-				html += "<img class=\"card\" src=\"/portfolio" + src + "\" onerror=\"this.style.display='none'\"/>"
+				html += "<img class=\"card\" src=\"" + src + "\" style=\"display:none\" onload=\"this.style.display='block'\" onerror=\"this.style.display='none'\"/>"
+				html += "<img class=\"card\" src=\"/portfolio" + src + "\" style=\"display:none\" onload=\"this.style.display='block'\" onerror=\"this.style.display='none'\"/>"
 			}
 		}
 		el.Set("innerHTML", html)
@@ -152,8 +152,8 @@ func (w *WebUI) Render(state ui.GameState) {
 		if len(game.State.Players) > 0 && len(game.State.Players[0].Hands) > 0 {
 			for _, c := range game.State.Players[0].Hands[0].Cards {
 				src := cardToImage(c)
-				html += "<img class=\"card\" src=\"" + src + "\" onerror=\"this.style.display='none'\"/>"
-				html += "<img class=\"card\" src=\"/portfolio" + src + "\" onerror=\"this.style.display='none'\"/>"
+				html += "<img class=\"card\" src=\"" + src + "\" style=\"display:none\" onload=\"this.style.display='block'\" onerror=\"this.style.display='none'\"/>"
+				html += "<img class=\"card\" src=\"/portfolio" + src + "\" style=\"display:none\" onload=\"this.style.display='block'\" onerror=\"this.style.display='none'\"/>"
 			}
 		}
 		el.Set("innerHTML", html)
