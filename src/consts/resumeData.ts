@@ -187,16 +187,29 @@ export const experience = [
 
 export const projects = [
   {
-    name: "patient-list-app",
-    description: "Java-based Patient List powering EHR full-stack workflows.",
+    name: "Warbirds",
+    description: "Dogfight through the skies in this arcade shooter.",
+    href: "/warbirds",
   },
   {
-    name: "pk-cloud-functions",
-    description: "Python/Azure RAG + CRUD APIs with Next.js UI.",
+    name: "ZombieFish",
+    description: "Hook undead fish before they bite.",
+    href: "/zombiefish",
   },
   {
-    name: "pk-common-ui",
-    description: "Reusable React/TypeScript component library supporting enterprise adoption.",
+    name: "Blackjack",
+    description: "Classic twenty-one card game against the dealer.",
+    href: "/blackjack",
+  },
+  {
+    name: "GeneBoard",
+    description: "Interactive tools for exploring DNA sequences.",
+    href: "/dna",
+  },
+  {
+    name: "Bookworm",
+    description: "Word puzzle game built with React.",
+    href: "/bookworm",
   },
 ];
 
