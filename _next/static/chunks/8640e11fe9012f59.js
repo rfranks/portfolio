@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,57512,t=>{"use strict";t.s(["BASE_PATH",()=>c,"withBasePath",()=>o]);let c="/portfolio";function o(t){let o=c.endsWith("/")?c.slice(0,-1):c,e=t.startsWith("/")?t:"/".concat(t);return"".concat(o).concat(e)}}]);
