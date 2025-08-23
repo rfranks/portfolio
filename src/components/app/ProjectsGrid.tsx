@@ -24,8 +24,7 @@ export default function ProjectsGrid() {
                 sx={{
                   height: "100%",
                   backgroundColor: "background.default",
-                  borderColor: "primary.main",
-                  boxShadow: "0 0 6px rgba(0,240,255,0.3)",
+                  borderColor: "divider",
                 }}
               >
                 <CardContent>
