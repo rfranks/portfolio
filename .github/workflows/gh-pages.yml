@@ -22,8 +22,8 @@ jobs:
         run: |
           mkdir -p ./out
           cd ./go/blackjack
-          GOOS=js GOARCH=wasm go build -o out/main.wasm
-          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" out/
+          GOOS=js GOARCH=wasm go build -o ../../out/main.wasm
+          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../../out/
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
