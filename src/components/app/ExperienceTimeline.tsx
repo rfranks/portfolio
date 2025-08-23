@@ -27,7 +27,7 @@ export default function ExperienceTimeline() {
               <TimelineSeparator>
                 <TimelineDot color="primary" />
                 {index < experience.length - 1 && (
-                  <TimelineConnector sx={{ bgcolor: "primary.main" }} />
+                  <TimelineConnector sx={{ bgcolor: "divider" }} />
                 )}
               </TimelineSeparator>
               <TimelineContent>

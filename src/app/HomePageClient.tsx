@@ -37,18 +37,18 @@ import ContactCTA from "@/components/app/ContactCTA";
 import Grid from "@mui/material/Grid";
 
 export default function HomePageClient() {
-  const [mode, setMode] = useState<PaletteMode>("dark");
+  const [mode, setMode] = useState<PaletteMode>("light");
   const defaultTheme = useMemo(
     () =>
       createTheme({
         palette: {
           mode,
-          primary: { main: "#0969da" },
-          secondary: { main: "#8250df" },
+          primary: { main: "#0A66C2" },
+          secondary: { main: "#56687A" },
           ...(mode === "light"
             ? {
-                background: { default: "#f6f8fa", paper: "#ffffff" },
-                text: { primary: "#24292f", secondary: "#57606a" },
+                background: { default: "#ffffff", paper: "#ffffff" },
+                text: { primary: "#1f1f1f", secondary: "#5e5e5e" },
               }
             : {
                 background: { default: "#0d1117", paper: "#161b22" },
@@ -155,15 +155,7 @@ export default function HomePageClient() {
             </ListItemButton>
           </List>
         </Drawer>
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            minHeight: "100vh",
-            backgroundImage:
-              "radial-gradient(circle at 25% 0, rgba(9,105,218,0.15), transparent)",
-          }}
-        >
+        <Box component="main" sx={{ flexGrow: 1, minHeight: "100vh" }}>
           <Toolbar />
           <Container>
             <ResumeHero />

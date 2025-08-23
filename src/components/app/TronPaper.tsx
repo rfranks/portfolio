@@ -5,8 +5,8 @@ const TronPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   marginBottom: theme.spacing(4),
   backgroundColor: theme.palette.background.paper,
-  border: `1px solid ${theme.palette.primary.main}`,
-  boxShadow: `0 0 10px ${theme.palette.primary.main}`,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "none",
 }));
 
 export default TronPaper;
