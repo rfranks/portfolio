@@ -1,5 +1,27 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Résumé-Driven Home Page
+
+The landing page presents a résumé-focused portfolio with sections for summary,
+competencies, projects, experience, education, recognition, and contact. A
+drawer menu links to several demos and games:
+
+- [GeneBoard](http://localhost:3000/dna)
+- [Bookworm](http://localhost:3000/bookworm)
+- [Blackjack](http://localhost:3000/blackjack)
+- [Warbirds](http://localhost:3000/warbirds)
+- [ZombieFish](http://localhost:3000/zombiefish)
+
+### Build Instructions
+
+```bash
+npm install
+npm run build
+npm start
+```
+
+During development, run `npm run dev` to start the local server.
+
 ## Getting Started
 
 First, run the development server:
