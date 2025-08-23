@@ -105,9 +105,10 @@ export default function Hero() {
   };
 
   React.useEffect(() => {
-    chatParentRef?.current &&
-      (chatParentRef.current.scrollTop =
-        chatParentRef?.current?.scrollHeight || 0);
+    if (chatParentRef.current) {
+      chatParentRef.current.scrollTop =
+        chatParentRef?.current?.scrollHeight || 0;
+    }
   });
 
   return (
@@ -186,7 +187,7 @@ export default function Hero() {
 
                   setPdfAsMarkdown(markdown);
 
-                    const context = markdown;
+                  const context = markdown;
 
                   const summary = await askOpenAI({
                     context,
@@ -200,8 +201,7 @@ export default function Hero() {
 
                   setPdfSummary(summary?.message || "");
 
-                  userQuestionInputRef?.current &&
-                    userQuestionInputRef.current.focus();
+                  userQuestionInputRef?.current?.focus();
                 }
               }}
             />

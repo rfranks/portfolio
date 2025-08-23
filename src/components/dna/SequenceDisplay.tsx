@@ -234,7 +234,7 @@ export default function SequenceDisplay({
         debugger;
 
         return (
-          <Grid item flexGrow={1}>
+          <Grid item flexGrow={1} key={`${sequence?.description}-${index}`}>
             {sequence?.sequence
               .substring(i, Math.min(i + basePairsPerRow, endingBP))
               .split("")

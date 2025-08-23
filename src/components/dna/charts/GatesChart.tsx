@@ -99,12 +99,13 @@ export function GatesChart({ sequences = [], bpRange }: GatesChartProps) {
               ]
             }  (${value})`;
           }}
-          labelFormatter={(label, payload) =>
+          labelFormatter={(label) =>
             `basepair #${Math.ceil(label) + 1}`
           }
         />
         {sequences?.map((sequence, index) => (
           <Line
+            key={`${sequence?.description}-${index}`}
             yAxisId="left"
             isAnimationActive={true}
             dataKey={sequence?.description}

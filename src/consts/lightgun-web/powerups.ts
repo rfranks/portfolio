@@ -2,7 +2,7 @@ import {
   AntiPowerupType,
   SuperPowerupType,
   PowerupType,
-} from "@/types/objects";
+} from "@/types/lightgun-web/objects";
 
 /** All powerup types available in the game */
 export const POWERUP_TYPES: PowerupType[] = [

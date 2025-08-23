@@ -1,0 +1,2512 @@
+count: 1
+house: -25
+wins: 1
+losses: 0
+pushes: 0
+dealer-blackjacks: 0
+dealer-busts: 0
+player-blackjacks: 0
+player-busts: 0
+bust-cards: []
+bust-counts:
+  1: 0
+  2: 0
+  3: 0
+  4: 0
+  5: 0
+  6: 0
+  7: 0
+  8: 0
+  9: 0
+  10: 0
+  11: 0
+  12: 0
+  13: 0
+  14: 0
+sidebet-winnings: 0
+sidebet-losings: 0
+dealer:
+  hands:
+  - active: true
+    busted: false
+    cards:
+    - suite: 1
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    double-down: false
+    even-money: false
+    insured: false
+    split: false
+    insurance-wager: 0
+    stand: false
+    trifecta-wager: 0
+    trifecta-winnings: 0
+    wager: 0
+    winner: false
+  dealer: true
+  stack: 0
+  last-hand-won: false
+  last-hand-pushed: false
+  last-wager: 0
+  win-streak: 0
+  winnings: 0
+players:
+- hands:
+  - active: true
+    busted: false
+    cards:
+    - suite: 1
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    double-down: false
+    even-money: false
+    insured: false
+    split: false
+    insurance-wager: 0
+    stand: false
+    trifecta-wager: 12
+    trifecta-winnings: 0
+    wager: 25
+    winner: false
+  dealer: false
+  stack: 513
+  last-hand-won: true
+  last-hand-pushed: false
+  last-wager: 0
+  win-streak: 1
+  winnings: 25
+shoe:
+  deck:
+  - cards:
+    - suite: 3
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+  - cards:
+    - suite: 1
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+  - cards:
+    - suite: 2
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+  - cards:
+    - suite: 0
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+  - cards:
+    - suite: 3
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 9
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 4
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 12
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 2
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 11
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 14
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 2
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 0
+      value: 5
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 8
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 6
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 3
+      value: 13
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 3
+      masked: false
+      demoted: false
+      double-down: false
+    - suite: 1
+      value: 7
+      masked: false
+      demoted: false
+      double-down: false
+  cards:
+  - suite: 0
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 8
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 13
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 5
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 14
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 4
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 2
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 9
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 12
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 2
+    value: 6
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 3
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 3
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 1
+    value: 7
+    masked: false
+    demoted: false
+    double-down: false
+  - suite: 0
+    value: 11
+    masked: false
+    demoted: false
+    double-down: false
+  cut: 120
+  index: 7
+rounds: 1

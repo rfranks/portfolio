@@ -99,12 +99,11 @@ export function SquiggleChart({ sequences = [], bpRange }: SquiggleChartProps) {
               ]
             }  (${value})`;
           }}
-          labelFormatter={(label, payload) =>
-            `basepair #${Math.ceil(label) + 1}`
-          }
+          labelFormatter={(label) => `basepair #${Math.ceil(label) + 1}`}
         />
         {sequences?.map((sequence, index) => (
           <Line
+            key={`${sequence?.description}-${index}`}
             yAxisId="left"
             isAnimationActive={true}
             dataKey={sequence?.description}

@@ -3,7 +3,7 @@ import Typography, { TypographyProps } from "@mui/material/Typography";
 
 export type CopyrightProps = TypographyProps & {};
 
-export default function Copyright(props: any) {
+export default function Copyright(props: CopyrightProps) {
   const thisYear = new Date().getFullYear();
 
   return (

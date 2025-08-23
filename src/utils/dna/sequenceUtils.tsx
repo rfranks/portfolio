@@ -60,32 +60,32 @@ export type BPCount = {
 };
 
 export function getBasepairCounts(seq: string): BPCount[] {
-  let A = {
+  const A = {
     name: "A",
     count: 0,
   };
 
-  let C = {
+  const C = {
     name: "C",
     count: 0,
   };
 
-  let G = {
+  const G = {
     name: "G",
     count: 0,
   };
 
-  let T = {
+  const T = {
     name: "T",
     count: 0,
   };
 
-  let U = {
+  const U = {
     name: "U",
     count: 0,
   };
 
-  let counts = {
+  const counts = {
     A: 0,
     C: 0,
     G: 0,
@@ -187,8 +187,7 @@ export async function parseSequence(
       );
       onParseSuccess?.(parsedSequence);
     } catch (err) {
-      debugger;
-      // todo handle this
+      console.error("Error parsing sequence:", err);
     }
   }
 }

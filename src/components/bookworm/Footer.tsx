@@ -23,6 +23,8 @@ import {
 
 import TermsDialog from "./TermsDialog";
 
+import Image from "next/image";
+
 const logoStyle = {
   width: "140px",
   height: "auto",
@@ -145,7 +147,7 @@ export default function Footer() {
         >
           <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
             <Box sx={{ ml: "-15px" }}>
-              <img src="/logo192.png" style={logoStyle} alt="bookworm logo" />
+              <Image src="/logo192.png" style={logoStyle} alt="bookworm logo" />
             </Box>
             <Typography variant="body2" fontWeight={600} gutterBottom>
               Newsletter

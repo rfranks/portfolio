@@ -13,6 +13,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Drawer from "@mui/material/Drawer";
 import MenuIcon from "@mui/icons-material/Menu";
 import ToggleColorMode from "./ToggleColorMode";
+import Image from "next/image";
 
 const logoStyle = {
   width: "64px",
@@ -89,7 +90,7 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
                 px: 0,
               }}
             >
-              <img src="/logo192.png" style={logoStyle} alt="bookworm logo" />
+              <Image src="/logo192.png" style={logoStyle} alt="bookworm logo" />
               <Typography
               onClick={() => scrollToSection("hero")}
                 variant="h4"

@@ -97,6 +97,7 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
           <CartesianGrid strokeDasharray="3 3" />
           {sequences.map((seq, index) => (
             <Bar
+              key={`${seq.description}-${index}`}
               dataKey={seq.description}
               fill={getSequenceColor(index)}
               label={"# of basepairs"}
@@ -148,6 +149,7 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
           <PolarRadiusAxis />
           {sequences.map((seq, index) => (
             <Radar
+              key={`${seq.description}-${index}`}
               name={seq.description}
               dataKey={seq.description}
               fill={getSequenceColor(index)}

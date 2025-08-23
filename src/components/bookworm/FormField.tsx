@@ -23,7 +23,11 @@ export interface FormFieldProps extends FormControlProps {
   /**
    * The input field to be rendered.
    */
-  input: ReactElement;
+  input: ReactElement<
+    | HTMLInputElement
+    | HTMLTextAreaElement
+    | (HTMLSelectElement & { "aria-describedby"?: string })
+  >;
 }
 
 export function FormField(props: FormFieldProps) {
