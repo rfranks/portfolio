@@ -28,9 +28,9 @@ export default function BlackjackPage() {
           Decline
         </button>
       </div>
-      <script src="wasm_exec.js"></script>
-      <script id="wasm" src="main.wasm" type="application/wasm"></script>
-      <script src="main.js"></script>
+      <script src="wasm_exec.js" async></script>
+      <script id="wasm" src="main.wasm" type="application/wasm" async></script>
+      <script src="main.js" async></script>
     </>
   );
 }
