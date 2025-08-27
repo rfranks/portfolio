@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  ReactNode,
+} from "react";
 
 // libraries
 import { v4 as uuid } from "uuid";
@@ -27,7 +33,7 @@ import Code from "@mui/icons-material/Code";
 import CodeOff from "@mui/icons-material/CodeOff";
 
 // Custom hooks
-import { useIsVisible } from "@hooks/useIsVisible";
+import { useIsVisible } from "@/hooks/useIsVisible";
 
 /**
  * Props for the Diagram component.
@@ -89,7 +95,7 @@ export const Diagram: React.FC<DiagramProps> = ({
   width,
   showToolbar = true,
   showDots = true,
-}: DiagramProps): JSX.Element => {
+}: DiagramProps): ReactNode => {
   // The raw diagram code
   const diagramCode =
     diagram ||
@@ -103,7 +109,7 @@ ${steps?.join("\n  ")}
   const theme = useTheme();
   const isDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
-  const diagramRef = useRef<HTMLDivElement>(null);
+  const diagramRef = useRef<HTMLElement>(null);
   const isVisible = useIsVisible(diagramRef);
 
   // Whether we show text vs rendered diagram
@@ -145,7 +151,7 @@ ${steps?.join("\n  ")}
       setHistory(updated);
       setHistoryIndex(updated.length - 1);
     },
-    [history, historyIndex],
+    [history, historyIndex]
   );
 
   const applyTransformState = useCallback((st: TransformState) => {
@@ -179,7 +185,7 @@ ${steps?.join("\n  ")}
       setTranslateY(newY);
       pushHistory({ scale: newScale, translateX: newX, translateY: newY });
     },
-    [pushHistory],
+    [pushHistory]
   );
 
   const handleZoomIn = useCallback(() => {
