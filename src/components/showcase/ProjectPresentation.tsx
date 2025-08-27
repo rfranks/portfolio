@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Box from "@mui/material/Box";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -44,112 +45,133 @@ interface ProjectPresentationProps {
 
 export default function ProjectPresentation({ project }: ProjectPresentationProps) {
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <FadeInSection>
         <TronPaper>
-          <Typography variant="h4" gutterBottom>
-            {project.project}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" paragraph>
-            {project.description}
-          </Typography>
-          {project.wowFactor && (
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 700,
-                background: "linear-gradient(90deg, #1976d2, #21cbf3)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                color: "transparent",
-                mb: 2,
-              }}
-            >
-              {project.wowFactor}
-            </Typography>
-          )}
-          <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <Image
-              src={withBasePath(project.demoGifUrl)}
-              alt={`${project.project} demo`}
-              width={800}
-              height={450}
-              style={{ width: "100%", height: "auto" }}
-            />
-          </Box>
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Typography variant="h4" gutterBottom>
+                {project.project}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" paragraph>
+                {project.description}
+              </Typography>
+              {project.wowFactor && (
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    background: "linear-gradient(90deg, #1976d2, #21cbf3)",
+                    backgroundClip: "text",
+                    WebkitBackgroundClip: "text",
+                    color: "transparent",
+                    mb: 2,
+                  }}
+                >
+                  {project.wowFactor}
+                </Typography>
+              )}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ textAlign: "center" }}>
+                <Image
+                  src={withBasePath(project.demoGifUrl)}
+                  alt={`${project.project} demo`}
+                  width={800}
+                  height={450}
+                  style={{ width: "100%", height: "auto", borderRadius: 8 }}
+                />
+              </Box>
+            </Grid>
+          </Grid>
         </TronPaper>
       </FadeInSection>
 
-      <FadeInSection>
-        <TronPaper>
-          <Typography variant="h5" gutterBottom>
-            Technologies Used
-          </Typography>
-          <List dense>
-            {project.technologiesUsed.map((tech) => (
-              <ListItem key={tech.name}>
-                {tech.url ? (
-                  <Link href={tech.url} target="_blank" rel="noopener noreferrer">
-                    {tech.name}
-                  </Link>
-                ) : (
-                  tech.name
-                )}
-              </ListItem>
-            ))}
-          </List>
-        </TronPaper>
-      </FadeInSection>
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={6}>
+          <FadeInSection>
+            <TronPaper>
+              <Typography variant="h5" gutterBottom>
+                Technologies Used
+              </Typography>
+              <List dense>
+                {project.technologiesUsed.map((tech) => (
+                  <ListItem key={tech.name}>
+                    {tech.url ? (
+                      <Link
+                        href={tech.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {tech.name}
+                      </Link>
+                    ) : (
+                      tech.name
+                    )}
+                  </ListItem>
+                ))}
+              </List>
+            </TronPaper>
+          </FadeInSection>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <FadeInSection>
+            <TronPaper>
+              <Typography variant="h5" gutterBottom>
+                Specifications
+              </Typography>
+              {Object.entries(project.specifications).map(([key, value]) => (
+                <Accordion key={key} sx={{ backgroundColor: "transparent" }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="subtitle1">{key}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.85rem" }}>
+                      {JSON.stringify(value, null, 2)}
+                    </pre>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+            </TronPaper>
+          </FadeInSection>
+        </Grid>
+      </Grid>
 
-      <FadeInSection>
-        <TronPaper>
-          <Typography variant="h5" gutterBottom>
-            Specifications
-          </Typography>
-          {Object.entries(project.specifications).map(([key, value]) => (
-            <Accordion key={key} sx={{ backgroundColor: "transparent" }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{key}</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.85rem" }}>
-                  {JSON.stringify(value, null, 2)}
-                </pre>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </TronPaper>
-      </FadeInSection>
-
-      <FadeInSection>
-        <TronPaper>
-          <Typography variant="h5" gutterBottom>
-            Block Diagram
-          </Typography>
-          <Diagram diagram={project.blockDiagram} height="400px" />
-        </TronPaper>
-      </FadeInSection>
-
-      <FadeInSection>
-        <TronPaper>
-          <Typography variant="h5" gutterBottom>
-            Component Diagram
-          </Typography>
-          <Diagram diagram={project.componentDiagram} height="400px" />
-        </TronPaper>
-      </FadeInSection>
-
-      <FadeInSection>
-        <TronPaper>
-          <Typography variant="h5" gutterBottom>
-            Sequence Diagram
-          </Typography>
-          <Diagram
-            diagram={project.sequenceDiagram}        
-            height="400px"
-          />
-        </TronPaper>
-      </FadeInSection>
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={4}>
+          <FadeInSection>
+            <TronPaper>
+              <Typography variant="h5" gutterBottom>
+                Block Diagram
+              </Typography>
+              <Diagram diagram={project.blockDiagram} height="400px" />
+            </TronPaper>
+          </FadeInSection>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <FadeInSection>
+            <TronPaper>
+              <Typography variant="h5" gutterBottom>
+                Component Diagram
+              </Typography>
+              <Diagram diagram={project.componentDiagram} height="400px" />
+            </TronPaper>
+          </FadeInSection>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <FadeInSection>
+            <TronPaper>
+              <Typography variant="h5" gutterBottom>
+                Sequence Diagram
+              </Typography>
+              <Diagram
+                diagram={project.sequenceDiagram}
+                height="400px"
+              />
+            </TronPaper>
+          </FadeInSection>
+        </Grid>
+      </Grid>
     </Box>
   );
 }
