@@ -24,6 +24,12 @@ export interface Technology {
 export interface ProjectData {
   project: string;
   description: string;
+  /**
+   * Brief punchline that highlights the value proposition of the
+   * project. Rendered prominently to give the presentation a bit of
+   * "wow" for viewers such as physicians evaluating the tooling.
+   */
+  wowFactor?: string;
   demoGifUrl: string;
   specifications: Record<string, unknown>;
   technologiesUsed: Technology[];
@@ -47,6 +53,21 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
           <Typography variant="body1" color="text.secondary" paragraph>
             {project.description}
           </Typography>
+          {project.wowFactor && (
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                background: "linear-gradient(90deg, #1976d2, #21cbf3)",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                color: "transparent",
+                mb: 2,
+              }}
+            >
+              {project.wowFactor}
+            </Typography>
+          )}
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             <Image
               src={withBasePath(project.demoGifUrl)}
