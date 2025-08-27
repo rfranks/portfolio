@@ -12,8 +12,7 @@ export const projectData: ProjectData = {
         patientId: "string | undefined (parsed to number in page)",
         userId: "string | undefined",
         promptEnumParam: "string | undefined (disabled when interactive=false)",
-        chatUri:
-          "string | undefined — absolute URL for Flask /v1/chat_patient",
+        chatUri: "string | undefined — absolute URL for Flask /v1/chat_patient",
         aiPatientIsPrimed: "boolean — from ?aiPatientIsPrimed=true",
         fetchAnswerOnLoad: "boolean — auto-run on first render",
         comboPromptEnum: "string — default 'summarizeComboPrompts'",
@@ -25,8 +24,7 @@ export const projectData: ProjectData = {
       },
     },
     "Auth & Environment": {
-      auth:
-        "useAuth() reads a bearer token from parent window via postMessage and injects it on all Refine/Azure calls (axios interceptor) and forwards it to chatUri when present.",
+      auth: "useAuth() reads a bearer token from parent window via postMessage and injects it on all Refine/Azure calls (axios interceptor) and forwards it to chatUri when present.",
       env: {
         API_URL:
           "Base for Azure Functions (ui/aicopilot/src/providers/data-provider).",
@@ -67,15 +65,13 @@ export const projectData: ProjectData = {
       ],
     },
     "AI Interface (PatientPrompt → chatUri)": {
-      http:
-        "POST {chatUri} (Flask /v1/chat_patient); also supports OPTIONS CORS preflight.",
+      http: "POST {chatUri} (Flask /v1/chat_patient); also supports OPTIONS CORS preflight.",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer {auth} (if available)",
       },
       requestBodyShape: {
-        auth:
-          "string | null — forwarded bearer for downstream services (optional).",
+        auth: "string | null — forwarded bearer for downstream services (optional).",
         siteID: "string",
         patientID:
           "number | number[] — single or multi-patient; special case: -1 triggers generic chat flow.",
@@ -87,10 +83,8 @@ export const projectData: ProjectData = {
           "object — key/value placeholder inputs captured by PatientPrompt.",
         category:
           "string[] | string — selected categories (from Settings menu or prompt defaults).",
-        data:
-          "PatientRecord | PatientRecord[] | null — EHR payload if provided via postMessage.",
-        format:
-          "optional 'text' | 'audio' — if 'audio', returns audio/mpeg.",
+        data: "PatientRecord | PatientRecord[] | null — EHR payload if provided via postMessage.",
+        format: "optional 'text' | 'audio' — if 'audio', returns audio/mpeg.",
       },
       responseBodyShape: {
         answerId: "number",
@@ -106,8 +100,7 @@ export const projectData: ProjectData = {
     },
     "Scoring / Guardrails (chatAudits)": {
       toggle: "SettingsMenu toggles 'isUsingGuardrails'.",
-      flow:
-        "For each returned answer part that has answerId, when scoreAnswer=true, the UI polls GET v1/chatAudits?answerId=… until a record exists; then copies score, scoreReasoning, valid, invalidReason.",
+      flow: "For each returned answer part that has answerId, when scoreAnswer=true, the UI polls GET v1/chatAudits?answerId=… until a record exists; then copies score, scoreReasoning, valid, invalidReason.",
       retryLogic:
         "If !valid OR score < 7 (MINIMUM_SCORE_THRESHOLD) and retryCount < 3 (MAX_RETRY_ON_LOW_SCORE), PatientPrompt re-calls chatUri for that prompt; otherwise continues. Defaults when scoring disabled: score=10 and valid=true.",
     },
@@ -143,7 +136,8 @@ export const projectData: ProjectData = {
       "UI.Prompt": "{ id, promptEnum, text, fullText, title?, categories? }",
       "API.ChatRequest":
         "{ queryText, patientID, siteID, userID, model?, category?, categoryAttributes?, referenceID?, auth?, subcategories?, currentDateTime?, questions?, filters?, context?, data?, format?, noCache?, nudges? }",
-      "API.ChatAnswer": "{ answerId, content, parts: string[], context?: object }",
+      "API.ChatAnswer":
+        "{ answerId, content, parts: string[], context?: object }",
     },
     "Exact Endpoints Involved": [
       "GET v1/clients?siteId=…",
@@ -170,8 +164,14 @@ export const projectData: ProjectData = {
     },
     { name: "Python Flask", url: "https://flask.palletsprojects.com/" },
     { name: "LangChain", url: "https://python.langchain.com/" },
-    { name: "OpenAI / Azure OpenAI (LLM)", url: "https://platform.openai.com/" },
-    { name: "gTTS (optional audio synthesis)", url: "https://pypi.org/project/gTTS/" },
+    {
+      name: "OpenAI / Azure OpenAI (LLM)",
+      url: "https://platform.openai.com/",
+    },
+    {
+      name: "gTTS (optional audio synthesis)",
+      url: "https://pypi.org/project/gTTS/",
+    },
   ],
   blockDiagram: `graph TD
   subgraph Browser[Physician Browser]
@@ -180,7 +180,7 @@ export const projectData: ProjectData = {
   end
 
   U --> Page
-  subgraph UI[Next.js App (aicopilot)]
+  subgraph UI[Next.js App aicopilot]
     Page --> Params[useAISummaryParams]
     Page --> Init[useAISummaryInit]
     Page --> PR[usePromptResources]
@@ -192,7 +192,7 @@ export const projectData: ProjectData = {
     Renderer --> PP[PatientPrompt]
   end
 
-  subgraph AF[Azure Functions (TypeScript)]
+  subgraph AF[Azure Functions TypeScript]
     Clients[/GET v1/clients/]:::fn
     Cats[/GET v1/categories/]:::fn
     Prompts[/GET v1/prompts/]:::fn
@@ -204,7 +204,7 @@ export const projectData: ProjectData = {
     Audits --> DB
   end
 
-  subgraph PY[AI Chat Service (Flask)]
+  subgraph PY[AI Chat Service Flask]
     Chat[/POST v1/chat_patient/]:::fn
     LC[LangChain + LLM]
     Chat --> LC
@@ -303,7 +303,6 @@ export const projectData: ProjectData = {
     end
   end
 
-  Physician->>UI: Adjust model/categories/guardrails; ask again
+  Physician->>UI: Adjust model/categories/guardrails, then ask again
   UI->>PP: Re-run with updated settings`,
 };
-

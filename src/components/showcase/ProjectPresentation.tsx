@@ -105,7 +105,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
           <Typography variant="h5" gutterBottom>
             Block Diagram
           </Typography>
-          <Diagram diagram={project.blockDiagram} type="graph" height="400px" />
+          <Diagram diagram={project.blockDiagram} height="400px" />
         </TronPaper>
       </FadeInSection>
 
@@ -114,7 +114,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
           <Typography variant="h5" gutterBottom>
             Component Diagram
           </Typography>
-          <Diagram diagram={project.componentDiagram} type="graph" height="400px" />
+          <Diagram diagram={project.componentDiagram} height="400px" />
         </TronPaper>
       </FadeInSection>
 
@@ -124,8 +124,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
             Sequence Diagram
           </Typography>
           <Diagram
-            diagram={project.sequenceDiagram}
-            type="sequenceDiagram"
+            diagram={project.sequenceDiagram}        
             height="400px"
           />
         </TronPaper>
