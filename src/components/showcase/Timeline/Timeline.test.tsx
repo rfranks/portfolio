@@ -47,7 +47,7 @@ describe("Timeline component", () => {
       expect(screen.getByText(title)).toBeInTheDocument();
       // content is <div>Eggs</div>, <div>Salad</div>, etc.
       expect(
-        screen.getByText((content as any).props.children),
+        screen.getByText((content as React.ReactElement).props.children),
       ).toBeInTheDocument();
     });
   });
