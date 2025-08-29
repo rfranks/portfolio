@@ -31,7 +31,8 @@ export interface ProjectData {
    * "wow" for viewers such as physicians evaluating the tooling.
    */
   wowFactor?: string;
-  demoGifUrl: string;
+  demoGifUrl?: string;
+  demoVideoUrl?: string;
   specifications: Record<string, unknown>;
   technologiesUsed: Technology[];
   blockDiagram: string;
@@ -43,7 +44,9 @@ interface ProjectPresentationProps {
   project: ProjectData;
 }
 
-export default function ProjectPresentation({ project }: ProjectPresentationProps) {
+export default function ProjectPresentation({
+  project,
+}: ProjectPresentationProps) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <FadeInSection>
@@ -52,9 +55,6 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
             <Grid item xs={12} md={6}>
               <Typography variant="h4" gutterBottom>
                 {project.project}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" paragraph>
-                {project.description}
               </Typography>
               {project.wowFactor && (
                 <Typography
@@ -71,16 +71,28 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
                   {project.wowFactor}
                 </Typography>
               )}
+              <Typography variant="body1" color="text.secondary" paragraph>
+                {project.description}
+              </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
               <Box sx={{ textAlign: "center" }}>
-                <Image
-                  src={withBasePath(project.demoGifUrl)}
-                  alt={`${project.project} demo`}
-                  width={800}
-                  height={450}
-                  style={{ width: "100%", height: "auto", borderRadius: 8 }}
-                />
+                {project.demoGifUrl && (
+                  <Image
+                    src={withBasePath(project.demoGifUrl)}
+                    alt={`${project.project} demo`}
+                    width={800}
+                    height={450}
+                    style={{ width: "100%", height: "auto", borderRadius: 8 }}
+                  />
+                )}
+                {project.demoVideoUrl && (
+                  <video
+                    src={withBasePath(project.demoVideoUrl)}
+                    controls
+                    style={{ width: "100%", borderRadius: 8 }}
+                  />
+                )}
               </Box>
             </Grid>
           </Grid>
@@ -126,7 +138,9 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
                     <Typography variant="subtitle1">{key}</Typography>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.85rem" }}>
+                    <pre
+                      style={{ whiteSpace: "pre-wrap", fontSize: "0.85rem" }}
+                    >
                       {JSON.stringify(value, null, 2)}
                     </pre>
                   </AccordionDetails>
@@ -138,7 +152,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
       </Grid>
 
       <Grid container spacing={4}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12}>
           <FadeInSection>
             <TronPaper>
               <Typography variant="h5" gutterBottom>
@@ -148,7 +162,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
             </TronPaper>
           </FadeInSection>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12}>
           <FadeInSection>
             <TronPaper>
               <Typography variant="h5" gutterBottom>
@@ -158,16 +172,13 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
             </TronPaper>
           </FadeInSection>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12}>
           <FadeInSection>
             <TronPaper>
               <Typography variant="h5" gutterBottom>
                 Sequence Diagram
               </Typography>
-              <Diagram
-                diagram={project.sequenceDiagram}
-                height="400px"
-              />
+              <Diagram diagram={project.sequenceDiagram} height="400px" />
             </TronPaper>
           </FadeInSection>
         </Grid>
@@ -175,4 +186,3 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
     </Box>
   );
 }
-

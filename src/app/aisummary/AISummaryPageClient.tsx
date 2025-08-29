@@ -6,12 +6,15 @@ import Typography from "@mui/material/Typography";
 import ProjectPresentation, {
   ProjectData,
 } from "@/components/showcase/ProjectPresentation";
+import { Divider } from "@mui/material";
 
 interface AISummaryPageClientProps {
   project: ProjectData;
 }
 
-export default function AISummaryPageClient({ project }: AISummaryPageClientProps) {
+export default function AISummaryPageClient({
+  project,
+}: AISummaryPageClientProps) {
   return (
     <Box
       sx={{
@@ -23,7 +26,7 @@ export default function AISummaryPageClient({ project }: AISummaryPageClientProp
       <Container maxWidth="lg">
         <Typography
           variant="h3"
-          align="center"
+          align="left"
           sx={{
             fontWeight: 700,
             mb: 6,
@@ -35,9 +38,9 @@ export default function AISummaryPageClient({ project }: AISummaryPageClientProp
         >
           Physician-Focused AI Summaries
         </Typography>
+        <Divider sx={{ mb: 6 }} />
         <ProjectPresentation project={project} />
       </Container>
     </Box>
   );
 }
-
