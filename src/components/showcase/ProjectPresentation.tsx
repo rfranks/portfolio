@@ -11,6 +11,7 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import type { ReactNode } from "react";
 
 import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
@@ -47,6 +48,37 @@ interface ProjectPresentationProps {
 export default function ProjectPresentation({
   project,
 }: ProjectPresentationProps) {
+  const renderSpecification = (value: unknown): ReactNode => {
+    if (Array.isArray(value)) {
+      return (
+        <List dense>
+          {value.map((item, index) => (
+            <ListItem key={index}>{renderSpecification(item)}</ListItem>
+          ))}
+        </List>
+      );
+    }
+
+    if (typeof value === "object" && value !== null) {
+      return Object.entries(value as Record<string, unknown>).map(
+        ([childKey, childValue]) => (
+          <Accordion key={childKey} sx={{ backgroundColor: "transparent" }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1">{childKey}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>{renderSpecification(childValue)}</AccordionDetails>
+          </Accordion>
+        ),
+      );
+    }
+
+    return (
+      <Typography variant="body2" component="span">
+        {String(value)}
+      </Typography>
+    );
+  };
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <FadeInSection>
@@ -137,13 +169,7 @@ export default function ProjectPresentation({
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography variant="subtitle1">{key}</Typography>
                   </AccordionSummary>
-                  <AccordionDetails>
-                    <pre
-                      style={{ whiteSpace: "pre-wrap", fontSize: "0.85rem" }}
-                    >
-                      {JSON.stringify(value, null, 2)}
-                    </pre>
-                  </AccordionDetails>
+                  <AccordionDetails>{renderSpecification(value)}</AccordionDetails>
                 </Accordion>
               ))}
             </TronPaper>
