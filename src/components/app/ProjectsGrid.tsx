@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
 import { withBasePath } from "@/utils/basePath";
+import { CardHeader, Chip } from "@mui/material";
 
 export default function ProjectsGrid() {
   return (
@@ -26,26 +27,46 @@ export default function ProjectsGrid() {
                   height: "100%",
                   backgroundColor: "background.default",
                   borderColor: "divider",
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
-                <CardContent>
-                  <Image
-                    src={project.image}
-                    alt={`${project.name} screenshot`}
-                    width={400}
-                    height={300}
-                    priority={index === 0}
-                    style={{ width: "100%", height: "auto" }}
-                  />
-                  <Typography variant="subtitle1" color="primary.main">
-                    {project.name}
-                  </Typography>
+                <CardHeader
+                  action={
+                    <Chip
+                      label={project.type === "work" ? "Work" : "Personal"}
+                      size="small"
+                      color={project.type === "work" ? "primary" : "secondary"}
+                    />
+                  }
+                  title={project.name}
+                  titleTypographyProps={{
+                    variant: "h6",
+                    component: "h2",
+                    color: "text.primary",
+                  }}
+                />
+                <CardContent sx={{ flexGrow: 1 }}>
+                  {project.image && (
+                    <Image
+                      src={project.image}
+                      alt={`${project.name} screenshot`}
+                      width={400}
+                      height={300}
+                      priority={index === 0}
+                      style={{ width: "100%", height: "auto" }}
+                    />
+                  )}
                   <Typography variant="body2" color="text.secondary">
                     {project.description}
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  <Button size="small" href={withBasePath(project.href)} color="secondary">
+                  <Button
+                    size="small"
+                    href={withBasePath(project.href)}
+                    color="secondary"
+                  >
                     Launch
                   </Button>
                 </CardActions>

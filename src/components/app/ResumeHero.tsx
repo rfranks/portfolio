@@ -6,6 +6,9 @@ import Stack from "@mui/material/Stack";
 import FadeInSection from "@/components/app/FadeInSection";
 import { summary } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
+import IconButton from "@mui/material/IconButton";
+import { AlternateEmail, GitHub, LinkedIn } from "@mui/icons-material";
+import Tooltip from "@mui/material/Tooltip";
 
 export default function ResumeHero() {
   return (
@@ -27,22 +30,35 @@ export default function ResumeHero() {
         </Typography>
         <Typography sx={{ mb: 4 }}>{summary.blurb}</Typography>
         <Stack direction="row" spacing={2} justifyContent="center">
-          <Button
-            variant="contained"
+          <IconButton color="primary" href={`mailto:${summary.contact.email}`}>
+            <AlternateEmail />
+          </IconButton>
+          <IconButton
             color="primary"
-            href={`mailto:${summary.contact.email}`}
-          >
-            Email
-          </Button>
-          <Button
-            variant="outlined"
             href={summary.contact.linkedin}
             target="_blank"
             rel="noopener"
           >
-            LinkedIn
-          </Button>
-          <Button variant="outlined" href={withBasePath("/resume.pdf")} download>
+            <LinkedIn />
+          </IconButton>
+          {summary.contact.github.map((url) => (
+            <Tooltip
+              title={url.substring(url.lastIndexOf("/") + 1)}
+              key={url}
+              arrow
+            >
+              <IconButton
+                key={url}
+                color="default"
+                href={url}
+                target="_blank"
+                rel="noopener"
+              >
+                <GitHub />
+              </IconButton>
+            </Tooltip>
+          ))}
+          <Button variant="text" href={withBasePath("/resume.pdf")} download>
             Resume
           </Button>
         </Stack>

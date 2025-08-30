@@ -5,6 +5,7 @@ export const summary = {
   contact: {
     linkedin: "https://www.linkedin.com/in/richardfranksjr",
     email: "richardfranksjr@hotmail.com",
+    github: ["https://github.com/rfranks", "https://github.com/rfrankspk"],
   },
   blurb:
     "Innovative Principal Full Stack Engineer with 15+ years of experience designing, building, and scaling enterprise-grade software across healthcare, fintech, and cloud platforms. Recognized as a \u201c10x developer\u201d and trusted problem-solver by colleagues, consistently delivering high-impact solutions under tight deadlines.",
@@ -133,6 +134,7 @@ export const experience = [
     location: "Waltham, MA",
     start: "June 2022",
     end: "July 2025",
+    image: "/commure.jpeg",
     details: [
       "Architected and delivered a GenAI Copilot for physicians, integrating LLMs + RAG pipelines to summarize EHRs, extract problems/risk factors, and recommend labs/medications.",
       "Built scalable Python and TypeScript Azure Functions APIs with CosmosDB persistence.",
@@ -160,6 +162,7 @@ export const experience = [
       "Recognized with STAR Award (2020).",
       "Employee of the Quarter nomination (2018).",
     ],
+    image: "/patientkeeper.png",
   },
   {
     company: "CashStar",
@@ -171,6 +174,7 @@ export const experience = [
       "Designed and implemented a Java REST service layer integrating with 36+ gift card/payment processors.",
       "Achieved 99.88% uptime, praised by partners for record-fast certification turnaround.",
     ],
+    image: "/cashstar.png",
   },
   {
     company: "REZ-1",
@@ -191,57 +195,70 @@ export const experience = [
   },
 ];
 
-export const projects = [
+export const projects: {
+  name: string;
+  description: string;
+  href: string;
+  type: "work" | "personal";
+  image?: string;
+}[] = [
   {
     name: "Warbirds",
     description: "Dogfight through the skies in this arcade shooter.",
     href: "/warbirds",
-    image: "/images/projects/warbirds.svg",
+    type: "personal",
   },
   {
     name: "ZombieFish",
     description: "Hook undead fish before they bite.",
     href: "/zombiefish",
-    image: "/images/projects/zombiefish.svg",
+    type: "personal",
   },
   {
     name: "Blackjack",
     description: "Classic twenty-one card game against the dealer.",
     href: "/blackjack",
-    image: "/images/projects/blackjack.svg",
+    type: "personal",
   },
   {
     name: "GeneBoard",
     description: "Interactive tools for exploring DNA sequences.",
     href: "/dna",
-    image: "/images/projects/geneboard.svg",
+    type: "personal",
   },
   {
     name: "Bookworm",
     description: "Word puzzle game built with React.",
     href: "/bookworm",
-    image: "/images/projects/bookworm.svg",
+    type: "personal",
   },
   {
     name: "Patient List Project",
     description:
       "Backbone.js-based configurable patient visit list for physicians.  Spring backend with REST APIs, complex filtering, sorting, and pagination.",
     href: "/patientlist",
-    image: "/images/projects/patientlist.png",
+    type: "work",
   },
   {
     name: "Patient Assignment List Project",
     description:
       "Backbone.js-based managable patient assignment list for physicians.  Complex drag-and-drop UI, time-based and filter-based population criteria.",
-    href: "/patientlist",
-    image: "/images/projects/patientlist.png",
+    href: "/assignmentlist",
+    type: "work",
   },
   {
-    name: "Patient List Podcasts",
+    name: "AI-Driven Clinical Copilot",
+    description:
+      "Next.js/React frontend with Python/Azure Functions backend.  Integrates LLMs and retrieval-augmented generation (RAG) to summarize EHR data and summarize data and answer questions with citations.",
+    href: "/aisummary",
+    type: "work",
+  },
+  {
+    name: "AI Patient List Podcasts",
     description:
       "Podcasts discussing the last 12 hours of clinically significant events for a list of patients.",
     href: "/patientlistpodcasts",
-    image: "/images/projects/patientlistpodcasts.png",
+    type: "work",
   },
 ];
 
@@ -405,9 +422,11 @@ export const education = [
   {
     school: "University of Southern Maine",
     degree: "M.S. Computer Science",
+    image: "/usm.jpeg",
   },
   {
     school: "Boston University",
     degree: "B.S. Biomedical Engineering",
+    image: "/bu.jpeg",
   },
 ];

@@ -9,6 +9,8 @@ import TimelineOppositeContent from "@mui/lab/TimelineOppositeContent";
 import { experience } from "@/consts/resumeData";
 import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
+import Image from "next/image";
+import { withBasePath } from "@/utils/basePath";
 
 export default function ExperienceTimeline() {
   return (
@@ -21,8 +23,18 @@ export default function ExperienceTimeline() {
           {experience.map((exp, index) => (
             <TimelineItem key={`${exp.company}-${index}`}>
               <TimelineOppositeContent color="text.secondary">
-                {exp.start}
-                {exp.end ? ` - ${exp.end}` : ""}
+                <Typography variant="body2">
+                  {exp.start}
+                  {exp.end ? ` - ${exp.end}` : ""}
+                </Typography>
+                {exp.image && (
+                  <Image
+                    src={withBasePath(exp.image)}
+                    alt={exp.company}
+                    height={48}
+                    width={48}
+                  />
+                )}
               </TimelineOppositeContent>
               <TimelineSeparator>
                 <TimelineDot color="primary" />
@@ -58,4 +70,3 @@ export default function ExperienceTimeline() {
     </FadeInSection>
   );
 }
-
