@@ -22,7 +22,13 @@ export const competencies = {
     },
     {
       title: "Frontend",
-      items: ["React", "Next.js", "TypeScript", "Design systems", "Monorepos (single-spa)"],
+      items: [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Design systems",
+        "Monorepos (single-spa)",
+      ],
     },
     {
       title: "Backend",
@@ -216,11 +222,32 @@ export const projects = [
     href: "/bookworm",
     image: "/images/projects/bookworm.svg",
   },
+  {
+    name: "Patient List Project",
+    description:
+      "Backbone.js-based configurable patient visit list for physicians.  Spring backend with REST APIs, complex filtering, sorting, and pagination.",
+    href: "/patientlist",
+    image: "/images/projects/patientlist.png",
+  },
+  {
+    name: "Patient Assignment List Project",
+    description:
+      "Backbone.js-based managable patient assignment list for physicians.  Complex drag-and-drop UI, time-based and filter-based population criteria.",
+    href: "/patientlist",
+    image: "/images/projects/patientlist.png",
+  },
+  {
+    name: "Patient List Podcasts",
+    description:
+      "Podcasts discussing the last 12 hours of clinically significant events for a list of patients.",
+    href: "/patientlistpodcasts",
+    image: "/images/projects/patientlistpodcasts.png",
+  },
 ];
 
 export const recognition = {
   snippets: [
-    "Praised by colleagues as \"the most brilliant engineer I\u2019ve worked with… the closest to a 10x developer\" and a \"true team player and mentor.\"",
+    'Praised by colleagues as "the most brilliant engineer I\u2019ve worked with… the closest to a 10x developer" and a "true team player and mentor."',
     "Trusted go-to for solving critical, high-stakes production issues with speed and quality.",
     "Recognized repeatedly for leadership, mentorship, and engineering excellence.",
   ],
@@ -258,7 +285,8 @@ Richards’s deeper understanding of the technical nuances always helped us duri
     },
     {
       name: "Jane Florins",
-      title: "UX/UI Leader | Elevating User Experiences & Driving Business Growth through Innovative Designs.",
+      title:
+        "UX/UI Leader | Elevating User Experiences & Driving Business Growth through Innovative Designs.",
       date: "February 20, 2020",
       relationship: "was senior to Richard but didn't manage him directly",
       text: `I worked with Richard on a number of projects and features at Patient Keeper. What makes him stand out is his deep care about his work and the overall success of the company. He is willing to take risks and responsibilities when he sees an opportunity to improve the project. Richard's approach to work is innovative. He is constantly coming up with new ideas, he does his research before attacking a problem. Richard is a meticulous perfectionist who doesn't give up unless his work is done to the highest quality. He is a good team player who is always ready to jump in and help his co-workers. He cares about UX/UI, and he cares about our customers and their experience. He made a significant effort to make our product look polished and work faster. I would highly recommend Richard for his personality and skills.`,
@@ -267,7 +295,8 @@ Richards’s deeper understanding of the technical nuances always helped us duri
       name: "Ritika Nanda",
       title: "Senior Software Engineer at Google",
       date: "August 8, 2016",
-      relationship: "Richard was senior to Ritika but didn't manage her directly",
+      relationship:
+        "Richard was senior to Ritika but didn't manage her directly",
       text: `It was a pleasure working with Richard at Patient Keeper. He is one of the best developers and architecture designers I have ever worked with.
 
 He was very helpful to co-workers. He always came up with creative and out of the box ideas for solving problems.
@@ -291,7 +320,8 @@ He is an excellent mentor. He works incredibly hard and it is a pleasure to work
     },
     {
       name: "Dave Tran",
-      title: "Mission-Driven Engineering Leader | Unlocking Team Superpowers and Turning Challenges into Triumphs!",
+      title:
+        "Mission-Driven Engineering Leader | Unlocking Team Superpowers and Turning Challenges into Triumphs!",
       date: "November 3, 2013",
       relationship: "worked with Richard on the same team",
       text: `Rich was an amazing team member to work with and was instrumental in helping the team deliver the next generation patient list solution. Rich was not only laser focused on implementing the web portion of the solution but he was also equally focused on improving the UI architecture of the overall application. He incorporated industry best practices and reusable web components to facilitate better design decisions for multiple development teams moving forward. Rich understands how to meet and exceed client's expectations with innovative web solutions and if given another opportunity to work with Rich, I would jump at the chance to do so!`,
@@ -321,7 +351,8 @@ He takes the time to answer questions from colleagues and is always available wh
     },
     {
       name: "Jim Levin",
-      title: "Senior Product Analyst with a specific expertise in analysis, user experience and user interface design",
+      title:
+        "Senior Product Analyst with a specific expertise in analysis, user experience and user interface design",
       date: "December 30, 2011",
       relationship: "worked with Richard on the same team",
       text: `Rich is a professional, thorough and thoughtful developer - that I would recommend/refer without hesitation.`,
@@ -361,7 +392,8 @@ I highly recommend Richard.`,
     },
     {
       name: "Joe Myers",
-      title: "Head of Product Design & User Experience @ Gannett | USA TODAY NETWORK — Driving clean, enjoyable, and accessible solutions at scale",
+      title:
+        "Head of Product Design & User Experience @ Gannett | USA TODAY NETWORK — Driving clean, enjoyable, and accessible solutions at scale",
       date: "October 2, 2008",
       relationship: "worked with Richard on the same team",
       text: `Please do not talk to Richard about other jobs. He is an indispensable member of OUR development team. We found him first and he's not allowed to leave. Richard breezes through complicated work with a can-do attitude while adding invaluable insight. He brings his "A-Game" every day, and if there's any doubt in his mind, he'll step back, slam a Monster™ Energy Drink® before high-stepping into the end-zone. Too bad he's not allowed to talk to you.`,
