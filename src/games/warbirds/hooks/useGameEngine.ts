@@ -69,7 +69,7 @@ import {
   AIRSHIP_MAX_SPEED,
 } from "@/consts/lightgun-web/vehicles";
 import { useWindowSize } from "@/hooks/lightgun-web/useWindowSize";
-import useFrameRate from "@/hooks/lightgun-web/useFrameRate";
+import useFrameRate, { scaleRef } from "@/hooks/lightgun-web/useFrameRate";
 import { AudioMgr } from "@/types/lightgun-web/audio";
 import { Puff } from "@/types/lightgun-web/effects";
 import { PowerupType, AntiPowerupType, Duck } from "@/types/lightgun-web/objects";
@@ -1040,8 +1040,9 @@ export function useGameEngine() {
     let blindfoldPrevCursor = DEFAULT_CURSOR;
 
     const render = (time: number) => {
-      const { scale } = frameRate(time);
-      state.current.speedScale = scale;
+        frameRate(time);
+        const scale = scaleRef.current;
+        state.current.speedScale = scale;
       const blindActive = state.current.isActive(
         "blindfold",
         state.current.frameCount

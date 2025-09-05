@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useWindowSize } from "@/hooks/lightgun-web/useWindowSize";
-import useFrameRate from "@/hooks/lightgun-web/useFrameRate";
+import useFrameRate, { scaleRef } from "@/hooks/lightgun-web/useFrameRate";
 import { BASE_DIMS } from "@/consts/lightgun-web/dimensions";
 import { useGameAssets } from "./useGameAssets";
 import { useGameAudio } from "./useGameAudio";
@@ -547,7 +547,8 @@ export default function useGameEngine() {
   // main loop updates timer and fish
   const loop = useCallback(
     (time: number) => {
-      const { scale } = frameRate(time);
+      frameRate(time);
+      const scale = scaleRef.current;
       const cur = state.current;
       if (timerLabel.current) {
       const lbl = timerLabel.current;
