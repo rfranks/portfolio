@@ -74,6 +74,7 @@ import useScaledClock, {
   setScaledTimeout,
   clearScaledTimeout,
   advanceClock,
+  type ScaledTimeoutHandle,
 } from "@/hooks/lightgun-web/useScaledClock";
 import { AudioMgr } from "@/types/lightgun-web/audio";
 import { Puff } from "@/types/lightgun-web/effects";
@@ -151,6 +152,7 @@ export function useGameEngine() {
   const state = useRef<GameState>(initState(dims, assetMgr, audioMgr));
 
   const loopStartedRef = useRef(false);
+  const densityTimeoutRef = useRef<ScaledTimeoutHandle | null>(null);
   const reportIntervalMs = 500;
   useScaledClock();
 
@@ -1061,13 +1063,13 @@ export function useGameEngine() {
       let lastTime = performance.now();
       const render = () => {
         const now = performance.now();
-        const deltaMs = now - lastTime;
+        const rawMs = now - lastTime;
         lastTime = now;
-        advanceClock(deltaMs);
-        const { deltaMs: scaledMs } = clockRef.current;
-        const deltaFrames = scaledMs / (1000 / 60);
-        state.current.speedScale = deltaFrames;
-      const blindActive = state.current.isActive(
+        advanceClock(rawMs);
+        const { deltaMs, scale } = clockRef.current;
+        state.current.speedScale = scale;
+
+        const blindActive = state.current.isActive(
         "blindfold",
         state.current.frameCount
       );
@@ -3336,10 +3338,18 @@ export function useGameEngine() {
       // reset and ramp up spawn rate
       state.current.dynamicDensity = INITIAL_ENEMY_DENSITY;
 
-      const interval = setInterval(() => {
+      const scheduleDensityIncrease = () => {
         state.current.dynamicDensity += ENEMY_DENSITY_STEP;
-      }, 45000);
-      return () => clearInterval(interval);
+        densityTimeoutRef.current = setScaledTimeout(
+          scheduleDensityIncrease,
+          45000
+        );
+      };
+      densityTimeoutRef.current = setScaledTimeout(
+        scheduleDensityIncrease,
+        45000
+      );
+      return () => clearScaledTimeout(densityTimeoutRef.current);
     }
   }, [ui.phase, initLoop]);
 
