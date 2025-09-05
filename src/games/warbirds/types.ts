@@ -107,6 +107,8 @@ export interface GameState extends GameUIState {
   shieldFlash: number;
   screenShake: number;
   thunderCooldown: number;
+  /** Current frame-duration scaling factor (1 = 60 FPS). */
+  speedScale: number;
 
   // animation state
   planeFrame: number;
