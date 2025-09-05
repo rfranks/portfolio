@@ -10,6 +10,8 @@ import {
 } from "@/consts/lightgun-web/ui";
 import { ENEMY_COLORS } from "@/consts/lightgun-web/vehicles";
 import { MAX_AMMO, DEFAULT_CURSOR } from "../constants";
+import { useWindowSize } from "@/hooks/lightgun-web/useWindowSize";
+import { BASE_DIMS } from "@/consts/lightgun-web/dimensions";
 import { withBasePath } from "@/utils/basePath";
 import { GameUIState } from "../types";
 
@@ -58,14 +60,16 @@ export function GameUI({
   } = ui;
 
   const medalFrames = getImg("medalFrames") as HTMLImageElement[][];
+  const screenDims = useWindowSize();
+  const scale = screenDims.width / BASE_DIMS.width || 1;
 
   return (
     <Box position="relative" width="100vw" height="100dvh">
       {/* Ammo icons */}
       <Box
         position="absolute"
-        top={16}
-        left={16}
+        top={16 * scale}
+        left={16 * scale}
         display="flex"
         zIndex={1}
         onClick={handleContext}
@@ -79,9 +83,9 @@ export function GameUI({
                 ? withBasePath("/assets/tanks/PNG/Retina/tank_bullet5.png")
                 : withBasePath("/assets/tanks/PNG/Retina/tank_bullet1.png")
             }
-            width={64}
-            height={64}
-            sx={{ mr: 1.5, rotate: "-90deg", cursor: DEFAULT_CURSOR }}
+            width={64 * scale}
+            height={64 * scale}
+            sx={{ mr: 1.5 * scale, rotate: "-90deg", cursor: DEFAULT_CURSOR }}
           />
         ))}
       </Box>
@@ -89,8 +93,8 @@ export function GameUI({
       {medalCount > 0 && (
         <Box
           position="absolute"
-          top={16 + 32 + 8}
-          left={16}
+          top={16 * scale + 32 * scale + 8 * scale}
+          left={16 * scale}
           display="flex"
           alignItems="center"
           zIndex={1}
@@ -102,13 +106,13 @@ export function GameUI({
               medalFrames[0]?.[0]?.src ||
               withBasePath("/assets/medals/PNG/flat_medal1.png")
             }
-            width={48}
-            height={48}
-            sx={{ mr: 2 }}
+            width={48 * scale}
+            height={48 * scale}
+            sx={{ mr: 2 * scale }}
           />
           <Box
             component="span"
-            sx={{ fontSize: 48, color: "white", fontWeight: "bold" }}
+            sx={{ fontSize: 48 * scale, color: "white", fontWeight: "bold" }}
           >
             x{medalCount}
           </Box>
@@ -119,8 +123,8 @@ export function GameUI({
       {duckCount > 0 && (
         <Box
           position="absolute"
-          top={16 + 32 + 8 + (48 + 8)}
-          left={16}
+          top={16 * scale + 32 * scale + 8 * scale + (48 * scale + 8 * scale)}
+          left={16 * scale}
           display="flex"
           alignItems="center"
           zIndex={1}
@@ -131,11 +135,11 @@ export function GameUI({
             src={withBasePath(
               "/assets/shooting-gallery/PNG/Objects/duck_brown.png"
             )}
-            width={48}
-            height={48}
-            sx={{ mr: 2 }}
+            width={48 * scale}
+            height={48 * scale}
+            sx={{ mr: 2 * scale }}
           />
-          <Box sx={{ fontSize: 48, color: "white", fontWeight: "bold" }}>
+          <Box sx={{ fontSize: 48 * scale, color: "white", fontWeight: "bold" }}>
             x{duckCount}
           </Box>
         </Box>
@@ -145,8 +149,8 @@ export function GameUI({
       {enemyCount > 0 && (
         <Box
           position="absolute"
-          top={16 + 32 + 8 + 2 * (48 + 8)}
-          left={16}
+          top={16 * scale + 32 * scale + 8 * scale + 2 * (48 * scale + 8 * scale)}
+          left={16 * scale}
           display="flex"
           alignItems="center"
           zIndex={1}
@@ -155,11 +159,11 @@ export function GameUI({
           <Box
             component="img"
             src={withBasePath(ENEMY_COLORS[0])}
-            width={48}
-            height={48}
-            sx={{ mr: 2 }}
+            width={48 * scale}
+            height={48 * scale}
+            sx={{ mr: 2 * scale }}
           />
-          <Box sx={{ fontSize: 48, color: "white", fontWeight: "bold" }}>
+          <Box sx={{ fontSize: 48 * scale, color: "white", fontWeight: "bold" }}>
             x{enemyCount}
           </Box>
         </Box>
@@ -167,8 +171,8 @@ export function GameUI({
       {/* Score display */}
       <Box
         position="absolute"
-        top={16}
-        right={16}
+        top={16 * scale}
+        right={16 * scale}
         display="flex"
         alignItems="center"
         zIndex={1}
@@ -177,7 +181,7 @@ export function GameUI({
           component="img"
           src={withBasePath(SCORE_LABEL_SRC)}
           alt="Score"
-          sx={{ mr: 1 }}
+          sx={{ mr: 1 * scale }}
         />
         {String(score)
           .split("")
@@ -187,9 +191,9 @@ export function GameUI({
               component="img"
               src={withBasePath(`${SCORE_DIGIT_PATH}${d}.png`)}
               alt={d}
-              width={SCORE_DIGIT_WIDTH}
-              height={SCORE_DIGIT_HEIGHT}
-              sx={{ mr: 0.5 }}
+              width={SCORE_DIGIT_WIDTH * scale}
+              height={SCORE_DIGIT_HEIGHT * scale}
+              sx={{ mr: 0.5 * scale }}
             />
           ))}
       </Box>
@@ -226,7 +230,7 @@ export function GameUI({
             top: "50%",
             left: "50%",
             transform: "translate(-50%,-50%)",
-            width: 450,
+            width: 450 * scale,
             height: "auto",
             cursor: DEFAULT_CURSOR,
           }}
@@ -236,10 +240,10 @@ export function GameUI({
       {!crashed && (
         <Box
           position="absolute"
-          bottom={16}
-          right={16}
+          bottom={16 * scale}
+          right={16 * scale}
           display="flex"
-          gap={1}
+          gap={1 * scale}
           zIndex={2}
         >
           {(Object.keys(activePowerups) as PowerupType[])
@@ -258,8 +262,8 @@ export function GameUI({
                   key={t}
                   component="img"
                   src={imgSrc}
-                  width={64}
-                  height={64}
+                  width={64 * scale}
+                  height={64 * scale}
                   sx={{ opacity: flash ? 0.3 : 1 }}
                 />
               );

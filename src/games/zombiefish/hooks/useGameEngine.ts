@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useWindowSize } from "@/hooks/lightgun-web/useWindowSize";
+import { BASE_DIMS } from "@/consts/lightgun-web/dimensions";
 import { useGameAssets } from "./useGameAssets";
 import { useGameAudio } from "./useGameAudio";
 import { drawTextLabels, newTextLabel } from "@/utils/lightgun-web/ui";
@@ -109,7 +110,8 @@ export default function useGameEngine() {
   const audio: AudioMgr = useGameAudio();
 
   // window dimensions
-  const dims = useWindowSize();
+  const screenDims = useWindowSize();
+  const dims = BASE_DIMS;
 
   // main game state stored in a ref so we can mutate without re-render
   const state = useRef<GameState>({
@@ -177,10 +179,26 @@ export default function useGameEngine() {
     cursor: DEFAULT_CURSOR,
   });
 
-  // sync dims when window size changes
+  // sync base dims once and resize canvas on window changes
   useEffect(() => {
     state.current.dims = dims;
-  }, [dims]);
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    const { width: screenW, height: screenH } = screenDims;
+    const dpr =
+      typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    const scaleX = screenW / dims.width;
+    const scaleY = screenH / dims.height;
+    canvas.width = screenW * dpr;
+    canvas.height = screenH * dpr;
+    canvas.style.width = `${screenW}px`;
+    canvas.style.height = `${screenH}px`;
+    ctx.setTransform(scaleX * dpr, 0, 0, scaleY * dpr, 0, 0);
+  }, [screenDims, dims]);
 
   const syncCursor = useCallback((cursor: string) => {
     state.current.cursor = cursor;
@@ -281,7 +299,7 @@ export default function useGameEngine() {
 
   useEffect(() => {
     updateScoreLabel(scoreLabel.current, state.current.score);
-  }, [dims, updateScoreLabel]);
+  }, [updateScoreLabel]);
 
   const updateFish = useCallback(() => {
     const cur = state.current;
@@ -773,14 +791,12 @@ export default function useGameEngine() {
 
     // draw bubbles, fish and text labels
     if (canvas && ctx) {
-      canvas.width = cur.dims.width;
-      canvas.height = cur.dims.height;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, cur.dims.width, cur.dims.height);
 
       drawBackground(ctx);
 
       // draw timer bar at top of screen
-      const barWidth = (cur.timer / GAME_TIME) * canvas.width;
+      const barWidth = (cur.timer / GAME_TIME) * cur.dims.width;
       ctx.fillStyle = "rgba(0,0,0,0.5)";
       ctx.fillRect(0, 0, barWidth, 8);
 
