@@ -7,9 +7,13 @@ import { aiBufferSize } from "@/consts/bookworm/consts";
 
 import { Buffer } from "buffer";
 
-const apiKey =
-  process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
-  "";
+let apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
+
+export const setOpenAIKey = (key: string) => {
+  apiKey = key;
+};
+
+export const hasOpenAIKey = () => apiKey.trim().length > 0;
 
 const requestCompletion = async (systemMessage: string) => {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
