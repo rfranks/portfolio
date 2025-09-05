@@ -44,10 +44,10 @@ export interface Water {
   size: number;
   /** Animation frame index (toggle for animated water) */
   frameIndex: 0 | 1;
-  /** Frames elapsed for animation timing */
+  /** Milliseconds elapsed for animation timing */
   frameCounter: number;
-  /** How many frames to wait before switching animation frame */
-  frameRate: number;
+  /** How many milliseconds to wait before switching animation frame */
+  frameDuration: number;
 }
 
 /**

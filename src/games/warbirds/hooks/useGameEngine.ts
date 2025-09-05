@@ -69,10 +69,11 @@ import {
   AIRSHIP_MAX_SPEED,
 } from "@/consts/lightgun-web/vehicles";
 import { useWindowSize } from "@/hooks/lightgun-web/useWindowSize";
-import useFrameRate, {
-  fpsRef,
-  scaleRef,
-} from "@/hooks/lightgun-web/useFrameRate";
+import useScaledClock, {
+  clockRef,
+  setScaledTimeout,
+  clearScaledTimeout,
+} from "@/hooks/lightgun-web/useScaledClock";
 import { AudioMgr } from "@/types/lightgun-web/audio";
 import { Puff } from "@/types/lightgun-web/effects";
 import { PowerupType, AntiPowerupType, Duck } from "@/types/lightgun-web/objects";
@@ -150,7 +151,7 @@ export function useGameEngine() {
 
   const loopStartedRef = useRef(false);
   const reportIntervalMs = 500;
-  const frameRate = useFrameRate(60, reportIntervalMs);
+  useScaledClock();
 
   const [ui, setUI] = useState<GameUIState>({
     ...state.current,
@@ -159,8 +160,10 @@ export function useGameEngine() {
   useEffect(() => {
     if (!DEBUG_FPS_SCALE) return;
     const id = setInterval(() => {
+      const { deltaMs, scale } = clockRef.current;
+      const fps = 1000 / deltaMs;
       console.debug(
-        `[warbirds] fps: ${fpsRef.current.toFixed(1)} scale: ${scaleRef.current.toFixed(2)}`
+        `[warbirds] fps: ${fps.toFixed(1)} scale: ${scale.toFixed(2)}`
       );
     }, reportIntervalMs);
     return () => clearInterval(id);
@@ -414,7 +417,7 @@ export function useGameEngine() {
           age: 0,
           maxAge: 20,
         });
-        setTimeout(() => {
+        setScaledTimeout(() => {
           state.current.puffs.push({
             x: cx - 16,
             y: cy - 16,
@@ -767,7 +770,7 @@ export function useGameEngine() {
               frames,
               frameIndex: 0,
               frameCounter: 0,
-              frameRate: 8,
+              frameDuration: 8 * (1000 / 60),
               id: medalId + 1,
             });
           } else if (Math.random() < 0.5) {
@@ -817,11 +820,11 @@ export function useGameEngine() {
           const effect = Math.floor(Math.random() * 3);
           if (effect === 0) {
             for (let i = 0; i < SMOKE_TRAIL_COUNT; i++)
-              setTimeout(() => spawnCrashSmokeOne(cxE, cyE), i * 100);
+              setScaledTimeout(() => spawnCrashSmokeOne(cxE, cyE), i * 100);
           } else if (effect === 1) {
             const size = 32 * 3;
             explosionImgs.forEach((img, idx) =>
-              setTimeout(
+              setScaledTimeout(
                 () =>
                   state.current.puffs.push({
                     x: cxE - 16,
@@ -907,7 +910,7 @@ export function useGameEngine() {
     if (animationFrameRef.current)
       cancelAnimationFrame(animationFrameRef.current);
 
-    state.current.countdownTimeouts.forEach(clearTimeout);
+    state.current.countdownTimeouts.forEach(clearScaledTimeout);
     state.current.countdownTimeouts = [];
 
     // Fallback for cases where window size hasn't initialized yet
@@ -957,21 +960,21 @@ export function useGameEngine() {
     spawnCountdown(3);
 
     state.current.countdownTimeouts.push(
-      window.setTimeout(() => {
+      setScaledTimeout(() => {
         state.current.countdown = 2;
         setUI((u) => ({ ...u, countdown: 2 }));
         spawnCountdown(2);
       }, 1000),
-      window.setTimeout(() => {
+      setScaledTimeout(() => {
         state.current.countdown = 1;
         setUI((u) => ({ ...u, countdown: 1 }));
         spawnCountdown(1);
       }, 2000),
-      window.setTimeout(() => {
+      setScaledTimeout(() => {
         state.current.countdown = null;
         setUI((u) => ({ ...u, countdown: null }));
       }, 3000),
-      window.setTimeout(() => {
+      setScaledTimeout(() => {
         const goLabel = newTextLabel(
           {
             text: "GO",
@@ -990,7 +993,7 @@ export function useGameEngine() {
         state.current.phase = phase;
         setUI((u) => ({ ...u, phase }));
       }, 3000),
-      window.setTimeout(() => {
+      setScaledTimeout(() => {
         const phase = "playing";
 
         // Do your full game state reset **here**
@@ -1054,10 +1057,10 @@ export function useGameEngine() {
     let blindfoldWasActive = false;
     let blindfoldPrevCursor = DEFAULT_CURSOR;
 
-    const render = (time: number) => {
-        frameRate(time);
-        const scale = scaleRef.current;
-        state.current.speedScale = scale;
+    const render = () => {
+        const { deltaMs } = clockRef.current;
+        const deltaFrames = deltaMs / (1000 / 60);
+        state.current.speedScale = deltaFrames;
       const blindActive = state.current.isActive(
         "blindfold",
         state.current.frameCount
@@ -1327,7 +1330,7 @@ export function useGameEngine() {
           // point to the chosen frame set
           frames: enemyFrames[colorIdx],
           propFrame: Math.floor(Math.random() * 3),
-          frameRate: 6, // advance propeller every 6 game frames
+          frameDuration: 6 * (1000 / 60), // advance propeller every 6 game frames
           frameCounter: 0,
           alive: true,
           glide: ENEMY_CAN_FLAP ? Math.random() < ENEMY_GLIDE_PROB : true,
@@ -1444,7 +1447,7 @@ export function useGameEngine() {
           )[color],
           frameIndex: Math.floor(Math.random() * 3),
           frameCounter: 0,
-          frameRate: 10,
+          frameDuration: 10 * (1000 / 60),
           speed,
           color,
           bobOffset: Math.random() * Math.PI * 2,
@@ -1461,8 +1464,8 @@ export function useGameEngine() {
         const drawY = a.baseY + bob;
 
         // advance propeller frame
-        a.frameCounter += state.current.speedScale;
-        if (a.frameCounter >= a.frameRate) {
+        a.frameCounter += deltaMs;
+        if (a.frameCounter >= a.frameDuration) {
           a.frameCounter = 0;
           a.frameIndex = (a.frameIndex + 1) % a.frames.length;
         }
@@ -1650,8 +1653,8 @@ export function useGameEngine() {
 
         // draw flipped horizontally *around its center*
         // advance propeller
-        e.frameCounter += state.current.speedScale;
-        if (e.frameCounter >= e.frameRate) {
+        e.frameCounter += deltaMs;
+        if (e.frameCounter >= e.frameDuration) {
           e.frameCounter = 0;
           e.propFrame = (e.propFrame + 1) % e.frames.length;
         }
@@ -1721,7 +1724,7 @@ export function useGameEngine() {
           age: 0,
           maxAge: 20,
         });
-        setTimeout(
+        setScaledTimeout(
           () =>
             state.current.puffs.push({
               x: cx - 16,
@@ -1890,8 +1893,8 @@ export function useGameEngine() {
       // ─── draw medals ─────────────────────────────────────────────────
       state.current.medals.forEach((m, idx) => {
         // advance spin
-        m.frameCounter += state.current.speedScale;
-        if (m.frameCounter >= m.frameRate) {
+        m.frameCounter += deltaMs;
+        if (m.frameCounter >= m.frameDuration) {
           m.frameCounter = 0;
           m.frameIndex = (m.frameIndex + 1) % m.frames.length;
         }
@@ -2214,7 +2217,7 @@ export function useGameEngine() {
             if (!hitWater) {
               // explode on ground
               explosionImgs.forEach((img, i) =>
-                setTimeout(() => {
+                setScaledTimeout(() => {
                   state.current.puffs.push({
                     x: shell.x - 16,
                     y: groundY - 16,
@@ -2263,7 +2266,7 @@ export function useGameEngine() {
 
               // 3) Explosion effect & SFX
               explosionImgs.forEach((img, i) =>
-                setTimeout(() => {
+                setScaledTimeout(() => {
                   state.current.puffs.push({
                     x: e.x,
                     y: e.y,
@@ -2318,7 +2321,7 @@ export function useGameEngine() {
 
               // 3) Explosion effect & SFX
               explosionImgs.forEach((img, i) =>
-                setTimeout(() => {
+                setScaledTimeout(() => {
                   state.current.puffs.push({
                     x: d.x,
                     y: d.y,
@@ -2748,7 +2751,7 @@ export function useGameEngine() {
               // 2) Fire explosion frames
               const explosionSize = 32 * 3;
               explosionImgs.forEach((img, idx) =>
-                setTimeout(() => {
+                setScaledTimeout(() => {
                   state.current.puffs.push({
                     x: m.x + PLANE_HEIGHT / 2,
                     y: m.y + PLANE_WIDTH / 2,
@@ -2802,7 +2805,7 @@ export function useGameEngine() {
           e.alive = false;
           // spawn a puff or explosion at e.x,e.y…
           for (let i = 0; i < SMOKE_TRAIL_COUNT; i++) {
-            setTimeout(
+            setScaledTimeout(
               () =>
                 spawnCrashSmokeOne(
                   e.x + ENEMY_WIDTH / 2,
@@ -2840,7 +2843,7 @@ export function useGameEngine() {
         // once it hits ground, spawn a puff cloud and remove
         if (f.y + ENEMY_HEIGHT >= groundY) {
           for (let i = 0; i < SMOKE_TRAIL_COUNT; i++) {
-            setTimeout(() => spawnCrashSmokeOne(cxF, groundY), i * 100);
+            setScaledTimeout(() => spawnCrashSmokeOne(cxF, groundY), i * 100);
           }
           state.current.falling.splice(idx, 1);
         }
@@ -2866,7 +2869,7 @@ export function useGameEngine() {
             // 2) Fire explosion frames
             const explosionSize = 32 * 3;
             explosionImgs.forEach((img, idx) =>
-              setTimeout(() => {
+              setScaledTimeout(() => {
                 state.current.puffs.push({
                   x: cb.x - 16,
                   y: cb.y - 16,
@@ -2904,8 +2907,8 @@ export function useGameEngine() {
       const laserImgs = getImg("laserBeamImgs") as HTMLImageElement[];
       state.current.laserBeams = state.current.laserBeams.filter((b) => {
         b.x += LASER_BEAM_SPEED;
-        b.frameCounter += state.current.speedScale;
-        if (b.frameCounter >= 4) {
+        b.frameCounter += deltaMs;
+        if (b.frameCounter >= 4 * (1000 / 60)) {
           b.frameCounter = 0;
           b.frame = ((b.frame + 1) % laserImgs.length) as 0 | 1;
         }
@@ -3087,8 +3090,8 @@ export function useGameEngine() {
       // draw + animate water tiles
       state.current.waters.forEach((w, idx) => {
         // advance animation
-        w.frameCounter += state.current.speedScale;
-        if (w.frameCounter >= w.frameRate) {
+        w.frameCounter += deltaMs;
+        if (w.frameCounter >= w.frameDuration) {
           w.frameCounter = 0;
           w.frameIndex = w.frameIndex === 0 ? 1 : 0;
         }
@@ -3316,7 +3319,6 @@ export function useGameEngine() {
     spawnCrashSmokeOne,
     makeText,
     spawnNapalmEllipse,
-    frameRate,
   ]);
 
   // ─── START LOOP ON "playing" ─────────────────────────────────────────────
@@ -3376,7 +3378,7 @@ export function useGameEngine() {
         const x = 100,
           y = dims.height / 2;
         for (let i = 0; i < 3; i++) {
-          window.setTimeout(
+          setScaledTimeout(
             () => makeText("RELOAD", 2, true, true, x, y, 30),
             i * 200
           );
@@ -3406,7 +3408,7 @@ export function useGameEngine() {
       state.current.cursor = SHOT_CURSOR;
 
       // reset cursor after a short delay
-      setTimeout(() => {
+      setScaledTimeout(() => {
         if (!state.current.isActive("blindfold", state.current.frameCount)) {
           state.current.cursor = DEFAULT_CURSOR;
         }
@@ -3425,7 +3427,7 @@ export function useGameEngine() {
       for (let i = 0; i < SPRAY_COUNT; i++) {
         const dx = (Math.random() * 2 - 1) * SPRAY_SPREAD;
         const dy = (Math.random() * 2 - 1) * SPRAY_SPREAD;
-        window.setTimeout(
+        setScaledTimeout(
           () => doSingleShot(baseX + dx, baseY + dy),
           i * SPRAY_INTERVAL
         );

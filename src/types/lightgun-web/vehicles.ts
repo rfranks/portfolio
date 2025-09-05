@@ -9,7 +9,9 @@ export interface Enemy {
   /** Array of animation frames */
   frames: HTMLImageElement[];
   propFrame: number;
-  frameRate: number;
+  /** Duration in milliseconds for propeller animation */
+  frameDuration: number;
+  /** Milliseconds elapsed for animation timing */
   frameCounter: number;
   alive: boolean;
   glide: boolean;
@@ -52,8 +54,10 @@ export interface Airship {
   baseY: number;
   frames: HTMLImageElement[];
   frameIndex: number;
+  /** Milliseconds elapsed for animation timing */
   frameCounter: number;
-  frameRate: number;
+  /** Duration in milliseconds for each frame */
+  frameDuration: number;
   speed: number;
   color: AirshipColor;
   /** Used for vertical bobbing offset */

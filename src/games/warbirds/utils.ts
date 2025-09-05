@@ -137,8 +137,8 @@ export function initState(
     ouchFrames: 0,
     ouchExplodeIdx: 0,
 
-    readyTimeout: 0,
-    goTimeout: 0,
+    readyTimeout: null,
+    goTimeout: null,
     beepTimeouts: [],
     countdown: null,
     countdownTimeouts: [],
