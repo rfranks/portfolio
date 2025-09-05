@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useWindowSize } from "@/hooks/lightgun-web/useWindowSize";
-import useFrameRate, { scaleRef } from "@/hooks/lightgun-web/useFrameRate";
+import useFrameRate, { fpsRef, scaleRef } from "@/hooks/lightgun-web/useFrameRate";
 import { BASE_DIMS } from "@/consts/lightgun-web/dimensions";
 import { useGameAssets } from "./useGameAssets";
 import { useGameAudio } from "./useGameAudio";
@@ -28,6 +28,7 @@ import {
   DEFAULT_CURSOR,
   SHOT_CURSOR,
   TARGET_CURSOR,
+  DEBUG_FPS_SCALE,
 } from "../constants";
 import type { AssetMgr } from "@/types/lightgun-web/ui";
 import type { TextLabel } from "@/types/lightgun-web/ui";
@@ -147,7 +148,8 @@ export default function useGameEngine() {
   const cursorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const frameRef = useRef(0); // track frames for one-second ticks
   const fishSpawnTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const frameRate = useFrameRate();
+  const reportIntervalMs = 500;
+  const frameRate = useFrameRate(60, reportIntervalMs);
   const backgroundSeed = useRef(Math.random() * 1000);
   const backgroundCanvas = useRef<HTMLCanvasElement | null>(null);
   const accuracyLabel = useRef<TextLabel | null>(null);
@@ -180,6 +182,16 @@ export default function useGameEngine() {
     accuracy: 0,
     cursor: DEFAULT_CURSOR,
   });
+
+  useEffect(() => {
+    if (!DEBUG_FPS_SCALE) return;
+    const id = setInterval(() => {
+      console.debug(
+        `[zombiefish] fps: ${fpsRef.current.toFixed(1)} scale: ${scaleRef.current.toFixed(2)}`
+      );
+      }, reportIntervalMs);
+    return () => clearInterval(id);
+  }, [reportIntervalMs]);
 
   // sync base dims once and resize canvas on window changes
   useEffect(() => {
