@@ -27,6 +27,7 @@ import "@fontsource/roboto/700.css";
 
 import "./page.css"; // Ensure global styles are applied
 import { hasOpenAIKey, setOpenAIKey } from "@/utils/bookworm/utils";
+import Image from "next/image";
 
 export default function BookwormPage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");
@@ -52,6 +53,13 @@ export default function BookwormPage() {
       <ThemeProvider theme={defaultTheme}>
         <CssBaseline />
         <Container component="main" maxWidth="sm" sx={{ mt: 8, mb: 4 }}>
+          <Image
+            src="/logo192.png"
+            style={{ width: "192px", height: "auto" }}
+            alt="bookworm logo"
+            width={192}
+            height={194}
+          />
           <Typography variant="h4" component="h1" gutterBottom>
             Welcome to Bookworm
           </Typography>
