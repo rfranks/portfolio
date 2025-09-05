@@ -3317,7 +3317,7 @@ export function useGameEngine() {
       // sync ui state
       syncUIFromState();
     };
-    render();
+    animationFrameRef.current = requestAnimationFrame(render);
   }, [
     getImg,
     dims,
