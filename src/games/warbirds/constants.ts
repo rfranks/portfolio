@@ -5,6 +5,7 @@ import { BASE_PATH } from "@/utils/basePath";
 export const DEBUG_PLAYER_CRASH = false; // when true, player never actually “dies”
 export const TEST_SLOW_FALL = false;
 export const POWERUP_DEBUG = [] as PowerupType[]; // force a specific powerup type, or leave empty for random
+export const DEBUG_FPS_SCALE = false; // log frame metrics when true
 
 export const ENABLE_AUTO_FLAP = true; // auto‐flap toggle: when true, player will flap randomly
 export const AUTO_FLAP_PROB = 0.025;

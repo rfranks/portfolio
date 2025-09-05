@@ -69,7 +69,10 @@ import {
   AIRSHIP_MAX_SPEED,
 } from "@/consts/lightgun-web/vehicles";
 import { useWindowSize } from "@/hooks/lightgun-web/useWindowSize";
-import useFrameRate, { scaleRef } from "@/hooks/lightgun-web/useFrameRate";
+import useFrameRate, {
+  fpsRef,
+  scaleRef,
+} from "@/hooks/lightgun-web/useFrameRate";
 import { AudioMgr } from "@/types/lightgun-web/audio";
 import { Puff } from "@/types/lightgun-web/effects";
 import { PowerupType, AntiPowerupType, Duck } from "@/types/lightgun-web/objects";
@@ -112,6 +115,7 @@ import {
   INITIAL_ENEMY_DENSITY,
   ENEMY_DENSITY_STEP,
   SHOT_CURSOR,
+  DEBUG_FPS_SCALE,
 } from "../constants";
 import { BASE_DIMS } from "@/consts/lightgun-web/dimensions";
 import { GameState, GameUIState } from "../types";
@@ -145,11 +149,22 @@ export function useGameEngine() {
   const state = useRef<GameState>(initState(dims, assetMgr, audioMgr));
 
   const loopStartedRef = useRef(false);
-  const frameRate = useFrameRate();
+  const reportIntervalMs = 500;
+  const frameRate = useFrameRate(60, reportIntervalMs);
 
   const [ui, setUI] = useState<GameUIState>({
     ...state.current,
   } as GameUIState);
+
+  useEffect(() => {
+    if (!DEBUG_FPS_SCALE) return;
+    const id = setInterval(() => {
+      console.debug(
+        `[warbirds] fps: ${fpsRef.current.toFixed(1)} scale: ${scaleRef.current.toFixed(2)}`
+      );
+    }, reportIntervalMs);
+    return () => clearInterval(id);
+  }, [reportIntervalMs]);
 
   // --- Helper Functions ---
 

@@ -4,6 +4,9 @@ import { BASE_PATH } from "@/utils/basePath";
  * Game-wide constants for the Zombiefish game.
  */
 
+// Debug flag for logging frame metrics
+export const DEBUG_FPS_SCALE = false;
+
 // Cursor styles
 export const DEFAULT_CURSOR =
   `url('${BASE_PATH}/assets/shooting-gallery/PNG/HUD/crosshair_blue_small.png') 16 16, auto`;
