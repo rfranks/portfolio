@@ -126,6 +126,6 @@ export function randomWater(
     size: lakeSize,
     frameIndex: 0,
     frameCounter: 0,
-    frameRate: 30,
+    frameDuration: 30 * (1000 / 60),
   };
 }

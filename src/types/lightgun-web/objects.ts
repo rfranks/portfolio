@@ -80,8 +80,10 @@ export interface Medal {
   /** Animation frames for medal spin */
   frames: HTMLImageElement[];
   frameIndex: number;
+  /** Milliseconds elapsed for animation timing */
   frameCounter: number;
-  frameRate: number;
+  /** Duration in milliseconds for each animation frame */
+  frameDuration: number;
   /** Medal ID (1–9) */
   id: number;
 }

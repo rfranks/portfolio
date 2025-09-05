@@ -1,6 +1,11 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useWindowSize } from "@/hooks/lightgun-web/useWindowSize";
-import useFrameRate, { fpsRef, scaleRef } from "@/hooks/lightgun-web/useFrameRate";
+import useScaledClock, {
+  clockRef,
+  setScaledTimeout,
+  clearScaledTimeout,
+  type ScaledTimeoutHandle,
+} from "@/hooks/lightgun-web/useScaledClock";
 import { BASE_DIMS } from "@/consts/lightgun-web/dimensions";
 import { useGameAssets } from "./useGameAssets";
 import { useGameAudio } from "./useGameAudio";
@@ -40,9 +45,11 @@ import type { ClickEvent } from "@/types/lightgun-web/events";
 // Initial timer value (in seconds)
 const GAME_TIME = 99;
 const FPS = 60; // assumed frame rate for requestAnimationFrame
+const FRAME_MS = 1000 / FPS;
 
 const FISH_SIZE = 128;
 const FISH_FRAME_DELAY = 6;
+const FISH_FRAME_DURATION = FISH_FRAME_DELAY * FRAME_MS;
 const MAX_SCHOOL_SIZE = 4;
 
 // NES-style jingle sequence for background music
@@ -144,12 +151,12 @@ export default function useGameEngine() {
   const inactiveFish = useRef<Fish[]>([]);
   const inactiveBubbles = useRef<Bubble[]>([]);
   const bubbleSpawnRef = useRef(0);
-  const spawnTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cursorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const frameRef = useRef(0); // track frames for one-second ticks
-  const fishSpawnTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const spawnTimeoutRef = useRef<ScaledTimeoutHandle | null>(null);
+  const cursorTimeoutRef = useRef<ScaledTimeoutHandle | null>(null);
+  const frameRef = useRef(0); // track milliseconds for one-second ticks
+  const fishSpawnTimeout = useRef<ScaledTimeoutHandle | null>(null);
   const reportIntervalMs = 500;
-  const frameRate = useFrameRate(60, reportIntervalMs);
+  useScaledClock();
   const backgroundSeed = useRef(Math.random() * 1000);
   const backgroundCanvas = useRef<HTMLCanvasElement | null>(null);
   const accuracyLabel = useRef<TextLabel | null>(null);
@@ -186,10 +193,12 @@ export default function useGameEngine() {
   useEffect(() => {
     if (!DEBUG_FPS_SCALE) return;
     const id = setInterval(() => {
+      const { deltaMs, scale } = clockRef.current;
+      const fps = 1000 / deltaMs;
       console.debug(
-        `[zombiefish] fps: ${fpsRef.current.toFixed(1)} scale: ${scaleRef.current.toFixed(2)}`
+        `[zombiefish] fps: ${fps.toFixed(1)} scale: ${scale.toFixed(2)}`
       );
-      }, reportIntervalMs);
+    }, reportIntervalMs);
     return () => clearInterval(id);
   }, [reportIntervalMs]);
 
@@ -315,7 +324,7 @@ export default function useGameEngine() {
     updateScoreLabel(scoreLabel.current, state.current.score);
   }, [updateScoreLabel]);
 
-  const updateFish = useCallback((scale: number) => {
+  const updateFish = useCallback((deltaMs: number, scale: number) => {
     const cur = state.current;
     const { width, height } = cur.dims;
 
@@ -329,8 +338,8 @@ export default function useGameEngine() {
       ) as Record<string, HTMLImageElement[]>;
       const frames = frameMap[f.kind as keyof typeof frameMap];
       if (frames && frames.length > 0) {
-        f.frameCounter += scale;
-        if (f.frameCounter >= FISH_FRAME_DELAY) {
+        f.frameCounter += deltaMs;
+        if (f.frameCounter >= FISH_FRAME_DURATION) {
           f.frameCounter = 0;
           f.frame = (f.frame + 1) % frames.length;
         }
@@ -517,7 +526,7 @@ export default function useGameEngine() {
     // move fish with a slight oscillation and update their angle
     cur.fish.forEach((f) => {
       if (f.hurtTimer > 0) f.hurtTimer -= scale;
-      const osc = Math.sin((frameRef.current + f.id) / 20) * 0.5;
+      const osc = Math.sin((frameRef.current / FRAME_MS + f.id) / 20) * 0.5;
       const limited = clampIncline(f.vx, f.vy + osc);
       f.x += limited.vx * scale;
       f.y += limited.vy * scale;
@@ -557,10 +566,8 @@ export default function useGameEngine() {
   }, []);
 
   // main loop updates timer and fish
-  const loop = useCallback(
-    (time: number) => {
-      frameRate(time);
-      const scale = scaleRef.current;
+  const loop = useCallback(() => {
+      const { deltaMs, scale } = clockRef.current;
       const cur = state.current;
       if (timerLabel.current) {
       const lbl = timerLabel.current;
@@ -589,17 +596,20 @@ export default function useGameEngine() {
     }
 
     if (cur.phase === "playing") {
-      updateFish(scale);
+      updateFish(deltaMs, scale);
 
       // spawn and animate bubbles
-      bubbleSpawnRef.current -= scale;
+      bubbleSpawnRef.current -= deltaMs;
       if (bubbleSpawnRef.current <= 0) {
         spawnBubble();
-        bubbleSpawnRef.current = Math.floor(Math.random() * 60) + 30;
+        bubbleSpawnRef.current =
+          (Math.floor(Math.random() * 60) + 30) * FRAME_MS;
       }
       cur.bubbles.forEach((b) => {
         // Update position using velocity and per-bubble wiggle
-        b.x += (b.vx + Math.sin(frameRef.current * b.freq) * b.amp) * scale;
+        b.x +=
+          (b.vx + Math.sin((frameRef.current / FRAME_MS) * b.freq) * b.amp) *
+          scale;
         b.y += b.vy * scale;
       });
       cur.bubbles = cur.bubbles.filter((b) => {
@@ -610,9 +620,9 @@ export default function useGameEngine() {
       });
 
       // track frames and decrement the timer once per second
-      frameRef.current += scale;
-      if (frameRef.current >= FPS) {
-        frameRef.current -= FPS;
+      frameRef.current += deltaMs;
+      if (frameRef.current >= 1000) {
+        frameRef.current -= 1000;
         cur.timer = Math.max(0, cur.timer - 1);
         audio.play("tick");
         updateDigitLabel(timerLabel.current, cur.timer, 2);
@@ -768,7 +778,7 @@ export default function useGameEngine() {
       }
 
       // pulse the accuracy label slightly each frame
-      lbl.scale = 1 + 0.05 * Math.sin(frameRef.current * 0.1);
+      lbl.scale = 1 + 0.05 * Math.sin((frameRef.current / FRAME_MS) * 0.1);
       const totalWidth = lbl.imgs.reduce(
         (w, img) => w + (img?.width || 0) * lbl.scale + 2,
         0
@@ -867,7 +877,8 @@ export default function useGameEngine() {
           const outline =
             fishImgs[`${f.kind}_outline` as keyof typeof fishImgs];
           if (outline) {
-            ctx.globalAlpha = (Math.sin(frameRef.current / 10) + 1) / 2;
+            ctx.globalAlpha =
+              (Math.sin((frameRef.current / FRAME_MS) / 10) + 1) / 2;
             ctx.drawImage(outline, drawX, drawY, FISH_SIZE, FISH_SIZE);
             ctx.globalAlpha = 1;
           }
@@ -922,7 +933,7 @@ export default function useGameEngine() {
     });
 
     animationFrameRef.current = requestAnimationFrame(loop);
-  }, [updateFish, getImg, assetMgr, spawnBubble, updateDigitLabel, frameRate]);
+  }, [updateFish, getImg, assetMgr, spawnBubble, updateDigitLabel]);
 
   // start the game
   const startSplash = useCallback(() => {
@@ -1052,7 +1063,7 @@ export default function useGameEngine() {
     const cur = state.current;
 
     if (fishSpawnTimeout.current) {
-      clearTimeout(fishSpawnTimeout.current);
+      clearScaledTimeout(fishSpawnTimeout.current);
       fishSpawnTimeout.current = null;
     }
 
@@ -1106,11 +1117,11 @@ export default function useGameEngine() {
     if (animationFrameRef.current)
       cancelAnimationFrame(animationFrameRef.current);
     if (spawnTimeoutRef.current) {
-      clearTimeout(spawnTimeoutRef.current);
+      clearScaledTimeout(spawnTimeoutRef.current);
       spawnTimeoutRef.current = null;
     }
     if (cursorTimeoutRef.current) {
-      clearTimeout(cursorTimeoutRef.current);
+      clearScaledTimeout(cursorTimeoutRef.current);
       cursorTimeoutRef.current = null;
     }
     audio.pauseAll();
@@ -1225,8 +1236,8 @@ export default function useGameEngine() {
       if (cur.phase !== "playing") return;
 
       syncCursor(SHOT_CURSOR);
-      if (cursorTimeoutRef.current) clearTimeout(cursorTimeoutRef.current);
-      cursorTimeoutRef.current = setTimeout(() => {
+      if (cursorTimeoutRef.current) clearScaledTimeout(cursorTimeoutRef.current);
+      cursorTimeoutRef.current = setScaledTimeout(() => {
         syncCursor(DEFAULT_CURSOR);
       }, 100);
 
@@ -1541,7 +1552,7 @@ export default function useGameEngine() {
       const baseDelay = min + Math.random() * (max - min);
       const delay = Math.max(baseDelay / difficultyFactor, 250);
 
-      fishSpawnTimeout.current = setTimeout(() => {
+      fishSpawnTimeout.current = setScaledTimeout(() => {
         if (state.current.phase !== "playing") return;
         const kind = basicKinds[Math.floor(Math.random() * basicKinds.length)];
         const count = Math.floor(Math.random() * 5) + 1;
@@ -1559,7 +1570,7 @@ export default function useGameEngine() {
     schedule();
     return () => {
       if (fishSpawnTimeout.current) {
-        clearTimeout(fishSpawnTimeout.current);
+        clearScaledTimeout(fishSpawnTimeout.current);
         fishSpawnTimeout.current = null;
       }
     };

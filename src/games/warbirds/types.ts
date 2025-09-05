@@ -24,6 +24,7 @@ import type {
   Duck,
 } from "@/types/lightgun-web/objects";
 import { AudioMgr } from "@/types/lightgun-web/audio";
+import type { ScaledTimeoutHandle } from "@/hooks/lightgun-web/useScaledClock";
 
 export type GamePhase = "title" | "ready" | "go" | "playing";
 
@@ -133,11 +134,11 @@ export interface GameState extends GameUIState {
   ouchExplodeIdx: number;
 
   // (splash) timers — you may choose to drop these once splash logic moves out
-  readyTimeout: number;
-  goTimeout: number;
-  beepTimeouts: number[];
+  readyTimeout: ScaledTimeoutHandle | null;
+  goTimeout: ScaledTimeoutHandle | null;
+  beepTimeouts: ScaledTimeoutHandle[];
   /** Timeout handles for resetting the countdown */
-  countdownTimeouts: number[];
+  countdownTimeouts: ScaledTimeoutHandle[];
 
   isActive: (t: PowerupType, frameCount: number) => boolean;
   enemySpeed: (frameCount: number) => number;
