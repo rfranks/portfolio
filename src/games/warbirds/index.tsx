@@ -6,9 +6,11 @@ import { withBasePath } from "@/utils/basePath";
 import { TitleSplash } from "./components/TitleSplash";
 import GameUI from "./components/GameUI";
 import useGameEngine from "./hooks/useGameEngine";
+import useDisableDrag from "@/hooks/lightgun-web/useDisableDrag";
 
 export default function Game() {
   const engine = useGameEngine();
+  useDisableDrag();
 
   const {
     ui,
