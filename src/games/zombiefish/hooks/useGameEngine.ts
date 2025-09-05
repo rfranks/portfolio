@@ -85,6 +85,11 @@ const CONVERT_FLASH_FRAMES = 5;
 const MISS_GROWTH = 4;
 const MISS_FADE = 0.05;
 
+const WANDER_TIMER_MIN_MS = 1000;
+const WANDER_TIMER_MAX_MS = 2000;
+const HURT_DURATION_MS = HURT_FRAMES * FRAME_MS;
+const CONVERT_FLASH_DURATION_MS = CONVERT_FLASH_FRAMES * FRAME_MS;
+
 const STAT_LABEL_PY = 8;
 
 const clampIncline = (vx: number, vy: number) => {
@@ -351,7 +356,7 @@ export default function useGameEngine() {
         if (ctx && flashImg) {
           ctx.drawImage(flashImg, f.x, f.y, FISH_SIZE, FISH_SIZE);
         }
-        f.flashTimer = (f.flashTimer || 0) - scale;
+        f.flashTimer = (f.flashTimer || 0) - deltaMs;
         if (f.flashTimer <= 0) {
           f.isSkeleton = true;
           f.health = 2;
@@ -391,7 +396,9 @@ export default function useGameEngine() {
         f.vx = limited.vx;
         f.vy = limited.vy;
         if (angleChanged) {
-          f.wanderTimer = Math.floor(Math.random() * FPS) + FPS;
+          f.wanderTimer =
+            Math.random() * (WANDER_TIMER_MAX_MS - WANDER_TIMER_MIN_MS) +
+            WANDER_TIMER_MIN_MS;
         }
       });
       prevGroupVel[id] = { vx: limited.vx, vy: limited.vy };
@@ -419,7 +426,7 @@ export default function useGameEngine() {
       const sign = a.vx >= 0 ? 1 : -1;
       const desiredX = a.x + FISH_SIZE * sign;
       const dx = desiredX - b.x;
-      b.vx += dx * 0.05;
+      b.vx += dx * 0.05 * scale;
     });
 
     // skeleton behavior
@@ -468,7 +475,7 @@ export default function useGameEngine() {
         // Spawn a brief text effect before converting the fish
         makeText("POOF", target.x, target.y);
         target.pendingSkeleton = true;
-        target.flashTimer = CONVERT_FLASH_FRAMES;
+        target.flashTimer = CONVERT_FLASH_DURATION_MS;
         target.vx = 0;
         target.vy = 0;
         target.frame = 0;
@@ -487,8 +494,8 @@ export default function useGameEngine() {
         const rdy = other.y - s.y;
         const rdist = Math.sqrt(rdx * rdx + rdy * rdy);
         if (rdist > 0 && rdist < SKELETON_REPEL_DISTANCE) {
-          s.vx -= (rdx / rdist) * SKELETON_REPEL_FORCE;
-          s.vy -= (rdy / rdist) * SKELETON_REPEL_FORCE;
+          s.vx -= (rdx / rdist) * SKELETON_REPEL_FORCE * scale;
+          s.vy -= (rdy / rdist) * SKELETON_REPEL_FORCE * scale;
         }
       }
       const limited = clampIncline(s.vx, s.vy);
@@ -499,7 +506,7 @@ export default function useGameEngine() {
     // natural wandering for non-skeleton fish
     cur.fish.forEach((f) => {
       if (f.isSkeleton) return;
-      f.wanderTimer -= scale;
+      f.wanderTimer -= deltaMs;
       if (f.wanderTimer <= 0) {
         const range = FISH_SPEED_MAX - FISH_SPEED_MIN;
         const speed =
@@ -521,13 +528,15 @@ export default function useGameEngine() {
         f.vx = limited.vx;
         f.vy = limited.vy;
         // reset timer
-        f.wanderTimer = Math.floor(Math.random() * FPS) + FPS;
+        f.wanderTimer =
+          Math.random() * (WANDER_TIMER_MAX_MS - WANDER_TIMER_MIN_MS) +
+          WANDER_TIMER_MIN_MS;
       }
     });
 
     // move fish with a slight oscillation and update their angle
     cur.fish.forEach((f) => {
-      if (f.hurtTimer > 0) f.hurtTimer -= scale;
+      if (f.hurtTimer > 0) f.hurtTimer -= deltaMs;
       const osc = Math.sin((frameRef.current / FRAME_MS + f.id) / 20) * 0.5;
       const limited = clampIncline(f.vx, f.vy + osc);
       f.x += limited.vx * scale;
@@ -761,8 +770,8 @@ export default function useGameEngine() {
 
     // update miss particles
     cur.missParticles.forEach((p) => {
-      p.radius += MISS_GROWTH;
-      p.alpha -= MISS_FADE;
+      p.radius += MISS_GROWTH * scale;
+      p.alpha -= MISS_FADE * scale;
     });
     cur.missParticles = cur.missParticles.filter((p) => p.alpha > 0);
 
@@ -770,9 +779,15 @@ export default function useGameEngine() {
     if (cur.phase === "gameover" && accuracyLabel.current) {
       const lbl = accuracyLabel.current;
       if (displayAccuracy.current < finalAccuracy.current) {
-        displayAccuracy.current += 1;
-        audio.play("tick");
-        const pct = Math.min(displayAccuracy.current, finalAccuracy.current);
+        const prev = Math.floor(displayAccuracy.current);
+        displayAccuracy.current = Math.min(
+          displayAccuracy.current + scale,
+          finalAccuracy.current
+        );
+        if (Math.floor(displayAccuracy.current) > prev) {
+          audio.play("tick");
+        }
+        const pct = Math.floor(displayAccuracy.current);
         const str = pct.toString();
         const digitImgs = getImg("digitImgs") as Record<
           string,
@@ -1342,7 +1357,7 @@ export default function useGameEngine() {
             } else {
               f.health -= 1;
               if (f.health > 0) {
-                f.hurtTimer = HURT_FRAMES;
+                f.hurtTimer = HURT_DURATION_MS;
                 audio.play("skeleton");
               } else {
                 const [removed] = cur.fish.splice(i, 1);
@@ -1482,7 +1497,9 @@ export default function useGameEngine() {
       f.highlight = highlight ? true : undefined;
       f.pendingSkeleton = undefined;
       f.flashTimer = undefined;
-      f.wanderTimer = Math.floor(Math.random() * FPS) + FPS;
+      f.wanderTimer =
+        Math.random() * (WANDER_TIMER_MAX_MS - WANDER_TIMER_MIN_MS) +
+        WANDER_TIMER_MIN_MS;
       return f;
     };
 
@@ -1554,8 +1571,8 @@ export default function useGameEngine() {
       const { timer, conversions } = state.current;
       const difficultyFactor = 1 + (1 - timer / GAME_TIME) + conversions * 0.1;
       // FISH_SPAWN_INTERVAL_* are expressed in frames; convert to ms
-      const min = (FISH_SPAWN_INTERVAL_MIN / FPS) * 1000;
-      const max = (FISH_SPAWN_INTERVAL_MAX / FPS) * 1000;
+      const min = FISH_SPAWN_INTERVAL_MIN * FRAME_MS;
+      const max = FISH_SPAWN_INTERVAL_MAX * FRAME_MS;
       const baseDelay = min + Math.random() * (max - min);
       const delay = Math.max(baseDelay / difficultyFactor, 250);
 
