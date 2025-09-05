@@ -4,6 +4,7 @@ import useScaledClock, {
   clockRef,
   setScaledTimeout,
   clearScaledTimeout,
+  advanceClock,
   type ScaledTimeoutHandle,
 } from "@/hooks/lightgun-web/useScaledClock";
 import { BASE_DIMS } from "@/consts/lightgun-web/dimensions";
@@ -112,6 +113,7 @@ export default function useGameEngine() {
   // canvas and animation frame refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const lastTimeRef = useRef(performance.now());
 
   // assets
   const assetMgr = useGameAssets();
@@ -567,6 +569,10 @@ export default function useGameEngine() {
 
   // main loop updates timer and fish
   const loop = useCallback(() => {
+      const now = performance.now();
+      const deltaMsRaw = now - lastTimeRef.current;
+      lastTimeRef.current = now;
+      advanceClock(deltaMsRaw);
       const { deltaMs, scale } = clockRef.current;
       const cur = state.current;
       if (timerLabel.current) {
@@ -1055,6 +1061,7 @@ export default function useGameEngine() {
 
     if (animationFrameRef.current)
       cancelAnimationFrame(animationFrameRef.current);
+    lastTimeRef.current = performance.now();
     animationFrameRef.current = requestAnimationFrame(loop);
   }, [loop, assetMgr, getImg, updateDigitLabel]);
 

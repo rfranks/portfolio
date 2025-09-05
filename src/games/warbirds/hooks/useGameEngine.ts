@@ -73,6 +73,7 @@ import useScaledClock, {
   clockRef,
   setScaledTimeout,
   clearScaledTimeout,
+  advanceClock,
 } from "@/hooks/lightgun-web/useScaledClock";
 import { AudioMgr } from "@/types/lightgun-web/audio";
 import { Puff } from "@/types/lightgun-web/effects";
@@ -1054,12 +1055,17 @@ export function useGameEngine() {
     const groundImgs = getImg("groundImgs") as HTMLImageElement[];
     const tileW = groundImgs[0].width;
 
-    let blindfoldWasActive = false;
-    let blindfoldPrevCursor = DEFAULT_CURSOR;
+      let blindfoldWasActive = false;
+      let blindfoldPrevCursor = DEFAULT_CURSOR;
 
-    const render = () => {
-        const { deltaMs } = clockRef.current;
-        const deltaFrames = deltaMs / (1000 / 60);
+      let lastTime = performance.now();
+      const render = () => {
+        const now = performance.now();
+        const deltaMs = now - lastTime;
+        lastTime = now;
+        advanceClock(deltaMs);
+        const { deltaMs: scaledMs } = clockRef.current;
+        const deltaFrames = scaledMs / (1000 / 60);
         state.current.speedScale = deltaFrames;
       const blindActive = state.current.isActive(
         "blindfold",
@@ -3354,19 +3360,24 @@ export function useGameEngine() {
       canvas.style.width = `${screenW}px`;
       canvas.style.height = `${screenH}px`;
       ctx.scale(scaleX * dpr, scaleY * dpr);
-      let raf: number;
-      const render = () => {
-        ctx.fillStyle = SKY_COLOR;
-        ctx.fillRect(0, 0, width, height);
-        state.current.textLabels = drawTextLabels({
-          textLabels: state.current.textLabels,
-          ctx,
-          cull: true,
-        });
-        raf = requestAnimationFrame(render);
-      };
-      render();
-      return () => cancelAnimationFrame(raf);
+        let raf: number;
+        let lastTime = performance.now();
+        const render = () => {
+          const now = performance.now();
+          const deltaMs = now - lastTime;
+          lastTime = now;
+          advanceClock(deltaMs);
+          ctx.fillStyle = SKY_COLOR;
+          ctx.fillRect(0, 0, width, height);
+          state.current.textLabels = drawTextLabels({
+            textLabels: state.current.textLabels,
+            ctx,
+            cull: true,
+          });
+          raf = requestAnimationFrame(render);
+        };
+        render();
+        return () => cancelAnimationFrame(raf);
     }
   }, [ui.phase, screenDims, canvasRef, dims]);
 

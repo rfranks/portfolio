@@ -1,4 +1,4 @@
-import { useEffect, useRef, type MutableRefObject } from "react";
+import { useRef, type MutableRefObject } from "react";
 
 const FRAME_MS = 1000 / 60;
 
@@ -19,11 +19,11 @@ export let setScaledTimeout: (
   ms: number
 ) => TimeoutHandle;
 export let clearScaledTimeout: (handle: TimeoutHandle | null) => void;
+export let advanceClock: (deltaMs: number) => void;
 
 export type ScaledTimeoutHandle = TimeoutHandle;
 
 export default function useScaledClock() {
-  const last = useRef<number | null>(null);
   const timeouts = useRef<TimeoutHandle[]>([]);
   clockRef = useRef<ClockState>({ deltaMs: FRAME_MS, scale: 1 });
 
@@ -39,36 +39,22 @@ export default function useScaledClock() {
     }
   };
 
-  useEffect(() => {
-    let running = true;
-    const loop = (time: number) => {
-      if (!running) return;
-      if (last.current === null) last.current = time;
-      const delta = time - last.current!;
-      last.current = time;
-      const scale = delta / FRAME_MS;
-      clockRef.current = { deltaMs: delta, scale };
+  advanceClock = (deltaMs: number) => {
+    const scale = deltaMs / FRAME_MS;
+    clockRef.current = { deltaMs, scale };
 
-      for (let i = timeouts.current.length - 1; i >= 0; i--) {
-        const t = timeouts.current[i];
-        if (t.cancelled) {
-          timeouts.current.splice(i, 1);
-          continue;
-        }
-        t.remaining -= delta;
-        if (t.remaining <= 0) {
-          t.cb();
-          timeouts.current.splice(i, 1);
-        }
+    for (let i = timeouts.current.length - 1; i >= 0; i--) {
+      const t = timeouts.current[i];
+      if (t.cancelled) {
+        timeouts.current.splice(i, 1);
+        continue;
       }
-
-      requestAnimationFrame(loop);
-    };
-    const id = requestAnimationFrame(loop);
-    return () => {
-      running = false;
-      cancelAnimationFrame(id);
-    };
-  }, []);
+      t.remaining -= deltaMs;
+      if (t.remaining <= 0) {
+        t.cb();
+        timeouts.current.splice(i, 1);
+      }
+    }
+  };
 }
 
