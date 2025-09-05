@@ -3,6 +3,8 @@ import Box from "@mui/material/Box";
 import { withBasePath } from "@/utils/basePath";
 import type { ClickEvent } from "@/types/lightgun-web/events";
 import type { GameUIState } from "../types";
+import { useWindowSize } from "@/hooks/lightgun-web/useWindowSize";
+import { BASE_DIMS } from "@/consts/lightgun-web/dimensions";
 
 export interface GameUIProps {
   ui: GameUIState;
@@ -21,6 +23,8 @@ export function GameUI({
   handleMouseMove,
 }: GameUIProps) {
   const { phase, cursor } = ui;
+  const screenDims = useWindowSize();
+  const scale = screenDims.width / BASE_DIMS.width || 1;
 
   return (
     <Box position="relative" width="100vw" height="100dvh">
@@ -51,7 +55,7 @@ export function GameUI({
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 300,
+            width: 300 * scale,
             height: "auto",
             pointerEvents: "none",
           }}

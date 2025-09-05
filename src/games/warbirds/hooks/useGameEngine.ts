@@ -112,6 +112,7 @@ import {
   ENEMY_DENSITY_STEP,
   SHOT_CURSOR,
 } from "../constants";
+import { BASE_DIMS } from "@/consts/lightgun-web/dimensions";
 import { GameState, GameUIState } from "../types";
 import { initState } from "../utils";
 import { useGameAssets } from "./useGameAssets";
@@ -137,17 +138,10 @@ export function useGameEngine() {
   const { getImg, ready } = assetMgr;
 
   // ─── WINDOW RESIZE ────────────────────────────────────────────────────────
-  const dims = useWindowSize();
+  const screenDims = useWindowSize();
+  const dims = BASE_DIMS;
 
-  const initialDims =
-    dims.width > 0 && dims.height > 0
-      ? dims
-      : {
-          width: typeof window !== "undefined" ? window.innerWidth : 0,
-          height: typeof window !== "undefined" ? window.innerHeight : 0,
-        };
-
-  const state = useRef<GameState>(initState(initialDims, assetMgr, audioMgr));
+  const state = useRef<GameState>(initState(dims, assetMgr, audioMgr));
 
   const loopStartedRef = useRef(false);
 
@@ -1018,13 +1012,16 @@ export function useGameEngine() {
     if (!ctx) return;
 
     const { width, height } = dims;
+    const { width: screenW, height: screenH } = screenDims;
     const dpr =
       typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-    ctx.scale(dpr, dpr);
+    const scaleX = screenW / width;
+    const scaleY = screenH / height;
+    canvas.width = screenW * dpr;
+    canvas.height = screenH * dpr;
+    canvas.style.width = `${screenW}px`;
+    canvas.style.height = `${screenH}px`;
+    ctx.scale(scaleX * dpr, scaleY * dpr);
 
     resetState();
     // ensure we stay in the playing phase after resetting state
@@ -3280,6 +3277,7 @@ export function useGameEngine() {
   }, [
     getImg,
     dims,
+    screenDims,
     resetState,
     play,
     syncUIFromState,
@@ -3315,14 +3313,17 @@ export function useGameEngine() {
       const canvas = canvasRef.current;
       const ctx = canvas?.getContext("2d");
       if (!canvas || !ctx) return;
+      const { width: screenW, height: screenH } = screenDims;
       const { width, height } = dims;
       const dpr =
         typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      ctx.scale(dpr, dpr);
+      const scaleX = screenW / width;
+      const scaleY = screenH / height;
+      canvas.width = screenW * dpr;
+      canvas.height = screenH * dpr;
+      canvas.style.width = `${screenW}px`;
+      canvas.style.height = `${screenH}px`;
+      ctx.scale(scaleX * dpr, scaleY * dpr);
       let raf: number;
       const render = () => {
         ctx.fillStyle = SKY_COLOR;
@@ -3337,7 +3338,7 @@ export function useGameEngine() {
       render();
       return () => cancelAnimationFrame(raf);
     }
-  }, [ui.phase, dims, canvasRef]);
+  }, [ui.phase, screenDims, canvasRef, dims]);
 
   // ─── CLICK TO FLAP & FIRE ─────────────────────────────────────────────────
   const handleClick = (e: ClickEvent) => {
@@ -3386,8 +3387,10 @@ export function useGameEngine() {
 
     // compute base click coords
     const rect = canvasRef.current!.getBoundingClientRect();
-    const baseX = e.clientX - rect.left,
-      baseY = e.clientY - rect.top;
+    const scaleX = dims.width / rect.width;
+    const scaleY = dims.height / rect.height;
+    const baseX = (e.clientX - rect.left) * scaleX,
+      baseY = (e.clientY - rect.top) * scaleY;
 
     if (isSpray) {
       // fire that many pellets, each random‐offset & delayed
