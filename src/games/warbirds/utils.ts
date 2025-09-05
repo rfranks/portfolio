@@ -61,7 +61,7 @@ export function initState(
   const isActive = (t: PowerupType, frameCount: number): boolean =>
     activePowerups[t].expires > 0 && activePowerups[t].expires > frameCount;
 
-  return {
+  const state: GameState = {
     dims,
     assets,
     audio,
@@ -115,6 +115,7 @@ export function initState(
     shieldFlash: 0,
     screenShake: 0,
     thunderCooldown: 0,
+    speedScale: 1,
 
     crashed: false,
     crashHandled: false,
@@ -144,10 +145,14 @@ export function initState(
 
     isActive,
     enemySpeed: (frameCount: number) =>
-      isActive("hourglass", frameCount) ? ENEMY_SPEED * 0.5 : ENEMY_SPEED,
+      (isActive("hourglass", frameCount) ? ENEMY_SPEED * 0.5 : ENEMY_SPEED) *
+      state.speedScale,
     groundSpeed: (frameCount: number) =>
-      isActive("hourglass", frameCount) ? GROUND_SPEED * 0.5 : GROUND_SPEED,
+      (isActive("hourglass", frameCount) ? GROUND_SPEED * 0.5 : GROUND_SPEED) *
+      state.speedScale,
 
     phase: "title",
   };
+
+  return state;
 }
