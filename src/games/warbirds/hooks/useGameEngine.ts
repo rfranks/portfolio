@@ -3303,7 +3303,7 @@ export function useGameEngine() {
       // sync ui state
       syncUIFromState();
     };
-    render(performance.now());
+    render();
   }, [
     getImg,
     dims,
