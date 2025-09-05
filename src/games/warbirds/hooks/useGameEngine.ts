@@ -3317,7 +3317,7 @@ export function useGameEngine() {
       // sync ui state
       syncUIFromState();
     };
-    render();
+    animationFrameRef.current = requestAnimationFrame(render);
   }, [
     getImg,
     dims,
@@ -3376,19 +3376,23 @@ export function useGameEngine() {
       canvas.style.width = `${screenW}px`;
       canvas.style.height = `${screenH}px`;
       ctx.scale(scaleX * dpr, scaleY * dpr);
-        let raf: number;
-        const render = () => {
-          ctx.fillStyle = SKY_COLOR;
-          ctx.fillRect(0, 0, width, height);
-          state.current.textLabels = drawTextLabels({
-            textLabels: state.current.textLabels,
-            ctx,
-            cull: true,
-          });
-          raf = requestAnimationFrame(render);
-        };
-        render();
-        return () => cancelAnimationFrame(raf);
+      let raf: number;
+      let lastTime = performance.now();
+      const render = () => {
+        const now = performance.now();
+        advanceClock(now - lastTime);
+        lastTime = now;
+        ctx.fillStyle = SKY_COLOR;
+        ctx.fillRect(0, 0, width, height);
+        state.current.textLabels = drawTextLabels({
+          textLabels: state.current.textLabels,
+          ctx,
+          cull: true,
+        });
+        raf = requestAnimationFrame(render);
+      };
+      render();
+      return () => cancelAnimationFrame(raf);
     }
   }, [ui.phase, screenDims, canvasRef, dims]);
 
