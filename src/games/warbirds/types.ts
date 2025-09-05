@@ -108,8 +108,8 @@ export interface GameState extends GameUIState {
   shieldFlash: number;
   screenShake: number;
   thunderCooldown: number;
-  /** Current frame-duration scaling factor (1 = 60 FPS). */
-  speedScale: number;
+  autoReloadTimer: number;
+  enemyFlapTimer: number;
 
   // animation state
   planeFrame: number;
@@ -141,6 +141,6 @@ export interface GameState extends GameUIState {
   countdownTimeouts: ScaledTimeoutHandle[];
 
   isActive: (t: PowerupType, frameCount: number) => boolean;
-  enemySpeed: (frameCount: number) => number;
-  groundSpeed: (frameCount: number) => number;
+  enemySpeed: () => number;
+  groundSpeed: () => number;
 }
