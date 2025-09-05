@@ -74,6 +74,7 @@ import useScaledClock, {
   setScaledTimeout,
   clearScaledTimeout,
   advanceClock,
+  type ScaledTimeoutHandle,
 } from "@/hooks/lightgun-web/useScaledClock";
 import { AudioMgr } from "@/types/lightgun-web/audio";
 import { Puff } from "@/types/lightgun-web/effects";
@@ -151,6 +152,7 @@ export function useGameEngine() {
   const state = useRef<GameState>(initState(dims, assetMgr, audioMgr));
 
   const loopStartedRef = useRef(false);
+  const densityTimeoutRef = useRef<ScaledTimeoutHandle | null>(null);
   const reportIntervalMs = 500;
   useScaledClock();
 
@@ -3342,10 +3344,18 @@ export function useGameEngine() {
       // reset and ramp up spawn rate
       state.current.dynamicDensity = INITIAL_ENEMY_DENSITY;
 
-      const interval = setInterval(() => {
+      const scheduleDensityIncrease = () => {
         state.current.dynamicDensity += ENEMY_DENSITY_STEP;
-      }, 45000);
-      return () => clearInterval(interval);
+        densityTimeoutRef.current = setScaledTimeout(
+          scheduleDensityIncrease,
+          45000
+        );
+      };
+      densityTimeoutRef.current = setScaledTimeout(
+        scheduleDensityIncrease,
+        45000
+      );
+      return () => clearScaledTimeout(densityTimeoutRef.current);
     }
   }, [ui.phase, initLoop]);
 
