@@ -333,7 +333,7 @@ export function useGameEngine() {
         canvasWidth,
         canvasHeight,
         getImg("whitePuffImgs") as HTMLImageElement[],
-        () => state.current.groundSpeed(state.current.frameCount)
+        () => state.current.groundSpeed()
       );
     },
     [getImg, state]
@@ -345,7 +345,7 @@ export function useGameEngine() {
         canvasWidth,
         canvasHeight,
         getImg("rockImgs") as HTMLImageElement[],
-        () => state.current.groundSpeed(state.current.frameCount),
+        () => state.current.groundSpeed(),
         MOUNTAIN_SCALE_MIN,
         MOUNTAIN_SCALE_MAX
       );
@@ -359,7 +359,7 @@ export function useGameEngine() {
         canvasWidth,
         canvasHeight,
         getImg("treeImgs") as HTMLImageElement[],
-        () => state.current.groundSpeed(state.current.frameCount),
+        () => state.current.groundSpeed(),
         forcedScale
       );
     },
@@ -769,7 +769,7 @@ export function useGameEngine() {
             state.current.medals.push({
               x: cxE - MEDAL_SIZE / 2,
               y: cyE - MEDAL_SIZE / 2,
-              vx: -state.current.groundSpeed(state.current.frameCount),
+              vx: -state.current.groundSpeed(),
               frames,
               frameIndex: 0,
               frameCounter: 0,
@@ -1063,13 +1063,17 @@ export function useGameEngine() {
       let lastTime = performance.now();
       const render = () => {
         const now = performance.now();
-        const rawMs = now - lastTime;
+        advanceClock(now - lastTime);
         lastTime = now;
-        advanceClock(rawMs);
         const { deltaMs, scale } = clockRef.current;
-        state.current.speedScale = scale;
-
-        const blindActive = state.current.isActive(
+        state.current.frameCount += scale;
+        state.current.enemyFlapTimer += scale;
+        const enemyFlapNow =
+          state.current.enemyFlapTimer >= ENEMY_FLAP_INTERVAL;
+        if (enemyFlapNow) {
+          state.current.enemyFlapTimer -= ENEMY_FLAP_INTERVAL;
+        }
+      const blindActive = state.current.isActive(
         "blindfold",
         state.current.frameCount
       );
@@ -1091,7 +1095,7 @@ export function useGameEngine() {
         ? 0.4
         : 1;
       const gravityBase = (TEST_SLOW_FALL ? 0.5 * GRAVITY : GRAVITY) *
-        state.current.speedScale;
+        scale;
       const gravity = state.current.isActive("freeze", state.current.frameCount)
         ? 0
         : state.current.isActive("hourglass", state.current.frameCount)
@@ -1105,7 +1109,7 @@ export function useGameEngine() {
         : FLAP_STRENGTH;
 
       if (state.current.isActive("thunderstrike", state.current.frameCount)) {
-        state.current.thunderCooldown -= state.current.speedScale;
+        state.current.thunderCooldown -= scale;
         if (state.current.thunderCooldown <= 0) {
           state.current.thunderCooldown = 180; // 3 seconds @60fps
 
@@ -1264,7 +1268,7 @@ export function useGameEngine() {
             state.current.laserBurstRemaining--;
             state.current.laserBurstCooldown = LASER_BEAM_SHOT_INTERVAL;
           } else {
-            state.current.laserBurstCooldown -= state.current.speedScale;
+            state.current.laserBurstCooldown -= scale;
           }
         }
       }
@@ -1291,31 +1295,35 @@ export function useGameEngine() {
             state.current.burstRemaining--;
             state.current.burstCooldown = MACHINE_GUN_SHOT_INTERVAL;
           } else {
-            state.current.burstCooldown -= state.current.speedScale;
+            state.current.burstCooldown -= scale;
           }
         }
       }
 
       // ─── AUTO RELOAD ───────────────────────────────────────────────
-      if (
-        state.current.isActive("autoReload", state.current.frameCount) &&
-        state.current.ammo < MAX_AMMO &&
-        Math.floor(state.current.frameCount) % AUTO_RELOAD_INTERVAL === 0
-      ) {
-        state.current.ammo = Math.min(MAX_AMMO, state.current.ammo + 1);
-        play("reloadSfx");
+      if (state.current.isActive("autoReload", state.current.frameCount)) {
+        state.current.autoReloadTimer += scale;
+        if (
+          state.current.ammo < MAX_AMMO &&
+          state.current.autoReloadTimer >= AUTO_RELOAD_INTERVAL
+        ) {
+          state.current.ammo = Math.min(MAX_AMMO, state.current.ammo + 1);
+          play("reloadSfx");
+          state.current.autoReloadTimer -= AUTO_RELOAD_INTERVAL;
+        }
+      } else {
+        state.current.autoReloadTimer = 0;
       }
 
       // advance player prop
       const planeFrames = getImg("planeFrames") as HTMLImageElement[];
-      state.current.planeFrameCounter += state.current.speedScale;
+      state.current.planeFrameCounter += scale;
       if (state.current.planeFrameCounter >= 6) {
         state.current.planeFrameCounter = 0;
         state.current.planeFrame =
           (state.current.planeFrame + 1) % planeFrames.length;
       }
 
-      state.current.frameCount += state.current.speedScale;
 
       // spawn enemy with dynamic rate
       const enemyFrames = getImg("enemyFrames") as HTMLImageElement[][];
@@ -1521,7 +1529,7 @@ export function useGameEngine() {
           32,
           32
         );
-        h.age += state.current.speedScale;
+        h.age += scale;
       });
       state.current.bulletHoles = state.current.bulletHoles.filter(
         (h) => h.age < h.maxAge
@@ -1546,9 +1554,7 @@ export function useGameEngine() {
 
         if (!freezeActive && !e.glide) {
           // flappers obey gravity + flap
-          if (
-            Math.floor(state.current.frameCount) % ENEMY_FLAP_INTERVAL === 0
-          ) {
+          if (enemyFlapNow) {
             e.vy = e.flapStrength;
           }
           e.vy += gravity;
@@ -1570,7 +1576,7 @@ export function useGameEngine() {
             const theta = t * Math.PI * 2;
             e.y = e.baseY + ENEMY_LOOP_RADIUS * Math.sin(theta);
             e.rotation = theta;
-            e.loopProgress += state.current.speedScale;
+            e.loopProgress += scale;
             if (e.loopProgress > ENEMY_LOOP_DURATION) {
               // end loop
               e.loopProgress = -1;
@@ -1607,10 +1613,10 @@ export function useGameEngine() {
                 -1 *
                 Math.atan2(
                   dy,
-                  state.current.enemySpeed(state.current.frameCount)
+                  state.current.enemySpeed()
                 );
 
-              e.stepProgress += state.current.speedScale;
+              e.stepProgress += scale;
               if (e.stepProgress > ENEMY_STEP_DURATION) {
                 // commit the step and level out
                 e.baseY += e.stepDelta;
@@ -1627,7 +1633,7 @@ export function useGameEngine() {
             if (e.stepProgress >= 0) {
               const t2 = e.stepProgress / ENEMY_STEP_DURATION;
               e.y = e.baseY + e.stepDelta * t2;
-              e.stepProgress += state.current.speedScale;
+              e.stepProgress += scale;
               if (e.stepProgress > ENEMY_STEP_DURATION) {
                 // commit the shift and reset
                 e.baseY += e.stepDelta;
@@ -1656,7 +1662,7 @@ export function useGameEngine() {
         // cos(rotation)=+1 when level right, –1 when upside-down (so we reverse)
         if (!freezeActive) {
           const facing = Math.cos(e.rotation || 0);
-          e.x -= state.current.enemySpeed(state.current.frameCount) * facing;
+          e.x -= state.current.enemySpeed() * facing;
         }
 
         // draw flipped horizontally *around its center*
@@ -1936,7 +1942,7 @@ export function useGameEngine() {
       state.current.powerups.forEach((p, i) => {
         if (!p.collected) {
           // move left with the ground/enemies
-          p.x -= state.current.groundSpeed(state.current.frameCount);
+          p.x -= state.current.groundSpeed();
           // size them to 32×32 (or whatever you prefer)
           const S = 128;
           ctx.drawImage(p.img, p.x, p.y, S, S);
@@ -2038,14 +2044,14 @@ export function useGameEngine() {
       // always scroll ground, even after crash
       state.current.groundOffset =
         (state.current.groundOffset +
-          state.current.groundSpeed(state.current.frameCount)) %
+          state.current.groundSpeed()) %
         tileW;
 
       const explosionImgs = getImg("explosionImgs") as HTMLImageElement[];
 
       // ─── ground-contact penalty ───────────────────────────────────────────
       if (!state.current.crashed && state.current.y + PLANE_HEIGHT >= groundY) {
-        state.current.groundContactFrames += state.current.speedScale;
+        state.current.groundContactFrames += scale;
         // every ~180 frames (~3 s at 60fps)
         if (state.current.groundContactFrames >= 180) {
           state.current.groundContactFrames = 0;
@@ -2119,11 +2125,11 @@ export function useGameEngine() {
         if (state.current.ouchFrames > 0) {
           wiggleX = (Math.random() - 0.5) * 10; // +/-5px
           wiggleY = (Math.random() - 0.5) * 6; // +/-3px
-          state.current.ouchFrames -= state.current.speedScale;
+          state.current.ouchFrames -= scale;
         }
 
         // advance propeller frame every 6 game ticks
-        state.current.planeFrameCounter += state.current.speedScale;
+        state.current.planeFrameCounter += scale;
         if (state.current.planeFrameCounter >= 6) {
           state.current.planeFrameCounter = 0;
           state.current.planeFrame =
@@ -2157,7 +2163,7 @@ export function useGameEngine() {
 
           if (state.current.shieldFlash > 0) {
             ctx.globalAlpha = 1;
-            state.current.shieldFlash -= state.current.speedScale;
+            state.current.shieldFlash -= scale;
           }
         }
 
@@ -2177,7 +2183,7 @@ export function useGameEngine() {
         ctx.restore();
         state.current.planeAngle = Math.min(0, state.current.planeAngle + 0.02);
 
-        state.current.ouchFrames -= state.current.speedScale;
+        state.current.ouchFrames -= scale;
       }
 
       // ─── UPDATE & DRAW ARTILLERY SHELLS ────────────────────────────────
@@ -2377,11 +2383,11 @@ export function useGameEngine() {
       state.current.napalmMissiles = state.current.napalmMissiles.filter(
         (m) => {
           // move & life decrement…
-          m.x += m.vx * state.current.speedScale;
-          m.life -= state.current.speedScale;
+          m.x += m.vx * scale;
+          m.life -= scale;
 
           // tail anim…
-          m.tailCounter += state.current.speedScale;
+          m.tailCounter += scale;
           if (m.tailCounter >= 5) {
             m.tailCounter = 0;
             m.tailFrame = ((m.tailFrame + 1) % fireImgs.length) as 0 | 1;
@@ -2426,7 +2432,7 @@ export function useGameEngine() {
 
           if (!NAPALM_EXPLODE_NOT_DROP) {
             // original periodic drop
-            m.dropTimer -= state.current.speedScale;
+            m.dropTimer -= scale;
             if (m.dropTimer <= 0 && m.dropsRemaining > 0) {
               state.current.napalmTiles.push({
                 x: m.x,
@@ -2481,7 +2487,7 @@ export function useGameEngine() {
 
       state.current.napalmTiles = state.current.napalmTiles.filter((t) => {
         // move left with the ground
-        t.x -= state.current.groundSpeed(state.current.frameCount);
+        t.x -= state.current.groundSpeed();
 
         // have we hit (or gone below) the ground?
         const landedOnGround = t.y + NAPALM_TILE_SIZE / 2 - 30 >= groundY;
@@ -2505,7 +2511,7 @@ export function useGameEngine() {
         if (!landedOnGround && !landedInWater) {
           // still dropping
           t.vy += gravity;
-          t.y += t.vy * state.current.speedScale;
+          t.y += t.vy * scale;
         } else {
           // stick to whichever surface we hit…
           if (landedOnGround) {
@@ -2517,7 +2523,7 @@ export function useGameEngine() {
           t.vy = 0;
         }
 
-        t.life -= state.current.speedScale;
+        t.life -= scale;
 
         const flameImgs = getImg("flameImgs") as HTMLImageElement[];
         // draw flame by stepping through the 4 images over the tile’s lifetime:
@@ -2691,7 +2697,7 @@ export function useGameEngine() {
           m.x += m.vx;
           m.y += m.vy;
           // tail anim
-          m.tailCounter += state.current.speedScale;
+          m.tailCounter += scale;
           if (m.tailCounter >= 5) {
             m.tailCounter = 0;
             m.tailFrame = ((m.tailFrame + 1) % 2) as 0 | 1;
@@ -2776,7 +2782,7 @@ export function useGameEngine() {
             }
           }
           // lifetime out
-          m.life -= state.current.speedScale;
+          m.life -= scale;
           if (m.life <= 0) {
             play("homingExplSfx");
             return false;
@@ -2973,7 +2979,7 @@ export function useGameEngine() {
         const drawSize = p.size ?? 32;
         ctx.drawImage(p.img, p.x, p.y, drawSize, drawSize);
         ctx.globalAlpha = 1;
-        p.age += state.current.speedScale;
+        p.age += scale;
         if (p.age < p.maxAge) next.push(p);
       });
       state.current.puffs = next;
@@ -3032,7 +3038,7 @@ export function useGameEngine() {
 
         // move & age
         fs.y += fs.vy;
-        fs.age += state.current.speedScale;
+        fs.age += scale;
       });
       state.current.floatingScores = state.current.floatingScores.filter(
         (fs) => fs.age < fs.maxAge
@@ -3120,7 +3126,7 @@ export function useGameEngine() {
         }
 
         // scroll along with the ground
-        w.x -= state.current.groundSpeed(state.current.frameCount);
+        w.x -= state.current.groundSpeed();
 
         // remove once off–screen
         if (w.x + w.size * tileW + width < 0)
@@ -3174,7 +3180,7 @@ export function useGameEngine() {
       // draw ducks and scroll them
       state.current.ducks.forEach((d, i) => {
         // 1) move with the ground scroll
-        d.x -= state.current.groundSpeed(state.current.frameCount);
+        d.x -= state.current.groundSpeed();
 
         // compute bobbed Y for floating ducks on water
         let drawY = d.y;
@@ -3245,7 +3251,7 @@ export function useGameEngine() {
           ctx.restore();
           ctx.restore();
 
-          d.fadeAge! += state.current.speedScale;
+          d.fadeAge! += scale;
           // once fully faded, remove from array
           if (d.fadeAge! >= d.fadeMax!) state.current.ducks.splice(i, 1);
           ctx.globalAlpha = 1;
@@ -3281,7 +3287,7 @@ export function useGameEngine() {
 
       const sparkImgs = getImg("sparkImgs") as HTMLImageElement[];
       state.current.sparkEffects.forEach((spark) => {
-        spark.age += state.current.speedScale;
+        spark.age += scale;
         spark.frameIndex = Math.floor(
           (spark.age / spark.maxAge) * sparkImgs.length
         );
@@ -3371,12 +3377,7 @@ export function useGameEngine() {
       canvas.style.height = `${screenH}px`;
       ctx.scale(scaleX * dpr, scaleY * dpr);
         let raf: number;
-        let lastTime = performance.now();
         const render = () => {
-          const now = performance.now();
-          const deltaMs = now - lastTime;
-          lastTime = now;
-          advanceClock(deltaMs);
           ctx.fillStyle = SKY_COLOR;
           ctx.fillRect(0, 0, width, height);
           state.current.textLabels = drawTextLabels({

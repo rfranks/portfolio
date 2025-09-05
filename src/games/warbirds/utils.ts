@@ -3,6 +3,7 @@ import { POWERUP_DURATION } from "@/consts/lightgun-web/powerups";
 import { AudioMgr } from "@/types/lightgun-web/audio";
 import { PowerupType } from "@/types/lightgun-web/objects";
 import { AssetMgr, Dims } from "@/types/lightgun-web/ui";
+import { clockRef } from "@/hooks/lightgun-web/useScaledClock";
 import {
   MAX_AMMO,
   INITIAL_ENEMY_DENSITY,
@@ -105,6 +106,9 @@ export function initState(
     burstRemaining: 0,
     burstCooldown: 0,
 
+    autoReloadTimer: 0,
+    enemyFlapTimer: 0,
+
     puffs: [],
     sparkEffects: [],
     bulletHoles: [],
@@ -115,7 +119,6 @@ export function initState(
     shieldFlash: 0,
     screenShake: 0,
     thunderCooldown: 0,
-    speedScale: 1,
 
     crashed: false,
     crashHandled: false,
@@ -144,12 +147,12 @@ export function initState(
     countdownTimeouts: [],
 
     isActive,
-    enemySpeed: (frameCount: number) =>
-      (isActive("hourglass", frameCount) ? ENEMY_SPEED * 0.5 : ENEMY_SPEED) *
-      state.speedScale,
-    groundSpeed: (frameCount: number) =>
-      (isActive("hourglass", frameCount) ? GROUND_SPEED * 0.5 : GROUND_SPEED) *
-      state.speedScale,
+    enemySpeed: () =>
+      (isActive("hourglass", state.frameCount) ? ENEMY_SPEED * 0.5 : ENEMY_SPEED) *
+      clockRef.current.scale,
+    groundSpeed: () =>
+      (isActive("hourglass", state.frameCount) ? GROUND_SPEED * 0.5 : GROUND_SPEED) *
+      clockRef.current.scale,
 
     phase: "title",
   };
