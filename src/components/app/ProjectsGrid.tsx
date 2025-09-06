@@ -10,6 +10,7 @@ import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
 import { withBasePath } from "@/utils/basePath";
 import { CardHeader, Chip } from "@mui/material";
+import AccoladesCarousel from "@/components/app/AccoladesCarousel";
 
 export default function ProjectsGrid() {
   return (
@@ -66,6 +67,12 @@ export default function ProjectsGrid() {
                     size="small"
                     href={withBasePath(project.href)}
                     color="secondary"
+                    target={project.href === "/blasteroids" ? "_blank" : undefined}
+                    rel={
+                      project.href === "/blasteroids"
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
                   >
                     Launch
                   </Button>
@@ -74,6 +81,19 @@ export default function ProjectsGrid() {
             </Grid>
           ))}
         </Grid>
+        {(() => {
+          const accolades = resumeData.projects.flatMap(
+            (p) => p.accolades ?? []
+          );
+          return accolades.length > 0 ? (
+            <>
+              <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+                Accolades
+              </Typography>
+              <AccoladesCarousel accolades={accolades} />
+            </>
+          ) : null;
+        })()}
       </TronPaper>
     </FadeInSection>
   );
