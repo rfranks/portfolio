@@ -3,8 +3,13 @@ import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import ListItem from "@mui/material/ListItem";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import ListItemText from "@mui/material/ListItemText";
+import Avatar from "@mui/material/Avatar";
 import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
+import { withBasePath } from "@/utils/basePath";
 
 export default function Recognition() {
   return (
@@ -50,16 +55,42 @@ export default function Recognition() {
                 }}
               >
                 <CardContent>
-                  <Typography variant="subtitle1" fontWeight="bold" color="primary">
-                    {rec.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {rec.title} · {rec.date}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {rec.relationship}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mt: 1, fontStyle: "italic" }}>
+                  <ListItem alignItems="flex-start" disableGutters>
+                    {rec.imageSrcUrl && (
+                      <ListItemAvatar>
+                        <Avatar
+                          alt={rec.name}
+                          src={withBasePath(rec.imageSrcUrl)}
+                        />
+                      </ListItemAvatar>
+                    )}
+                    <ListItemText
+                      disableTypography
+                      primary={
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight="bold"
+                          color="primary"
+                        >
+                          {rec.name}
+                        </Typography>
+                      }
+                      secondary={
+                        <>
+                          <Typography variant="body2" color="text.secondary">
+                            {rec.title} · {rec.date}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {rec.relationship}
+                          </Typography>
+                        </>
+                      }
+                    />
+                  </ListItem>
+                  <Typography
+                    variant="body1"
+                    sx={{ mt: 1, fontStyle: "italic" }}
+                  >
                     {rec.text}
                   </Typography>
                 </CardContent>

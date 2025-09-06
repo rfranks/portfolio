@@ -296,7 +296,17 @@ export const projects: {
   },
 ];
 
-export const recognition = {
+export const recognition: {
+  snippets: string[];
+  recommendations: {
+    name: string;
+    title: string;
+    date: string;
+    relationship: string;
+    text: string;
+    imageSrcUrl?: string;
+  }[];
+} = {
   snippets: [
     'Praised by colleagues as "the most brilliant engineer I\u2019ve worked with… the closest to a 10x developer" and a "true team player and mentor."',
     "Trusted go-to for solving critical, high-stakes production issues with speed and quality.",
@@ -308,6 +318,7 @@ export const recognition = {
       title: "Product Management | Healthcare",
       date: "March 6, 2020",
       relationship: "worked with Richard on the same team",
+      imageSrcUrl: "/colleagues/stacey_leadbeater.jpeg",
       text: `I have had the pleasure of working closely with Richard for many years as a product manager. Richard has been a lead, integral part of completely rewriting a legacy physician-facing portal into a customizable dashboard framework with modern technology - no small or easy feat.
 
 Richard always goes out of his way to truly understand workflows and the end user problems, as well as consider technical aspects in order to implement the right solution. He is a true team player: working with product and UX to design the right changes; consulting with other developers and providing documentation to ensure they are following best implementation practices and agreed-upon methods; working with QA to ensure chagnes are fully tested and automation has what they need; and reviewing end user documenation.
@@ -323,6 +334,7 @@ I enjoy working with Richard very much, and would choose to be on a team with hi
       title: "Senior Software Engineer | Front-end Software Engineer",
       date: "March 5, 2020",
       relationship: "was senior to Richard but didn't manage him directly",
+      imageSrcUrl: "/colleagues/richard_tang.jpeg",
       text: `Richard is truly the most brilliant software engineer/developer/architect I have worked with. We have worked together since 2015 (~5 years at the time of this writing). I used to think the "10x developer" was a myth, but he is the closest to that I have seen! It's amazing how quickly he is able to build features/functionality while still achieving high quality and flexibility. Being able to work with him on the same team ("core" code/functionality) has allowed me to learn so much about design, architecture, and best practices. I have definitely become a much better UI/front-end and full-stack developer because of him... he is the go-to guy, so whether it's asking him questions (he's very helpful), or just looking at his code, there is a lot to learn from him.`,
     },
     {
@@ -330,6 +342,7 @@ I enjoy working with Richard very much, and would choose to be on a team with hi
       title: "Software Engineer at Amazon Web Services (AWS)",
       date: "February 24, 2020",
       relationship: "worked with Richard on the same team",
+      imageSrcUrl: "/colleagues/satyajeet_nandekar.jpeg",
       text: `It is pleasure to work with Richard Franks in the same team for more than 5 years. During this time, we worked very closely on multiple successful projects from start to finish. He is creative, energetic, solution oriented, highly motivated with great communication skills and aims for excellence all the time.
 
 Richards’s deeper understanding of the technical nuances always helped us during the tough time of our project. His inputs in design discussions and architecture meetings have always been valuable. From my past experience, I can easily say that a problem assigned to him is already half solved. He is an asset to any company.`,
@@ -348,6 +361,7 @@ Richards’s deeper understanding of the technical nuances always helped us duri
       date: "August 8, 2016",
       relationship:
         "Richard was senior to Ritika but didn't manage her directly",
+      imageSrcUrl: "/colleagues/ritika_nanda.jpeg",
       text: `It was a pleasure working with Richard at Patient Keeper. He is one of the best developers and architecture designers I have ever worked with.
 
 He was very helpful to co-workers. He always came up with creative and out of the box ideas for solving problems.
@@ -361,6 +375,7 @@ He is a great developer and a team worker. I got a chance to learn a lot from hi
       title: "Head of AI Products - Product Management",
       date: "January 18, 2015",
       relationship: "worked with Richard but on different teams",
+      imageSrcUrl: "/colleagues/amisha_thakkar_kashyap.jpeg",
       text: `Richard is an uber-talented architect and development lead. He leads by example by setting high standards. He is a rare engineer who thinks both about smart software development and the user.
 
 He designs intuitive software. He builds scalable, extendible products that are user-friendly. He leverages the latest in technology and design patterns. His code is elegant, built with reliable, extendible foundations and great frameworks.
@@ -375,6 +390,7 @@ He is an excellent mentor. He works incredibly hard and it is a pleasure to work
         "Mission-Driven Engineering Leader | Unlocking Team Superpowers and Turning Challenges into Triumphs!",
       date: "November 3, 2013",
       relationship: "worked with Richard on the same team",
+      imageSrcUrl: "/colleagues/dave_tran.jpeg",
       text: `Rich was an amazing team member to work with and was instrumental in helping the team deliver the next generation patient list solution. Rich was not only laser focused on implementing the web portion of the solution but he was also equally focused on improving the UI architecture of the overall application. He incorporated industry best practices and reusable web components to facilitate better design decisions for multiple development teams moving forward. Rich understands how to meet and exceed client's expectations with innovative web solutions and if given another opportunity to work with Rich, I would jump at the chance to do so!`,
     },
     {
@@ -382,6 +398,7 @@ He is an excellent mentor. He works incredibly hard and it is a pleasure to work
       title: "Software Design Architect at COCC",
       date: "January 20, 2012",
       relationship: "worked with Richard on the same team",
+      imageSrcUrl: "/colleagues/melissa_snyder.jpeg",
       text: `I had the opportunity to work with Richard for over a year as part of a full application rewrite. He is extremely conscientious and consistently offers up suggestions for how to make coding more efficient, to improve code quality and to improve the end-user experience. He was also able to help me and others without coding backgrounds to understand the possibilities and constraints of the system we were building. Richard is always willing to help a coworker by answering a question, troubleshooting an issue, or brainstorming product solutions. He is a great person to work with and always delivers a quality product.`,
     },
     {
@@ -398,6 +415,7 @@ He takes the time to answer questions from colleagues and is always available wh
       title: "Software Consultant at IDEXX",
       date: "January 5, 2012",
       relationship: "worked with Richard on the same team",
+      imageSrcUrl: "/colleagues/nathan_babb.jpeg",
       text: `Richard is a personable colleague, a talented software engineer and it has been a pleasure working with him. He is committed to writing quality code, and it shows in his practical, concise designs. Richard has very high personal standards and integrity, and he often goes out of his way to help others and take on challenging tasks. I've enjoyed collaborating with Richard, where his focus is towards producing the best design possible. He is diligent with coding standards, and is very productive as well. He gets my hearty recommendation!`,
     },
     {
@@ -406,6 +424,7 @@ He takes the time to answer questions from colleagues and is always available wh
         "Senior Product Analyst with a specific expertise in analysis, user experience and user interface design",
       date: "December 30, 2011",
       relationship: "worked with Richard on the same team",
+      imageSrcUrl: "/colleagues/jim_levin.jpeg",
       text: `Rich is a professional, thorough and thoughtful developer - that I would recommend/refer without hesitation.`,
     },
     {
@@ -413,6 +432,7 @@ He takes the time to answer questions from colleagues and is always available wh
       title: "Proven Product and Technology Leadership",
       date: "October 22, 2010",
       relationship: "managed Richard directly",
+      imageSrcUrl: "/colleagues/phelps_peeler.jpeg",
       text: `Richard is an exceptionally talented engineer. Very early in his career he has demonstrated the ability to resolve the type of complex issues that can stymie gifted developers with significantly more experience. During the time Richard worked for me he consistently performed above the expectations that were set for him, even as those expectations were raised with each additional success.
 
 Richard is methodical when attacking a problem -- he consistently identifies and addresses edge-cases that are missed in the business requirements and he shows a greater dedication than any engineer I've ever worked with to developing and implementing test cases that mirror production as closely as is possible. This significantly reduced risk, and rendered deployments that could have been nerve-wracking stress-free.
@@ -426,6 +446,7 @@ Richard is bursting with talent, and I'm very excited to see where his career wi
       title: "Software Engineering Leader",
       date: "July 14, 2010",
       relationship: "worked with Richard on the same team",
+      imageSrcUrl: "/colleagues/bill_hardwick.jpeg",
       text: `Richard is a very skilled developer with a passion for technology. He is a creative problem-solver and is always looking to utilize the latest tools, frameworks, and design patterns to keep him on the cutting edge of the industry. His work ethic is outstanding and he gets the job done fast and efficiently, without sacrificing the quality of his code. I would recommend Richard to anyone looking for a talented developer who works well with others or independently.`,
     },
     {
@@ -433,6 +454,7 @@ Richard is bursting with talent, and I'm very excited to see where his career wi
       title: "Art Director at Transparent Audio",
       date: "July 7, 2009",
       relationship: "worked with Richard on the same team",
+      imageSrcUrl: "/colleagues/mat_young.jpeg",
       text: `Richard is a creative problem solver who will always look for the best solution.
 
 He is willing to go the extra mile and endeavor in new areas for the sake of the best possible product.
@@ -447,6 +469,7 @@ I highly recommend Richard.`,
         "Head of Product Design & User Experience @ Gannett | USA TODAY NETWORK — Driving clean, enjoyable, and accessible solutions at scale",
       date: "October 2, 2008",
       relationship: "worked with Richard on the same team",
+      imageSrcUrl: "/colleagues/joe_myers.jpeg",
       text: `Please do not talk to Richard about other jobs. He is an indispensable member of OUR development team. We found him first and he's not allowed to leave. Richard breezes through complicated work with a can-do attitude while adding invaluable insight. He brings his "A-Game" every day, and if there's any doubt in his mind, he'll step back, slam a Monster™ Energy Drink® before high-stepping into the end-zone. Too bad he's not allowed to talk to you.`,
     },
   ],
