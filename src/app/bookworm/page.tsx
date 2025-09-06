@@ -28,11 +28,17 @@ import "@fontsource/roboto/700.css";
 import "./page.css"; // Ensure global styles are applied
 import { hasOpenAIKey, setOpenAIKey } from "@/utils/bookworm/utils";
 import Image from "next/image";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function BookwormPage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");
   const defaultTheme = createTheme({ palette: { mode } });
   const [apiKeyReady, setApiKeyReady] = React.useState(hasOpenAIKey());
+  const { setDocumentTitle } = useDocumentTitle();
+
+  React.useEffect(() => {
+    setDocumentTitle("Bookworm");
+  }, [setDocumentTitle]);
 
   const toggleColorMode = () => {
     setMode((prev) => (prev === "dark" ? "light" : "dark"));

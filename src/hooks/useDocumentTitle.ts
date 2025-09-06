@@ -1,12 +1,22 @@
-/**
- * Sets the title of the document.
- *
- * @returns the `document`'s current title
- */
-export function useDocumentTitle(documentTitle?: string): string {
-  if (documentTitle) {
-    document.title = documentTitle;
-  }
+import { useCallback } from "react";
 
-  return document.title;
+/**
+ * React hook providing helpers to get and set the document's title.
+ *
+ * @returns `getDocumentTitle` - returns the current document title
+ *          `setDocumentTitle` - sets the document title
+ */
+export function useDocumentTitle() {
+  const getDocumentTitle = useCallback((): string => {
+    return typeof document === "undefined" ? "" : document.title;
+  }, []);
+
+  const setDocumentTitle = useCallback((title: string): void => {
+    if (typeof document !== "undefined") {
+      document.title = title;
+    }
+  }, []);
+
+  return { getDocumentTitle, setDocumentTitle };
 }
+
