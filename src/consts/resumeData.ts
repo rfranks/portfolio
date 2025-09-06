@@ -353,6 +353,7 @@ Richards’s deeper understanding of the technical nuances always helped us duri
         "UX/UI Leader | Elevating User Experiences & Driving Business Growth through Innovative Designs.",
       date: "February 20, 2020",
       relationship: "was senior to Richard but didn't manage him directly",
+      imageSrcUrl: "/colleagues/jane_florins.jpeg",
       text: `I worked with Richard on a number of projects and features at Patient Keeper. What makes him stand out is his deep care about his work and the overall success of the company. He is willing to take risks and responsibilities when he sees an opportunity to improve the project. Richard's approach to work is innovative. He is constantly coming up with new ideas, he does his research before attacking a problem. Richard is a meticulous perfectionist who doesn't give up unless his work is done to the highest quality. He is a good team player who is always ready to jump in and help his co-workers. He cares about UX/UI, and he cares about our customers and their experience. He made a significant effort to make our product look polished and work faster. I would highly recommend Richard for his personality and skills.`,
     },
     {
