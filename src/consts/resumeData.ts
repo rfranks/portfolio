@@ -201,6 +201,17 @@ export const projects: {
   href: string;
   type: "work" | "personal";
   image?: string;
+  accolades?: {
+    name: string;
+    source: string;
+    sourceUrl: string;
+    description?: string;
+    comment?: string;
+    launchUrl?: string;
+    githubUrl?: string;
+    imageSrcUrl?: string;
+    date?: string;
+  }[];
 }[] = [
   {
     name: "Warbirds",
@@ -221,14 +232,37 @@ export const projects: {
     type: "personal",
   },
   {
+    name: "Blasteroids",
+    description:
+      "Classic Asteroids arcade game with a space shooter twist.  Built entirely with HTML, CSS, and JavaScript.",
+    href: "/blasteroids",
+    type: "personal",
+    accolades: [
+      {
+        name: "Arctic Code Vault Contributor",
+        source: "GitHub Archive Program",
+        sourceUrl: "https://archiveprogram.github.com/arctic-vault/",
+        description:
+          "rfranks contributed code to 1 repository in the 2020 GitHub Archive Program.  The repository for blasteroids was archived to the Arctic Code Vault!",
+        comment:
+          "Honored to have my code preserved in the Arctic Code Vault for future generations!  Just one issue, how do I commit to GitHub in the Arctic? We would like to release more code, but the wifi is terrible.",
+        launchUrl: "/blasteroids",
+        githubUrl: "https://github.com/rfranks/blasteroids",
+        imageSrcUrl: "/github-arctic-code-vault-contributor.png",
+        date: "February 2, 2020",
+      },
+    ],
+  },
+  {
     name: "GeneBoard",
-    description: "Interactive tools for exploring DNA sequences.",
+    description:
+      "Interactive tools for exploring and visualizing DNA sequences.",
     href: "/dna",
     type: "personal",
   },
   {
     name: "Bookworm",
-    description: "Word puzzle game built with React.",
+    description: "AI powered PDF interactive AI chat bot.",
     href: "/bookworm",
     type: "personal",
   },
