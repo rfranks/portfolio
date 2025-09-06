@@ -20,7 +20,17 @@ export default function ProjectsGrid() {
         <Typography variant="h6" gutterBottom>
           Projects
         </Typography>
-        <Grid container spacing={2} alignItems="stretch">
+        <Grid
+          container
+          spacing={2}
+          alignItems="stretch"
+          sx={{
+            display: "flex",
+            flexWrap: "nowrap",
+            maxWidth: "100%",
+            overflowX: "auto",
+          }}
+        >
           {resumeData.projects.map((project, index) => (
             <Grid
               item
@@ -34,12 +44,12 @@ export default function ProjectsGrid() {
               <Card
                 variant="outlined"
                 sx={{
-                  maxHeight: "100vh",
                   backgroundColor: "background.default",
                   borderColor: "divider",
                   display: "flex",
                   flexDirection: "column",
                   flexGrow: 1,
+                  width: "calc(20% - 16px)",
                 }}
               >
                 <CardHeader
@@ -57,7 +67,9 @@ export default function ProjectsGrid() {
                     color: "text.primary",
                   }}
                 />
-                <CardContent sx={{ flexGrow: 1 }}>
+                <CardContent
+                  sx={{ flexGrow: 1, maxHeight: "400px", overflow: "auto" }}
+                >
                   {project.image && (
                     <Image
                       src={project.image}
@@ -72,7 +84,7 @@ export default function ProjectsGrid() {
                     {project.description}
                   </Typography>
                   {project.accolades && project.accolades.length > 0 && (
-                    <Box sx={{ mt: 2, }}>
+                    <Box sx={{ mt: 2 }}>
                       <Typography variant="subtitle1" gutterBottom>
                         Accolades
                       </Typography>
