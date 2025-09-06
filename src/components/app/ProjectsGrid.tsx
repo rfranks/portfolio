@@ -20,9 +20,17 @@ export default function ProjectsGrid() {
         <Typography variant="h6" gutterBottom>
           Projects
         </Typography>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} alignItems="stretch">
           {resumeData.projects.map((project, index) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={project.href}>
+            <Grid
+              item
+              xs={12}
+              sm={6}
+              md={4}
+              lg={3}
+              key={project.href}
+              sx={{ display: "flex" }}
+            >
               <Card
                 variant="outlined"
                 sx={{
@@ -31,6 +39,7 @@ export default function ProjectsGrid() {
                   borderColor: "divider",
                   display: "flex",
                   flexDirection: "column",
+                  flexGrow: 1,
                 }}
               >
                 <CardHeader
