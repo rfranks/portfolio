@@ -314,6 +314,15 @@ export const recognition: {
   ],
   recommendations: [
     {
+
+      name: "Chance Yohman",
+      title: "Lead Software Engineer at LogicManager",
+      date: "September 1, 2025",
+      relationship: "was Richard's teacher",
+      imageSrcUrl: "/colleagues/chance_yohman.jpeg",
+      text: `I had the pleasure of teaching Richard Franks in my Intro to Java class at the University of Southern Maine in 2005. Even then, his curiosity and dedication stood out. Since then, he has built an impressive career, rising to Senior Software Architect and Principal Software Engineer. Richard combines deep technical expertise with strategic thinking, making him a standout professional in any software engineering team.`,
+    },
+    {
       name: "Stacey Leadbeater",
       title: "Product Management | Healthcare",
       date: "March 6, 2020",
