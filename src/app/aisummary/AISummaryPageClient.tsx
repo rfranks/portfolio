@@ -7,6 +7,8 @@ import ProjectPresentation, {
   ProjectData,
 } from "@/components/showcase/ProjectPresentation";
 import { Divider } from "@mui/material";
+import { useEffect } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 interface AISummaryPageClientProps {
   project: ProjectData;
@@ -15,6 +17,10 @@ interface AISummaryPageClientProps {
 export default function AISummaryPageClient({
   project,
 }: AISummaryPageClientProps) {
+  const { setDocumentTitle } = useDocumentTitle();
+  useEffect(() => {
+    setDocumentTitle("AISummary");
+  }, [setDocumentTitle]);
   return (
     <Box
       sx={{

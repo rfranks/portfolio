@@ -1,11 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Container } from "@mui/material";
 import Game from "@/games/zombiefish";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import "./page.css";
 
 export default function ZombieFishPage() {
+  const { setDocumentTitle } = useDocumentTitle();
+  useEffect(() => {
+    setDocumentTitle("ZombieFish");
+  }, [setDocumentTitle]);
+
   return (
     <Container
       sx={{

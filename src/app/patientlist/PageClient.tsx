@@ -7,12 +7,18 @@ import ProjectPresentation, {
   ProjectData,
 } from "@/components/showcase/ProjectPresentation";
 import { Divider } from "@mui/material";
+import { useEffect } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 interface PageClientProps {
   project: ProjectData;
 }
 
 export default function PageClient({ project }: PageClientProps) {
+  const { setDocumentTitle } = useDocumentTitle();
+  useEffect(() => {
+    setDocumentTitle("Patient List");
+  }, [setDocumentTitle]);
   return (
     <Box
       sx={{

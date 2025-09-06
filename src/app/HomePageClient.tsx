@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { PaletteMode } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -36,6 +36,7 @@ import Recognition from "@/components/app/Recognition";
 import ContactCTA from "@/components/app/ContactCTA";
 import Grid from "@mui/material/Grid";
 import { withBasePath } from "@/utils/basePath";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function HomePageClient() {
   const [mode, setMode] = useState<PaletteMode>("light");
@@ -64,6 +65,11 @@ export default function HomePageClient() {
   );
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
+
+  const { setDocumentTitle } = useDocumentTitle();
+  useEffect(() => {
+    setDocumentTitle("Richard Franks | Résumé");
+  }, [setDocumentTitle]);
 
   const toggleDrawer = () => {
     setOpen(!open);

@@ -9,10 +9,15 @@ import "@fontsource/roboto/700.css";
 
 import "./page.css"; // Ensure global styles are applied
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 const defaultTheme = createTheme();
 
 export default function DnaPage() {
+  const { setDocumentTitle } = useDocumentTitle();
+  React.useEffect(() => {
+    setDocumentTitle("GeneBoard");
+  }, [setDocumentTitle]);
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />

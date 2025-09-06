@@ -1,9 +1,14 @@
 "use client";
 
 import * as React from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import "./page.css";
 
 export default function BlackjackPage() {
+  const { setDocumentTitle } = useDocumentTitle();
+  React.useEffect(() => {
+    setDocumentTitle("Blackjack");
+  }, [setDocumentTitle]);
   return (
     <>
       <div id="progressives">
