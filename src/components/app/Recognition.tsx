@@ -13,93 +13,87 @@ import { withBasePath } from "@/utils/basePath";
 
 export default function Recognition() {
   return (
-    <FadeInSection>
-      <TronPaper>
-        <Typography variant="h6" gutterBottom>
-          Recognition
-        </Typography>
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          {resumeData.recognition.snippets.map((snippet, idx) => (
-            <Grid item xs={12} sm={4} key={idx}>
-              <Card
-                variant="outlined"
-                sx={{
-                  backgroundColor: "background.default",
-                  borderColor: "divider",
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ fontStyle: "italic" }}
-                  >
-                    {snippet}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-        <Typography variant="h6" gutterBottom>
-          Recommendations
-        </Typography>
-        <Grid container spacing={2}>
-          {resumeData.recognition.recommendations.map((rec) => (
-            <Grid item xs={12} key={`${rec.name}-${rec.date}`}>
-              <Card
-                variant="outlined"
-                sx={{
-                  backgroundColor: "background.default",
-                  borderColor: "divider",
-                }}
-              >
-                <CardContent>
-                  <ListItem alignItems="flex-start" disableGutters>
-                    {rec.imageSrcUrl && (
-                      <ListItemAvatar>
-                        <Avatar
-                          alt={rec.name}
-                          src={withBasePath(rec.imageSrcUrl)}
-                        />
-                      </ListItemAvatar>
-                    )}
-                    <ListItemText
-                      disableTypography
-                      primary={
-                        <Typography
-                          variant="subtitle1"
-                          fontWeight="bold"
-                          color="primary"
-                        >
-                          {rec.name}
+    <TronPaper>
+      <Typography variant="h6" gutterBottom>
+        Recognition
+      </Typography>
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        {resumeData.recognition.snippets.map((snippet, idx) => (
+          <Grid item xs={12} sm={4} key={idx}>
+            <Card
+              variant="outlined"
+              sx={{
+                backgroundColor: "background.default",
+                borderColor: "divider",
+              }}
+            >
+              <CardContent>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontStyle: "italic" }}
+                >
+                  {snippet}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+      <Typography variant="h6" gutterBottom>
+        Recommendations
+      </Typography>
+      <Grid container spacing={2}>
+        {resumeData.recognition.recommendations.map((rec) => (
+          <Grid item xs={12} key={`${rec.name}-${rec.date}`}>
+            <Card
+              variant="outlined"
+              sx={{
+                backgroundColor: "background.default",
+                borderColor: "divider",
+              }}
+            >
+              <CardContent>
+                <ListItem alignItems="flex-start" disableGutters>
+                  {rec.imageSrcUrl && (
+                    <ListItemAvatar>
+                      <Avatar
+                        alt={rec.name}
+                        src={withBasePath(rec.imageSrcUrl)}
+                      />
+                    </ListItemAvatar>
+                  )}
+                  <ListItemText
+                    disableTypography
+                    primary={
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="bold"
+                        color="primary"
+                      >
+                        {rec.name}
+                      </Typography>
+                    }
+                    secondary={
+                      <>
+                        <Typography variant="body2" color="text.secondary">
+                          {rec.title} · {rec.date}
                         </Typography>
-                      }
-                      secondary={
-                        <>
-                          <Typography variant="body2" color="text.secondary">
-                            {rec.title} · {rec.date}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {rec.relationship}
-                          </Typography>
-                        </>
-                      }
-                    />
-                  </ListItem>
-                  <Typography
-                    variant="body1"
-                    sx={{ mt: 1, fontStyle: "italic" }}
-                  >
-                    {rec.text}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </TronPaper>
-    </FadeInSection>
+                        <Typography variant="body2" color="text.secondary">
+                          {rec.relationship}
+                        </Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+                <Typography variant="body1" sx={{ mt: 1, fontStyle: "italic" }}>
+                  {rec.text}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </TronPaper>
   );
 }
-

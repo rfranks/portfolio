@@ -10,7 +10,7 @@ interface FadeInSectionProps {
 }
 
 export default function FadeInSection({ children }: FadeInSectionProps) {
-  const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.2 });
+  const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.1 });
 
   return (
     <Fade in={inView} timeout={1000}>
