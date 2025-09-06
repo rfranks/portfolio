@@ -26,7 +26,7 @@ export default function ProjectsGrid() {
               <Card
                 variant="outlined"
                 sx={{
-                  height: "100%",
+                  maxHeight: "100vh",
                   backgroundColor: "background.default",
                   borderColor: "divider",
                   display: "flex",
@@ -62,13 +62,23 @@ export default function ProjectsGrid() {
                   <Typography variant="body2" color="text.secondary">
                     {project.description}
                   </Typography>
+                  {project.accolades && project.accolades.length > 0 && (
+                    <Box sx={{ mt: 2, }}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Accolades
+                      </Typography>
+                      <AccoladesCarousel accolades={project.accolades} />
+                    </Box>
+                  )}
                 </CardContent>
                 <CardActions>
                   <Button
                     size="small"
                     href={withBasePath(project.href)}
                     color="secondary"
-                    target={project.href === "/blasteroids" ? "_blank" : undefined}
+                    target={
+                      project.href === "/blasteroids" ? "_blank" : undefined
+                    }
                     rel={
                       project.href === "/blasteroids"
                         ? "noopener noreferrer"
@@ -79,14 +89,6 @@ export default function ProjectsGrid() {
                   </Button>
                 </CardActions>
               </Card>
-              {project.accolades && project.accolades.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Accolades
-                  </Typography>
-                  <AccoladesCarousel accolades={project.accolades} />
-                </Box>
-              )}
             </Grid>
           ))}
         </Grid>

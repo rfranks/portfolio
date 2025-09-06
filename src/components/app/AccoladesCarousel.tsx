@@ -1,5 +1,13 @@
 import Image from "next/image";
-import { Card, CardActions, CardContent, Button, Typography, Box, Link } from "@mui/material";
+import {
+  Card,
+  CardActions,
+  CardContent,
+  Button,
+  Typography,
+  Box,
+  Link,
+} from "@mui/material";
 import { withBasePath } from "@/utils/basePath";
 
 export interface Accolade {
@@ -14,7 +22,11 @@ export interface Accolade {
   date?: string;
 }
 
-export default function AccoladesCarousel({ accolades }: { accolades: Accolade[] }) {
+export default function AccoladesCarousel({
+  accolades,
+}: {
+  accolades: Accolade[];
+}) {
   return (
     <Box
       sx={{
@@ -29,15 +41,15 @@ export default function AccoladesCarousel({ accolades }: { accolades: Accolade[]
         <Card
           key={idx}
           variant="outlined"
-          sx={{ minWidth: 280, flex: "0 0 auto", scrollSnapAlign: "start" }}
+          sx={{ maxWidth: "100%", flex: "0 0 auto", scrollSnapAlign: "start" }}
         >
           {acc.imageSrcUrl && (
             <Image
               src={withBasePath(acc.imageSrcUrl)}
               alt={acc.name}
-              width={300}
-              height={200}
-              style={{ width: "100%", height: "auto" }}
+              width={64}
+              height={64}
+              style={{ width: "64px", height: "64px" }}
             />
           )}
           <CardContent>
@@ -55,7 +67,11 @@ export default function AccoladesCarousel({ accolades }: { accolades: Accolade[]
               </Link>
             </Typography>
             {acc.date && (
-              <Typography variant="caption" color="text.secondary" display="block">
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                display="block"
+              >
                 {acc.date}
               </Typography>
             )}
@@ -72,16 +88,6 @@ export default function AccoladesCarousel({ accolades }: { accolades: Accolade[]
           </CardContent>
           {(acc.launchUrl || acc.githubUrl) && (
             <CardActions>
-              {acc.launchUrl && (
-                <Button
-                  size="small"
-                  href={withBasePath(acc.launchUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Launch
-                </Button>
-              )}
               {acc.githubUrl && (
                 <Button
                   size="small"
@@ -99,4 +105,3 @@ export default function AccoladesCarousel({ accolades }: { accolades: Accolade[]
     </Box>
   );
 }
-
