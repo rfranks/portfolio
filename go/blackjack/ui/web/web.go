@@ -16,9 +16,10 @@ import (
 )
 
 type WebUI struct {
-	actionCh chan rune
-	handlers []handler
-	cfg      flags.Config
+	actionCh     chan rune
+	handlers     []handler
+	cfg          flags.Config
+	lastWinnings int
 }
 
 type handler struct {
@@ -28,9 +29,10 @@ type handler struct {
 
 func New(cfg flags.Config) *WebUI {
 	w := &WebUI{
-		actionCh: make(chan rune),
-		handlers: make([]handler, 0),
-		cfg:      cfg,
+		actionCh:     make(chan rune),
+		handlers:     make([]handler, 0),
+		cfg:          cfg,
+		lastWinnings: 0,
 	}
 	// bind action buttons to dispatch runes
 	w.bind("hit", 'h')
@@ -185,6 +187,35 @@ func (w *WebUI) Render(state ui.GameState) {
 				totalStr = fmt.Sprintf("Total: %d/%d", soft, hard)
 			}
 			el.Set("innerText", totalStr)
+		}
+	}
+
+	// round result
+	if el := doc.Call("getElementById", "result"); el.Truthy() {
+		if state.AskingToDeal {
+			text := ""
+			color := ""
+			if len(game.State.Players) > 0 {
+				p := game.State.Players[0]
+				diff := p.Winnings - w.lastWinnings
+				if diff > 0 {
+					text = fmt.Sprintf("You won %s", PrintCurrency(diff*100))
+					color = "green"
+				} else if diff < 0 {
+					text = fmt.Sprintf("You lost %s", PrintCurrency(-diff*100))
+					color = "red"
+				} else {
+					text = "Push"
+				}
+			}
+			el.Set("innerText", text)
+			el.Get("style").Set("color", color)
+		} else {
+			if len(game.State.Players) > 0 {
+				w.lastWinnings = game.State.Players[0].Winnings
+			}
+			el.Set("innerText", "")
+			el.Get("style").Set("color", "")
 		}
 	}
 
