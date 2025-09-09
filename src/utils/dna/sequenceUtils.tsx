@@ -30,7 +30,7 @@ export function baseTo2bit(basePair: string): string {
   // T to 00, C to 01, A to 10, and G to 11
   // see https://genome.ucsc.edu/FAQ/FAQformat.html#format7
   /** @todo support other formats listed */
-  switch (basePair) {
+  switch (basePair.toUpperCase()) {
     case "T":
     case "U":
       return "00";
@@ -96,7 +96,8 @@ export function getBasepairCounts(seq: string): BPCount[] {
     "GC %Label": "GC %",
   };
 
-  for (const bp of seq) {
+  // Normalize the sequence to uppercase so lowercase bases are counted
+  for (const bp of seq.toUpperCase()) {
     switch (bp) {
       case "A":
         A.count += 1;
@@ -125,9 +126,9 @@ export function getBasepairCounts(seq: string): BPCount[] {
 
   const bpCounts = [];
 
-  counts["GC %"] = (((G.count + C.count) / (1.0 * seq.length)) * 100).toFixed(
-    2
-  );
+  counts["GC %"] = seq.length
+    ? (((G.count + C.count) / seq.length) * 100).toFixed(2)
+    : "0";
 
   bpCounts.push({ ...A, ...counts }, { ...C, ...counts }, { ...G, ...counts });
   if (U.count > 0) {
