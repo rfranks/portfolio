@@ -21,6 +21,11 @@ button {
   margin-right: 0.5rem;
 }
 
+#result {
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
 #status {
   margin-top: 1rem;
   font-weight: bold;

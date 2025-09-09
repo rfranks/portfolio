@@ -37,6 +37,7 @@ export default function BlackjackPage() {
           <div id="player-cards" className="cards"></div>
           <div id="player-total"></div>
         </div>
+        <div id="result"></div>
         <div id="status"></div>
         <div id="hint"></div>
       </div>
