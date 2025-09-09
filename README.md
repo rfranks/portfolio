@@ -8,6 +8,7 @@ drawer menu links to several demos and games:
 
 - [GeneBoard](http://localhost:3000/dna)
 - [Bookworm](http://localhost:3000/bookworm)
+- [TalentForge](http://localhost:3000/talentforge)
 - [Blackjack](http://localhost:3000/blackjack)
 - [Warbirds](http://localhost:3000/warbirds)
 - [ZombieFish](http://localhost:3000/zombiefish)
