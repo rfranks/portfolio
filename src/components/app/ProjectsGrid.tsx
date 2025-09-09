@@ -83,6 +83,16 @@ export default function ProjectsGrid() {
                   <Typography variant="body2" color="text.secondary">
                     {project.description}
                   </Typography>
+                  {project.interestsMeWhy && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Why this interests me...
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {project.interestsMeWhy}
+                      </Typography>
+                    </Box>
+                  )}
                   {project.accolades && project.accolades.length > 0 && (
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="subtitle1" gutterBottom>

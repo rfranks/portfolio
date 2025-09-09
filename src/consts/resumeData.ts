@@ -212,24 +212,31 @@ export const projects: {
     imageSrcUrl?: string;
     date?: string;
   }[];
+  interestsMeWhy?: string;
 }[] = [
   {
     name: "Warbirds",
     description: "Dogfight through the skies in this arcade shooter.",
     href: "/warbirds",
     type: "personal",
+    interestsMeWhy:
+      "Building an aerial combat game pushed my understanding of canvas rendering and simple AI. It's a fun showcase of real-time physics entirely in the browser.",
   },
   {
     name: "ZombieFish",
     description: "Hook undead fish before they bite.",
     href: "/zombiefish",
     type: "personal",
+    interestsMeWhy:
+      "I enjoyed blending playful art with responsive collision mechanics. It was a chance to experiment with physics and humor in a casual game.",
   },
   {
     name: "Blackjack",
     description: "Classic twenty-one card game against the dealer.",
     href: "/blackjack",
     type: "personal",
+    interestsMeWhy:
+      "The project highlights state management and probability in a familiar game. It's a clean example of how to model rules and player interaction.",
   },
   {
     name: "Blasteroids",
@@ -237,6 +244,8 @@ export const projects: {
       "Classic Asteroids arcade game with a space shooter twist.  Built entirely with HTML, CSS, and JavaScript.",
     href: "/blasteroids",
     type: "personal",
+    interestsMeWhy:
+      "Recreating a classic arcade title using only web standards was a technical challenge. It demonstrates how far raw HTML, CSS, and JavaScript can go.",
     accolades: [
       {
         name: "Arctic Code Vault Contributor",
@@ -259,12 +268,16 @@ export const projects: {
       "Interactive tools for exploring and visualizing DNA sequences.",
     href: "/dna",
     type: "personal",
+    interestsMeWhy:
+      "Combining biology and interactive graphics makes genomics approachable. It allowed me to explore data visualization beyond typical web apps.",
   },
   {
     name: "Bookworm",
     description: "AI powered PDF interactive AI chat bot.",
     href: "/bookworm",
     type: "personal",
+    interestsMeWhy:
+      "Integrating LLMs with PDF parsing shows how AI can unlock static documents. It was exciting to craft a conversational interface over complex texts.",
   },
   {
     name: "Patient List Project",
@@ -272,6 +285,8 @@ export const projects: {
       "Backbone.js-based configurable patient visit list for physicians.  Spring backend with REST APIs, complex filtering, sorting, and pagination.",
     href: "/patientlist",
     type: "work",
+    interestsMeWhy:
+      "Transforming dense clinical data into a customizable dashboard was both challenging and rewarding. It illustrates the power of modern JavaScript in healthcare.",
   },
   {
     name: "Patient Assignment List Project",
@@ -279,6 +294,8 @@ export const projects: {
       "Backbone.js-based managable patient assignment list for physicians.  Complex drag-and-drop UI, time-based and filter-based population criteria.",
     href: "/assignmentlist",
     type: "work",
+    interestsMeWhy:
+      "Designing drag-and-drop assignment logic for clinicians pushed the limits of the UI. The project blends real-time updates with intuitive workflow design.",
   },
   {
     name: "AI-Driven Clinical Copilot",
@@ -286,6 +303,8 @@ export const projects: {
       "Next.js/React frontend with Python/Azure Functions backend.  Integrates LLMs and retrieval-augmented generation (RAG) to summarize EHR data and summarize data and answer questions with citations.",
     href: "/aisummary",
     type: "work",
+    interestsMeWhy:
+      "This project brings generative AI directly into physician workflows. It showcases how RAG can surface meaningful insights from enormous EHR datasets.",
   },
   {
     name: "AI Patient List Podcasts",
@@ -293,6 +312,8 @@ export const projects: {
       "Podcasts discussing the last 12 hours of clinically significant events for a list of patients.",
     href: "/patientlistpodcasts",
     type: "work",
+    interestsMeWhy:
+      "Turning clinical events into podcasts explores a novel medium for physician updates. It combines summarization, text-to-speech, and healthcare data.",
   },
 ];
 
