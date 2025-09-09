@@ -28,3 +28,12 @@ Do not say the words "markdown", "PDF", "PDF file" or "file" in your response.
 Refrain from omitting any important information in your response.
 Refrain from omitting quotes or key points in your response.
 `;
+
+export const jobSearchPrompt = `
+The following information describes the user's job search context.
+
+{{context}}
+
+Use these notes to highlight resume strengths, suggest potential job matches, and provide guidance on working with recruiters.
+Keep responses concise and professional.
+`;
