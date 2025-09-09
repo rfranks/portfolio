@@ -26,6 +26,13 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Build Blackjack Wasm",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "GOOS=js GOARCH=wasm go build -o ../../public/main.wasm",
+            "cwd": "${workspaceFolder}/go/blackjack"
+        },
+        {
             "name": "Launch Test (short)",
             "type": "go",
             "request": "launch",
