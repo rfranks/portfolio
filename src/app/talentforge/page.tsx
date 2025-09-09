@@ -37,7 +37,7 @@ export default function TalentForgePage() {
   const { setDocumentTitle } = useDocumentTitle();
 
   React.useEffect(() => {
-    setDocumentTitle("Bookworm");
+    setDocumentTitle("TalentForge AI");
   }, [setDocumentTitle]);
 
   const toggleColorMode = () => {
@@ -60,21 +60,21 @@ export default function TalentForgePage() {
         <CssBaseline />
         <Container component="main" maxWidth="sm" sx={{ mt: 8, mb: 4 }}>
           <Image
-            src="/logo192.png"
+            src="/talentforge-logo.png"
             style={{ width: "192px", height: "auto" }}
-            alt="bookworm logo"
+            alt="TalentForge AI logo"
             width={192}
             height={194}
           />
           <Typography variant="h4" component="h1" gutterBottom>
-            Welcome to Bookworm
+            Welcome to TalentForge AI
           </Typography>
           <Typography variant="body1" paragraph>
-            Bookworm needs an OpenAI API key to talk with OpenAI. The key you
-            type here goes straight from your browser to OpenAI and stays
-            between you and OpenAI. Bookworm does not store your key anywhere
-            and does not send it anywhere else. If you do not fully trust
-            Bookworm, do not enter your key.
+            TalentForge AI needs an OpenAI API key to talk with OpenAI. The key
+            you type here goes straight from your browser to OpenAI and stays
+            between you and OpenAI. TalentForge AI does not store your key
+            anywhere and does not send it anywhere else. If you do not fully
+            trust TalentForge AI, do not enter your key.
           </Typography>
           <Box component="form" onSubmit={handleSubmit}>
             <TextField

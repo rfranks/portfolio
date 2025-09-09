@@ -91,9 +91,9 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
               }}
             >
               <Image
-                src="/logo192.png"
+                src="/talentforge-logo.png"
                 style={logoStyle}
-                alt="bookworm logo"
+                alt="TalentForge AI logo"
                 width={192}
                 height={194}
               />
@@ -108,7 +108,7 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
                   fontStyle: "normal",
                 }}
               >
-                bookworm
+                TalentForge AI
               </Typography>
               <Box sx={{ display: { xs: "none", md: "flex" } }}>
                 <MenuItem

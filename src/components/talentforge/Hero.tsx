@@ -157,7 +157,7 @@ export default function Hero() {
                 fontStyle: "normal",
               }}
             >
-              bookworm
+              TalentForge AI
             </Typography>
           </Typography>
           <Typography
@@ -283,7 +283,7 @@ export default function Hero() {
                         fontStyle: "normal",
                       }}
                     >
-                      bookworm
+                      TalentForge AI
                     </Typography>
                     &nbsp;says...
                   </Typography>
@@ -331,7 +331,7 @@ export default function Hero() {
 
         <OutlinedInput
           ref={userQuestionInputRef}
-          placeholder="Ask bookworm anything about your PDF..."
+          placeholder="Ask TalentForge AI anything about your PDF..."
           fullWidth
           value={userQuestion}
           onChange={(event) => setUserQuestion(event.target.value)}

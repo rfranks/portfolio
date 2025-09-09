@@ -13,19 +13,19 @@ const items = [
     icon: <AccessTime />,
     title: "Efficiency and Time-Saving",
     description:
-      "Bookworm dramatically reduces the time you spend reading and comprehending long PDF documents. By providing concise summaries, it allows you to grasp the key points quickly, freeing up time for other tasks or deeper study on specific areas of interest.",
+      "TalentForge AI dramatically reduces the time you spend reading and comprehending long PDF documents. By providing concise summaries, it allows you to grasp the key points quickly, freeing up time for other tasks or deeper study on specific areas of interest.",
   },
   {
     icon: <Psychology />,
     title: "Enhanced Understanding",
     description:
-      "With the ability to ask specific questions about the PDF content, Bookworm enhances your understanding by clarifying complex information and providing detailed insights. This feature is particularly valuable for dense academic papers, technical manuals, and detailed reports where nuances matter.",
+      "With the ability to ask specific questions about the PDF content, TalentForge AI enhances your understanding by clarifying complex information and providing detailed insights. This feature is particularly valuable for dense academic papers, technical manuals, and detailed reports where nuances matter.",
   },
   {
     icon: <AutoFixHighRoundedIcon />,
     title: "Accessibility and Convenience",
     description:
-      "Bookworm is designed to be accessible anywhere and anytime. Whether you’re on the go or at your desk, you can easily upload documents and interact with your material without the need for extensive reading or manual searching through pages. This makes it an invaluable tool for students, professionals, and anyone who needs to process written content efficiently.",
+      "TalentForge AI is designed to be accessible anywhere and anytime. Whether you’re on the go or at your desk, you can easily upload documents and interact with your material without the need for extensive reading or manual searching through pages. This makes it an invaluable tool for students, professionals, and anyone who needs to process written content efficiently.",
   },
 ];
 
@@ -70,7 +70,7 @@ export default function Highlights() {
                 fontStyle: "normal",
               }}
             >
-              bookworm
+              TalentForge AI
             </Typography>{" "}
             stands out with its advanced AI that not only summarizes PDFs but
             also answers content-specific questions, offering an intuitive,
