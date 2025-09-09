@@ -13,6 +13,7 @@ import Typography from "@mui/material/Typography";
 import AppAppBar from "@/components/talentforge/AppAppBar";
 import Hero from "@/components/talentforge/Hero";
 import Highlights from "@/components/talentforge/Highlights";
+import DocumentGenerator from "@/components/talentforge/DocumentGenerator";
 // import LogoCollection from "./components/LogoCollection";
 // import Pricing from "./components/Pricing";
 // import Features from "./components/Features";
@@ -99,6 +100,7 @@ export default function TalentForgePage() {
       <AppAppBar mode={mode} toggleColorMode={toggleColorMode} />
       <Hero />
       <Box sx={{ bgcolor: "background.default" }}>
+        <DocumentGenerator />
         {/* <LogoCollection /> */}
         {/* <Features />
         <Divider />
