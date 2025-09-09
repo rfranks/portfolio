@@ -260,7 +260,7 @@ export function validBase(base: string): boolean {
   }
 }
 
-export function isMaxBase(sequence: string, base: Base) {
+export function isMaxBase(sequence: string, base: Base): boolean {
   const counts = getBasepairCounts(sequence)?.[0];
   const baseCounts: Array<number> = [
     counts.A,
@@ -279,7 +279,5 @@ export function isMaxBase(sequence: string, base: Base) {
     return false;
   }
 
-  if (counts[base] >= maxBasePairCount) {
-    return true;
-  }
+  return counts[base] >= maxBasePairCount;
 }
