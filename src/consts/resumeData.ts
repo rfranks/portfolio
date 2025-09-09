@@ -236,7 +236,7 @@ export const projects: {
     href: "/blackjack",
     type: "personal",
     interestsMeWhy:
-      "The project highlights state management and probability in a familiar game. It's a clean example of how to model rules and player interaction.",
+      "The project highlights state management and probability in a familiar game. It's a clean example of how to model rules and player interaction.  It also illustrates how business logic in Go can be run both on the server and compiled to WebAssembly for client-side play.  This business logic is shared via the web, the raw terminal, and via the VSCode Go debugger versions.",
   },
   {
     name: "Blasteroids",
@@ -335,7 +335,6 @@ export const recognition: {
   ],
   recommendations: [
     {
-
       name: "Chance Yohman",
       title: "Lead Software Engineer at LogicManager",
       date: "September 1, 2025",
