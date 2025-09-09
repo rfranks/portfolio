@@ -30,7 +30,7 @@ import { hasOpenAIKey, setOpenAIKey } from "@/utils/talentforge/utils";
 import Image from "next/image";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
-export default function BookwormPage() {
+export default function TalentForgePage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");
   const defaultTheme = createTheme({ palette: { mode } });
   const [apiKeyReady, setApiKeyReady] = React.useState(hasOpenAIKey());
