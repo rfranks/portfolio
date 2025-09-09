@@ -31,37 +31,37 @@ const logoStyle = {
 };
 
 const aboutUs = `
-Bookworm is an innovative AI-powered tool designed to revolutionize the way we interact with PDF documents. Our mission is to empower users to efficiently handle and comprehend large volumes of textual content with ease.
+TalentForge AI is an innovative AI-powered tool designed to revolutionize the way we interact with PDF documents. Our mission is to empower users to efficiently handle and comprehend large volumes of textual content with ease.
 
 ## Our Vision
 
-At Bookworm, we envision a future where accessing and understanding complex documents is effortless. By leveraging advanced artificial intelligence technologies, we aim to provide users with intelligent summaries, insightful analysis, and instant answers to content-specific questions.
+At TalentForge AI, we envision a future where accessing and understanding complex documents is effortless. By leveraging advanced artificial intelligence technologies, we aim to provide users with intelligent summaries, insightful analysis, and instant answers to content-specific questions.
 
 ## Our Mission
 
-Our mission is to simplify the process of document handling and comprehension. We strive to save users time and effort by offering a user-friendly interface that allows for seamless interaction with PDF documents. Whether you're a student, professional, or researcher, Bookworm is your essential companion for unlocking the wealth of knowledge hidden within your documents.
+Our mission is to simplify the process of document handling and comprehension. We strive to save users time and effort by offering a user-friendly interface that allows for seamless interaction with PDF documents. Whether you're a student, professional, or researcher, TalentForge AI is your essential companion for unlocking the wealth of knowledge hidden within your documents.
 
 ## Key Features
 
-- **Summarization**: Bookworm generates concise summaries of PDF documents, enabling users to grasp key points quickly.
-- **Question-Answering**: With Bookworm's question-answering capability, users can ask specific questions about the content and receive instant answers.
-- **Continuous Improvement**: Bookworm's AI algorithms continuously learn and improve over time, ensuring that users receive the most accurate and relevant information.
-- **Accessibility**: Bookworm is accessible anywhere, anytime, allowing users to upload and interact with documents on the go.
+- **Summarization**: TalentForge AI generates concise summaries of PDF documents, enabling users to grasp key points quickly.
+- **Question-Answering**: With TalentForge AI's question-answering capability, users can ask specific questions about the content and receive instant answers.
+- **Continuous Improvement**: TalentForge AI's AI algorithms continuously learn and improve over time, ensuring that users receive the most accurate and relevant information.
+- **Accessibility**: TalentForge AI is accessible anywhere, anytime, allowing users to upload and interact with documents on the go.
 
 ## Meet the Team
 
-Our team consists of passionate individuals dedicated to making document handling and comprehension more efficient and accessible. With expertise in artificial intelligence, natural language processing, and user experience design, we're committed to delivering an exceptional user experience with Bookworm.
+Our team consists of passionate individuals dedicated to making document handling and comprehension more efficient and accessible. With expertise in artificial intelligence, natural language processing, and user experience design, we're committed to delivering an exceptional user experience with TalentForge AI.
 
 ## Contact Us
 
-Have questions or feedback? We'd love to hear from you! Feel free to reach out to us at [richardfrankskr@hotmail.com](mailto:richardfranksjr@hotmail.com) and join us on our mission to revolutionize document handling and comprehension with Bookworm.
+Have questions or feedback? We'd love to hear from you! Feel free to reach out to us at [richardfranksjr@hotmail.com](mailto:richardfranksjr@hotmail.com) and join us on our mission to revolutionize document handling and comprehension with TalentForge AI.
 `;
 
 function Copyright() {
   return (
     <Typography variant="body2" color="text.secondary" mt={1}>
       {"Copyright © "}
-      <Link href="https://github.com/rfranks/bookworm">
+      <Link href="https://github.com/rfranks/talentforge">
         <Typography
           variant="body2"
           component={"span"}
@@ -71,7 +71,7 @@ function Copyright() {
             fontStyle: "normal",
           }}
         >
-          bookworm
+          TalentForge AI
         </Typography>
       </Link>{" "}
       {new Date().getFullYear()}
@@ -148,9 +148,9 @@ export default function Footer() {
           <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
             <Box sx={{ ml: "-15px" }}>
               <Image
-                src="/logo192.png"
+                src="/talentforge-logo.png"
                 style={logoStyle}
-                alt="bookworm logo"
+                alt="TalentForge AI logo"
                 width={192}
                 height={194}
               />
@@ -300,7 +300,7 @@ export default function Footer() {
         >
           <IconButton
             color="inherit"
-            href="https://github.com/rfranks/bookworm"
+            href="https://github.com/rfranks/talentforge"
             aria-label="GitHub"
             sx={{ alignSelf: "center" }}
           >
