@@ -100,7 +100,7 @@ export const askOpenAI = async ({
   let responseText = "";
 
   do {
-    const rest = context.substring(Math.min(aiBufferSize + 1, context.length));
+    const rest = context.substring(Math.min(aiBufferSize, context.length));
     context = context.substring(0, Math.min(aiBufferSize, context.length));
 
     const systemMessage =
