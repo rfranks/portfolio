@@ -35,6 +35,7 @@ export default function Hero() {
   >([]);
   const [pdfAsMarkdown, setPdfAsMarkdown] = React.useState<string>("");
   const [pdfSummary, setPdfSummary] = React.useState<string>("");
+  const [resumeText, setResumeText] = React.useState<string>("");
   const [userQuestion, setUserQuestion] = React.useState<string>("");
   const [activeQuestionIndex, setActiveQuestionIndex] = React.useState<
     number | null
@@ -50,8 +51,11 @@ export default function Hero() {
   const userQuestionInputRef = React.useRef<HTMLInputElement>(null);
 
   const askUserQuestion = async () => {
+    const combinedText = [pdfAsMarkdown, resumeText].filter(Boolean).join("\n");
     const context =
-      pdfAsMarkdown?.length > aiBufferSize ? pdfSummary : pdfAsMarkdown;
+      combinedText.length > aiBufferSize && pdfSummary
+        ? pdfSummary
+        : combinedText;
 
     askOpenAI({
       context,
@@ -184,10 +188,11 @@ export default function Hero() {
                 const files = filesFromParam as File[];
                 if (files && files.length > 0) {
                   const markdown = await pdfToMarkdown(files[0]);
-
                   setPdfAsMarkdown(markdown);
 
-                  const context = markdown;
+                  const context = [markdown, resumeText]
+                    .filter(Boolean)
+                    .join("\n");
 
                   const summary = await askOpenAI({
                     context,
@@ -206,6 +211,15 @@ export default function Hero() {
               }}
             />
           </Stack>
+          <OutlinedInput
+            placeholder="Paste resume content here..."
+            multiline
+            minRows={4}
+            fullWidth
+            value={resumeText}
+            onChange={(e) => setResumeText(e.target.value)}
+            sx={{ mt: 2 }}
+          />
           <Typography
             variant="caption"
             textAlign="center"
@@ -361,7 +375,9 @@ export default function Hero() {
               >
                 <IconButton
                   aria-label="submit user question"
-                  disabled={!userQuestion || !pdfAsMarkdown}
+                  disabled={
+                    !userQuestion || (!pdfAsMarkdown && !resumeText)
+                  }
                   onClick={askUserQuestion}
                   edge="end"
                 >
