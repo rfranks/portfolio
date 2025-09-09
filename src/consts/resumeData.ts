@@ -315,6 +315,12 @@ export const projects: {
     interestsMeWhy:
       "Turning clinical events into podcasts explores a novel medium for physician updates. It combines summarization, text-to-speech, and healthcare data.",
   },
+  {
+    name: "TalentForge AI",
+    description: "AI headhunter and resume assistant",
+    href: "/talentforge",
+    type: "personal",
+  },
 ];
 
 export const recognition: {
