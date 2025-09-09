@@ -1,6 +1,6 @@
 {
-  "short_name": "bookworm",
-  "name": "bookworm",
+  "short_name": "TalentForge AI",
+  "name": "TalentForge AI",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,7 +8,7 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "talentforge-logo.png",
       "type": "image/png",
       "sizes": "192x192"
     },
