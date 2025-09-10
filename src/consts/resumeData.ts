@@ -335,11 +335,26 @@ export const recognition: {
   }[];
 } = {
   snippets: [
+    "Hailed as an exceptional architect blending technical mastery with lightning-fast execution.",
     'Praised by colleagues as "the most brilliant engineer I\u2019ve worked with… the closest to a 10x developer" and a "true team player and mentor."',
     "Trusted go-to for solving critical, high-stakes production issues with speed and quality.",
     "Recognized repeatedly for leadership, mentorship, and engineering excellence.",
   ],
   recommendations: [
+    {
+      name: "Jay Patel",
+      title: "Senior Software Engineer",
+      date: "September 9, 2025",
+      relationship: "Richard was senior to Jay but didn't manage Jay directly",
+      imageSrcUrl: "/colleagues/jay_patel.jpeg",
+      text: `I had the pleasure of working with Richard at Commure and I highly recommend Richard as an exceptional software architect who combines technical mastery with remarkable execution speed. During our time working together, Richard consistently demonstrated an impressive understanding of complex technical challenges across the entire technology stack - from frontend to backend to infrastructure to databases, and cloud architecture.
+
+What sets Richard apart is his ability to rapidly assess requirements, design elegant solutions, and execute with precision. His deep expertise in AI technologies has been particularly valuable, as he seamlessly integrates RAG capabilities into broader system architectures while maintaining performance and scalability standards. Richard doesn't just understand individual technologies; he sees how they interconnect and leverages this holistic view to make informed architectural decisions.
+
+Richard's speed of execution is truly remarkable - he can move from concept to implementation at lightning speed. Yet this speed never comes at the expense of quality or thoroughness. His solutions are well-architected, documented, and built to last.
+
+Any organization would benefit greatly from Richard's technical leadership, strategic thinking, and ability to deliver results quickly while maintaining the highest standards of software architecture.`,
+    },
     {
       name: "Chance Yohman",
       title: "Lead Software Engineer at LogicManager",
