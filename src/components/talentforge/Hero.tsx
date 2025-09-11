@@ -187,7 +187,7 @@ export default function Hero() {
               onChange={async (filesFromParam) => {
                 const files = filesFromParam as File[];
                 if (files && files.length > 0) {
-                  const markdown = await pdfToMarkdown(files[0]);
+                  const { markdown } = await pdfToMarkdown(files[0]);
                   setPdfAsMarkdown(markdown);
 
                   const context = [markdown, resumeText]

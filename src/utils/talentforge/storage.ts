@@ -2,6 +2,7 @@
 
 import { ChatMessage } from "@/types/talentforge/types";
 import { JobListing } from "@/types/talentforge/job";
+import { ParsedResume } from "@/types/talentforge/resume";
 
 const STORAGE_API_URL = process.env.NEXT_PUBLIC_TALENTFORGE_STORAGE_API_URL;
 
@@ -49,12 +50,12 @@ async function getItem<T>(key: string): Promise<T | null> {
   return null;
 }
 
-export async function saveParsedResume(resume: string): Promise<void> {
+export async function saveParsedResume(resume: ParsedResume): Promise<void> {
   await storeItem(STORAGE_KEYS.resume, resume);
 }
 
-export async function loadParsedResume(): Promise<string | null> {
-  return await getItem<string>(STORAGE_KEYS.resume);
+export async function loadParsedResume(): Promise<ParsedResume | null> {
+  return await getItem<ParsedResume>(STORAGE_KEYS.resume);
 }
 
 export async function saveChatHistory(

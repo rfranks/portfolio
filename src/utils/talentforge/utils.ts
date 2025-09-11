@@ -4,6 +4,9 @@ import * as pdfjs from "pdfjs-dist";
 
 import { ChatMessage } from "@/types/talentforge/types";
 import { aiBufferSize } from "@/consts/talentforge/consts";
+import { ParsedResume } from "@/types/talentforge/resume";
+import parseResume from "./resumeParser";
+import { saveParsedResume } from "./storage";
 
 import { Buffer } from "buffer";
 
@@ -168,7 +171,9 @@ if (typeof window !== "undefined") {
   window.Buffer = window.Buffer || Buffer;
 }
 
-export async function pdfToMarkdown(file: File): Promise<string> {
+export async function pdfToMarkdown(
+  file: File
+): Promise<{ markdown: string; parsedResume: ParsedResume }> {
   const reader = new FileReader();
   const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
@@ -202,5 +207,8 @@ export async function pdfToMarkdown(file: File): Promise<string> {
     markdown += "\n\n";
   }
 
-  return markdown;
+  const parsedResume = parseResume(markdown);
+  await saveParsedResume(parsedResume);
+
+  return { markdown, parsedResume };
 }
