@@ -1,4 +1,5 @@
 import { JobListing } from "@/types/talentforge/job";
+import { getStoredTokens } from "./oauth";
 
 const LINKEDIN_API_URL =
   process.env.NEXT_PUBLIC_LINKEDIN_API_URL ||
@@ -42,21 +43,58 @@ const normalizeLinkedInJob = (job: Record<string, unknown>): JobListing => {
   };
 };
 
+export interface LinkedInJobSearchResult {
+  jobs: JobListing[];
+  error?: string;
+}
+
 export async function searchLinkedInJobs(
   query: string
-): Promise<JobListing[]> {
-  if (!query.trim()) return [];
+): Promise<LinkedInJobSearchResult> {
+  if (!query.trim()) return { jobs: [] };
 
-  const url = `${LINKEDIN_API_URL}?q=${encodeURIComponent(query)}`;
+  const params = new URLSearchParams({ q: query });
+  if (typeof window !== "undefined") {
+    const rawSettings = window.localStorage.getItem("talentforge-settings");
+    if (rawSettings) {
+      try {
+        const settings = JSON.parse(rawSettings) as {
+          locations?: string;
+          salaryMin?: string;
+          salaryMax?: string;
+        };
+        if (settings.locations) {
+          params.set("location", settings.locations);
+        }
+        if (settings.salaryMin) {
+          params.set("salary_min", settings.salaryMin);
+        }
+        if (settings.salaryMax) {
+          params.set("salary_max", settings.salaryMax);
+        }
+      } catch {
+        // ignore malformed settings
+      }
+    }
+  }
+
+  const url = `${LINKEDIN_API_URL}?${params.toString()}`;
   const headers: Record<string, string> = {};
-  if (LINKEDIN_API_KEY) {
+  const storedTokens =
+    typeof window !== "undefined" ? getStoredTokens("linkedin") : null;
+  if (storedTokens?.accessToken) {
+    headers["Authorization"] = `Bearer ${storedTokens.accessToken}`;
+  } else if (LINKEDIN_API_KEY) {
     headers["Authorization"] = `Bearer ${LINKEDIN_API_KEY}`;
   }
 
   try {
     const response = await fetch(url, { headers });
     if (!response.ok) {
-      return [];
+      return {
+        jobs: [],
+        error: `LinkedIn API error: ${response.status} ${response.statusText}`,
+      };
     }
     const data: unknown = await response.json();
     const dataObj = data as {
@@ -69,12 +107,18 @@ export async function searchLinkedInJobs(
       ? dataObj.results
       : [];
 
-    return jobsArray
-      .filter((job): job is Record<string, unknown> =>
-        typeof job === "object" && job !== null
-      )
-      .map((job) => normalizeLinkedInJob(job));
-  } catch {
-    return [];
+    return {
+      jobs: jobsArray
+        .filter((job): job is Record<string, unknown> =>
+          typeof job === "object" && job !== null
+        )
+        .map((job) => normalizeLinkedInJob(job)),
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return {
+      jobs: [],
+      error: `Failed to fetch LinkedIn jobs: ${message}`,
+    };
   }
 }
