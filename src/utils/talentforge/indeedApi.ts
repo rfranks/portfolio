@@ -1,5 +1,12 @@
 import { JobListing } from "@/types/talentforge/job";
 
+export interface IndeedSearchFilters {
+  roles?: string[];
+  locations?: string[];
+  salaryMin?: number;
+  salaryMax?: number;
+}
+
 const INDEED_API_URL =
   process.env.NEXT_PUBLIC_INDEED_API_URL ||
   "https://api.indeed.com/v2/jobs";
@@ -40,10 +47,28 @@ const normalizeIndeedJob = (job: Record<string, unknown>): JobListing => {
   };
 };
 
-export async function searchIndeedJobs(query: string): Promise<JobListing[]> {
+export async function searchIndeedJobs(
+  query: string,
+  filters: IndeedSearchFilters = {}
+): Promise<JobListing[]> {
   if (!query.trim()) return [];
 
-  const url = `${INDEED_API_URL}?q=${encodeURIComponent(query)}`;
+  const params = new URLSearchParams();
+  params.set("q", query);
+  if (filters.roles && filters.roles.length > 0) {
+    params.set("roles", filters.roles.join(","));
+  }
+  if (filters.locations && filters.locations.length > 0) {
+    params.set("locations", filters.locations.join(","));
+  }
+  if (typeof filters.salaryMin === "number") {
+    params.set("salary_min", String(filters.salaryMin));
+  }
+  if (typeof filters.salaryMax === "number") {
+    params.set("salary_max", String(filters.salaryMax));
+  }
+
+  const url = `${INDEED_API_URL}?${params.toString()}`;
   const headers: Record<string, string> = {};
   if (INDEED_API_KEY) {
     headers["X-API-KEY"] = INDEED_API_KEY;
