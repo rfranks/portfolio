@@ -14,9 +14,10 @@ import {
 import { ArchiveOutlined, ReplyOutlined } from "@mui/icons-material";
 
 import { askOpenAI } from "@/utils/talentforge/utils";
+import { getStoredTokens } from "@/utils/talentforge/oauth";
 
 interface InboxMessage {
-  id: number;
+  id: string;
   source: string;
   sender: string;
   subject: string;
@@ -27,35 +28,59 @@ interface InboxMessage {
   suggestedTags?: string[];
 }
 
-const initialMessages: InboxMessage[] = [
-  {
-    id: 1,
-    source: "Email",
-    sender: "hr@example.com",
-    subject: "Interview Invitation",
-    content: "We would love to schedule an interview with you next week.",
-    tags: [],
-    archived: false,
-  },
-  {
-    id: 2,
-    source: "LinkedIn",
-    sender: "Jane Recruiter",
-    subject: "New Opportunity",
-    content: "I came across your profile and think you'd be a great fit...",
-    tags: ["networking"],
-    archived: false,
-  },
-];
-
 export default function Inbox() {
-  const [messages, setMessages] = React.useState<InboxMessage[]>(initialMessages);
+  const [messages, setMessages] = React.useState<InboxMessage[]>([]);
+  const [tagInputs, setTagInputs] = React.useState<Record<string, string>>({});
+  const [loading, setLoading] = React.useState<Record<string, boolean>>({});
+  const [pageTokens, setPageTokens] = React.useState<Record<string, string | undefined>>({});
+  const [loadingMore, setLoadingMore] = React.useState(false);
   const [tagInputs, setTagInputs] = React.useState<Record<number, string>>({});
-  const [loading, setLoading] = React.useState<Record<number, boolean>>({});
   const [tagSuggestionsLoading, setTagSuggestionsLoading] =
     React.useState<Record<number, boolean>>({});
 
-  const handleTagAdd = (id: number) => {
+  const fetchMessages = React.useCallback(
+    async (provider: string, pageToken?: string) => {
+      const tokens = getStoredTokens(provider);
+      if (!tokens?.accessToken) {
+        return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
+      }
+      const params = pageToken ? `?pageToken=${encodeURIComponent(pageToken)}` : "";
+      const res = await fetch(`/api/messages/${provider}${params}`, {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+        },
+      });
+      if (!res.ok) {
+        return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
+      }
+      const data = (await res.json()) as {
+        messages: InboxMessage[];
+        nextPageToken?: string;
+      };
+      return data;
+    },
+    []
+  );
+
+  React.useEffect(() => {
+    const load = async () => {
+      const providers = ["gmail", "linkedin"];
+      const all: InboxMessage[] = [];
+      const tokens: Record<string, string | undefined> = {};
+      for (const p of providers) {
+        const data = await fetchMessages(p);
+        all.push(
+          ...data.messages.map((m) => ({ ...m, tags: m.tags || [], archived: false }))
+        );
+        if (data.nextPageToken) tokens[p] = data.nextPageToken;
+      }
+      setMessages(all);
+      setPageTokens(tokens);
+    };
+    void load();
+  }, [fetchMessages]);
+
+  const handleTagAdd = (id: string) => {
     const tag = (tagInputs[id] || "").trim();
     if (!tag) return;
     setMessages((msgs) =>
@@ -64,7 +89,7 @@ export default function Inbox() {
     setTagInputs((t) => ({ ...t, [id]: "" }));
   };
 
-  const handleTagDelete = (id: number, tag: string) => {
+  const handleTagDelete = (id: string, tag: string) => {
     setMessages((msgs) =>
       msgs.map((m) =>
         m.id === id ? { ...m, tags: m.tags.filter((t) => t !== tag) } : m
@@ -72,7 +97,7 @@ export default function Inbox() {
     );
   };
 
-  const toggleArchive = (id: number) => {
+  const toggleArchive = (id: string) => {
     setMessages((msgs) =>
       msgs.map((m) => (m.id === id ? { ...m, archived: !m.archived } : m))
     );
@@ -135,7 +160,7 @@ export default function Inbox() {
     );
   };
 
-  const handleQuickReply = async (id: number) => {
+  const handleQuickReply = async (id: string) => {
     const msg = messages.find((m) => m.id === id);
     if (!msg) return;
     setLoading((l) => ({ ...l, [id]: true }));
@@ -153,6 +178,23 @@ export default function Inbox() {
         m.id === id ? { ...m, quickReply: response?.message || "" } : m
       )
     );
+  };
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    const providers = Object.keys(pageTokens).filter((p) => pageTokens[p]);
+    const fetched: InboxMessage[] = [];
+    const newTokens: Record<string, string | undefined> = {};
+    for (const p of providers) {
+      const data = await fetchMessages(p, pageTokens[p]);
+      fetched.push(
+        ...data.messages.map((m) => ({ ...m, tags: m.tags || [], archived: false }))
+      );
+      newTokens[p] = data.nextPageToken;
+    }
+    setMessages((prev) => [...prev, ...fetched]);
+    setPageTokens((prev) => ({ ...prev, ...newTokens }));
+    setLoadingMore(false);
   };
 
   return (
@@ -260,6 +302,11 @@ export default function Inbox() {
           )}
         </Box>
       ))}
+      {Object.values(pageTokens).some(Boolean) && (
+        <Button variant="outlined" onClick={loadMore} disabled={loadingMore}>
+          Load more
+        </Button>
+      )}
     </Stack>
   );
 }
