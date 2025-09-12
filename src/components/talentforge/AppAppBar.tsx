@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { PaletteMode } from "@mui/material";
+import { PaletteMode, Snackbar } from "@mui/material";
 import Box from "@mui/material/Box";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -28,28 +28,47 @@ interface AppAppBarProps {
 
 function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
   const [open, setOpen] = React.useState(false);
+  const [snackbar, setSnackbar] = React.useState<{ open: boolean; message: string }>({
+    open: false,
+    message: "",
+  });
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
   };
 
+  const handleSnackbarClose = () => setSnackbar({ open: false, message: "" });
+
   const scrollToSection = (sectionId: string) => {
-    const sectionElement = document.getElementById(sectionId);
-    const offset = 128;
-    if (sectionElement) {
-      const targetScroll = sectionElement.offsetTop - offset;
-      sectionElement.scrollIntoView({ behavior: "smooth" });
-      window.scrollTo({
-        top: targetScroll,
-        behavior: "smooth",
-      });
-      setOpen(false);
+    try {
+      const sectionElement = document.getElementById(sectionId);
+      const offset = 128;
+      if (sectionElement) {
+        const targetScroll = sectionElement.offsetTop - offset;
+        sectionElement.scrollIntoView({ behavior: "smooth" });
+        window.scrollTo({
+          top: targetScroll,
+          behavior: "smooth",
+        });
+        setOpen(false);
+      } else {
+        setSnackbar({ open: true, message: "Section not found" });
+        if (process.env.NODE_ENV === "development") {
+          console.error(`Section ${sectionId} not found`);
+        }
+      }
+    } catch (err) {
+      setSnackbar({ open: true, message: "Error navigating to section" });
+      if (process.env.NODE_ENV === "development") {
+        console.error("scrollToSection error", err);
+      }
     }
   };
 
   return (
-    <div>
-      <AppBar
+    <>
+      <div>
+        <AppBar
         position="fixed"
         sx={{
           boxShadow: 0,
@@ -245,6 +264,13 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
         </Container>
       </AppBar>
     </div>
+    <Snackbar
+      open={snackbar.open}
+      autoHideDuration={6000}
+      message={snackbar.message}
+      onClose={handleSnackbarClose}
+    />
+  </>
   );
 }
 

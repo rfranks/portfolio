@@ -2,23 +2,22 @@
 
 import * as React from "react";
 
-import { Box, Chip, IconButton, MenuItem, Stack, TextField, Typography } from "@mui/material";
-import { ArchiveOutlined } from "@mui/icons-material";
-import {
-  responseTemplates as defaultTemplates,
-  ResponseTemplate,
-} from "@/consts/talentforge/responseTemplates";
 import {
   Box,
   Button,
   Chip,
   IconButton,
+  MenuItem,
   Stack,
   TextField,
   Typography,
+  Snackbar,
 } from "@mui/material";
-import { ArchiveOutlined, ReplyOutlined } from "@mui/icons-material";
-
+import { ArchiveOutlined } from "@mui/icons-material";
+import {
+  responseTemplates as defaultTemplates,
+  ResponseTemplate,
+} from "@/consts/talentforge/responseTemplates";
 import { askOpenAI } from "@/utils/talentforge/utils";
 import { scheduleFollowUp } from "@/utils/talentforge/followUp";
 import { getStoredTokens } from "@/utils/talentforge/oauth";
@@ -41,10 +40,14 @@ export default function Inbox() {
   const [loading, setLoading] = React.useState<Record<string, boolean>>({});
   const [pageTokens, setPageTokens] = React.useState<Record<string, string | undefined>>({});
   const [loadingMore, setLoadingMore] = React.useState(false);
-  const [tagInputs, setTagInputs] = React.useState<Record<number, string>>({});
   const [quickReplies, setQuickReplies] = React.useState<ResponseTemplate[]>(
     defaultTemplates
   );
+  const [snackbar, setSnackbar] = React.useState<{ open: boolean; message: string }>({
+    open: false,
+    message: "",
+  });
+  const handleSnackbarClose = () => setSnackbar({ open: false, message: "" });
   const [selectedTemplates, setSelectedTemplates] = React.useState<
     Record<number, string>
   >({});
@@ -53,24 +56,37 @@ export default function Inbox() {
 
   const fetchMessages = React.useCallback(
     async (provider: string, pageToken?: string) => {
-      const tokens = getStoredTokens(provider);
-      if (!tokens?.accessToken) {
+      try {
+        const tokens = getStoredTokens(provider);
+        if (!tokens?.accessToken) {
+          setSnackbar({ open: true, message: `Missing authentication for ${provider}` });
+          return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
+        }
+        const params = pageToken ? `?pageToken=${encodeURIComponent(pageToken)}` : "";
+        const res = await fetch(`/api/messages/${provider}${params}`, {
+          headers: {
+            Authorization: `Bearer ${tokens.accessToken}`,
+          },
+        });
+        if (!res.ok) {
+          setSnackbar({ open: true, message: `Failed to load ${provider} messages` });
+          if (process.env.NODE_ENV === "development") {
+            console.error(`Error fetching ${provider} messages:`, res.status, res.statusText);
+          }
+          return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
+        }
+        const data = (await res.json()) as {
+          messages: InboxMessage[];
+          nextPageToken?: string;
+        };
+        return data;
+      } catch (err) {
+        setSnackbar({ open: true, message: `Network error loading ${provider} messages` });
+        if (process.env.NODE_ENV === "development") {
+          console.error(`Error fetching ${provider} messages:`, err);
+        }
         return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
       }
-      const params = pageToken ? `?pageToken=${encodeURIComponent(pageToken)}` : "";
-      const res = await fetch(`/api/messages/${provider}${params}`, {
-        headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
-        },
-      });
-      if (!res.ok) {
-        return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
-      }
-      const data = (await res.json()) as {
-        messages: InboxMessage[];
-        nextPageToken?: string;
-      };
-      return data;
     },
     []
   );
@@ -137,26 +153,34 @@ export default function Inbox() {
       if (msg.suggestedTags === undefined && !tagSuggestionsLoading[msg.id]) {
         setTagSuggestionsLoading((l) => ({ ...l, [msg.id]: true }));
         (async () => {
-          const response = await askOpenAI({
-            context: msg.content,
-            user:
-              "Suggest up to three short tags that describe the message, as a comma-separated list.",
-            system:
-              "You analyze the given message and return concise descriptive tags separated by commas.",
-            chatHistory: [],
-            returnFirstResponse: true,
-          });
-          const tags =
-            response?.message
-              ?.split(",")
-              .map((t) => t.trim())
-              .filter(Boolean) || [];
-          setMessages((msgs) =>
-            msgs.map((m) =>
-              m.id === msg.id ? { ...m, suggestedTags: tags } : m
-            )
-          );
-          setTagSuggestionsLoading((l) => ({ ...l, [msg.id]: false }));
+          try {
+            const response = await askOpenAI({
+              context: msg.content,
+              user:
+                "Suggest up to three short tags that describe the message, as a comma-separated list.",
+              system:
+                "You analyze the given message and return concise descriptive tags separated by commas.",
+              chatHistory: [],
+              returnFirstResponse: true,
+            });
+            const tags =
+              response?.message
+                ?.split(",")
+                .map((t) => t.trim())
+                .filter(Boolean) || [];
+            setMessages((msgs) =>
+              msgs.map((m) =>
+                m.id === msg.id ? { ...m, suggestedTags: tags } : m
+              )
+            );
+          } catch (err) {
+            setSnackbar({ open: true, message: "Failed to fetch tag suggestions" });
+            if (process.env.NODE_ENV === "development") {
+              console.error("Tag suggestion error", err);
+            }
+          } finally {
+            setTagSuggestionsLoading((l) => ({ ...l, [msg.id]: false }));
+          }
         })();
       }
     });
@@ -193,20 +217,28 @@ export default function Inbox() {
     const msg = messages.find((m) => m.id === id);
     if (!msg) return;
     setLoading((l) => ({ ...l, [id]: true }));
-    const response = await askOpenAI({
-      context: msg.content,
-      user: "Draft a brief professional reply to the above message.",
-      system:
-        "You are an assistant that crafts concise, professional replies to messages based on the provided context. Reply directly without preamble.",
-      chatHistory: [],
-      returnFirstResponse: true,
-    });
-    setLoading((l) => ({ ...l, [id]: false }));
-    setMessages((msgs) =>
-      msgs.map((m) =>
-        m.id === id ? { ...m, quickReply: response?.message || "" } : m
-      )
-    );
+    try {
+      const response = await askOpenAI({
+        context: msg.content,
+        user: "Draft a brief professional reply to the above message.",
+        system:
+          "You are an assistant that crafts concise, professional replies to messages based on the provided context. Reply directly without preamble.",
+        chatHistory: [],
+        returnFirstResponse: true,
+      });
+      setMessages((msgs) =>
+        msgs.map((m) =>
+          m.id === id ? { ...m, quickReply: response?.message || "" } : m
+        )
+      );
+    } catch (err) {
+      setSnackbar({ open: true, message: "Failed to generate reply" });
+      if (process.env.NODE_ENV === "development") {
+        console.error("Quick reply error", err);
+      }
+    } finally {
+      setLoading((l) => ({ ...l, [id]: false }));
+    }
   };
 
   const handleScheduleFollowUp = (id: number, days: number) => {
@@ -241,147 +273,155 @@ export default function Inbox() {
   };
 
   return (
-    <Stack spacing={2}>
-      {messages.map((m) => (
-        <Box
-          key={m.id}
-          sx={{
-            p: 2,
-            border: 1,
-            borderColor: "divider",
-            borderRadius: 1,
-            opacity: m.archived ? 0.5 : 1,
-          }}
-        >
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: 1 }}
+    <>
+      <Stack spacing={2}>
+        {messages.map((m) => (
+          <Box
+            key={m.id}
+            sx={{
+              p: 2,
+              border: 1,
+              borderColor: "divider",
+              borderRadius: 1,
+              opacity: m.archived ? 0.5 : 1,
+            }}
           >
-            <Typography variant="subtitle2">
-              {m.source} • {m.sender}
-            </Typography>
-            <IconButton
-              aria-label={m.archived ? "unarchive" : "archive"}
-              size="small"
-              onClick={() => toggleArchive(m.id)}
-            >
-              <ArchiveOutlined fontSize="small" />
-            </IconButton>
-          </Stack>
-          <Typography variant="subtitle1" fontWeight={600}>
-            {m.subject}
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            {m.content}
-          </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 1 }}>
-            {m.tags.map((tag) => (
-              <Chip
-                key={tag}
-                label={tag}
-                size="small"
-                onDelete={() => handleTagDelete(m.id, tag)}
-              />
-            ))}
-          </Stack>
-          {m.suggestedTags && m.suggestedTags.length > 0 && (
             <Stack
               direction="row"
-              spacing={1}
-              flexWrap="wrap"
+              justifyContent="space-between"
+              alignItems="center"
               sx={{ mb: 1 }}
             >
-              {m.suggestedTags.map((tag) => (
+              <Typography variant="subtitle2">
+                {m.source} • {m.sender}
+              </Typography>
+              <IconButton
+                aria-label={m.archived ? "unarchive" : "archive"}
+                size="small"
+                onClick={() => toggleArchive(m.id)}
+              >
+                <ArchiveOutlined fontSize="small" />
+              </IconButton>
+            </Stack>
+            <Typography variant="subtitle1" fontWeight={600}>
+              {m.subject}
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              {m.content}
+            </Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 1 }}>
+              {m.tags.map((tag) => (
                 <Chip
                   key={tag}
                   label={tag}
                   size="small"
-                  variant="outlined"
-                  onClick={() => handleSuggestedTagConfirm(m.id, tag)}
-                  onDelete={() => handleSuggestedTagDiscard(m.id, tag)}
+                  onDelete={() => handleTagDelete(m.id, tag)}
                 />
               ))}
             </Stack>
-          )}
-          <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-            <TextField
-              size="small"
-              label="Add tag"
-              value={tagInputs[m.id] || ""}
-              onChange={(e) =>
-                setTagInputs((t) => ({ ...t, [m.id]: e.target.value }))
-              }
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleTagAdd(m.id);
-                }
-              }}
-            />
-            <TextField
-              select
-              size="small"
-              label="Quick Reply"
-              value={selectedTemplates[m.id] || ""}
-              onChange={(e) => {
-                const template = quickReplies.find(
-                  (t) => t.id === e.target.value
-                );
-                setSelectedTemplates((prev) => ({
-                  ...prev,
-                  [m.id]: e.target.value,
-                }));
-                setMessages((msgs) =>
-                  msgs.map((msg) =>
-                    msg.id === m.id
-                      ? { ...msg, quickReply: template?.template || "" }
-                      : msg
-                  )
-                );
-              }}
-            >
-              {quickReplies.map((t) => (
-                <MenuItem key={t.id} value={t.id}>
-                  {t.label}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Stack>
-          <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: "wrap" }}>
-            {[3, 7].map((days) => (
-              <Button
-                key={days}
-                variant="text"
-                size="small"
-                onClick={() => handleScheduleFollowUp(m.id, days)}
+            {m.suggestedTags && m.suggestedTags.length > 0 && (
+              <Stack
+                direction="row"
+                spacing={1}
+                flexWrap="wrap"
+                sx={{ mb: 1 }}
               >
-                {`Schedule follow-up in ${days} days`}
-              </Button>
-            ))}
-          </Stack>
-          {m.quickReply && (
-            <Box
-              sx={{
-                mt: 1,
-                p: 1,
-                bgcolor: "grey.100",
-                borderRadius: 1,
-              }}
-            >
-              <Typography variant="caption">Quick Reply:</Typography>
-              <Typography variant="body2">{m.quickReply}</Typography>
-            </Box>
-          )}
-        </Box>
-      ))}
-      {Object.values(pageTokens).some(Boolean) && (
-        <Button variant="outlined" onClick={loadMore} disabled={loadingMore}>
-          Load more
-        </Button>
-      )}
-    </Stack>
+                {m.suggestedTags.map((tag) => (
+                  <Chip
+                    key={tag}
+                    label={tag}
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleSuggestedTagConfirm(m.id, tag)}
+                    onDelete={() => handleSuggestedTagDiscard(m.id, tag)}
+                  />
+                ))}
+              </Stack>
+            )}
+            <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+              <TextField
+                size="small"
+                label="Add tag"
+                value={tagInputs[m.id] || ""}
+                onChange={(e) =>
+                  setTagInputs((t) => ({ ...t, [m.id]: e.target.value }))
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleTagAdd(m.id);
+                  }
+                }}
+              />
+              <TextField
+                select
+                size="small"
+                label="Quick Reply"
+                value={selectedTemplates[m.id] || ""}
+                onChange={(e) => {
+                  const template = quickReplies.find(
+                    (t) => t.id === e.target.value
+                  );
+                  setSelectedTemplates((prev) => ({
+                    ...prev,
+                    [m.id]: e.target.value,
+                  }));
+                  setMessages((msgs) =>
+                    msgs.map((msg) =>
+                      msg.id === m.id
+                        ? { ...msg, quickReply: template?.template || "" }
+                        : msg
+                    )
+                  );
+                }}
+              >
+                {quickReplies.map((t) => (
+                  <MenuItem key={t.id} value={t.id}>
+                    {t.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+            <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: "wrap" }}>
+              {[3, 7].map((days) => (
+                <Button
+                  key={days}
+                  variant="text"
+                  size="small"
+                  onClick={() => handleScheduleFollowUp(m.id, days)}
+                >
+                  {`Schedule follow-up in ${days} days`}
+                </Button>
+              ))}
+            </Stack>
+            {m.quickReply && (
+              <Box
+                sx={{
+                  mt: 1,
+                  p: 1,
+                  bgcolor: "grey.100",
+                  borderRadius: 1,
+                }}
+              >
+                <Typography variant="caption">Quick Reply:</Typography>
+                <Typography variant="body2">{m.quickReply}</Typography>
+              </Box>
+            )}
+          </Box>
+        ))}
+        {Object.values(pageTokens).some(Boolean) && (
+          <Button variant="outlined" onClick={loadMore} disabled={loadingMore}>
+            Load more
+          </Button>
+        )}
+      </Stack>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        message={snackbar.message}
+      />
+    </>
   );
 }
 
