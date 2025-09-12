@@ -13,10 +13,6 @@ import Highlights from "@/components/talentforge/Highlights";
 import DocumentGenerator from "@/components/talentforge/DocumentGenerator";
 import JobSearch from "@/components/talentforge/JobSearch";
 import JobTracker from "@/components/talentforge/JobTracker";
-// import LogoCollection from "./components/LogoCollection";
-// import Pricing from "./components/Pricing";
-// import Features from "./components/Features";
-// import Testimonials from "./components/Testimonials";
 import FAQ from "@/components/talentforge/FAQ";
 import Footer from "@/components/talentforge/Footer";
 import OnboardingWizard from "@/components/talentforge/OnboardingWizard";
@@ -86,15 +82,8 @@ export default function TalentForgePage() {
         <DocumentGenerator />
         <JobSearch />
         <JobTracker />
-        {/* <LogoCollection /> */}
-        {/* <Features />
-        <Divider />
-        <Testimonials />
-        <Divider /> */}
         <Highlights />
         <Divider />
-        {/* <Pricing />
-        <Divider /> */}
         <FAQ />
         <Divider />
         <Footer />
