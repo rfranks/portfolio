@@ -18,7 +18,14 @@ export const setOpenAIKey = (key: string) => {
 
 export const hasOpenAIKey = () => apiKey.trim().length > 0;
 
-const requestCompletion = async (systemMessage: string) => {
+/**
+ * Request a completion from OpenAI and stream the response via the provided callback.
+ */
+const requestCompletionStream = async (
+  systemMessage: string,
+  onChunk: (chunk: string) => void,
+  signal?: AbortSignal
+) => {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -29,6 +36,7 @@ const requestCompletion = async (systemMessage: string) => {
       model: "gpt-3.5-turbo",
       temperature: 0.5,
       top_p: 0.8,
+      stream: true,
       messages: [
         {
           role: "system",
@@ -36,27 +44,41 @@ const requestCompletion = async (systemMessage: string) => {
         },
       ],
     }),
+    signal,
   });
 
-  const data = await response.json();
-  const content = data?.choices?.[0]?.message?.content;
+  const reader = response.body?.getReader();
+  if (!reader) return;
+  const decoder = new TextDecoder();
 
-  // `content` can be a string (old API) or an array of text segments (new API)
-  if (Array.isArray(content)) {
-    return (
-      content
-        .map((c: unknown) => {
-          if (typeof c === "string") return c;
-          if (typeof c === "object" && c !== null && "text" in c) {
-            return (c as { text?: string }).text || "";
+  // Read server-sent events from OpenAI
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    const chunkValue = decoder.decode(value, { stream: true });
+    const lines = chunkValue.split("\n");
+    for (const line of lines) {
+      if (line.startsWith("data: ")) {
+        const data = line.replace("data: ", "").trim();
+        if (data === "[DONE]") {
+          return;
+        }
+        try {
+          const json = JSON.parse(data);
+          const content =
+            json?.choices?.[0]?.delta?.content ||
+            json?.choices?.[0]?.message?.content ||
+            "";
+          if (content) {
+            onChunk(content);
           }
-          return "";
-        })
-        .join("") || ""
-    );
+        } catch {
+          // ignore malformed JSON
+        }
+      }
+    }
   }
-
-  return content || "";
 };
 
 export const askOpenAI = async ({
@@ -68,6 +90,7 @@ export const askOpenAI = async ({
   chatHistory = [],
   onChatHistoryChange,
   onPDFProgressChange,
+  signal,
 }: {
   context: string;
   user: string;
@@ -77,6 +100,7 @@ export const askOpenAI = async ({
   chatHistory: (ChatMessage | null)[];
   onChatHistoryChange?: (chatHistory: (ChatMessage | null)[]) => void;
   onPDFProgressChange?: (progress: number) => void;
+  signal?: AbortSignal;
 }) => {
   const newChatHistory = [
     ...chatHistory,
@@ -100,65 +124,99 @@ export const askOpenAI = async ({
   const newChatIndex = newChatHistory.length - 1;
   const initialContext = `${context}`;
 
-  let responseText = "";
+  try {
+    do {
+      const rest = context.substring(Math.min(aiBufferSize, context.length));
+      context = context.substring(0, Math.min(aiBufferSize, context.length));
 
-  do {
-    const rest = context.substring(Math.min(aiBufferSize, context.length));
-    context = context.substring(0, Math.min(aiBufferSize, context.length));
+      const systemMessage =
+        `Question: ${user}\n\n` + system.replaceAll("{{context}}", context);
 
-    const systemMessage =
-      `Question: ${user}\n\n` + system.replaceAll("{{context}}", context);
-    responseText = await requestCompletion(systemMessage);
+      let streamed = "";
+      await requestCompletionStream(
+        systemMessage,
+        (chunk) => {
+          streamed += chunk;
+          newChatHistory[newChatIndex] = {
+            role: "assistant",
+            message:
+              newChatHistory?.[newChatIndex]?.message.replaceAll(
+                logMessagesToChatHistory
+                  ? "I'm thinking..."
+                  : "Processing PDF...",
+                ""
+              ) + streamed,
+            hasMore: true,
+          };
+          onChatHistoryChange?.([...newChatHistory]);
+        },
+        signal
+      );
+
+      newChatHistory[newChatIndex] = {
+        role: "assistant",
+        message: newChatHistory[newChatIndex]?.message + "\n\n",
+        hasMore: !returnFirstResponse && rest.length > 0,
+      };
+      onChatHistoryChange?.([...newChatHistory]);
+
+      context = rest;
+      onPDFProgressChange?.(
+        ((initialContext.length - rest.length) / (1.0 * initialContext.length)) *
+          100
+      );
+
+      if (returnFirstResponse && streamed) {
+        break;
+      }
+    } while (context.length > 0);
+
+    if (
+      !logMessagesToChatHistory &&
+      newChatHistory !== null &&
+      newChatHistory[newChatIndex] !== null
+    ) {
+      const responseText = newChatHistory[newChatIndex]?.message;
+
+      newChatHistory[newChatIndex] = {
+        message: "Ready! Ask me anything about your PDF.",
+        role: "assistant",
+        hasMore: false,
+      };
+
+      onChatHistoryChange?.([...newChatHistory]);
+
+      return {
+        ...newChatHistory[newChatIndex],
+        message: responseText,
+      };
+    }
 
     newChatHistory[newChatIndex] = {
-      role: "assistant" as "user" | "assistant",
+      ...newChatHistory[newChatIndex],
+      hasMore: false,
+    };
+    onChatHistoryChange?.([...newChatHistory]);
+
+    return newChatHistory[newChatIndex];
+  } catch (err) {
+    const aborted = signal?.aborted;
+    if (!aborted) {
+      console.error(err);
+    }
+    newChatHistory[newChatIndex] = {
+      role: "assistant",
       message:
         newChatHistory?.[newChatIndex]?.message.replaceAll(
           logMessagesToChatHistory ? "I'm thinking..." : "Processing PDF...",
           ""
         ) +
-        (initialContext.length > aiBufferSize
-          ? responseText
-          : responseText?.substring(0, aiBufferSize)) +
-        "\n\n",
-      hasMore: !returnFirstResponse && rest.length > 0,
-    };
-
-    context = rest;
-    onPDFProgressChange?.(
-      ((initialContext.length - rest.length) / (1.0 * initialContext.length)) *
-        100
-    );
-
-    if (returnFirstResponse && responseText) {
-      break;
-    }
-  } while (context.length > 0);
-
-  if (
-    !logMessagesToChatHistory &&
-    newChatHistory !== null &&
-    newChatHistory[newChatIndex] !== null
-  ) {
-    const responseText = newChatHistory[newChatIndex]?.message;
-
-    newChatHistory[newChatIndex] = {
-      message: "Ready! Ask me anything about your PDF.",
-      role: "assistant",
+        (aborted ? "Request cancelled." : "An error occurred."),
       hasMore: false,
     };
-
     onChatHistoryChange?.([...newChatHistory]);
-
-    return {
-      ...newChatHistory[newChatIndex],
-      message: responseText,
-    };
+    return newChatHistory[newChatIndex];
   }
-
-  onChatHistoryChange?.([...newChatHistory]);
-
-  return newChatHistory[newChatIndex];
 };
 
 declare global {
