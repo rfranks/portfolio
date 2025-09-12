@@ -28,10 +28,21 @@ interface TalentForgeSettings {
 }
 
 export default function TalentForgeSettingsPage() {
-  const [mode, setMode] = useState<PaletteMode>("light");
+  const [mode, setMode] = useState<PaletteMode>(() => {
+    if (typeof window !== "undefined") {
+      return (window.localStorage.getItem("talentforge-mode") as PaletteMode) || "light";
+    }
+    return "light";
+  });
   const defaultTheme = createTheme({ palette: { mode } });
   const toggleColorMode = () =>
-    setMode((prev) => (prev === "dark" ? "light" : "dark"));
+    setMode((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("talentforge-mode", next);
+      }
+      return next;
+    });
 
   const [settings, setSettings] = useState<TalentForgeSettings>({
     roles: "",
@@ -69,6 +80,15 @@ export default function TalentForgeSettingsPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "talentforge-settings",
+        JSON.stringify({ ...settings, quickReplies })
+      );
+    }
+  }, [settings, quickReplies]);
+
   const handleChange = (field: keyof TalentForgeSettings) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setSettings({ ...settings, [field]: event.target.value });
@@ -76,12 +96,6 @@ export default function TalentForgeSettingsPage() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(
-        "talentforge-settings",
-        JSON.stringify({ ...settings, quickReplies })
-      );
-    }
     // Placeholder for future backend persistence
   };
 
@@ -105,6 +119,23 @@ export default function TalentForgeSettingsPage() {
 
   const handleDeleteQuickReply = (id: string) => {
     setQuickReplies((prev) => prev.filter((qr) => qr.id !== id));
+  };
+
+  const handleReset = () => {
+    const defaultSettings: TalentForgeSettings = {
+      roles: "",
+      industries: "",
+      locations: "",
+      salaryMin: "",
+      salaryMax: "",
+    };
+    setSettings(defaultSettings);
+    setQuickReplies(defaultTemplates);
+    setMode("light");
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("talentforge-settings");
+      window.localStorage.setItem("talentforge-mode", "light");
+    }
   };
 
   return (
@@ -194,9 +225,14 @@ export default function TalentForgeSettingsPage() {
                 </Button>
               </Stack>
             </Box>
-            <Button type="submit" variant="contained" sx={{ alignSelf: "flex-start" }}>
-              Save
-            </Button>
+            <Stack direction="row" spacing={2}>
+              <Button type="submit" variant="contained">
+                Save
+              </Button>
+              <Button variant="outlined" onClick={handleReset}>
+                Reset to defaults
+              </Button>
+            </Stack>
           </Stack>
         </Box>
       </Container>

@@ -34,7 +34,12 @@ import Image from "next/image";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function TalentForgePage() {
-  const [mode, setMode] = React.useState<PaletteMode>("light");
+  const [mode, setMode] = React.useState<PaletteMode>(() => {
+    if (typeof window !== "undefined") {
+      return (window.localStorage.getItem("talentforge-mode") as PaletteMode) || "light";
+    }
+    return "light";
+  });
   const defaultTheme = createTheme({ palette: { mode } });
   const [apiKeyReady, setApiKeyReady] = React.useState(hasOpenAIKey());
   const { setDocumentTitle } = useDocumentTitle();
@@ -44,7 +49,13 @@ export default function TalentForgePage() {
   }, [setDocumentTitle]);
 
   const toggleColorMode = () => {
-    setMode((prev) => (prev === "dark" ? "light" : "dark"));
+    setMode((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("talentforge-mode", next);
+      }
+      return next;
+    });
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
