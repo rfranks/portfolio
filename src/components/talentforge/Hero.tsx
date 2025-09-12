@@ -49,6 +49,7 @@ export default function Hero() {
 
   const chatParentRef = React.useRef<HTMLDivElement>(null);
   const userQuestionInputRef = React.useRef<HTMLInputElement>(null);
+  const abortRef = React.useRef<AbortController | null>(null);
 
   const askUserQuestion = async () => {
     const combinedText = [pdfAsMarkdown, resumeText].filter(Boolean).join("\n");
@@ -57,14 +58,23 @@ export default function Hero() {
         ? pdfSummary
         : combinedText;
 
-    askOpenAI({
-      context,
-      user: `${userQuestion}`,
-      system: userQuestionPrompt,
-      returnFirstResponse: true,
-      chatHistory,
-      onChatHistoryChange: setChatHistory,
-    });
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      await askOpenAI({
+        context,
+        user: `${userQuestion}`,
+        system: userQuestionPrompt,
+        returnFirstResponse: true,
+        chatHistory,
+        onChatHistoryChange: setChatHistory,
+        signal: controller.signal,
+      });
+    } catch {
+      // errors handled in askOpenAI
+    }
 
     setUserQuestion("");
   };
@@ -114,6 +124,10 @@ export default function Hero() {
         chatParentRef?.current?.scrollHeight || 0;
     }
   });
+
+  React.useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
 
   return (
     <Box
@@ -194,6 +208,10 @@ export default function Hero() {
                     .filter(Boolean)
                     .join("\n");
 
+                  abortRef.current?.abort();
+                  const controller = new AbortController();
+                  abortRef.current = controller;
+
                   const summary = await askOpenAI({
                     context,
                     user: "Summarize the markdown content.",
@@ -202,6 +220,7 @@ export default function Hero() {
                     chatHistory,
                     onChatHistoryChange: setChatHistory,
                     onPDFProgressChange: setPdfProgress,
+                    signal: controller.signal,
                   });
 
                   setPdfSummary(summary?.message || "");

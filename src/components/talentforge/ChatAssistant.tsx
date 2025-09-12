@@ -41,6 +41,7 @@ export default function ChatAssistant() {
   const [recruiterNotes, setRecruiterNotes] = React.useState("");
 
   const chatParentRef = React.useRef<HTMLDivElement>(null);
+  const abortRef = React.useRef<AbortController | null>(null);
 
   const sendMessage = async () => {
     const context = [
@@ -51,14 +52,23 @@ export default function ChatAssistant() {
       .filter(Boolean)
       .join("\n\n");
 
-    await askOpenAI({
-      context,
-      user: message,
-      system: jobSearchPrompt,
-      returnFirstResponse: true,
-      chatHistory,
-      onChatHistoryChange: setChatHistory,
-    });
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      await askOpenAI({
+        context,
+        user: message,
+        system: jobSearchPrompt,
+        returnFirstResponse: true,
+        chatHistory,
+        onChatHistoryChange: setChatHistory,
+        signal: controller.signal,
+      });
+    } catch {
+      // errors are handled inside askOpenAI
+    }
 
     setMessage("");
     setSelectedTemplate("");
@@ -85,6 +95,10 @@ export default function ChatAssistant() {
         }
       }
     }
+  }, []);
+
+  React.useEffect(() => {
+    return () => abortRef.current?.abort();
   }, []);
 
   return (
