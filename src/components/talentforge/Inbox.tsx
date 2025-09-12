@@ -24,6 +24,7 @@ interface InboxMessage {
   tags: string[];
   archived: boolean;
   quickReply?: string;
+  suggestedTags?: string[];
 }
 
 const initialMessages: InboxMessage[] = [
@@ -51,6 +52,8 @@ export default function Inbox() {
   const [messages, setMessages] = React.useState<InboxMessage[]>(initialMessages);
   const [tagInputs, setTagInputs] = React.useState<Record<number, string>>({});
   const [loading, setLoading] = React.useState<Record<number, boolean>>({});
+  const [tagSuggestionsLoading, setTagSuggestionsLoading] =
+    React.useState<Record<number, boolean>>({});
 
   const handleTagAdd = (id: number) => {
     const tag = (tagInputs[id] || "").trim();
@@ -72,6 +75,63 @@ export default function Inbox() {
   const toggleArchive = (id: number) => {
     setMessages((msgs) =>
       msgs.map((m) => (m.id === id ? { ...m, archived: !m.archived } : m))
+    );
+  };
+
+  React.useEffect(() => {
+    messages.forEach((msg) => {
+      if (msg.suggestedTags === undefined && !tagSuggestionsLoading[msg.id]) {
+        setTagSuggestionsLoading((l) => ({ ...l, [msg.id]: true }));
+        (async () => {
+          const response = await askOpenAI({
+            context: msg.content,
+            user:
+              "Suggest up to three short tags that describe the message, as a comma-separated list.",
+            system:
+              "You analyze the given message and return concise descriptive tags separated by commas.",
+            chatHistory: [],
+            returnFirstResponse: true,
+          });
+          const tags =
+            response?.message
+              ?.split(",")
+              .map((t) => t.trim())
+              .filter(Boolean) || [];
+          setMessages((msgs) =>
+            msgs.map((m) =>
+              m.id === msg.id ? { ...m, suggestedTags: tags } : m
+            )
+          );
+          setTagSuggestionsLoading((l) => ({ ...l, [msg.id]: false }));
+        })();
+      }
+    });
+  }, [messages, tagSuggestionsLoading]);
+
+  const handleSuggestedTagConfirm = (id: number, tag: string) => {
+    setMessages((msgs) =>
+      msgs.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              tags: [...m.tags, tag],
+              suggestedTags: m.suggestedTags?.filter((t) => t !== tag),
+            }
+          : m
+      )
+    );
+  };
+
+  const handleSuggestedTagDiscard = (id: number, tag: string) => {
+    setMessages((msgs) =>
+      msgs.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              suggestedTags: m.suggestedTags?.filter((t) => t !== tag),
+            }
+          : m
+      )
     );
   };
 
@@ -141,6 +201,25 @@ export default function Inbox() {
               />
             ))}
           </Stack>
+          {m.suggestedTags && m.suggestedTags.length > 0 && (
+            <Stack
+              direction="row"
+              spacing={1}
+              flexWrap="wrap"
+              sx={{ mb: 1 }}
+            >
+              {m.suggestedTags.map((tag) => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  size="small"
+                  variant="outlined"
+                  onClick={() => handleSuggestedTagConfirm(m.id, tag)}
+                  onDelete={() => handleSuggestedTagDiscard(m.id, tag)}
+                />
+              ))}
+            </Stack>
+          )}
           <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
             <TextField
               size="small"
