@@ -20,6 +20,7 @@ import {
 import { ArchiveOutlined, ReplyOutlined } from "@mui/icons-material";
 
 import { askOpenAI } from "@/utils/talentforge/utils";
+import { scheduleFollowUp } from "@/utils/talentforge/followUp";
 import { getStoredTokens } from "@/utils/talentforge/oauth";
 
 interface InboxMessage {
@@ -208,6 +209,20 @@ export default function Inbox() {
     );
   };
 
+  const handleScheduleFollowUp = (id: number, days: number) => {
+    const msg = messages.find((m) => m.id === id);
+    if (!msg) return;
+    scheduleFollowUp(
+      `Follow up with ${msg.sender} about "${msg.subject}"`,
+      days,
+      {
+        onTrigger: () => {
+          console.log("Time to follow up:", msg);
+        },
+      }
+    );
+  };
+
   const loadMore = async () => {
     setLoadingMore(true);
     const providers = Object.keys(pageTokens).filter((p) => pageTokens[p]);
@@ -333,6 +348,18 @@ export default function Inbox() {
                 </MenuItem>
               ))}
             </TextField>
+          </Stack>
+          <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: "wrap" }}>
+            {[3, 7].map((days) => (
+              <Button
+                key={days}
+                variant="text"
+                size="small"
+                onClick={() => handleScheduleFollowUp(m.id, days)}
+              >
+                {`Schedule follow-up in ${days} days`}
+              </Button>
+            ))}
           </Stack>
           {m.quickReply && (
             <Box
