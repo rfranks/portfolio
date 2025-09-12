@@ -14,6 +14,7 @@ import {
 import { ArchiveOutlined, ReplyOutlined } from "@mui/icons-material";
 
 import { askOpenAI } from "@/utils/talentforge/utils";
+import { scheduleFollowUp } from "@/utils/talentforge/followUp";
 
 interface InboxMessage {
   id: number;
@@ -95,6 +96,20 @@ export default function Inbox() {
     );
   };
 
+  const handleScheduleFollowUp = (id: number, days: number) => {
+    const msg = messages.find((m) => m.id === id);
+    if (!msg) return;
+    scheduleFollowUp(
+      `Follow up with ${msg.sender} about "${msg.subject}"`,
+      days,
+      {
+        onTrigger: () => {
+          console.log("Time to follow up:", msg);
+        },
+      }
+    );
+  };
+
   return (
     <Stack spacing={2}>
       {messages.map((m) => (
@@ -165,6 +180,18 @@ export default function Inbox() {
             >
               Quick Reply
             </Button>
+          </Stack>
+          <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: "wrap" }}>
+            {[3, 7].map((days) => (
+              <Button
+                key={days}
+                variant="text"
+                size="small"
+                onClick={() => handleScheduleFollowUp(m.id, days)}
+              >
+                {`Schedule follow-up in ${days} days`}
+              </Button>
+            ))}
           </Stack>
           {m.quickReply && (
             <Box
