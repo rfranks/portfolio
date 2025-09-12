@@ -23,7 +23,6 @@ import {
   Casino,
   Flight,
   BugReport,
-  Build,
 } from "@mui/icons-material";
 import AppBar from "@/components/app/AppBar";
 import Drawer from "@/components/app/Drawer";
@@ -83,9 +82,14 @@ export default function HomePageClient() {
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />
-      <Box sx={{ display: "flex", bgcolor: "background.default", color: "text.primary" }}>
+      <Box
+        sx={{
+          display: "flex",
+          bgcolor: "background.default",
+          color: "text.primary",
+        }}
+      >
         <AppBar
-          position="absolute"
           open={open}
           drawerWidth={drawerWidth}
           mode={mode}
