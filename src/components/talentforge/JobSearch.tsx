@@ -10,8 +10,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { searchIndeedJobs, IndeedSearchFilters } from "@/utils/talentforge/indeedApi";
 import type { JobListing } from "@/types/talentforge/job";
+import {
+  aggregateJobSearch,
+  AggregatedJobSearchResult,
+} from "@/utils/talentforge/jobAggregator";
+import { IndeedSearchFilters } from "@/utils/talentforge/indeedApi";
 
 type Filters = IndeedSearchFilters;
 
@@ -38,6 +42,7 @@ const loadFilters = (): Filters => {
 export default function JobSearch() {
   const [query, setQuery] = useState("");
   const [jobs, setJobs] = useState<JobListing[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
   const [filters, setFilters] = useState<Filters>({ roles: [], locations: [] });
 
   useEffect(() => {
@@ -45,8 +50,10 @@ export default function JobSearch() {
   }, []);
 
   const handleSearch = async () => {
-    const results = await searchIndeedJobs(query, filters);
+    const { jobs: results, errors: errs }: AggregatedJobSearchResult =
+      await aggregateJobSearch(query, filters);
     setJobs(results);
+    setErrors(errs);
   };
 
   const hasFilters =
@@ -90,6 +97,11 @@ export default function JobSearch() {
             )}
           </Stack>
         )}
+        {errors.map((err, idx) => (
+          <Typography key={`error-${idx}`} color="error">
+            {err}
+          </Typography>
+        ))}
         <Stack spacing={1}>
           {jobs.map((job, idx) => (
             <Box
@@ -107,6 +119,9 @@ export default function JobSearch() {
               <Typography variant="body2">{job.company}</Typography>
               <Typography variant="body2" sx={{ mb: 1 }}>
                 {job.location}
+              </Typography>
+              <Typography variant="caption" sx={{ display: "block", mb: 1 }}>
+                Source: {job.source}
               </Typography>
               <Stack direction="row" spacing={1}>
                 <Link href={job.url} target="_blank" rel="noopener">
