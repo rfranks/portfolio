@@ -1,7 +1,7 @@
 "use client";
 
 import { ChatMessage } from "@/types/talentforge/types";
-import { JobListing } from "@/types/talentforge/job";
+import { JobApplication } from "@/types/talentforge/job";
 import { ParsedResume } from "@/types/talentforge/resume";
 
 const STORAGE_API_URL = process.env.NEXT_PUBLIC_TALENTFORGE_STORAGE_API_URL;
@@ -69,13 +69,13 @@ export async function loadChatHistory(): Promise<ChatMessage[] | null> {
 }
 
 export async function saveJobApplications(
-  applications: JobListing[]
+  applications: JobApplication[]
 ): Promise<void> {
   await storeItem(STORAGE_KEYS.jobApplications, applications);
 }
 
-export async function loadJobApplications(): Promise<JobListing[] | null> {
-  return await getItem<JobListing[]>(STORAGE_KEYS.jobApplications);
+export async function loadJobApplications(): Promise<JobApplication[] | null> {
+  return await getItem<JobApplication[]>(STORAGE_KEYS.jobApplications);
 }
 
 export async function clearStorage(): Promise<void> {

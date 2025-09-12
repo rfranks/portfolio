@@ -15,6 +15,7 @@ import Hero from "@/components/talentforge/Hero";
 import Highlights from "@/components/talentforge/Highlights";
 import DocumentGenerator from "@/components/talentforge/DocumentGenerator";
 import JobSearch from "@/components/talentforge/JobSearch";
+import JobTracker from "@/components/talentforge/JobTracker";
 // import LogoCollection from "./components/LogoCollection";
 // import Pricing from "./components/Pricing";
 // import Features from "./components/Features";
@@ -103,6 +104,7 @@ export default function TalentForgePage() {
       <Box sx={{ bgcolor: "background.default" }}>
         <DocumentGenerator />
         <JobSearch />
+        <JobTracker />
         {/* <LogoCollection /> */}
         {/* <Features />
         <Divider />

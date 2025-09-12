@@ -123,9 +123,12 @@ export default function JobSearch() {
               <Typography variant="caption" sx={{ display: "block", mb: 1 }}>
                 Source: {job.source}
               </Typography>
-              <Link href={job.url} target="_blank" rel="noopener">
-                View Job
-              </Link>
+              <Stack direction="row" spacing={1}>
+                <Link href={job.url} target="_blank" rel="noopener">
+                  View Job
+                </Link>
+                <Link href="#document-generator">Generate Docs</Link>
+              </Stack>
             </Box>
           ))}
         </Stack>
