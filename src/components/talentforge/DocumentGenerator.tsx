@@ -77,7 +77,7 @@ export default function DocumentGenerator() {
     const { height } = page.getSize();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontSize = 12;
-    const text = marked.parse(markdown).replace(/<[^>]+>/g, "");
+    const text = (await marked.parse(markdown)).replace(/<[^>]+>/g, "");
     const lines = text.split(/\n+/);
     let y = height - 50;
     lines.forEach((line) => {
@@ -85,7 +85,15 @@ export default function DocumentGenerator() {
       y -= fontSize + 4;
     });
     const pdfBytes = await pdfDoc.save();
-    return new Blob([pdfBytes], { type: "application/pdf" });
+    return new Blob(
+      [
+        pdfBytes.buffer.slice(
+          pdfBytes.byteOffset,
+          pdfBytes.byteOffset + pdfBytes.byteLength
+        ) as ArrayBuffer,
+      ],
+      { type: "application/pdf" }
+    );
   };
 
   const handlePreview = async (filename: string, markdown: string) => {
@@ -183,7 +191,9 @@ export default function DocumentGenerator() {
                 </IconButton>
                 <IconButton
                   aria-label="preview tailored resume pdf"
-                  onClick={() => handlePreview("tailored-resume.pdf", tailoredResume)}
+                  onClick={() =>
+                    handlePreview("tailored-resume.pdf", tailoredResume)
+                  }
                 >
                   <PictureAsPdf />
                 </IconButton>
@@ -226,7 +236,12 @@ export default function DocumentGenerator() {
           )}
         </Stack>
       </Container>
-      <Dialog open={previewOpen} onClose={handleClosePreview} maxWidth="md" fullWidth>
+      <Dialog
+        open={previewOpen}
+        onClose={handleClosePreview}
+        maxWidth="md"
+        fullWidth
+      >
         <Box sx={{ p: 2 }}>
           {pdfUrl && (
             <Box sx={{ height: 600 }}>
@@ -236,7 +251,12 @@ export default function DocumentGenerator() {
               />
             </Box>
           )}
-          <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent="flex-end"
+            sx={{ mt: 2 }}
+          >
             <Button onClick={handleClosePreview}>Cancel</Button>
             <Button variant="contained" onClick={handleDownloadPdf}>
               Download PDF
