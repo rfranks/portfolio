@@ -20,7 +20,6 @@ import {
 } from "@/consts/talentforge/responseTemplates";
 import { askOpenAI } from "@/utils/talentforge/utils";
 import { scheduleFollowUp } from "@/utils/talentforge/followUp";
-import { getStoredTokens } from "@/utils/talentforge/oauth";
 
 interface InboxMessage {
   id: string;
@@ -93,21 +92,25 @@ export default function Inbox() {
 
   React.useEffect(() => {
     const load = async () => {
-      const providers = ["gmail", "linkedin"];
-      const all: InboxMessage[] = [];
-      const tokens: Record<string, string | undefined> = {};
-      for (const p of providers) {
-        const data = await fetchMessages(p);
-        all.push(
-          ...data.messages.map((m) => ({ ...m, tags: m.tags || [], archived: false }))
+      try {
+        const res = await fetch("/data/messages.json");
+        if (!res.ok) {
+          return;
+        }
+        const data = (await res.json()) as { messages: InboxMessage[] };
+        setMessages(
+          data.messages.map((m) => ({
+            ...m,
+            tags: m.tags || [],
+            archived: false,
+          }))
         );
-        if (data.nextPageToken) tokens[p] = data.nextPageToken;
+      } catch {
+        // ignore
       }
-      setMessages(all);
-      setPageTokens(tokens);
     };
     void load();
-  }, [fetchMessages]);
+  }, []);
 
   const handleTagAdd = (id: string) => {
     const tag = (tagInputs[id] || "").trim();
@@ -253,23 +256,6 @@ export default function Inbox() {
         },
       }
     );
-  };
-
-  const loadMore = async () => {
-    setLoadingMore(true);
-    const providers = Object.keys(pageTokens).filter((p) => pageTokens[p]);
-    const fetched: InboxMessage[] = [];
-    const newTokens: Record<string, string | undefined> = {};
-    for (const p of providers) {
-      const data = await fetchMessages(p, pageTokens[p]);
-      fetched.push(
-        ...data.messages.map((m) => ({ ...m, tags: m.tags || [], archived: false }))
-      );
-      newTokens[p] = data.nextPageToken;
-    }
-    setMessages((prev) => [...prev, ...fetched]);
-    setPageTokens((prev) => ({ ...prev, ...newTokens }));
-    setLoadingMore(false);
   };
 
   return (
