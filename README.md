@@ -23,6 +23,24 @@ npm start
 
 During development, run `npm run dev` to start the local server.
 
+## TalentForge Setup
+
+TalentForge integrates with several external services. Copy `.env.local.example` to `.env.local` and provide the following values:
+
+- `NEXT_PUBLIC_OPENAI_API_KEY` – OpenAI API key.
+- `NEXT_PUBLIC_INDEED_API_KEY` – Indeed API key.
+- `NEXT_PUBLIC_INDEED_API_URL` – Indeed API base URL.
+- `NEXT_PUBLIC_LINKEDIN_API_KEY` – LinkedIn API key.
+- `NEXT_PUBLIC_LINKEDIN_CLIENT_ID` – LinkedIn OAuth client ID.
+- `NEXT_PUBLIC_LINKEDIN_API_URL` – LinkedIn API base URL.
+- `NEXT_PUBLIC_GMAIL_CLIENT_ID` – Gmail OAuth client ID.
+- `NEXT_PUBLIC_TALENTFORGE_STORAGE_API_URL` – TalentForge storage service endpoint.
+- `NEXT_PUBLIC_OAUTH_TOKEN_ENDPOINT` – OAuth token endpoint.
+- `NEXT_PUBLIC_OAUTH_REFRESH_ENDPOINT` – OAuth refresh endpoint.
+- `NEXT_PUBLIC_BASE_PATH` – optional base path for deployment.
+
+Launch the TalentForge page and follow the onboarding wizard for initial configuration steps.
+
 ## Getting Started
 
 First, run the development server:
