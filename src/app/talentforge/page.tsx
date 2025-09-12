@@ -6,10 +6,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import Container from "@mui/material/Container";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
 import AppAppBar from "@/components/talentforge/AppAppBar";
 import Hero from "@/components/talentforge/Hero";
 import Highlights from "@/components/talentforge/Highlights";
@@ -22,6 +19,7 @@ import JobTracker from "@/components/talentforge/JobTracker";
 // import Testimonials from "./components/Testimonials";
 import FAQ from "@/components/talentforge/FAQ";
 import Footer from "@/components/talentforge/Footer";
+import OnboardingWizard from "@/components/talentforge/OnboardingWizard";
 
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
@@ -29,77 +27,49 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
 import "./page.css"; // Ensure global styles are applied
-import { hasOpenAIKey, setOpenAIKey } from "@/utils/talentforge/utils";
-import Image from "next/image";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function TalentForgePage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");
   const defaultTheme = createTheme({ palette: { mode } });
-  const [apiKeyReady, setApiKeyReady] = React.useState(hasOpenAIKey());
   const { setDocumentTitle } = useDocumentTitle();
+  const [onboardingOpen, setOnboardingOpen] = React.useState(false);
 
   React.useEffect(() => {
     setDocumentTitle("TalentForge AI");
   }, [setDocumentTitle]);
 
+  React.useEffect(() => {
+    if (typeof window !== "undefined" &&
+        !window.localStorage.getItem("talentforge:onboardingComplete")) {
+      setOnboardingOpen(true);
+    }
+  }, []);
+
   const toggleColorMode = () => {
     setMode((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const key = String(formData.get("apiKey"))?.trim();
-    if (key) {
-      setOpenAIKey(key);
-      setApiKeyReady(true);
-    }
-  };
-
-  if (!apiKeyReady) {
-    return (
-      <ThemeProvider theme={defaultTheme}>
-        <CssBaseline />
-        <Container component="main" maxWidth="sm" sx={{ mt: 8, mb: 4 }}>
-          <Image
-            src="/talentforge-logo.png"
-            style={{ width: "192px", height: "auto" }}
-            alt="TalentForge AI logo"
-            width={192}
-            height={194}
-          />
-          <Typography variant="h4" component="h1" gutterBottom>
-            Welcome to TalentForge AI
-          </Typography>
-          <Typography variant="body1" paragraph>
-            TalentForge AI needs an OpenAI API key to talk with OpenAI. The key
-            you type here goes straight from your browser to OpenAI and stays
-            between you and OpenAI. TalentForge AI does not store your key
-            anywhere and does not send it anywhere else. If you do not fully
-            trust TalentForge AI, do not enter your key.
-          </Typography>
-          <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              label="OpenAI API Key"
-              name="apiKey"
-              type="password"
-              fullWidth
-              required
-            />
-            <Button type="submit" variant="contained" sx={{ mt: 2 }}>
-              Continue
-            </Button>
-          </Box>
-        </Container>
-      </ThemeProvider>
-    );
-  }
-
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />
+      <OnboardingWizard
+        open={onboardingOpen}
+        onClose={() => setOnboardingOpen(false)}
+      />
       <AppAppBar mode={mode} toggleColorMode={toggleColorMode} />
+      <Button
+        variant="contained"
+        onClick={() => setOnboardingOpen(true)}
+        sx={{
+          position: "fixed",
+          bottom: 16,
+          right: 16,
+          zIndex: (theme) => theme.zIndex.tooltip,
+        }}
+      >
+        Get Started
+      </Button>
       <Hero />
       <Box sx={{ bgcolor: "background.default" }}>
         <DocumentGenerator />
