@@ -67,7 +67,7 @@ export default function DocumentGenerator() {
   const ready = jobDescription.trim() && resume.trim();
 
   return (
-    <Box sx={{ py: 6 }}>
+    <Box id="document-generator" sx={{ py: 6 }}>
       <Container maxWidth="md">
         <Stack spacing={2}>
           <Typography variant="h4" component="h2" align="center">

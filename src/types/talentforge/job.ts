@@ -10,3 +10,14 @@ export interface JobListing {
   /** Source of the job listing, e.g. "indeed" or "linkedin" */
   source: string;
 }
+
+export type ApplicationStatus =
+  | "applied"
+  | "interview"
+  | "offer"
+  | "rejected";
+
+export interface JobApplication extends JobListing {
+  /** Current status of the job application */
+  status: ApplicationStatus;
+}
