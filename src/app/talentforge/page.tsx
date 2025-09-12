@@ -30,7 +30,12 @@ import "./page.css"; // Ensure global styles are applied
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function TalentForgePage() {
-  const [mode, setMode] = React.useState<PaletteMode>("light");
+  const [mode, setMode] = React.useState<PaletteMode>(() => {
+    if (typeof window !== "undefined") {
+      return (window.localStorage.getItem("talentforge-mode") as PaletteMode) || "light";
+    }
+    return "light";
+  });
   const defaultTheme = createTheme({ palette: { mode } });
   const { setDocumentTitle } = useDocumentTitle();
   const [onboardingOpen, setOnboardingOpen] = React.useState(false);
@@ -47,7 +52,13 @@ export default function TalentForgePage() {
   }, []);
 
   const toggleColorMode = () => {
-    setMode((prev) => (prev === "dark" ? "light" : "dark"));
+    setMode((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("talentforge-mode", next);
+      }
+      return next;
+    });
   };
 
   return (
