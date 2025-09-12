@@ -143,12 +143,6 @@ export default function HomePageClient() {
               </ListItemIcon>
               <ListItemText primary="Bookworm" />
             </ListItemButton>
-            <ListItemButton component="a" href={withBasePath("/talentforge")}>
-              <ListItemIcon>
-                <Build />
-              </ListItemIcon>
-              <ListItemText primary="TalentForge" />
-            </ListItemButton>
             <ListItemButton component="a" href={withBasePath("/blackjack")}>
               <ListItemIcon>
                 <Casino />
