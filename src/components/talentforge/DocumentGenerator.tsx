@@ -12,11 +12,8 @@ import {
   Typography,
 } from "@mui/material";
 import { ContentCopy, Download, PictureAsPdf } from "@mui/icons-material";
-import { Document as PDFViewer, Page, pdfjs } from "react-pdf";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { marked } from "marked";
-
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
 import {
   generateCoverLetter,
@@ -37,6 +34,7 @@ export default function DocumentGenerator() {
   const [loadingCover, setLoadingCover] = React.useState(false);
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const [pdfBlob, setPdfBlob] = React.useState<Blob | null>(null);
+  const [pdfUrl, setPdfUrl] = React.useState<string | null>(null);
   const [previewFilename, setPreviewFilename] = React.useState("");
 
   const handleGenerateResume = async () => {
@@ -76,7 +74,7 @@ export default function DocumentGenerator() {
   const generatePdfBlob = async (markdown: string): Promise<Blob> => {
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage();
-    const { width, height } = page.getSize();
+    const { height } = page.getSize();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontSize = 12;
     const text = marked.parse(markdown).replace(/<[^>]+>/g, "");
@@ -92,21 +90,31 @@ export default function DocumentGenerator() {
 
   const handlePreview = async (filename: string, markdown: string) => {
     const blob = await generatePdfBlob(markdown);
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    const url = URL.createObjectURL(blob);
     setPdfBlob(blob);
+    setPdfUrl(url);
     setPreviewFilename(filename);
     setPreviewOpen(true);
   };
 
   const handleDownloadPdf = () => {
-    if (!pdfBlob) return;
-    const url = URL.createObjectURL(pdfBlob);
+    if (!pdfBlob || !pdfUrl) return;
     const link = document.createElement("a");
-    link.href = url;
+    link.href = pdfUrl;
     link.download = previewFilename;
     link.click();
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(pdfUrl);
     setPreviewOpen(false);
     setPdfBlob(null);
+    setPdfUrl(null);
+  };
+
+  const handleClosePreview = () => {
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    setPreviewOpen(false);
+    setPdfBlob(null);
+    setPdfUrl(null);
   };
 
   const ready = jobDescription.trim() && resume.trim();
@@ -218,20 +226,18 @@ export default function DocumentGenerator() {
           )}
         </Stack>
       </Container>
-      <Dialog
-        open={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
+      <Dialog open={previewOpen} onClose={handleClosePreview} maxWidth="md" fullWidth>
         <Box sx={{ p: 2 }}>
-          {pdfBlob && (
-            <PDFViewer file={pdfBlob}>
-              <Page pageNumber={1} />
-            </PDFViewer>
+          {pdfUrl && (
+            <Box sx={{ height: 600 }}>
+              <iframe
+                src={pdfUrl}
+                style={{ width: "100%", height: "100%", border: 0 }}
+              />
+            </Box>
           )}
           <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
-            <Button onClick={() => setPreviewOpen(false)}>Cancel</Button>
+            <Button onClick={handleClosePreview}>Cancel</Button>
             <Button variant="contained" onClick={handleDownloadPdf}>
               Download PDF
             </Button>
