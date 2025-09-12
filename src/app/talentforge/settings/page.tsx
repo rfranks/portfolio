@@ -9,7 +9,13 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import CssBaseline from "@mui/material/CssBaseline";
+import IconButton from "@mui/material/IconButton";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  responseTemplates as defaultTemplates,
+  ResponseTemplate,
+} from "@/consts/talentforge/responseTemplates";
 import AppAppBar from "@/components/talentforge/AppAppBar";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
@@ -34,6 +40,7 @@ export default function TalentForgeSettingsPage() {
     salaryMin: "",
     salaryMax: "",
   });
+  const [quickReplies, setQuickReplies] = useState<ResponseTemplate[]>([]);
 
   const { setDocumentTitle } = useDocumentTitle();
 
@@ -48,9 +55,16 @@ export default function TalentForgeSettingsPage() {
         try {
           const parsed = JSON.parse(saved);
           setSettings((prev) => ({ ...prev, ...parsed }));
+          if (Array.isArray(parsed.quickReplies)) {
+            setQuickReplies(parsed.quickReplies);
+          } else {
+            setQuickReplies(defaultTemplates);
+          }
         } catch {
-          // ignore malformed data
+          setQuickReplies(defaultTemplates);
         }
+      } else {
+        setQuickReplies(defaultTemplates);
       }
     }
   }, []);
@@ -61,14 +75,36 @@ export default function TalentForgeSettingsPage() {
     };
 
   const handleSubmit = (e: FormEvent) => {
-      e.preventDefault();
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(
-          "talentforge-settings",
-          JSON.stringify(settings)
-        );
-      }
-      // Placeholder for future backend persistence
+    e.preventDefault();
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "talentforge-settings",
+        JSON.stringify({ ...settings, quickReplies })
+      );
+    }
+    // Placeholder for future backend persistence
+  };
+
+  const handleQuickReplyChange = (
+    id: string,
+    field: keyof Omit<ResponseTemplate, "id">
+  ) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setQuickReplies((prev) =>
+      prev.map((qr) =>
+        qr.id === id ? { ...qr, [field]: event.target.value } : qr
+      )
+    );
+  };
+
+  const handleAddQuickReply = () => {
+    setQuickReplies((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), label: "", template: "" },
+    ]);
+  };
+
+  const handleDeleteQuickReply = (id: string) => {
+    setQuickReplies((prev) => prev.filter((qr) => qr.id !== id));
   };
 
   return (
@@ -115,6 +151,49 @@ export default function TalentForgeSettingsPage() {
                 fullWidth
               />
             </Stack>
+            <Box>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                Quick Replies
+              </Typography>
+              <Stack spacing={1}>
+                {quickReplies.map((qr) => (
+                  <Stack
+                    key={qr.id}
+                    direction="row"
+                    spacing={1}
+                    alignItems="flex-start"
+                  >
+                    <TextField
+                      label="Label"
+                      value={qr.label}
+                      onChange={handleQuickReplyChange(qr.id, "label")}
+                      sx={{ width: 200 }}
+                    />
+                    <TextField
+                      label="Template"
+                      value={qr.template}
+                      onChange={handleQuickReplyChange(qr.id, "template")}
+                      multiline
+                      minRows={2}
+                      fullWidth
+                    />
+                    <IconButton
+                      aria-label="delete"
+                      onClick={() => handleDeleteQuickReply(qr.id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
+                ))}
+                <Button
+                  variant="outlined"
+                  onClick={handleAddQuickReply}
+                  sx={{ alignSelf: "flex-start" }}
+                >
+                  Add Quick Reply
+                </Button>
+              </Stack>
+            </Box>
             <Button type="submit" variant="contained" sx={{ alignSelf: "flex-start" }}>
               Save
             </Button>
