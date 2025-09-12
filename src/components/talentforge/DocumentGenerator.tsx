@@ -6,11 +6,17 @@ import {
   Button,
   Container,
   IconButton,
+  Dialog,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { ContentCopy, Download } from "@mui/icons-material";
+import { ContentCopy, Download, PictureAsPdf } from "@mui/icons-material";
+import { Document as PDFViewer, Page, pdfjs } from "react-pdf";
+import { PDFDocument, StandardFonts } from "pdf-lib";
+import { marked } from "marked";
+
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
 import {
   generateCoverLetter,
@@ -29,6 +35,9 @@ export default function DocumentGenerator() {
   const [coverLetter, setCoverLetter] = React.useState("");
   const [loadingResume, setLoadingResume] = React.useState(false);
   const [loadingCover, setLoadingCover] = React.useState(false);
+  const [previewOpen, setPreviewOpen] = React.useState(false);
+  const [pdfBlob, setPdfBlob] = React.useState<Blob | null>(null);
+  const [previewFilename, setPreviewFilename] = React.useState("");
 
   const handleGenerateResume = async () => {
     setLoadingResume(true);
@@ -54,7 +63,7 @@ export default function DocumentGenerator() {
     navigator.clipboard.writeText(text);
   };
 
-  const handleDownload = (filename: string, text: string) => {
+  const handleDownloadTxt = (filename: string, text: string) => {
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -62,6 +71,42 @@ export default function DocumentGenerator() {
     link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const generatePdfBlob = async (markdown: string): Promise<Blob> => {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage();
+    const { width, height } = page.getSize();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontSize = 12;
+    const text = marked.parse(markdown).replace(/<[^>]+>/g, "");
+    const lines = text.split(/\n+/);
+    let y = height - 50;
+    lines.forEach((line) => {
+      page.drawText(line, { x: 50, y, size: fontSize, font });
+      y -= fontSize + 4;
+    });
+    const pdfBytes = await pdfDoc.save();
+    return new Blob([pdfBytes], { type: "application/pdf" });
+  };
+
+  const handlePreview = async (filename: string, markdown: string) => {
+    const blob = await generatePdfBlob(markdown);
+    setPdfBlob(blob);
+    setPreviewFilename(filename);
+    setPreviewOpen(true);
+  };
+
+  const handleDownloadPdf = () => {
+    if (!pdfBlob) return;
+    const url = URL.createObjectURL(pdfBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = previewFilename;
+    link.click();
+    URL.revokeObjectURL(url);
+    setPreviewOpen(false);
+    setPdfBlob(null);
   };
 
   const ready = jobDescription.trim() && resume.trim();
@@ -123,10 +168,16 @@ export default function DocumentGenerator() {
                 <IconButton
                   aria-label="download tailored resume"
                   onClick={() =>
-                    handleDownload("tailored-resume.txt", tailoredResume)
+                    handleDownloadTxt("tailored-resume.txt", tailoredResume)
                   }
                 >
                   <Download />
+                </IconButton>
+                <IconButton
+                  aria-label="preview tailored resume pdf"
+                  onClick={() => handlePreview("tailored-resume.pdf", tailoredResume)}
+                >
+                  <PictureAsPdf />
                 </IconButton>
               </Stack>
             </Stack>
@@ -151,16 +202,42 @@ export default function DocumentGenerator() {
                 <IconButton
                   aria-label="download cover letter"
                   onClick={() =>
-                    handleDownload("cover-letter.txt", coverLetter)
+                    handleDownloadTxt("cover-letter.txt", coverLetter)
                   }
                 >
                   <Download />
+                </IconButton>
+                <IconButton
+                  aria-label="preview cover letter pdf"
+                  onClick={() => handlePreview("cover-letter.pdf", coverLetter)}
+                >
+                  <PictureAsPdf />
                 </IconButton>
               </Stack>
             </Stack>
           )}
         </Stack>
       </Container>
+      <Dialog
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <Box sx={{ p: 2 }}>
+          {pdfBlob && (
+            <PDFViewer file={pdfBlob}>
+              <Page pageNumber={1} />
+            </PDFViewer>
+          )}
+          <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
+            <Button onClick={() => setPreviewOpen(false)}>Cancel</Button>
+            <Button variant="contained" onClick={handleDownloadPdf}>
+              Download PDF
+            </Button>
+          </Stack>
+        </Box>
+      </Dialog>
     </Box>
   );
 }
