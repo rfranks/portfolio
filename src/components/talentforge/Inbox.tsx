@@ -2,6 +2,12 @@
 
 import * as React from "react";
 
+import { Box, Chip, IconButton, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { ArchiveOutlined } from "@mui/icons-material";
+import {
+  responseTemplates as defaultTemplates,
+  ResponseTemplate,
+} from "@/consts/talentforge/responseTemplates";
 import {
   Box,
   Button,
@@ -15,9 +21,10 @@ import { ArchiveOutlined, ReplyOutlined } from "@mui/icons-material";
 
 import { askOpenAI } from "@/utils/talentforge/utils";
 import { scheduleFollowUp } from "@/utils/talentforge/followUp";
+import { getStoredTokens } from "@/utils/talentforge/oauth";
 
 interface InboxMessage {
-  id: number;
+  id: string;
   source: string;
   sender: string;
   subject: string;
@@ -25,35 +32,68 @@ interface InboxMessage {
   tags: string[];
   archived: boolean;
   quickReply?: string;
+  suggestedTags?: string[];
 }
 
-const initialMessages: InboxMessage[] = [
-  {
-    id: 1,
-    source: "Email",
-    sender: "hr@example.com",
-    subject: "Interview Invitation",
-    content: "We would love to schedule an interview with you next week.",
-    tags: [],
-    archived: false,
-  },
-  {
-    id: 2,
-    source: "LinkedIn",
-    sender: "Jane Recruiter",
-    subject: "New Opportunity",
-    content: "I came across your profile and think you'd be a great fit...",
-    tags: ["networking"],
-    archived: false,
-  },
-];
-
 export default function Inbox() {
-  const [messages, setMessages] = React.useState<InboxMessage[]>(initialMessages);
+  const [messages, setMessages] = React.useState<InboxMessage[]>([]);
+  const [tagInputs, setTagInputs] = React.useState<Record<string, string>>({});
+  const [loading, setLoading] = React.useState<Record<string, boolean>>({});
+  const [pageTokens, setPageTokens] = React.useState<Record<string, string | undefined>>({});
+  const [loadingMore, setLoadingMore] = React.useState(false);
   const [tagInputs, setTagInputs] = React.useState<Record<number, string>>({});
-  const [loading, setLoading] = React.useState<Record<number, boolean>>({});
+  const [quickReplies, setQuickReplies] = React.useState<ResponseTemplate[]>(
+    defaultTemplates
+  );
+  const [selectedTemplates, setSelectedTemplates] = React.useState<
+    Record<number, string>
+  >({});
+  const [tagSuggestionsLoading, setTagSuggestionsLoading] =
+    React.useState<Record<number, boolean>>({});
 
-  const handleTagAdd = (id: number) => {
+  const fetchMessages = React.useCallback(
+    async (provider: string, pageToken?: string) => {
+      const tokens = getStoredTokens(provider);
+      if (!tokens?.accessToken) {
+        return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
+      }
+      const params = pageToken ? `?pageToken=${encodeURIComponent(pageToken)}` : "";
+      const res = await fetch(`/api/messages/${provider}${params}`, {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+        },
+      });
+      if (!res.ok) {
+        return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
+      }
+      const data = (await res.json()) as {
+        messages: InboxMessage[];
+        nextPageToken?: string;
+      };
+      return data;
+    },
+    []
+  );
+
+  React.useEffect(() => {
+    const load = async () => {
+      const providers = ["gmail", "linkedin"];
+      const all: InboxMessage[] = [];
+      const tokens: Record<string, string | undefined> = {};
+      for (const p of providers) {
+        const data = await fetchMessages(p);
+        all.push(
+          ...data.messages.map((m) => ({ ...m, tags: m.tags || [], archived: false }))
+        );
+        if (data.nextPageToken) tokens[p] = data.nextPageToken;
+      }
+      setMessages(all);
+      setPageTokens(tokens);
+    };
+    void load();
+  }, [fetchMessages]);
+
+  const handleTagAdd = (id: string) => {
     const tag = (tagInputs[id] || "").trim();
     if (!tag) return;
     setMessages((msgs) =>
@@ -62,7 +102,7 @@ export default function Inbox() {
     setTagInputs((t) => ({ ...t, [id]: "" }));
   };
 
-  const handleTagDelete = (id: number, tag: string) => {
+  const handleTagDelete = (id: string, tag: string) => {
     setMessages((msgs) =>
       msgs.map((m) =>
         m.id === id ? { ...m, tags: m.tags.filter((t) => t !== tag) } : m
@@ -70,13 +110,86 @@ export default function Inbox() {
     );
   };
 
-  const toggleArchive = (id: number) => {
+  const toggleArchive = (id: string) => {
     setMessages((msgs) =>
       msgs.map((m) => (m.id === id ? { ...m, archived: !m.archived } : m))
     );
   };
 
-  const handleQuickReply = async (id: number) => {
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("talentforge-settings");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed.quickReplies)) {
+            setQuickReplies(parsed.quickReplies);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, []);
+
+  React.useEffect(() => {
+    messages.forEach((msg) => {
+      if (msg.suggestedTags === undefined && !tagSuggestionsLoading[msg.id]) {
+        setTagSuggestionsLoading((l) => ({ ...l, [msg.id]: true }));
+        (async () => {
+          const response = await askOpenAI({
+            context: msg.content,
+            user:
+              "Suggest up to three short tags that describe the message, as a comma-separated list.",
+            system:
+              "You analyze the given message and return concise descriptive tags separated by commas.",
+            chatHistory: [],
+            returnFirstResponse: true,
+          });
+          const tags =
+            response?.message
+              ?.split(",")
+              .map((t) => t.trim())
+              .filter(Boolean) || [];
+          setMessages((msgs) =>
+            msgs.map((m) =>
+              m.id === msg.id ? { ...m, suggestedTags: tags } : m
+            )
+          );
+          setTagSuggestionsLoading((l) => ({ ...l, [msg.id]: false }));
+        })();
+      }
+    });
+  }, [messages, tagSuggestionsLoading]);
+
+  const handleSuggestedTagConfirm = (id: number, tag: string) => {
+    setMessages((msgs) =>
+      msgs.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              tags: [...m.tags, tag],
+              suggestedTags: m.suggestedTags?.filter((t) => t !== tag),
+            }
+          : m
+      )
+    );
+  };
+
+  const handleSuggestedTagDiscard = (id: number, tag: string) => {
+    setMessages((msgs) =>
+      msgs.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              suggestedTags: m.suggestedTags?.filter((t) => t !== tag),
+            }
+          : m
+      )
+    );
+  };
+
+  const handleQuickReply = async (id: string) => {
     const msg = messages.find((m) => m.id === id);
     if (!msg) return;
     setLoading((l) => ({ ...l, [id]: true }));
@@ -108,6 +221,23 @@ export default function Inbox() {
         },
       }
     );
+  };
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    const providers = Object.keys(pageTokens).filter((p) => pageTokens[p]);
+    const fetched: InboxMessage[] = [];
+    const newTokens: Record<string, string | undefined> = {};
+    for (const p of providers) {
+      const data = await fetchMessages(p, pageTokens[p]);
+      fetched.push(
+        ...data.messages.map((m) => ({ ...m, tags: m.tags || [], archived: false }))
+      );
+      newTokens[p] = data.nextPageToken;
+    }
+    setMessages((prev) => [...prev, ...fetched]);
+    setPageTokens((prev) => ({ ...prev, ...newTokens }));
+    setLoadingMore(false);
   };
 
   return (
@@ -156,6 +286,25 @@ export default function Inbox() {
               />
             ))}
           </Stack>
+          {m.suggestedTags && m.suggestedTags.length > 0 && (
+            <Stack
+              direction="row"
+              spacing={1}
+              flexWrap="wrap"
+              sx={{ mb: 1 }}
+            >
+              {m.suggestedTags.map((tag) => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  size="small"
+                  variant="outlined"
+                  onClick={() => handleSuggestedTagConfirm(m.id, tag)}
+                  onDelete={() => handleSuggestedTagDiscard(m.id, tag)}
+                />
+              ))}
+            </Stack>
+          )}
           <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
             <TextField
               size="small"
@@ -171,15 +320,34 @@ export default function Inbox() {
                 }
               }}
             />
-            <Button
-              variant="outlined"
+            <TextField
+              select
               size="small"
-              startIcon={<ReplyOutlined />}
-              onClick={() => handleQuickReply(m.id)}
-              disabled={loading[m.id]}
+              label="Quick Reply"
+              value={selectedTemplates[m.id] || ""}
+              onChange={(e) => {
+                const template = quickReplies.find(
+                  (t) => t.id === e.target.value
+                );
+                setSelectedTemplates((prev) => ({
+                  ...prev,
+                  [m.id]: e.target.value,
+                }));
+                setMessages((msgs) =>
+                  msgs.map((msg) =>
+                    msg.id === m.id
+                      ? { ...msg, quickReply: template?.template || "" }
+                      : msg
+                  )
+                );
+              }}
             >
-              Quick Reply
-            </Button>
+              {quickReplies.map((t) => (
+                <MenuItem key={t.id} value={t.id}>
+                  {t.label}
+                </MenuItem>
+              ))}
+            </TextField>
           </Stack>
           <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: "wrap" }}>
             {[3, 7].map((days) => (
@@ -202,12 +370,17 @@ export default function Inbox() {
                 borderRadius: 1,
               }}
             >
-              <Typography variant="caption">AI Reply:</Typography>
+              <Typography variant="caption">Quick Reply:</Typography>
               <Typography variant="body2">{m.quickReply}</Typography>
             </Box>
           )}
         </Box>
       ))}
+      {Object.values(pageTokens).some(Boolean) && (
+        <Button variant="outlined" onClick={loadMore} disabled={loadingMore}>
+          Load more
+        </Button>
+      )}
     </Stack>
   );
 }
