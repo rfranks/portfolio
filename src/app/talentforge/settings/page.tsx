@@ -110,96 +110,97 @@ export default function TalentForgeSettingsPage() {
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />
-      <AppAppBar mode={mode} toggleColorMode={toggleColorMode} />
-      <Container component="main" maxWidth="sm" sx={{ mt: 10 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Settings
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit}>
-          <Stack spacing={2}>
-            <TextField
-              label="Desired Roles"
-              value={settings.roles}
-              onChange={handleChange("roles")}
-              fullWidth
-            />
-            <TextField
-              label="Industries"
-              value={settings.industries}
-              onChange={handleChange("industries")}
-              fullWidth
-            />
-            <TextField
-              label="Locations"
-              value={settings.locations}
-              onChange={handleChange("locations")}
-              fullWidth
-            />
-            <Stack direction="row" spacing={2}>
+      <AppAppBar mode={mode} toggleColorMode={toggleColorMode}>
+        <Container component="main" maxWidth="sm" sx={{ mt: 10 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Settings
+          </Typography>
+          <Box component="form" onSubmit={handleSubmit}>
+            <Stack spacing={2}>
               <TextField
-                label="Salary Min"
-                type="number"
-                value={settings.salaryMin}
-                onChange={handleChange("salaryMin")}
+                label="Desired Roles"
+                value={settings.roles}
+                onChange={handleChange("roles")}
                 fullWidth
               />
               <TextField
-                label="Salary Max"
-                type="number"
-                value={settings.salaryMax}
-                onChange={handleChange("salaryMax")}
+                label="Industries"
+                value={settings.industries}
+                onChange={handleChange("industries")}
                 fullWidth
               />
-            </Stack>
-            <Box>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                Quick Replies
-              </Typography>
-              <Stack spacing={1}>
-                {quickReplies.map((qr) => (
-                  <Stack
-                    key={qr.id}
-                    direction="row"
-                    spacing={1}
-                    alignItems="flex-start"
-                  >
-                    <TextField
-                      label="Label"
-                      value={qr.label}
-                      onChange={handleQuickReplyChange(qr.id, "label")}
-                      sx={{ width: 200 }}
-                    />
-                    <TextField
-                      label="Template"
-                      value={qr.template}
-                      onChange={handleQuickReplyChange(qr.id, "template")}
-                      multiline
-                      minRows={2}
-                      fullWidth
-                    />
-                    <IconButton
-                      aria-label="delete"
-                      onClick={() => handleDeleteQuickReply(qr.id)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Stack>
-                ))}
-                <Button
-                  variant="outlined"
-                  onClick={handleAddQuickReply}
-                  sx={{ alignSelf: "flex-start" }}
-                >
-                  Add Quick Reply
-                </Button>
+              <TextField
+                label="Locations"
+                value={settings.locations}
+                onChange={handleChange("locations")}
+                fullWidth
+              />
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  label="Salary Min"
+                  type="number"
+                  value={settings.salaryMin}
+                  onChange={handleChange("salaryMin")}
+                  fullWidth
+                />
+                <TextField
+                  label="Salary Max"
+                  type="number"
+                  value={settings.salaryMax}
+                  onChange={handleChange("salaryMax")}
+                  fullWidth
+                />
               </Stack>
-            </Box>
-            <Button type="submit" variant="contained" sx={{ alignSelf: "flex-start" }}>
-              Save
-            </Button>
-          </Stack>
-        </Box>
-      </Container>
+              <Box>
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                  Quick Replies
+                </Typography>
+                <Stack spacing={1}>
+                  {quickReplies.map((qr) => (
+                    <Stack
+                      key={qr.id}
+                      direction="row"
+                      spacing={1}
+                      alignItems="flex-start"
+                    >
+                      <TextField
+                        label="Label"
+                        value={qr.label}
+                        onChange={handleQuickReplyChange(qr.id, "label")}
+                        sx={{ width: 200 }}
+                      />
+                      <TextField
+                        label="Template"
+                        value={qr.template}
+                        onChange={handleQuickReplyChange(qr.id, "template")}
+                        multiline
+                        minRows={2}
+                        fullWidth
+                      />
+                      <IconButton
+                        aria-label="delete"
+                        onClick={() => handleDeleteQuickReply(qr.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Stack>
+                  ))}
+                  <Button
+                    variant="outlined"
+                    onClick={handleAddQuickReply}
+                    sx={{ alignSelf: "flex-start" }}
+                  >
+                    Add Quick Reply
+                  </Button>
+                </Stack>
+              </Box>
+              <Button type="submit" variant="contained" sx={{ alignSelf: "flex-start" }}>
+                Save
+              </Button>
+            </Stack>
+          </Box>
+        </Container>
+      </AppAppBar>
     </ThemeProvider>
   );
 }

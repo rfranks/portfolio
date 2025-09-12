@@ -87,7 +87,10 @@ export async function exchangeCode(
     const data = (await response.json()) as OAuthTokens;
     saveTokens(provider, data);
     return data;
-  } catch {
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error exchanging code", err);
+    }
     return null;
   }
 }
@@ -109,7 +112,10 @@ export async function refreshAccessToken(
     const data = (await response.json()) as OAuthTokens;
     saveTokens(provider, data);
     return data;
-  } catch {
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error refreshing access token", err);
+    }
     return null;
   }
 }

@@ -47,11 +47,16 @@ const normalizeIndeedJob = (job: Record<string, unknown>): JobListing => {
   };
 };
 
+export interface IndeedJobSearchResult {
+  jobs: JobListing[];
+  error?: string;
+}
+
 export async function searchIndeedJobs(
   query: string,
   filters: IndeedSearchFilters = {}
-): Promise<JobListing[]> {
-  if (!query.trim()) return [];
+): Promise<IndeedJobSearchResult> {
+  if (!query.trim()) return { jobs: [] };
 
   const params = new URLSearchParams();
   params.set("q", query);
@@ -77,7 +82,10 @@ export async function searchIndeedJobs(
   try {
     const response = await fetch(url, { headers });
     if (!response.ok) {
-      return [];
+      if (process.env.NODE_ENV === "development") {
+        console.error("Indeed API error", response.status, response.statusText);
+      }
+      return { jobs: [], error: "Indeed API request failed." };
     }
     const data: unknown = await response.json();
     const dataObj = data as {
@@ -90,12 +98,17 @@ export async function searchIndeedJobs(
       ? dataObj.jobs
       : [];
 
-    return jobsArray
-      .filter((job): job is Record<string, unknown> =>
-        typeof job === "object" && job !== null
-      )
-      .map((job) => normalizeIndeedJob(job));
-  } catch {
-    return [];
+    return {
+      jobs: jobsArray
+        .filter((job): job is Record<string, unknown> =>
+          typeof job === "object" && job !== null
+        )
+        .map((job) => normalizeIndeedJob(job)),
+    };
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Failed to fetch Indeed jobs", err);
+    }
+    return { jobs: [], error: "Failed to fetch Indeed jobs." };
   }
 }

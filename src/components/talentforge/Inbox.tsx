@@ -1,23 +1,22 @@
 "use client";
 
 import * as React from "react";
-
-import { Box, Chip, IconButton, MenuItem, Stack, TextField, Typography } from "@mui/material";
-import { ArchiveOutlined } from "@mui/icons-material";
-import {
-  responseTemplates as defaultTemplates,
-  ResponseTemplate,
-} from "@/consts/talentforge/responseTemplates";
 import {
   Box,
   Button,
   Chip,
   IconButton,
+  MenuItem,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { ArchiveOutlined, ReplyOutlined } from "@mui/icons-material";
+import { ArchiveOutlined } from "@mui/icons-material";
+import { useSnackbar } from "notistack";
+import {
+  responseTemplates as defaultTemplates,
+  ResponseTemplate,
+} from "@/consts/talentforge/responseTemplates";
 
 import { askOpenAI } from "@/utils/talentforge/utils";
 import { scheduleFollowUp } from "@/utils/talentforge/followUp";
@@ -38,60 +37,75 @@ interface InboxMessage {
 export default function Inbox() {
   const [messages, setMessages] = React.useState<InboxMessage[]>([]);
   const [tagInputs, setTagInputs] = React.useState<Record<string, string>>({});
-  const [loading, setLoading] = React.useState<Record<string, boolean>>({});
   const [pageTokens, setPageTokens] = React.useState<Record<string, string | undefined>>({});
   const [loadingMore, setLoadingMore] = React.useState(false);
-  const [tagInputs, setTagInputs] = React.useState<Record<number, string>>({});
   const [quickReplies, setQuickReplies] = React.useState<ResponseTemplate[]>(
     defaultTemplates
   );
-  const [selectedTemplates, setSelectedTemplates] = React.useState<
-    Record<number, string>
-  >({});
-  const [tagSuggestionsLoading, setTagSuggestionsLoading] =
-    React.useState<Record<number, boolean>>({});
+  const [selectedTemplates, setSelectedTemplates] = React.useState<Record<number, string>>({});
+  const [tagSuggestionsLoading, setTagSuggestionsLoading] = React.useState<Record<number, boolean>>({});
+  const { enqueueSnackbar } = useSnackbar();
 
   const fetchMessages = React.useCallback(
     async (provider: string, pageToken?: string) => {
-      const tokens = getStoredTokens(provider);
-      if (!tokens?.accessToken) {
+      try {
+        const tokens = getStoredTokens(provider);
+        if (!tokens?.accessToken) {
+          return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
+        }
+        const params = pageToken ? `?pageToken=${encodeURIComponent(pageToken)}` : "";
+        const res = await fetch(`/api/messages/${provider}${params}`, {
+          headers: {
+            Authorization: `Bearer ${tokens.accessToken}`,
+          },
+        });
+        if (!res.ok) {
+          enqueueSnackbar(`Failed to fetch ${provider} messages.`, { variant: "error" });
+          if (process.env.NODE_ENV === "development") {
+            console.error(`Failed to fetch ${provider} messages`, res.statusText);
+          }
+          return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
+        }
+        const data = (await res.json()) as {
+          messages: InboxMessage[];
+          nextPageToken?: string;
+        };
+        return data;
+      } catch (err) {
+        if (process.env.NODE_ENV === "development") {
+          console.error(`Error fetching ${provider} messages`, err);
+        }
+        enqueueSnackbar(`Error fetching ${provider} messages.`, { variant: "error" });
         return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
       }
-      const params = pageToken ? `?pageToken=${encodeURIComponent(pageToken)}` : "";
-      const res = await fetch(`/api/messages/${provider}${params}`, {
-        headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
-        },
-      });
-      if (!res.ok) {
-        return { messages: [] as InboxMessage[], nextPageToken: undefined as string | undefined };
-      }
-      const data = (await res.json()) as {
-        messages: InboxMessage[];
-        nextPageToken?: string;
-      };
-      return data;
     },
-    []
+    [enqueueSnackbar]
   );
 
   React.useEffect(() => {
     const load = async () => {
-      const providers = ["gmail", "linkedin"];
-      const all: InboxMessage[] = [];
-      const tokens: Record<string, string | undefined> = {};
-      for (const p of providers) {
-        const data = await fetchMessages(p);
-        all.push(
-          ...data.messages.map((m) => ({ ...m, tags: m.tags || [], archived: false }))
-        );
-        if (data.nextPageToken) tokens[p] = data.nextPageToken;
+      try {
+        const providers = ["gmail", "linkedin"];
+        const all: InboxMessage[] = [];
+        const tokens: Record<string, string | undefined> = {};
+        for (const p of providers) {
+          const data = await fetchMessages(p);
+          all.push(
+            ...data.messages.map((m) => ({ ...m, tags: m.tags || [], archived: false }))
+          );
+          if (data.nextPageToken) tokens[p] = data.nextPageToken;
+        }
+        setMessages(all);
+        setPageTokens(tokens);
+      } catch (err) {
+        if (process.env.NODE_ENV === "development") {
+          console.error("Failed to load messages", err);
+        }
+        enqueueSnackbar("Failed to load messages.", { variant: "error" });
       }
-      setMessages(all);
-      setPageTokens(tokens);
     };
     void load();
-  }, [fetchMessages]);
+  }, [fetchMessages, enqueueSnackbar]);
 
   const handleTagAdd = (id: string) => {
     const tag = (tagInputs[id] || "").trim();
@@ -189,26 +203,6 @@ export default function Inbox() {
     );
   };
 
-  const handleQuickReply = async (id: string) => {
-    const msg = messages.find((m) => m.id === id);
-    if (!msg) return;
-    setLoading((l) => ({ ...l, [id]: true }));
-    const response = await askOpenAI({
-      context: msg.content,
-      user: "Draft a brief professional reply to the above message.",
-      system:
-        "You are an assistant that crafts concise, professional replies to messages based on the provided context. Reply directly without preamble.",
-      chatHistory: [],
-      returnFirstResponse: true,
-    });
-    setLoading((l) => ({ ...l, [id]: false }));
-    setMessages((msgs) =>
-      msgs.map((m) =>
-        m.id === id ? { ...m, quickReply: response?.message || "" } : m
-      )
-    );
-  };
-
   const handleScheduleFollowUp = (id: number, days: number) => {
     const msg = messages.find((m) => m.id === id);
     if (!msg) return;
@@ -225,19 +219,27 @@ export default function Inbox() {
 
   const loadMore = async () => {
     setLoadingMore(true);
-    const providers = Object.keys(pageTokens).filter((p) => pageTokens[p]);
-    const fetched: InboxMessage[] = [];
-    const newTokens: Record<string, string | undefined> = {};
-    for (const p of providers) {
-      const data = await fetchMessages(p, pageTokens[p]);
-      fetched.push(
-        ...data.messages.map((m) => ({ ...m, tags: m.tags || [], archived: false }))
-      );
-      newTokens[p] = data.nextPageToken;
+    try {
+      const providers = Object.keys(pageTokens).filter((p) => pageTokens[p]);
+      const fetched: InboxMessage[] = [];
+      const newTokens: Record<string, string | undefined> = {};
+      for (const p of providers) {
+        const data = await fetchMessages(p, pageTokens[p]);
+        fetched.push(
+          ...data.messages.map((m) => ({ ...m, tags: m.tags || [], archived: false }))
+        );
+        newTokens[p] = data.nextPageToken;
+      }
+      setMessages((prev) => [...prev, ...fetched]);
+      setPageTokens((prev) => ({ ...prev, ...newTokens }));
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to load more messages", err);
+      }
+      enqueueSnackbar("Failed to load more messages.", { variant: "error" });
+    } finally {
+      setLoadingMore(false);
     }
-    setMessages((prev) => [...prev, ...fetched]);
-    setPageTokens((prev) => ({ ...prev, ...newTokens }));
-    setLoadingMore(false);
   };
 
   return (

@@ -12,6 +12,7 @@ import { blue, grey } from "./colors";
 import Title from "../app/Title";
 import { Science } from "@mui/icons-material";
 import { withBasePath } from "@/utils/basePath";
+import { useSnackbar } from "notistack";
 
 const Textarea = styled(TextareaAutosize)(
   ({ theme }) => `
@@ -62,17 +63,25 @@ export default function AddSequenceCard({
     null
   );
   const loadSampleMenuOpen = Boolean(loadSampleMenuEl);
+  const { enqueueSnackbar } = useSnackbar();
 
   const loadSample = async (sample: string) => {
-    const rawSequenceContent = await (
-      await fetch(withBasePath(`/dna/examples/${sample}`))
-    ).text();
+    try {
+      const rawSequenceContent = await (
+        await fetch(withBasePath(`/dna/examples/${sample}`))
+      ).text();
 
-    parseSequence(rawSequenceContent, sample, (parsedSequence) => {
-      parsedSequence.sequence = parsedSequence.sequence.trim();
+      parseSequence(rawSequenceContent, sample, (parsedSequence) => {
+        parsedSequence.sequence = parsedSequence.sequence.trim();
 
-      onAddSequence?.(parsedSequence);
-    });
+        onAddSequence?.(parsedSequence);
+      });
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to load sample", err);
+      }
+      enqueueSnackbar("Failed to load sample sequence.", { variant: "error" });
+    }
   };
 
   return (

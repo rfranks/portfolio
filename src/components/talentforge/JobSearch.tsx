@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSnackbar } from "notistack";
 import {
   Box,
   Button,
@@ -44,16 +45,27 @@ export default function JobSearch() {
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [filters, setFilters] = useState<Filters>({ roles: [], locations: [] });
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     setFilters(loadFilters());
   }, []);
 
   const handleSearch = async () => {
-    const { jobs: results, errors: errs }: AggregatedJobSearchResult =
-      await aggregateJobSearch(query, filters);
-    setJobs(results);
-    setErrors(errs);
+    try {
+      const { jobs: results, errors: errs }: AggregatedJobSearchResult =
+        await aggregateJobSearch(query, filters);
+      setJobs(results);
+      setErrors(errs);
+      errs.forEach((e) => enqueueSnackbar(e, { variant: "error" }));
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Job search failed", err);
+      }
+      enqueueSnackbar("Failed to search jobs. Please try again.", {
+        variant: "error",
+      });
+    }
   };
 
   const hasFilters =

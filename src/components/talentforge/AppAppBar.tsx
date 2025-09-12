@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { PaletteMode } from "@mui/material";
+import { SnackbarProvider } from "notistack";
 import Box from "@mui/material/Box";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -24,9 +25,10 @@ const logoStyle = {
 interface AppAppBarProps {
   mode: PaletteMode;
   toggleColorMode: () => void;
+  children?: React.ReactNode;
 }
 
-function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
+function AppAppBar({ mode, toggleColorMode, children }: AppAppBarProps) {
   const [open, setOpen] = React.useState(false);
 
   const toggleDrawer = (newOpen: boolean) => () => {
@@ -48,16 +50,17 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
   };
 
   return (
-    <div>
-      <AppBar
-        position="fixed"
-        sx={{
-          boxShadow: 0,
-          bgcolor: "transparent",
-          backgroundImage: "none",
-          mt: 2,
-        }}
-      >
+    <SnackbarProvider maxSnack={3} autoHideDuration={3000}>
+      <div>
+        <AppBar
+          position="fixed"
+          sx={{
+            boxShadow: 0,
+            bgcolor: "transparent",
+            backgroundImage: "none",
+            mt: 2,
+          }}
+        >
         <Container maxWidth="lg">
           <Toolbar
             variant="regular"
@@ -243,8 +246,10 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
             </Box>
           </Toolbar>
         </Container>
-      </AppBar>
-    </div>
+        </AppBar>
+        {children}
+      </div>
+    </SnackbarProvider>
   );
 }
 

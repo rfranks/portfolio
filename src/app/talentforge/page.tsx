@@ -99,25 +99,26 @@ export default function TalentForgePage() {
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />
-      <AppAppBar mode={mode} toggleColorMode={toggleColorMode} />
-      <Hero />
-      <Box sx={{ bgcolor: "background.default" }}>
-        <DocumentGenerator />
-        <JobSearch />
-        <JobTracker />
-        {/* <LogoCollection /> */}
-        {/* <Features />
-        <Divider />
-        <Testimonials />
-        <Divider /> */}
-        <Highlights />
-        <Divider />
-        {/* <Pricing />
-        <Divider /> */}
-        <FAQ />
-        <Divider />
-        <Footer />
-      </Box>
+      <AppAppBar mode={mode} toggleColorMode={toggleColorMode}>
+        <Hero />
+        <Box sx={{ bgcolor: "background.default" }}>
+          <DocumentGenerator />
+          <JobSearch />
+          <JobTracker />
+          {/* <LogoCollection /> */}
+          {/* <Features />
+          <Divider />
+          <Testimonials />
+          <Divider /> */}
+          <Highlights />
+          <Divider />
+          {/* <Pricing />
+          <Divider /> */}
+          <FAQ />
+          <Divider />
+          <Footer />
+        </Box>
+      </AppAppBar>
     </ThemeProvider>
   );
 }

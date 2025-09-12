@@ -91,6 +91,13 @@ export async function searchLinkedInJobs(
   try {
     const response = await fetch(url, { headers });
     if (!response.ok) {
+      if (process.env.NODE_ENV === "development") {
+        console.error(
+          "LinkedIn API error",
+          response.status,
+          response.statusText
+        );
+      }
       return {
         jobs: [],
         error: `LinkedIn API error: ${response.status} ${response.statusText}`,
@@ -115,6 +122,9 @@ export async function searchLinkedInJobs(
         .map((job) => normalizeLinkedInJob(job)),
     };
   } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Failed to fetch LinkedIn jobs", err);
+    }
     const message = err instanceof Error ? err.message : "Unknown error";
     return {
       jobs: [],

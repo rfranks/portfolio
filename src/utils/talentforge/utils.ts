@@ -19,27 +19,28 @@ export const setOpenAIKey = (key: string) => {
 export const hasOpenAIKey = () => apiKey.trim().length > 0;
 
 const requestCompletion = async (systemMessage: string) => {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      temperature: 0.5,
-      top_p: 0.8,
-      messages: [
-        {
-          role: "system",
-          content: systemMessage,
-        },
-      ],
-    }),
-  });
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        temperature: 0.5,
+        top_p: 0.8,
+        messages: [
+          {
+            role: "system",
+            content: systemMessage,
+          },
+        ],
+      }),
+    });
 
-  const data = await response.json();
-  const content = data?.choices?.[0]?.message?.content;
+    const data = await response.json();
+    const content = data?.choices?.[0]?.message?.content;
 
   // `content` can be a string (old API) or an array of text segments (new API)
   if (Array.isArray(content)) {
@@ -56,7 +57,13 @@ const requestCompletion = async (systemMessage: string) => {
     );
   }
 
-  return content || "";
+    return content || "";
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("OpenAI request failed", err);
+    }
+    throw new Error("Failed to fetch completion");
+  }
 };
 
 export const askOpenAI = async ({

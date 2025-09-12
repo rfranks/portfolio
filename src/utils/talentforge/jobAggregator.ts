@@ -34,17 +34,20 @@ export async function aggregateJobSearch(
 ): Promise<AggregatedJobSearchResult> {
   if (!query.trim()) return { jobs: [], errors: [] };
 
-  const [indeedJobs, linkedinResult] = await Promise.all([
+  const [indeedResult, linkedinResult] = await Promise.all([
     searchIndeedJobs(query, filters),
     searchLinkedInJobs(query),
   ]);
 
   const errors: string[] = [];
+  if (indeedResult.error) {
+    errors.push(indeedResult.error);
+  }
   if (linkedinResult.error) {
     errors.push(linkedinResult.error);
   }
 
-  const combined = [...indeedJobs, ...linkedinResult.jobs];
+  const combined = [...indeedResult.jobs, ...linkedinResult.jobs];
   const deduped = dedupeJobs(combined);
   const sorted = deduped.sort(
     (a, b) => relevanceScore(b, query) - relevanceScore(a, query),

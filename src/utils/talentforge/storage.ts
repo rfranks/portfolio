@@ -14,11 +14,17 @@ const STORAGE_KEYS = {
 
 async function storeItem<T>(key: string, value: T): Promise<void> {
   if (STORAGE_API_URL) {
-    await fetch(`${STORAGE_API_URL}/${key}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(value),
-    });
+    try {
+      await fetch(`${STORAGE_API_URL}/${key}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(value),
+      });
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to store item", err);
+      }
+    }
     return;
   }
 
@@ -34,7 +40,10 @@ async function getItem<T>(key: string): Promise<T | null> {
       if (response.ok) {
         return (await response.json()) as T;
       }
-    } catch {
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to get item", err);
+      }
       return null;
     }
     return null;
@@ -80,7 +89,13 @@ export async function loadJobApplications(): Promise<JobApplication[] | null> {
 
 export async function clearStorage(): Promise<void> {
   if (STORAGE_API_URL) {
-    await fetch(`${STORAGE_API_URL}/clear`, { method: "POST" });
+    try {
+      await fetch(`${STORAGE_API_URL}/clear`, { method: "POST" });
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to clear storage", err);
+      }
+    }
     return;
   }
 
