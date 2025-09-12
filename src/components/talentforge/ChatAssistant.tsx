@@ -14,7 +14,10 @@ import {
 import { SendOutlined } from "@mui/icons-material";
 
 import { jobSearchPrompt } from "@/consts/talentforge/consts";
-import { responseTemplates } from "@/consts/talentforge/responseTemplates";
+import {
+  responseTemplates as defaultTemplates,
+  ResponseTemplate,
+} from "@/consts/talentforge/responseTemplates";
 import { ChatMessage } from "@/types/talentforge/types";
 import { askOpenAI } from "@/utils/talentforge/utils";
 
@@ -30,6 +33,9 @@ export default function ChatAssistant() {
   );
   const [message, setMessage] = React.useState("");
   const [selectedTemplate, setSelectedTemplate] = React.useState("");
+  const [templates, setTemplates] = React.useState<ResponseTemplate[]>(
+    defaultTemplates
+  );
   const [resumeStrengths, setResumeStrengths] = React.useState("");
   const [jobMatches, setJobMatches] = React.useState("");
   const [recruiterNotes, setRecruiterNotes] = React.useState("");
@@ -64,6 +70,22 @@ export default function ChatAssistant() {
         chatParentRef.current.scrollHeight || 0;
     }
   }, [chatHistory]);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("talentforge-settings");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed.quickReplies)) {
+            setTemplates(parsed.quickReplies);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, []);
 
   return (
     <Stack spacing={2} sx={{ width: "100%" }}>
@@ -130,16 +152,14 @@ export default function ChatAssistant() {
         label="Quick responses"
         value={selectedTemplate}
         onChange={(e) => {
-          const template = responseTemplates.find(
-            (t) => t.id === e.target.value
-          );
+          const template = templates.find((t) => t.id === e.target.value);
           setSelectedTemplate(e.target.value);
           if (template) {
             setMessage(template.template);
           }
         }}
       >
-        {responseTemplates.map((t) => (
+        {templates.map((t) => (
           <MenuItem key={t.id} value={t.id}>
             {t.label}
           </MenuItem>

@@ -2,6 +2,12 @@
 
 import * as React from "react";
 
+import { Box, Chip, IconButton, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { ArchiveOutlined } from "@mui/icons-material";
+import {
+  responseTemplates as defaultTemplates,
+  ResponseTemplate,
+} from "@/consts/talentforge/responseTemplates";
 import {
   Box,
   Button,
@@ -35,6 +41,12 @@ export default function Inbox() {
   const [pageTokens, setPageTokens] = React.useState<Record<string, string | undefined>>({});
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [tagInputs, setTagInputs] = React.useState<Record<number, string>>({});
+  const [quickReplies, setQuickReplies] = React.useState<ResponseTemplate[]>(
+    defaultTemplates
+  );
+  const [selectedTemplates, setSelectedTemplates] = React.useState<
+    Record<number, string>
+  >({});
   const [tagSuggestionsLoading, setTagSuggestionsLoading] =
     React.useState<Record<number, boolean>>({});
 
@@ -102,6 +114,22 @@ export default function Inbox() {
       msgs.map((m) => (m.id === id ? { ...m, archived: !m.archived } : m))
     );
   };
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("talentforge-settings");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed.quickReplies)) {
+            setQuickReplies(parsed.quickReplies);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, []);
 
   React.useEffect(() => {
     messages.forEach((msg) => {
@@ -277,15 +305,34 @@ export default function Inbox() {
                 }
               }}
             />
-            <Button
-              variant="outlined"
+            <TextField
+              select
               size="small"
-              startIcon={<ReplyOutlined />}
-              onClick={() => handleQuickReply(m.id)}
-              disabled={loading[m.id]}
+              label="Quick Reply"
+              value={selectedTemplates[m.id] || ""}
+              onChange={(e) => {
+                const template = quickReplies.find(
+                  (t) => t.id === e.target.value
+                );
+                setSelectedTemplates((prev) => ({
+                  ...prev,
+                  [m.id]: e.target.value,
+                }));
+                setMessages((msgs) =>
+                  msgs.map((msg) =>
+                    msg.id === m.id
+                      ? { ...msg, quickReply: template?.template || "" }
+                      : msg
+                  )
+                );
+              }}
             >
-              Quick Reply
-            </Button>
+              {quickReplies.map((t) => (
+                <MenuItem key={t.id} value={t.id}>
+                  {t.label}
+                </MenuItem>
+              ))}
+            </TextField>
           </Stack>
           {m.quickReply && (
             <Box
@@ -296,7 +343,7 @@ export default function Inbox() {
                 borderRadius: 1,
               }}
             >
-              <Typography variant="caption">AI Reply:</Typography>
+              <Typography variant="caption">Quick Reply:</Typography>
               <Typography variant="body2">{m.quickReply}</Typography>
             </Box>
           )}
