@@ -1,0 +1,18 @@
+{
+  "messages": [
+    {
+      "id": "1",
+      "source": "gmail",
+      "sender": "alice@example.com",
+      "subject": "Welcome",
+      "content": "Hello from Gmail"
+    },
+    {
+      "id": "2",
+      "source": "linkedin",
+      "sender": "Bob",
+      "subject": "Job Opportunity",
+      "content": "We'd like to connect"
+    }
+  ]
+}
