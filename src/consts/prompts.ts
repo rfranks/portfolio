@@ -44,6 +44,11 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Rewrite the job description to emphasize candidate requirements and key deliverables for internal sharing.",
   },
+  jobRequirements: {
+    displayText: "Job Requirements",
+    fullText:
+      "List the key job requirements from the provided job description in bullet points.",
+  },
   networkingOutreach: {
     displayText: "Networking Outreach",
     fullText:
@@ -83,6 +88,7 @@ export const PROMPT_GROUPS: Record<string, string[]> = {
   "Career Growth": [
     "skillGapAnalysis",
     "jobDescriptionRewrite",
+    "jobRequirements",
     "careerGoals",
     "elevatorPitch",
     "linkedinProfileOptimization",
