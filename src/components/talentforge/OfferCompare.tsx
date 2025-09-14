@@ -19,6 +19,7 @@ import OpenAiKeyModal from "./OpenAiKeyModal";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import { addOffer } from "@/utils/talentforge/dataStore";
 import type { Offer } from "@/utils/talentforge/dataStore";
+import type { ApplicationRecord } from "@/types";
 
 interface OfferCompareProps {
   onSave?: () => void;
@@ -65,7 +66,7 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
     setResult(message);
     const offer: Offer = {
       id: uuid(),
-      application: {} as any,
+      application: {} as ApplicationRecord,
       compensation: [{ type: "note", amount: 0, notes: compensation }],
       summary: message,
     };

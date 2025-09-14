@@ -106,9 +106,29 @@ function remove<K extends keyof StoreSchema>(key: K): void {
 }
 
 // Migrations
+interface LegacyOffer {
+  id: string;
+  compensation: string;
+  result: string;
+}
+
+interface LegacyMessageReply {
+  id: string;
+  content: string;
+  sentAt: string;
+}
+
+interface LegacyMessage {
+  id: string;
+  connector: string;
+  content: string;
+  status: "unread" | "read";
+  replies?: LegacyMessageReply[];
+}
+
 function migrateLegacyOffers(data: unknown): Offer[] {
   if (!Array.isArray(data)) return [];
-  return (data as any[]).map((o) => ({
+  return (data as LegacyOffer[]).map((o) => ({
     id: o.id,
     application: {} as ApplicationRecord,
     compensation: [
@@ -120,7 +140,7 @@ function migrateLegacyOffers(data: unknown): Offer[] {
 
 function migrateLegacyMessages(data: unknown): Message[] {
   if (!Array.isArray(data)) return [];
-  return (data as any[]).map((m) => ({
+  return (data as LegacyMessage[]).map((m) => ({
     id: m.id,
     threadId: m.id,
     senderId: m.connector,
@@ -129,7 +149,7 @@ function migrateLegacyMessages(data: unknown): Message[] {
     connector: m.connector,
     status: m.status,
     replies: Array.isArray(m.replies)
-      ? m.replies.map((r: any) => ({ id: r.id, body: r.content, sentAt: r.sentAt }))
+      ? m.replies.map((r) => ({ id: r.id, body: r.content, sentAt: r.sentAt }))
       : [],
   }));
 }
