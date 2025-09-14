@@ -7,14 +7,12 @@ import OpenAiKeyModal from "../OpenAiKeyModal";
 import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
 
 export interface PromptTileProps {
-  id: string;
   display: string;
   fullPrompt: string;
   inputs: string[];
 }
 
 export default function Tile({
-  id,
   display,
   fullPrompt,
   inputs,
