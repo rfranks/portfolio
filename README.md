@@ -41,9 +41,9 @@ TalentForge integrates with several external services. Copy `.env.local.example`
 
 Launch the TalentForge page and follow the onboarding wizard for initial configuration steps.
 
-For a minimal setup you can copy `talentforge.env.example` to `talentforge.env` and provide:
+For quick configuration, you can copy `talentforge.env.example` to `talentforge.env` and provide:
 
-- `NEXT_PUBLIC_OPENAI_KEY` – OpenAI API key.
+- `NEXT_PUBLIC_OPENAI_API_KEY` – OpenAI API key.
 - `NEXT_PUBLIC_APP_NAME` – application name displayed in the UI.
 
 ## Getting Started
