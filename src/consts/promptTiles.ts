@@ -43,6 +43,13 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "Rewrite this resume to emphasize how the candidate meets the role requirements.",
     inputs: ["resumeVariantId", "jobDescription"],
   },
+  jdRequirements: {
+    id: "jdRequirements",
+    display: "JD Requirements",
+    fullPrompt:
+      "From the following job description, list the key job requirements as bullet points:\n\n{{jobDescription}}",
+    inputs: ["jobDescription"],
+  },
   jobRequirements: {
     ...BASE_TILES.jobRequirements,
     fullPrompt:
