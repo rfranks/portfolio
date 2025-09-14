@@ -1,6 +1,7 @@
 "use client";
 
 import { ConnectorToken } from "@/types/connector";
+import { ParsedResume } from "@/types/talentforge/resume";
 
 export interface UserProfile {
   id: string;
@@ -12,6 +13,7 @@ export interface UserProfile {
 export interface ResumeEntry {
   id: string;
   content: string;
+  parsed: ParsedResume;
   tags: string[];
 }
 

@@ -24,6 +24,7 @@ import {
   hasOpenAIKey,
   pdfToMarkdown,
 } from "@/utils/talentforge/utils";
+import { parseResumeText } from "@/utils/talentforge/pdfParser";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
@@ -71,7 +72,8 @@ export default function ResumeManager() {
     }
     if (!text.trim()) return;
     const tags = await suggestTags(text);
-    const newResume = { id: uuid(), content: text, tags };
+    const parsed = parseResumeText(text);
+    const newResume = { id: uuid(), content: text, parsed, tags };
     const updated = addResume(newResume);
     setResumes(updated);
     setText("");
