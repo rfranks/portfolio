@@ -6,7 +6,6 @@
  */
 
 import type { JobListing } from "@/types/talentforge/job";
-import type { Connector } from "@/types/connector";
 
 /** Sample job listings returned by the mocked Indeed connector. */
 const SAMPLE_LISTINGS: JobListing[] = [
@@ -26,7 +25,7 @@ const SAMPLE_LISTINGS: JobListing[] = [
   },
 ];
 
-export class IndeedConnector implements Connector {
+export class IndeedConnector {
   /**
    * Authenticate with Indeed.
    *

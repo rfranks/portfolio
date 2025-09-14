@@ -44,7 +44,8 @@ export class LinkedInConnector implements Connector<LinkedInProfile> {
    *
    * Here we return sample data for development.
    */
-  async fetchData(_: ConnectorToken): Promise<LinkedInProfile> {
+  async fetchData(token: ConnectorToken): Promise<LinkedInProfile> {
+    void token; // silence unused parameter in mock implementation
     return {
       id: "123",
       firstName: "Ada",
@@ -58,8 +59,9 @@ export class LinkedInConnector implements Connector<LinkedInProfile> {
    *
    * This mock simply resolves without performing any action.
    */
-  async sendMessage(_: ConnectorToken, message: string): Promise<void> {
-    void message; // silence unused parameters in mock implementation
+  async sendMessage(token: ConnectorToken, message: string): Promise<void> {
+    void token; // silence unused parameters in mock implementation
+    void message;
   }
 
   /**

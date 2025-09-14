@@ -40,7 +40,8 @@ export class IndeedConnector implements Connector<IndeedProfile> {
   /**
    * Retrieve the user's profile from Indeed.
    */
-  async fetchData(_: ConnectorToken): Promise<IndeedProfile> {
+  async fetchData(token: ConnectorToken): Promise<IndeedProfile> {
+    void token; // silence unused parameter in mock implementation
     return {
       id: "abc",
       name: "Grace Hopper",
@@ -53,8 +54,9 @@ export class IndeedConnector implements Connector<IndeedProfile> {
    *
    * This mock simply resolves without performing any action.
    */
-  async sendMessage(_: ConnectorToken, message: string): Promise<void> {
-    void message; // silence unused parameters in mock implementation
+  async sendMessage(token: ConnectorToken, message: string): Promise<void> {
+    void token; // silence unused parameters in mock implementation
+    void message;
   }
 
   /**
