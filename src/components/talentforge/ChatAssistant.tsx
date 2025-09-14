@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -20,6 +20,23 @@ import { ChatMessage } from "@/types/talentforge/types";
 export default function ChatAssistant() {
   const [selectedPrompt, setSelectedPrompt] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<(ChatMessage | null)[]>([]);
+
+  // Load chat history from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("chatHistory");
+      if (stored) {
+        setChatHistory(JSON.parse(stored));
+      }
+    } catch (err) {
+      // ignore parsing errors
+    }
+  }, []);
+
+  // Persist chat history changes to localStorage
+  useEffect(() => {
+    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+  }, [chatHistory]);
   const [openKeyModal, setOpenKeyModal] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
@@ -84,6 +101,16 @@ export default function ChatAssistant() {
           disabled={chatHistory.length === 0}
         >
           Export
+        </Button>
+        <Button
+          variant="text"
+          onClick={() => {
+            setChatHistory([]);
+            localStorage.removeItem("chatHistory");
+          }}
+          disabled={chatHistory.length === 0}
+        >
+          Clear
         </Button>
         <Stack spacing={1} ref={chatRef}>
           {chatHistory.map(
