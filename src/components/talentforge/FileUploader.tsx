@@ -269,6 +269,7 @@ export default function FileUploader(props: FileUploaderProps) {
                   wrapperRef?.current?.click?.();
                 }}
                 sx={{ p: 1, zIndex: 1 }}
+                aria-label="browse files"
               >
                 <Box sx={{ p: 1 }}>Browse</Box>
               </Button>
@@ -283,6 +284,7 @@ export default function FileUploader(props: FileUploaderProps) {
                   onChange={handleFileInputChange}
                   multiple={limit > 1}
                   accept={accept}
+                  aria-label={label || "file uploader"}
                   style={{
                     display: "none",
                   }}
@@ -331,6 +333,7 @@ export default function FileUploader(props: FileUploaderProps) {
                         }}
                         startIcon={<CloseOutlined />}
                         color="info"
+                        aria-label="remove file"
                         sx={{
                           border: "none",
                           position: "absolute",
