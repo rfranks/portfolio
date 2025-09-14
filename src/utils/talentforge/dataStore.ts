@@ -1,5 +1,7 @@
 "use client";
 
+import { ConnectorToken } from "@/types/connector";
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -52,6 +54,7 @@ const KEYS = {
   applications: "jobApplications",
   onboarding: "onboardingStep",
   openai: "talentforge-openai-key",
+  connectorTokens: "connectorTokens",
 } as const;
 
 function load<T>(key: string, fallback: T): T {
@@ -192,6 +195,36 @@ export function deleteOpenAIKey(): void {
   remove(KEYS.openai);
 }
 
+// Connector tokens
+interface ConnectorTokenMap {
+  [name: string]: ConnectorToken;
+}
+
+function getConnectorTokens(): ConnectorTokenMap {
+  return load<ConnectorTokenMap>(KEYS.connectorTokens, {});
+}
+
+export function getConnectorToken(
+  connector: string,
+): ConnectorToken | undefined {
+  return getConnectorTokens()[connector];
+}
+
+export function saveConnectorToken(
+  connector: string,
+  token: ConnectorToken,
+): void {
+  const tokens = getConnectorTokens();
+  tokens[connector] = token;
+  save(KEYS.connectorTokens, tokens);
+}
+
+export function deleteConnectorToken(connector: string): void {
+  const tokens = getConnectorTokens();
+  delete tokens[connector];
+  save(KEYS.connectorTokens, tokens);
+}
+
 // Export / Import
 export function exportToJson(): string {
   if (typeof window === "undefined") return "{}";
@@ -252,6 +285,9 @@ export default {
   getOpenAIKey,
   setOpenAIKey,
   deleteOpenAIKey,
+  getConnectorToken,
+  saveConnectorToken,
+  deleteConnectorToken,
   exportToJson,
   importFromJson,
 };
