@@ -11,12 +11,12 @@ import {
 } from "@mui/material";
 import { v4 as uuid } from "uuid";
 import type { ApplicationStatus } from "@/types/talentforge/job";
-import type { JobApplication } from "@/utils/talentforge/applicationStore";
+import type { JobApplication } from "@/utils/talentforge/dataStore";
 import {
   addJobApplication,
   getJobApplications,
   updateJobApplicationStatus,
-} from "@/utils/talentforge/applicationStore";
+} from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 
 const STATUS_OPTIONS: ApplicationStatus[] = [
@@ -37,8 +37,9 @@ export default function JobApplications() {
         let apps = existing;
         listings.forEach((listing) => {
           apps = addJobApplication({
-            ...listing,
             id: uuid(),
+            applicant: { id: "", name: "", email: "" },
+            role: { ...listing, id: uuid() },
             status: "applied",
             history: [
               { status: "applied", changedAt: new Date().toISOString() },
@@ -75,9 +76,9 @@ export default function JobApplications() {
             sx={{ display: "flex", alignItems: "center", gap: 2 }}
           >
             <Box sx={{ flexGrow: 1 }}>
-              <Typography fontWeight="bold">{app.title}</Typography>
+              <Typography fontWeight="bold">{app.role.title}</Typography>
               <Typography variant="body2" color="text.secondary">
-                {app.company} – {app.location}
+                {app.role.company} – {app.role.location}
               </Typography>
             </Box>
             <Select

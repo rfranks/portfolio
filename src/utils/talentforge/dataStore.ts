@@ -7,7 +7,11 @@ import {
 } from "@/utils/storage";
 import { v4 as uuid } from "uuid";
 import { ConnectorToken } from "@/types/connector";
-import type { ApplicationStatus } from "@/types/talentforge/job";
+import type {
+  ApplicationStatus,
+  JobListing,
+  StatusChange,
+} from "@/types/talentforge/job";
 import type {
   User,
   ResumeVariant,
@@ -80,14 +84,14 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   resumes: 1,
   messages: 2,
   offers: 2,
-  applications: 1,
+  applications: 2,
   recruiters: 1,
   onboarding: 1,
   openai: 1,
   connectorTokens: 1,
 } as const;
 
-export const SNAPSHOT_VERSION = 2;
+export const SNAPSHOT_VERSION = 3;
 
 function load<K extends keyof StoreSchema>(
   key: K,
@@ -172,6 +176,25 @@ function migrateLegacyMessages(data: unknown): Message[] {
           connector: r.connector || m.connector,
         }))
       : [],
+  }));
+}
+
+interface LegacyJobApplication extends JobListing {
+  id: string;
+  status: ApplicationStatus;
+  history: StatusChange[];
+}
+
+function migrateLegacyApplications(data: unknown): JobApplication[] {
+  if (!Array.isArray(data)) return [];
+  return (data as LegacyJobApplication[]).map((a) => ({
+    id: a.id,
+    applicant: { id: "", name: "", email: "" } as User,
+    role: { ...a, id: uuid() },
+    status: a.status,
+    history: a.history,
+    recruiters: [],
+    threads: [],
   }));
 }
 
@@ -286,7 +309,7 @@ export function deleteOffer(id: string): Offer[] {
 
 // Job applications
 export function getJobApplications(): JobApplication[] {
-  return load("applications", []);
+  return load("applications", [], migrateLegacyApplications);
 }
 export function addJobApplication(app: JobApplication): JobApplication[] {
   const withHistory = {

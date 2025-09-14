@@ -16,12 +16,12 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { ApplicationStatus } from "@/types/talentforge/job";
-import type { JobApplication } from "@/utils/talentforge/applicationStore";
+import type { JobApplication } from "@/utils/talentforge/dataStore";
 import {
   addJobApplication,
   getJobApplications,
   updateJobApplicationStatus,
-} from "@/utils/talentforge/applicationStore";
+} from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
 
@@ -78,9 +78,9 @@ function Card({ app }: { app: JobApplication }) {
         ...style,
       }}
     >
-      <Typography fontWeight="bold">{app.title}</Typography>
+      <Typography fontWeight="bold">{app.role.title}</Typography>
       <Typography variant="body2" color="text.secondary">
-        {app.company} – {app.location}
+        {app.role.company} – {app.role.location}
       </Typography>
     </Box>
   );
@@ -96,8 +96,9 @@ export default function ApplicationBoard() {
         let apps = existing;
         listings.forEach((listing) => {
           apps = addJobApplication({
-            ...listing,
             id: uuid(),
+            applicant: { id: "", name: "", email: "" },
+            role: { ...listing, id: uuid() },
             status: "applied",
             history: [
               { status: "applied", changedAt: new Date().toISOString() },
