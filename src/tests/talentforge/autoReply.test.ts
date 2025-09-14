@@ -15,6 +15,14 @@ describe("autoReply utilities", () => {
     setOpenAIKey("");
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  afterAll(() => {
+    delete globalWithFetch.fetch;
+  });
+
   test("setOpenAIKey and hasOpenAIKey", () => {
     expect(hasOpenAIKey()).toBe(false);
     setOpenAIKey("abc");
@@ -42,6 +50,18 @@ describe("autoReply utilities", () => {
     setOpenAIKey("key");
     const result = await autoReply([] as AutoReplyMessage[]);
     expect(result).toBe("foo bar ");
+  });
+
+  test("autoReply throws on failed fetch response", async () => {
+    (fetch as jest.Mock).mockResolvedValue({ ok: false, json: async () => ({}) });
+    setOpenAIKey("key");
+    await expect(autoReply([])).rejects.toThrow("Failed to fetch auto reply");
+  });
+
+  test("autoReply propagates fetch rejection", async () => {
+    (fetch as jest.Mock).mockRejectedValue(new Error("network error"));
+    setOpenAIKey("key");
+    await expect(autoReply([])).rejects.toThrow("network error");
   });
 
   test("buildAutoReplyMessages creates system and user messages", () => {

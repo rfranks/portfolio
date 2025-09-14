@@ -35,19 +35,29 @@ export const hasOpenAIKey = () => apiKey.trim().length > 0;
 export async function autoReply(
   messages: AutoReplyMessage[],
 ): Promise<string> {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      temperature: 0.7,
-      top_p: 0.9,
-      messages,
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        temperature: 0.7,
+        top_p: 0.9,
+        messages,
+      }),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Failed to fetch auto reply: ${message}`);
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch auto reply");
+  }
 
   const data = await response.json();
   const content = data?.choices?.[0]?.message?.content;
