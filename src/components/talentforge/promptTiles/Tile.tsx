@@ -17,10 +17,17 @@ import Markdown from "react-markdown";
 
 import OpenAIKeyModal from "../OpenAiKeyModal";
 import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
-import { getResumes, addResume, type ResumeEntry } from "@/utils/talentforge/dataStore";
+import {
+  getResumes,
+  addResume,
+  addOffer,
+  type ResumeEntry,
+  type Offer,
+} from "@/utils/talentforge/dataStore";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { parseResumeText } from "@/utils/talentforge/pdfParser";
 import { v4 as uuid } from "uuid";
+import type { ApplicationRecord } from "@/types";
 
 export interface PromptTileProps {
   id: string;
@@ -78,6 +85,29 @@ export default function Tile({
           return;
         }
         context = `Job Description:\n${values["jobDescription"]}\n\nResume:\n${resume.content}`;
+      }
+
+      if (id === "compareOffers") {
+        const context = `Offer A:\n${values["offerA"] || ""}\n\nOffer B:\n${values["offerB"] || ""}`;
+        const res = await askOpenAI({
+          context,
+          user: prompt,
+          system: "You compare job offers and highlight key differences.",
+          returnFirstResponse: true,
+          chatHistory: [],
+        });
+        const message = res?.message || "";
+        setResponse(message);
+        const offer: Offer = {
+          id: uuid(),
+          application: {} as ApplicationRecord,
+          compensation: [],
+          summary: message,
+        };
+        addOffer(offer);
+        onResponse?.(message);
+        onInsert?.(message);
+        return;
       }
 
       if (id === "negotiateOffer") {
