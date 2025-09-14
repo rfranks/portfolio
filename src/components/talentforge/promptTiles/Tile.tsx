@@ -25,6 +25,7 @@ export interface PromptTileProps {
   display: string;
   fullPrompt: string;
   inputs: string[];
+  onInsert?: (text: string) => void;
   onResponse?: (response: string) => void;
 }
 
@@ -33,6 +34,7 @@ export default function Tile({
   display,
   fullPrompt,
   inputs,
+  onInsert,
   onResponse,
 }: PromptTileProps) {
   const [values, setValues] = useState<Record<string, string>>({});
@@ -79,6 +81,7 @@ export default function Tile({
       const message = res?.message || "";
       setResponse(message);
       onResponse?.(message);
+      onInsert?.(message);
     } finally {
       setLoading(false);
     }
