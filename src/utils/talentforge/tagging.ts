@@ -85,9 +85,9 @@ async function fetchAiTags(
         .split(/,|\n/)
         .map((t) => t.trim())
         .filter(Boolean);
-    } catch (err: any) {
-      const code = err?.code as string | undefined;
-      const msg = err?.message?.toLowerCase?.() ?? "";
+    } catch (err: unknown) {
+      const { code, message } = err as NodeJS.ErrnoException;
+      const msg = message?.toLowerCase?.() ?? "";
       const isNetworkError =
         (code && NETWORK_ERROR_CODES.includes(code)) || msg.includes("network");
       if (!isNetworkError || attempt === maxRetries) {
