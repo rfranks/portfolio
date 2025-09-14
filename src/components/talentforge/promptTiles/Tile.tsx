@@ -47,6 +47,9 @@ export default function Tile({
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
+  const loadSelectedResume = () =>
+    getResumes().find((r) => r.id === values["resumeVariantId"]);
+
   const handleRun = async () => {
     const valid = await hasValidOpenAIKey();
     if (!valid) {
@@ -60,21 +63,20 @@ export default function Tile({
         prompt = prompt.replaceAll(`{{${key}}}`, values[key] || "");
       }
 
+      let context = "";
       if (id === "resumeRewrite") {
-        const resume = getResumes().find(
-          (r) => r.id === values["resumeVariantId"],
-        );
+        const resume = loadSelectedResume();
         if (!resume) {
           setResponse("Resume not found");
           return;
         }
-        prompt = `${prompt}\n\nJob Description:\n${values["jobDescription"]}\n\nResume:\n${resume.content}`;
+        context = `Job Description:\n${values["jobDescription"]}\n\nResume:\n${resume.content}`;
       }
 
       const res = await askOpenAI({
-        context: "",
+        context,
         user: prompt,
-        system: "You are a helpful assistant.",
+        system: "You are a helpful assistant. Use the following context:\n{{context}}",
         returnFirstResponse: true,
         chatHistory: [],
       });
@@ -89,9 +91,7 @@ export default function Tile({
 
   const handleSaveVariant = async () => {
     if (id !== "resumeRewrite" || !response) return;
-    const resume = getResumes().find(
-      (r) => r.id === values["resumeVariantId"],
-    );
+    const resume = loadSelectedResume();
     if (!resume) return;
     setSaving(true);
     try {

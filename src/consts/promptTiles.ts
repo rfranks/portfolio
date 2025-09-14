@@ -40,7 +40,7 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
     id: "resumeRewrite",
     display: "Resume Rewrite",
     fullPrompt:
-      "Rewrite this resume to emphasize how the candidate meets the role requirements.",
+      "Using the provided job description and resume, rewrite the resume to emphasize how the candidate meets the role requirements.",
     inputs: ["resumeVariantId", "jobDescription"],
   },
   jobRequirements: {
