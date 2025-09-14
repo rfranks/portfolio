@@ -41,8 +41,14 @@ export default function Inbox() {
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [templates, setTemplates] = useState<Record<string, AutoReplyTemplate>>({});
+  const [templateSelections, setTemplateSelections] =
+    useState<Record<string, AutoReplyTemplate>>({});
   const [quickTones, setQuickTones] = useState<Record<string, AutoReplyTemplate>>({});
+  const [templateDefs, setTemplateDefs] = useState<Record<string, string>>({});
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorTemplates, setEditorTemplates] = useState<
+    Array<{ name: string; prompt: string }>
+  >([]);
   const [search, setSearch] = useState("");
   const [recruiters, setRecruiters] = useState<RecruiterEntry[]>([]);
   const [aiThread, setAiThread] = useState<string | null>(null);
@@ -52,6 +58,7 @@ export default function Inbox() {
   useEffect(() => {
     setThreads(data.getThreads());
     setRecruiters(data.getRecruiters());
+    setTemplateDefs(data.getAutoReplyTemplates());
     setLoading(false);
   }, [data]);
 
@@ -65,6 +72,14 @@ export default function Inbox() {
 
   const selected = threads.find((m) => m.id === selectedId) || null;
 
+  const templateNames = Object.keys(templateDefs);
+  const defaultTemplate = templateDefs.general
+    ? "general"
+    : templateNames[0] || "";
+  const defaultQuickTone = templateDefs.politeFollowUp
+    ? "politeFollowUp"
+    : defaultTemplate;
+
   const handleSelectThread = (message: Message) => {
     setSelectedId(message.id);
     if (!drafts[message.id]) void handleAutoReply(message);
@@ -75,14 +90,18 @@ export default function Inbox() {
   };
 
   const handleAutoReply = async (message: Message) => {
-    const template = templates[message.id] || "general";
-    const reply = await autoReply(buildAutoReplyMessages(template, message.body));
+    const template = templateSelections[message.id] || defaultTemplate;
+    const reply = await autoReply(
+      buildAutoReplyMessages(template, message.body, templateDefs),
+    );
     setDrafts((d) => ({ ...d, [message.id]: reply }));
   };
 
   const handleQuickInsert = async (message: Message) => {
-    const tone = quickTones[message.id] || "politeFollowUp";
-    const text = await autoReply(buildAutoReplyMessages(tone, message.body));
+    const tone = quickTones[message.id] || defaultQuickTone;
+    const text = await autoReply(
+      buildAutoReplyMessages(tone, message.body, templateDefs),
+    );
     const reply = {
       id: uuidv4(),
       body: text,
@@ -140,6 +159,43 @@ export default function Inbox() {
       setDrafts((d) => ({ ...d, [aiThread]: text }));
     }
     setAiThread(null);
+  };
+
+  const openTemplateEditor = () => {
+    setEditorTemplates(
+      Object.entries(templateDefs).map(([name, prompt]) => ({ name, prompt })),
+    );
+    setEditorOpen(true);
+  };
+
+  const handleTemplateChange = (
+    index: number,
+    field: "name" | "prompt",
+    value: string,
+  ) => {
+    setEditorTemplates((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
+
+  const handleAddTemplate = () => {
+    setEditorTemplates((prev) => [...prev, { name: "", prompt: "" }]);
+  };
+
+  const handleDeleteTemplate = (index: number) => {
+    setEditorTemplates((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSaveTemplates = () => {
+    const defs: Record<string, string> = {};
+    for (const { name, prompt } of editorTemplates) {
+      if (name.trim()) defs[name.trim()] = prompt;
+    }
+    setTemplateDefs(defs);
+    data.saveAutoReplyTemplates(defs);
+    setEditorOpen(false);
   };
 
   if (loading) {
@@ -245,7 +301,7 @@ export default function Inbox() {
               <Stack direction="row" spacing={1} alignItems="center">
                 <Select
                   size="small"
-                  value={quickTones[selected.id] || "politeFollowUp"}
+                  value={quickTones[selected.id] || defaultQuickTone}
                   onChange={(e) =>
                     setQuickTones((t) => ({
                       ...t,
@@ -255,8 +311,11 @@ export default function Inbox() {
                   sx={{ maxWidth: 200 }}
                   aria-label="Quick tone"
                 >
-                  <MenuItem value="politeFollowUp">Polite follow-up</MenuItem>
-                  <MenuItem value="politeDecline">Politely decline</MenuItem>
+                  {templateNames.map((name) => (
+                    <MenuItem key={name} value={name}>
+                      {name}
+                    </MenuItem>
+                  ))}
                 </Select>
                 <Button
                   size="small"
@@ -285,22 +344,34 @@ export default function Inbox() {
                   setDrafts((d) => ({ ...d, [selected.id]: e.target.value }))
                 }
               />
-              <Select
-                size="small"
-                value={templates[selected.id] || "general"}
-                onChange={(e) =>
-                  setTemplates((t) => ({
-                    ...t,
-                    [selected.id]: e.target.value as AutoReplyTemplate,
-                  }))
-                }
-                sx={{ maxWidth: 200 }}
-                aria-label="Template"
-              >
-                <MenuItem value="general">General</MenuItem>
-                <MenuItem value="politeDecline">Politely decline</MenuItem>
-                <MenuItem value="requestMoreInfo">Request more info</MenuItem>
-              </Select>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Select
+                  size="small"
+                  value={templateSelections[selected.id] || defaultTemplate}
+                  onChange={(e) =>
+                    setTemplateSelections((t) => ({
+                      ...t,
+                      [selected.id]: e.target.value as AutoReplyTemplate,
+                    }))
+                  }
+                  sx={{ maxWidth: 200 }}
+                  aria-label="Template"
+                >
+                  {templateNames.map((name) => (
+                    <MenuItem key={name} value={name}>
+                      {name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={openTemplateEditor}
+                  aria-label="Edit templates"
+                >
+                  Edit
+                </Button>
+              </Stack>
               <Button
                 variant="contained"
                 onClick={() => handleSendReply(selected)}
@@ -332,6 +403,60 @@ export default function Inbox() {
                     : undefined}
               />
             )}
+          </Stack>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Edit Templates</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            {editorTemplates.map((t, idx) => (
+              <Stack key={idx} spacing={1}>
+                <TextField
+                  label="Name"
+                  value={t.name}
+                  onChange={(e) =>
+                    handleTemplateChange(idx, "name", e.target.value)
+                  }
+                />
+                <TextField
+                  label="Prompt"
+                  value={t.prompt}
+                  onChange={(e) =>
+                    handleTemplateChange(idx, "prompt", e.target.value)
+                  }
+                  multiline
+                />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => handleDeleteTemplate(idx)}
+                  aria-label="Delete template"
+                >
+                  Delete
+                </Button>
+              </Stack>
+            ))}
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={handleAddTemplate}
+              aria-label="Add template"
+            >
+              Add template
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSaveTemplates}
+              aria-label="Save templates"
+            >
+              Save
+            </Button>
           </Stack>
         </DialogContent>
       </Dialog>

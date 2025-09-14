@@ -16,13 +16,14 @@ export const AUTO_REPLY_TEMPLATES = {
     "You are a helpful assistant that requests more information when needed while remaining courteous.",
 } as const;
 
-export type AutoReplyTemplate = keyof typeof AUTO_REPLY_TEMPLATES;
+export type AutoReplyTemplate = string;
 
 export const buildAutoReplyMessages = (
   template: AutoReplyTemplate,
   content: string,
+  templates: Record<string, string> = AUTO_REPLY_TEMPLATES,
 ): AutoReplyMessage[] => [
-  { role: "system", content: AUTO_REPLY_TEMPLATES[template] },
+  { role: "system", content: templates[template] || templates.general },
   { role: "user", content },
 ];
 
