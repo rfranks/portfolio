@@ -520,12 +520,13 @@ export function updateJobApplication(
 export function updateJobApplicationStatus(
   id: string,
   status: ApplicationStatus,
+  reason?: string,
 ): JobApplication[] {
   const updated = getJobApplications().map((app) => {
     if (app.id === id) {
       const history = [
         ...(app.history || []),
-        { status, changedAt: new Date().toISOString() },
+        { status, changedAt: new Date().toISOString(), ...(reason ? { reason } : {}) },
       ];
       return { ...app, status, history };
     }
