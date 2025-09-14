@@ -102,10 +102,18 @@ function Card({
       </Typography>
       {app.role.description && (
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-          <Button size="small" onClick={() => onRunTile("screenRole", app)}>
+          <Button
+            size="small"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => onRunTile("screenRole", app)}
+          >
             Analyze Risks
           </Button>
-          <Button size="small" onClick={() => onRunTile("resumeRewrite", app)}>
+          <Button
+            size="small"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => onRunTile("resumeRewrite", app)}
+          >
             Compare to Resume
           </Button>
         </Stack>
