@@ -1,6 +1,9 @@
 package cards
 
-import "testing"
+import (
+	"math/rand"
+	"testing"
+)
 
 // TestCreateCard verifies that CreateCard sets basic fields correctly
 func TestCreateCard(t *testing.T) {
@@ -66,5 +69,63 @@ func TestIsAce(t *testing.T) {
 	}
 	if IsAce(CreateCard(Diamonds, Ten)) {
 		t.Fatalf("IsAce reported non-ace")
+	}
+}
+
+// TestShuffleCards ensures shuffling retains the same cards in a different order
+func TestShuffleCards(t *testing.T) {
+	// create an ordered deck of cards
+	ordered := []Card{}
+	ForAllCards(func(card Card) {
+		ordered = append(ordered, card)
+	})
+
+	// copy and shuffle the deck
+	shuffled := make([]Card, len(ordered))
+	copy(shuffled, ordered)
+	rand.Seed(42)
+	ShuffleCards(shuffled)
+
+	// verify card count is unchanged
+	if len(shuffled) != len(ordered) {
+		t.Fatalf("shuffled deck length = %d want %d", len(shuffled), len(ordered))
+	}
+
+	// ensure all original cards are present
+	orig := make(map[Card]struct{}, len(ordered))
+	for _, c := range ordered {
+		orig[c] = struct{}{}
+	}
+	for _, c := range shuffled {
+		if _, ok := orig[c]; !ok {
+			t.Fatalf("shuffled deck contains unexpected card %v", c)
+		}
+		delete(orig, c)
+	}
+	if len(orig) != 0 {
+		t.Fatalf("shuffled deck missing cards: %v", orig)
+	}
+
+	// verify order differs; retry once if necessary
+	same := true
+	for i := range ordered {
+		if ordered[i] != shuffled[i] {
+			same = false
+			break
+		}
+	}
+	if same {
+		rand.Seed(99)
+		ShuffleCards(shuffled)
+		same = true
+		for i := range ordered {
+			if ordered[i] != shuffled[i] {
+				same = false
+				break
+			}
+		}
+		if same {
+			t.Fatalf("shuffle did not change order")
+		}
 	}
 }
