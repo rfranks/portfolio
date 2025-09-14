@@ -41,15 +41,15 @@ describe("dataStore migrations", () => {
 
     importFromJson(JSON.stringify(legacySnapshot));
 
-    const messages = loadItem<any>("messages", MESSAGES_VERSION);
+    const messages = loadItem<unknown>("messages", MESSAGES_VERSION);
     expect(messages).toHaveLength(1);
     expect(messages[0].replies[0].body).toBe("thanks");
 
-    const offers = loadItem<any>("offers", OFFERS_VERSION);
+    const offers = loadItem<unknown>("offers", OFFERS_VERSION);
     expect(offers).toHaveLength(1);
     expect(offers[0].compensation[0].notes).toBe("100k");
 
-    const apps = loadItem<any>("jobApplications", APPLICATIONS_VERSION);
+    const apps = loadItem<unknown>("jobApplications", APPLICATIONS_VERSION);
     expect(apps).toHaveLength(1);
     expect(apps[0].role.title).toBe("Engineer");
   });

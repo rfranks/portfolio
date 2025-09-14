@@ -19,5 +19,8 @@ const localStorageMock = {
   },
 };
 
-(global as any).localStorage = localStorageMock;
-(global as any).window = { localStorage: localStorageMock };
+(globalThis as { localStorage?: typeof localStorageMock }).localStorage =
+  localStorageMock;
+(globalThis as { window?: { localStorage: typeof localStorageMock } }).window = {
+  localStorage: localStorageMock,
+};
