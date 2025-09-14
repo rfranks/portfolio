@@ -2,7 +2,7 @@ import { setOpenAIKey, hasOpenAIKey, autoReply, AutoReplyMessage } from "../../u
 
 describe("autoReply utilities", () => {
   beforeEach(() => {
-    (global as any).fetch = jest.fn();
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn();
     setOpenAIKey("");
   });
 
