@@ -13,6 +13,7 @@ import {
 import { filterByTag, filterByText } from "@/utils/search";
 
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
+import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
 
 interface StoredResume {
@@ -119,6 +120,17 @@ export default function ResumeManager() {
                 <Chip key={tag} label={tag} sx={{ mb: 1 }} />
               ))}
             </Stack>
+            <Button
+              size="small"
+              sx={{ mt: 1 }}
+              onClick={() => {
+                const temp = document.createElement("div");
+                temp.textContent = resume.content;
+                exportElementToPdf(temp, `${resume.id}.pdf`);
+              }}
+            >
+              Export
+            </Button>
           </Box>
         ))}
       </Stack>

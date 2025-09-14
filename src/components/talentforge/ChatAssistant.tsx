@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -13,6 +13,7 @@ import {
 
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
+import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
 import { ChatMessage } from "@/types/talentforge/types";
 
@@ -20,6 +21,7 @@ export default function ChatAssistant() {
   const [selectedPrompt, setSelectedPrompt] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<(ChatMessage | null)[]>([]);
   const [openKeyModal, setOpenKeyModal] = useState(false);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const handleChange = (event: SelectChangeEvent) => {
     setSelectedPrompt(event.target.value as string);
@@ -73,7 +75,17 @@ export default function ChatAssistant() {
         >
           Send
         </Button>
-        <Stack spacing={1}>
+        <Button
+          variant="outlined"
+          onClick={() =>
+            chatRef.current &&
+            exportElementToPdf(chatRef.current, "chat-history.pdf")
+          }
+          disabled={chatHistory.length === 0}
+        >
+          Export
+        </Button>
+        <Stack spacing={1} ref={chatRef}>
           {chatHistory.map(
             (chat, index) =>
               chat && (
