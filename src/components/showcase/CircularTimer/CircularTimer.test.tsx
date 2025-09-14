@@ -1,4 +1,4 @@
-// src/components/CircularTimer.test.tsx
+// src/components/showcase/CircularTimer/CircularTimer.test.tsx
 import React from "react";
 import { render, screen, act, cleanup } from "@testing-library/react";
 import CircularTimer from "../CircularTimer";
