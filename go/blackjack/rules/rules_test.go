@@ -43,20 +43,20 @@ func CardsAreOrdered(hand player.Hand, acesLow bool) bool {
 	return ordered
 }
 
-func suitesAreEqual(hand player.Hand) bool {
-	suitesAreEqual := true
+func suitsAreEqual(hand player.Hand) bool {
+	suitsAreEqual := true
 	for i := 0; i < len(hand.Cards); i++ {
 		if i == 0 {
 			continue
 		}
 
-		suitesAreEqual = suitesAreEqual && hand.Cards[i].Suite == hand.Cards[i-1].Suite
-		if !suitesAreEqual {
+		suitsAreEqual = suitsAreEqual && hand.Cards[i].Suite == hand.Cards[i-1].Suite
+		if !suitsAreEqual {
 			return false
 		}
 	}
 
-	return suitesAreEqual
+	return suitsAreEqual
 }
 
 func TestCanDoubleDown(t *testing.T) {
@@ -645,8 +645,8 @@ func TestIsFlush(t *testing.T) {
 			t.Logf(`rules.IsFlush(%s) = %t [pass]`, player.HandToString(hand, *useGlyphs, colorTerminal), rules.IsFlush(hand))
 		}
 
-		if rules.IsFlush(hand) && !suitesAreEqual(hand) {
-			t.Fatalf(`rules.IsFlush(%s) = %t [fail], want match for %t (Suites do not match)`, player.HandToString(hand, *useGlyphs, colorTerminal), rules.IsFlush(hand), suitesAreEqual(hand))
+		if rules.IsFlush(hand) && !suitsAreEqual(hand) {
+			t.Fatalf(`rules.IsFlush(%s) = %t [fail], want match for %t (Suits do not match)`, player.HandToString(hand, *useGlyphs, colorTerminal), rules.IsFlush(hand), suitsAreEqual(hand))
 		} else {
 			t.Logf(`rules.IsFlush(%s) = %t [pass]`, player.HandToString(hand, *useGlyphs, colorTerminal), rules.IsFlush(hand))
 		}

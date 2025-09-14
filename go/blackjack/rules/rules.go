@@ -479,15 +479,15 @@ func IsFlush(hand player.Hand) bool {
 		return false
 	}
 
-	var suite cards.CardSuite
+	var suit cards.CardSuit
 	isFlush := true
 
 	for i := 0; i < len(hand.Cards); i++ {
 		card := hand.Cards[i]
 		if i == 0 {
-			suite = card.Suite
+			suit = card.Suite
 		}
-		isFlush = isFlush && card.Suite == suite
+		isFlush = isFlush && card.Suite == suit
 	}
 
 	return isFlush
