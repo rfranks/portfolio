@@ -28,8 +28,6 @@ interface ConnectorMessage {
   content: string;
   status: "unread" | "read";
 }
-
-import { autoReply } from "@/utils/autoReply";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import { Message } from "@/utils/talentforge/dataStore";
 import { v4 as uuidv4 } from "uuid";
