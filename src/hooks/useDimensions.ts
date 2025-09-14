@@ -42,10 +42,14 @@ export function useDimensions(
   const theme = useTheme();
 
   useEffect(() => {
+    if (!ref || !ref.current) {
+      return;
+    }
+
     const getDimensions = (): Dimensions => {
       const dimensions = {
-        width: (ref && ref.current && ref.current.offsetWidth) || 0,
-        height: (ref && ref.current && ref.current.offsetHeight) || 0,
+        width: ref.current?.offsetWidth || 0,
+        height: ref.current?.offsetHeight || 0,
         breakpoint: "xs" as Breakpoint,
       };
 
@@ -72,29 +76,26 @@ export function useDimensions(
 
     let interval: ReturnType<typeof setInterval> | null = null;
 
-    // set the initial dimensions if ref is defined
-    if (ref && ref.current) {
-      const dimensions = getDimensions();
-      setDimensions(dimensions);
+    const dimensions = getDimensions();
+    setDimensions(dimensions);
 
-      if (dimensions.height === 0 || dimensions.width === 0) {
-        // if the element is not visible, or has not rendered content yet,
-        // we need to wait for the element to become visible or render content
-        // before we can get the dimensions
-        interval = setInterval(() => {
-          if (
-            ref.current &&
-            ref.current.offsetHeight > 0 &&
-            ref.current.offsetWidth > 0
-          ) {
-            if (interval) {
-              clearInterval(interval);
-              interval = null;
-            }
-            handleResize();
+    if (dimensions.height === 0 || dimensions.width === 0) {
+      // if the element is not visible, or has not rendered content yet,
+      // we need to wait for the element to become visible or render content
+      // before we can get the dimensions
+      interval = setInterval(() => {
+        if (
+          ref.current &&
+          ref.current.offsetHeight > 0 &&
+          ref.current.offsetWidth > 0
+        ) {
+          if (interval) {
+            clearInterval(interval);
+            interval = null;
           }
-        }, 15);
-      }
+          handleResize();
+        }
+      }, 15);
     }
 
     // update the dimensions on window resize
