@@ -1,8 +1,13 @@
 "use client";
 
+import TalentForgeLayout from "../layout";
 import ResumeManager from "@/components/talentforge/ResumeManager";
 
 export default function ResumesPage() {
-  return <ResumeManager />;
+  return (
+    <TalentForgeLayout>
+      <ResumeManager />
+    </TalentForgeLayout>
+  );
 }
 
