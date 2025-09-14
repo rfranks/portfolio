@@ -26,6 +26,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import Markdown from "react-markdown";
 import type { ApplicationStatus } from "@/types/talentforge/job";
 import type { JobApplication, ResumeEntry } from "@/utils/talentforge/dataStore";
 import {
@@ -543,10 +544,9 @@ export default function ApplicationBoard() {
                     p: 1.5,
                     borderRadius: 1,
                     maxWidth: "100%",
-                    whiteSpace: "pre-wrap",
                   }}
                 >
-                  {m.text}
+                  <Markdown>{m.text}</Markdown>
                 </Box>
               ))}
               {drawerMode === "resumeCompare" && !drawerLoading && (
