@@ -9,7 +9,17 @@ import {
   clearOnboardingStep,
 } from "@/utils/talentforge/dataStore";
 
-const steps = ["Profile Info", "Upload Resume", "Connect Accounts", "Finish"];
+import KeyEntryStep from "./onboarding/KeyEntryStep";
+import ResumeImportStep from "./onboarding/ResumeImportStep";
+import ConnectorMockStep from "./onboarding/ConnectorMockStep";
+import GoalSelectionStep from "./onboarding/GoalSelectionStep";
+
+const steps = [
+  "Enter Key",
+  "Import Resume",
+  "Connect Accounts",
+  "Select Goal",
+];
 
 export default function OnboardingStepper() {
   const [activeStep, setActiveStep] = useState(0);
@@ -35,9 +45,24 @@ export default function OnboardingStepper() {
     clearOnboardingStep();
   };
 
+  const renderStep = () => {
+    switch (activeStep) {
+      case 0:
+        return <KeyEntryStep onNext={handleNext} />;
+      case 1:
+        return <ResumeImportStep onNext={handleNext} />;
+      case 2:
+        return <ConnectorMockStep onNext={handleNext} />;
+      case 3:
+        return <GoalSelectionStep onFinish={handleNext} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <Box>
-      <Stepper activeStep={activeStep} alternativeLabel>
+      <Stepper activeStep={activeStep} alternativeLabel aria-label="onboarding steps">
         {steps.map((label) => (
           <Step key={label}>
             <StepLabel>{label}</StepLabel>
@@ -46,22 +71,19 @@ export default function OnboardingStepper() {
       </Stepper>
       {activeStep === steps.length ? (
         <Box sx={{ mt: 2 }}>
-          <Typography>All steps completed - you&apos;re finished</Typography>
-          <Button sx={{ mt: 1 }} onClick={handleReset}>
+          <Typography>All steps completed - you're finished</Typography>
+          <Button sx={{ mt: 1 }} onClick={handleReset} aria-label="reset onboarding">
             Reset
           </Button>
         </Box>
       ) : (
         <Box sx={{ mt: 2 }}>
-          <Typography sx={{ mb: 1 }}>{steps[activeStep]}</Typography>
-          <Box>
-            <Button disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
+          {renderStep()}
+          {activeStep > 0 && (
+            <Button onClick={handleBack} sx={{ mt: 2 }} aria-label="back">
               Back
             </Button>
-            <Button variant="contained" onClick={handleNext}>
-              {activeStep === steps.length - 1 ? "Finish" : "Next"}
-            </Button>
-          </Box>
+          )}
         </Box>
       )}
     </Box>

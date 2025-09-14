@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import { getOffers, type Offer } from "@/utils/talentforge/dataStore";
 import { exportElementToPdf } from "@/utils/pdfExport";
+import EmptyState from "../EmptyState";
 
 interface OfferListProps {
   refreshKey?: number;
@@ -71,28 +72,32 @@ export default function OfferList({ refreshKey }: OfferListProps) {
 
   return (
     <Box>
-      <List>
-        {offers.map((offer, index) => (
-          <ListItem
-            key={offer.id}
-            button
-            onClick={() => toggleSelect(offer.id)}
-          >
-            <ListItemIcon>
-              <Checkbox edge="start" checked={selected.has(offer.id)} />
-            </ListItemIcon>
-            <ListItemText
-              primary={`Offer ${index + 1}`}
-              secondary={
-                offer.summary ||
-                offer.compensation
-                  .map((c) => `${c.type}: ${c.amount}`)
-                  .join(", ")
-              }
-            />
-          </ListItem>
-        ))}
-      </List>
+      {offers.length === 0 ? (
+        <EmptyState text="No offers yet. Track offers to compare compensation." />
+      ) : (
+        <List aria-label="offers">
+          {offers.map((offer, index) => (
+            <ListItem
+              key={offer.id}
+              button
+              onClick={() => toggleSelect(offer.id)}
+            >
+              <ListItemIcon>
+                <Checkbox edge="start" checked={selected.has(offer.id)} />
+              </ListItemIcon>
+              <ListItemText
+                primary={`Offer ${index + 1}`}
+                secondary={
+                  offer.summary ||
+                  offer.compensation
+                    .map((c) => `${c.type}: ${c.amount}`)
+                    .join(", ")
+                }
+              />
+            </ListItem>
+          ))}
+        </List>
+      )}
       {selectedOffers.length > 0 && (
         <Box sx={{ mt: 2 }}>
           <TableContainer component={Paper} sx={{ mb: 2 }}>
