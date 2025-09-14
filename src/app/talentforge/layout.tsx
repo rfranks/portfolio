@@ -1,51 +1,47 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Link from 'next/link';
-import Box from '@mui/material/Box';
-import CssBaseline from '@mui/material/CssBaseline';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import { ThemeProvider } from '@mui/material/styles';
-import talentforgeTheme from '@/themes/talentforgeTheme';
-import { TalentForgeDataProvider } from '@/contexts/TalentForgeDataContext';
+import * as React from "react";
+import { CssBaseline, PaletteMode, ThemeProvider, useMediaQuery } from "@mui/material";
+import LayoutShell from "@/components/talentforge/LayoutShell";
+import getTalentforgeTheme from "@/themes/talentforgeTheme";
+import { TalentForgeDataProvider } from "@/contexts/TalentForgeDataContext";
 
 export default function TalentForgeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+  const [mode, setMode] = React.useState<PaletteMode>(
+    prefersDarkMode ? "dark" : "light"
+  );
+
+  const theme = React.useMemo(() => getTalentforgeTheme(mode), [mode]);
+
+  const toggleColorMode = React.useCallback(() => {
+    setMode((prev) => (prev === "light" ? "dark" : "light"));
+  }, []);
+
   const navItems = [
-    { label: 'Dashboard', href: '/talentforge' },
-    { label: 'Applications', href: '/talentforge/applications' },
-    { label: 'Resumes', href: '/talentforge/resumes' },
-    { label: 'Offers', href: '/talentforge/offers' },
-    { label: 'Inbox', href: '/talentforge/inbox' },
-    { label: 'Settings', href: '/talentforge/settings' },
+    { label: "Dashboard", href: "/talentforge" },
+    { label: "Applications", href: "/talentforge/applications" },
+    { label: "Resumes", href: "/talentforge/resumes" },
+    { label: "Offers", href: "/talentforge/offers" },
+    { label: "Inbox", href: "/talentforge/inbox" },
+    { label: "Settings", href: "/talentforge/settings" },
   ];
 
   return (
     <TalentForgeDataProvider>
-      <ThemeProvider theme={talentforgeTheme}>
+      <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Box sx={{ display: 'flex' }}>
-          <Box component="nav" sx={{ width: 240, flexShrink: 0 }}>
-            <List>
-              {navItems.map(({ label, href }) => (
-                <ListItem key={label} disablePadding>
-                  <ListItemButton component={Link} href={href}>
-                    <ListItemText primary={label} />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-          <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-            {children}
-          </Box>
-        </Box>
+        <LayoutShell
+          navItems={navItems}
+          mode={mode}
+          toggleColorMode={toggleColorMode}
+        >
+          {children}
+        </LayoutShell>
       </ThemeProvider>
     </TalentForgeDataProvider>
   );
