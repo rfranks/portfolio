@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { v4 as uuid } from "uuid";
 import {
   Box,
@@ -11,6 +11,7 @@ import {
 import {
   addOffer,
   updateOffer,
+  deleteOffer,
   type Offer,
 } from "@/utils/talentforge/dataStore";
 import type { ApplicationRecord, OfferComp } from "@/types";
@@ -20,29 +21,53 @@ interface OfferDetailProps {
   onSave?: () => void;
 }
 
-const getAmount = (offer: Offer | undefined, type: string): string => {
-  return (
-    offer?.compensation.find((c) => c.type === type)?.amount.toString() || ""
-  );
-};
+const defaultComp: OfferComp[] = [
+  { type: "salary", amount: 0 },
+  { type: "bonus", amount: 0 },
+  { type: "equity", amount: 0 },
+];
 
 export default function OfferDetail({ offer, onSave }: OfferDetailProps) {
-  const [salary, setSalary] = useState(getAmount(offer, "salary"));
-  const [bonus, setBonus] = useState(getAmount(offer, "bonus"));
-  const [equity, setEquity] = useState(getAmount(offer, "equity"));
+  const [compensation, setCompensation] = useState<OfferComp[]>(
+    offer?.compensation ?? defaultComp,
+  );
   const [summary, setSummary] = useState(offer?.summary || "");
 
-  const handleSave = () => {
-    const compensation: OfferComp[] = [
-      { type: "salary", amount: parseFloat(salary) || 0 },
-      { type: "bonus", amount: parseFloat(bonus) || 0 },
-      { type: "equity", amount: parseFloat(equity) || 0 },
-    ];
+  useEffect(() => {
+    setCompensation(offer?.compensation ?? defaultComp);
+    setSummary(offer?.summary || "");
+  }, [offer]);
 
+  const handleCompChange = (
+    index: number,
+    key: "type" | "amount",
+    value: string,
+  ) => {
+    setCompensation((prev) => {
+      const next = [...prev];
+      if (key === "amount") {
+        next[index] = { ...next[index], amount: parseFloat(value) || 0 };
+      } else {
+        next[index] = { ...next[index], type: value };
+      }
+      return next;
+    });
+  };
+
+  const addCompItem = () => {
+    setCompensation((prev) => [...prev, { type: "", amount: 0 }]);
+  };
+
+  const removeCompItem = (index: number) => {
+    setCompensation((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSave = () => {
+    const filtered = compensation.filter((c) => c.type.trim() !== "");
     const newOffer: Offer = {
       id: offer?.id || uuid(),
       application: offer?.application || ({} as ApplicationRecord),
-      compensation,
+      compensation: filtered,
       summary,
     };
 
@@ -54,27 +79,38 @@ export default function OfferDetail({ offer, onSave }: OfferDetailProps) {
     onSave?.();
   };
 
+  const handleDelete = () => {
+    if (!offer) return;
+    deleteOffer(offer.id);
+    onSave?.();
+  };
+
   return (
     <Box sx={{ mb: 4 }}>
       <Stack spacing={2}>
-        <TextField
-          label="Salary"
-          type="number"
-          value={salary}
-          onChange={(e) => setSalary(e.target.value)}
-        />
-        <TextField
-          label="Bonus"
-          type="number"
-          value={bonus}
-          onChange={(e) => setBonus(e.target.value)}
-        />
-        <TextField
-          label="Equity"
-          type="number"
-          value={equity}
-          onChange={(e) => setEquity(e.target.value)}
-        />
+        {compensation.map((comp, index) => (
+          <Stack key={index} direction="row" spacing={1}>
+            <TextField
+              label="Type"
+              value={comp.type}
+              onChange={(e) =>
+                handleCompChange(index, "type", e.target.value)
+              }
+            />
+            <TextField
+              label="Amount"
+              type="number"
+              value={comp.amount}
+              onChange={(e) =>
+                handleCompChange(index, "amount", e.target.value)
+              }
+            />
+            <Button color="error" onClick={() => removeCompItem(index)}>
+              Remove
+            </Button>
+          </Stack>
+        ))}
+        <Button onClick={addCompItem}>Add Compensation</Button>
         <TextField
           label="Notes"
           multiline
@@ -82,9 +118,16 @@ export default function OfferDetail({ offer, onSave }: OfferDetailProps) {
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
         />
-        <Button variant="contained" onClick={handleSave}>
-          Save Offer
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <Button variant="contained" onClick={handleSave}>
+            Save Offer
+          </Button>
+          {offer && (
+            <Button color="error" onClick={handleDelete}>
+              Delete
+            </Button>
+          )}
+        </Stack>
       </Stack>
     </Box>
   );
