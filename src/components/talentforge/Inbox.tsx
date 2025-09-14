@@ -31,6 +31,7 @@ import { v4 as uuidv4 } from "uuid";
 import PromptSelector from "./PromptSelector";
 import Tile from "./promptTiles/Tile";
 import { PROMPT_TILES } from "@/consts/promptTiles";
+import EmptyState from "./EmptyState";
 
 export default function Inbox() {
   const data = useTalentForgeData();
@@ -134,7 +135,12 @@ export default function Inbox() {
         <Box sx={{ width: 300 }}>
           <Stack spacing={2}>
             <Typography variant="h5">Inbox</Typography>
-            <Select value={filter} onChange={handleFilterChange} sx={{ maxWidth: 200 }}>
+            <Select
+              value={filter}
+              onChange={handleFilterChange}
+              sx={{ maxWidth: 200 }}
+              aria-label="filter threads"
+            >
               <MenuItem value="all">All</MenuItem>
               <MenuItem value="unread">Unread</MenuItem>
               <MenuItem value="read">Read</MenuItem>
@@ -145,25 +151,35 @@ export default function Inbox() {
               onChange={(e) => setSearch(e.target.value)}
               sx={{ maxWidth: 300 }}
             />
-            <List>
-              {filteredThreads.map((message) => (
-                <ListItem
-                  key={message.id}
-                  button
-                  selected={selectedId === message.id}
-                  onClick={() => handleSelectThread(message)}
-                >
-                  <ListItemText
-                    primary={
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        {message.connector}
-                      </Typography>
-                    }
-                    secondary={message.body}
-                  />
-                </ListItem>
-              ))}
-            </List>
+            {filteredThreads.length === 0 ? (
+              <EmptyState
+                imgSrc="/images/empty-state.svg"
+                alt="No messages illustration"
+                message="No messages"
+                helperText="Recruiter messages will appear here."
+              />
+            ) : (
+              <List aria-label="message threads">
+                {filteredThreads.map((message) => (
+                  <ListItem
+                    key={message.id}
+                    button
+                    selected={selectedId === message.id}
+                    onClick={() => handleSelectThread(message)}
+                    aria-label={`message from ${message.connector}`}
+                  >
+                    <ListItemText
+                      primary={
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {message.connector}
+                        </Typography>
+                      }
+                      secondary={message.body}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            )}
           </Stack>
         </Box>
         <Box sx={{ flexGrow: 1 }}>

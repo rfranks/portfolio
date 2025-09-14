@@ -12,6 +12,7 @@ import {
 import OpenAiKeyModal from "./OpenAiKeyModal";
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
+import EmptyState from "./EmptyState";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -82,6 +83,14 @@ export default function JobDescriptionRisk() {
         <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
           <CircularProgress />
         </Box>
+      )}
+      {!analysis && !loading && (
+        <EmptyState
+          imgSrc="/images/empty-state.svg"
+          alt="No analysis illustration"
+          message="No analysis yet"
+          helperText="Paste a job description and click analyze."
+        />
       )}
       {analysis && (
         <Box sx={{ mt: 2 }}>
