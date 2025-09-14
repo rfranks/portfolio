@@ -70,14 +70,16 @@ export function loadDemoData(): void {
 }
 
 /**
- * Clear demo data from the store, resetting to an empty state.
+ * Clear demo data from localStorage.
+ * Removes demo user, resumes, offers, and job applications.
  */
 export function clearDemoData(): void {
-  // Remove user profile
   if (typeof window !== "undefined") {
     window.localStorage.removeItem("userProfile");
     window.localStorage.removeItem("resumes");
     window.localStorage.removeItem("jobApplications");
+    window.localStorage.removeItem("offers");
+    window.localStorage.removeItem("tf_demo_data_inserted");
   }
 }
 
