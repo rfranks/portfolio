@@ -4,7 +4,7 @@ Study the asset images available under the folder `public/assets/fish/` to use a
 
 Skeleton fish take 2 clicks(shots) to kill.  Use `public/assets/fish/Sample.png` to "see" the layout of the game.  
 
-The game has a timer using make and drawTextLabel in utils built from assets for TextLabel.imgs in `public/assets/fish/PNG/HUDText`.  In the end, the game all comes down to accuracy of your clicks/shots.  In the end show a accuracy % at the end of the round, that counts upward using makeTextLabel/drawTextLabel.  Clicking on accuracy starts a new round of zombiefish.  
+The game has a timer using make and drawTextLabel in utils built from assets for TextLabel.imgs in `public/assets/fish/PNG/HUDText`.  In the end, the game all comes down to accuracy of your clicks/shots.  In the end show an accuracy % at the end of the round, that counts upward using makeTextLabel/drawTextLabel.  Clicking on accuracy starts a new round of zombiefish.
 
 Fish should spawn randomly off-screen and swim, ambulating along in a small group of the same kind if basic fish, not for special fish. Fish should swim at all sorts of angles and velocities.
 
