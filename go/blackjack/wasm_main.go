@@ -118,7 +118,7 @@ func Start(this js.Value, args []js.Value) any {
 					if cardPlayer.WinStreak > 6 {
 						return cardPlayer.Stack
 					} else if cardPlayer.WinStreak > 3 {
-						return utils.Min(cardPlayer.Stack, (2^cardPlayer.WinStreak%3)*cfg.MinWager)
+						return utils.Min(cardPlayer.Stack, (1<<(cardPlayer.WinStreak%3))*cfg.MinWager)
 					}
 					return cfg.MinWager
 				}
