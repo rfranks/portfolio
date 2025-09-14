@@ -31,6 +31,18 @@ export const hasOpenAIKey = () => {
   return false;
 };
 
+export const hasValidOpenAIKey = async () => {
+  if (!hasOpenAIKey()) return false;
+  try {
+    const res = await fetch("https://api.openai.com/v1/models", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+};
+
 const requestCompletion = async (systemMessage: string) => {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
