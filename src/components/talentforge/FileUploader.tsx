@@ -140,6 +140,18 @@ export default function FileUploader(props: FileUploaderProps) {
           } else if (variant === "dataUri") {
             reader.readAsDataURL(file);
           }
+        } else if (validFiles && validFiles.length > 0) {
+          onChange?.(
+            outputType === "files"
+              ? validFiles
+              : outputType === "content"
+              ? ""
+              : {
+                  filename: validFiles[0]?.name || "",
+                  type: validFiles[0]?.type || "",
+                  content: "",
+                }
+          );
         }
         // field.onChange(validFiles);
       }
