@@ -169,7 +169,12 @@ export default function ResumeManager() {
           </Typography>
         </Box>
       )}
-      <Stack spacing={2} sx={{ mt: 4 }}>
+      <Stack
+        spacing={2}
+        sx={{ mt: 4 }}
+        aria-busy={loadingResumes}
+        aria-label={loadingResumes ? "Loading resumes" : undefined}
+      >
         <TextField
           label="Filter by text"
           value={searchText}

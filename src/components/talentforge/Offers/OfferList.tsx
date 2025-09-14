@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Checkbox,
+  Skeleton,
   List,
   ListItem,
   ListItemButton,
@@ -30,9 +31,11 @@ export default function OfferList({ refreshKey }: OfferListProps) {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const markdownRef = useRef<HTMLPreElement>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setOffers(getOffers());
+    setLoading(false);
   }, [refreshKey]);
 
   const toggleSelect = (id: string) => {
@@ -71,6 +74,20 @@ export default function OfferList({ refreshKey }: OfferListProps) {
     }
   };
 
+  if (loading) {
+    return (
+      <List aria-label="Loading offers" aria-busy="true">
+        {Array.from({ length: 3 }).map((_, idx) => (
+          <ListItem key={idx}>
+            <ListItemText>
+              <Skeleton variant="rectangular" height={40} />
+            </ListItemText>
+          </ListItem>
+        ))}
+      </List>
+    );
+  }
+
   if (offers.length === 0) {
     return (
       <EmptyState
@@ -81,7 +98,7 @@ export default function OfferList({ refreshKey }: OfferListProps) {
   }
 
   return (
-    <Box>
+    <Box aria-busy={loading}>
       <List aria-label="Offer list">
         {offers.map((offer, index) => (
           <ListItem disablePadding key={offer.id}>

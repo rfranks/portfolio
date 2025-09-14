@@ -14,6 +14,7 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -46,10 +47,12 @@ export default function Inbox() {
   const [recruiters, setRecruiters] = useState<RecruiterEntry[]>([]);
   const [aiThread, setAiThread] = useState<string | null>(null);
   const [promptKey, setPromptKey] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setThreads(data.getThreads());
     setRecruiters(data.getRecruiters());
+    setLoading(false);
   }, [data]);
 
   const handleFilterChange = (event: SelectChangeEvent) => {
@@ -129,6 +132,16 @@ export default function Inbox() {
     }
     setAiThread(null);
   };
+
+  if (loading) {
+    return (
+      <Stack spacing={2} aria-label="Loading inbox" aria-busy="true">
+        {Array.from({ length: 3 }).map((_, idx) => (
+          <Skeleton key={idx} variant="rectangular" height={60} />
+        ))}
+      </Stack>
+    );
+  }
 
   if (threads.length === 0) {
     return (
