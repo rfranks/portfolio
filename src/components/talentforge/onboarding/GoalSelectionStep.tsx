@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button, Checkbox, FormControlLabel, Stack } from "@mui/material";
-import FocusTrap from "@mui/base/FocusTrap";
 
 interface StepProps {
   onNext: () => void;
@@ -25,8 +24,7 @@ export default function GoalSelectionStep({ onNext, onBack }: StepProps) {
   const hasGoal = Object.values(goals).some(Boolean);
 
   return (
-    <FocusTrap open>
-      <Stack spacing={2} aria-label="Select goals">
+    <Stack spacing={2} aria-label="Select goals">
         <FormControlLabel
           control={
             <Checkbox
@@ -73,7 +71,6 @@ export default function GoalSelectionStep({ onNext, onBack }: StepProps) {
           </Button>
         </Stack>
       </Stack>
-    </FocusTrap>
   );
 }
 
