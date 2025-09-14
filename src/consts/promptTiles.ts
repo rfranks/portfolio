@@ -56,5 +56,11 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "From the following job description, list the key job requirements as bullet points:\n\n{{jobDescription}}",
     inputs: ["jobDescription"],
   },
+  negotiateOffer: {
+    ...BASE_TILES.negotiateOffer,
+    fullPrompt:
+      "Compare the offer letter to the current compensation and summarize key differences. Then draft professional replies for email, LinkedIn, and Indeed. Respond in JSON with keys email, linkedin, indeed.",
+    inputs: ["offerLetter", "currentComp"],
+  },
 };
 

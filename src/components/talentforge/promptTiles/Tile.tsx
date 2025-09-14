@@ -9,6 +9,8 @@ import {
   Typography,
   IconButton,
   Tooltip,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { ContentCopy } from "@mui/icons-material";
 import Markdown from "react-markdown";
@@ -42,6 +44,11 @@ export default function Tile({
   const [loading, setLoading] = useState(false);
   const [openKeyModal, setOpenKeyModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [drafts, setDrafts] = useState<
+    | { email: string; linkedin: string; indeed: string }
+    | null
+  >(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   const handleChange = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -71,6 +78,38 @@ export default function Tile({
           return;
         }
         context = `Job Description:\n${values["jobDescription"]}\n\nResume:\n${resume.content}`;
+      }
+
+      if (id === "negotiateOffer") {
+        setDrafts(null);
+        setActiveTab(0);
+        const context = `Offer Letter:\n${values["offerLetter"] || ""}\n\nCurrent Compensation:\n${values["currentComp"] || ""}`;
+        const res = await askOpenAI({
+          context,
+          user: prompt,
+          system:
+            "You analyze offers and produce structured negotiation drafts.",
+          returnFirstResponse: true,
+          chatHistory: [],
+        });
+        const message = res?.message || "";
+        try {
+          const parsed = JSON.parse(message) as {
+            email?: string;
+            linkedin?: string;
+            indeed?: string;
+          };
+          setDrafts({
+            email: parsed.email || "",
+            linkedin: parsed.linkedin || "",
+            indeed: parsed.indeed || "",
+          });
+        } catch {
+          setDrafts({ email: message, linkedin: "", indeed: "" });
+        }
+        onResponse?.(message);
+        onInsert?.(message);
+        return;
       }
 
       const res = await askOpenAI({
@@ -158,9 +197,44 @@ export default function Tile({
           ),
         )}
         <Button variant="contained" onClick={handleRun} disabled={loading}>
-          {loading ? "Running..." : "Run"}
+        {loading ? "Running..." : "Run"}
         </Button>
-        {response && (
+        {id === "negotiateOffer" && drafts && (
+          <Box>
+            <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}>
+              <Tab label="Email" />
+              <Tab label="LinkedIn" />
+              <Tab label="Indeed" />
+            </Tabs>
+            <Box sx={{ mt: 2 }}>
+              <Box display="flex" justifyContent="flex-end">
+                {navigator.clipboard && (
+                  <Tooltip title="copy to clipboard" arrow>
+                    <IconButton
+                      aria-label="copy response to clipboard"
+                      onClick={() =>
+                        navigator.clipboard.writeText(
+                          activeTab === 0
+                            ? drafts.email
+                            : activeTab === 1
+                              ? drafts.linkedin
+                              : drafts.indeed,
+                        )
+                      }
+                      size="small"
+                    >
+                      <ContentCopy fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+              {activeTab === 0 && <Markdown>{drafts.email}</Markdown>}
+              {activeTab === 1 && <Markdown>{drafts.linkedin}</Markdown>}
+              {activeTab === 2 && <Markdown>{drafts.indeed}</Markdown>}
+            </Box>
+          </Box>
+        )}
+        {id !== "negotiateOffer" && response && (
           <>
             <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
               {response}
