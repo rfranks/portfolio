@@ -60,6 +60,8 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
       >
         <Container maxWidth="lg">
           <Toolbar
+            component="nav"
+            aria-label="main navigation"
             variant="regular"
             sx={(theme) => ({
               display: "flex",
@@ -152,6 +154,7 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
                 component="a"
                 href="/material-ui/getting-started/templates/sign-in/"
                 target="_blank"
+                aria-label="sign in"
               >
                 Sign in
               </Button>
@@ -162,6 +165,7 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
                 component="a"
                 href="/material-ui/getting-started/templates/sign-up/"
                 target="_blank"
+                aria-label="sign up"
               >
                 Sign up
               </Button>
@@ -221,6 +225,7 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
                       component="a"
                       href="/material-ui/getting-started/templates/sign-up/"
                       target="_blank"
+                      aria-label="sign up"
                       sx={{ width: "100%" }}
                     >
                       Sign up
@@ -233,6 +238,7 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
                       component="a"
                       href="/material-ui/getting-started/templates/sign-in/"
                       target="_blank"
+                      aria-label="sign in"
                       sx={{ width: "100%" }}
                     >
                       Sign in

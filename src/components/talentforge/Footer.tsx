@@ -179,6 +179,7 @@ export default function Footer() {
                 variant="contained"
                 color="primary"
                 sx={{ flexShrink: 0 }}
+                aria-label="subscribe to newsletter"
               >
                 Subscribe
               </Button>

@@ -64,6 +64,7 @@ export default function JobApplications() {
               size="small"
               value={app.status}
               onChange={(e) => handleStatusChange(app.id, e)}
+              aria-label="application status"
             >
               {STATUS_OPTIONS.map((status) => (
                 <MenuItem key={status} value={status}>

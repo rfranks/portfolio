@@ -350,6 +350,7 @@ export default function Hero() {
         <OutlinedInput
           ref={userQuestionInputRef}
           placeholder="Ask talentforge anything about your PDF..."
+          aria-label="user question input"
           fullWidth
           value={userQuestion}
           onChange={(event) => setUserQuestion(event.target.value)}
