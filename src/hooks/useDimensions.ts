@@ -5,6 +5,7 @@ import { Breakpoint, useTheme } from "@mui/material/styles";
 
 // utils
 import debounce from "lodash/debounce";
+import type { DebouncedFunc } from "lodash";
 
 /**
  * Dimensions of a component or element-its height, width, and breakpoint size.
@@ -63,7 +64,7 @@ export function useDimensions(
       return dimensions;
     };
 
-    const handleResize = debounce(() => {
+    const handleResize: DebouncedFunc<() => void> = debounce(() => {
       // updates the dimensions of the element on resize
       setDimensions(getDimensions());
     }, 100);
@@ -105,6 +106,7 @@ export function useDimensions(
     return () => {
       // remove the event listener during cleanup
       window.removeEventListener("resize", handleResize);
+      handleResize.cancel();
       if (interval) {
         clearInterval(interval);
       }
