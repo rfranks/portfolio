@@ -7,6 +7,12 @@ describe("promptMapper", () => {
     expect(getPromptFullText(label)).toBe(PROMPT_TEMPLATES[label].fullText);
   });
 
+  test("maps all labels to their full text", () => {
+    Object.entries(PROMPT_TEMPLATES).forEach(([label, { fullText }]) => {
+      expect(getPromptFullText(label)).toBe(fullText);
+    });
+  });
+
   test("returns undefined for unknown label", () => {
     expect(getPromptFullText("unknown")).toBeUndefined();
   });
