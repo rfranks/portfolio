@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import ChatAssistant from "./ChatAssistant";
+import { autoReply } from "@/utils/autoReply";
 
 interface ConnectorMessage {
   id: string;
@@ -48,6 +48,7 @@ const MOCK_MESSAGES: ConnectorMessage[] = [
 export default function Inbox() {
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   const handleFilterChange = (event: SelectChangeEvent) => {
     setFilter(event.target.value as "all" | "unread" | "read");
@@ -56,6 +57,18 @@ export default function Inbox() {
   const filteredMessages = MOCK_MESSAGES.filter(
     (message) => filter === "all" || message.status === filter,
   );
+
+  const handleAutoReply = async (message: ConnectorMessage) => {
+    const reply = await autoReply([
+      {
+        role: "system",
+        content:
+          "You are a helpful assistant crafting concise professional replies to incoming messages.",
+      },
+      { role: "user", content: message.content },
+    ]);
+    setDrafts((d) => ({ ...d, [message.id]: reply }));
+  };
 
   return (
     <Box>
@@ -95,11 +108,17 @@ export default function Inbox() {
                       multiline
                       rows={4}
                       fullWidth
+                      value={drafts[message.id] || ""}
+                      onChange={(e) =>
+                        setDrafts((d) => ({ ...d, [message.id]: e.target.value }))
+                      }
                     />
-                    <Typography variant="subtitle2">
-                      Draft with ChatAssistant
-                    </Typography>
-                    <ChatAssistant />
+                    <Button
+                      size="small"
+                      onClick={() => handleAutoReply(message)}
+                    >
+                      Generate Reply
+                    </Button>
                     <Button variant="contained">Send</Button>
                   </Stack>
                 )}
