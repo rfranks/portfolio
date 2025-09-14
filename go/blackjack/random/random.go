@@ -8,10 +8,8 @@ import (
 )
 
 func RandomCard() cards.Card {
-	value := cards.CardValues[rand.Intn(len(cards.CardValues))]
-	if value == cards.One {
-		value = cards.Ace
-	}
+	// Skip cards.One so each rank has equal probability
+	value := cards.CardValues[rand.Intn(len(cards.CardValues)-1)+1]
 	return cards.CreateCard(cards.Suites[rand.Intn(len(cards.Suites))], value)
 }
 
