@@ -30,7 +30,7 @@ export const PROTEINS = {
     polar: true,
   },
   N: {
-    abbrevName: "Asp",
+    abbrevName: "Asn",
     charCode: "N",
     charge: "neutral",
     fullName: "Asparagine",
