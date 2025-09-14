@@ -18,6 +18,8 @@ export type ApplicationStatus =
   | "rejected";
 
 export interface JobApplication extends JobListing {
+  /** Unique identifier for the job application */
+  id: string;
   /** Current status of the job application */
   status: ApplicationStatus;
 }

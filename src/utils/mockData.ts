@@ -1,4 +1,9 @@
-import { UserProfile, Resume, Offer } from "@/types/talentforge";
+import {
+  UserProfile,
+  Resume,
+  Offer,
+  JobApplication,
+} from "@/types/talentforge";
 
 // Sample resumes for demonstration purposes
 export const mockResumes: Resume[] = [
@@ -32,6 +37,28 @@ export const mockOffers: Offer[] = [
   },
 ];
 
+// Sample job applications for demonstration purposes
+export const mockApplications: JobApplication[] = [
+  {
+    id: "app-1",
+    title: "Frontend Developer",
+    company: "Acme Corp",
+    location: "Remote",
+    url: "https://example.com/jobs/frontend",
+    source: "linkedin",
+    status: "applied",
+  },
+  {
+    id: "app-2",
+    title: "Backend Engineer",
+    company: "Beta LLC",
+    location: "New York, NY",
+    url: "https://example.com/jobs/backend",
+    source: "indeed",
+    status: "interview",
+  },
+];
+
 // Sample user profile that references the above resumes
 export const mockUserProfile: UserProfile = {
   id: "user-1",
@@ -56,6 +83,7 @@ export function insertMockData(): void {
     localStorage.setItem("userProfile", JSON.stringify(mockUserProfile));
     localStorage.setItem("resumes", JSON.stringify(mockResumes));
     localStorage.setItem("offers", JSON.stringify(mockOffers));
+    localStorage.setItem("jobApplications", JSON.stringify(mockApplications));
     localStorage.setItem(DEMO_DATA_KEY, "true");
   } catch {
     // Ignore write errors (e.g., storage is unavailable)
