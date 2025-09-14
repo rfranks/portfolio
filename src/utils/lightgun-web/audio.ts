@@ -14,7 +14,10 @@ export const pauseAudio = (audioRef?: RefObject<HTMLAudioElement | null>) => {
  * Reset an audio element to the beginning and play it.
  *
  * @param audioRef React ref to the audio element.
- * @param options Optional loop/volume settings applied before playing.
+ * @param srcOrOptions Either the path to a new audio file that replaces the current
+ * audio source or an object with playback options (`loop` to repeat, `volume` 0-1).
+ * @param maybeOptions Playback options (`loop`, `volume`) applied when a source path is
+ * provided as the second argument.
  */
 export const rewindAndPlayAudio = (
   audioRef?: RefObject<HTMLAudioElement | null>,
