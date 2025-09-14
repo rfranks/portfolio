@@ -27,6 +27,7 @@ export default function TalentForgeLayout({
     { label: "Applications", href: "/talentforge/applications" },
     { label: "Resumes", href: "/talentforge/resumes" },
     { label: "Offers", href: "/talentforge/offers" },
+    { label: "Job Risks", href: "/talentforge/jobrisks" },
     { label: "Inbox", href: "/talentforge/inbox" },
     { label: "Settings", href: "/talentforge/settings" },
   ];

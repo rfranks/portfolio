@@ -44,6 +44,11 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Rewrite the job description to emphasize candidate requirements and key deliverables for internal sharing.",
   },
+  jobDescriptionRisk: {
+    displayText: "Job Description Risk",
+    fullText:
+      "Identify potential issues in this job description like unpaid overtime, vague responsibilities, or compliance red flags. Return JSON with a 'summary' and an 'issues' array of objects with 'severity' ('red' or 'yellow') and 'message'.",
+  },
   networkingOutreach: {
     displayText: "Networking Outreach",
     fullText:
