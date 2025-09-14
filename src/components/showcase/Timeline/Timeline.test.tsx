@@ -79,10 +79,8 @@ describe("Timeline component", () => {
     ];
     const { container } = renderWithTheme(<Timeline events={pendingEvents} />);
     const dot = container.querySelector(".MuiTimelineDot-root") as HTMLElement;
-    // actual computed style
-    const bg = window.getComputedStyle(dot).backgroundColor;
     // MUI grey.400 is rgb(189, 189, 189)
-    expect(bg).toBe("rgb(189, 189, 189)");
+    expect(dot).toHaveStyle({ backgroundColor: "rgb(189, 189, 189)" });
   });
 
   it("renders exactly n–1 connectors", () => {
