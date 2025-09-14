@@ -1,4 +1,4 @@
-import type { ApplicationStatus } from "./job";
+import type { ApplicationStatus, StatusChange } from "./job";
 
 export interface User {
   /** Unique identifier for the user. */
@@ -56,6 +56,8 @@ export interface ApplicationRecord {
   resumeVariant?: ResumeVariant;
   /** Current status of the application. */
   status: ApplicationStatus;
+  /** History of status changes for the application. */
+  history: StatusChange[];
   /** Recruiters associated with this application. */
   recruiters?: Recruiter[];
   /** Conversation threads about this application. */

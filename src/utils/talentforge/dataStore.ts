@@ -249,7 +249,14 @@ export function getJobApplications(): JobApplication[] {
   return load("applications", []);
 }
 export function addJobApplication(app: JobApplication): JobApplication[] {
-  const updated = [...getJobApplications(), app];
+  const withHistory = {
+    ...app,
+    history: [
+      ...(app.history ?? []),
+      { status: app.status, changedAt: new Date().toISOString() },
+    ],
+  } as JobApplication;
+  const updated = [...getJobApplications(), withHistory];
   save("applications", updated);
   return updated;
 }
@@ -257,9 +264,16 @@ export function updateJobApplicationStatus(
   id: string,
   status: ApplicationStatus,
 ): JobApplication[] {
-  const updated = getJobApplications().map((app) =>
-    app.id === id ? { ...app, status } : app,
-  );
+  const updated = getJobApplications().map((app) => {
+    if (app.id === id) {
+      const history = [
+        ...(app.history || []),
+        { status, changedAt: new Date().toISOString() },
+      ];
+      return { ...app, status, history };
+    }
+    return app;
+  });
   save("applications", updated);
   return updated;
 }

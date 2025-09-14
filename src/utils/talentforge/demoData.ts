@@ -49,6 +49,9 @@ export function getDemoData(): {
     role,
     resumeVariant: resume as ResumeVariant,
     status: "applied",
+    history: [
+      { status: "applied", changedAt: new Date().toISOString() },
+    ],
     recruiters: [],
     threads: [],
   };

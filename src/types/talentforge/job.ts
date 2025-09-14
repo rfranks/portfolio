@@ -17,9 +17,18 @@ export type ApplicationStatus =
   | "offer"
   | "rejected";
 
+export interface StatusChange {
+  /** Status the application transitioned to. */
+  status: ApplicationStatus;
+  /** ISO timestamp when the status changed. */
+  changedAt: string;
+}
+
 export interface JobApplication extends JobListing {
   /** Unique identifier for the job application */
   id: string;
   /** Current status of the job application */
   status: ApplicationStatus;
+  /** History of status changes for this application */
+  history: StatusChange[];
 }

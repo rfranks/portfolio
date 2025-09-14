@@ -16,6 +16,8 @@
     "@mui/icons-material": "^6.5.0",
     "@mui/lab": "^6.0.1-beta.36",
     "@mui/material": "^6.5.0",
+    "@dnd-kit/core": "^6.0.8",
+    "@dnd-kit/utilities": "^3.2.1",
     "bio-parsers": "^9.3.6",
     "dnaviz": "^1.1.1",
     "lodash": "^4.17.21",

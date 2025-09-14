@@ -47,6 +47,9 @@ export const mockApplications: JobApplication[] = [
     url: "https://example.com/jobs/frontend",
     source: "linkedin",
     status: "applied",
+    history: [
+      { status: "applied", changedAt: new Date().toISOString() },
+    ],
   },
   {
     id: "app-2",
@@ -56,6 +59,9 @@ export const mockApplications: JobApplication[] = [
     url: "https://example.com/jobs/backend",
     source: "indeed",
     status: "interview",
+    history: [
+      { status: "interview", changedAt: new Date().toISOString() },
+    ],
   },
 ];
 
