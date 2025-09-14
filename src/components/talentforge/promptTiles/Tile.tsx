@@ -115,15 +115,27 @@ export default function Tile({
       <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
       <Stack spacing={1}>
         <Typography variant="subtitle1">{display}</Typography>
-        {inputs.map((name) => (
-          <TextField
-            key={name}
-            label={name}
-            value={values[name] || ""}
-            onChange={(e) => handleChange(name, e.target.value)}
-            size="small"
-          />
-        ))}
+        {inputs.map((name) =>
+          name === "jobDescription" ? (
+            <TextField
+              key={name}
+              label={name}
+              value={values[name] || ""}
+              onChange={(e) => handleChange(name, e.target.value)}
+              multiline
+              minRows={4}
+              fullWidth
+            />
+          ) : (
+            <TextField
+              key={name}
+              label={name}
+              value={values[name] || ""}
+              onChange={(e) => handleChange(name, e.target.value)}
+              size="small"
+            />
+          ),
+        )}
         <Button variant="contained" onClick={handleRun} disabled={loading}>
           {loading ? "Running..." : "Run"}
         </Button>
