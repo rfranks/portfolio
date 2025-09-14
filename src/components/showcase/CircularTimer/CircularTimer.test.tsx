@@ -50,9 +50,23 @@ describe("<CircularTimer />", () => {
     const clearSpy = jest.spyOn(global, "clearInterval");
     const { unmount } = render(<CircularTimer />);
 
+    // advance once to update the label before unmounting
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    const label = screen.getByText("1 s");
+
     // we expect one timer was created; now unmount should clear it
     unmount();
     expect(clearSpy).toHaveBeenCalledTimes(1);
+
+    // advancing timers after unmount should not trigger clearInterval again
+    // or cause the label to update
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    expect(clearSpy).toHaveBeenCalledTimes(1);
+    expect(label.textContent).toBe("1 s");
 
     clearSpy.mockRestore();
   });
