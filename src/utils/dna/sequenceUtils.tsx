@@ -8,6 +8,8 @@ import {
 } from "@/types/dna/types";
 import { CODONS_TO_AMINO_ACIDS } from "@/consts/dna/consts";
 
+// Map each nucleotide base to a representative color for display purposes.
+// A -> lightblue, T -> lightyellow, G -> lightgreen, C -> lightpink, U -> violet.
 export function baseToColor(base: string): string {
   switch (base.toUpperCase()) {
     case "A":
@@ -19,7 +21,7 @@ export function baseToColor(base: string): string {
     case "C":
       return "lightpink";
     case "U":
-      return "lightpurple";
+      return "violet";
     default:
       return "white";
   }
