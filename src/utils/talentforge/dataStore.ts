@@ -87,6 +87,8 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   connectorTokens: 1,
 } as const;
 
+export const SNAPSHOT_VERSION = 2;
+
 function load<K extends keyof StoreSchema>(
   key: K,
   fallback: StoreSchema[K],
@@ -421,8 +423,21 @@ export function deleteConnectorToken(connector: string): void {
 }
 
 // Export / Import
+function migrateSnapshot(
+  fromVersion: number,
+  data: Record<string, unknown>,
+): Record<string, unknown> {
+  const migrated = { ...data };
+  if (fromVersion < 2) {
+    migrated[KEYS.connectorTokens] = migrated[KEYS.connectorTokens] || {};
+  }
+  return migrated;
+}
+
 export function exportToJson(): string {
-  if (typeof window === "undefined") return "{}";
+  if (typeof window === "undefined") {
+    return JSON.stringify({ version: SNAPSHOT_VERSION, data: {} });
+  }
   const data: Record<string, unknown> = {};
   for (const key of Object.values(KEYS)) {
     const raw = window.localStorage.getItem(key);
@@ -434,13 +449,32 @@ export function exportToJson(): string {
       }
     }
   }
-  return JSON.stringify(data, null, 2);
+  const payload = { version: SNAPSHOT_VERSION, data };
+  return JSON.stringify(payload, null, 2);
 }
 
 export function importFromJson(json: string): void {
   if (typeof window === "undefined") return;
   try {
-    const data = JSON.parse(json) as Record<string, unknown>;
+    const parsed = JSON.parse(json) as
+      | { version?: number; data?: Record<string, unknown> }
+      | Record<string, unknown>;
+    let version = 0;
+    let data: Record<string, unknown>;
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      "data" in parsed &&
+      "version" in parsed
+    ) {
+      version = typeof parsed.version === "number" ? parsed.version : 0;
+      data = (parsed as { data: Record<string, unknown> }).data;
+    } else {
+      data = parsed as Record<string, unknown>;
+    }
+    if (version < SNAPSHOT_VERSION) {
+      data = migrateSnapshot(version, data);
+    }
     const validKeys = Object.values(KEYS) as string[];
     for (const [key, value] of Object.entries(data)) {
       if (validKeys.includes(key)) {
