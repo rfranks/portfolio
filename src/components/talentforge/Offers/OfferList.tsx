@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import { getOffers, type Offer } from "@/utils/talentforge/dataStore";
 import { exportElementToPdf } from "@/utils/pdfExport";
+import EmptyState from "../EmptyState";
 
 interface OfferListProps {
   refreshKey?: number;
@@ -70,9 +71,18 @@ export default function OfferList({ refreshKey }: OfferListProps) {
     }
   };
 
+  if (offers.length === 0) {
+    return (
+      <EmptyState
+        message="No offers"
+        helperText="Save offer details to compare compensation."
+      />
+    );
+  }
+
   return (
     <Box>
-      <List>
+      <List aria-label="Offer list">
         {offers.map((offer, index) => (
           <ListItem disablePadding key={offer.id}>
             <ListItemButton onClick={() => toggleSelect(offer.id)}>
