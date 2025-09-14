@@ -25,9 +25,10 @@ import EmptyState from "../EmptyState";
 
 interface OfferListProps {
   refreshKey?: number;
+  onSelect?: (offer: Offer) => void;
 }
 
-export default function OfferList({ refreshKey }: OfferListProps) {
+export default function OfferList({ refreshKey, onSelect }: OfferListProps) {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const markdownRef = useRef<HTMLPreElement>(null);
@@ -101,7 +102,22 @@ export default function OfferList({ refreshKey }: OfferListProps) {
     <Box aria-busy={loading}>
       <List aria-label="Offer list">
         {offers.map((offer, index) => (
-          <ListItem disablePadding key={offer.id}>
+          <ListItem
+            disablePadding
+            key={offer.id}
+            secondaryAction={
+              onSelect && (
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect(offer);
+                  }}
+                >
+                  View
+                </Button>
+              )
+            }
+          >
             <ListItemButton onClick={() => toggleSelect(offer.id)}>
               <ListItemIcon>
                 <Checkbox edge="start" checked={selected.has(offer.id)} />
