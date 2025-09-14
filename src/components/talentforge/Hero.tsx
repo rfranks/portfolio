@@ -23,7 +23,12 @@ import {
   userQuestionPrompt,
 } from "@/consts/talentforge/consts";
 import { ChatMessage } from "@/types/talentforge/types";
-import { askOpenAI, pdfToMarkdown } from "@/utils/talentforge/utils";
+import {
+  askOpenAI,
+  pdfToMarkdown,
+  hasOpenAIKey,
+} from "@/utils/talentforge/utils";
+import OpenAiKeyModal from "./OpenAiKeyModal";
 
 import CircularProgressWithLabel from "./CircularProgressWithLabel";
 import FileUploader from "./FileUploader";
@@ -41,6 +46,7 @@ export default function Hero() {
   >(0);
   const [pdfProgress, setPdfProgress] = React.useState<number | null>(null);
   const [openTerms, setOpenTerms] = React.useState<boolean>(false);
+  const [openKeyModal, setOpenKeyModal] = React.useState(false);
   const setChatHistory = (newChatHistory: typeof chatHistory) => {
     setChatHistoryState(newChatHistory);
     setActiveQuestionIndex(null);
@@ -50,6 +56,10 @@ export default function Hero() {
   const userQuestionInputRef = React.useRef<HTMLInputElement>(null);
 
   const askUserQuestion = async () => {
+    if (!hasOpenAIKey()) {
+      setOpenKeyModal(true);
+      return;
+    }
     const context =
       pdfAsMarkdown?.length > aiBufferSize ? pdfSummary : pdfAsMarkdown;
 
@@ -125,6 +135,10 @@ export default function Hero() {
       })}
     >
       <TermsDialog open={openTerms} onClose={() => setOpenTerms(false)} />
+      <OpenAiKeyModal
+        open={openKeyModal}
+        onClose={() => setOpenKeyModal(false)}
+      />
       <Container
         sx={{
           display: "flex",
@@ -181,6 +195,10 @@ export default function Hero() {
               outputType="files"
               sx={{ width: { xs: "100%" } }}
               onChange={async (filesFromParam) => {
+                if (!hasOpenAIKey()) {
+                  setOpenKeyModal(true);
+                  return;
+                }
                 const files = filesFromParam as File[];
                 if (files && files.length > 0) {
                   const markdown = await pdfToMarkdown(files[0]);
