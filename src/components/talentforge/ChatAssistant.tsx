@@ -28,7 +28,7 @@ export default function ChatAssistant() {
       if (stored) {
         setChatHistory(JSON.parse(stored));
       }
-    } catch (err) {
+    } catch {
       // ignore parsing errors
     }
   }, []);

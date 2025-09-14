@@ -1,4 +1,3 @@
-import { Connector } from "@/types/connector";
 import type { JobListing } from "@/types/talentforge/job";
 
 export interface LinkedInProfile {
@@ -13,7 +12,7 @@ export interface LinkedInData {
   listings: JobListing[];
 }
 
-export class LinkedInConnector implements Connector {
+export class LinkedInConnector {
   async authenticate(): Promise<void> {
     // Mocked connector does not require authentication
   }
