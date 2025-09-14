@@ -44,7 +44,7 @@ export default function OfferCompare() {
       return;
     }
     const context = `Offer Letter:\n${offerText}\n\nCurrent Compensation:\n${compensation}`;
-    const prompt = PROMPT_TEMPLATES["Negotiate Offer"]?.fullText || "";
+    const prompt = PROMPT_TEMPLATES.negotiateOffer?.fullText || "";
     setLoading(true);
     const response = await askOpenAI({
       context,
