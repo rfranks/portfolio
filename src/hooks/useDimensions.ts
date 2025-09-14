@@ -19,13 +19,14 @@ export interface Dimensions {
 }
 
 /**
- * Hook for getting the current dimensions-height, width and breakpoint-of
- * the element having the provided `ref`.
+ * Hook for getting the current dimensions—height, width and breakpoint—of
+ * the element having the provided `ref`. The hook safely handles a `null`
+ * reference.
  *
  * Used for controlling the content of a component
  * based on its current dimensions.
  *
- * @param {React.RefObject<HTMLElement>} ref the ref to the element to measure
+ * @param {React.RefObject<HTMLElement> | null} ref the ref to the element to measure
  * @returns the dimensions of the element, including the breakpoint
  */
 export function useDimensions(
