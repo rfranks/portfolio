@@ -64,11 +64,13 @@ export default function AddSequenceCard({
   const loadSampleMenuOpen = Boolean(loadSampleMenuEl);
 
   const loadSample = async (sample: string) => {
-    const rawSequenceContent = await (
+    const sampleContent = await (
       await fetch(withBasePath(`/dna/examples/${sample}`))
     ).text();
 
-    parseSequence(rawSequenceContent, sample, (parsedSequence) => {
+    setRawSequenceContent(sampleContent);
+
+    parseSequence(sampleContent, sample, (parsedSequence) => {
       parsedSequence.sequence = parsedSequence.sequence.trim();
 
       onAddSequence?.(parsedSequence);
