@@ -50,13 +50,13 @@ export function useDimensions(
       };
 
       // calculate the breakpoint based on the theme's breakpoints and the width of the component
-      if (dimensions.width < theme.breakpoints.values["xs"]) {
+      if (dimensions.width < theme.breakpoints.values["sm"]) {
         dimensions.breakpoint = "xs";
-      } else if (dimensions.width < theme.breakpoints.values["sm"]) {
-        dimensions.breakpoint = "sm";
       } else if (dimensions.width < theme.breakpoints.values["md"]) {
-        dimensions.breakpoint = "md";
+        dimensions.breakpoint = "sm";
       } else if (dimensions.width < theme.breakpoints.values["lg"]) {
+        dimensions.breakpoint = "md";
+      } else if (dimensions.width < theme.breakpoints.values["xl"]) {
         dimensions.breakpoint = "lg";
       } else {
         dimensions.breakpoint = "xl";
