@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button, Stack } from "@mui/material";
-import FocusTrap from "@mui/base/FocusTrap";
 
 interface StepProps {
   onNext: () => void;
@@ -13,8 +12,7 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
   const [hasFile, setHasFile] = useState(false);
 
   return (
-    <FocusTrap open>
-      <Stack spacing={2} aria-label="Resume import">
+    <Stack spacing={2} aria-label="Resume import">
         <Button component="label" variant="outlined" aria-label="Upload resume">
           Upload Resume
           <input
@@ -39,7 +37,6 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
           </Button>
         </Stack>
       </Stack>
-    </FocusTrap>
   );
 }
 
