@@ -9,7 +9,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import OpenAiKeyModal from "./OpenAiKeyModal";
+import OpenAIKeyModal from "./OpenAiKeyModal";
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import EmptyState from "./EmptyState";
@@ -62,7 +62,7 @@ export default function JobDescriptionRisk() {
 
   return (
     <Box>
-      <OpenAiKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
+      <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
       <TextField
         label="Paste job description"
         multiline

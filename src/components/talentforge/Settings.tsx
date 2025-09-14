@@ -13,7 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
-import OpenAiKeyModal from "@/components/talentforge/OpenAiKeyModal";
+import OpenAIKeyModal from "@/components/talentforge/OpenAiKeyModal";
 import { hasOpenAIKey, setOpenAIKey } from "@/utils/talentforge/utils";
 import { exportSnapshot, importSnapshot } from "@/utils/talentforge/snapshot";
 import { loadDemoData, clearDemoData } from "@/utils/talentforge/demoData";
@@ -145,7 +145,7 @@ export default function Settings() {
           </CardActions>
         </Card>
 
-        <OpenAiKeyModal open={openKeyModal} onClose={handleCloseModal} />
+        <OpenAIKeyModal open={openKeyModal} onClose={handleCloseModal} />
       </Stack>
     </ErrorBoundary>
   );

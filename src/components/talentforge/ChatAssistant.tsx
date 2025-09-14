@@ -9,7 +9,7 @@ import {
   hasValidOpenAIKey,
 } from "@/utils/talentforge/utils";
 import { exportElementToPdf } from "@/utils/pdfExport";
-import OpenAiKeyModal from "./OpenAiKeyModal";
+import OpenAIKeyModal from "./OpenAiKeyModal";
 import RequireAIKey from "./RequireAIKey";
 import { ChatMessage } from "@/types/talentforge/types";
 import PromptSelector from "./PromptSelector";
@@ -60,7 +60,7 @@ export default function ChatAssistant() {
   return (
     <RequireAIKey>
       <Box>
-        <OpenAiKeyModal
+        <OpenAIKeyModal
           open={openKeyModal}
           onClose={() => setOpenKeyModal(false)}
         />

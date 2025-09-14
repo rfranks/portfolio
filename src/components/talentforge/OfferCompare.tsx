@@ -19,7 +19,7 @@ import {
   pdfToMarkdown,
   hasOpenAIKey,
 } from "@/utils/talentforge/utils";
-import OpenAiKeyModal from "./OpenAiKeyModal";
+import OpenAIKeyModal from "./OpenAiKeyModal";
 import {
   addOffer,
   type Offer,
@@ -136,7 +136,7 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
 
   return (
     <Box>
-      <OpenAiKeyModal
+      <OpenAIKeyModal
         open={openKeyModal}
         onClose={() => setOpenKeyModal(false)}
       />
