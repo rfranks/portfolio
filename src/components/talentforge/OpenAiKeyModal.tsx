@@ -13,12 +13,14 @@ import {
   FormControlLabel,
   Switch,
   IconButton,
+  Link,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 
-import { setOpenAIKey } from "@/utils/talentforge/utils";
+import { setOpenAIKey as setInMemoryKey } from "@/utils/talentforge/utils";
 import {
   getOpenAIKey,
+  setOpenAIKey as persistOpenAIKey,
   deleteOpenAIKey,
 } from "@/utils/talentforge/dataStore";
 
@@ -34,14 +36,15 @@ export default function OpenAIKeyModal({
   ...props
 }: OpenAIKeyModalProps) {
   const [key, setKey] = React.useState("");
-  const [persist, setPersist] = React.useState(true);
+  const [persist, setPersist] = React.useState(false);
 
   const loadStoredKey = React.useCallback(() => {
     if (typeof window === "undefined") return;
+
     const storedPersist = window.localStorage.getItem(
       "talentforge-openai-key-persist",
     );
-    const shouldPersist = storedPersist !== "false";
+    const shouldPersist = storedPersist === "true";
     setPersist(shouldPersist);
 
     const storedKey = shouldPersist
@@ -49,7 +52,7 @@ export default function OpenAIKeyModal({
       : window.sessionStorage.getItem("talentforge-openai-key") || "";
 
     if (storedKey) {
-      setOpenAIKey(storedKey);
+      setInMemoryKey(storedKey);
       if (!shouldPersist) {
         deleteOpenAIKey();
       }
@@ -75,19 +78,22 @@ export default function OpenAIKeyModal({
   const handleSave = () => {
     const trimmed = key.trim();
     if (!trimmed) return;
-    setOpenAIKey(trimmed);
+
+    setInMemoryKey(trimmed);
     if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("talentforge-openai-key", trimmed);
       window.localStorage.setItem(
         "talentforge-openai-key-persist",
         persist ? "true" : "false",
       );
+
       if (persist) {
-        // setOpenAIKey already stores to localStorage
+        persistOpenAIKey(trimmed);
       } else {
-        window.sessionStorage.setItem("talentforge-openai-key", trimmed);
         deleteOpenAIKey();
       }
     }
+
     handleClose();
   };
 
@@ -101,6 +107,9 @@ export default function OpenAIKeyModal({
         "talentforge-openai-key-persist",
         value ? "true" : "false",
       );
+      if (!value) {
+        deleteOpenAIKey();
+      }
     }
   };
 
@@ -142,8 +151,18 @@ export default function OpenAIKeyModal({
       </DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ mb: 2 }}>
-          Your key is stored locally under <code>talentforge-openai-key</code> and
-          never sent to our servers.
+          Your key is stored only in your browser and never sent to our servers.
+          By default it is kept for this session and cleared when you close the
+          tab. Enable persistence to save it across sessions. See our
+          <Link
+            href="https://docs.talentforge.dev/openai-key"
+            target="_blank"
+            rel="noopener"
+            sx={{ ml: 0.5 }}
+          >
+            docs
+          </Link>
+          for more details.
         </DialogContentText>
         <TextField
           autoFocus
@@ -155,9 +174,7 @@ export default function OpenAIKeyModal({
           onChange={(e) => setKey(e.target.value)}
         />
         <FormControlLabel
-          control={
-            <Switch checked={persist} onChange={handlePersistChange} />
-          }
+          control={<Switch checked={persist} onChange={handlePersistChange} />}
           label="Persist across sessions"
         />
       </DialogContent>
@@ -173,3 +190,4 @@ export default function OpenAIKeyModal({
     </Dialog>
   );
 }
+
