@@ -1,7 +1,10 @@
-import type {
-  ApplicationStatus,
-  JobApplication,
-} from "@/types/talentforge";
+import type { ApplicationStatus, StatusChange } from "@/types/talentforge/job";
+import type { RolePosting } from "@/types";
+
+export type JobApplication = RolePosting & {
+  status: ApplicationStatus;
+  history: StatusChange[];
+};
 
 const STORAGE_KEY = "jobApplications";
 
