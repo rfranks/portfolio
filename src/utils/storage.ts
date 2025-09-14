@@ -66,8 +66,9 @@ export function deleteItem(key: string): void {
 }
 
 /**
- * List all stored values whose keys start with the provided prefix. Only
- * entries matching `currentVersion` are returned.
+ * Return a map of key–value pairs from `localStorage` filtered by key prefix
+ * and version. Only entries whose keys start with `prefix` and whose stored
+ * version equals `currentVersion` are included.
  */
 export function listItems<T>(
   prefix = "",
