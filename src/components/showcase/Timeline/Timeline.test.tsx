@@ -104,7 +104,7 @@ describe("Timeline component", () => {
     const mermaid = `
       timeline
       05/16 12∶30 : Event A: Detail A : notes : 123
-      05/16 13∶00:Event B:Detail B : testResuls : 123
+      05/16 13∶00:Event B:Detail B : testResults : 123
       05/16 14∶00 : Event C : labs : 123
     `;
 
