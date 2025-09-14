@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export default function useOrigin() {
+export default function useOrigin(): string {
   const [mounted, setMounted] = useState(false);
   const origin =
     typeof window !== "undefined" && window.location.origin
@@ -14,7 +14,7 @@ export default function useOrigin() {
   }, []);
 
   if (!mounted) {
-    return null;
+    return "";
   }
 
   return origin;
