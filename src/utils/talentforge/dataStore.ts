@@ -31,6 +31,7 @@ export type MessageReply = {
   id: string;
   body: string;
   sentAt: string;
+  connector: string;
 };
 
 export interface Message extends ModelMessage {
@@ -128,6 +129,7 @@ interface LegacyMessageReply {
   id: string;
   content: string;
   sentAt: string;
+  connector?: string;
 }
 
 interface LegacyMessage {
@@ -161,7 +163,12 @@ function migrateLegacyMessages(data: unknown): Message[] {
     connector: m.connector,
     status: m.status,
     replies: Array.isArray(m.replies)
-      ? m.replies.map((r) => ({ id: r.id, body: r.content, sentAt: r.sentAt }))
+      ? m.replies.map((r) => ({
+          id: r.id,
+          body: r.content,
+          sentAt: r.sentAt,
+          connector: r.connector || m.connector,
+        }))
       : [],
   }));
 }
@@ -233,6 +240,26 @@ export function updateMessageStatus(
   );
   save("messages", updated);
   return updated;
+}
+
+// Thread aliases
+export function getThreads(): Message[] {
+  return getMessages();
+}
+export function addThread(thread: Message): Message[] {
+  return addMessage(thread);
+}
+export function deleteThread(id: string): Message[] {
+  return deleteMessage(id);
+}
+export function addThreadReply(id: string, reply: MessageReply): Message[] {
+  return addMessageReply(id, reply);
+}
+export function updateThreadStatus(
+  id: string,
+  status: "unread" | "read",
+): Message[] {
+  return updateMessageStatus(id, status);
 }
 
 // Offers
@@ -442,6 +469,11 @@ const dataStore = {
   deleteMessage,
   addMessageReply,
   updateMessageStatus,
+  getThreads,
+  addThread,
+  deleteThread,
+  addThreadReply,
+  updateThreadStatus,
   getOffers,
   addOffer,
   updateOffer,
