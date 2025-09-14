@@ -19,6 +19,16 @@ interface SnapshotPayload {
   data: Record<string, unknown>;
 }
 
+function isSnapshotPayload(obj: unknown): obj is SnapshotPayload {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "schemaVersion" in obj &&
+    typeof (obj as { schemaVersion: unknown }).schemaVersion === "number" &&
+    "data" in obj
+  );
+}
+
 function migrateSnapshot(
   fromVersion: number,
   data: Record<string, unknown>,
@@ -47,15 +57,9 @@ export function importSnapshot(json: string): void {
     let version: number;
     let data: Record<string, unknown>;
 
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      "schemaVersion" in parsed &&
-      typeof (parsed as any).schemaVersion === "number" &&
-      "data" in parsed
-    ) {
-      version = (parsed as SnapshotPayload).schemaVersion;
-      data = (parsed as SnapshotPayload).data;
+    if (isSnapshotPayload(parsed)) {
+      version = parsed.schemaVersion;
+      data = parsed.data;
     } else {
       // Legacy snapshot without schemaVersion
       version = 0;
