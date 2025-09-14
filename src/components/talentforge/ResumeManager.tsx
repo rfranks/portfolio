@@ -6,6 +6,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Stack,
   TextField,
   Typography,
@@ -23,6 +24,7 @@ import {
   hasOpenAIKey,
   pdfToMarkdown,
 } from "@/utils/talentforge/utils";
+import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
 import FileUploader from "./FileUploader";
@@ -51,6 +53,9 @@ const suggestTags = async (content: string): Promise<string[]> => {
 export default function ResumeManager() {
   const [resumes, setResumes] = useState<ResumeEntry[]>([]);
   const [text, setText] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [comparison, setComparison] = useState("");
+  const [loadingCompare, setLoadingCompare] = useState(false);
   const [openKeyModal, setOpenKeyModal] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchTag, setSearchTag] = useState("");
@@ -70,6 +75,28 @@ export default function ResumeManager() {
     const updated = addResume(newResume);
     setResumes(updated);
     setText("");
+  };
+
+  const handleCompare = async () => {
+    if (!hasOpenAIKey()) {
+      setOpenKeyModal(true);
+      return;
+    }
+    if (!text.trim() || !jobDescription.trim()) return;
+    const context = `Resume:\n${text}\n\nJob Description:\n${jobDescription}`;
+    const prompt = PROMPT_TEMPLATES.compareResumeToJob?.fullText || "";
+    setLoadingCompare(true);
+    const response = await askOpenAI({
+      context,
+      user: prompt,
+      system:
+        "You are an assistant that compares resumes to job descriptions and highlights matches and gaps.",
+      chatHistory: [],
+      returnFirstResponse: true,
+      logMessagesToChatHistory: false,
+    });
+    setComparison(response?.message || "");
+    setLoadingCompare(false);
   };
 
   const filteredResumes = filterByTag(
@@ -107,9 +134,42 @@ export default function ResumeManager() {
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
-      <Button variant="contained" sx={{ mt: 2 }} onClick={handleSave}>
-        Save
-      </Button>
+      <TextField
+        label="Paste job description"
+        multiline
+        minRows={6}
+        fullWidth
+        sx={{ mt: 2 }}
+        value={jobDescription}
+        onChange={(e) => setJobDescription(e.target.value)}
+      />
+      <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+        <Button variant="contained" onClick={handleSave}>
+          Save
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={handleCompare}
+          disabled={!text || !jobDescription || loadingCompare}
+        >
+          Compare to Job
+        </Button>
+      </Stack>
+      {loadingCompare && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {comparison && (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Comparison Result
+          </Typography>
+          <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+            {comparison}
+          </Typography>
+        </Box>
+      )}
       <Stack spacing={2} sx={{ mt: 4 }}>
         <TextField
           label="Filter by text"
