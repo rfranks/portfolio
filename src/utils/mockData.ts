@@ -80,13 +80,13 @@ export const mockOffers: Offer[] = [
     id: "offer-1",
     application: mockApplications[0],
     compensation: [{ type: "base", amount: 120000 } as OfferComp],
-    summary: "Offer details for job application app-1",
+    summary: ["Offer details for job application app-1"],
   },
   {
     id: "offer-2",
     application: mockApplications[1],
     compensation: [{ type: "base", amount: 135000 } as OfferComp],
-    summary: "Offer details for job application app-2",
+    summary: ["Offer details for job application app-2"],
   },
 ];
 
