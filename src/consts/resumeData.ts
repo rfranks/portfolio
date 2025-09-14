@@ -291,7 +291,7 @@ export const projects: {
   {
     name: "Patient Assignment List Project",
     description:
-      "Backbone.js-based managable patient assignment list for physicians.  Complex drag-and-drop UI, time-based and filter-based population criteria.",
+      "Backbone.js-based manageable patient assignment list for physicians.  Complex drag-and-drop UI, time-based and filter-based population criteria.",
     href: "/assignmentlist",
     type: "work",
     interestsMeWhy:
@@ -365,9 +365,9 @@ Any organization would benefit greatly from Richard's technical leadership, stra
       imageSrcUrl: "/colleagues/stacey_leadbeater.jpeg",
       text: `I have had the pleasure of working closely with Richard for many years as a product manager. Richard has been a lead, integral part of completely rewriting a legacy physician-facing portal into a customizable dashboard framework with modern technology - no small or easy feat.
 
-Richard always goes out of his way to truly understand workflows and the end user problems, as well as consider technical aspects in order to implement the right solution. He is a true team player: working with product and UX to design the right changes; consulting with other developers and providing documentation to ensure they are following best implementation practices and agreed-upon methods; working with QA to ensure chagnes are fully tested and automation has what they need; and reviewing end user documenation.
+Richard always goes out of his way to truly understand workflows and the end user problems, as well as consider technical aspects in order to implement the right solution. He is a true team player: working with product and UX to design the right changes; consulting with other developers and providing documentation to ensure they are following best implementation practices and agreed-upon methods; working with QA to ensure changes are fully tested and automation has what they need; and reviewing end user documentation.
 
-Richard is a leader, and as an architect is often called on to advise on the right technical chagnes to make. He is diligent about documenting his work, which allows other engineers to more easily come on board. He is always willing to provide guidance and input to others in development.
+Richard is a leader, and as an architect is often called on to advise on the right technical changes to make. He is diligent about documenting his work, which allows other engineers to more easily come on board. He is always willing to provide guidance and input to others in development.
 
 Richard is so good that he's in the sometimes unenviable position of being the go-to person to fix any problem. This means he solves many of the toughest problems, which are often critical in nature and requiring a solution ASAP, and which pull him away from other items he may be working on. He is an excellent multi-tasker and able to jump in to help in almost any situation.
 
