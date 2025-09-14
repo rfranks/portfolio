@@ -1,4 +1,4 @@
-import { cleanPdfText } from "@/utils/talentforge/pdfParser";
+import { cleanPdfText, parseResumeText } from "@/utils/talentforge/pdfParser";
 
 describe("cleanPdfText", () => {
   test("removes repeating headers and footers", () => {
@@ -25,6 +25,42 @@ describe("cleanPdfText", () => {
 
     const result = cleanPdfText(pages);
     expect(result).toBe("Only line");
+  });
+});
+
+describe("parseResumeText", () => {
+  test("detects contact, experience, education, and skills lines", () => {
+    const text = `John Doe\njohn@example.com\nExperience\nCompany A - Developer\nEducation\nUniversity X\nSkills\nJavaScript`;
+
+    const result = parseResumeText(text);
+    expect(result).toEqual({
+      contact: "John Doe\njohn@example.com",
+      experience: ["Company A - Developer"],
+      education: ["University X"],
+      skills: ["JavaScript"],
+    });
+  });
+
+  test("handles missing sections", () => {
+    const text = `John Doe\njohn@example.com\nExperience\nCompany A`;
+
+    const result = parseResumeText(text);
+    expect(result).toEqual({
+      contact: "John Doe\njohn@example.com",
+      experience: ["Company A"],
+      education: [],
+      skills: [],
+    });
+  });
+
+  test("parses multiple entries per section", () => {
+    const text = `John Doe\njohn@example.com\nExperience\nCompany A\nCompany B\nEducation\nUniversity X\nUniversity Y\nSkills\nJavaScript\nTypeScript`;
+
+    const result = parseResumeText(text);
+    expect(result.contact).toBe("John Doe\njohn@example.com");
+    expect(result.experience).toEqual(["Company A", "Company B"]);
+    expect(result.education).toEqual(["University X", "University Y"]);
+    expect(result.skills).toEqual(["JavaScript", "TypeScript"]);
   });
 });
 
