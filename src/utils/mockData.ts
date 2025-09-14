@@ -22,7 +22,7 @@ export const mockResumes: ResumeEntry[] = [
     label: "Software Resume",
     url: "https://example.com/jane-doe-software.pdf",
     content: "",
-    parsed: emptyParsed,
+    parsed: { ...emptyParsed },
     tags: ["software", "typescript"],
   },
   {
@@ -31,7 +31,7 @@ export const mockResumes: ResumeEntry[] = [
     label: "Product Resume",
     url: "https://example.com/jane-doe-product.pdf",
     content: "",
-    parsed: emptyParsed,
+    parsed: { ...emptyParsed },
     tags: ["product", "management"],
   },
 ];
