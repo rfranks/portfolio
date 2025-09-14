@@ -1,77 +1,95 @@
-import {
-  UserProfile,
-  Resume,
-  Offer,
-  JobApplication,
-} from "@/types/talentforge";
+import type { ApplicationRecord, RolePosting, Offer, OfferComp, User } from "@/types";
+import type { ResumeEntry } from "@/utils/talentforge/dataStore";
+import type { ParsedResume } from "@/types/talentforge/resume";
 
-// Sample resumes for demonstration purposes
-export const mockResumes: Resume[] = [
+const mockUserProfile: User = {
+  id: "user-1",
+  name: "Jane Doe",
+  email: "jane.doe@example.com",
+};
+
+const emptyParsed: ParsedResume = {
+  contact: "",
+  experience: [],
+  education: [],
+  skills: [],
+};
+
+export const mockResumes: ResumeEntry[] = [
   {
     id: "resume-1",
-    filename: "jane-doe-software.pdf",
+    userId: mockUserProfile.id,
+    label: "Software Resume",
     url: "https://example.com/jane-doe-software.pdf",
+    content: "",
+    parsed: emptyParsed,
     tags: ["software", "typescript"],
   },
   {
     id: "resume-2",
-    filename: "jane-doe-product.pdf",
+    userId: mockUserProfile.id,
+    label: "Product Resume",
     url: "https://example.com/jane-doe-product.pdf",
+    content: "",
+    parsed: emptyParsed,
     tags: ["product", "management"],
   },
 ];
 
-// Sample job offers for demonstration purposes
-export const mockOffers: Offer[] = [
-  {
-    id: "offer-1",
-    offerText: "Offer details for job application app-1",
-    compensation: "$120,000",
-    result: "",
-  },
-  {
-    id: "offer-2",
-    offerText: "Offer details for job application app-2",
-    compensation: "$135,000 + stock",
-    result: "",
-  },
-];
+const role1: RolePosting = {
+  id: "role-1",
+  title: "Frontend Developer",
+  company: "Acme Corp",
+  location: "Remote",
+  url: "https://example.com/jobs/frontend",
+  source: "linkedin",
+};
 
-// Sample job applications for demonstration purposes
-export const mockApplications: JobApplication[] = [
+const role2: RolePosting = {
+  id: "role-2",
+  title: "Backend Engineer",
+  company: "Beta LLC",
+  location: "New York, NY",
+  url: "https://example.com/jobs/backend",
+  source: "indeed",
+};
+
+export const mockApplications: ApplicationRecord[] = [
   {
     id: "app-1",
-    title: "Frontend Developer",
-    company: "Acme Corp",
-    location: "Remote",
-    url: "https://example.com/jobs/frontend",
-    source: "linkedin",
+    applicant: mockUserProfile,
+    role: role1,
+    resumeVariant: mockResumes[0],
     status: "applied",
-    history: [
-      { status: "applied", changedAt: new Date().toISOString() },
-    ],
+    history: [{ status: "applied", changedAt: new Date().toISOString() }],
   },
   {
     id: "app-2",
-    title: "Backend Engineer",
-    company: "Beta LLC",
-    location: "New York, NY",
-    url: "https://example.com/jobs/backend",
-    source: "indeed",
+    applicant: mockUserProfile,
+    role: role2,
+    resumeVariant: mockResumes[1],
     status: "interview",
-    history: [
-      { status: "interview", changedAt: new Date().toISOString() },
-    ],
+    history: [{ status: "interview", changedAt: new Date().toISOString() }],
   },
 ];
 
-// Sample user profile that references the above resumes
-export const mockUserProfile: UserProfile = {
-  id: "user-1",
-  name: "Jane Doe",
-  email: "jane.doe@example.com",
-  resumes: mockResumes,
-};
+export const mockOffers: Offer[] = [
+  {
+    id: "offer-1",
+    application: mockApplications[0],
+    compensation: [{ type: "base", amount: 120000 } as OfferComp],
+    summary: "Offer details for job application app-1",
+  },
+  {
+    id: "offer-2",
+    application: mockApplications[1],
+    compensation: [{ type: "base", amount: 135000 } as OfferComp],
+    summary: "Offer details for job application app-2",
+  },
+];
+
+mockUserProfile.resumeVariants = mockResumes.map(({ content, parsed, tags, ...rv }) => rv);
+mockUserProfile.applications = mockApplications;
 
 const DEMO_DATA_KEY = "tf_demo_data_inserted";
 
@@ -97,3 +115,4 @@ export function insertMockData(): void {
 }
 
 export default insertMockData;
+

@@ -15,7 +15,8 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import type { ApplicationStatus, JobApplication } from "@/types/talentforge";
+import type { ApplicationStatus } from "@/types/talentforge/job";
+import type { JobApplication } from "@/utils/talentforge/applicationStore";
 import {
   addJobApplication,
   getJobApplications,

@@ -10,10 +10,8 @@ import {
   Typography,
 } from "@mui/material";
 import { v4 as uuid } from "uuid";
-import type {
-  ApplicationStatus,
-  JobApplication,
-} from "@/types/talentforge";
+import type { ApplicationStatus } from "@/types/talentforge/job";
+import type { JobApplication } from "@/utils/talentforge/applicationStore";
 import {
   addJobApplication,
   getJobApplications,
