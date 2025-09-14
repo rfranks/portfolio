@@ -500,7 +500,5 @@ const dataStore = {
   importFromJson,
 };
 
-export type { ResumeEntry, Message, Offer, JobApplication, RecruiterEntry };
-
 export default dataStore;
 
