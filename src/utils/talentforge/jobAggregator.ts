@@ -20,9 +20,10 @@ export async function fetchAllListings(): Promise<JobListing[]> {
     indeed.fetchData(),
   ]);
 
-  // LinkedIn returns an object with a `listings` property whereas Indeed
-  // returns the listings array directly. Combine and return them.
-  return [...linkedinData.listings, ...indeedListings];
+  const linkedinListings = linkedinData.listings;
+
+  // Both connectors return arrays of JobListing; concatenate them directly.
+  return [...linkedinListings, ...indeedListings];
 }
 
 const jobAggregator = {
