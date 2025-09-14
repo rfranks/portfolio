@@ -171,11 +171,13 @@ function Card({
         </>
       )}
       {app.role.description && (
-        <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+        <Stack direction="column" spacing={1} sx={{ mt: 1 }}>
           <Button
             size="small"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => onRunTile("screenRole", app)}
+            variant="outlined"
+            fullWidth
           >
             Analyze Risks
           </Button>
@@ -183,6 +185,8 @@ function Card({
             size="small"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => onRunTile("resumeCompare", app)}
+            variant="outlined"
+            fullWidth
           >
             Compare to Resume
           </Button>
@@ -190,6 +194,8 @@ function Card({
             size="small"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => onRunTile("coverLetter", app)}
+            variant="outlined"
+            fullWidth
           >
             Cover Letter
           </Button>
