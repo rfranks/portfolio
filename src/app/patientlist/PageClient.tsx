@@ -41,7 +41,7 @@ export default function PageClient({ project }: PageClientProps) {
           }}
         >
           Physician-Focused Patient-list with Time-based and Filter-based
-          Population Criterion
+          Population Criteria.
         </Typography>
         <Divider sx={{ mb: 6 }} />
         <ProjectPresentation project={project} />
