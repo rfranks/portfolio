@@ -1,9 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Stack,
+  Typography,
+} from "@mui/material";
 
-import { PROMPT_TEMPLATES } from "@/consts/prompts";
+import { PROMPT_TILES } from "@/consts/promptTiles";
 import {
   askOpenAI,
   hasValidOpenAIKey,
@@ -12,10 +20,8 @@ import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAIKeyModal from "./OpenAiKeyModal";
 import RequireAIKey from "./RequireAIKey";
 import { ChatMessage } from "@/types/talentforge/types";
-import PromptSelector from "./PromptSelector";
-
 export default function ChatAssistant() {
-  const [selectedPrompt, setSelectedPrompt] = useState<string>("");
+  const [selectedTile, setSelectedTile] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<(ChatMessage | null)[]>([]);
 
   // Load chat history from localStorage on mount
@@ -38,8 +44,9 @@ export default function ChatAssistant() {
   const chatRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async () => {
-    if (!selectedPrompt) return;
-    const fullText = PROMPT_TEMPLATES[selectedPrompt]?.fullText;
+    if (!selectedTile) return;
+    const tile = PROMPT_TILES[selectedTile];
+    const fullText = tile?.fullPrompt;
     if (!fullText) return;
     const valid = await hasValidOpenAIKey();
     if (!valid) {
@@ -65,11 +72,27 @@ export default function ChatAssistant() {
           onClose={() => setOpenKeyModal(false)}
         />
         <Stack spacing={2}>
-          <PromptSelector value={selectedPrompt} onChange={setSelectedPrompt} />
+          <Select
+            value={selectedTile}
+            onChange={(e: SelectChangeEvent<string>) =>
+              setSelectedTile(e.target.value as string)
+            }
+            displayEmpty
+            fullWidth
+          >
+            <MenuItem value="" disabled>
+              Select a prompt
+            </MenuItem>
+            {Object.values(PROMPT_TILES).map((tile) => (
+              <MenuItem key={tile.id} value={tile.id}>
+                {tile.display}
+              </MenuItem>
+            ))}
+          </Select>
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={!selectedPrompt}
+            disabled={!selectedTile}
           >
             Send
           </Button>
