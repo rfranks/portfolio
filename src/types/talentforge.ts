@@ -16,6 +16,8 @@ export interface Resume {
   filename: string;
   /** URL where the resume file can be accessed. */
   url: string;
+  /** Tags describing the resume's contents. */
+  tags?: string[];
 }
 
 export interface JobApplication {
