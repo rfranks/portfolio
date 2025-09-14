@@ -18,9 +18,14 @@ import {
   type ResumeEntry,
 } from "@/utils/talentforge/dataStore";
 
-import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
+import {
+  askOpenAI,
+  hasOpenAIKey,
+  pdfToMarkdown,
+} from "@/utils/talentforge/utils";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
+import FileUploader from "./FileUploader";
 
 const suggestTags = async (content: string): Promise<string[]> => {
   try {
@@ -77,6 +82,22 @@ export default function ResumeManager() {
       <OpenAiKeyModal
         open={openKeyModal}
         onClose={() => setOpenKeyModal(false)}
+      />
+      <FileUploader
+        accept=".pdf,.txt,.md"
+        label="Upload your resume"
+        outputType="files"
+        sx={{ mb: 2 }}
+        onChange={async (filesFromParam) => {
+          const files = filesFromParam as File[];
+          if (!files || files.length === 0) return;
+          const file = files[0];
+          const content =
+            file.type === "application/pdf"
+              ? await pdfToMarkdown(file)
+              : await file.text();
+          setText(content);
+        }}
       />
       <TextField
         label="Paste your resume"
