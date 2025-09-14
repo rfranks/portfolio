@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { Button, Stack } from "@mui/material";
+import { v4 as uuid } from "uuid";
+
+import { pdfToMarkdown, parseResumeText } from "@/utils/talentforge/pdfParser";
+import { addResume } from "@/utils/talentforge/dataStore";
+import { tagResume } from "@/utils/talentforge/tagging";
 
 interface StepProps {
   onNext: () => void;
@@ -9,7 +14,35 @@ interface StepProps {
 }
 
 export default function ResumeImportStep({ onNext, onBack }: StepProps) {
-  const [hasFile, setHasFile] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0] || null;
+    setFile(selected);
+  };
+
+  const handleContinue = async () => {
+    if (!file) return;
+    setLoading(true);
+    try {
+      const text = await pdfToMarkdown(file);
+      const tags = await tagResume(text);
+      const parsed = parseResumeText(text);
+      addResume({
+        id: uuid(),
+        userId: "",
+        label: "",
+        url: "",
+        content: text,
+        parsed,
+        tags,
+      });
+      onNext();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Stack spacing={2} aria-label="Resume import">
@@ -18,7 +51,7 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
           <input
             type="file"
             hidden
-            onChange={(e) => setHasFile(!!e.target.files && e.target.files.length > 0)}
+            onChange={handleFileChange}
           />
         </Button>
         <Stack direction="row" spacing={1}>
@@ -29,8 +62,8 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
           )}
           <Button
             variant="contained"
-            onClick={onNext}
-            disabled={!hasFile}
+            onClick={handleContinue}
+            disabled={!file || loading}
             aria-label="Continue"
           >
             Continue
