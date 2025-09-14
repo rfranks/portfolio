@@ -16,8 +16,11 @@ import {
   CircularProgress,
   IconButton,
   MenuItem,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
-import { Close } from "@mui/icons-material";
+import { Close, ExpandMore } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import {
   DndContext,
@@ -207,6 +210,8 @@ export default function ApplicationBoard() {
   const [source, setSource] = useState("Company Site");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerTitle, setDrawerTitle] = useState("");
+  const [drawerTileId, setDrawerTileId] = useState("");
+  const [drawerPrompt, setDrawerPrompt] = useState("");
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [drawerMessages, setDrawerMessages] = useState<
     { role: "user" | "assistant"; text: string }[]
@@ -217,6 +222,8 @@ export default function ApplicationBoard() {
   );
   const [resumeCompareApp, setResumeCompareApp] =
     useState<JobApplication | null>(null);
+  const [drawerApp, setDrawerApp] = useState<JobApplication | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
   const [openKeyModal, setOpenKeyModal] = useState(false);
 
   useEffect(() => {
@@ -283,14 +290,17 @@ export default function ApplicationBoard() {
       const resumes = getResumes();
       if (resumes.length === 0) {
         setDrawerTitle(tile.display);
+        setDrawerTileId(tile.id);
         setDrawerMessages([
           { role: "assistant", text: "No resume available" },
         ]);
         setDrawerAnalysis(null);
         setDrawerOpen(true);
+        setDrawerApp(app);
         return;
       }
       setDrawerTitle(tile.display);
+      setDrawerTileId(tile.id);
       setDrawerMessages([
         {
           role: "assistant",
@@ -301,12 +311,16 @@ export default function ApplicationBoard() {
       setDrawerOpen(true);
       setDrawerMode("resumeCompare");
       setResumeCompareApp(app);
+      setDrawerApp(app);
       return;
     }
     setDrawerTitle(tile.display);
+    setDrawerTileId(tile.id);
     setDrawerMessages([]);
     setDrawerAnalysis(null);
     setDrawerOpen(true);
+    setDrawerApp(app);
+    setDrawerPrompt("");
     let prompt = tile.fullPrompt;
     const values: Record<string, string> = {};
     if (tileId === "screenRole" || tileId === "coverLetter") {
@@ -332,6 +346,7 @@ export default function ApplicationBoard() {
     if (tileId !== "screenRole") {
       setDrawerMessages([{ role: "user", text: prompt }]);
     }
+    setDrawerPrompt(prompt);
     setDrawerLoading(true);
     try {
       const res = await askOpenAI({
@@ -414,6 +429,21 @@ export default function ApplicationBoard() {
       setDrawerMode("chat");
       setResumeCompareApp(null);
     }
+  };
+
+  const handleReject = () => {
+    if (!drawerApp) return;
+    const updated = updateJobApplicationStatus(
+      drawerApp.id,
+      "rejected",
+      rejectReason || undefined,
+    );
+    setApplications(updated);
+    setRejectReason("");
+    setDrawerOpen(false);
+    setDrawerApp(null);
+    setDrawerTileId("");
+    setDrawerPrompt("");
   };
 
   return (
@@ -542,9 +572,22 @@ export default function ApplicationBoard() {
           >
             <Close />
           </IconButton>
-          <Typography variant="h6" gutterBottom>
-            {drawerTitle}
-          </Typography>
+          {drawerTileId === "screenRole" ? (
+            <Accordion sx={{ mb: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="h6">{drawerTitle}</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                  {drawerPrompt}
+                </Typography>
+              </AccordionDetails>
+            </Accordion>
+          ) : (
+            <Typography variant="h6" gutterBottom>
+              {drawerTitle}
+            </Typography>
+          )}
           {drawerAnalysis ? (
             <Box sx={{ mt: 2 }}>
               {drawerAnalysis.issues.map((issue, idx) => (
@@ -608,6 +651,26 @@ export default function ApplicationBoard() {
               )}
             </Stack>
           )}
+          <Box sx={{ mt: 3 }}>
+            <TextField
+              label="Rejection Reason (optional)"
+              size="small"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              sx={{ mb: 1 }}
+            />
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleReject}
+              disabled={!drawerApp || drawerApp.status === "rejected"}
+            >
+              Reject Application
+            </Button>
+          </Box>
         </Drawer>
       )}
       <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />

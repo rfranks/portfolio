@@ -24,6 +24,8 @@ export interface StatusChange {
   status: ApplicationStatus;
   /** ISO timestamp when the status changed. */
   changedAt: string;
+  /** Optional reason for the status change. */
+  reason?: string;
 }
 
 export interface JobApplication extends JobListing {
