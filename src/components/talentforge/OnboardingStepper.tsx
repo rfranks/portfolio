@@ -3,27 +3,23 @@
 import { useEffect, useState } from "react";
 import { Box, Button, Step, StepLabel, Stepper, Typography } from "@mui/material";
 
+import {
+  getOnboardingStep,
+  setOnboardingStep,
+  clearOnboardingStep,
+} from "@/utils/talentforge/dataStore";
+
 const steps = ["Profile Info", "Upload Resume", "Connect Accounts", "Finish"];
 
 export default function OnboardingStepper() {
   const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = window.localStorage.getItem("onboardingStep");
-      if (saved !== null) {
-        const parsed = parseInt(saved, 10);
-        if (!Number.isNaN(parsed)) {
-          setActiveStep(parsed);
-        }
-      }
-    }
+    setActiveStep(getOnboardingStep());
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("onboardingStep", activeStep.toString());
-    }
+    setOnboardingStep(activeStep);
   }, [activeStep]);
 
   const handleNext = () => {
@@ -36,9 +32,7 @@ export default function OnboardingStepper() {
 
   const handleReset = () => {
     setActiveStep(0);
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("onboardingStep");
-    }
+    clearOnboardingStep();
   };
 
   return (

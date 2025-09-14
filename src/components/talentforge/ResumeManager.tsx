@@ -12,17 +12,15 @@ import {
 } from "@mui/material";
 import { filterByTag, filterByText } from "@/utils/search";
 
+import {
+  getResumes,
+  addResume,
+  type ResumeEntry,
+} from "@/utils/talentforge/dataStore";
+
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
-
-interface StoredResume {
-  id: string;
-  content: string;
-  tags: string[];
-}
-
-const STORAGE_KEY = "resumes";
 
 const suggestTags = async (content: string): Promise<string[]> => {
   try {
@@ -46,21 +44,14 @@ const suggestTags = async (content: string): Promise<string[]> => {
 };
 
 export default function ResumeManager() {
-  const [resumes, setResumes] = useState<StoredResume[]>([]);
+  const [resumes, setResumes] = useState<ResumeEntry[]>([]);
   const [text, setText] = useState("");
   const [openKeyModal, setOpenKeyModal] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchTag, setSearchTag] = useState("");
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setResumes(JSON.parse(stored));
-      } catch {
-        setResumes([]);
-      }
-    }
+    setResumes(getResumes());
   }, []);
 
   const handleSave = async () => {
@@ -70,10 +61,9 @@ export default function ResumeManager() {
     }
     if (!text.trim()) return;
     const tags = await suggestTags(text);
-    const newResume: StoredResume = { id: uuid(), content: text, tags };
-    const updated = [...resumes, newResume];
+    const newResume = { id: uuid(), content: text, tags };
+    const updated = addResume(newResume);
     setResumes(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     setText("");
   };
 
