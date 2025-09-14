@@ -49,6 +49,11 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Identify potential issues in this job description like unpaid overtime, vague responsibilities, or compliance red flags. Return JSON with a 'summary' and an 'issues' array of objects with 'severity' ('red' or 'yellow') and 'message'.",
   },
+  screenRole: {
+    displayText: "Screen Role",
+    fullText:
+      "Review the following job description, provide a brief summary, and list potential issues candidates should note. Return JSON with a 'summary' and an 'issues' array of objects with 'severity' ('red' or 'yellow') and 'message'.",
+  },
   jobRequirements: {
     displayText: "Job Requirements",
     fullText:

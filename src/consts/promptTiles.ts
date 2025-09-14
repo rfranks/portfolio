@@ -56,6 +56,12 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "From the following job description, list the key job requirements as bullet points:\n\n{{jobDescription}}",
     inputs: ["jobDescription"],
   },
+  screenRole: {
+    ...BASE_TILES.screenRole,
+    fullPrompt:
+      "Review the following job description, provide a brief summary, and list potential issues candidates should note. Return JSON with a 'summary' and an 'issues' array of objects with 'severity' ('red' or 'yellow') and 'message'.\n\n{{jobDescription}}",
+    inputs: ["jobDescription"],
+  },
   negotiateOffer: {
     ...BASE_TILES.negotiateOffer,
     fullPrompt:
