@@ -1,4 +1,4 @@
-// src/utils/physics.ts
+// Initializes and runs a Matter.js engine for the provided canvas element.
 import Matter from "matter-js";
 
 export function createEngine(canvas: HTMLCanvasElement) {
