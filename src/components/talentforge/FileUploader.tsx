@@ -259,6 +259,7 @@ export default function FileUploader(props: FileUploaderProps) {
               <Button
                 color="primary"
                 variant="outlined"
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -271,7 +272,7 @@ export default function FileUploader(props: FileUploaderProps) {
                 sx={{ p: 1, zIndex: 1 }}
                 aria-label="browse files"
               >
-                <Box sx={{ p: 1 }}>Browse</Box>
+              <Box sx={{ p: 1 }}>Browse</Box>
               </Button>
               <Box
                 ref={wrapperRef}
@@ -325,6 +326,7 @@ export default function FileUploader(props: FileUploaderProps) {
                         </Box>
                       </Box>
                       <Button
+                        onPointerDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation();
                           e.preventDefault();
