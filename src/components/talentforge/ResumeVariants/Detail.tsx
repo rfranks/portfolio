@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { type ResumeEntry } from "@/utils/talentforge/dataStore";
 import Diff from "./Diff";
+import BulletVariants from "./BulletVariants";
 
 interface Props {
   resume: ResumeEntry;
@@ -53,6 +54,7 @@ export default function Detail({
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
+            <BulletVariants content={content} setContent={setContent} />
             <TextField
               label="Tags"
               value={tagsText}
