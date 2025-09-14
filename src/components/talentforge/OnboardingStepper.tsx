@@ -21,28 +21,41 @@ const steps = [
   { label: "Select Goals", Component: GoalSelectionStep },
 ];
 
-export default function OnboardingStepper() {
+export const TOTAL_ONBOARDING_STEPS = steps.length;
+
+export default function OnboardingStepper({
+  onComplete,
+}: {
+  onComplete?: () => void;
+}) {
   const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
-    setActiveStep(getOnboardingStep());
+    const step = getOnboardingStep();
+    setActiveStep(step);
+    setOnboardingStep(step);
   }, []);
 
-  useEffect(() => {
-    setOnboardingStep(activeStep);
-  }, [activeStep]);
-
   const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    setActiveStep((prevActiveStep) => {
+      const next = prevActiveStep + 1;
+      setOnboardingStep(next);
+      if (next === TOTAL_ONBOARDING_STEPS) onComplete?.();
+      return next;
+    });
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    setActiveStep((prevActiveStep) => {
+      const next = prevActiveStep - 1;
+      setOnboardingStep(next);
+      return next;
+    });
   };
 
   const handleReset = () => {
-    setActiveStep(0);
     clearOnboardingStep();
+    setActiveStep(0);
   };
 
   const Current = steps[activeStep]?.Component;
