@@ -72,7 +72,7 @@ export function loadDemoData(): void {
 
 /**
  * Clear demo data from localStorage.
- * Removes demo user, resumes, offers, and job applications.
+ * Removes demo user profile, resumes, job applications, offers, and the tf_demo_data_inserted flag.
  */
 export function clearDemoData(): void {
   if (typeof window !== "undefined") {
