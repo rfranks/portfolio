@@ -114,7 +114,8 @@ export function useDimensions(
         clearInterval(interval);
       }
     };
-  }, [ref, theme?.breakpoints?.values]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ref?.current, theme?.breakpoints?.values]);
 
   return dimensions;
 }
