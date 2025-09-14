@@ -29,6 +29,18 @@ describe("storage utilities", () => {
     expect(loadItem(key, 2)).toEqual({ name: "old2" });
   });
 
+  test("loadItem returns undefined when no migrate callback and preserves old item", () => {
+    const key = "legacy";
+    const original = { value: 1 };
+    saveItem(key, original, 1);
+
+    const result = loadItem<typeof original>(key, 2);
+    expect(result).toBeUndefined();
+
+    // The existing entry should remain stored with its original version and value
+    expect(loadItem<typeof original>(key, 1)).toEqual(original);
+  });
+
   test("loadItem returns undefined for invalid JSON", () => {
     localStorage.setItem("bad", "{not json");
     let result: unknown;
