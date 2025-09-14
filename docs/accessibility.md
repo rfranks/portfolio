@@ -1,7 +1,8 @@
 # Accessibility Audit
 
 ## Overview
-An accessibility audit was attempted on the TalentForge pages using the Axe CLI. The CLI installation failed with an HTTP 403 error, indicating the package registry was inaccessible from the current environment.
+An accessibility audit was attempted on the TalentForge pages using the Axe CLI.
+The CLI installation failed with an HTTP 403 error, indicating the package registry was inaccessible from the current environment.
 
 ## Implemented Improvements
 - Labeled the main navigation toolbar and added ARIA labels to the Sign In and Sign Up buttons.
