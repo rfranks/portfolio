@@ -287,7 +287,7 @@ func PrintStats(trifectaStax bool) {
 	winPct := float32(game.State.Wins) / float32(utils.Max(hands-state.Pushes, 1)) * 100
 	fmt.Printf(constants.BoldOn+"Round #%d"+constants.BoldOff+"\n\n   Wins | Losses | Pushes\n"+constants.Reset+"     %d | %d | %d\n\n   Hands: %d   Win Pct: %.2f%%\n", state.Rounds, state.Wins, state.Losses, state.Pushes, hands, winPct)
 	if trifectaStax {
-		fmt.Printf("   %s Earnings:  %s\n", PrintGameString(trifectaStax), PrintCurrency((game.State.SidebetWinnings-state.SidebetLosings)*100))
+		fmt.Printf("   %s Earnings:  %s\n", PrintGameString(trifectaStax), PrintCurrency((game.State.SidebetWinnings-state.SidebetLosses)*100))
 	}
 
 	totalNet := 0

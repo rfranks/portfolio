@@ -26,7 +26,7 @@ type BlackjackState struct {
 	BustCards        []cards.Card            `yaml:"bust-cards"`
 	BustCounts       map[cards.CardValue]int `yaml:"bust-counts"`
 	SidebetWinnings  int                     `yaml:"sidebet-winnings"`
-	SidebetLosings   int                     `yaml:"sidebet-losings"`
+	SidebetLosses    int                     `yaml:"sidebet-losses"`
 	Dealer           player.Player           `yaml:"dealer"`
 	Players          []player.Player         `yaml:"players"`
 	Shoe             Shoe                    `yaml:"shoe"`
