@@ -12,7 +12,7 @@ export interface ThinkingProps {
   text?: string;
   /** Flag indicating whether or not to include a {@link CircularProgress} indicator. Default is false */
   showIndicator?: boolean;
-  /** The color of the {@link CircularProgress} indicator.
+  /** Props for the {@link CircularProgress} indicator.
    * Default color is "primary".
    * Default size is "16px".
    * Default sx is { m: 1 }, which sets the margin to one theme spacing unit (≈8px by default), not 1px.
@@ -31,7 +31,7 @@ export interface ThinkingProps {
  * @param text - Text to display in the thinking effect. Defaults to "Thinking...".
  * @param showIndicator - Whether to show a {@link CircularProgress} indicator. Defaults to false.
  * @param indicatorProps - Props to customize the {@link CircularProgress} indicator. Defaults to
- * { size: "16px", color: "primary", sx: { m: 1 } }.
+ * { size: "16px", color: "primary", sx: { m: 1 }, variant: "indeterminate", thickness: 3.6 }.
  * @returns A fragment containing the text and optional indicator.
  */
 export const Thinking: React.FC<ThinkingProps> = ({
@@ -41,6 +41,8 @@ export const Thinking: React.FC<ThinkingProps> = ({
     size: "16px",
     color: "primary",
     sx: { m: 1 },
+    variant: "indeterminate",
+    thickness: 3.6,
   },
 }) => {
   return (
