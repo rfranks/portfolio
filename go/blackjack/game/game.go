@@ -38,7 +38,7 @@ type Deck struct {
 }
 
 type Shoe struct {
-	Decks []Deck       `yaml:"deck"`
+	Decks []Deck       `yaml:"decks"`
 	Cards []cards.Card `yaml:"cards"`
 	Cut   int          `yaml:"cut"`
 	Index int          `yaml:"index"`
