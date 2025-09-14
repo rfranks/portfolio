@@ -163,7 +163,7 @@ describe("useDimensions with null ref", () => {
       effect();
     });
 
-    const dimensions = useDimensions(null as any);
+    const dimensions = useDimensions(null);
 
     expect(dimensions).toEqual({ width: 0, height: 0, breakpoint: "xs" });
     expect(addEventListenerSpy).not.toHaveBeenCalled();
