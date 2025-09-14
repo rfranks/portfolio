@@ -13,6 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { ResumeEntry } from "@/utils/talentforge/dataStore";
+import { updateResume } from "@/utils/talentforge/dataStore";
 
 interface Props {
   resume: ResumeEntry;
@@ -26,8 +27,10 @@ export default function Detail({ resume, onClose, onSave }: Props) {
   const [newTag, setNewTag] = useState("");
 
   const updateTags = (updated: string[]) => {
+    const updatedResume = { ...resume, tags: updated };
     setTags(updated);
-    onSave({ ...resume, tags: updated });
+    updateResume(updatedResume);
+    onSave(updatedResume);
   };
 
   const handleDelete = (tag: string) => {
