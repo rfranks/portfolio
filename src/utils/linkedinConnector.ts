@@ -6,6 +6,8 @@
  * can be developed without live API access.
  */
 
+import { Connector } from "../types/connector";
+
 export interface LinkedInProfile {
   id: string;
   firstName: string;
@@ -26,84 +28,77 @@ export interface LinkedInMessage {
   body: string;
 }
 
-/**
- * Retrieve the authenticated user's profile from LinkedIn.
- *
- * In a real implementation this would make an authenticated HTTP request to
- * `https://api.linkedin.com/v2/me` using an OAuth access token:
- *
- * ```ts
- * const response = await fetch("https://api.linkedin.com/v2/me", {
- *   headers: { Authorization: `Bearer ${token}` },
- * });
- * const data = (await response.json()) as LinkedInProfile;
- * return data;
- * ```
- *
- * Here we return sample data for development.
- */
-export async function fetchProfile(): Promise<LinkedInProfile> {
-  return {
-    id: "123",
-    firstName: "Ada",
-    lastName: "Lovelace",
-    headline: "Pioneer of Computing",
-  };
-}
+export class LinkedInConnector implements Connector {
+  /**
+   * Authenticate with LinkedIn.
+   *
+   * This mock implementation performs no action.
+   */
+  async authenticate(): Promise<void> {
+    // No authentication needed for mocked connector
+  }
 
-/**
- * Search LinkedIn jobs.
- *
- * A production version would query LinkedIn's job search endpoint, for example:
- *
- * ```ts
- * const response = await fetch(
- *   `https://api.linkedin.com/v2/jobSearch?q=${encodeURIComponent(query)}`,
- *   { headers: { Authorization: `Bearer ${token}` } }
- * );
- * const jobs = (await response.json()) as LinkedInJob[];
- * return jobs;
- * ```
- *
- * This mock returns a static list of jobs.
- */
-export async function searchJobs(query: string): Promise<LinkedInJob[]> {
-  void query; // silence unused parameter in mock implementation
-  return [
-    {
-      id: "1",
-      title: "Software Engineer",
-      company: "LinkedIn",
-      location: "Remote",
-    },
-    {
-      id: "2",
-      title: "Product Manager",
-      company: "LinkedIn",
-      location: "San Francisco, CA",
-    },
-  ];
-}
+  /**
+   * Retrieve the authenticated user's profile from LinkedIn.
+   *
+   * Here we return sample data for development.
+   */
+  async fetchData(): Promise<LinkedInProfile> {
+    return {
+      id: "123",
+      firstName: "Ada",
+      lastName: "Lovelace",
+      headline: "Pioneer of Computing",
+    };
+  }
 
-/**
- * Fetch recent LinkedIn messages.
- *
- * In production this would call something like
- * `https://api.linkedin.com/v2/messages` with the appropriate authorization
- * header and return the parsed JSON response.
- */
-export async function fetchMessages(): Promise<LinkedInMessage[]> {
-  return [
-    {
-      id: "m1",
-      from: "Recruiter",
-      body: "We came across your profile and would love to chat.",
-    },
-    {
-      id: "m2",
-      from: "Colleague",
-      body: "Great work on the recent project!",
-    },
-  ];
-}
+  /**
+   * Send a message through LinkedIn.
+   *
+   * This mock simply resolves without performing any action.
+   */
+  async sendMessage(message: string): Promise<void> {
+    void message; // silence unused parameter in mock implementation
+  }
 
+  /**
+   * Search LinkedIn jobs.
+   *
+   * This mock returns a static list of jobs.
+   */
+  async searchJobs(query: string): Promise<LinkedInJob[]> {
+    void query; // silence unused parameter in mock implementation
+    return [
+      {
+        id: "1",
+        title: "Software Engineer",
+        company: "LinkedIn",
+        location: "Remote",
+      },
+      {
+        id: "2",
+        title: "Product Manager",
+        company: "LinkedIn",
+        location: "San Francisco, CA",
+      },
+    ];
+  }
+
+  /**
+   * Fetch recent LinkedIn messages.
+   */
+  async fetchMessages(): Promise<LinkedInMessage[]> {
+    return [
+      {
+        id: "m1",
+        from: "Recruiter",
+        body: "We came across your profile and would love to chat.",
+      },
+      {
+        id: "m2",
+        from: "Colleague",
+        body: "Great work on the recent project!",
+      },
+    ];
+  }
+}
