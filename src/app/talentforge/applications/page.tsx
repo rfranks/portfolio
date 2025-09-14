@@ -1,12 +1,12 @@
 "use client";
 
-import JobApplications from "@/components/talentforge/JobApplications";
+import ApplicationBoard from "@/components/talentforge/ApplicationBoard";
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 
 export default function ApplicationsPage() {
   return (
     <ErrorBoundary>
-      <JobApplications />
+      <ApplicationBoard />
     </ErrorBoundary>
   );
 }

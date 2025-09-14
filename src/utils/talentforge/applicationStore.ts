@@ -25,15 +25,29 @@ export function updateJobApplicationStatus(
   id: string,
   status: ApplicationStatus,
 ): JobApplication[] {
-  const apps = getJobApplications().map((app) =>
-    app.id === id ? { ...app, status } : app,
-  );
+  const apps = getJobApplications().map((app) => {
+    if (app.id === id) {
+      const history = [
+        ...(app.history ?? []),
+        { status, changedAt: new Date().toISOString() },
+      ];
+      return { ...app, status, history };
+    }
+    return app;
+  });
   setJobApplications(apps);
   return apps;
 }
 
 export function addJobApplication(app: JobApplication): JobApplication[] {
-  const apps = [...getJobApplications(), app];
+  const appWithHistory = {
+    ...app,
+    history: [
+      ...(app.history ?? []),
+      { status: app.status, changedAt: new Date().toISOString() },
+    ],
+  };
+  const apps = [...getJobApplications(), appWithHistory];
   setJobApplications(apps);
   return apps;
 }

@@ -42,6 +42,9 @@ export default function JobApplications() {
             ...listing,
             id: uuid(),
             status: "applied",
+            history: [
+              { status: "applied", changedAt: new Date().toISOString() },
+            ],
           });
         });
         setApplications(apps);
