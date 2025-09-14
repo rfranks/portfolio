@@ -1,3 +1,9 @@
+import type {
+  ApplicationStatus,
+  JobApplication,
+  JobListing,
+} from "./talentforge/job";
+
 export interface UserProfile {
   /** Unique identifier for the user. */
   id: string;
@@ -18,17 +24,6 @@ export interface Resume {
   url: string;
   /** Tags describing the resume's contents. */
   tags?: string[];
-}
-
-export interface JobApplication {
-  /** Unique identifier for the job application. */
-  id: string;
-  /** Identifier of the job listing being applied to. */
-  jobId: string;
-  /** Identifier of the resume used for the application. */
-  resumeId: string;
-  /** Current status of the application. */
-  status: ApplicationStatus;
 }
 
 export interface Message {
@@ -55,9 +50,5 @@ export interface Offer {
   accepted: boolean;
 }
 
-export type ApplicationStatus =
-  | "applied"
-  | "interview"
-  | "offer"
-  | "rejected";
+export type { JobApplication, ApplicationStatus, JobListing };
 
