@@ -38,6 +38,6 @@ describe("<Thinking />", () => {
     renderComponent({ showIndicator: true, indicatorProps: custom });
     const spinner = screen.getByRole("progressbar");
     expect(spinner).toBeInTheDocument();
-    expect(spinner).toHaveAttribute("style", "width: 32px; height: 32px;");
+    expect(spinner).toHaveStyle({ width: "32px", height: "32px" });
   });
 });
