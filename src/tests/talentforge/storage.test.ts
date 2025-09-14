@@ -29,6 +29,15 @@ describe("storage utilities", () => {
     expect(loadItem(key, 2)).toEqual({ name: "old2" });
   });
 
+  test("loadItem returns undefined for invalid JSON", () => {
+    localStorage.setItem("bad", "{not json");
+    let result: unknown;
+    expect(() => {
+      result = loadItem("bad", 1);
+    }).not.toThrow();
+    expect(result).toBeUndefined();
+  });
+
   test("deleteItem removes value", () => {
     saveItem("tmp", 123, 1);
     deleteItem("tmp");
