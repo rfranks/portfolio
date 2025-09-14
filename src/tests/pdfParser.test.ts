@@ -76,5 +76,17 @@ describe("parseResumeText", () => {
     expect(result.education).toEqual(["University X", "University Y"]);
     expect(result.skills).toEqual(["JavaScript", "TypeScript"]);
   });
+
+  test("parses sections with lowercase headers", () => {
+    const text = `john doe\njohn@example.com\nexperience\ncompany a\neducation\nuniversity x\nskills\njavascript`;
+
+    const result = parseResumeText(text);
+    expect(result).toEqual({
+      contact: "john doe\njohn@example.com",
+      experience: ["company a"],
+      education: ["university x"],
+      skills: ["javascript"],
+    });
+  });
 });
 

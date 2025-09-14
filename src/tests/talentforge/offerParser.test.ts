@@ -8,7 +8,7 @@ describe("parseOfferText", () => {
       expect.arrayContaining([
         { type: "base", amount: 120000 },
         { type: "bonus", amount: 10000 },
-        { type: "equity", amount: 1000, notes: "RSUS" },
+        { type: "equity", amount: 1000, notes: "RSUs" },
         { type: "start", amount: 0, notes: "June 1, 2024" },
       ]),
     );
