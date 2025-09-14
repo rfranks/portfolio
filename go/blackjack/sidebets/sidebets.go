@@ -239,7 +239,7 @@ func PayJackAttack() {
 			// track our winnings
 			game.State.SidebetWinnings += winnings
 		} else {
-			game.State.SidebetLosings += hand.TrifectaWager
+			game.State.SidebetLosses += hand.TrifectaWager
 		}
 	}
 
@@ -339,7 +339,7 @@ func PayTrifecta() {
 			// track our winnings
 			game.State.SidebetWinnings += trifectaWinnings
 		} else {
-			game.State.SidebetLosings += hand.TrifectaWager
+			game.State.SidebetLosses += hand.TrifectaWager
 		}
 	}
 
@@ -370,7 +370,7 @@ func PayTrifecta3() {
 			// track our winnings
 			game.State.SidebetWinnings += trifectaWinnings
 		} else {
-			game.State.SidebetLosings += hand.TrifectaWager
+			game.State.SidebetLosses += hand.TrifectaWager
 		}
 	}
 
@@ -422,7 +422,7 @@ func PayTrifectaStax() {
 			// track our winnings
 			game.State.SidebetWinnings += trifectaWinnings
 		} else {
-			game.State.SidebetLosings += hand.TrifectaWager
+			game.State.SidebetLosses += hand.TrifectaWager
 		}
 	}
 

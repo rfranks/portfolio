@@ -98,7 +98,7 @@ func initBlackjack() {
 			BustCards:        []cards.Card{},
 			BustCounts:       make(map[cards.CardValue]int),
 			SidebetWinnings:  0,
-			SidebetLosings:   0,
+			SidebetLosses:    0,
 			Players:          make([]player.Player, 0),
 			Dealer:           player.Player{Dealer: true},
 			Rounds:           0,

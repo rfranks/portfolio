@@ -24,7 +24,7 @@ bust-counts:
   13: 0
   14: 0
 sidebet-winnings: 75
-sidebet-losings: 0
+sidebet-losses: 0
 dealer:
   hands:
   - active: true
