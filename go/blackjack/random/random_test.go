@@ -8,7 +8,9 @@ import (
 	"blackjack/cards"
 )
 
-// TestRandomCardUniform ensures each rank is equally likely.
+// TestRandomCardUniform ensures each rank is equally likely, intentionally
+// excluding cards.One from the distribution. The value cards.One represents a
+// demoted ace and should never be dealt by RandomCard.
 func TestRandomCardUniform(t *testing.T) {
 	defer rand.Seed(time.Now().UnixNano())
 	rand.Seed(1)
