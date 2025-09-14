@@ -7,7 +7,7 @@ import { Breakpoint, useTheme } from "@mui/material/styles";
 import debounce from "lodash/debounce";
 
 /**
- * Dimensions of a component or element-it's height, width, and breakpoint size.
+ * Dimensions of a component or element-its height, width, and breakpoint size.
  */
 export interface Dimensions {
   /** The width of the dimension */
