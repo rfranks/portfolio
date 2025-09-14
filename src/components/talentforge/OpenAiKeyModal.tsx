@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import {
   Dialog,
@@ -10,7 +12,9 @@ import {
   DialogProps,
   FormControlLabel,
   Switch,
+  IconButton,
 } from "@mui/material";
+import { Close } from "@mui/icons-material";
 
 import { setOpenAIKey } from "@/utils/talentforge/utils";
 import {
@@ -18,16 +22,17 @@ import {
   deleteOpenAIKey,
 } from "@/utils/talentforge/dataStore";
 
-export interface OpenAiKeyModalProps
+export interface OpenAIKeyModalProps
   extends Omit<DialogProps, "open" | "onClose"> {
   open?: boolean;
   onClose?: () => void;
 }
 
-export default function OpenAiKeyModal({
+export default function OpenAIKeyModal({
   open = false,
   onClose,
-}: OpenAiKeyModalProps) {
+  ...props
+}: OpenAIKeyModalProps) {
   const [key, setKey] = React.useState("");
   const [persist, setPersist] = React.useState(true);
 
@@ -119,8 +124,22 @@ export default function OpenAiKeyModal({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Enter OpenAI API Key</DialogTitle>
+    <Dialog open={open} onClose={handleClose} {...props}>
+      <DialogTitle>
+        Enter OpenAI API Key
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <Close />
+        </IconButton>
+      </DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ mb: 2 }}>
           Your key is stored locally under <code>talentforge-openai-key</code> and

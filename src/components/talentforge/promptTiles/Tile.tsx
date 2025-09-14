@@ -13,7 +13,7 @@ import {
 import { ContentCopy } from "@mui/icons-material";
 import Markdown from "react-markdown";
 
-import OpenAiKeyModal from "../OpenAiKeyModal";
+import OpenAIKeyModal from "../OpenAiKeyModal";
 import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
 import { getResumes, addResume, type ResumeEntry } from "@/utils/talentforge/dataStore";
 import { tagResume } from "@/utils/talentforge/tagging";
@@ -47,6 +47,9 @@ export default function Tile({
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
+  const loadSelectedResume = () =>
+    getResumes().find((r) => r.id === values["resumeVariantId"]);
+
   const handleRun = async () => {
     const valid = await hasValidOpenAIKey();
     if (!valid) {
@@ -60,21 +63,20 @@ export default function Tile({
         prompt = prompt.replaceAll(`{{${key}}}`, values[key] || "");
       }
 
+      let context = "";
       if (id === "resumeRewrite") {
-        const resume = getResumes().find(
-          (r) => r.id === values["resumeVariantId"],
-        );
+        const resume = loadSelectedResume();
         if (!resume) {
           setResponse("Resume not found");
           return;
         }
-        prompt = `${prompt}\n\nJob Description:\n${values["jobDescription"]}\n\nResume:\n${resume.content}`;
+        context = `Job Description:\n${values["jobDescription"]}\n\nResume:\n${resume.content}`;
       }
 
       const res = await askOpenAI({
-        context: "",
+        context,
         user: prompt,
-        system: "You are a helpful assistant.",
+        system: "You are a helpful assistant. Use the following context:\n{{context}}",
         returnFirstResponse: true,
         chatHistory: [],
       });
@@ -89,6 +91,10 @@ export default function Tile({
 
   const handleSaveVariant = async () => {
     if (!response) return;
+    if (id !== "resumeRewrite" || !response) return;
+    const resume = loadSelectedResume();
+    if (!resume) return;
+
     setSaving(true);
     try {
       if (id === "resumeRewrite") {
@@ -127,18 +133,30 @@ export default function Tile({
 
   return (
     <Box>
-      <OpenAiKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
+      <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
       <Stack spacing={1}>
         <Typography variant="subtitle1">{display}</Typography>
-        {inputs.map((name) => (
-          <TextField
-            key={name}
-            label={name}
-            value={values[name] || ""}
-            onChange={(e) => handleChange(name, e.target.value)}
-            size="small"
-          />
-        ))}
+        {inputs.map((name) =>
+          name === "jobDescription" ? (
+            <TextField
+              key={name}
+              label={name}
+              value={values[name] || ""}
+              onChange={(e) => handleChange(name, e.target.value)}
+              multiline
+              minRows={4}
+              fullWidth
+            />
+          ) : (
+            <TextField
+              key={name}
+              label={name}
+              value={values[name] || ""}
+              onChange={(e) => handleChange(name, e.target.value)}
+              size="small"
+            />
+          ),
+        )}
         <Button variant="contained" onClick={handleRun} disabled={loading}>
           {loading ? "Running..." : "Run"}
         </Button>

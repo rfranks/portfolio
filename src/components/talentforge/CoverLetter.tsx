@@ -13,7 +13,7 @@ import {
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { getResumes } from "@/utils/talentforge/dataStore";
 import { exportElementToPdf } from "@/utils/pdfExport";
-import OpenAiKeyModal from "./OpenAiKeyModal";
+import OpenAIKeyModal from "./OpenAiKeyModal";
 import EmptyState from "./EmptyState";
 
 export default function CoverLetter() {
@@ -61,7 +61,7 @@ export default function CoverLetter() {
 
   return (
     <Box>
-      <OpenAiKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
+      <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
       <Stack spacing={2}>
         <TextField
           select
