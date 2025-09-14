@@ -1,21 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  Box,
-  Button,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
 import { ChatMessage } from "@/types/talentforge/types";
+import PromptSelector from "./PromptSelector";
 
 export default function ChatAssistant() {
   const [selectedPrompt, setSelectedPrompt] = useState<string>("");
@@ -39,10 +32,6 @@ export default function ChatAssistant() {
   }, [chatHistory]);
   const [openKeyModal, setOpenKeyModal] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
-
-  const handleChange = (event: SelectChangeEvent) => {
-    setSelectedPrompt(event.target.value as string);
-  };
 
   const handleSubmit = () => {
     if (!selectedPrompt) return;
@@ -70,21 +59,7 @@ export default function ChatAssistant() {
         onClose={() => setOpenKeyModal(false)}
       />
       <Stack spacing={2}>
-        <Select
-          value={selectedPrompt}
-          onChange={handleChange}
-          displayEmpty
-          fullWidth
-        >
-          <MenuItem value="" disabled>
-            Select a prompt
-          </MenuItem>
-          {Object.entries(PROMPT_TEMPLATES).map(([key, { displayText }]) => (
-            <MenuItem key={key} value={key}>
-              {displayText}
-            </MenuItem>
-          ))}
-        </Select>
+        <PromptSelector value={selectedPrompt} onChange={setSelectedPrompt} />
         <Button
           variant="contained"
           onClick={handleSubmit}
