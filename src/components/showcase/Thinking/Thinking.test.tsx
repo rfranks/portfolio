@@ -40,4 +40,14 @@ describe("<Thinking />", () => {
     expect(spinner).toBeInTheDocument();
     expect(spinner).toHaveStyle({ width: "32px", height: "32px" });
   });
+
+  it("applies the secondary color class when indicatorProps.color is secondary", () => {
+    renderComponent({
+      showIndicator: true,
+      indicatorProps: { color: "secondary" },
+    });
+    const spinner = screen.getByRole("progressbar");
+    expect(spinner).toBeInTheDocument();
+    expect(spinner).toHaveClass("MuiCircularProgress-colorSecondary");
+  });
 });
