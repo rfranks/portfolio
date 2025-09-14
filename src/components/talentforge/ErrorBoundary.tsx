@@ -28,12 +28,18 @@ class InnerErrorBoundary extends Component<BoundaryProps, BoundaryState> {
   render() {
     if (this.state.hasError) {
       return (
-        <Box role="alert" sx={{ p: 2 }}>
+        <Box role="alert" sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="h6" gutterBottom>
-            Something went wrong.
+            Oops! Something went wrong.
           </Typography>
-          <Button variant="contained" onClick={this.reset}>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Please try again. If the problem persists, reload the page.
+          </Typography>
+          <Button variant="contained" onClick={this.reset} sx={{ mr: 1 }}>
             Try again
+          </Button>
+          <Button variant="outlined" onClick={() => window.location.reload()}>
+            Reload
           </Button>
         </Box>
       );

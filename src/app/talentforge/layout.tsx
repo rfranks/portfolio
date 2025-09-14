@@ -5,6 +5,7 @@ import { CssBaseline, PaletteMode, ThemeProvider, useMediaQuery } from "@mui/mat
 import LayoutShell from "@/components/talentforge/LayoutShell";
 import getTalentforgeTheme from "@/themes/talentforgeTheme";
 import { TalentForgeDataProvider } from "@/contexts/TalentForgeDataContext";
+import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 
 export default function TalentForgeLayout({
   children,
@@ -37,13 +38,15 @@ export default function TalentForgeLayout({
     <TalentForgeDataProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <LayoutShell
-          navItems={navItems}
-          mode={mode}
-          toggleColorMode={toggleColorMode}
-        >
-          {children}
-        </LayoutShell>
+        <ErrorBoundary>
+          <LayoutShell
+            navItems={navItems}
+            mode={mode}
+            toggleColorMode={toggleColorMode}
+          >
+            {children}
+          </LayoutShell>
+        </ErrorBoundary>
       </ThemeProvider>
     </TalentForgeDataProvider>
   );
