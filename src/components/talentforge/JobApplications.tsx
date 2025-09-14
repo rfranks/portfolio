@@ -9,14 +9,17 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { v4 as uuid } from "uuid";
 import type {
   ApplicationStatus,
   JobApplication,
 } from "@/types/talentforge";
 import {
+  addJobApplication,
   getJobApplications,
   updateJobApplicationStatus,
 } from "@/utils/talentforge/applicationStore";
+import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 
 const STATUS_OPTIONS: ApplicationStatus[] = [
   "applied",
@@ -29,7 +32,23 @@ export default function JobApplications() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
 
   useEffect(() => {
-    setApplications(getJobApplications());
+    const existing = getJobApplications();
+    if (existing.length === 0) {
+      // Seed applications using aggregated listings from connectors
+      fetchAllListings().then((listings) => {
+        let apps = existing;
+        listings.forEach((listing) => {
+          apps = addJobApplication({
+            ...listing,
+            id: uuid(),
+            status: "applied",
+          });
+        });
+        setApplications(apps);
+      });
+    } else {
+      setApplications(existing);
+    }
   }, []);
 
   const handleStatusChange = (
