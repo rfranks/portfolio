@@ -72,11 +72,11 @@ export default function Inbox() {
 
   const selected = threads.find((m) => m.id === selectedId) || null;
 
-  const templateNames = Object.keys(templateDefs);
-  const defaultTemplate = templateDefs.general
+  const templateNames = Object.keys(templateDefs) as AutoReplyTemplate[];
+  const defaultTemplate: AutoReplyTemplate = templateDefs.general
     ? "general"
-    : templateNames[0] || "";
-  const defaultQuickTone = templateDefs.politeFollowUp
+    : templateNames[0];
+  const defaultQuickTone: AutoReplyTemplate = templateDefs.politeFollowUp
     ? "politeFollowUp"
     : defaultTemplate;
 
