@@ -35,6 +35,12 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "Craft a short elevator pitch for a professional with experience in {{experience}} looking for {{goal}}.",
     inputs: ["experience", "goal"],
   },
+  bulletRewrite: {
+    ...BASE_TILES.bulletRewrite,
+    fullPrompt:
+      "Rewrite the following resume bullet into three STAR-formatted variants, each including clear metrics:\n\n{{bullet}}",
+    inputs: ["bullet"],
+  },
   resumeRewrite: {
     ...BASE_TILES.resumeSummary,
     id: "resumeRewrite",
@@ -62,6 +68,12 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
     fullPrompt:
       "Compare the following two job offers in a markdown table highlighting differences in compensation, benefits, and other terms. Then provide a brief summary of which offer is more advantageous.\n\nOffer A:\n{{offerA}}\n\nOffer B:\n{{offerB}}",
     inputs: ["offerA", "offerB"],
+  },
+  screenRole: {
+    ...BASE_TILES.screenRole,
+    fullPrompt:
+      "Review the following job description, provide a brief summary, and list potential issues candidates should note. Return JSON with a 'summary' and an 'issues' array of objects with 'severity' ('red' or 'yellow') and 'message'.\n\n{{jobDescription}}",
+    inputs: ["jobDescription"],
   },
   negotiateOffer: {
     ...BASE_TILES.negotiateOffer,
