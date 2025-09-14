@@ -126,3 +126,46 @@ describe("useDimensions breakpoints", () => {
     );
   });
 });
+
+describe("useDimensions with null ref", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test("returns default dimensions without attaching listeners", () => {
+    const addEventListener = jest.fn();
+    const removeEventListener = jest.fn();
+    const g = globalThis as unknown as {
+      window: {
+        addEventListener: typeof addEventListener;
+        removeEventListener: typeof removeEventListener;
+      };
+    };
+    g.window = { addEventListener, removeEventListener };
+    const addEventListenerSpy = jest.spyOn(window, "addEventListener");
+
+    const setSpy = jest.fn();
+    const originalUseState = React.useState;
+    jest.spyOn(React, "useState").mockImplementation((init: unknown) => {
+      if (
+        typeof init === "object" &&
+        init !== null &&
+        "width" in (init as Record<string, unknown>) &&
+        "height" in (init as Record<string, unknown>) &&
+        "breakpoint" in (init as Record<string, unknown>)
+      ) {
+        return [init, setSpy];
+      }
+      return originalUseState(init);
+    });
+
+    jest.spyOn(React, "useEffect").mockImplementation((effect: () => void) => {
+      effect();
+    });
+
+    const dimensions = useDimensions(null as any);
+
+    expect(dimensions).toEqual({ width: 0, height: 0, breakpoint: "xs" });
+    expect(addEventListenerSpy).not.toHaveBeenCalled();
+  });
+});
