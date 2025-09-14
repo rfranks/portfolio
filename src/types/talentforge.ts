@@ -42,12 +42,12 @@ export interface Message {
 export interface Offer {
   /** Unique identifier for the offer. */
   id: string;
-  /** Identifier of the related job application. */
-  applicationId: string;
-  /** Proposed salary or compensation. */
+  /** Original text of the offer letter. */
+  offerText: string;
+  /** Current compensation details provided by the user. */
   compensation: string;
-  /** Whether the offer has been accepted. */
-  accepted: boolean;
+  /** Generated negotiation draft or analysis. */
+  result: string;
 }
 
 export type { JobApplication, ApplicationStatus, JobListing };

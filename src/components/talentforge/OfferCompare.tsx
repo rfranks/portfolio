@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Markdown from "react-markdown";
+import { v4 as uuid } from "uuid";
 
 import {
   Box,
@@ -16,8 +17,13 @@ import FileUploader from "./FileUploader";
 import { askOpenAI, pdfToMarkdown, hasOpenAIKey } from "@/utils/talentforge/utils";
 import OpenAiKeyModal from "./OpenAiKeyModal";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
+import { addOffer } from "@/utils/talentforge/dataStore";
 
-export default function OfferCompare() {
+interface OfferCompareProps {
+  onSave?: () => void;
+}
+
+export default function OfferCompare({ onSave }: OfferCompareProps) {
   const [offerText, setOfferText] = useState("");
   const [compensation, setCompensation] = useState("");
   const [result, setResult] = useState("");
@@ -54,8 +60,11 @@ export default function OfferCompare() {
       chatHistory: [],
       returnFirstResponse: true,
     });
-    setResult(response?.message || "");
+    const message = response?.message || "";
+    setResult(message);
+    addOffer({ id: uuid(), offerText, compensation, result: message });
     setLoading(false);
+    onSave?.();
   };
 
   return (

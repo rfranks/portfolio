@@ -34,6 +34,11 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Analyze the job description and highlight any skills you may need to develop to be competitive.",
   },
+  compareResumeToJob: {
+    displayText: "Compare Resume to Job",
+    fullText:
+      "Compare your resume to the job description, highlighting strong matches and gaps to address.",
+  },
   jobDescriptionRewrite: {
     displayText: "Job Description Rewrite",
     fullText:
@@ -69,4 +74,17 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Provide tips to optimize your LinkedIn profile so recruiters in your field can find you more easily.",
   },
+};
+
+export const PROMPT_GROUPS: Record<string, string[]> = {
+  Resumes: ["resumeSummary", "coverLetter", "portfolioReview", "projectSummary"],
+  Offers: ["negotiateOffer", "salaryResearch"],
+  "Recruiter Replies": ["interviewPreparation", "networkingOutreach"],
+  "Career Growth": [
+    "skillGapAnalysis",
+    "jobDescriptionRewrite",
+    "careerGoals",
+    "elevatorPitch",
+    "linkedinProfileOptimization",
+  ],
 };
