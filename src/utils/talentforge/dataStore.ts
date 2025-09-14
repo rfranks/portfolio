@@ -5,6 +5,7 @@ import {
   saveItem,
   deleteItem,
 } from "@/utils/storage";
+import { v4 as uuid } from "uuid";
 import { ConnectorToken } from "@/types/connector";
 import type { ApplicationStatus } from "@/types/talentforge/job";
 import type {
@@ -161,6 +162,12 @@ export function updateResume(resume: ResumeEntry): ResumeEntry[] {
 }
 export function deleteResume(id: string): ResumeEntry[] {
   const updated = getResumes().filter((r) => r.id !== id);
+  saveResumes(updated);
+  return updated;
+}
+export function cloneResume(resume: ResumeEntry): ResumeEntry[] {
+  const clone = { ...resume, id: uuid() };
+  const updated = [...getResumes(), clone];
   saveResumes(updated);
   return updated;
 }
