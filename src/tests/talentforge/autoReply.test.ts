@@ -25,6 +25,7 @@ describe("autoReply utilities", () => {
 
   test("autoReply returns trimmed string content", async () => {
     (fetch as jest.Mock).mockResolvedValue({
+      ok: true,
       json: async () => ({ choices: [{ message: { content: " hello " } }] }),
     });
     setOpenAIKey("key");
@@ -35,6 +36,7 @@ describe("autoReply utilities", () => {
 
   test("autoReply joins array content", async () => {
     (fetch as jest.Mock).mockResolvedValue({
+      ok: true,
       json: async () => ({
         choices: [{ message: { content: ["foo ", { text: "bar" }, { other: "" }] } }],
       }),
@@ -42,6 +44,27 @@ describe("autoReply utilities", () => {
     setOpenAIKey("key");
     const result = await autoReply([] as AutoReplyMessage[]);
     expect(result).toBe("foo bar ");
+  });
+
+  test("autoReply throws on non-ok response", async () => {
+    (fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => "bad",
+    });
+    setOpenAIKey("key");
+    await expect(autoReply([])).rejects.toThrow("OpenAI request failed");
+  });
+
+  test("autoReply throws on invalid JSON", async () => {
+    (fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => {
+        throw new Error("invalid json");
+      },
+    });
+    setOpenAIKey("key");
+    await expect(autoReply([])).rejects.toThrow("Failed to parse OpenAI response");
   });
 
   test("buildAutoReplyMessages creates system and user messages", () => {

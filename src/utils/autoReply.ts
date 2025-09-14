@@ -48,8 +48,19 @@ export async function autoReply(
       messages,
     }),
   });
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(
+      `OpenAI request failed: ${response.status} ${errorText}`.trim(),
+    );
+  }
 
-  const data = await response.json();
+  let data: any;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("Failed to parse OpenAI response");
+  }
   const content = data?.choices?.[0]?.message?.content;
   if (Array.isArray(content)) {
     return (
