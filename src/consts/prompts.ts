@@ -34,6 +34,11 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Analyze the job description and highlight any skills you may need to develop to be competitive.",
   },
+  compareResumeToJob: {
+    displayText: "Compare Resume to Job",
+    fullText:
+      "Compare your resume to the job description, highlighting strong matches and gaps to address.",
+  },
   jobDescriptionRewrite: {
     displayText: "Job Description Rewrite",
     fullText:
