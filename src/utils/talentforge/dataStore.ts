@@ -507,6 +507,16 @@ export function addJobApplication(app: JobApplication): JobApplication[] {
   save("applications", updated);
   return updated;
 }
+export function updateJobApplication(
+  id: string,
+  updates: Partial<JobApplication>,
+): JobApplication[] {
+  const updated = getJobApplications().map((app) =>
+    app.id === id ? { ...app, ...updates } : app,
+  );
+  save("applications", updated);
+  return updated;
+}
 export function updateJobApplicationStatus(
   id: string,
   status: ApplicationStatus,
@@ -729,6 +739,7 @@ const dataStore = {
   deleteOffer,
   getJobApplications,
   addJobApplication,
+  updateJobApplication,
   updateJobApplicationStatus,
   deleteJobApplication,
   getRecruiters,

@@ -96,13 +96,17 @@ export default function Tile({
       }
 
       let context = "";
-      if (id === "resumeRewrite") {
+      if (id === "resumeRewrite" || id === "resumeCompare") {
         const resume = loadSelectedResume();
         if (!resume) {
           setResponse("Resume not found");
           return;
         }
-        context = `Job Description:\n${values["jobDescription"]}\n\nResume:\n${resume.content}`;
+        if (id === "resumeRewrite") {
+          context = `Job Description:\n${values["jobDescription"]}\n\nResume:\n${resume.content}`;
+        } else {
+          prompt = prompt.replaceAll("{{resumeContent}}", resume.content);
+        }
       }
 
       if (id === "compareOffers") {
