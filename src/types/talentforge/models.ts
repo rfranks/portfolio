@@ -73,6 +73,14 @@ export interface Recruiter {
   email?: string;
   /** Applications managed by this recruiter. */
   applications?: ApplicationRecord[];
+  /** Connector that surfaced this recruiter. */
+  connector?: string;
+  /** Tags describing the recruiter. */
+  tags?: string[];
+  /** Notes about the recruiter. */
+  notes?: string;
+  /** Message thread IDs linked to this recruiter. */
+  threadIds?: string[];
 }
 
 export interface Thread {
@@ -93,6 +101,8 @@ export interface Message {
   threadId: string;
   /** Identifier of the sender (user or recruiter). */
   senderId: string;
+  /** Recruiter associated with this thread, if any. */
+  recruiterId?: string;
   /** Timestamp in ISO format indicating when the message was sent. */
   sentAt: string;
   /** Body content of the message. */

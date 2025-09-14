@@ -15,6 +15,7 @@ import type {
   Offer as ModelOffer,
   ApplicationRecord,
   OfferComp,
+  Recruiter,
 } from "@/types";
 import { ParsedResume } from "@/types/talentforge/resume";
 
@@ -42,12 +43,20 @@ export type Offer = ModelOffer;
 
 export type JobApplication = ApplicationRecord;
 
+export type RecruiterEntry = Recruiter & {
+  connector: string;
+  tags: string[];
+  notes: string;
+  threadIds: string[];
+};
+
 interface StoreSchema {
   user: UserProfile | undefined;
   resumes: ResumeEntry[];
   messages: Message[];
   offers: Offer[];
   applications: JobApplication[];
+  recruiters: RecruiterEntry[];
   onboarding: number;
   openai: string | undefined;
   connectorTokens: Record<string, ConnectorToken>;
@@ -59,6 +68,7 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   messages: "messages",
   offers: "offers",
   applications: "jobApplications",
+  recruiters: "recruiters",
   onboarding: "onboardingStep",
   openai: "talentforge-openai-key",
   connectorTokens: "connectorTokens",
@@ -70,6 +80,7 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   messages: 2,
   offers: 2,
   applications: 1,
+  recruiters: 1,
   onboarding: 1,
   openai: 1,
   connectorTokens: 1,
@@ -269,6 +280,53 @@ export function deleteJobApplication(id: string): JobApplication[] {
   return updated;
 }
 
+// Recruiters
+export function getRecruiters(): RecruiterEntry[] {
+  return load("recruiters", []);
+}
+
+export function addRecruiter(recruiter: RecruiterEntry): RecruiterEntry[] {
+  const updated = [...getRecruiters(), recruiter];
+  save("recruiters", updated);
+  return updated;
+}
+
+export function updateRecruiter(recruiter: RecruiterEntry): RecruiterEntry[] {
+  const updated = getRecruiters().map((r) =>
+    r.id === recruiter.id ? recruiter : r,
+  );
+  save("recruiters", updated);
+  return updated;
+}
+
+export function deleteRecruiter(id: string): RecruiterEntry[] {
+  const updated = getRecruiters().filter((r) => r.id !== id);
+  save("recruiters", updated);
+  return updated;
+}
+
+export function linkThreadToRecruiter(
+  threadId: string,
+  recruiterId: string,
+): Message[] {
+  const messages = getMessages().map((m) =>
+    m.id === threadId ? { ...m, recruiterId } : m,
+  );
+  save("messages", messages);
+
+  const recruiters = getRecruiters();
+  for (const r of recruiters) {
+    const hasThread = r.threadIds.includes(threadId);
+    if (r.id === recruiterId && !hasThread) {
+      r.threadIds.push(threadId);
+    } else if (r.id !== recruiterId && hasThread) {
+      r.threadIds = r.threadIds.filter((t) => t !== threadId);
+    }
+  }
+  save("recruiters", recruiters);
+  return messages;
+}
+
 // Onboarding step
 export function getOnboardingStep(): number {
   return load("onboarding", 0);
@@ -378,6 +436,11 @@ const dataStore = {
   addJobApplication,
   updateJobApplicationStatus,
   deleteJobApplication,
+  getRecruiters,
+  addRecruiter,
+  updateRecruiter,
+  deleteRecruiter,
+  linkThreadToRecruiter,
   getOnboardingStep,
   setOnboardingStep,
   clearOnboardingStep,
@@ -391,7 +454,7 @@ const dataStore = {
   importFromJson,
 };
 
-export type { ResumeEntry, Message, Offer, JobApplication };
+export type { ResumeEntry, Message, Offer, JobApplication, RecruiterEntry };
 
 export default dataStore;
 
