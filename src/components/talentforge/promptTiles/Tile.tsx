@@ -21,15 +21,19 @@ import { parseResumeText } from "@/utils/talentforge/pdfParser";
 import { v4 as uuid } from "uuid";
 
 export interface PromptTileProps {
+  id: string;
   display: string;
   fullPrompt: string;
   inputs: string[];
+  onResponse?: (response: string) => void;
 }
 
 export default function Tile({
+  id,
   display,
   fullPrompt,
   inputs,
+  onResponse,
 }: PromptTileProps) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [response, setResponse] = useState("");
@@ -72,7 +76,9 @@ export default function Tile({
         returnFirstResponse: true,
         chatHistory: [],
       });
-      setResponse(res?.message || "");
+      const message = res?.message || "";
+      setResponse(message);
+      onResponse?.(message);
     } finally {
       setLoading(false);
     }
