@@ -29,9 +29,9 @@ func DrawHand(hand player.Hand, colorTerminal bool) {
 
 	for i := 0; i < len(hand.Cards); i++ {
 		card := hand.Cards[i]
-		suitStr := cards.SuitToString[card.Suite]
+		suitStr := cards.SuitToString[card.Suit]
 		if colorTerminal {
-			suitStr = cards.SuitToColorString[card.Suite]
+			suitStr = cards.SuitToColorString[card.Suit]
 		}
 
 		if card.Masked {
@@ -60,9 +60,9 @@ func DrawHand(hand player.Hand, colorTerminal bool) {
 	for i := 0; i < len(hand.Cards); i++ {
 		card := hand.Cards[i]
 
-		suitStr := cards.SuitToString[card.Suite]
+		suitStr := cards.SuitToString[card.Suit]
 		if colorTerminal {
-			suitStr = cards.SuitToColorString[card.Suite]
+			suitStr = cards.SuitToColorString[card.Suit]
 		}
 
 		if card.Masked {
@@ -537,16 +537,16 @@ func PrintSidebetsOutcome(hand player.Hand) string {
 		dealerDownCard := sidebets.DealerDownCard()
 
 		if firstCard.Value == dealerUpCard.Value {
-			if sidebets.CardsMatchSuite(firstCard, dealerUpCard) {
-				outcome += fmt.Sprintf("First Card Matches Up Card, Matches Suite! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
+			if sidebets.CardsMatchSuit(firstCard, dealerUpCard) {
+				outcome += fmt.Sprintf("First Card Matches Up Card, Matches Suit! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
 			} else {
 				outcome += fmt.Sprintf("First Card Matches Up Card! %d to 1 WINNER!", sidebets.Spanish21MatchUnsuitedMultiplier)
 			}
 		}
 
 		if secondCard.Value == dealerUpCard.Value {
-			if sidebets.CardsMatchSuite(secondCard, dealerUpCard) {
-				outcome += fmt.Sprintf("Second Card Matches Up Card, Matches Suite! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
+			if sidebets.CardsMatchSuit(secondCard, dealerUpCard) {
+				outcome += fmt.Sprintf("Second Card Matches Up Card, Matches Suit! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
 			} else {
 				outcome += fmt.Sprintf("Second Card Matches Up Card! %d to 1 WINNER!", sidebets.Spanish21MatchUnsuitedMultiplier)
 			}
@@ -554,16 +554,16 @@ func PrintSidebetsOutcome(hand player.Hand) string {
 
 		if !dealerDownCard.Masked {
 			if firstCard.Value == dealerDownCard.Value {
-				if sidebets.CardsMatchSuite(firstCard, dealerDownCard) {
-					outcome += fmt.Sprintf("First Card Matches Down Card, Matches Suite! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
+				if sidebets.CardsMatchSuit(firstCard, dealerDownCard) {
+					outcome += fmt.Sprintf("First Card Matches Down Card, Matches Suit! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
 				} else {
 					outcome += fmt.Sprintf("First Card Matches Down Card! %d to 1 WINNER!", sidebets.Spanish21MatchUnsuitedMultiplier)
 				}
 			}
 
 			if secondCard.Value == dealerDownCard.Value {
-				if sidebets.CardsMatchSuite(secondCard, dealerDownCard) {
-					outcome += fmt.Sprintf("Second Card Matches Down Card, Matches Suite! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
+				if sidebets.CardsMatchSuit(secondCard, dealerDownCard) {
+					outcome += fmt.Sprintf("Second Card Matches Down Card, Matches Suit! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
 				} else {
 					outcome += fmt.Sprintf("Second Card Matches Down Card! %d to 1 WINNER!", sidebets.Spanish21MatchUnsuitedMultiplier)
 				}

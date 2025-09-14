@@ -21,7 +21,7 @@ func TestIsTrifectaFlush(t *testing.T) {
 	if !IsTrifectaFlush(hand) {
 		t.Fatalf("expected flush")
 	}
-	hand.Cards[1].Suite = cards.Hearts
+	hand.Cards[1].Suit = cards.Hearts
 	if IsTrifectaFlush(hand) {
 		t.Fatalf("expected not flush")
 	}

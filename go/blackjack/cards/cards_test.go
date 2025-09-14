@@ -8,9 +8,9 @@ import (
 // TestCreateCard verifies that CreateCard sets basic fields correctly
 func TestCreateCard(t *testing.T) {
 	ForAllCards(func(card Card) {
-		created := CreateCard(card.Suite, card.Value)
-		if created.Suite != card.Suite || created.Value != card.Value {
-			t.Fatalf("CreateCard(%v,%v)=%v want %v", card.Suite, card.Value, created, card)
+		created := CreateCard(card.Suit, card.Value)
+		if created.Suit != card.Suit || created.Value != card.Value {
+			t.Fatalf("CreateCard(%v,%v)=%v want %v", card.Suit, card.Value, created, card)
 		}
 		if created.Demoted || created.DoubleDown || created.Masked {
 			t.Fatalf("new card has unexpected flags: %+v", created)
@@ -41,7 +41,7 @@ func TestToCard(t *testing.T) {
 		}
 		s := CardToString(card, false, false, false)
 		got := ToCard(s)
-		if got.Suite != card.Suite || got.Value != card.Value {
+		if got.Suit != card.Suit || got.Value != card.Value {
 			t.Fatalf("ToCard(%s)=%v want %v", s, got, card)
 		}
 	})
