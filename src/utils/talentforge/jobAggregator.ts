@@ -1,5 +1,5 @@
 import type { JobListing } from "@/types/talentforge/job";
-import { LinkedInConnector, type LinkedInData } from "./connectors/linkedin";
+import { LinkedInConnector } from "./connectors/linkedin";
 import { IndeedConnector } from "./connectors/indeed";
 
 /**
