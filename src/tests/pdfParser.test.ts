@@ -19,5 +19,12 @@ describe("cleanPdfText", () => {
       "Summary\nExperienced developer with focus on web\nSkills React Node",
     );
   });
+
+  test("handles single-page input", () => {
+    const pages = [["Only line"]];
+
+    const result = cleanPdfText(pages);
+    expect(result).toBe("Only line");
+  });
 });
 
