@@ -1,4 +1,4 @@
-// __tests__/Thinking.test.tsx
+// src/components/showcase/Thinking/Thinking.test.tsx
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { Thinking, ThinkingProps } from "@components/Thinking";
