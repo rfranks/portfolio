@@ -28,8 +28,11 @@ export interface ThinkingProps {
 /**
  * Thinking effect component that displays a text with a CSS animation.
  *
- * @param text - The text to display in the thinking effect.
- * @returns A div element with the thinking effect applied.
+ * @param text - Text to display in the thinking effect. Defaults to "Thinking...".
+ * @param showIndicator - Whether to show a {@link CircularProgress} indicator. Defaults to false.
+ * @param indicatorProps - Props to customize the {@link CircularProgress} indicator. Defaults to
+ * { size: "16px", color: "primary", sx: { m: 1 } }.
+ * @returns A fragment containing the text and optional indicator.
  */
 export const Thinking: React.FC<ThinkingProps> = ({
   text = "Thinking...",
