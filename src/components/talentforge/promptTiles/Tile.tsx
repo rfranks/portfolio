@@ -15,6 +15,10 @@ import Markdown from "react-markdown";
 
 import OpenAiKeyModal from "../OpenAiKeyModal";
 import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
+import { getResumes, addResume, type ResumeEntry } from "@/utils/talentforge/dataStore";
+import { tagResume } from "@/utils/talentforge/tagging";
+import { parseResumeText } from "@/utils/talentforge/pdfParser";
+import { v4 as uuid } from "uuid";
 
 export interface PromptTileProps {
   id: string;
@@ -33,6 +37,7 @@ export default function Tile({
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [openKeyModal, setOpenKeyModal] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const handleChange = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -44,14 +49,24 @@ export default function Tile({
       setOpenKeyModal(true);
       return;
     }
-
-    let prompt = fullPrompt;
-    for (const key of inputs) {
-      prompt = prompt.replaceAll(`{{${key}}}`, values[key] || "");
-    }
-
     setLoading(true);
     try {
+      let prompt = fullPrompt;
+      for (const key of inputs) {
+        prompt = prompt.replaceAll(`{{${key}}}`, values[key] || "");
+      }
+
+      if (id === "resumeRewrite") {
+        const resume = getResumes().find(
+          (r) => r.id === values["resumeVariantId"],
+        );
+        if (!resume) {
+          setResponse("Resume not found");
+          return;
+        }
+        prompt = `${prompt}\n\nJob Description:\n${values["jobDescription"]}\n\nResume:\n${resume.content}`;
+      }
+
       const res = await askOpenAI({
         context: "",
         user: prompt,
@@ -62,6 +77,29 @@ export default function Tile({
       setResponse(res?.message || "");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveVariant = async () => {
+    if (id !== "resumeRewrite" || !response) return;
+    const resume = getResumes().find(
+      (r) => r.id === values["resumeVariantId"],
+    );
+    if (!resume) return;
+    setSaving(true);
+    try {
+      const tags = await tagResume(response);
+      const parsed = parseResumeText(response);
+      const newResume: ResumeEntry = {
+        ...resume,
+        id: uuid(),
+        content: response,
+        parsed,
+        tags,
+      };
+      addResume(newResume);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -83,22 +121,36 @@ export default function Tile({
           {loading ? "Running..." : "Run"}
         </Button>
         {response && (
-          <Box>
-            <Box display="flex" justifyContent="flex-end">
-              {navigator.clipboard && (
-                <Tooltip title="copy to clipboard" arrow>
-                  <IconButton
-                    aria-label="copy response to clipboard"
-                    onClick={() => navigator.clipboard.writeText(response)}
-                    size="small"
-                  >
-                    <ContentCopy fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              )}
+          <>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {response}
+            </Typography>
+            {id === "resumeRewrite" && (
+              <Button
+                variant="outlined"
+                onClick={handleSaveVariant}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save as new variant"}
+              </Button>
+            )}
+            <Box>
+              <Box display="flex" justifyContent="flex-end">
+                {navigator.clipboard && (
+                  <Tooltip title="copy to clipboard" arrow>
+                    <IconButton
+                      aria-label="copy response to clipboard"
+                      onClick={() => navigator.clipboard.writeText(response)}
+                      size="small"
+                    >
+                      <ContentCopy fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+              <Markdown>{response}</Markdown>
             </Box>
-            <Markdown>{response}</Markdown>
-          </Box>
+          </>
         )}
       </Stack>
     </Box>
