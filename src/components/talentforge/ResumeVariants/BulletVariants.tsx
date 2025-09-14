@@ -1,16 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { Stack, TextField, Button, Typography } from "@mui/material";
 import RequireAIKey from "../RequireAIKey";
 import { askOpenAI } from "@/utils/talentforge/utils";
 
 interface Props {
-  content: string;
-  setContent: (content: string) => void;
+  setContent: Dispatch<SetStateAction<string>>;
 }
 
-export default function BulletVariants({ content, setContent }: Props) {
+export default function BulletVariants({ setContent }: Props) {
   const [bulletText, setBulletText] = useState("");
   const [variants, setVariants] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
