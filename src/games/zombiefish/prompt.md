@@ -11,7 +11,7 @@ Fish should spawn randomly off-screen and swim, ambulating along in a small grou
 Fish should be able to be clicked/shoot at, and when clicked, they should disappear with a sound effect.  The game should have a timer that counts down from 99 seconds, and when the timer reaches zero, the game ends and shows the accuracy %.
 
 Special fish are:
-* public/assets/fish/PNG/Objects/Fish/fish_brown.png, shooting it adds 3 secs with a "+3" fading floaltingTextLabel.
+* public/assets/fish/PNG/Objects/Fish/fish_brown.png, shooting it adds 3 secs with a "+3" fading floatingTextLabel.
 * public/assets/fish/PNG/Objects/Fish/fish_grey_long_a.png (tail->torso, aka L)+ public/assets/fish/PNG/Objects/Fish/fish_grey_long_b.png (torso->head, aka R) to form grey fish, it subtracts 5 secs with a fading floating textlabel.
 Special fish do not swim in groups.
 
