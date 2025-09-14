@@ -4,13 +4,11 @@ import { useEffect, useState } from "react";
 
 export default function useOrigin(): string {
   const [mounted, setMounted] = useState(false);
-  const origin =
-    typeof window !== "undefined" && window.location.origin
-      ? window.location.origin
-      : "";
+  const [origin, setOrigin] = useState("");
 
   useEffect(() => {
     setMounted(true);
+    setOrigin(window.location.origin);
   }, []);
 
   if (!mounted) {
