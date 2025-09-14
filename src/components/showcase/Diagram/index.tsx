@@ -16,8 +16,6 @@ import IconButton from "@mui/material/IconButton";
 import Divider from "@mui/material/Divider";
 import Toolbar from "@mui/material/Toolbar";
 import Tooltip from "@mui/material/Tooltip";
-import useTheme from "@mui/material/styles/useTheme";
-import useMediaQuery from "@mui/material/useMediaQuery";
 
 // MUI icons
 import ZoomIn from "@mui/icons-material/ZoomIn";
@@ -106,8 +104,6 @@ ${type} ${type === "flowchart" || type === "graph" ? orientation : ""}${
 ${steps?.join("\n  ")}
 `;
 
-  const theme = useTheme();
-  const isDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
   const diagramRef = useRef<HTMLElement>(null);
   const isVisible = useIsVisible(diagramRef);

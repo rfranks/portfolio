@@ -8,7 +8,6 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import Avatar from "@mui/material/Avatar";
 import TronPaper from "@/components/app/TronPaper";
-import FadeInSection from "@/components/app/FadeInSection";
 import { withBasePath } from "@/utils/basePath";
 
 export default function Recognition() {

@@ -1,8 +1,10 @@
 import { setOpenAIKey, hasOpenAIKey, autoReply, AutoReplyMessage } from "../../utils/autoReply";
 
 describe("autoReply utilities", () => {
+  const globalWithFetch = global as unknown as { fetch: jest.Mock };
+
   beforeEach(() => {
-    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn();
+    globalWithFetch.fetch = jest.fn();
     setOpenAIKey("");
   });
 
