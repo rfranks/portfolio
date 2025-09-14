@@ -5,6 +5,25 @@ export interface AutoReplyMessage {
   content: string;
 }
 
+export const AUTO_REPLY_TEMPLATES = {
+  general:
+    "You are a helpful assistant crafting concise professional replies to incoming messages.",
+  politeDecline:
+    "You are a helpful assistant that politely declines opportunities while maintaining professionalism.",
+  requestMoreInfo:
+    "You are a helpful assistant that requests more information when needed while remaining courteous.",
+} as const;
+
+export type AutoReplyTemplate = keyof typeof AUTO_REPLY_TEMPLATES;
+
+export const buildAutoReplyMessages = (
+  template: AutoReplyTemplate,
+  content: string,
+): AutoReplyMessage[] => [
+  { role: "system", content: AUTO_REPLY_TEMPLATES[template] },
+  { role: "user", content },
+];
+
 let apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
 
 export const setOpenAIKey = (key: string) => {

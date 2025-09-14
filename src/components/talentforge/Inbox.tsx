@@ -16,6 +16,19 @@ import {
 } from "@mui/material";
 import { filterByText } from "@/utils/search";
 
+import {
+  autoReply,
+  buildAutoReplyMessages,
+  AutoReplyTemplate,
+} from "@/utils/autoReply";
+
+interface ConnectorMessage {
+  id: string;
+  connector: string;
+  content: string;
+  status: "unread" | "read";
+}
+
 import { autoReply } from "@/utils/autoReply";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import { Message } from "@/utils/talentforge/dataStore";
@@ -27,6 +40,7 @@ export default function Inbox() {
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [templates, setTemplates] = useState<Record<string, AutoReplyTemplate>>({});
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -42,15 +56,11 @@ export default function Inbox() {
     "connector",
   ]).filter((message) => filter === "all" || message.status === filter);
 
-  const handleAutoReply = async (message: Message) => {
-    const reply = await autoReply([
-      {
-        role: "system",
-        content:
-          "You are a helpful assistant crafting concise professional replies to incoming messages.",
-      },
-      { role: "user", content: message.content },
-    ]);
+  const handleAutoReply = async (message: ConnectorMessage) => {
+    const template = templates[message.id] || "general";
+    const reply = await autoReply(
+      buildAutoReplyMessages(template, message.content),
+    );
     setDrafts((d) => ({ ...d, [message.id]: reply }));
   };
 
@@ -131,9 +141,21 @@ export default function Inbox() {
                         setDrafts((d) => ({ ...d, [message.id]: e.target.value }))
                       }
                     />
-                    <Button size="small" onClick={() => handleAutoReply(message)}>
-                      Generate Reply
-                    </Button>
+                    <Select
+                      size="small"
+                      value={templates[message.id] || "general"}
+                      onChange={(e) =>
+                        setTemplates((t) => ({
+                          ...t,
+                          [message.id]: e.target.value as AutoReplyTemplate,
+                        }))
+                      }
+                      sx={{ maxWidth: 200 }}
+                    >
+                      <MenuItem value="general">General</MenuItem>
+                      <MenuItem value="politeDecline">Politely decline</MenuItem>
+                      <MenuItem value="requestMoreInfo">Request more info</MenuItem>
+                    </Select>
                     <Button
                       variant="contained"
                       onClick={() => handleSendReply(message)}
