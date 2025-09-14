@@ -54,7 +54,7 @@ export default function Detail({
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
-            <BulletVariants content={content} setContent={setContent} />
+            <BulletVariants setContent={setContent} />
             <TextField
               label="Tags"
               value={tagsText}
