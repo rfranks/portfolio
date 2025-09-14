@@ -75,3 +75,16 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
       "Provide tips to optimize your LinkedIn profile so recruiters in your field can find you more easily.",
   },
 };
+
+export const PROMPT_GROUPS: Record<string, string[]> = {
+  Resumes: ["resumeSummary", "coverLetter", "portfolioReview", "projectSummary"],
+  Offers: ["negotiateOffer", "salaryResearch"],
+  "Recruiter Replies": ["interviewPreparation", "networkingOutreach"],
+  "Career Growth": [
+    "skillGapAnalysis",
+    "jobDescriptionRewrite",
+    "careerGoals",
+    "elevatorPitch",
+    "linkedinProfileOptimization",
+  ],
+};
