@@ -15,6 +15,52 @@ if (typeof window !== "undefined") {
   window.Buffer = window.Buffer || Buffer;
 }
 
+/**
+ * Clean up raw PDF text extracted per page.
+ * - Collapses duplicate spaces
+ * - Removes repeating headers/footers
+ * - Joins lines that were broken mid-sentence
+ */
+export function cleanPdfText(pageLines: string[][]): string {
+  const numPages = pageLines.length;
+  let header: string | null = null;
+  let footer: string | null = null;
+
+  if (numPages > 1) {
+    const firstLines = pageLines.map((p) => p[0]).filter(Boolean);
+    const lastLines = pageLines.map((p) => p[p.length - 1]).filter(Boolean);
+    const firstCandidate = firstLines[0];
+    const lastCandidate = lastLines[0];
+    if (firstLines.every((l) => l === firstCandidate)) header = firstCandidate;
+    if (lastLines.every((l) => l === lastCandidate)) footer = lastCandidate;
+  }
+
+  const cleanedPages = pageLines.map((lines) => {
+    const work = [...lines];
+    if (header && work[0] === header) work.shift();
+    if (footer && work[work.length - 1] === footer) work.pop();
+
+    const collapsed = work.map((l) => l.replace(/[ \t]+/g, " ").trim());
+    const joined: string[] = [];
+
+    for (const line of collapsed) {
+      if (
+        joined.length > 0 &&
+        !/[.!?:;-]$/.test(joined[joined.length - 1]) &&
+        /^[a-z0-9]/.test(line)
+      ) {
+        joined[joined.length - 1] += " " + line;
+      } else {
+        joined.push(line);
+      }
+    }
+
+    return joined.join("\n");
+  });
+
+  return cleanedPages.join("\n\n");
+}
+
 export async function pdfToMarkdown(file: File): Promise<string> {
   const reader = new FileReader();
   const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
@@ -36,20 +82,32 @@ export async function pdfToMarkdown(file: File): Promise<string> {
   const doc = await pdfjs.getDocument({ data: pdfData }).promise;
   const numPages = doc.numPages;
 
-  let markdown = "";
+  const pages: string[][] = [];
 
   for (let i = 1; i <= numPages; i++) {
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
 
-    for (const item of content.items as unknown as { str: string }[]) {
-      markdown += item.str + "\n";
-    }
+    const lines: string[] = [];
+    let currentY: number | null = null;
+    let line = "";
 
-    markdown += "\n\n";
+    for (const item of content.items as unknown as { str: string; transform: number[] }[]) {
+      const str = item.str.trim();
+      const y = item.transform[5];
+      if (currentY !== null && Math.abs(y - currentY) > 5) {
+        if (line) lines.push(line.trim());
+        line = str;
+      } else {
+        line += (line ? " " : "") + str;
+      }
+      currentY = y;
+    }
+    if (line) lines.push(line.trim());
+    pages.push(lines);
   }
 
-  return markdown;
+  return cleanPdfText(pages);
 }
 
 /**
