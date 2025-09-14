@@ -14,7 +14,9 @@ import {
   TextField,
   Drawer,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
+import { Close } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import {
   DndContext,
@@ -36,6 +38,16 @@ import { PROMPT_TILES } from "@/consts/promptTiles";
 import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
 import { getResumes } from "@/utils/talentforge/dataStore";
 import OpenAIKeyModal from "./OpenAiKeyModal";
+
+interface Issue {
+  severity: "red" | "yellow";
+  message: string;
+}
+
+interface Analysis {
+  summary?: string;
+  issues: Issue[];
+}
 
 const STATUSES: ApplicationStatus[] = [
   "applied",
@@ -135,6 +147,7 @@ export default function ApplicationBoard() {
   const [drawerMessages, setDrawerMessages] = useState<
     { role: "user" | "assistant"; text: string }[]
   >([]);
+  const [drawerAnalysis, setDrawerAnalysis] = useState<Analysis | null>(null);
   const [openKeyModal, setOpenKeyModal] = useState(false);
 
   useEffect(() => {
@@ -195,6 +208,7 @@ export default function ApplicationBoard() {
     }
     setDrawerTitle(tile.display);
     setDrawerMessages([]);
+    setDrawerAnalysis(null);
     setDrawerOpen(true);
     let prompt = tile.fullPrompt;
     const values: Record<string, string> = {};
@@ -214,7 +228,9 @@ export default function ApplicationBoard() {
       }
       prompt = `${prompt}\n\nJob Description:\n${values.jobDescription}\n\nResume:\n${resume.content}`;
     }
-    setDrawerMessages([{ role: "user", text: prompt }]);
+    if (tileId !== "screenRole") {
+      setDrawerMessages([{ role: "user", text: prompt }]);
+    }
     setDrawerLoading(true);
     try {
       const res = await askOpenAI({
@@ -225,7 +241,19 @@ export default function ApplicationBoard() {
         chatHistory: [],
       });
       const message = res?.message || "";
-      setDrawerMessages((prev) => [...prev, { role: "assistant", text: message }]);
+      if (tileId === "screenRole") {
+        try {
+          const parsed = JSON.parse(message);
+          setDrawerAnalysis({
+            summary: parsed.summary,
+            issues: Array.isArray(parsed.issues) ? parsed.issues : [],
+          });
+        } catch {
+          setDrawerMessages([{ role: "assistant", text: message }]);
+        }
+      } else {
+        setDrawerMessages((prev) => [...prev, { role: "assistant", text: message }]);
+      }
     } finally {
       setDrawerLoading(false);
     }
@@ -307,45 +335,79 @@ export default function ApplicationBoard() {
           </Button>
         </DialogActions>
       </Dialog>
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        sx={{
-          "& .MuiDrawer-paper": {
-            width: { xs: "100%", sm: 360 },
-            p: 2,
-          },
-        }}
-      >
-        <Typography variant="h6" gutterBottom>
-          {drawerTitle}
-        </Typography>
-        <Stack spacing={2} sx={{ mt: 2 }}>
-          {drawerMessages.map((m, idx) => (
-            <Box
-              key={idx}
-              sx={{
-                alignSelf: m.role === "user" ? "flex-start" : "flex-end",
-                bgcolor: m.role === "user" ? "grey.200" : "primary.main",
-                color:
-                  m.role === "user" ? "text.primary" : "primary.contrastText",
-                p: 1.5,
-                borderRadius: 1,
-                maxWidth: "100%",
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {m.text}
+      {drawerOpen && (
+        <Drawer
+          anchor="right"
+          variant="permanent"
+          sx={{
+            "& .MuiDrawer-paper": {
+              width: { xs: "100%", sm: 360 },
+              p: 2,
+            },
+          }}
+        >
+          <IconButton
+            onClick={() => setDrawerOpen(false)}
+            sx={{ alignSelf: "flex-end" }}
+            size="small"
+          >
+            <Close />
+          </IconButton>
+          <Typography variant="h6" gutterBottom>
+            {drawerTitle}
+          </Typography>
+          {drawerAnalysis ? (
+            <Box sx={{ mt: 2 }}>
+              {drawerAnalysis.issues.map((issue, idx) => (
+                <Stack
+                  key={idx}
+                  direction="row"
+                  spacing={1}
+                  alignItems="flex-start"
+                  sx={{ mb: 1 }}
+                >
+                  <Typography>
+                    {issue.severity === "red" ? "🚩" : "⚠️"}
+                  </Typography>
+                  <Typography variant="body2">{issue.message}</Typography>
+                </Stack>
+              ))}
+              {drawerAnalysis.summary && (
+                <Typography variant="body2" sx={{ mt: 2 }}>
+                  {drawerAnalysis.summary}
+                </Typography>
+              )}
             </Box>
-          ))}
-          {drawerLoading && (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-              <CircularProgress size={24} />
-            </Box>
+          ) : (
+            <Stack spacing={2} sx={{ mt: 2 }}>
+              {drawerMessages.map((m, idx) => (
+                <Box
+                  key={idx}
+                  sx={{
+                    alignSelf: m.role === "user" ? "flex-start" : "flex-end",
+                    bgcolor: m.role === "user" ? "grey.200" : "primary.main",
+                    color:
+                      m.role === "user"
+                        ? "text.primary"
+                        : "primary.contrastText",
+                    p: 1.5,
+                    borderRadius: 1,
+                    maxWidth: "100%",
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {m.text}
+                </Box>
+              ))}
+              {drawerLoading && (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              )}
+            </Stack>
           )}
-        </Stack>
-      </Drawer>
+        </Drawer>
+      )}
       <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
     </>
   );
