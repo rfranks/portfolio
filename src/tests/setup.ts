@@ -1,3 +1,5 @@
+export {};
+
 const storage: Record<string, string> = {};
 
 const localStorageMock = {
@@ -17,10 +19,12 @@ const localStorageMock = {
   get length() {
     return Object.keys(storage).length;
   },
+} as const;
+
+const g = globalThis as unknown as {
+  localStorage: typeof localStorageMock;
+  window: { localStorage: typeof localStorageMock };
 };
 
-(globalThis as { localStorage?: typeof localStorageMock }).localStorage =
-  localStorageMock;
-(globalThis as { window?: { localStorage: typeof localStorageMock } }).window = {
-  localStorage: localStorageMock,
-};
+g.localStorage = localStorageMock;
+g.window = { localStorage: localStorageMock };
