@@ -80,7 +80,7 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
     id: "offerDetails",
     display: "Offer Letter",
     fullPrompt:
-      "Extract base salary, bonus, equity, start date, and other key details from the following offer letter. Respond in JSON with keys compensation (array of {type:string, amount:number, notes?:string}) and summary (markdown bullet list).\n\n{{offerText}}",
+      "Extract base salary, bonus, equity, start date, and other key details from the following offer letter. Return ONLY valid JSON with keys compensation (array of {type:string, amount:number, notes?:string}) and summary (array of strings). Do not include any text outside the JSON.\n\n{{offerText}}",
     inputs: ["offerText"],
   },
   screenRole: {

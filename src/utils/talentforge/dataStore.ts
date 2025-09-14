@@ -295,7 +295,7 @@ function migrateLegacyOffers(data: unknown): Offer[] {
     compensation: [
       { type: "note", amount: 0, notes: o.compensation } as OfferComp,
     ],
-    summary: o.result,
+    summary: o.result ? [o.result] : [],
   }));
 }
 

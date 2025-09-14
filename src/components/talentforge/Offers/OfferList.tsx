@@ -125,7 +125,7 @@ export default function OfferList({ refreshKey, onSelect }: OfferListProps) {
               <ListItemText
                 primary={`Offer ${index + 1}`}
                 secondary={
-                  offer.summary ||
+                  offer.summary?.join(", ") ||
                   offer.compensation
                     .map((c) => `${c.type}: ${c.amount}`)
                     .join(", ")
