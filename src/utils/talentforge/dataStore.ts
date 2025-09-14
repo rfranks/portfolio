@@ -1,60 +1,58 @@
 "use client";
 
+import {
+  loadItem,
+  saveItem,
+  deleteItem,
+} from "@/utils/storage";
 import { ConnectorToken } from "@/types/connector";
+import type { ApplicationStatus } from "@/types/talentforge/job";
+import type {
+  User,
+  ResumeVariant,
+  Message as ModelMessage,
+  Offer as ModelOffer,
+  ApplicationRecord,
+  OfferComp,
+} from "@/types";
 import { ParsedResume } from "@/types/talentforge/resume";
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  resumes: ResumeEntry[];
-}
+export type UserProfile = User;
 
-export interface ResumeEntry {
-  id: string;
+export type ResumeEntry = ResumeVariant & {
   content: string;
   parsed: ParsedResume;
   tags: string[];
-}
+};
 
-export interface MessageReply {
+export type MessageReply = {
   id: string;
-  content: string;
+  body: string;
   sentAt: string;
-}
+};
 
-export interface Message {
-  id: string;
+export interface Message extends ModelMessage {
   connector: string;
-  content: string;
   status: "unread" | "read";
   replies: MessageReply[];
 }
 
-export interface Offer {
-  id: string;
-  offerText: string;
-  compensation: string;
-  result: string;
+export type Offer = ModelOffer;
+
+export type JobApplication = ApplicationRecord;
+
+interface StoreSchema {
+  user: UserProfile | undefined;
+  resumes: ResumeEntry[];
+  messages: Message[];
+  offers: Offer[];
+  applications: JobApplication[];
+  onboarding: number;
+  openai: string | undefined;
+  connectorTokens: Record<string, ConnectorToken>;
 }
 
-export interface JobApplication {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  url: string;
-  source: string;
-  status: ApplicationStatus;
-}
-
-export type ApplicationStatus =
-  | "applied"
-  | "interview"
-  | "offer"
-  | "rejected";
-
-const KEYS = {
+const KEYS: { [K in keyof StoreSchema]: string } = {
   user: "userProfile",
   resumes: "resumes",
   messages: "messages",
@@ -65,45 +63,91 @@ const KEYS = {
   connectorTokens: "connectorTokens",
 } as const;
 
-function load<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  const raw = window.localStorage.getItem(key);
-  if (!raw) return fallback;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
+const VERSION: { [K in keyof StoreSchema]: number } = {
+  user: 1,
+  resumes: 1,
+  messages: 2,
+  offers: 2,
+  applications: 1,
+  onboarding: 1,
+  openai: 1,
+  connectorTokens: 1,
+} as const;
+
+function load<K extends keyof StoreSchema>(
+  key: K,
+  fallback: StoreSchema[K],
+  migrateLegacy?: (data: unknown) => StoreSchema[K],
+): StoreSchema[K] {
+  const value = loadItem<StoreSchema[K]>(KEYS[key], VERSION[key]);
+  if (value !== undefined) return value;
+  if (migrateLegacy && typeof window !== "undefined") {
+    const raw = window.localStorage.getItem(KEYS[key]);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        const migrated = migrateLegacy(parsed);
+        saveItem(KEYS[key], migrated, VERSION[key]);
+        return migrated;
+      } catch {
+        return fallback;
+      }
+    }
   }
+  return fallback;
 }
 
-function save<T>(key: string, value: T): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // ignore write errors
-  }
+function save<K extends keyof StoreSchema>(key: K, value: StoreSchema[K]): void {
+  saveItem(KEYS[key], value, VERSION[key]);
 }
 
-function remove(key: string): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(key);
+function remove<K extends keyof StoreSchema>(key: K): void {
+  deleteItem(KEYS[key]);
+}
+
+// Migrations
+function migrateLegacyOffers(data: unknown): Offer[] {
+  if (!Array.isArray(data)) return [];
+  return (data as any[]).map((o) => ({
+    id: o.id,
+    application: {} as ApplicationRecord,
+    compensation: [
+      { type: "note", amount: 0, notes: o.compensation } as OfferComp,
+    ],
+    summary: o.result,
+  }));
+}
+
+function migrateLegacyMessages(data: unknown): Message[] {
+  if (!Array.isArray(data)) return [];
+  return (data as any[]).map((m) => ({
+    id: m.id,
+    threadId: m.id,
+    senderId: m.connector,
+    sentAt: new Date().toISOString(),
+    body: m.content,
+    connector: m.connector,
+    status: m.status,
+    replies: Array.isArray(m.replies)
+      ? m.replies.map((r: any) => ({ id: r.id, body: r.content, sentAt: r.sentAt }))
+      : [],
+  }));
 }
 
 // User profile
 export function getUserProfile(): UserProfile | undefined {
-  return load<UserProfile | undefined>(KEYS.user, undefined);
+  return load("user", undefined);
 }
 export function saveUserProfile(profile: UserProfile): void {
-  save(KEYS.user, profile);
+  save("user", profile);
 }
 
 // Resumes
 export function getResumes(): ResumeEntry[] {
-  return load<ResumeEntry[]>(KEYS.resumes, []);
+  return load("resumes", []);
 }
 export function saveResumes(resumes: ResumeEntry[]): void {
-  save(KEYS.resumes, resumes);
+  save("resumes", resumes);
 }
 export function addResume(resume: ResumeEntry): ResumeEntry[] {
   const updated = [...getResumes(), resume];
@@ -123,27 +167,25 @@ export function deleteResume(id: string): ResumeEntry[] {
 
 // Messages
 export function getMessages(): Message[] {
-  return load<Message[]>(KEYS.messages, []);
+  return load("messages", [], migrateLegacyMessages);
 }
 export function addMessage(message: Message): Message[] {
   const updated = [...getMessages(), message];
-  save(KEYS.messages, updated);
+  save("messages", updated);
   return updated;
 }
 export function deleteMessage(id: string): Message[] {
   const updated = getMessages().filter((m) => m.id !== id);
-  save(KEYS.messages, updated);
+  save("messages", updated);
   return updated;
 }
-
 export function addMessageReply(id: string, reply: MessageReply): Message[] {
   const updated = getMessages().map((m) =>
     m.id === id ? { ...m, replies: [...m.replies, reply] } : m,
   );
-  save(KEYS.messages, updated);
+  save("messages", updated);
   return updated;
 }
-
 export function updateMessageStatus(
   id: string,
   status: "unread" | "read",
@@ -151,37 +193,37 @@ export function updateMessageStatus(
   const updated = getMessages().map((m) =>
     m.id === id ? { ...m, status } : m,
   );
-  save(KEYS.messages, updated);
+  save("messages", updated);
   return updated;
 }
 
 // Offers
 export function getOffers(): Offer[] {
-  return load<Offer[]>(KEYS.offers, []);
+  return load("offers", [], migrateLegacyOffers);
 }
 export function addOffer(offer: Offer): Offer[] {
   const updated = [...getOffers(), offer];
-  save(KEYS.offers, updated);
+  save("offers", updated);
   return updated;
 }
 export function updateOffer(offer: Offer): Offer[] {
   const updated = getOffers().map((o) => (o.id === offer.id ? offer : o));
-  save(KEYS.offers, updated);
+  save("offers", updated);
   return updated;
 }
 export function deleteOffer(id: string): Offer[] {
   const updated = getOffers().filter((o) => o.id !== id);
-  save(KEYS.offers, updated);
+  save("offers", updated);
   return updated;
 }
 
 // Job applications
 export function getJobApplications(): JobApplication[] {
-  return load<JobApplication[]>(KEYS.applications, []);
+  return load("applications", []);
 }
 export function addJobApplication(app: JobApplication): JobApplication[] {
   const updated = [...getJobApplications(), app];
-  save(KEYS.applications, updated);
+  save("applications", updated);
   return updated;
 }
 export function updateJobApplicationStatus(
@@ -191,35 +233,35 @@ export function updateJobApplicationStatus(
   const updated = getJobApplications().map((app) =>
     app.id === id ? { ...app, status } : app,
   );
-  save(KEYS.applications, updated);
+  save("applications", updated);
   return updated;
 }
 export function deleteJobApplication(id: string): JobApplication[] {
   const updated = getJobApplications().filter((a) => a.id !== id);
-  save(KEYS.applications, updated);
+  save("applications", updated);
   return updated;
 }
 
 // Onboarding step
 export function getOnboardingStep(): number {
-  return load<number>(KEYS.onboarding, 0);
+  return load("onboarding", 0);
 }
 export function setOnboardingStep(step: number): void {
-  save(KEYS.onboarding, step);
+  save("onboarding", step);
 }
 export function clearOnboardingStep(): void {
-  remove(KEYS.onboarding);
+  remove("onboarding");
 }
 
 // OpenAI key
 export function getOpenAIKey(): string | undefined {
-  return load<string | undefined>(KEYS.openai, undefined);
+  return load("openai", undefined);
 }
 export function setOpenAIKey(key: string): void {
-  save(KEYS.openai, key);
+  save("openai", key);
 }
 export function deleteOpenAIKey(): void {
-  remove(KEYS.openai);
+  remove("openai");
 }
 
 // Connector tokens
@@ -228,7 +270,7 @@ interface ConnectorTokenMap {
 }
 
 function getConnectorTokens(): ConnectorTokenMap {
-  return load<ConnectorTokenMap>(KEYS.connectorTokens, {});
+  return load("connectorTokens", {});
 }
 
 export function getConnectorToken(
@@ -243,13 +285,13 @@ export function saveConnectorToken(
 ): void {
   const tokens = getConnectorTokens();
   tokens[connector] = token;
-  save(KEYS.connectorTokens, tokens);
+  save("connectorTokens", tokens);
 }
 
 export function deleteConnectorToken(connector: string): void {
   const tokens = getConnectorTokens();
   delete tokens[connector];
-  save(KEYS.connectorTokens, tokens);
+  save("connectorTokens", tokens);
 }
 
 // Export / Import
@@ -321,6 +363,8 @@ const dataStore = {
   exportToJson,
   importFromJson,
 };
+
+export type { ResumeEntry, Message, Offer, JobApplication };
 
 export default dataStore;
 

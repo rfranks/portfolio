@@ -18,6 +18,7 @@ import { askOpenAI, pdfToMarkdown, hasOpenAIKey } from "@/utils/talentforge/util
 import OpenAiKeyModal from "./OpenAiKeyModal";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import { addOffer } from "@/utils/talentforge/dataStore";
+import type { Offer } from "@/utils/talentforge/dataStore";
 
 interface OfferCompareProps {
   onSave?: () => void;
@@ -62,7 +63,13 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
     });
     const message = response?.message || "";
     setResult(message);
-    addOffer({ id: uuid(), offerText, compensation, result: message });
+    const offer: Offer = {
+      id: uuid(),
+      application: {} as any,
+      compensation: [{ type: "note", amount: 0, notes: compensation }],
+      summary: message,
+    };
+    addOffer(offer);
     setLoading(false);
     onSave?.();
   };

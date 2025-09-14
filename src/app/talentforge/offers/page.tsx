@@ -36,17 +36,24 @@ export default function OffersPage() {
                 sx={{ border: "1px solid", borderColor: "divider", p: 2, borderRadius: 1 }}
               >
                 <Typography variant="subtitle2" gutterBottom>
-                  Current Compensation
+                  Compensation
                 </Typography>
-                <Typography variant="body2" gutterBottom>
-                  {offer.compensation}
-                </Typography>
-                <Typography variant="subtitle2" gutterBottom>
-                  Draft Response
-                </Typography>
-                <Typography variant="body2" component="div">
-                  <Markdown>{offer.result}</Markdown>
-                </Typography>
+                {offer.compensation.map((c, idx) => (
+                  <Typography key={idx} variant="body2" gutterBottom>
+                    {c.type}: {c.amount}
+                    {c.notes ? ` (${c.notes})` : ""}
+                  </Typography>
+                ))}
+                {offer.summary && (
+                  <>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Draft Response
+                    </Typography>
+                    <Typography variant="body2" component="div">
+                      <Markdown>{offer.summary}</Markdown>
+                    </Typography>
+                  </>
+                )}
               </Box>
             ))}
           </Stack>
