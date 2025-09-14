@@ -1,10 +1,15 @@
 "use client";
 
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useTheme } from "@mui/material";
 
-interface DiffPart {
+interface DiffLine {
+  text: string | null;
   type: "same" | "added" | "removed";
-  text: string;
+}
+
+interface DiffRow {
+  original: DiffLine;
+  updated: DiffLine;
 }
 
 interface Props {
@@ -12,45 +17,93 @@ interface Props {
   updated: string;
 }
 
-function computeDiff(a: string, b: string): DiffPart[] {
+function computeDiff(a: string, b: string): DiffRow[] {
   const aLines = a.split("\n");
   const bLines = b.split("\n");
   const max = Math.max(aLines.length, bLines.length);
-  const result: DiffPart[] = [];
+  const rows: DiffRow[] = [];
+
   for (let i = 0; i < max; i++) {
-    const lineA = aLines[i];
-    const lineB = bLines[i];
+    const lineA = aLines[i] ?? null;
+    const lineB = bLines[i] ?? null;
+
     if (lineA === lineB) {
-      if (lineA !== undefined) result.push({ type: "same", text: lineA });
+      rows.push({
+        original: { text: lineA, type: "same" },
+        updated: { text: lineB, type: "same" },
+      });
     } else {
-      if (lineA !== undefined) result.push({ type: "removed", text: lineA });
-      if (lineB !== undefined) result.push({ type: "added", text: lineB });
+      rows.push({
+        original: { text: lineA, type: lineA === null ? "same" : "removed" },
+        updated: { text: lineB, type: lineB === null ? "same" : "added" },
+      });
     }
   }
-  return result;
+
+  return rows;
 }
 
 export default function Diff({ original, updated }: Props) {
+  const theme = useTheme();
   const diff = computeDiff(original, updated);
+
+  const getBg = (type: DiffLine["type"]) => {
+    switch (type) {
+      case "added":
+        return theme.palette.success.light;
+      case "removed":
+        return theme.palette.error.light;
+      default:
+        return undefined;
+    }
+  };
+
   return (
-    <Box component="pre" sx={{ whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
-      {diff.map((part, idx) => (
-        <Typography
-          component="span"
-          key={idx}
-          color={
-            part.type === "added"
-              ? "success.main"
-              : part.type === "removed"
-              ? "error.main"
-              : undefined
-          }
-        >
-          {part.text}
-          {"\n"}
-        </Typography>
-      ))}
+    <Box
+      role="region"
+      aria-label="Resume diff viewer"
+      sx={{
+        width: "100%",
+        overflowX: "auto",
+      }}
+    >
+      <Box
+        component="table"
+        sx={{
+          width: "100%",
+          borderCollapse: "collapse",
+          minWidth: 360,
+          fontFamily: "monospace",
+          "td, th": {
+            verticalAlign: "top",
+            whiteSpace: "pre-wrap",
+            padding: 0.5,
+          },
+        }}
+      >
+        <thead>
+          <tr>
+            <th scope="col">Original</th>
+            <th scope="col">Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {diff.map((row, idx) => (
+            <tr key={idx}>
+              <td style={{ backgroundColor: getBg(row.original.type) }}>
+                <Typography component="pre" sx={{ m: 0 }}>
+                  {row.original.text}
+                </Typography>
+              </td>
+              <td style={{ backgroundColor: getBg(row.updated.type) }}>
+                <Typography component="pre" sx={{ m: 0 }}>
+                  {row.updated.text}
+                </Typography>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Box>
     </Box>
   );
 }
-
