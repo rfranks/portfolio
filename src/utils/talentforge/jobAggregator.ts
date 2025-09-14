@@ -10,19 +10,17 @@ import { IndeedConnector } from "./connectors/indeed";
  * the {@link JobListing} format, or data that contains such listings. The
  * aggregator normalises these responses into a single array.
  */
-export async function fetchAllListings(): Promise<JobListing[]> {
+export async function fetchAllListings(query: string = ""): Promise<JobListing[]> {
   const linkedin = new LinkedInConnector();
   const indeed = new IndeedConnector();
 
-  // Fetch data from both connectors in parallel.
-  const [linkedinData, indeedListings] = await Promise.all([
-    linkedin.fetchData(),
-    indeed.fetchData(),
+  // Fetch job listings from both connectors in parallel using a job search query.
+  const [linkedinListings, indeedListings] = await Promise.all([
+    linkedin.searchJobs(query),
+    indeed.searchJobs(query),
   ]);
 
-  const linkedinListings = linkedinData.listings;
-
-  // Both connectors return arrays of JobListing; concatenate them directly.
+  // Both connectors return arrays of listings; combine and return them.
   return [...linkedinListings, ...indeedListings];
 }
 

@@ -33,7 +33,7 @@ export default function JobApplications() {
     const existing = getJobApplications();
     if (existing.length === 0) {
       // Seed applications using aggregated listings from connectors
-      fetchAllListings().then((listings) => {
+      fetchAllListings("").then((listings) => {
         let apps = existing;
         listings.forEach((listing) => {
           apps = addJobApplication({

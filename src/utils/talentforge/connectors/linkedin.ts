@@ -44,6 +44,12 @@ export class LinkedInConnector {
     };
   }
 
+  async searchJobs(query: string): Promise<JobListing[]> {
+    void query;
+    const data = await this.fetchData();
+    return data.listings;
+  }
+
   async sendMessage(message: string): Promise<void> {
     void message; // mock does nothing
   }

@@ -44,6 +44,11 @@ export class IndeedConnector {
     return SAMPLE_LISTINGS;
   }
 
+  async searchJobs(query: string): Promise<JobListing[]> {
+    void query;
+    return SAMPLE_LISTINGS;
+  }
+
   /**
    * Send a message through Indeed.
    *
