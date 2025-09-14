@@ -35,3 +35,27 @@ func TestCreatePlayer(t *testing.T) {
 		t.Fatalf("expected WillPlayTrifecta to be non-nil")
 	}
 }
+
+func TestForAllHandsModifiesOriginalSlice(t *testing.T) {
+	p := Player{Hands: []Hand{{}, {}}}
+	ForAllHands(&p, func(h *Hand) {
+		h.Busted = true
+	})
+	for i := range p.Hands {
+		if !p.Hands[i].Busted {
+			t.Fatalf("hand %d not modified", i)
+		}
+	}
+}
+
+func TestForAllPlayersModifiesOriginalSlice(t *testing.T) {
+	players := []Player{{Stack: 0}, {Stack: 0}}
+	ForAllPlayers(players, func(p *Player) {
+		p.Stack = 1
+	})
+	for i := range players {
+		if players[i].Stack != 1 {
+			t.Fatalf("player %d stack not modified", i)
+		}
+	}
+}
