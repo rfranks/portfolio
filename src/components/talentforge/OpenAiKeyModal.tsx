@@ -3,6 +3,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogContentText,
   DialogActions,
   Button,
   TextField,
@@ -10,6 +11,7 @@ import {
 } from "@mui/material";
 
 import { setOpenAIKey } from "@/utils/talentforge/utils";
+import { getOpenAIKey } from "@/utils/talentforge/dataStore";
 
 export interface OpenAiKeyModalProps
   extends Omit<DialogProps, "open" | "onClose"> {
@@ -23,7 +25,14 @@ export default function OpenAiKeyModal({
 }: OpenAiKeyModalProps) {
   const [key, setKey] = React.useState("");
 
+  React.useEffect(() => {
+    if (open) {
+      setKey(getOpenAIKey() || "");
+    }
+  }, [open]);
+
   const handleClose = () => {
+    setKey("");
     onClose?.();
   };
 
@@ -38,6 +47,10 @@ export default function OpenAiKeyModal({
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Enter OpenAI API Key</DialogTitle>
       <DialogContent>
+        <DialogContentText sx={{ mb: 2 }}>
+          Your key is stored locally under <code>talentforge-openai-key</code> and
+          never sent to our servers.
+        </DialogContentText>
         <TextField
           autoFocus
           margin="dense"
