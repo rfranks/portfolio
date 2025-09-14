@@ -69,6 +69,7 @@ interface StoreSchema {
   autoReplyTemplates: Record<string, string>;
 }
 
+// Storage keys for each entity
 const KEYS: { [K in keyof StoreSchema]: string } = {
   user: "userProfile",
   resumes: "resumes",
@@ -82,41 +83,177 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   autoReplyTemplates: "autoReplyTemplates",
 } as const;
 
+// Version constants per entity so tests and other modules can reference them.
+export const USER_VERSION = 1;
+export const RESUMES_VERSION = 1;
+export const MESSAGES_VERSION = 2;
+export const OFFERS_VERSION = 2;
+export const APPLICATIONS_VERSION = 2;
+export const RECRUITERS_VERSION = 1;
+export const ONBOARDING_VERSION = 1;
+export const OPENAI_VERSION = 1;
+export const CONNECTOR_TOKENS_VERSION = 1;
+export const AUTO_REPLY_TEMPLATES_VERSION = 1;
+
 const VERSION: { [K in keyof StoreSchema]: number } = {
-  user: 1,
-  resumes: 1,
-  messages: 2,
-  offers: 2,
-  applications: 2,
-  recruiters: 1,
-  onboarding: 1,
-  openai: 1,
-  connectorTokens: 1,
-  autoReplyTemplates: 1,
+  user: USER_VERSION,
+  resumes: RESUMES_VERSION,
+  messages: MESSAGES_VERSION,
+  offers: OFFERS_VERSION,
+  applications: APPLICATIONS_VERSION,
+  recruiters: RECRUITERS_VERSION,
+  onboarding: ONBOARDING_VERSION,
+  openai: OPENAI_VERSION,
+  connectorTokens: CONNECTOR_TOKENS_VERSION,
+  autoReplyTemplates: AUTO_REPLY_TEMPLATES_VERSION,
 } as const;
 
 export const SNAPSHOT_VERSION = 3;
 
+// Generic migration helper which applies migrations sequentially until the
+// data reaches `targetVersion`.
+function migrate<T>(
+  data: unknown,
+  storedVersion: number,
+  targetVersion: number,
+  migrations: Record<number, (value: unknown) => unknown>,
+): T {
+  let result: unknown = data;
+  let version = storedVersion;
+  while (version < targetVersion) {
+    const step = migrations[version];
+    if (step) {
+      result = step(result);
+    }
+    version += 1;
+  }
+  return result as T;
+}
+
+// Entity-specific migration functions
+function migrateUser(data: unknown, version: number): UserProfile | undefined {
+  return migrate<UserProfile | undefined>(data, version, USER_VERSION, {
+    0: (d) => (d as UserProfile | undefined),
+  });
+}
+
+function migrateResumes(data: unknown, version: number): ResumeEntry[] {
+  return migrate<ResumeEntry[]>(data, version, RESUMES_VERSION, {
+    0: (d) => (Array.isArray(d) ? (d as ResumeEntry[]) : []),
+  });
+}
+
+function migrateMessages(data: unknown, version: number): Message[] {
+  return migrate<Message[]>(data, version, MESSAGES_VERSION, {
+    0: migrateLegacyMessages,
+  });
+}
+
+function migrateOffers(data: unknown, version: number): Offer[] {
+  return migrate<Offer[]>(data, version, OFFERS_VERSION, {
+    0: migrateLegacyOffers,
+  });
+}
+
+function migrateApplications(data: unknown, version: number): JobApplication[] {
+  return migrate<JobApplication[]>(data, version, APPLICATIONS_VERSION, {
+    0: migrateLegacyApplications,
+  });
+}
+
+function migrateRecruiters(data: unknown, version: number): RecruiterEntry[] {
+  return migrate<RecruiterEntry[]>(data, version, RECRUITERS_VERSION, {
+    0: (d) => (Array.isArray(d) ? (d as RecruiterEntry[]) : []),
+  });
+}
+
+function migrateOnboarding(data: unknown, version: number): number {
+  return migrate<number>(data, version, ONBOARDING_VERSION, {
+    0: (d) => (typeof d === "number" ? d : 0),
+  });
+}
+
+function migrateOpenAI(data: unknown, version: number): string | undefined {
+  return migrate<string | undefined>(data, version, OPENAI_VERSION, {
+    0: (d) => (typeof d === "string" ? d : undefined),
+  });
+}
+
+function migrateConnectorTokens(
+  data: unknown,
+  version: number,
+): Record<string, ConnectorToken> {
+  return migrate<Record<string, ConnectorToken>>(
+    data,
+    version,
+    CONNECTOR_TOKENS_VERSION,
+    {
+      0: (d) =>
+        d && typeof d === "object"
+          ? (d as Record<string, ConnectorToken>)
+          : {},
+    },
+  );
+}
+
+function migrateAutoReplyTemplates(
+  data: unknown,
+  version: number,
+): Record<string, string> {
+  return migrate<Record<string, string>>(
+    data,
+    version,
+    AUTO_REPLY_TEMPLATES_VERSION,
+    {
+      0: (d) =>
+        d && typeof d === "object"
+          ? (d as Record<string, string>)
+          : (AUTO_REPLY_TEMPLATES as Record<string, string>),
+    },
+  );
+}
+
+const MIGRATORS: {
+  [K in keyof StoreSchema]: (
+    data: unknown,
+    version: number,
+  ) => StoreSchema[K];
+} = {
+  user: migrateUser,
+  resumes: migrateResumes,
+  messages: migrateMessages,
+  offers: migrateOffers,
+  applications: migrateApplications,
+  recruiters: migrateRecruiters,
+  onboarding: migrateOnboarding,
+  openai: migrateOpenAI,
+  connectorTokens: migrateConnectorTokens,
+  autoReplyTemplates: migrateAutoReplyTemplates,
+};
+
+const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
+  user: undefined,
+  resumes: [],
+  messages: [],
+  offers: [],
+  applications: [],
+  recruiters: [],
+  onboarding: 0,
+  openai: undefined,
+  connectorTokens: {},
+  autoReplyTemplates: AUTO_REPLY_TEMPLATES as Record<string, string>,
+} as const;
+
 function load<K extends keyof StoreSchema>(
   key: K,
   fallback: StoreSchema[K],
-  migrateLegacy?: (data: unknown) => StoreSchema[K],
 ): StoreSchema[K] {
-  const value = loadItem<StoreSchema[K]>(KEYS[key], VERSION[key]);
+  const value = loadItem<StoreSchema[K]>(
+    KEYS[key],
+    VERSION[key],
+    MIGRATORS[key],
+  );
   if (value !== undefined) return value;
-  if (migrateLegacy && typeof window !== "undefined") {
-    const raw = window.localStorage.getItem(KEYS[key]);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        const migrated = migrateLegacy(parsed);
-        saveItem(KEYS[key], migrated, VERSION[key]);
-        return migrated;
-      } catch {
-        return fallback;
-      }
-    }
-  }
   return fallback;
 }
 
@@ -250,7 +387,7 @@ export function saveAutoReplyTemplates(templates: Record<string, string>): void 
 
 // Messages
 export function getMessages(): Message[] {
-  return load("messages", [], migrateLegacyMessages);
+  return load("messages", []);
 }
 export function addMessage(message: Message): Message[] {
   const updated = [...getMessages(), message];
@@ -302,7 +439,7 @@ export function updateThreadStatus(
 
 // Offers
 export function getOffers(): Offer[] {
-  return load("offers", [], migrateLegacyOffers);
+  return load("offers", []);
 }
 export function addOffer(offer: Offer): Offer[] {
   const updated = [...getOffers(), offer];
@@ -322,7 +459,7 @@ export function deleteOffer(id: string): Offer[] {
 
 // Job applications
 export function getJobApplications(): JobApplication[] {
-  return load("applications", [], migrateLegacyApplications);
+  return load("applications", []);
 }
 export function addJobApplication(app: JobApplication): JobApplication[] {
   const withHistory = {
@@ -515,11 +652,19 @@ export function importFromJson(json: string): void {
     for (const [key, value] of Object.entries(data)) {
       if (validKeys.includes(key)) {
         try {
-          window.localStorage.setItem(key, JSON.stringify(value));
+          const payload =
+            value && typeof value === "object" && "version" in (value as object)
+              ? (value as object)
+              : { version: 0, data: value };
+          window.localStorage.setItem(key, JSON.stringify(payload));
         } catch {
           // ignore write errors
         }
       }
+    }
+    // Trigger migrations for all known keys after importing
+    for (const key of Object.keys(KEYS) as (keyof StoreSchema)[]) {
+      load(key, DEFAULTS[key]);
     }
   } catch {
     // ignore parse errors
