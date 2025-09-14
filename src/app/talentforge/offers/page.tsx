@@ -10,6 +10,7 @@ import {
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 
 import OfferCompare from "@/components/talentforge/OfferCompare";
+import OfferComparison from "@/components/talentforge/OfferComparison";
 import { getOffers, type Offer } from "@/utils/talentforge/dataStore";
 
 export default function OffersPage() {
@@ -26,6 +27,7 @@ export default function OffersPage() {
   return (
     <ErrorBoundary>
       <Box>
+        <OfferComparison />
         <OfferCompare onSave={refreshOffers} />
         {offers.length > 0 && (
           <Stack spacing={2} sx={{ mt: 4 }}>
