@@ -3,6 +3,7 @@
 import * as pdfjs from "pdfjs-dist";
 
 import { Buffer } from "buffer";
+import { ParsedResume } from "@/types/talentforge/resume";
 
 declare global {
   interface Window {
@@ -49,5 +50,60 @@ export async function pdfToMarkdown(file: File): Promise<string> {
   }
 
   return markdown;
+}
+
+/**
+ * Naively extract sections from resume text.
+ * Everything before the first recognized section header is treated as contact information.
+ */
+export function parseResumeText(text: string): ParsedResume {
+  const lines = text.split(/\r?\n/);
+  const parsed: ParsedResume = {
+    contact: "",
+    experience: [],
+    education: [],
+    skills: [],
+  };
+
+  let current: keyof Omit<ParsedResume, "contact"> | null = null;
+  const experienceHeader = /^(work\s+)?experience/i;
+  const educationHeader = /^education/i;
+  const skillsHeader = /^skills?/i;
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+
+    if (experienceHeader.test(line)) {
+      current = "experience";
+      continue;
+    }
+    if (educationHeader.test(line)) {
+      current = "education";
+      continue;
+    }
+    if (skillsHeader.test(line)) {
+      current = "skills";
+      continue;
+    }
+
+    if (!current) {
+      parsed.contact += (parsed.contact ? "\n" : "") + line;
+    } else {
+      parsed[current].push(line);
+    }
+  }
+
+  return parsed;
+}
+
+/**
+ * Convenience helper to convert a PDF file and parse its sections.
+ */
+export async function parsePdf(
+  file: File,
+): Promise<{ text: string; parsed: ParsedResume }> {
+  const text = await pdfToMarkdown(file);
+  return { text, parsed: parseResumeText(text) };
 }
 
