@@ -56,7 +56,7 @@ export interface FileUploaderProps
   ) => void;
 
   /**
-   * The type of output to return from the FileUploader in it's onChange callback.
+   * The type of output to return from the FileUploader in its onChange callback.
    * @default content
    */
   outputType?: "content" | "object" | "files";
