@@ -56,6 +56,13 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "From the following job description, list the key job requirements as bullet points:\n\n{{jobDescription}}",
     inputs: ["jobDescription"],
   },
+  compareOffers: {
+    id: "compareOffers",
+    display: "Compare Offers",
+    fullPrompt:
+      "Compare the following two job offers in a markdown table highlighting differences in compensation, benefits, and other terms. Then provide a brief summary of which offer is more advantageous.\n\nOffer A:\n{{offerA}}\n\nOffer B:\n{{offerB}}",
+    inputs: ["offerA", "offerB"],
+  },
   negotiateOffer: {
     ...BASE_TILES.negotiateOffer,
     fullPrompt:
