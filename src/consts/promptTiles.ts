@@ -26,7 +26,7 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
   coverLetter: {
     ...BASE_TILES.coverLetter,
     fullPrompt:
-      "Write a cover letter for the position of {{position}} at {{company}}. Highlight relevant skills and enthusiasm.",
+      "Write a cover letter applying for the position of {{position}} at {{company}}. Highlight relevant skills and enthusiasm.",
     inputs: ["position", "company"],
   },
   elevatorPitch: {
