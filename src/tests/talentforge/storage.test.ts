@@ -19,7 +19,10 @@ describe("storage utilities", () => {
     const migrated = loadItem<{ name: string }>(
       key,
       2,
-      (data) => ({ name: String((data as any).name) + "2" })
+      (data) => {
+        const item = data as { name?: unknown };
+        return { name: String(item.name) + "2" };
+      }
     );
     expect(migrated).toEqual({ name: "old2" });
     // migrated value should be stored with new version

@@ -24,13 +24,17 @@ export default function OfferCompare() {
   const [loading, setLoading] = useState(false);
   const [openKeyModal, setOpenKeyModal] = useState(false);
 
-  const handleFileChange = async (filesFromParam: File[] | string | undefined) => {
+  const handleFileChange = (
+    filesFromParam: File[] | string | { filename: string; type: string; content: string } | undefined
+  ): void => {
     const files = filesFromParam as File[];
     if (files && files.length > 0) {
       const file = files[0];
-      const text =
-        file.type === "application/pdf" ? await pdfToMarkdown(file) : await file.text();
-      setOfferText(text);
+      void (async () => {
+        const text =
+          file.type === "application/pdf" ? await pdfToMarkdown(file) : await file.text();
+        setOfferText(text);
+      })();
     }
   };
 
