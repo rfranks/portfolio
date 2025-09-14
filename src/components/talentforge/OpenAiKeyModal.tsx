@@ -31,9 +31,6 @@ export default function OpenAiKeyModal({
     const trimmed = key.trim();
     if (!trimmed) return;
     setOpenAIKey(trimmed);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("talentforge-openai-key", trimmed);
-    }
     handleClose();
   };
 

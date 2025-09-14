@@ -6,28 +6,27 @@ import { ChatMessage } from "@/types/talentforge/types";
 import { aiBufferSize } from "@/consts/talentforge/consts";
 
 import { Buffer } from "buffer";
+import {
+  getOpenAIKey as loadOpenAIKey,
+  setOpenAIKey as storeOpenAIKey,
+} from "./dataStore";
 
-const OPENAI_STORAGE_KEY = "talentforge-openai-key";
 let apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
 if (typeof window !== "undefined" && !apiKey) {
-  apiKey = window.localStorage.getItem(OPENAI_STORAGE_KEY) || "";
+  apiKey = loadOpenAIKey() || "";
 }
 
 export const setOpenAIKey = (key: string) => {
   apiKey = key;
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(OPENAI_STORAGE_KEY, key);
-  }
+  storeOpenAIKey(key);
 };
 
 export const hasOpenAIKey = () => {
   if (apiKey.trim().length > 0) return true;
-  if (typeof window !== "undefined") {
-    const stored = window.localStorage.getItem(OPENAI_STORAGE_KEY);
-    if (stored) {
-      apiKey = stored;
-      return true;
-    }
+  const stored = loadOpenAIKey();
+  if (stored) {
+    apiKey = stored;
+    return true;
   }
   return false;
 };
