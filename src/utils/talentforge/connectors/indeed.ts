@@ -6,6 +6,7 @@
  */
 
 import type { JobListing } from "@/types/talentforge/job";
+import type { ConnectorToken } from "@/types/connector";
 
 /** Sample job listings returned by the mocked Indeed connector. */
 const SAMPLE_LISTINGS: JobListing[] = [
@@ -29,10 +30,12 @@ export class IndeedConnector {
   /**
    * Authenticate with Indeed.
    *
-   * This mock implementation performs no action.
+   * Returns a mock token so the connector can be used without real API
+   * credentials.
    */
-  async authenticate(): Promise<void> {
-    // No authentication needed for mocked connector
+  async authenticate(): Promise<ConnectorToken> {
+    // Return a mock token for the mocked connector
+    return { accessToken: "mock-token" };
   }
 
   /**
@@ -40,7 +43,8 @@ export class IndeedConnector {
    *
    * Returns a static array of sample listings.
    */
-  async fetchData(): Promise<JobListing[]> {
+  async fetchData(token: ConnectorToken): Promise<JobListing[]> {
+    void token; // token ignored in mock implementation
     return SAMPLE_LISTINGS;
   }
 
@@ -54,7 +58,8 @@ export class IndeedConnector {
    *
    * This mock simply resolves without performing any action.
    */
-  async sendMessage(message: string): Promise<void> {
+  async sendMessage(token: ConnectorToken, message: string): Promise<void> {
+    void token; // token ignored in mock implementation
     void message; // silence unused parameter in mock implementation
   }
 }
