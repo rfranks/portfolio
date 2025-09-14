@@ -15,8 +15,7 @@ export interface ThinkingProps {
   /** The color of the {@link CircularProgress} indicator.
    * Default color is "primary".
    * Default size is "16px".
-   * Default margin is "1" (1px).
-   * Default sx is { m: 1 }.
+   * Default sx is { m: 1 }, which sets the margin to one theme spacing unit (≈8px by default), not 1px.
    * Default variant is "indeterminate".
    * Default thickness is 3.6.
    * You can also pass other props to customize the {@link CircularProgress} component.
