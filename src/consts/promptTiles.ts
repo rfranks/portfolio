@@ -76,6 +76,13 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "Compare the following two job offers in a markdown table highlighting differences in compensation, benefits, and other terms. Then provide a brief summary of which offer is more advantageous.\n\nOffer A:\n{{offerA}}\n\nOffer B:\n{{offerB}}",
     inputs: ["offerA", "offerB"],
   },
+  offerDetails: {
+    id: "offerDetails",
+    display: "Offer Letter",
+    fullPrompt:
+      "Extract base salary, bonus, equity, start date, and other key details from the following offer letter. Respond in JSON with keys compensation (array of {type:string, amount:number, notes?:string}) and summary (markdown bullet list).\n\n{{offerText}}",
+    inputs: ["offerText"],
+  },
   screenRole: {
     ...BASE_TILES.screenRole,
     fullPrompt:

@@ -31,7 +31,12 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import Markdown from "react-markdown";
 import type { ApplicationStatus } from "@/types/talentforge/job";
-import type { JobApplication, ResumeEntry, Offer } from "@/utils/talentforge/dataStore";
+import type {
+  JobApplication,
+  ResumeEntry,
+  Offer,
+} from "@/utils/talentforge/dataStore";
+import type { OfferComp } from "@/types";
 import {
   addJobApplication,
   getJobApplications,
@@ -49,7 +54,6 @@ import {
 } from "@/utils/talentforge/utils";
 import OpenAIKeyModal from "./OpenAiKeyModal";
 import FileUploader from "./FileUploader";
-import { parseOfferText } from "@/utils/talentforge/offerParser";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -98,7 +102,6 @@ function Card({
   onAssignResume,
   onSetInterviewDate,
   onSetInterviewLocation,
-  onUploadOffer,
 }: {
   app: JobApplication;
   onRunTile: (id: string, app: JobApplication) => void;
@@ -106,7 +109,6 @@ function Card({
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
   onSetInterviewLocation: (appId: string, value: string) => void;
-  onUploadOffer: (appId: string, file: File) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app.id });
@@ -216,16 +218,15 @@ function Card({
       )}
       {app.status === "offer" && (
         <Box sx={{ mt: 1 }}>
-          <FileUploader
-            accept=".pdf,.txt,.md"
-            label="Upload Offer"
-            variant="upload"
-            outputType="files"
-            onChange={(files) => {
-              const f = (files as File[])[0];
-              if (f) onUploadOffer(app.id, f);
-            }}
-          />
+          <Button
+            size="small"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => onRunTile("offerDetails", app)}
+            variant="outlined"
+            fullWidth
+          >
+            {app.offer ? "Replace Offer Letter" : "Upload Offer Letter"}
+          </Button>
           {app.offer && app.offer.compensation.length > 0 && (
             <Stack spacing={0.5} sx={{ mt: 1 }}>
               {app.offer.compensation.map((c) => (
@@ -237,7 +238,7 @@ function Card({
             </Stack>
           )}
           {app.offer?.summary && (
-            <Typography variant="body2" sx={{ mt: 1 }}>
+            <Typography variant="body2" sx={{ mt: 1, whiteSpace: "pre-wrap" }}>
               {app.offer.summary}
             </Typography>
           )}
@@ -265,9 +266,9 @@ export default function ApplicationBoard() {
     { role: "user" | "assistant"; text: string }[]
   >([]);
   const [drawerAnalysis, setDrawerAnalysis] = useState<Analysis | null>(null);
-  const [drawerMode, setDrawerMode] = useState<"chat" | "resumeCompare">(
-    "chat",
-  );
+  const [drawerMode, setDrawerMode] = useState<
+    "chat" | "resumeCompare" | "offerUpload"
+  >("chat");
   const [resumeCompareApp, setResumeCompareApp] =
     useState<JobApplication | null>(null);
   const [drawerApp, setDrawerApp] = useState<JobApplication | null>(null);
@@ -362,6 +363,16 @@ export default function ApplicationBoard() {
       setDrawerApp(app);
       return;
     }
+    if (tileId === "offerDetails") {
+      setDrawerTitle(tile.display);
+      setDrawerTileId(tile.id);
+      setDrawerMessages([]);
+      setDrawerAnalysis(null);
+      setDrawerOpen(true);
+      setDrawerMode("offerUpload");
+      setDrawerApp(app);
+      return;
+    }
     setDrawerTitle(tile.display);
     setDrawerTileId(tile.id);
     setDrawerMessages([]);
@@ -445,20 +456,42 @@ export default function ApplicationBoard() {
     setApplications(updated);
   };
 
-  const handleOfferUpload = async (appId: string, file: File) => {
-    const app = applications.find((a) => a.id === appId);
-    if (!app) return;
+  const handleOfferUpload = async (file: File) => {
+    if (!drawerApp) return;
     const text =
       file.type === "application/pdf" ? await pdfToMarkdown(file) : await file.text();
-    const parsed = parseOfferText(text);
-    const offer: Offer = {
-      id: uuid(),
-      application: app,
-      compensation: parsed.compensation,
-      summary: parsed.summary,
-    };
-    const updated = updateJobApplication(appId, { offer });
-    setApplications(updated);
+    const prompt = PROMPT_TILES.offerDetails.fullPrompt.replace(
+      "{{offerText}}",
+      text,
+    );
+    setDrawerLoading(true);
+    try {
+      const res = await askOpenAI({
+        context: "",
+        user: prompt,
+        system: "You are a helpful assistant.",
+        returnFirstResponse: true,
+        chatHistory: [],
+      });
+      const message = res?.message || "";
+      let parsed: { compensation?: OfferComp[]; summary?: string } = {};
+      try {
+        parsed = JSON.parse(message);
+      } catch {
+        parsed.summary = message;
+      }
+      const offer: Offer = {
+        id: uuid(),
+        application: drawerApp,
+        compensation: parsed.compensation || [],
+        summary: parsed.summary || "",
+      };
+      const updated = updateJobApplication(drawerApp.id, { offer });
+      setApplications(updated);
+      setDrawerMessages([{ role: "assistant", text: offer.summary }]);
+    } finally {
+      setDrawerLoading(false);
+    }
   };
 
   const handleResumeCompareSelect = async (resId: string) => {
@@ -544,7 +577,6 @@ export default function ApplicationBoard() {
                       onAssignResume={handleAssignResume}
                       onSetInterviewDate={handleInterviewDate}
                       onSetInterviewLocation={handleInterviewLocation}
-                      onUploadOffer={handleOfferUpload}
                     />
                   ))}
               </Column>
@@ -677,6 +709,18 @@ export default function ApplicationBoard() {
             </Box>
           ) : (
             <Stack spacing={2} sx={{ mt: 2 }}>
+              {drawerMode === "offerUpload" && (
+                <FileUploader
+                  accept=".pdf,.txt,.md"
+                  label="Upload Offer"
+                  variant="upload"
+                  outputType="files"
+                  onChange={(files) => {
+                    const f = (files as File[])[0];
+                    if (f) handleOfferUpload(f);
+                  }}
+                />
+              )}
               {drawerMessages.map((m, idx) => (
                 <Box
                   key={idx}
