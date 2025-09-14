@@ -20,7 +20,13 @@ import { PROMPT_TILES, type PromptTileDefinition } from "@/consts/promptTiles";
 
 const registry: Record<string, PromptTileDefinition> = PROMPT_TILES;
 
-export default function PromptTileGrid() {
+interface PromptTileGridProps {
+  onResponse?: (response: string) => void;
+}
+
+export default function PromptTileGrid({
+  onResponse,
+}: PromptTileGridProps) {
   const [values, setValues] = useState<
     Record<string, Record<string, string>>
   >({});
@@ -71,7 +77,9 @@ export default function PromptTileGrid() {
         returnFirstResponse: true,
         chatHistory: [],
       });
-      setResponses((prev) => ({ ...prev, [id]: res?.message || "" }));
+      const message = res?.message || "";
+      setResponses((prev) => ({ ...prev, [id]: message }));
+      onResponse?.(message);
     } finally {
       setLoading((prev) => ({ ...prev, [id]: false }));
     }
