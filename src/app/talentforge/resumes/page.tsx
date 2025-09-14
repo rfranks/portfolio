@@ -1,13 +1,13 @@
 "use client";
 
-import TalentForgeLayout from "../layout";
 import ResumeManager from "@/components/talentforge/ResumeManager";
+import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 
 export default function ResumesPage() {
   return (
-    <TalentForgeLayout>
+    <ErrorBoundary>
       <ResumeManager />
-    </TalentForgeLayout>
+    </ErrorBoundary>
   );
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Box, Card, CardContent, Grid, Typography } from "@mui/material";
+import { Box, Card, CardContent, Grid, Typography, Skeleton } from "@mui/material";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 
 interface Counts {
@@ -19,6 +19,7 @@ export default function Dashboard() {
     offers: 0,
     messages: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setCounts({
@@ -27,6 +28,7 @@ export default function Dashboard() {
       offers: data.getOffers().length,
       messages: data.getMessages().length,
     });
+    setLoading(false);
   }, [data]);
 
   const items = [
@@ -42,18 +44,29 @@ export default function Dashboard() {
         Dashboard
       </Typography>
       <Grid container spacing={2}>
-        {items.map((item) => (
-          <Grid key={item.label} item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>
-                  {item.label}
-                </Typography>
-                <Typography variant="h4">{item.value}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+        {loading
+          ? Array.from({ length: 4 }).map((_, idx) => (
+              <Grid key={idx} item xs={12} sm={6} md={3}>
+                <Card>
+                  <CardContent>
+                    <Skeleton width="60%" />
+                    <Skeleton height={40} />
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))
+          : items.map((item) => (
+              <Grid key={item.label} item xs={12} sm={6} md={3}>
+                <Card>
+                  <CardContent>
+                    <Typography color="text.secondary" gutterBottom>
+                      {item.label}
+                    </Typography>
+                    <Typography variant="h4">{item.value}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
       </Grid>
     </Box>
   );

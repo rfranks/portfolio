@@ -7,6 +7,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -60,9 +61,11 @@ export default function ResumeManager() {
   const [openKeyModal, setOpenKeyModal] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchTag, setSearchTag] = useState("");
+  const [loadingResumes, setLoadingResumes] = useState(true);
 
   useEffect(() => {
     setResumes(getResumes());
+    setLoadingResumes(false);
   }, []);
 
   const handleSave = async () => {
@@ -183,29 +186,33 @@ export default function ResumeManager() {
           value={searchTag}
           onChange={(e) => setSearchTag(e.target.value)}
         />
-        {filteredResumes.map((resume) => (
-          <Box key={resume.id}>
-            <Typography variant="subtitle1" gutterBottom>
-              {resume.id}
-            </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap">
-              {resume.tags.map((tag) => (
-                <Chip key={tag} label={tag} sx={{ mb: 1 }} />
-              ))}
-            </Stack>
-            <Button
-              size="small"
-              sx={{ mt: 1 }}
-              onClick={() => {
-                const temp = document.createElement("div");
-                temp.textContent = resume.content;
-                exportElementToPdf(temp, `${resume.id}.pdf`);
-              }}
-            >
-              Export
-            </Button>
-          </Box>
-        ))}
+        {loadingResumes
+          ? Array.from({ length: 3 }).map((_, idx) => (
+              <Skeleton key={idx} variant="rectangular" height={60} />
+            ))
+          : filteredResumes.map((resume) => (
+              <Box key={resume.id}>
+                <Typography variant="subtitle1" gutterBottom>
+                  {resume.id}
+                </Typography>
+                <Stack direction="row" spacing={1} flexWrap="wrap">
+                  {resume.tags.map((tag) => (
+                    <Chip key={tag} label={tag} sx={{ mb: 1 }} />
+                  ))}
+                </Stack>
+                <Button
+                  size="small"
+                  sx={{ mt: 1 }}
+                  onClick={() => {
+                    const temp = document.createElement("div");
+                    temp.textContent = resume.content;
+                    exportElementToPdf(temp, `${resume.id}.pdf`);
+                  }}
+                >
+                  Export
+                </Button>
+              </Box>
+            ))}
       </Stack>
     </Box>
   );
