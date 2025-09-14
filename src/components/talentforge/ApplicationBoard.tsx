@@ -30,6 +30,7 @@ import {
 } from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
+import PromptTileGrid from "./promptTiles/PromptTileGrid";
 
 const STATUSES: ApplicationStatus[] = [
   "applied",
@@ -70,6 +71,20 @@ function Card({ app }: { app: JobApplication }) {
     cursor: "grab",
   } as const;
 
+  const [tile, setTile] = useState<string | null>(null);
+  const [initialValues, setInitialValues] = useState<
+    Record<string, Record<string, string>>
+  >({});
+
+  const openTile = (id: string) => {
+    const init: Record<string, Record<string, string>> = {};
+    if (app.role.description) {
+      init[id] = { jobDescription: app.role.description };
+    }
+    setInitialValues(init);
+    setTile(id);
+  };
+
   return (
     <Box
       ref={setNodeRef}
@@ -88,6 +103,33 @@ function Card({ app }: { app: JobApplication }) {
       <Typography variant="body2" color="text.secondary">
         {app.role.company} – {app.role.location}
       </Typography>
+      {app.role.description && (
+        <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+          <Button size="small" onClick={() => openTile("screenRole")}>
+            Analyze Risks
+          </Button>
+          <Button size="small" onClick={() => openTile("resumeRewrite")}>
+            Compare to Resume
+          </Button>
+        </Stack>
+      )}
+      <Dialog open={!!tile} onClose={() => setTile(null)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          {tile === "screenRole" ? "Analyze Risks" : "Compare to Resume"}
+        </DialogTitle>
+        <DialogContent>
+          {tile && (
+            <PromptTileGrid
+              key={tile}
+              tileIds={[tile]}
+              initialValues={initialValues}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTile(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
@@ -98,6 +140,7 @@ export default function ApplicationBoard() {
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     const existing = getJobApplications();
@@ -134,7 +177,7 @@ export default function ApplicationBoard() {
     const newApp: JobApplication = {
       id: uuid(),
       applicant: { id: "", name: "", email: "" },
-      role: { id: uuid(), title, company, location },
+      role: { id: uuid(), title, company, location, description },
       status: "applied",
       history: [{ status: "applied", changedAt: new Date().toISOString() }],
     };
@@ -144,6 +187,7 @@ export default function ApplicationBoard() {
     setTitle("");
     setCompany("");
     setLocation("");
+    setDescription("");
   };
 
   return (
@@ -200,6 +244,14 @@ export default function ApplicationBoard() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               fullWidth
+            />
+            <TextField
+              label="Job Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+              multiline
+              minRows={4}
             />
           </Stack>
         </DialogContent>

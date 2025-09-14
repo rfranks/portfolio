@@ -37,6 +37,8 @@ export interface RolePosting {
   company: string;
   /** Location of the job, if specified. */
   location?: string;
+  /** Full job description text. */
+  description?: string;
   /** Direct link to the job posting. */
   url?: string;
   /** Source of the listing such as "indeed" or "linkedin". */

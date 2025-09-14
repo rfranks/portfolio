@@ -5,6 +5,8 @@ export interface JobListing {
   company: string;
   /** Location where the job is based */
   location: string;
+  /** Full job description text */
+  description?: string;
   /** Direct link to the job posting */
   url: string;
   /** Source of the job listing, e.g. "indeed" or "linkedin" */

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -8,6 +8,7 @@ import {
   Stack,
   TextField,
   Typography,
+  MenuItem,
 } from "@mui/material";
 
 import OpenAiKeyModal from "../OpenAiKeyModal";
@@ -22,14 +23,21 @@ const registry: Record<string, PromptTileDefinition> = PROMPT_TILES;
 
 interface PromptTileGridProps {
   onResponse?: (response: string) => void;
+  tileIds?: string[];
+  initialValues?: Record<string, Record<string, string>>;
 }
 
 export default function PromptTileGrid({
   onResponse,
+  tileIds,
+  initialValues = {},
 }: PromptTileGridProps) {
   const [values, setValues] = useState<
     Record<string, Record<string, string>>
-  >({});
+  >(initialValues);
+  useEffect(() => {
+    setValues(initialValues);
+  }, [initialValues]);
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [openKeyModal, setOpenKeyModal] = useState(false);
@@ -85,6 +93,10 @@ export default function PromptTileGrid({
     }
   };
 
+  const tiles = tileIds
+    ? tileIds.map((id) => registry[id]).filter(Boolean)
+    : Object.values(registry);
+
   return (
     <>
       <OpenAiKeyModal
@@ -92,21 +104,40 @@ export default function PromptTileGrid({
         onClose={() => setOpenKeyModal(false)}
       />
       <Grid container spacing={2}>
-        {Object.values(registry).map((tile) => (
+        {tiles.map((tile) => (
           <Grid item xs={12} sm={6} md={4} key={tile.id}>
             <Box>
               <Stack spacing={1}>
                 <Typography variant="subtitle1">{tile.display}</Typography>
                 {tile.inputs.map((name) => (
-                  <TextField
-                    key={name}
-                    label={name}
-                    size="small"
-                    value={values[tile.id]?.[name] || ""}
-                    onChange={(e) =>
-                      handleChange(tile.id, name, e.target.value)
-                    }
-                  />
+                  name === "resumeVariantId" ? (
+                    <TextField
+                      key={name}
+                      label="Resume"
+                      select
+                      size="small"
+                      value={values[tile.id]?.[name] || ""}
+                      onChange={(e) =>
+                        handleChange(tile.id, name, e.target.value)
+                      }
+                    >
+                      {getResumes().map((r) => (
+                        <MenuItem key={r.id} value={r.id}>
+                          {r.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  ) : (
+                    <TextField
+                      key={name}
+                      label={name}
+                      size="small"
+                      value={values[tile.id]?.[name] || ""}
+                      onChange={(e) =>
+                        handleChange(tile.id, name, e.target.value)
+                      }
+                    />
+                  )
                 ))}
                 <Button
                   variant="contained"
