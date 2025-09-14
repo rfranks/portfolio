@@ -473,7 +473,27 @@ export function updateThreadStatus(
 
 // Offers
 export function getOffers(): Offer[] {
-  return load("offers", []);
+  const offers = load("offers", []);
+  let migrated = false;
+  const updated = offers.map((offer) => {
+    const summary = offer.summary as unknown;
+    if (summary && !Array.isArray(summary)) {
+      migrated = true;
+      const summaryLines =
+        typeof summary === "string"
+          ? summary
+              .split(/\r?\n/)
+              .map((line) => line.replace(/^\-\s*/, "").trim())
+              .filter(Boolean)
+          : [];
+      return { ...offer, summary: summaryLines };
+    }
+    return offer;
+  });
+  if (migrated) {
+    save("offers", updated);
+  }
+  return updated;
 }
 export function addOffer(offer: Offer): Offer[] {
   const updated = [...getOffers(), offer];
@@ -493,7 +513,27 @@ export function deleteOffer(id: string): Offer[] {
 
 // Job applications
 export function getJobApplications(): JobApplication[] {
-  return load("applications", []);
+  const apps = load("applications", []);
+  let migrated = false;
+  const updated = apps.map((app) => {
+    const summary = app.offer?.summary as unknown;
+    if (app.offer && summary && !Array.isArray(summary)) {
+      migrated = true;
+      const summaryLines =
+        typeof summary === "string"
+          ? summary
+              .split(/\r?\n/)
+              .map((line) => line.replace(/^\-\s*/, "").trim())
+              .filter(Boolean)
+          : [];
+      return { ...app, offer: { ...app.offer, summary: summaryLines } };
+    }
+    return app;
+  });
+  if (migrated) {
+    save("applications", updated);
+  }
+  return updated;
 }
 export function addJobApplication(app: JobApplication): JobApplication[] {
   const withHistory = {
