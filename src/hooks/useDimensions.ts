@@ -68,6 +68,8 @@ export function useDimensions(
       setDimensions(getDimensions());
     }, 100);
 
+    let interval: ReturnType<typeof setInterval> | null = null;
+
     // set the initial dimensions if ref is defined
     if (ref && ref.current) {
       const dimensions = getDimensions();
@@ -77,9 +79,16 @@ export function useDimensions(
         // if the element is not visible, or has not rendered content yet,
         // we need to wait for the element to become visible or render content
         // before we can get the dimensions
-        const interval = setInterval(() => {
-          if (ref.current && ref.current.offsetHeight > 0) {
-            clearInterval(interval);
+        interval = setInterval(() => {
+          if (
+            ref.current &&
+            ref.current.offsetHeight > 0 &&
+            ref.current.offsetWidth > 0
+          ) {
+            if (interval) {
+              clearInterval(interval);
+              interval = null;
+            }
             handleResize();
           }
         }, 15);
@@ -96,6 +105,9 @@ export function useDimensions(
     return () => {
       // remove the event listener during cleanup
       window.removeEventListener("resize", handleResize);
+      if (interval) {
+        clearInterval(interval);
+      }
     };
   }, [ref, theme?.breakpoints?.values]);
 
