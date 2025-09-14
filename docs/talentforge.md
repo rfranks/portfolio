@@ -30,13 +30,13 @@ Connectors abstract external services behind a common interface defined in `src/
 - `fetchData()` – retrieve data such as profiles or job listings.
 - `sendMessage(message)` – deliver outbound messages.
 
-The repository includes mocked connectors for LinkedIn and Indeed in `src/utils/` that return sample data so the application can run without live API access. Additional connectors can follow the same pattern.
+The repository includes mocked connectors for LinkedIn and Indeed in `src/utils/talentforge/connectors/` that return sample data so the application can run without live API access. Additional connectors can follow the same pattern.
 
 ## Mock Data Instructions
 
 During development the connectors provide static responses. To adjust mock data:
 
-1. Edit the connector files in `src/utils/` (for example `linkedinConnector.ts` or `indeedConnector.ts`).
+1. Edit the connector files in `src/utils/talentforge/connectors/` (for example `connectors/linkedin.ts` or `connectors/indeed.ts`).
 2. Update the returned objects or arrays to reflect the scenarios you want to test.
 3. Restart the dev server to load the new mock data.
 
