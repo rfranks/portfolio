@@ -8,10 +8,15 @@ import {
   Button,
   TextField,
   DialogProps,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 
 import { setOpenAIKey } from "@/utils/talentforge/utils";
-import { getOpenAIKey } from "@/utils/talentforge/dataStore";
+import {
+  getOpenAIKey,
+  deleteOpenAIKey,
+} from "@/utils/talentforge/dataStore";
 
 export interface OpenAiKeyModalProps
   extends Omit<DialogProps, "open" | "onClose"> {
@@ -24,12 +29,38 @@ export default function OpenAiKeyModal({
   onClose,
 }: OpenAiKeyModalProps) {
   const [key, setKey] = React.useState("");
+  const [persist, setPersist] = React.useState(true);
+
+  const loadStoredKey = React.useCallback(() => {
+    if (typeof window === "undefined") return;
+    const storedPersist = window.localStorage.getItem(
+      "talentforge-openai-key-persist",
+    );
+    const shouldPersist = storedPersist !== "false";
+    setPersist(shouldPersist);
+
+    const storedKey = shouldPersist
+      ? getOpenAIKey() || ""
+      : window.sessionStorage.getItem("talentforge-openai-key") || "";
+
+    if (storedKey) {
+      setOpenAIKey(storedKey);
+      if (!shouldPersist) {
+        deleteOpenAIKey();
+      }
+      setKey(storedKey);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadStoredKey();
+  }, [loadStoredKey]);
 
   React.useEffect(() => {
     if (open) {
-      setKey(getOpenAIKey() || "");
+      loadStoredKey();
     }
-  }, [open]);
+  }, [open, loadStoredKey]);
 
   const handleClose = () => {
     setKey("");
@@ -40,7 +71,51 @@ export default function OpenAiKeyModal({
     const trimmed = key.trim();
     if (!trimmed) return;
     setOpenAIKey(trimmed);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "talentforge-openai-key-persist",
+        persist ? "true" : "false",
+      );
+      if (persist) {
+        // setOpenAIKey already stores to localStorage
+      } else {
+        window.sessionStorage.setItem("talentforge-openai-key", trimmed);
+        deleteOpenAIKey();
+      }
+    }
     handleClose();
+  };
+
+  const handlePersistChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const value = e.target.checked;
+    setPersist(value);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "talentforge-openai-key-persist",
+        value ? "true" : "false",
+      );
+    }
+  };
+
+  const handleTest = async () => {
+    const trimmed = key.trim();
+    if (!trimmed) return;
+    try {
+      const res = await fetch("/api/test-openai-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: trimmed }),
+      });
+      if (res.ok) {
+        alert("Key is valid!");
+      } else {
+        alert("Key test failed.");
+      }
+    } catch {
+      alert("Key test failed.");
+    }
   };
 
   return (
@@ -60,9 +135,18 @@ export default function OpenAiKeyModal({
           value={key}
           onChange={(e) => setKey(e.target.value)}
         />
+        <FormControlLabel
+          control={
+            <Switch checked={persist} onChange={handlePersistChange} />
+          }
+          label="Persist across sessions"
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleTest} disabled={!key.trim()}>
+          Test Key
+        </Button>
         <Button onClick={handleSave} disabled={!key.trim()}>
           Save
         </Button>
