@@ -7,6 +7,7 @@ import {
   Checkbox,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Table,
@@ -73,23 +74,21 @@ export default function OfferList({ refreshKey }: OfferListProps) {
     <Box>
       <List>
         {offers.map((offer, index) => (
-          <ListItem
-            key={offer.id}
-            button
-            onClick={() => toggleSelect(offer.id)}
-          >
-            <ListItemIcon>
-              <Checkbox edge="start" checked={selected.has(offer.id)} />
-            </ListItemIcon>
-            <ListItemText
-              primary={`Offer ${index + 1}`}
-              secondary={
-                offer.summary ||
-                offer.compensation
-                  .map((c) => `${c.type}: ${c.amount}`)
-                  .join(", ")
-              }
-            />
+          <ListItem disablePadding key={offer.id}>
+            <ListItemButton onClick={() => toggleSelect(offer.id)}>
+              <ListItemIcon>
+                <Checkbox edge="start" checked={selected.has(offer.id)} />
+              </ListItemIcon>
+              <ListItemText
+                primary={`Offer ${index + 1}`}
+                secondary={
+                  offer.summary ||
+                  offer.compensation
+                    .map((c) => `${c.type}: ${c.amount}`)
+                    .join(", ")
+                }
+              />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>
