@@ -22,12 +22,6 @@ import {
   AutoReplyTemplate,
 } from "@/utils/autoReply";
 
-interface ConnectorMessage {
-  id: string;
-  connector: string;
-  content: string;
-  status: "unread" | "read";
-}
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import { Message } from "@/utils/talentforge/dataStore";
 import { v4 as uuidv4 } from "uuid";
@@ -50,14 +44,14 @@ export default function Inbox() {
   };
 
   const filteredMessages = filterByText(messages, search, [
-    "content",
+    "body",
     "connector",
   ]).filter((message) => filter === "all" || message.status === filter);
 
-  const handleAutoReply = async (message: ConnectorMessage) => {
+  const handleAutoReply = async (message: Message) => {
     const template = templates[message.id] || "general";
     const reply = await autoReply(
-      buildAutoReplyMessages(template, message.content),
+      buildAutoReplyMessages(template, message.body),
     );
     setDrafts((d) => ({ ...d, [message.id]: reply }));
   };
@@ -65,7 +59,7 @@ export default function Inbox() {
   const handleSendReply = (message: Message) => {
     const text = drafts[message.id];
     if (!text) return;
-    const reply = { id: uuidv4(), content: text, sentAt: new Date().toISOString() };
+    const reply = { id: uuidv4(), body: text, sentAt: new Date().toISOString() };
     const updated = data.addMessageReply(message.id, reply);
     setMessages(updated);
     setDrafts((d) => ({ ...d, [message.id]: "" }));
@@ -116,7 +110,7 @@ export default function Inbox() {
                       {message.connector}
                     </Typography>
                   }
-                  secondary={message.content}
+                  secondary={message.body}
                 />
                 <Stack direction="row" spacing={1}>
                   <Button size="small" onClick={() => handleOpenThread(message)}>
@@ -130,7 +124,7 @@ export default function Inbox() {
                   <Stack spacing={2} sx={{ mt: 1 }}>
                     {message.replies.map((r) => (
                       <Typography key={r.id} variant="body2">
-                        {r.content}
+                        {r.body}
                       </Typography>
                     ))}
                     <TextField
