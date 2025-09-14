@@ -2,8 +2,12 @@ import { useEffect, useRef, type MutableRefObject } from "react";
 
 /**
  * Provides a callback to compute frame timing information.
- * Returns { fps, scale } where `scale` is the ratio of the
- * actual frame duration to the target 60 FPS frame duration.
+ *
+ * The hook returns a timing callback. When invoked every animation frame
+ * with the current timestamp, it updates the exported `fpsRef` and
+ * `scaleRef`. `fpsRef` holds the calculated frames per second and
+ * `scaleRef` stores the ratio of the actual frame duration to the target
+ * 60 FPS frame duration.
  */
 export let fpsRef: MutableRefObject<number>;
 export let scaleRef: MutableRefObject<number>;
