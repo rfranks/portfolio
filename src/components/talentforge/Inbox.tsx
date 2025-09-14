@@ -4,8 +4,12 @@ import { useEffect, useState } from "react";
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   List,
-  ListItem,
+  ListItemButton,
   ListItemText,
   MenuItem,
   Select,
@@ -25,16 +29,27 @@ import {
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import { Message } from "@/utils/talentforge/dataStore";
 import { v4 as uuidv4 } from "uuid";
+import PromptTileGrid from "./promptTiles/PromptTileGrid";
+
+const CONNECTORS = ["Email", "LinkedIn", "Indeed"];
 
 export default function Inbox() {
   const data = useTalentForgeData();
   const [messages, setMessages] = useState<Message[]>([]);
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [templates, setTemplates] = useState<Record<string, AutoReplyTemplate>>({});
-  const [quickTones, setQuickTones] = useState<Record<string, AutoReplyTemplate>>({});
+  const [templates, setTemplates] = useState<Record<string, AutoReplyTemplate>>(
+    {},
+  );
+  const [quickTones, setQuickTones] = useState<
+    Record<string, AutoReplyTemplate>
+  >({});
+  const [replyConnectors, setReplyConnectors] = useState<
+    Record<string, string>
+  >({});
   const [search, setSearch] = useState("");
+  const [openAi, setOpenAi] = useState(false);
 
   useEffect(() => {
     setMessages(data.getMessages());
@@ -47,7 +62,9 @@ export default function Inbox() {
   const filteredMessages = filterByText(messages, search, [
     "body",
     "connector",
-  ]).filter((message) => filter === "all" || message.status === filter);
+  ]).filter((m) => filter === "all" || m.status === filter);
+
+  const selected = messages.find((m) => m.id === selectedId) || null;
 
   const handleAutoReply = async (message: Message) => {
     const template = templates[message.id] || "general";
@@ -62,7 +79,13 @@ export default function Inbox() {
     const text = await autoReply(
       buildAutoReplyMessages(tone, message.body),
     );
-    const reply = { id: uuidv4(), body: text, sentAt: new Date().toISOString() };
+    const connector = replyConnectors[message.id] || message.connector;
+    const reply = {
+      id: uuidv4(),
+      body: text,
+      sentAt: new Date().toISOString(),
+      connector,
+    };
     const updated = data.addMessageReply(message.id, reply);
     setMessages(updated);
   };
@@ -70,7 +93,13 @@ export default function Inbox() {
   const handleSendReply = (message: Message) => {
     const text = drafts[message.id];
     if (!text) return;
-    const reply = { id: uuidv4(), body: text, sentAt: new Date().toISOString() };
+    const connector = replyConnectors[message.id] || message.connector;
+    const reply = {
+      id: uuidv4(),
+      body: text,
+      sentAt: new Date().toISOString(),
+      connector,
+    };
     const updated = data.addMessageReply(message.id, reply);
     setMessages(updated);
     setDrafts((d) => ({ ...d, [message.id]: "" }));
@@ -84,16 +113,21 @@ export default function Inbox() {
     setMessages(updated);
   };
 
-  const handleOpenThread = (message: Message) => {
-    const isCurrent = replyingTo === message.id;
-    setReplyingTo((current) => (current === message.id ? null : message.id));
-    if (!isCurrent && !drafts[message.id]) {
+  const handleSelect = (message: Message) => {
+    setSelectedId(message.id);
+    if (!drafts[message.id]) {
       void handleAutoReply(message);
     }
     if (message.status === "unread") {
       const updated = data.updateMessageStatus(message.id, "read");
       setMessages(updated);
     }
+  };
+
+  const insertFromAi = (text: string) => {
+    if (!selected) return;
+    setDrafts((d) => ({ ...d, [selected.id]: text }));
+    setOpenAi(false);
   };
 
   return (
@@ -111,10 +145,15 @@ export default function Inbox() {
           onChange={(e) => setSearch(e.target.value)}
           sx={{ maxWidth: 300 }}
         />
-        <List>
-          {filteredMessages.map((message) => (
-            <ListItem key={message.id} alignItems="flex-start">
-              <Stack spacing={1} sx={{ width: "100%" }}>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <List sx={{ width: 300, flexShrink: 0 }}>
+            {filteredMessages.map((message) => (
+              <ListItemButton
+                key={message.id}
+                selected={selectedId === message.id}
+                onClick={() => handleSelect(message)}
+                alignItems="flex-start"
+              >
                 <ListItemText
                   primary={
                     <Typography variant="subtitle1" fontWeight="bold">
@@ -123,82 +162,128 @@ export default function Inbox() {
                   }
                   secondary={message.body}
                 />
-                <Stack direction="row" spacing={1}>
-                  <Button size="small" onClick={() => handleOpenThread(message)}>
-                    Reply
-                  </Button>
-                  <Button size="small" onClick={() => handleToggleStatus(message)}>
-                    {message.status === "unread" ? "Mark read" : "Mark unread"}
+              </ListItemButton>
+            ))}
+          </List>
+          <Box sx={{ flexGrow: 1 }}>
+            {selected ? (
+              <Stack spacing={2}>
+                <Typography variant="h6">{selected.connector}</Typography>
+                <Typography>{selected.body}</Typography>
+                {selected.replies.map((r) => (
+                  <Typography key={r.id} variant="body2">
+                    [{r.connector}] {r.body}
+                  </Typography>
+                ))}
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Select
+                    size="small"
+                    value={quickTones[selected.id] || "politeFollowUp"}
+                    onChange={(e) =>
+                      setQuickTones((t) => ({
+                        ...t,
+                        [selected.id]: e.target.value as AutoReplyTemplate,
+                      }))
+                    }
+                    sx={{ maxWidth: 200 }}
+                  >
+                    <MenuItem value="politeFollowUp">Polite follow-up</MenuItem>
+                    <MenuItem value="politeDecline">Politely decline</MenuItem>
+                  </Select>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => void handleQuickInsert(selected)}
+                  >
+                    Quick insert
                   </Button>
                 </Stack>
-                {replyingTo === message.id && (
-                  <Stack spacing={2} sx={{ mt: 1 }}>
-                    {message.replies.map((r) => (
-                      <Typography key={r.id} variant="body2">
-                        {r.body}
-                      </Typography>
+                <TextField
+                  label="Your reply"
+                  multiline
+                  rows={4}
+                  fullWidth
+                  value={drafts[selected.id] || ""}
+                  onChange={(e) =>
+                    setDrafts((d) => ({ ...d, [selected.id]: e.target.value }))
+                  }
+                />
+                <Select
+                  size="small"
+                  value={templates[selected.id] || "general"}
+                  onChange={(e) =>
+                    setTemplates((t) => ({
+                      ...t,
+                      [selected.id]: e.target.value as AutoReplyTemplate,
+                    }))
+                  }
+                  sx={{ maxWidth: 200 }}
+                >
+                  <MenuItem value="general">General</MenuItem>
+                  <MenuItem value="politeDecline">Politely decline</MenuItem>
+                  <MenuItem value="requestMoreInfo">Request more info</MenuItem>
+                </Select>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Select
+                    size="small"
+                    value={replyConnectors[selected.id] || selected.connector}
+                    onChange={(e) =>
+                      setReplyConnectors((c) => ({
+                        ...c,
+                        [selected.id]: e.target.value,
+                      }))
+                    }
+                    sx={{ maxWidth: 200 }}
+                  >
+                    {CONNECTORS.map((c) => (
+                      <MenuItem key={c} value={c}>
+                        {c}
+                      </MenuItem>
                     ))}
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Select
-                        size="small"
-                        value={quickTones[message.id] || "politeFollowUp"}
-                        onChange={(e) =>
-                          setQuickTones((t) => ({
-                            ...t,
-                            [message.id]: e.target.value as AutoReplyTemplate,
-                          }))
-                        }
-                        sx={{ maxWidth: 200 }}
-                      >
-                        <MenuItem value="politeFollowUp">Polite follow-up</MenuItem>
-                        <MenuItem value="politeDecline">Politely decline</MenuItem>
-                      </Select>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => void handleQuickInsert(message)}
-                      >
-                        Quick insert
-                      </Button>
-                    </Stack>
-                    <TextField
-                      label="Your reply"
-                      multiline
-                      rows={4}
-                      fullWidth
-                      value={drafts[message.id] || ""}
-                      onChange={(e) =>
-                        setDrafts((d) => ({ ...d, [message.id]: e.target.value }))
-                      }
-                    />
-                    <Select
-                      size="small"
-                      value={templates[message.id] || "general"}
-                      onChange={(e) =>
-                        setTemplates((t) => ({
-                          ...t,
-                          [message.id]: e.target.value as AutoReplyTemplate,
-                        }))
-                      }
-                      sx={{ maxWidth: 200 }}
-                    >
-                      <MenuItem value="general">General</MenuItem>
-                      <MenuItem value="politeDecline">Politely decline</MenuItem>
-                      <MenuItem value="requestMoreInfo">Request more info</MenuItem>
-                    </Select>
-                    <Button
-                      variant="contained"
-                      onClick={() => handleSendReply(message)}
-                    >
-                      Send
-                    </Button>
-                  </Stack>
-                )}
+                  </Select>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setOpenAi(true)}
+                  >
+                    Draft with AI
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleSendReply(selected)}
+                  >
+                    Send
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => handleToggleStatus(selected)}
+                  >
+                    {selected.status === "unread"
+                      ? "Mark read"
+                      : "Mark unread"}
+                  </Button>
+                </Stack>
               </Stack>
-            </ListItem>
-          ))}
-        </List>
+            ) : (
+              <Typography>Select a thread</Typography>
+            )}
+          </Box>
+        </Box>
       </Stack>
+      <Dialog
+        open={openAi}
+        onClose={() => setOpenAi(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>Draft with AI</DialogTitle>
+        <DialogContent>
+          <PromptTileGrid onInsert={insertFromAi} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenAi(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

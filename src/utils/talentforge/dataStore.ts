@@ -30,6 +30,7 @@ export type MessageReply = {
   id: string;
   body: string;
   sentAt: string;
+  connector: string;
 };
 
 export interface Message extends ModelMessage {
@@ -67,7 +68,7 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
 const VERSION: { [K in keyof StoreSchema]: number } = {
   user: 1,
   resumes: 1,
-  messages: 2,
+  messages: 3,
   offers: 2,
   applications: 1,
   onboarding: 1,
@@ -117,6 +118,7 @@ interface LegacyMessageReply {
   id: string;
   content: string;
   sentAt: string;
+  connector?: string;
 }
 
 interface LegacyMessage {
@@ -150,7 +152,12 @@ function migrateLegacyMessages(data: unknown): Message[] {
     connector: m.connector,
     status: m.status,
     replies: Array.isArray(m.replies)
-      ? m.replies.map((r) => ({ id: r.id, body: r.content, sentAt: r.sentAt }))
+      ? m.replies.map((r) => ({
+          id: r.id,
+          body: r.content,
+          sentAt: r.sentAt,
+          connector: r.connector || m.connector,
+        }))
       : [],
   }));
 }

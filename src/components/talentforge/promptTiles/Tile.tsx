@@ -21,15 +21,19 @@ import { parseResumeText } from "@/utils/talentforge/pdfParser";
 import { v4 as uuid } from "uuid";
 
 export interface PromptTileProps {
+  id: string;
   display: string;
   fullPrompt: string;
   inputs: string[];
+  onInsert?: (text: string) => void;
 }
 
 export default function Tile({
+  id,
   display,
   fullPrompt,
   inputs,
+  onInsert,
 }: PromptTileProps) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [response, setResponse] = useState("");
@@ -133,7 +137,7 @@ export default function Tile({
               </Button>
             )}
             <Box>
-              <Box display="flex" justifyContent="flex-end">
+              <Box display="flex" justifyContent="flex-end" gap={1}>
                 {navigator.clipboard && (
                   <Tooltip title="copy to clipboard" arrow>
                     <IconButton
@@ -144,6 +148,11 @@ export default function Tile({
                       <ContentCopy fontSize="small" />
                     </IconButton>
                   </Tooltip>
+                )}
+                {onInsert && (
+                  <Button size="small" onClick={() => onInsert(response)}>
+                    Insert
+                  </Button>
                 )}
               </Box>
               <Markdown>{response}</Markdown>
