@@ -55,7 +55,7 @@ export default function Detail({ resume, onClose, onSave }: Props) {
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>{resume.id}</DialogTitle>
+      <DialogTitle>{resume.title}</DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">

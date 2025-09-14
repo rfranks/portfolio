@@ -71,7 +71,7 @@ export default function CoverLetter() {
         >
           {resumes.map((r) => (
             <MenuItem key={r.id} value={r.id}>
-              {r.id}
+              {r.title}
             </MenuItem>
           ))}
         </TextField>

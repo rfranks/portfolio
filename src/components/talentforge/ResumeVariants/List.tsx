@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   Box,
   Stack,
-  Typography,
   Chip,
   IconButton,
   Dialog,
@@ -12,6 +11,7 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  TextField,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -85,6 +85,7 @@ export default function List({ resumes, setResumes }: Props) {
         id: uuid(),
         userId: "",
         label: "",
+        title: "",
         url: "",
         content,
         tags: tags || [],
@@ -122,9 +123,20 @@ export default function List({ resumes, setResumes }: Props) {
       {resumes.map((r) => (
         <Box key={r.id} sx={{ mb: 2 }}>
           <Stack direction="row" spacing={1} alignItems="center">
-            <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
-              {r.id}
-            </Typography>
+            <TextField
+              size="small"
+              value={r.title}
+              onChange={(e) =>
+                setResumes(
+                  resumes.map((res) =>
+                    res.id === r.id ? { ...res, title: e.target.value } : res,
+                  ),
+                )
+              }
+              onBlur={(e) => handleSave({ ...r, title: e.target.value })}
+              sx={{ flexGrow: 1 }}
+              inputProps={{ "aria-label": "Resume title" }}
+            />
             <IconButton size="small" onClick={() => setSelected(r)} aria-label="edit">
               <EditIcon fontSize="small" />
             </IconButton>
@@ -184,7 +196,7 @@ export default function List({ resumes, setResumes }: Props) {
       )}
       {diffTarget && (
         <Dialog open onClose={() => setDiffTarget(null)} fullWidth maxWidth="md">
-          <DialogTitle>Diff {diffTarget.id}</DialogTitle>
+          <DialogTitle>Diff {diffTarget.title}</DialogTitle>
           <DialogContent dividers>
             <Diff
               original={diffTarget.content}
@@ -200,7 +212,7 @@ export default function List({ resumes, setResumes }: Props) {
         <Dialog open onClose={() => setConfirmDelete(null)}>
           <DialogTitle>Delete Resume</DialogTitle>
           <DialogContent>
-            Are you sure you want to delete {confirmDelete.id}?
+            Are you sure you want to delete {confirmDelete.title}?
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setConfirmDelete(null)}>Cancel</Button>
