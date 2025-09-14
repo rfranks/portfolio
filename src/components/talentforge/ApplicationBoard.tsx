@@ -277,7 +277,7 @@ export default function ApplicationBoard() {
   useEffect(() => {
     const existing = getJobApplications();
     if (existing.length === 0) {
-      fetchAllListings().then((listings) => {
+      fetchAllListings("").then((listings) => {
         let apps = existing;
         listings.forEach((listing) => {
           apps = addJobApplication({

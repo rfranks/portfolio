@@ -25,7 +25,7 @@ export default function JobListings() {
   const [saved, setSaved] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    jobAggregator.fetchAllListings().then((results) => {
+    jobAggregator.fetchAllListings("").then((results) => {
       setListings(results);
     });
   }, []);
