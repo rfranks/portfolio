@@ -28,7 +28,7 @@ import {
   pdfToMarkdown,
   hasOpenAIKey,
 } from "@/utils/talentforge/utils";
-import OpenAiKeyModal from "./OpenAiKeyModal";
+import OpenAIKeyModal from "./OpenAiKeyModal";
 
 import CircularProgressWithLabel from "./CircularProgressWithLabel";
 import FileUploader from "./FileUploader";
@@ -135,7 +135,7 @@ export default function Hero() {
       })}
     >
       <TermsDialog open={openTerms} onClose={() => setOpenTerms(false)} />
-      <OpenAiKeyModal
+      <OpenAIKeyModal
         open={openKeyModal}
         onClose={() => setOpenKeyModal(false)}
       />

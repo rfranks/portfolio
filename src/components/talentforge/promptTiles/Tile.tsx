@@ -13,7 +13,7 @@ import {
 import { ContentCopy } from "@mui/icons-material";
 import Markdown from "react-markdown";
 
-import OpenAiKeyModal from "../OpenAiKeyModal";
+import OpenAIKeyModal from "../OpenAiKeyModal";
 import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
 import { getResumes, addResume, type ResumeEntry } from "@/utils/talentforge/dataStore";
 import { tagResume } from "@/utils/talentforge/tagging";
@@ -112,7 +112,7 @@ export default function Tile({
 
   return (
     <Box>
-      <OpenAiKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
+      <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
       <Stack spacing={1}>
         <Typography variant="subtitle1">{display}</Typography>
         {inputs.map((name) => (

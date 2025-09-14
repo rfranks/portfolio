@@ -23,7 +23,7 @@ import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { pdfToMarkdown, parseResumeText } from "@/utils/talentforge/pdfParser";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
-import OpenAiKeyModal from "./OpenAiKeyModal";
+import OpenAIKeyModal from "./OpenAiKeyModal";
 import FileUploader from "./FileUploader";
 import ResumeVariantList from "./ResumeVariants/List";
 
@@ -90,7 +90,7 @@ export default function ResumeManager() {
 
   return (
     <Box>
-      <OpenAiKeyModal
+      <OpenAIKeyModal
         open={openKeyModal}
         onClose={() => setOpenKeyModal(false)}
       />
