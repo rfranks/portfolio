@@ -480,7 +480,7 @@ func PayWinners(payBlackjacks bool, payAllOthers bool, updateStats bool) {
 				} else {
 					if rules.IsBlackjack(*hand) {
 						if payBlackjacks {
-							// you win time and a half + orignal bet
+							// you win time and a half + original bet
 							winnings := hand.Wager + (hand.Wager / 2.0) + hand.Wager
 							currPlayer.Stack += winnings
 							game.State.House -= winnings
