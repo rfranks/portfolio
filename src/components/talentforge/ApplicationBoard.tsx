@@ -31,7 +31,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import Markdown from "react-markdown";
 import type { ApplicationStatus } from "@/types/talentforge/job";
-import type { JobApplication, ResumeEntry } from "@/utils/talentforge/dataStore";
+import type { JobApplication, ResumeEntry, Offer } from "@/utils/talentforge/dataStore";
 import {
   addJobApplication,
   getJobApplications,
@@ -42,8 +42,14 @@ import {
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
 import { PROMPT_TILES } from "@/consts/promptTiles";
-import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
+import {
+  askOpenAI,
+  hasValidOpenAIKey,
+  pdfToMarkdown,
+} from "@/utils/talentforge/utils";
 import OpenAIKeyModal from "./OpenAiKeyModal";
+import FileUploader from "./FileUploader";
+import { parseOfferText } from "@/utils/talentforge/offerParser";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -92,6 +98,7 @@ function Card({
   onAssignResume,
   onSetInterviewDate,
   onSetInterviewLocation,
+  onUploadOffer,
 }: {
   app: JobApplication;
   onRunTile: (id: string, app: JobApplication) => void;
@@ -99,6 +106,7 @@ function Card({
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
   onSetInterviewLocation: (appId: string, value: string) => void;
+  onUploadOffer: (appId: string, file: File) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app.id });
@@ -131,7 +139,7 @@ function Card({
           Source: {app.role.source}
         </Typography>
       )}
-      {resumes.length > 0 && (
+      {resumes.length > 0 && app.status !== "offer" && (
         <TextField
           select
           size="small"
@@ -148,28 +156,29 @@ function Card({
           ))}
         </TextField>
       )}
-      {STATUSES.indexOf(app.status) >= STATUSES.indexOf("interview") && (
-        <>
-          <TextField
-            type="datetime-local"
-            size="small"
-            label="Interview Time"
-            value={app.interviewDateTime || ""}
-            onChange={(e) => onSetInterviewDate(app.id, e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            sx={{ mt: 1 }}
-            fullWidth
-          />
-          <TextField
-            size="small"
-            label="Meeting URL/Location"
-            value={app.interviewLocation || ""}
-            onChange={(e) => onSetInterviewLocation(app.id, e.target.value)}
-            sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}
-            fullWidth
-          />
-        </>
-      )}
+      {STATUSES.indexOf(app.status) >= STATUSES.indexOf("interview") &&
+        app.status !== "offer" && (
+          <>
+            <TextField
+              type="datetime-local"
+              size="small"
+              label="Interview Time"
+              value={app.interviewDateTime || ""}
+              onChange={(e) => onSetInterviewDate(app.id, e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mt: 1 }}
+              fullWidth
+            />
+            <TextField
+              size="small"
+              label="Meeting URL/Location"
+              value={app.interviewLocation || ""}
+              onChange={(e) => onSetInterviewLocation(app.id, e.target.value)}
+              sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}
+              fullWidth
+            />
+          </>
+        )}
       {app.role.description && (
         <Stack direction="column" spacing={1} sx={{ mt: 1 }}>
           <Button
@@ -181,25 +190,58 @@ function Card({
           >
             Analyze Risks
           </Button>
-          <Button
-            size="small"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => onRunTile("resumeCompare", app)}
-            variant="outlined"
-            fullWidth
-          >
-            Compare to Resume
-          </Button>
-          <Button
-            size="small"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => onRunTile("coverLetter", app)}
-            variant="outlined"
-            fullWidth
-          >
-            Cover Letter
-          </Button>
+          {app.status !== "offer" && (
+            <>
+              <Button
+                size="small"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => onRunTile("resumeCompare", app)}
+                variant="outlined"
+                fullWidth
+              >
+                Compare to Resume
+              </Button>
+              <Button
+                size="small"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => onRunTile("coverLetter", app)}
+                variant="outlined"
+                fullWidth
+              >
+                Cover Letter
+              </Button>
+            </>
+          )}
         </Stack>
+      )}
+      {app.status === "offer" && (
+        <Box sx={{ mt: 1 }}>
+          <FileUploader
+            accept=".pdf,.txt,.md"
+            label="Upload Offer"
+            variant="upload"
+            outputType="files"
+            onChange={(files) => {
+              const f = (files as File[])[0];
+              if (f) onUploadOffer(app.id, f);
+            }}
+          />
+          {app.offer && app.offer.compensation.length > 0 && (
+            <Stack spacing={0.5} sx={{ mt: 1 }}>
+              {app.offer.compensation.map((c) => (
+                <Typography key={c.type} variant="body2">
+                  {c.type.charAt(0).toUpperCase() + c.type.slice(1)}: {"$"}
+                  {c.amount.toLocaleString()} {c.notes ? `(${c.notes})` : ""}
+                </Typography>
+              ))}
+            </Stack>
+          )}
+          {app.offer?.summary && (
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              {app.offer.summary}
+            </Typography>
+          )}
+        </Box>
       )}
     </Box>
   );
@@ -403,6 +445,22 @@ export default function ApplicationBoard() {
     setApplications(updated);
   };
 
+  const handleOfferUpload = async (appId: string, file: File) => {
+    const app = applications.find((a) => a.id === appId);
+    if (!app) return;
+    const text =
+      file.type === "application/pdf" ? await pdfToMarkdown(file) : await file.text();
+    const parsed = parseOfferText(text);
+    const offer: Offer = {
+      id: uuid(),
+      application: app,
+      compensation: parsed.compensation,
+      summary: parsed.summary,
+    };
+    const updated = updateJobApplication(appId, { offer });
+    setApplications(updated);
+  };
+
   const handleResumeCompareSelect = async (resId: string) => {
     const resume = getResumes().find((r) => r.id === resId);
     if (!resume || !resumeCompareApp) return;
@@ -486,6 +544,7 @@ export default function ApplicationBoard() {
                       onAssignResume={handleAssignResume}
                       onSetInterviewDate={handleInterviewDate}
                       onSetInterviewLocation={handleInterviewLocation}
+                      onUploadOffer={handleOfferUpload}
                     />
                   ))}
               </Column>
