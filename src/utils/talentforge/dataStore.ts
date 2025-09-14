@@ -246,8 +246,9 @@ export function importFromJson(json: string): void {
   if (typeof window === "undefined") return;
   try {
     const data = JSON.parse(json) as Record<string, unknown>;
+    const validKeys = Object.values(KEYS) as string[];
     for (const [key, value] of Object.entries(data)) {
-      if (Object.values(KEYS).includes(key as any)) {
+      if (validKeys.includes(key)) {
         try {
           window.localStorage.setItem(key, JSON.stringify(value));
         } catch {
@@ -260,7 +261,7 @@ export function importFromJson(json: string): void {
   }
 }
 
-export default {
+const dataStore = {
   getUserProfile,
   saveUserProfile,
   getResumes,
@@ -291,4 +292,6 @@ export default {
   exportToJson,
   importFromJson,
 };
+
+export default dataStore;
 
