@@ -9,6 +9,7 @@ import {
   DialogTitle,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   MenuItem,
   Select,
@@ -147,20 +148,20 @@ export default function Inbox() {
             />
             <List>
               {filteredThreads.map((message) => (
-                <ListItem
-                  key={message.id}
-                  button
-                  selected={selectedId === message.id}
-                  onClick={() => handleSelectThread(message)}
-                >
-                  <ListItemText
-                    primary={
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        {message.connector}
-                      </Typography>
-                    }
-                    secondary={message.body}
-                  />
+                <ListItem key={message.id} disablePadding>
+                  <ListItemButton
+                    selected={selectedId === message.id}
+                    onClick={() => handleSelectThread(message)}
+                  >
+                    <ListItemText
+                      primary={
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {message.connector}
+                        </Typography>
+                      }
+                      secondary={message.body}
+                    />
+                  </ListItemButton>
                 </ListItem>
               ))}
             </List>
