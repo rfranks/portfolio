@@ -51,6 +51,7 @@ export default function ResumePaste() {
       id: uuid(),
       userId: "",
       label: "",
+      title: "",
       url: "",
       content: text,
       parsed,

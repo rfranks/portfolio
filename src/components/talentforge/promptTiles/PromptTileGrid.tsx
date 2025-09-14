@@ -123,7 +123,7 @@ export default function PromptTileGrid({
                     >
                       {getResumes().map((r) => (
                         <MenuItem key={r.id} value={r.id}>
-                          {r.label}
+                          {r.title}
                         </MenuItem>
                       ))}
                     </TextField>

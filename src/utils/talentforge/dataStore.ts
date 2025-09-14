@@ -211,19 +211,51 @@ export function saveUserProfile(profile: UserProfile): void {
 }
 
 // Resumes
+function generateUniqueTitle(base: string, existing: ResumeEntry[]): string {
+  const titles = existing.map((r) => r.title.toLowerCase());
+  const candidate = base.trim() || "Resume";
+  let suffix = 1;
+  let title = candidate;
+  while (titles.includes(title.toLowerCase())) {
+    suffix += 1;
+    title = `${candidate} (${suffix})`;
+  }
+  return title;
+}
+
 export function getResumes(): ResumeEntry[] {
-  return load("resumes", []);
+  const loaded = load("resumes", []);
+  const existing: ResumeEntry[] = [];
+  let changed = false;
+  const updated = loaded.map((r) => {
+    const title = r.title
+      ? generateUniqueTitle(r.title, existing)
+      : generateUniqueTitle("Resume", existing);
+    if (title !== r.title) changed = true;
+    const updatedResume = { ...r, title };
+    existing.push(updatedResume);
+    return updatedResume;
+  });
+  if (changed) saveResumes(updated);
+  return updated;
 }
 export function saveResumes(resumes: ResumeEntry[]): void {
   save("resumes", resumes);
 }
 export function addResume(resume: ResumeEntry): ResumeEntry[] {
-  const updated = [...getResumes(), resume];
+  const current = getResumes();
+  const title = generateUniqueTitle(resume.title || "Resume", current);
+  const newResume = { ...resume, title };
+  const updated = [...current, newResume];
   saveResumes(updated);
   return updated;
 }
 export function updateResume(resume: ResumeEntry): ResumeEntry[] {
-  const updated = getResumes().map((r) => (r.id === resume.id ? resume : r));
+  const current = getResumes();
+  const others = current.filter((r) => r.id !== resume.id);
+  const title = generateUniqueTitle(resume.title || "Resume", others);
+  const updatedResume = { ...resume, title };
+  const updated = [...others, updatedResume];
   saveResumes(updated);
   return updated;
 }
@@ -233,8 +265,10 @@ export function deleteResume(id: string): ResumeEntry[] {
   return updated;
 }
 export function cloneResume(resume: ResumeEntry): ResumeEntry[] {
-  const clone = { ...resume, id: uuid() };
-  const updated = [...getResumes(), clone];
+  const current = getResumes();
+  const title = generateUniqueTitle(resume.title, current);
+  const clone = { ...resume, id: uuid(), title };
+  const updated = [...current, clone];
   saveResumes(updated);
   return updated;
 }

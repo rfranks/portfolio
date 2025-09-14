@@ -33,6 +33,7 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
         id: uuid(),
         userId: "",
         label: "",
+        title: "",
         url: "",
         content: text,
         parsed,

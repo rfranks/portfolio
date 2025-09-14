@@ -246,6 +246,7 @@ export default function Tile({
           id: uuid(),
           userId: "",
           label: "",
+          title: "",
           url: "",
           content: response,
           parsed,

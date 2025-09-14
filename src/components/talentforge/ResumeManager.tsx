@@ -55,6 +55,7 @@ export default function ResumeManager() {
       id: uuid(),
       userId: "",
       label: "",
+      title: "",
       url: "",
       content: sanitized,
       parsed,

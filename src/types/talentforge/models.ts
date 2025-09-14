@@ -22,6 +22,8 @@ export interface ResumeVariant {
   userId: string;
   /** Human readable label for the resume variant. */
   label: string;
+  /** User editable title for the resume variant. */
+  title: string;
   /** URL where the resume file is stored. */
   url: string;
   /** Additional notes about this resume variant. */

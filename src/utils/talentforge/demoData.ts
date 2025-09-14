@@ -22,6 +22,7 @@ export function getDemoData(): {
     id: "demo-resume-1",
     userId: user.id,
     label: "General Resume",
+    title: "General Resume",
     url: "https://example.com/resume.pdf",
     notes: "Demo resume for testing",
     content: "Jane Doe\nSoftware Engineer",

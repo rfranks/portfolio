@@ -20,6 +20,7 @@ export const mockResumes: ResumeEntry[] = [
     id: "resume-1",
     userId: mockUserProfile.id,
     label: "Software Resume",
+    title: "Software Resume",
     url: "https://example.com/jane-doe-software.pdf",
     content: "",
     parsed: { ...emptyParsed },
@@ -29,6 +30,7 @@ export const mockResumes: ResumeEntry[] = [
     id: "resume-2",
     userId: mockUserProfile.id,
     label: "Product Resume",
+     title: "Product Resume",
     url: "https://example.com/jane-doe-product.pdf",
     content: "",
     parsed: { ...emptyParsed },
@@ -88,7 +90,9 @@ export const mockOffers: Offer[] = [
   },
 ];
 
-mockUserProfile.resumeVariants = mockResumes.map(({ content, parsed, tags, ...rv }) => rv);
+mockUserProfile.resumeVariants = mockResumes.map(
+  ({ content, parsed, tags, ...rv }) => rv,
+);
 mockUserProfile.applications = mockApplications;
 
 const DEMO_DATA_KEY = "tf_demo_data_inserted";
