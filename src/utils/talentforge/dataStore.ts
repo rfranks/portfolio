@@ -25,9 +25,9 @@ export interface Message {
 
 export interface Offer {
   id: string;
-  applicationId: string;
+  offerText: string;
   compensation: string;
-  accepted: boolean;
+  result: string;
 }
 
 export interface JobApplication {
