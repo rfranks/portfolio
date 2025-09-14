@@ -35,6 +35,12 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "Craft a short elevator pitch for a professional with experience in {{experience}} looking for {{goal}}.",
     inputs: ["experience", "goal"],
   },
+  bulletRewrite: {
+    ...BASE_TILES.bulletRewrite,
+    fullPrompt:
+      "Rewrite the following resume bullet into three STAR-formatted variants, each including clear metrics:\n\n{{bullet}}",
+    inputs: ["bullet"],
+  },
   resumeRewrite: {
     ...BASE_TILES.resumeSummary,
     id: "resumeRewrite",

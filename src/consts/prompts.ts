@@ -14,6 +14,11 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Write a professional cover letter with exactly three paragraphs tailored to the job description.",
   },
+  bulletRewrite: {
+    displayText: "Bullet Rewrite",
+    fullText:
+      "Rewrite the following resume bullet into three STAR-formatted variants with clear metrics.",
+  },
   negotiateOffer: {
     displayText: "Negotiate Offer",
     fullText:
@@ -87,7 +92,13 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
 };
 
 export const PROMPT_GROUPS: Record<string, string[]> = {
-  Resumes: ["resumeSummary", "coverLetter", "portfolioReview", "projectSummary"],
+  Resumes: [
+    "resumeSummary",
+    "coverLetter",
+    "bulletRewrite",
+    "portfolioReview",
+    "projectSummary",
+  ],
   Offers: ["negotiateOffer", "salaryResearch"],
   "Recruiter Replies": ["interviewPreparation", "networkingOutreach"],
   "Career Growth": [
