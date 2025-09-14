@@ -15,12 +15,18 @@ export interface ResumeEntry {
   tags: string[];
 }
 
+export interface MessageReply {
+  id: string;
+  content: string;
+  sentAt: string;
+}
+
 export interface Message {
   id: string;
-  from: string;
-  to: string;
-  sentAt: string;
-  body: string;
+  connector: string;
+  content: string;
+  status: "unread" | "read";
+  replies: MessageReply[];
 }
 
 export interface Offer {
@@ -124,6 +130,25 @@ export function addMessage(message: Message): Message[] {
 }
 export function deleteMessage(id: string): Message[] {
   const updated = getMessages().filter((m) => m.id !== id);
+  save(KEYS.messages, updated);
+  return updated;
+}
+
+export function addMessageReply(id: string, reply: MessageReply): Message[] {
+  const updated = getMessages().map((m) =>
+    m.id === id ? { ...m, replies: [...m.replies, reply] } : m,
+  );
+  save(KEYS.messages, updated);
+  return updated;
+}
+
+export function updateMessageStatus(
+  id: string,
+  status: "unread" | "read",
+): Message[] {
+  const updated = getMessages().map((m) =>
+    m.id === id ? { ...m, status } : m,
+  );
   save(KEYS.messages, updated);
   return updated;
 }
@@ -272,6 +297,8 @@ const dataStore = {
   getMessages,
   addMessage,
   deleteMessage,
+  addMessageReply,
+  updateMessageStatus,
   getOffers,
   addOffer,
   updateOffer,

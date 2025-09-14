@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -17,51 +17,32 @@ import {
 import { filterByText } from "@/utils/search";
 
 import { autoReply } from "@/utils/autoReply";
-
-interface ConnectorMessage {
-  id: string;
-  connector: string;
-  content: string;
-  status: "unread" | "read";
-}
-
-const MOCK_MESSAGES: ConnectorMessage[] = [
-  {
-    id: "1",
-    connector: "LinkedIn",
-    content: "Hi, we'd like to connect with you regarding an opportunity.",
-    status: "unread",
-  },
-  {
-    id: "2",
-    connector: "Email",
-    content: "Your application has been received.",
-    status: "read",
-  },
-  {
-    id: "3",
-    connector: "Github",
-    content: "Invitation to collaborate on a project.",
-    status: "unread",
-  },
-];
+import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
+import { Message } from "@/utils/talentforge/dataStore";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Inbox() {
+  const data = useTalentForgeData();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
 
+  useEffect(() => {
+    setMessages(data.getMessages());
+  }, [data]);
+
   const handleFilterChange = (event: SelectChangeEvent) => {
     setFilter(event.target.value as "all" | "unread" | "read");
   };
 
-  const filteredMessages = filterByText(MOCK_MESSAGES, search, [
+  const filteredMessages = filterByText(messages, search, [
     "content",
     "connector",
   ]).filter((message) => filter === "all" || message.status === filter);
 
-  const handleAutoReply = async (message: ConnectorMessage) => {
+  const handleAutoReply = async (message: Message) => {
     const reply = await autoReply([
       {
         role: "system",
@@ -71,6 +52,31 @@ export default function Inbox() {
       { role: "user", content: message.content },
     ]);
     setDrafts((d) => ({ ...d, [message.id]: reply }));
+  };
+
+  const handleSendReply = (message: Message) => {
+    const text = drafts[message.id];
+    if (!text) return;
+    const reply = { id: uuidv4(), content: text, sentAt: new Date().toISOString() };
+    const updated = data.addMessageReply(message.id, reply);
+    setMessages(updated);
+    setDrafts((d) => ({ ...d, [message.id]: "" }));
+  };
+
+  const handleToggleStatus = (message: Message) => {
+    const updated = data.updateMessageStatus(
+      message.id,
+      message.status === "unread" ? "read" : "unread",
+    );
+    setMessages(updated);
+  };
+
+  const handleOpenThread = (message: Message) => {
+    setReplyingTo((current) => (current === message.id ? null : message.id));
+    if (message.status === "unread") {
+      const updated = data.updateMessageStatus(message.id, "read");
+      setMessages(updated);
+    }
   };
 
   return (
@@ -100,18 +106,21 @@ export default function Inbox() {
                   }
                   secondary={message.content}
                 />
-                <Button
-                  size="small"
-                  onClick={() =>
-                    setReplyingTo((current) =>
-                      current === message.id ? null : message.id,
-                    )
-                  }
-                >
-                  Reply
-                </Button>
+                <Stack direction="row" spacing={1}>
+                  <Button size="small" onClick={() => handleOpenThread(message)}>
+                    Reply
+                  </Button>
+                  <Button size="small" onClick={() => handleToggleStatus(message)}>
+                    {message.status === "unread" ? "Mark read" : "Mark unread"}
+                  </Button>
+                </Stack>
                 {replyingTo === message.id && (
                   <Stack spacing={2} sx={{ mt: 1 }}>
+                    {message.replies.map((r) => (
+                      <Typography key={r.id} variant="body2">
+                        {r.content}
+                      </Typography>
+                    ))}
                     <TextField
                       label="Your reply"
                       multiline
@@ -122,13 +131,15 @@ export default function Inbox() {
                         setDrafts((d) => ({ ...d, [message.id]: e.target.value }))
                       }
                     />
-                    <Button
-                      size="small"
-                      onClick={() => handleAutoReply(message)}
-                    >
+                    <Button size="small" onClick={() => handleAutoReply(message)}>
                       Generate Reply
                     </Button>
-                    <Button variant="contained">Send</Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => handleSendReply(message)}
+                    >
+                      Send
+                    </Button>
                   </Stack>
                 )}
               </Stack>
