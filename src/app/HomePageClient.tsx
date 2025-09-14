@@ -23,6 +23,7 @@ import {
   Casino,
   Flight,
   BugReport,
+  Build,
 } from "@mui/icons-material";
 import AppBar from "@/components/app/AppBar";
 import Drawer from "@/components/app/Drawer";
@@ -146,6 +147,12 @@ export default function HomePageClient() {
                 <MenuBook />
               </ListItemIcon>
               <ListItemText primary="Bookworm" />
+            </ListItemButton>
+            <ListItemButton component="a" href={withBasePath("/talentforge")}>
+              <ListItemIcon>
+                <Build />
+              </ListItemIcon>
+              <ListItemText primary="TalentForge" />
             </ListItemButton>
             <ListItemButton component="a" href={withBasePath("/blackjack")}>
               <ListItemIcon>
