@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import HomePageClient from "./HomePageClient";
+import Link from "next/link";
+import { withBasePath } from "@/utils/basePath";
 
 export const metadata: Metadata = {
   title: "Richard Franks | Résumé",
@@ -14,6 +16,11 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <HomePageClient />;
+  return (
+    <>
+      <HomePageClient />
+      <Link href={withBasePath("/talentforge")}>TalentForge</Link>
+    </>
+  );
 }
 
