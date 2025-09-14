@@ -10,6 +10,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import { ThemeProvider } from '@mui/material/styles';
 import talentforgeTheme from '@/themes/talentforgeTheme';
+import { TalentForgeDataProvider } from '@/contexts/TalentForgeDataContext';
 
 export default function TalentForgeLayout({
   children,
@@ -26,24 +27,26 @@ export default function TalentForgeLayout({
   ];
 
   return (
-    <ThemeProvider theme={talentforgeTheme}>
-      <CssBaseline />
-      <Box sx={{ display: 'flex' }}>
-        <Box component="nav" sx={{ width: 240, flexShrink: 0 }}>
-          <List>
-            {navItems.map(({ label, href }) => (
-              <ListItem key={label} disablePadding>
-                <ListItemButton component={Link} href={href}>
-                  <ListItemText primary={label} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
+    <TalentForgeDataProvider>
+      <ThemeProvider theme={talentforgeTheme}>
+        <CssBaseline />
+        <Box sx={{ display: 'flex' }}>
+          <Box component="nav" sx={{ width: 240, flexShrink: 0 }}>
+            <List>
+              {navItems.map(({ label, href }) => (
+                <ListItem key={label} disablePadding>
+                  <ListItemButton component={Link} href={href}>
+                    <ListItemText primary={label} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+          <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+            {children}
+          </Box>
         </Box>
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-          {children}
-        </Box>
-      </Box>
-    </ThemeProvider>
+      </ThemeProvider>
+    </TalentForgeDataProvider>
   );
 }
