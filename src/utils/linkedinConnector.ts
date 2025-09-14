@@ -6,7 +6,7 @@
  * can be developed without live API access.
  */
 
-import { Connector } from "../types/connector";
+import { Connector, ConnectorToken } from "../types/connector";
 
 export interface LinkedInProfile {
   id: string;
@@ -28,14 +28,15 @@ export interface LinkedInMessage {
   body: string;
 }
 
-export class LinkedInConnector implements Connector {
+export class LinkedInConnector implements Connector<LinkedInProfile> {
   /**
    * Authenticate with LinkedIn.
    *
    * This mock implementation performs no action.
    */
-  async authenticate(): Promise<void> {
-    // No authentication needed for mocked connector
+  async authenticate(): Promise<ConnectorToken> {
+    // Mocked connector returns a static token
+    return { accessToken: "mock-linkedin-token" };
   }
 
   /**
@@ -43,7 +44,7 @@ export class LinkedInConnector implements Connector {
    *
    * Here we return sample data for development.
    */
-  async fetchData(): Promise<LinkedInProfile> {
+  async fetchData(_: ConnectorToken): Promise<LinkedInProfile> {
     return {
       id: "123",
       firstName: "Ada",
@@ -57,8 +58,8 @@ export class LinkedInConnector implements Connector {
    *
    * This mock simply resolves without performing any action.
    */
-  async sendMessage(message: string): Promise<void> {
-    void message; // silence unused parameter in mock implementation
+  async sendMessage(_: ConnectorToken, message: string): Promise<void> {
+    void message; // silence unused parameters in mock implementation
   }
 
   /**

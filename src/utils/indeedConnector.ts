@@ -5,7 +5,7 @@
  * can be developed without access to the real Indeed services.
  */
 
-import { Connector } from "../types/connector";
+import { Connector, ConnectorToken } from "../types/connector";
 
 export interface IndeedProfile {
   id: string;
@@ -26,20 +26,21 @@ export interface IndeedMessage {
   body: string;
 }
 
-export class IndeedConnector implements Connector {
+export class IndeedConnector implements Connector<IndeedProfile> {
   /**
    * Authenticate with Indeed.
    *
    * This mock implementation performs no action.
    */
-  async authenticate(): Promise<void> {
-    // No authentication needed for mocked connector
+  async authenticate(): Promise<ConnectorToken> {
+    // Mocked connector returns a static token
+    return { accessToken: "mock-indeed-token" };
   }
 
   /**
    * Retrieve the user's profile from Indeed.
    */
-  async fetchData(): Promise<IndeedProfile> {
+  async fetchData(_: ConnectorToken): Promise<IndeedProfile> {
     return {
       id: "abc",
       name: "Grace Hopper",
@@ -52,8 +53,8 @@ export class IndeedConnector implements Connector {
    *
    * This mock simply resolves without performing any action.
    */
-  async sendMessage(message: string): Promise<void> {
-    void message; // silence unused parameter in mock implementation
+  async sendMessage(_: ConnectorToken, message: string): Promise<void> {
+    void message; // silence unused parameters in mock implementation
   }
 
   /**
