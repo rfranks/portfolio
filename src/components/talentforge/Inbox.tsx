@@ -16,7 +16,11 @@ import {
 } from "@mui/material";
 import { filterByText } from "@/utils/search";
 
-import { autoReply } from "@/utils/autoReply";
+import {
+  autoReply,
+  buildAutoReplyMessages,
+  AutoReplyTemplate,
+} from "@/utils/autoReply";
 
 interface ConnectorMessage {
   id: string;
@@ -50,6 +54,7 @@ export default function Inbox() {
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [templates, setTemplates] = useState<Record<string, AutoReplyTemplate>>({});
   const [search, setSearch] = useState("");
 
   const handleFilterChange = (event: SelectChangeEvent) => {
@@ -62,14 +67,10 @@ export default function Inbox() {
   ]).filter((message) => filter === "all" || message.status === filter);
 
   const handleAutoReply = async (message: ConnectorMessage) => {
-    const reply = await autoReply([
-      {
-        role: "system",
-        content:
-          "You are a helpful assistant crafting concise professional replies to incoming messages.",
-      },
-      { role: "user", content: message.content },
-    ]);
+    const template = templates[message.id] || "general";
+    const reply = await autoReply(
+      buildAutoReplyMessages(template, message.content),
+    );
     setDrafts((d) => ({ ...d, [message.id]: reply }));
   };
 
@@ -122,6 +123,21 @@ export default function Inbox() {
                         setDrafts((d) => ({ ...d, [message.id]: e.target.value }))
                       }
                     />
+                    <Select
+                      size="small"
+                      value={templates[message.id] || "general"}
+                      onChange={(e) =>
+                        setTemplates((t) => ({
+                          ...t,
+                          [message.id]: e.target.value as AutoReplyTemplate,
+                        }))
+                      }
+                      sx={{ maxWidth: 200 }}
+                    >
+                      <MenuItem value="general">General</MenuItem>
+                      <MenuItem value="politeDecline">Politely decline</MenuItem>
+                      <MenuItem value="requestMoreInfo">Request more info</MenuItem>
+                    </Select>
                     <Button
                       size="small"
                       onClick={() => handleAutoReply(message)}

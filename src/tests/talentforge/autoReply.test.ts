@@ -1,4 +1,11 @@
-import { setOpenAIKey, hasOpenAIKey, autoReply, AutoReplyMessage } from "../../utils/autoReply";
+import {
+  setOpenAIKey,
+  hasOpenAIKey,
+  autoReply,
+  AutoReplyMessage,
+  buildAutoReplyMessages,
+  AUTO_REPLY_TEMPLATES,
+} from "../../utils/autoReply";
 
 describe("autoReply utilities", () => {
   const globalWithFetch = global as unknown as { fetch: jest.Mock };
@@ -35,5 +42,19 @@ describe("autoReply utilities", () => {
     setOpenAIKey("key");
     const result = await autoReply([] as AutoReplyMessage[]);
     expect(result).toBe("foo bar ");
+  });
+
+  test("buildAutoReplyMessages creates system and user messages", () => {
+    const messages = buildAutoReplyMessages(
+      "politeDecline",
+      "We are unable to proceed.",
+    );
+    expect(messages).toEqual([
+      {
+        role: "system",
+        content: AUTO_REPLY_TEMPLATES.politeDecline,
+      },
+      { role: "user", content: "We are unable to proceed." },
+    ]);
   });
 });
