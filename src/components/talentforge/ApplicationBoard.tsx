@@ -87,11 +87,15 @@ function Card({
   onRunTile,
   resumes,
   onAssignResume,
+  onSetInterviewDate,
+  onSetInterviewLocation,
 }: {
   app: JobApplication;
   onRunTile: (id: string, app: JobApplication) => void;
   resumes: ResumeEntry[];
   onAssignResume: (appId: string, resumeId: string) => void;
+  onSetInterviewDate: (appId: string, value: string) => void;
+  onSetInterviewLocation: (appId: string, value: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app.id });
@@ -140,6 +144,28 @@ function Card({
             </MenuItem>
           ))}
         </TextField>
+      )}
+      {STATUSES.indexOf(app.status) >= STATUSES.indexOf("interview") && (
+        <>
+          <TextField
+            type="datetime-local"
+            size="small"
+            label="Interview Time"
+            value={app.interviewDateTime || ""}
+            onChange={(e) => onSetInterviewDate(app.id, e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ mt: 1 }}
+            fullWidth
+          />
+          <TextField
+            size="small"
+            label="Meeting URL/Location"
+            value={app.interviewLocation || ""}
+            onChange={(e) => onSetInterviewLocation(app.id, e.target.value)}
+            sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}
+            fullWidth
+          />
+        </>
       )}
       {app.role.description && (
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
@@ -346,6 +372,16 @@ export default function ApplicationBoard() {
     setApplications(updated);
   };
 
+  const handleInterviewDate = (appId: string, value: string) => {
+    const updated = updateJobApplication(appId, { interviewDateTime: value });
+    setApplications(updated);
+  };
+
+  const handleInterviewLocation = (appId: string, value: string) => {
+    const updated = updateJobApplication(appId, { interviewLocation: value });
+    setApplications(updated);
+  };
+
   const handleResumeCompareSelect = async (resId: string) => {
     const resume = getResumes().find((r) => r.id === resId);
     if (!resume || !resumeCompareApp) return;
@@ -412,6 +448,8 @@ export default function ApplicationBoard() {
                       onRunTile={(id) => runTile(id, app)}
                       resumes={resumes}
                       onAssignResume={handleAssignResume}
+                      onSetInterviewDate={handleInterviewDate}
+                      onSetInterviewLocation={handleInterviewLocation}
                     />
                   ))}
               </Column>
