@@ -238,9 +238,9 @@ function Card({
             </Stack>
           )}
           {app.offer?.summary && (
-            <Typography variant="body2" sx={{ mt: 1, whiteSpace: "pre-wrap" }}>
-              {app.offer.summary}
-            </Typography>
+            <Box sx={{ mt: 1 }}>
+              <Markdown>{app.offer.summary}</Markdown>
+            </Box>
           )}
         </Box>
       )}
@@ -458,14 +458,23 @@ export default function ApplicationBoard() {
 
   const handleOfferUpload = async (file: File) => {
     if (!drawerApp) return;
-    const text =
-      file.type === "application/pdf" ? await pdfToMarkdown(file) : await file.text();
-    const prompt = PROMPT_TILES.offerDetails.fullPrompt.replace(
-      "{{offerText}}",
-      text,
-    );
+    setDrawerMessages([
+      { role: "assistant", text: "Extracting text from offer..." },
+    ]);
     setDrawerLoading(true);
     try {
+      const text =
+        file.type === "application/pdf"
+          ? await pdfToMarkdown(file)
+          : await file.text();
+      setDrawerMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: "Parsing offer details..." },
+      ]);
+      const prompt = PROMPT_TILES.offerDetails.fullPrompt.replace(
+        "{{offerText}}",
+        text,
+      );
       const res = await askOpenAI({
         context: "",
         user: prompt,
@@ -480,15 +489,21 @@ export default function ApplicationBoard() {
       } catch {
         parsed.summary = message;
       }
+      const bulletSummary = (parsed.summary || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => (line.startsWith("-") ? line : `- ${line}`))
+        .join("\n");
       const offer: Offer = {
         id: uuid(),
         application: drawerApp,
         compensation: parsed.compensation || [],
-        summary: parsed.summary || "",
+        summary: bulletSummary,
       };
       const updated = updateJobApplication(drawerApp.id, { offer });
       setApplications(updated);
-      setDrawerMessages([{ role: "assistant", text: offer.summary || "" }]);
+      setDrawerMessages([{ role: "assistant", text: bulletSummary }]);
     } finally {
       setDrawerLoading(false);
     }
