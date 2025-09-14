@@ -24,9 +24,9 @@ import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { pdfToMarkdown, parseResumeText } from "@/utils/talentforge/pdfParser";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
-import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
 import FileUploader from "./FileUploader";
+import ResumeVariantList from "./ResumeVariants/List";
 
 export default function ResumeManager() {
   const [resumes, setResumes] = useState<ResumeEntry[]>([]);
@@ -158,33 +158,16 @@ export default function ResumeManager() {
           value={searchTag}
           onChange={(e) => setSearchTag(e.target.value)}
         />
-        {loadingResumes
-          ? Array.from({ length: 3 }).map((_, idx) => (
-              <Skeleton key={idx} variant="rectangular" height={60} />
-            ))
-          : filteredResumes.map((resume) => (
-              <Box key={resume.id}>
-                <Typography variant="subtitle1" gutterBottom>
-                  {resume.id}
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
-                  {resume.tags.map((tag) => (
-                    <Chip key={tag} label={tag} sx={{ mb: 1 }} />
-                  ))}
-                </Stack>
-                <Button
-                  size="small"
-                  sx={{ mt: 1 }}
-                  onClick={() => {
-                    const temp = document.createElement("div");
-                    temp.textContent = resume.content;
-                    exportElementToPdf(temp, `${resume.id}.pdf`);
-                  }}
-                >
-                  Export
-                </Button>
-              </Box>
-            ))}
+        {loadingResumes ? (
+          Array.from({ length: 3 }).map((_, idx) => (
+            <Skeleton key={idx} variant="rectangular" height={60} />
+          ))
+        ) : (
+          <ResumeVariantList
+            resumes={filteredResumes}
+            setResumes={setResumes}
+          />
+        )}
       </Stack>
     </Box>
   );
