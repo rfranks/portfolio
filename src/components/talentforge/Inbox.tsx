@@ -23,7 +23,7 @@ import {
 } from "@/utils/autoReply";
 
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
-import { Message } from "@/utils/talentforge/dataStore";
+import { Message, RecruiterEntry } from "@/utils/talentforge/dataStore";
 import { v4 as uuidv4 } from "uuid";
 
 export default function Inbox() {
@@ -35,9 +35,11 @@ export default function Inbox() {
   const [templates, setTemplates] = useState<Record<string, AutoReplyTemplate>>({});
   const [quickTones, setQuickTones] = useState<Record<string, AutoReplyTemplate>>({});
   const [search, setSearch] = useState("");
+  const [recruiters, setRecruiters] = useState<RecruiterEntry[]>([]);
 
   useEffect(() => {
     setMessages(data.getMessages());
+    setRecruiters(data.getRecruiters());
   }, [data]);
 
   const handleFilterChange = (event: SelectChangeEvent) => {
@@ -84,6 +86,12 @@ export default function Inbox() {
     setMessages(updated);
   };
 
+  const handleLinkRecruiter = (threadId: string, recruiterId: string) => {
+    const updated = data.linkThreadToRecruiter(threadId, recruiterId);
+    setMessages(updated);
+    setRecruiters(data.getRecruiters());
+  };
+
   const handleOpenThread = (message: Message) => {
     const isCurrent = replyingTo === message.id;
     setReplyingTo((current) => (current === message.id ? null : message.id));
@@ -123,13 +131,31 @@ export default function Inbox() {
                   }
                   secondary={message.body}
                 />
-                <Stack direction="row" spacing={1}>
+                <Stack direction="row" spacing={1} alignItems="center">
                   <Button size="small" onClick={() => handleOpenThread(message)}>
                     Reply
                   </Button>
                   <Button size="small" onClick={() => handleToggleStatus(message)}>
                     {message.status === "unread" ? "Mark read" : "Mark unread"}
                   </Button>
+                  <Select
+                    size="small"
+                    displayEmpty
+                    value={message.recruiterId || ""}
+                    onChange={(e) =>
+                      handleLinkRecruiter(message.id, e.target.value as string)
+                    }
+                    sx={{ minWidth: 160 }}
+                  >
+                    <MenuItem value="">
+                      <em>No recruiter</em>
+                    </MenuItem>
+                    {recruiters.map((r) => (
+                      <MenuItem key={r.id} value={r.id}>
+                        {r.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
                 </Stack>
                 {replyingTo === message.id && (
                   <Stack spacing={2} sx={{ mt: 1 }}>
