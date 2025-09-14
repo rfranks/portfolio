@@ -31,8 +31,6 @@ export type BasepairHistogramProps = {
 export function BasepairHistogram(props: BasepairHistogramProps) {
   const { sequences = [], bpRange = [] } = props || {};
 
-  debugger;
-
   const ref = useRef<HTMLDivElement | null>(null);
 
   if (!sequences) {
@@ -56,7 +54,7 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
   sequences.forEach((seq) => {
     const seqBPCounts = getBasepairCounts(
       seq.sequence.substring(
-        Math.max(minBasePair - 1) || 0,
+        Math.max(minBasePair - 1, 0),
         (bpRange?.[1] || seq.sequence.length) + 1
       )
     );
