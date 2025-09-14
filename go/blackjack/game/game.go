@@ -65,7 +65,8 @@ var GameMode Game = Spanish21
 
 func LoadBlackjackStateYaml(clean bool) error {
 	if clean {
-		return errors.New("clean state is required")
+		// skip loading state.out when starting clean
+		return errors.New("clean start requested")
 	}
 
 	if runtime.GOOS == "js" {

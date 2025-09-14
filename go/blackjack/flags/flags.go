@@ -12,7 +12,7 @@ var HouseStart = flag.Int("house", 0, "override the house's initial starting win
 var PlayerStartStack = flag.Int("stack", 0, "set the starting stack for ALL players")
 var TrifectaStax = flag.Bool("trifectaStax", true, "turn on/off Trifecta Stax payouts")
 var Autoplay = flag.Bool("autoplay", false, "turn on/off (will play 500 rounds, will not play trifecta)")
-var Clean = flag.Bool("clean", true, "whether or not to read initial state from State.out file")
+var Clean = flag.Bool("clean", true, "when true, start without reading state.out")
 var ColorTerminal = flag.Bool("colorTerminal", true, "whether or not to try to use color codes for coloring the terminal")
 
 // Config holds runtime configuration for the application. Fields mirror the
