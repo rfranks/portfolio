@@ -100,13 +100,14 @@ export function useDimensions(
     // update the dimensions on window resize
     window.addEventListener("resize", handleResize);
 
-    setTimeout(() => {
+    const timeoutId: ReturnType<typeof setTimeout> = setTimeout(() => {
       handleResize();
     }, 150);
 
     return () => {
       // remove the event listener during cleanup
       window.removeEventListener("resize", handleResize);
+      clearTimeout(timeoutId);
       handleResize.cancel();
       if (interval) {
         clearInterval(interval);
