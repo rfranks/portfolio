@@ -8,6 +8,8 @@ export interface AutoReplyMessage {
 export const AUTO_REPLY_TEMPLATES = {
   general:
     "You are a helpful assistant crafting concise professional replies to incoming messages.",
+  politeFollowUp:
+    "You are a helpful assistant that writes courteous follow-up messages to check in professionally.",
   politeDecline:
     "You are a helpful assistant that politely declines opportunities while maintaining professionalism.",
   requestMoreInfo:
