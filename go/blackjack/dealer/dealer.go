@@ -519,7 +519,7 @@ func PayWinners(payBlackjacks bool, payAllOthers bool, updateStats bool) {
 							game.State.Wins += 1
 							currPlayer.LastHandWon = true
 							currPlayer.LastHandPushed = false
-							currPlayer.Winnings += 2 * hand.Wager
+							currPlayer.Winnings += hand.Wager
 							currPlayer.WinStreak += 1
 						}
 					} else if dealerValue == playerValue {
