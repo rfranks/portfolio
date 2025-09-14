@@ -118,6 +118,11 @@ function Card({
       <Typography variant="body2" color="text.secondary">
         {app.role.company} – {app.role.location}
       </Typography>
+      {app.role.source && (
+        <Typography variant="body2" color="text.secondary">
+          Source: {app.role.source}
+        </Typography>
+      )}
       {resumes.length > 0 && (
         <TextField
           select
@@ -171,6 +176,7 @@ export default function ApplicationBoard() {
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [resumeId, setResumeId] = useState("");
+  const [source, setSource] = useState("Company Site");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerTitle, setDrawerTitle] = useState("");
   const [drawerLoading, setDrawerLoading] = useState(false);
@@ -221,7 +227,7 @@ export default function ApplicationBoard() {
     const newApp: JobApplication = {
       id: uuid(),
       applicant: { id: "", name: "", email: "" },
-      role: { id: uuid(), title, company, location, description },
+      role: { id: uuid(), title, company, location, description, source },
       resumeVariant: resume,
       status: "applied",
       history: [{ status: "applied", changedAt: new Date().toISOString() }],
@@ -234,6 +240,7 @@ export default function ApplicationBoard() {
     setLocation("");
     setDescription("");
     setResumeId("");
+    setSource("Company Site");
   };
 
   const runTile = async (tileId: string, app: JobApplication) => {
@@ -432,6 +439,19 @@ export default function ApplicationBoard() {
               onChange={(e) => setLocation(e.target.value)}
               fullWidth
             />
+            <TextField
+              label="Source"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              select
+              fullWidth
+            >
+              {['LinkedIn', 'Indeed', 'Company Site'].map((s) => (
+                <MenuItem key={s} value={s}>
+                  {s}
+                </MenuItem>
+              ))}
+            </TextField>
             {resumes.length > 0 && (
               <TextField
                 label="Resume"

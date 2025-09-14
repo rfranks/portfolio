@@ -28,17 +28,17 @@ export class LinkedInConnector {
       listings: [
         {
           title: "Software Engineer",
-          company: "LinkedIn",
+          company: "Tech Corp",
           location: "Remote",
           url: "https://www.linkedin.com/jobs/123",
-          source: "linkedin",
+          source: "LinkedIn",
         },
         {
           title: "Product Manager",
-          company: "LinkedIn",
+          company: "Startup Hub",
           location: "San Francisco, CA",
           url: "https://www.linkedin.com/jobs/456",
-          source: "linkedin",
+          source: "LinkedIn",
         },
       ],
     };

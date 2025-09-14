@@ -11,17 +11,17 @@ import type { JobListing } from "@/types/talentforge/job";
 const SAMPLE_LISTINGS: JobListing[] = [
   {
     title: "Software Engineer",
-    company: "Indeed",
+    company: "DataWorks",
     location: "Remote",
     url: "https://www.indeed.com/jobs/software-engineer-remote",
-    source: "indeed",
+    source: "Indeed",
   },
   {
     title: "Data Analyst",
-    company: "Indeed",
+    company: "Analytics LLC",
     location: "Austin, TX",
     url: "https://www.indeed.com/jobs/data-analyst-austin",
-    source: "indeed",
+    source: "Indeed",
   },
 ];
 
