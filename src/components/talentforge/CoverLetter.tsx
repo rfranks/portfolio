@@ -14,6 +14,7 @@ import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { getResumes } from "@/utils/talentforge/dataStore";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
+import EmptyState from "./EmptyState";
 
 export default function CoverLetter() {
   const [resumeVariantId, setResumeVariantId] = useState("");
@@ -49,6 +50,15 @@ export default function CoverLetter() {
     setLoading(false);
   };
 
+  if (resumes.length === 0) {
+    return (
+      <EmptyState
+        message="No resumes available"
+        helperText="Add a resume before generating a cover letter."
+      />
+    );
+  }
+
   return (
     <Box>
       <OpenAiKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
@@ -77,6 +87,7 @@ export default function CoverLetter() {
             variant="contained"
             onClick={handleGenerate}
             disabled={!resumeVariantId || !jobDescription || loading}
+            aria-label="Generate cover letter"
           >
             Generate
           </Button>
@@ -87,6 +98,7 @@ export default function CoverLetter() {
               coverRef.current &&
               exportElementToPdf(coverRef.current, "cover-letter.pdf")
             }
+            aria-label="Export cover letter"
           >
             Export
           </Button>

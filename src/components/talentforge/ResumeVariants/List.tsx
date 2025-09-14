@@ -25,6 +25,7 @@ import {
 } from "@/utils/talentforge/dataStore";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import Detail from "./Detail";
+import EmptyState from "../EmptyState";
 
 interface Props {
   resumes: ResumeEntry[];
@@ -50,8 +51,17 @@ export default function List({ resumes, setResumes }: Props) {
     setResumes(updated);
   };
 
+  if (resumes.length === 0) {
+    return (
+      <EmptyState
+        message="No resumes"
+        helperText="Add a resume above to begin."
+      />
+    );
+  }
+
   return (
-    <Box>
+    <Box aria-label="Resume list">
       {resumes.map((r) => (
         <Box key={r.id} sx={{ mb: 2 }}>
           <Stack direction="row" spacing={1} alignItems="center">

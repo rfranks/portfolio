@@ -32,6 +32,7 @@ import { v4 as uuidv4 } from "uuid";
 import PromptSelector from "./PromptSelector";
 import Tile from "./promptTiles/Tile";
 import { PROMPT_TILES } from "@/consts/promptTiles";
+import EmptyState from "./EmptyState";
 
 export default function Inbox() {
   const data = useTalentForgeData();
@@ -129,13 +130,27 @@ export default function Inbox() {
     setAiThread(null);
   };
 
+  if (threads.length === 0) {
+    return (
+      <EmptyState
+        message="No messages"
+        helperText="Your recruiter conversations will appear here."
+      />
+    );
+  }
+
   return (
     <Box>
       <Stack direction="row" spacing={2} sx={{ height: "100%" }}>
         <Box sx={{ width: 300 }}>
           <Stack spacing={2}>
             <Typography variant="h5">Inbox</Typography>
-            <Select value={filter} onChange={handleFilterChange} sx={{ maxWidth: 200 }}>
+            <Select
+              value={filter}
+              onChange={handleFilterChange}
+              sx={{ maxWidth: 200 }}
+              aria-label="Filter threads"
+            >
               <MenuItem value="all">All</MenuItem>
               <MenuItem value="unread">Unread</MenuItem>
               <MenuItem value="read">Read</MenuItem>
@@ -146,7 +161,7 @@ export default function Inbox() {
               onChange={(e) => setSearch(e.target.value)}
               sx={{ maxWidth: 300 }}
             />
-            <List>
+            <List aria-label="Thread list">
               {filteredThreads.map((message) => (
                 <ListItem key={message.id} disablePadding>
                   <ListItemButton
@@ -178,15 +193,22 @@ export default function Inbox() {
                 </Typography>
               ))}
               <Stack direction="row" spacing={1} alignItems="center">
-                <Button size="small" onClick={() => handleToggleStatus(selected)}>
+                <Button
+                  size="small"
+                  onClick={() => handleToggleStatus(selected)}
+                  aria-label="Toggle read status"
+                >
                   {selected.status === "unread" ? "Mark read" : "Mark unread"}
                 </Button>
                 <Select
                   size="small"
                   displayEmpty
                   value={selected.recruiterId || ""}
-                  onChange={(e) => handleLinkRecruiter(selected.id, e.target.value as string)}
+                  onChange={(e) =>
+                    handleLinkRecruiter(selected.id, e.target.value as string)
+                  }
                   sx={{ minWidth: 160 }}
+                  aria-label="Linked recruiter"
                 >
                   <MenuItem value="">
                     <em>No recruiter</em>
@@ -209,6 +231,7 @@ export default function Inbox() {
                     }))
                   }
                   sx={{ maxWidth: 200 }}
+                  aria-label="Quick tone"
                 >
                   <MenuItem value="politeFollowUp">Polite follow-up</MenuItem>
                   <MenuItem value="politeDecline">Politely decline</MenuItem>
@@ -217,6 +240,7 @@ export default function Inbox() {
                   size="small"
                   variant="outlined"
                   onClick={() => void handleQuickInsert(selected)}
+                  aria-label="Quick insert"
                 >
                   Quick insert
                 </Button>
@@ -224,6 +248,7 @@ export default function Inbox() {
                   size="small"
                   variant="outlined"
                   onClick={() => handleDraftWithAI(selected.id)}
+                  aria-label="Draft with AI"
                 >
                   Draft with AI
                 </Button>
@@ -248,12 +273,17 @@ export default function Inbox() {
                   }))
                 }
                 sx={{ maxWidth: 200 }}
+                aria-label="Template"
               >
                 <MenuItem value="general">General</MenuItem>
                 <MenuItem value="politeDecline">Politely decline</MenuItem>
                 <MenuItem value="requestMoreInfo">Request more info</MenuItem>
               </Select>
-              <Button variant="contained" onClick={() => handleSendReply(selected)}>
+              <Button
+                variant="contained"
+                onClick={() => handleSendReply(selected)}
+                aria-label="Send reply"
+              >
                 Send
               </Button>
             </Stack>

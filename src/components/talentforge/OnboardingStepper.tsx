@@ -9,7 +9,17 @@ import {
   clearOnboardingStep,
 } from "@/utils/talentforge/dataStore";
 
-const steps = ["Profile Info", "Upload Resume", "Connect Accounts", "Finish"];
+import KeyEntryStep from "./onboarding/KeyEntryStep";
+import ResumeImportStep from "./onboarding/ResumeImportStep";
+import ConnectorMockStep from "./onboarding/ConnectorMockStep";
+import GoalSelectionStep from "./onboarding/GoalSelectionStep";
+
+const steps = [
+  { label: "Enter API Key", Component: KeyEntryStep },
+  { label: "Import Resume", Component: ResumeImportStep },
+  { label: "Connect Accounts", Component: ConnectorMockStep },
+  { label: "Select Goals", Component: GoalSelectionStep },
+];
 
 export default function OnboardingStepper() {
   const [activeStep, setActiveStep] = useState(0);
@@ -35,33 +45,29 @@ export default function OnboardingStepper() {
     clearOnboardingStep();
   };
 
+  const Current = steps[activeStep]?.Component;
+
   return (
     <Box>
-      <Stepper activeStep={activeStep} alternativeLabel>
-        {steps.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
+      <Stepper activeStep={activeStep} alternativeLabel aria-label="Onboarding steps">
+        {steps.map((step) => (
+          <Step key={step.label}>
+            <StepLabel aria-label={step.label}>{step.label}</StepLabel>
           </Step>
         ))}
       </Stepper>
       {activeStep === steps.length ? (
         <Box sx={{ mt: 2 }}>
-          <Typography>All steps completed - you&apos;re finished</Typography>
-          <Button sx={{ mt: 1 }} onClick={handleReset}>
+          <Typography tabIndex={0}>
+            All steps completed - you&apos;re finished
+          </Typography>
+          <Button sx={{ mt: 1 }} onClick={handleReset} aria-label="Reset">
             Reset
           </Button>
         </Box>
       ) : (
         <Box sx={{ mt: 2 }}>
-          <Typography sx={{ mb: 1 }}>{steps[activeStep]}</Typography>
-          <Box>
-            <Button disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
-              Back
-            </Button>
-            <Button variant="contained" onClick={handleNext}>
-              {activeStep === steps.length - 1 ? "Finish" : "Next"}
-            </Button>
-          </Box>
+          {Current && <Current onNext={handleNext} onBack={handleBack} />}
         </Box>
       )}
     </Box>

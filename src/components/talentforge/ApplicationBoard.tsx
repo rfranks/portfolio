@@ -22,6 +22,7 @@ import {
   updateJobApplicationStatus,
 } from "@/utils/talentforge/applicationStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
+import EmptyState from "./EmptyState";
 
 const STATUSES: ApplicationStatus[] = [
   "applied",
@@ -119,21 +120,28 @@ export default function ApplicationBoard() {
 
   return (
     <DndContext onDragEnd={handleDragEnd}>
-      <Box sx={{ display: "flex", gap: 2 }}>
-        {STATUSES.map((status) => (
-          <Column
-            key={status}
-            id={status}
-            title={status.charAt(0).toUpperCase() + status.slice(1)}
-          >
-            {applications
-              .filter((app) => app.status === status)
-              .map((app) => (
-                <Card key={app.id} app={app} />
-              ))}
-          </Column>
-        ))}
-      </Box>
+      {applications.length === 0 ? (
+        <EmptyState
+          message="No applications yet"
+          helperText="Start tracking your job applications here."
+        />
+      ) : (
+        <Box sx={{ display: "flex", gap: 2 }}>
+          {STATUSES.map((status) => (
+            <Column
+              key={status}
+              id={status}
+              title={status.charAt(0).toUpperCase() + status.slice(1)}
+            >
+              {applications
+                .filter((app) => app.status === status)
+                .map((app) => (
+                  <Card key={app.id} app={app} />
+                ))}
+            </Column>
+          ))}
+        </Box>
+      )}
     </DndContext>
   );
 }
