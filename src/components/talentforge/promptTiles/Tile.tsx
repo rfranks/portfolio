@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Button, Stack, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Stack,
+  TextField,
+  Typography,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
+import { ContentCopy } from "@mui/icons-material";
+import Markdown from "react-markdown";
 
 import OpenAiKeyModal from "../OpenAiKeyModal";
 import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
@@ -73,9 +83,22 @@ export default function Tile({
           {loading ? "Running..." : "Run"}
         </Button>
         {response && (
-          <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-            {response}
-          </Typography>
+          <Box>
+            <Box display="flex" justifyContent="flex-end">
+              {navigator.clipboard && (
+                <Tooltip title="copy to clipboard" arrow>
+                  <IconButton
+                    aria-label="copy response to clipboard"
+                    onClick={() => navigator.clipboard.writeText(response)}
+                    size="small"
+                  >
+                    <ContentCopy fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+            <Markdown>{response}</Markdown>
+          </Box>
         )}
       </Stack>
     </Box>
