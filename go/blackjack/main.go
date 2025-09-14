@@ -135,7 +135,7 @@ func initBlackjack() {
 				}
 
 				if cardPlayer.LastHandWon {
-					// if we won, lets try to capitalize
+					// if we won, let's try to capitalize
 					if cardPlayer.WinStreak > 6 {
 						// go for the gusto!
 						return cardPlayer.Stack
