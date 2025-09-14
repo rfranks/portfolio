@@ -24,11 +24,11 @@ TalentForge uses TypeScript interfaces to describe core entities:
 
 ## Connector Architecture
 
-Connectors abstract external services behind a common interface defined in `src/types/connector.ts`. Each connector implements:
+Connectors abstract external services behind a common interface defined in `src/types/connector.ts`. Each method accepts a `ConnectorToken` representing the authenticated account and implements:
 
-- `authenticate()` – prepare access to the service.
-- `fetchData()` – retrieve data such as profiles or job listings.
-- `sendMessage(message)` – deliver outbound messages.
+- `authenticate(token)` – prepare access to the service.
+- `fetchData(token)` – retrieve data such as profiles or job listings.
+- `sendMessage(token, message)` – deliver outbound messages; the token identifies the connector account.
 
 The repository includes mocked connectors for LinkedIn and Indeed in `src/utils/talentforge/connectors/` that return sample data so the application can run without live API access. Additional connectors can follow the same pattern.
 
