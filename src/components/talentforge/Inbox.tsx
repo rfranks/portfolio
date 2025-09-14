@@ -14,6 +14,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { filterByText } from "@/utils/search";
 
 import { autoReply } from "@/utils/autoReply";
 
@@ -49,14 +50,16 @@ export default function Inbox() {
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState("");
 
   const handleFilterChange = (event: SelectChangeEvent) => {
     setFilter(event.target.value as "all" | "unread" | "read");
   };
 
-  const filteredMessages = MOCK_MESSAGES.filter(
-    (message) => filter === "all" || message.status === filter,
-  );
+  const filteredMessages = filterByText(MOCK_MESSAGES, search, [
+    "content",
+    "connector",
+  ]).filter((message) => filter === "all" || message.status === filter);
 
   const handleAutoReply = async (message: ConnectorMessage) => {
     const reply = await autoReply([
@@ -79,6 +82,12 @@ export default function Inbox() {
           <MenuItem value="unread">Unread</MenuItem>
           <MenuItem value="read">Read</MenuItem>
         </Select>
+        <TextField
+          label="Search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ maxWidth: 300 }}
+        />
         <List>
           {filteredMessages.map((message) => (
             <ListItem key={message.id} alignItems="flex-start">

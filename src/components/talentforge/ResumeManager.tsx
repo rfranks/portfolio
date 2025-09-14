@@ -10,6 +10,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { filterByTag, filterByText } from "@/utils/search";
 
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import OpenAiKeyModal from "./OpenAiKeyModal";
@@ -47,6 +48,8 @@ export default function ResumeManager() {
   const [resumes, setResumes] = useState<StoredResume[]>([]);
   const [text, setText] = useState("");
   const [openKeyModal, setOpenKeyModal] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [searchTag, setSearchTag] = useState("");
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -73,6 +76,11 @@ export default function ResumeManager() {
     setText("");
   };
 
+  const filteredResumes = filterByTag(
+    filterByText(resumes, searchText, ["content"]),
+    searchTag,
+  );
+
   return (
     <Box>
       <OpenAiKeyModal
@@ -91,7 +99,17 @@ export default function ResumeManager() {
         Save
       </Button>
       <Stack spacing={2} sx={{ mt: 4 }}>
-        {resumes.map((resume) => (
+        <TextField
+          label="Filter by text"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+        <TextField
+          label="Filter by tag"
+          value={searchTag}
+          onChange={(e) => setSearchTag(e.target.value)}
+        />
+        {filteredResumes.map((resume) => (
           <Box key={resume.id}>
             <Typography variant="subtitle1" gutterBottom>
               {resume.id}
