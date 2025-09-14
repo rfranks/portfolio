@@ -4,6 +4,7 @@ import * as React from "react";
 import { PaletteMode } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import AppAppBar from "@/components/talentforge/AppAppBar";
@@ -15,6 +16,7 @@ import Highlights from "@/components/talentforge/Highlights";
 // import Testimonials from "./components/Testimonials";
 import FAQ from "@/components/talentforge/FAQ";
 import Footer from "@/components/talentforge/Footer";
+import OnboardingStepper from "@/components/talentforge/OnboardingStepper";
 
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
@@ -29,6 +31,16 @@ export default function TalentForgePage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");
   const defaultTheme = createTheme({ palette: { mode } });
   const { setDocumentTitle } = useDocumentTitle();
+  const [showOnboarding, setShowOnboarding] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const step = window.localStorage.getItem("onboardingStep");
+      if (step !== null) {
+        setShowOnboarding(true);
+      }
+    }
+  }, []);
 
   React.useEffect(() => {
     insertMockData();
@@ -39,12 +51,28 @@ export default function TalentForgePage() {
     setMode((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
+  const resetOnboarding = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("onboardingStep");
+    }
+    setShowOnboarding(false);
+  };
+
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />
       <AppAppBar mode={mode} toggleColorMode={toggleColorMode} />
       <Hero />
       <Box sx={{ bgcolor: "background.default" }}>
+        {showOnboarding && (
+          <>
+            <OnboardingStepper />
+            <Button onClick={resetOnboarding} sx={{ mt: 2 }}>
+              Reset completion
+            </Button>
+            <Divider sx={{ my: 2 }} />
+          </>
+        )}
         {/* <LogoCollection /> */}
         {/* <Features />
         <Divider />
