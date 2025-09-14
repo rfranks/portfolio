@@ -16,7 +16,7 @@ import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 
 import OpenAiKeyModal from "@/components/talentforge/OpenAiKeyModal";
 import { hasOpenAIKey, setOpenAIKey } from "@/utils/talentforge/utils";
-import { exportToJson, importFromJson } from "@/utils/talentforge/dataStore";
+import { exportSnapshot, importSnapshot } from "@/utils/talentforge/snapshot";
 
 export default function TalentForgeSettingsPage() {
   const [openKeyModal, setOpenKeyModal] = React.useState(false);
@@ -35,7 +35,7 @@ export default function TalentForgeSettingsPage() {
   };
 
   const handleExport = () => {
-    const data = exportToJson();
+    const data = exportSnapshot();
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -52,7 +52,7 @@ export default function TalentForgeSettingsPage() {
     reader.onload = () => {
       const text = reader.result;
       if (typeof text === "string") {
-        importFromJson(text);
+        importSnapshot(text);
         setOpenAiKeySet(hasOpenAIKey());
       }
     };
