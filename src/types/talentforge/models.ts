@@ -62,6 +62,10 @@ export interface ApplicationRecord {
   status: ApplicationStatus;
   /** History of status changes for the application. */
   history: StatusChange[];
+  /** Scheduled date and time for an interview, if any. */
+  interviewDateTime?: string;
+  /** Meeting URL or physical location for the interview. */
+  interviewLocation?: string;
   /** Recruiters associated with this application. */
   recruiters?: Recruiter[];
   /** Conversation threads about this application. */
