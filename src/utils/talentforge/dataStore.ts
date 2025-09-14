@@ -192,6 +192,41 @@ export function deleteOpenAIKey(): void {
   remove(KEYS.openai);
 }
 
+// Export / Import
+export function exportToJson(): string {
+  if (typeof window === "undefined") return "{}";
+  const data: Record<string, unknown> = {};
+  for (const key of Object.values(KEYS)) {
+    const raw = window.localStorage.getItem(key);
+    if (raw !== null) {
+      try {
+        data[key] = JSON.parse(raw);
+      } catch {
+        data[key] = raw;
+      }
+    }
+  }
+  return JSON.stringify(data, null, 2);
+}
+
+export function importFromJson(json: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const data = JSON.parse(json) as Record<string, unknown>;
+    for (const [key, value] of Object.entries(data)) {
+      if (Object.values(KEYS).includes(key as any)) {
+        try {
+          window.localStorage.setItem(key, JSON.stringify(value));
+        } catch {
+          // ignore write errors
+        }
+      }
+    }
+  } catch {
+    // ignore parse errors
+  }
+}
+
 export default {
   getUserProfile,
   saveUserProfile,
@@ -217,5 +252,7 @@ export default {
   getOpenAIKey,
   setOpenAIKey,
   deleteOpenAIKey,
+  exportToJson,
+  importFromJson,
 };
 

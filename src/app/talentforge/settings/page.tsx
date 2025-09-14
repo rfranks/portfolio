@@ -15,6 +15,7 @@ import {
 
 import OpenAiKeyModal from "@/components/talentforge/OpenAiKeyModal";
 import { hasOpenAIKey, setOpenAIKey } from "@/utils/talentforge/utils";
+import { exportToJson, importFromJson } from "@/utils/talentforge/dataStore";
 
 export default function TalentForgeSettingsPage() {
   const [openKeyModal, setOpenKeyModal] = React.useState(false);
@@ -30,6 +31,31 @@ export default function TalentForgeSettingsPage() {
       window.localStorage.removeItem("talentforge-openai-key");
     }
     setOpenAiKeySet(false);
+  };
+
+  const handleExport = () => {
+    const data = exportToJson();
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "talentforge-data.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result;
+      if (typeof text === "string") {
+        importFromJson(text);
+        setOpenAiKeySet(hasOpenAIKey());
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleCloseModal = () => {
@@ -78,6 +104,31 @@ export default function TalentForgeSettingsPage() {
             </ListItem>
           </List>
         </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Data
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Export or import your stored TalentForge data.
+          </Typography>
+        </CardContent>
+        <CardActions>
+          <Button onClick={handleExport} variant="contained">
+            Export Data
+          </Button>
+          <Button component="label">
+            Import Data
+            <input
+              type="file"
+              accept="application/json"
+              hidden
+              onChange={handleImport}
+            />
+          </Button>
+        </CardActions>
       </Card>
 
       <OpenAiKeyModal open={openKeyModal} onClose={handleCloseModal} />
