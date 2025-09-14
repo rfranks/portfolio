@@ -12,7 +12,7 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
   coverLetter: {
     displayText: "Cover Letter",
     fullText:
-      "Draft a concise cover letter highlighting why you are a great fit for the role.",
+      "Write a professional cover letter with exactly three paragraphs tailored to the job description.",
   },
   negotiateOffer: {
     displayText: "Negotiate Offer",
