@@ -17,14 +17,16 @@ import EditIcon from "@mui/icons-material/Edit";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DifferenceIcon from "@mui/icons-material/Difference";
+import { v4 as uuid } from "uuid";
 import {
   type ResumeEntry,
   deleteResume,
   updateResume,
   cloneResume,
+  addResume,
 } from "@/utils/talentforge/dataStore";
-import { exportElementToPdf } from "@/utils/pdfExport";
 import Detail from "./Detail";
 import EmptyState from "../EmptyState";
 import Diff from "./Diff";
@@ -52,6 +54,53 @@ export default function List({ resumes, setResumes }: Props) {
   const handleDelete = (id: string) => {
     const updated = deleteResume(id);
     setResumes(updated);
+  };
+
+  const handleExport = (resume: ResumeEntry) => {
+    const data = {
+      content: resume.content,
+      tags: resume.tags,
+      parsed: resume.parsed,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${resume.id}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      const text = await file.text();
+      const { content, tags, parsed } = JSON.parse(text) as {
+        content: string;
+        tags: string[];
+        parsed: ResumeEntry["parsed"];
+      };
+      const newResume: ResumeEntry = {
+        id: uuid(),
+        userId: "",
+        label: "",
+        url: "",
+        content,
+        tags: tags || [],
+        parsed: parsed || {
+          contact: "",
+          experience: [],
+          education: [],
+          skills: [],
+        },
+      };
+      const updated = addResume(newResume);
+      setResumes(updated);
+    } catch (err) {
+      // ignore invalid files
+      console.error("Failed to import resume", err);
+    }
   };
 
   const parsedToString = (p: ResumeEntry["parsed"]) =>
@@ -94,14 +143,27 @@ export default function List({ resumes, setResumes }: Props) {
             </IconButton>
             <IconButton
               size="small"
-              onClick={() => {
-                const temp = document.createElement("div");
-                temp.textContent = r.content;
-                exportElementToPdf(temp, `${r.id}.pdf`);
-              }}
+              onClick={() => handleExport(r)}
               aria-label="export"
             >
               <FileDownloadIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              component="label"
+              size="small"
+              aria-label="import"
+            >
+              <UploadFileIcon fontSize="small" />
+              <input
+                type="file"
+                hidden
+                accept="application/json"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleImport(file);
+                  e.target.value = "";
+                }}
+              />
             </IconButton>
           </Stack>
           <Stack direction="row" spacing={1} flexWrap="wrap">
