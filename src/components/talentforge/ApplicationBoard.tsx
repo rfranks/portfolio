@@ -6,6 +6,12 @@ import {
   Paper,
   Stack,
   Typography,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from "@mui/material";
 import { v4 as uuid } from "uuid";
 import {
@@ -88,6 +94,10 @@ function Card({ app }: { app: JobApplication }) {
 
 export default function ApplicationBoard() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [company, setCompany] = useState("");
+  const [location, setLocation] = useState("");
 
   useEffect(() => {
     const existing = getJobApplications();
@@ -120,31 +130,87 @@ export default function ApplicationBoard() {
     setApplications(updated);
   };
 
+  const handleAdd = () => {
+    const newApp: JobApplication = {
+      id: uuid(),
+      applicant: { id: "", name: "", email: "" },
+      role: { id: uuid(), title, company, location },
+      status: "applied",
+      history: [{ status: "applied", changedAt: new Date().toISOString() }],
+    };
+    const updated = addJobApplication(newApp);
+    setApplications(updated);
+    setDialogOpen(false);
+    setTitle("");
+    setCompany("");
+    setLocation("");
+  };
+
   return (
-    <DndContext onDragEnd={handleDragEnd}>
-      {applications.length === 0 ? (
-        <EmptyState
-          message="No applications yet"
-          helperText="Start tracking your job applications here."
-        />
-      ) : (
-        <Box sx={{ display: "flex", gap: 2 }}>
-          {STATUSES.map((status) => (
-            <Column
-              key={status}
-              id={status}
-              title={status.charAt(0).toUpperCase() + status.slice(1)}
-            >
-              {applications
-                .filter((app) => app.status === status)
-                .map((app) => (
-                  <Card key={app.id} app={app} />
-                ))}
-            </Column>
-          ))}
-        </Box>
-      )}
-    </DndContext>
+    <>
+      <Button
+        variant="contained"
+        onClick={() => setDialogOpen(true)}
+        sx={{ mb: 2 }}
+      >
+        Add Application
+      </Button>
+      <DndContext onDragEnd={handleDragEnd}>
+        {applications.length === 0 ? (
+          <EmptyState
+            message="No applications yet"
+            helperText="Start tracking your job applications here."
+          />
+        ) : (
+          <Box sx={{ display: "flex", gap: 2 }}>
+            {STATUSES.map((status) => (
+              <Column
+                key={status}
+                id={status}
+                title={status.charAt(0).toUpperCase() + status.slice(1)}
+              >
+                {applications
+                  .filter((app) => app.status === status)
+                  .map((app) => (
+                    <Card key={app.id} app={app} />
+                  ))}
+              </Column>
+            ))}
+          </Box>
+        )}
+      </DndContext>
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>New Application</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Job Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              label="Company"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              label="Location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleAdd} disabled={!title || !company}>
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 
