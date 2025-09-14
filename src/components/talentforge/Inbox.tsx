@@ -311,7 +311,17 @@ export default function Inbox() {
           <Stack spacing={2}>
             <PromptSelector value={promptKey} onChange={setPromptKey} />
             {promptKey && (
-              <Tile {...PROMPT_TILES[promptKey]} onInsert={handleInsertAIDraft} />
+              <Tile
+                {...PROMPT_TILES[promptKey]}
+                onInsert={handleInsertAIDraft}
+                initialValues=
+                  {promptKey === "recruiterNudge" && aiThread
+                    ? {
+                        messageContext:
+                          threads.find((m) => m.id === aiThread)?.body || "",
+                      }
+                    : undefined}
+              />
             )}
           </Stack>
         </DialogContent>
