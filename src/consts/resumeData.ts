@@ -300,7 +300,7 @@ export const projects: {
   {
     name: "AI-Driven Clinical Copilot",
     description:
-      "Next.js/React frontend with Python/Azure Functions backend.  Integrates LLMs and retrieval-augmented generation (RAG) to summarize EHR data and summarize data and answer questions with citations.",
+      "Next.js/React frontend with Python/Azure Functions backend.  Integrates LLMs and retrieval-augmented generation (RAG) to summarize EHR data and answer questions with citations.",
     href: "/aisummary",
     type: "work",
     interestsMeWhy:
