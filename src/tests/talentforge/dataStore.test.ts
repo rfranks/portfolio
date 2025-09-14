@@ -65,4 +65,9 @@ describe("dataStore migrations", () => {
     expect(apps).toHaveLength(1);
     expect(apps[0].role.title).toBe("Engineer");
   });
+
+  test("importFromJson ignores malformed json", () => {
+    expect(() => importFromJson("{invalid")).not.toThrow();
+    expect(localStorage.length).toBe(0);
+  });
 });
