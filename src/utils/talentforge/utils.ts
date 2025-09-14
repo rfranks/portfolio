@@ -63,6 +63,11 @@ const requestCompletion = async (systemMessage: string) => {
     }),
   });
 
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Request failed with status ${response.status}: ${errorText}`);
+  }
+
   const data = await response.json();
   const content = data?.choices?.[0]?.message?.content;
 
