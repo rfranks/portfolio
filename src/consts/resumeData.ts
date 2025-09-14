@@ -434,7 +434,7 @@ He is a great developer and a team worker. I got a chance to learn a lot from hi
 
 He designs intuitive software. He builds scalable, extendible products that are user-friendly. He leverages the latest in technology and design patterns. His code is elegant, built with reliable, extendible foundations and great frameworks.
 
-In all aspects of software development Richard is superb - design, testing and documentation. He delivers high quality products on-time which have unit-tests and code documentation even under tough deadlines. He thinks not just about product design and features but also about the maintenance of the code in the future. He writes self testing code that prevents regressive defects. In the time I worked with him I saw him introduce new frameworks, unit tests, self documenting capabilities in an older stringent code base.
+In all aspects of software development Richard is superb - design, testing and documentation. He delivers high quality products on-time which have unit-tests and code documentation even under tough deadlines. He thinks not just about product design and features but also about the maintenance of the code in the future. He writes self testing code that prevents regression defects. In the time I worked with him I saw him introduce new frameworks, unit tests, self documenting capabilities in an older stringent code base.
 
 He is an excellent mentor. He works incredibly hard and it is a pleasure to work with him. Richard is an invaluable asset to any team he leads!`,
     },
