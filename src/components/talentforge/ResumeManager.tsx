@@ -5,7 +5,6 @@ import { v4 as uuid } from "uuid";
 import {
   Box,
   Button,
-  Chip,
   CircularProgress,
   Skeleton,
   Stack,
@@ -48,7 +47,15 @@ export default function ResumeManager() {
     if (!text.trim()) return;
     const tags = await tagResume(text);
     const parsed = parseResumeText(text);
-    const newResume = { id: uuid(), content: text, parsed, tags };
+    const newResume: ResumeEntry = {
+      id: uuid(),
+      userId: "",
+      label: "",
+      url: "",
+      content: text,
+      parsed,
+      tags,
+    };
     const updated = addResume(newResume);
     setResumes(updated);
     setText("");
