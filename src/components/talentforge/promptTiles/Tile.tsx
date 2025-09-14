@@ -90,21 +90,42 @@ export default function Tile({
   };
 
   const handleSaveVariant = async () => {
+    if (!response) return;
     if (id !== "resumeRewrite" || !response) return;
     const resume = loadSelectedResume();
     if (!resume) return;
+
     setSaving(true);
     try {
-      const tags = await tagResume(response);
-      const parsed = parseResumeText(response);
-      const newResume: ResumeEntry = {
-        ...resume,
-        id: uuid(),
-        content: response,
-        parsed,
-        tags,
-      };
-      addResume(newResume);
+      if (id === "resumeRewrite") {
+        const resume = getResumes().find(
+          (r) => r.id === values["resumeVariantId"],
+        );
+        if (!resume) return;
+        const tags = await tagResume(response);
+        const parsed = parseResumeText(response);
+        const newResume: ResumeEntry = {
+          ...resume,
+          id: uuid(),
+          content: response,
+          parsed,
+          tags,
+        };
+        addResume(newResume);
+      } else if (id === "coverLetter") {
+        const tags = await tagResume(response);
+        const parsed = parseResumeText(response);
+        const newResume: ResumeEntry = {
+          id: uuid(),
+          userId: "",
+          label: "",
+          url: "",
+          content: response,
+          parsed,
+          tags,
+        };
+        addResume(newResume);
+      }
     } finally {
       setSaving(false);
     }
@@ -144,13 +165,13 @@ export default function Tile({
             <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
               {response}
             </Typography>
-            {id === "resumeRewrite" && (
+            {(id === "resumeRewrite" || id === "coverLetter") && (
               <Button
                 variant="outlined"
                 onClick={handleSaveVariant}
                 disabled={saving}
               >
-                {saving ? "Saving..." : "Save as new variant"}
+                {saving ? "Saving..." : "Save as resume variant"}
               </Button>
             )}
             <Box>
