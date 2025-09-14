@@ -49,6 +49,13 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "Using the provided job description and resume, rewrite the resume to emphasize how the candidate meets the role requirements.",
     inputs: ["resumeVariantId", "jobDescription"],
   },
+  resumeCompare: {
+    id: "resumeCompare",
+    display: "Compare to Resume",
+    fullPrompt:
+      "Compare the following resume to the job description. List items that align with the job description, items missing from the resume, and recommendations to better align the resume with the job description.\n\nJob Description:\n{{jobDescription}}\n\nResume:\n{{resumeContent}}",
+    inputs: ["resumeVariantId", "jobDescription"],
+  },
   jdRequirements: {
     id: "jdRequirements",
     display: "JD Requirements",

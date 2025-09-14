@@ -15,6 +15,7 @@ import {
   Drawer,
   CircularProgress,
   IconButton,
+  MenuItem,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
@@ -26,17 +27,18 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { ApplicationStatus } from "@/types/talentforge/job";
-import type { JobApplication } from "@/utils/talentforge/dataStore";
+import type { JobApplication, ResumeEntry } from "@/utils/talentforge/dataStore";
 import {
   addJobApplication,
   getJobApplications,
   updateJobApplicationStatus,
+  updateJobApplication,
+  getResumes,
 } from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
 import { PROMPT_TILES } from "@/consts/promptTiles";
 import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
-import { getResumes } from "@/utils/talentforge/dataStore";
 import OpenAIKeyModal from "./OpenAiKeyModal";
 
 interface Issue {
@@ -82,9 +84,13 @@ function Column({
 function Card({
   app,
   onRunTile,
+  resumes,
+  onAssignResume,
 }: {
   app: JobApplication;
   onRunTile: (id: string, app: JobApplication) => void;
+  resumes: ResumeEntry[];
+  onAssignResume: (appId: string, resumeId: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app.id });
@@ -112,6 +118,22 @@ function Card({
       <Typography variant="body2" color="text.secondary">
         {app.role.company} – {app.role.location}
       </Typography>
+      {resumes.length > 0 && (
+        <TextField
+          select
+          size="small"
+          label="Resume"
+          value={app.resumeVariant?.id || ""}
+          onChange={(e) => onAssignResume(app.id, e.target.value)}
+          sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}
+        >
+          {resumes.map((r) => (
+            <MenuItem key={r.id} value={r.id}>
+              {r.title}
+            </MenuItem>
+          ))}
+        </TextField>
+      )}
       {app.role.description && (
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
           <Button
@@ -124,9 +146,16 @@ function Card({
           <Button
             size="small"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => onRunTile("resumeRewrite", app)}
+            onClick={() => onRunTile("resumeCompare", app)}
           >
             Compare to Resume
+          </Button>
+          <Button
+            size="small"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => onRunTile("coverLetter", app)}
+          >
+            Cover Letter
           </Button>
         </Stack>
       )}
@@ -141,6 +170,7 @@ export default function ApplicationBoard() {
   const [company, setCompany] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [resumeId, setResumeId] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerTitle, setDrawerTitle] = useState("");
   const [drawerLoading, setDrawerLoading] = useState(false);
@@ -148,6 +178,11 @@ export default function ApplicationBoard() {
     { role: "user" | "assistant"; text: string }[]
   >([]);
   const [drawerAnalysis, setDrawerAnalysis] = useState<Analysis | null>(null);
+  const [drawerMode, setDrawerMode] = useState<"chat" | "resumeCompare">(
+    "chat",
+  );
+  const [resumeCompareApp, setResumeCompareApp] =
+    useState<JobApplication | null>(null);
   const [openKeyModal, setOpenKeyModal] = useState(false);
 
   useEffect(() => {
@@ -182,10 +217,12 @@ export default function ApplicationBoard() {
   };
 
   const handleAdd = () => {
+    const resume = getResumes().find((r) => r.id === resumeId);
     const newApp: JobApplication = {
       id: uuid(),
       applicant: { id: "", name: "", email: "" },
       role: { id: uuid(), title, company, location, description },
+      resumeVariant: resume,
       status: "applied",
       history: [{ status: "applied", changedAt: new Date().toISOString() }],
     };
@@ -196,6 +233,7 @@ export default function ApplicationBoard() {
     setCompany("");
     setLocation("");
     setDescription("");
+    setResumeId("");
   };
 
   const runTile = async (tileId: string, app: JobApplication) => {
@@ -206,27 +244,53 @@ export default function ApplicationBoard() {
       setOpenKeyModal(true);
       return;
     }
+    if (tileId === "resumeCompare") {
+      const resumes = getResumes();
+      if (resumes.length === 0) {
+        setDrawerTitle(tile.display);
+        setDrawerMessages([
+          { role: "assistant", text: "No resume available" },
+        ]);
+        setDrawerAnalysis(null);
+        setDrawerOpen(true);
+        return;
+      }
+      setDrawerTitle(tile.display);
+      setDrawerMessages([
+        {
+          role: "assistant",
+          text: "Select a resume to compare with the job description.",
+        },
+      ]);
+      setDrawerAnalysis(null);
+      setDrawerOpen(true);
+      setDrawerMode("resumeCompare");
+      setResumeCompareApp(app);
+      return;
+    }
     setDrawerTitle(tile.display);
     setDrawerMessages([]);
     setDrawerAnalysis(null);
     setDrawerOpen(true);
     let prompt = tile.fullPrompt;
     const values: Record<string, string> = {};
-    if (tileId === "screenRole" || tileId === "resumeRewrite") {
+    if (tileId === "screenRole" || tileId === "coverLetter") {
       values.jobDescription = app.role.description || "";
+    }
+    if (tileId === "coverLetter") {
+      values.position = app.role.title;
+      values.company = app.role.company;
     }
     for (const key of tile.inputs) {
       prompt = prompt.replaceAll(`{{${key}}}`, values[key] || "");
     }
-    if (tileId === "resumeRewrite") {
-      const resume = getResumes()[0];
-      if (!resume) {
-        setDrawerMessages([
-          { role: "assistant", text: "No resume available" },
-        ]);
-        return;
+    if (tileId === "coverLetter") {
+      const resume = app.resumeVariant || getResumes()[0];
+      if (resume) {
+        prompt = `${prompt}\n\nJob Description:\n${values.jobDescription}\n\nResume:\n${resume.content}`;
+      } else if (values.jobDescription) {
+        prompt = `${prompt}\n\nJob Description:\n${values.jobDescription}`;
       }
-      prompt = `${prompt}\n\nJob Description:\n${values.jobDescription}\n\nResume:\n${resume.content}`;
     }
     if (tileId !== "screenRole") {
       setDrawerMessages([{ role: "user", text: prompt }]);
@@ -252,10 +316,56 @@ export default function ApplicationBoard() {
           setDrawerMessages([{ role: "assistant", text: message }]);
         }
       } else {
-        setDrawerMessages((prev) => [...prev, { role: "assistant", text: message }]);
+        setDrawerMessages((prev) => [
+          ...prev,
+          { role: "assistant", text: message },
+        ]);
       }
     } finally {
       setDrawerLoading(false);
+    }
+  };
+
+  const resumes = getResumes();
+
+  const handleAssignResume = (appId: string, resId: string) => {
+    const resume = resumes.find((r) => r.id === resId);
+    if (!resume) return;
+    const updated = updateJobApplication(appId, { resumeVariant: resume });
+    setApplications(updated);
+  };
+
+  const handleResumeCompareSelect = async (resId: string) => {
+    const resume = getResumes().find((r) => r.id === resId);
+    if (!resume || !resumeCompareApp) return;
+    setDrawerMessages((prev) => [
+      ...prev,
+      { role: "user", text: `Using resume: ${resume.title}` },
+    ]);
+    const prompt = PROMPT_TILES.resumeCompare.fullPrompt
+      .replaceAll(
+        "{{jobDescription}}",
+        resumeCompareApp.role.description || "",
+      )
+      .replaceAll("{{resumeContent}}", resume.content);
+    setDrawerLoading(true);
+    try {
+      const res = await askOpenAI({
+        context: "",
+        user: prompt,
+        system: "You are a helpful assistant.",
+        returnFirstResponse: true,
+        chatHistory: [],
+      });
+      const message = res?.message || "";
+      setDrawerMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: message },
+      ]);
+    } finally {
+      setDrawerLoading(false);
+      setDrawerMode("chat");
+      setResumeCompareApp(null);
     }
   };
 
@@ -289,6 +399,8 @@ export default function ApplicationBoard() {
                       key={app.id}
                       app={app}
                       onRunTile={(id) => runTile(id, app)}
+                      resumes={resumes}
+                      onAssignResume={handleAssignResume}
                     />
                   ))}
               </Column>
@@ -318,6 +430,21 @@ export default function ApplicationBoard() {
               onChange={(e) => setLocation(e.target.value)}
               fullWidth
             />
+            {resumes.length > 0 && (
+              <TextField
+                label="Resume"
+                select
+                value={resumeId}
+                onChange={(e) => setResumeId(e.target.value)}
+                fullWidth
+              >
+                {resumes.map((r) => (
+                  <MenuItem key={r.id} value={r.id}>
+                    {r.title}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
             <TextField
               label="Job Description"
               value={description}
@@ -399,6 +526,20 @@ export default function ApplicationBoard() {
                   {m.text}
                 </Box>
               ))}
+              {drawerMode === "resumeCompare" && !drawerLoading && (
+                <TextField
+                  select
+                  label="Resume"
+                  value=""
+                  onChange={(e) => handleResumeCompareSelect(e.target.value)}
+                >
+                  {resumes.map((r) => (
+                    <MenuItem key={r.id} value={r.id}>
+                      {r.title}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
               {drawerLoading && (
                 <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
                   <CircularProgress size={24} />

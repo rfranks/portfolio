@@ -67,7 +67,7 @@ export default function PromptTileGrid({
         prompt = prompt.replaceAll(`{{${key}}}`, tileValues[key] || "");
       }
 
-      if (tile.id === "resumeRewrite") {
+      if (tile.id === "resumeRewrite" || tile.id === "resumeCompare") {
         const resume = getResumes().find(
           (r) => r.id === tileValues["resumeVariantId"],
         );
@@ -75,7 +75,11 @@ export default function PromptTileGrid({
           setResponses((prev) => ({ ...prev, [id]: "Resume not found" }));
           return;
         }
-        prompt = `${prompt}\n\nJob Description:\n${tileValues["jobDescription"]}\n\nResume:\n${resume.content}`;
+        if (tile.id === "resumeRewrite") {
+          prompt = `${prompt}\n\nJob Description:\n${tileValues["jobDescription"]}\n\nResume:\n${resume.content}`;
+        } else {
+          prompt = prompt.replaceAll("{{resumeContent}}", resume.content);
+        }
       }
 
       const res = await askOpenAI({
