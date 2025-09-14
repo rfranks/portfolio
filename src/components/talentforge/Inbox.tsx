@@ -102,7 +102,16 @@ export default function Inbox() {
       sentAt: new Date().toISOString(),
       connector: message.connector,
     };
-    const updated = data.addThreadReply(message.id, reply);
+    let updated = data.addThreadReply(message.id, reply);
+
+    const matchedRecruiter = recruiters.find(
+      (r) => r.connector.toLowerCase() === message.connector.toLowerCase(),
+    );
+    if (matchedRecruiter) {
+      updated = data.linkThreadToRecruiter(message.id, matchedRecruiter.id);
+      setRecruiters(data.getRecruiters());
+    }
+
     setThreads(updated);
     setDrafts((d) => ({ ...d, [message.id]: "" }));
   };
