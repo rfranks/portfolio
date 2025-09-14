@@ -25,15 +25,15 @@ export const mockResumes: Resume[] = [
 export const mockOffers: Offer[] = [
   {
     id: "offer-1",
-    applicationId: "app-1",
+    offerText: "Offer details for job application app-1",
     compensation: "$120,000",
-    accepted: false,
+    result: "",
   },
   {
     id: "offer-2",
-    applicationId: "app-2",
+    offerText: "Offer details for job application app-2",
     compensation: "$135,000 + stock",
-    accepted: true,
+    result: "",
   },
 ];
 
