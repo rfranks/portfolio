@@ -61,7 +61,10 @@ export function cleanPdfText(pageLines: string[][]): string {
   return cleanedPages.join("\n\n");
 }
 
-export async function pdfToMarkdown(file: File): Promise<string> {
+/**
+ * Extract plain text from a PDF file.
+ */
+export async function pdfToText(file: File): Promise<string> {
   const reader = new FileReader();
   const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
@@ -156,12 +159,12 @@ export function parseResumeText(text: string): ParsedResume {
 }
 
 /**
- * Convenience helper to convert a PDF file and parse its sections.
+ * Convenience helper to convert a PDF file to plain text and parse its sections.
  */
 export async function parsePdf(
   file: File,
 ): Promise<{ text: string; parsed: ParsedResume }> {
-  const text = await pdfToMarkdown(file);
+  const text = await pdfToText(file);
   return { text, parsed: parseResumeText(text) };
 }
 

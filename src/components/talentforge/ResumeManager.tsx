@@ -21,7 +21,7 @@ import {
 } from "@/utils/talentforge/dataStore";
 
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
-import { pdfToMarkdown, parseResumeText } from "@/utils/talentforge/pdfParser";
+import { pdfToText, parseResumeText } from "@/utils/talentforge/pdfParser";
 import { parsePastedHtml } from "@/utils/talentforge/pasteParser";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
@@ -111,7 +111,7 @@ export default function ResumeManager() {
           const file = files[0];
           const content =
             file.type === "application/pdf"
-              ? await pdfToMarkdown(file)
+              ? await pdfToText(file)
               : await file.text();
           setText(content);
         }}
