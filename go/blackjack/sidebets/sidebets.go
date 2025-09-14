@@ -25,9 +25,9 @@ func HandToTrifectaHand(hand player.Hand) player.Hand {
 	trifectaHand.Player = hand.Player
 
 	for i := 0; i < len(hand.Cards); i++ {
-		trifectaHand.Cards = append(trifectaHand.Cards, cards.CreateCard(hand.Cards[i].Suite, hand.Cards[i].Value))
+		trifectaHand.Cards = append(trifectaHand.Cards, cards.CreateCard(hand.Cards[i].Suit, hand.Cards[i].Value))
 	}
-	trifectaHand.Cards = append(trifectaHand.Cards, cards.CreateCard(game.State.Dealer.Hands[0].Cards[0].Suite, game.State.Dealer.Hands[0].Cards[0].Value))
+	trifectaHand.Cards = append(trifectaHand.Cards, cards.CreateCard(game.State.Dealer.Hands[0].Cards[0].Suit, game.State.Dealer.Hands[0].Cards[0].Value))
 
 	return trifectaHand
 }
@@ -183,11 +183,11 @@ func IsTrifectaTrips(hand player.Hand, suited bool) bool {
 
 	value := trifectaHand.Cards[0].Value
 	if suited {
-		suite := trifectaHand.Cards[0].Suite
+		suit := trifectaHand.Cards[0].Suit
 		return (trifectaHand.Cards[1].Value == value &&
 			trifectaHand.Cards[2].Value == value) || (cards.IsAce(trifectaHand.Cards[0]) && cards.IsAce(trifectaHand.Cards[1]) && cards.IsAce(trifectaHand.Cards[2])) &&
-			(trifectaHand.Cards[1].Suite == suite &&
-				trifectaHand.Cards[2].Suite == suite)
+			(trifectaHand.Cards[1].Suit == suit &&
+				trifectaHand.Cards[2].Suit == suit)
 	} else {
 		return (trifectaHand.Cards[1].Value == value &&
 			trifectaHand.Cards[2].Value == value) || (cards.IsAce(trifectaHand.Cards[0]) && cards.IsAce(trifectaHand.Cards[1]) && cards.IsAce(trifectaHand.Cards[2]))
@@ -257,7 +257,7 @@ func GetSpanish21Winnings(hand player.Hand) int {
 		dealerDownCard := DealerDownCard()
 
 		if firstCard.Value == dealerUpCard.Value {
-			if CardsMatchSuite(firstCard, dealerUpCard) {
+			if CardsMatchSuit(firstCard, dealerUpCard) {
 				winnings += Spanish21MatchSuitMultiplier * hand.TrifectaWager
 			} else {
 				winnings += Spanish21MatchUnsuitedMultiplier * hand.TrifectaWager
@@ -265,7 +265,7 @@ func GetSpanish21Winnings(hand player.Hand) int {
 		}
 
 		if secondCard.Value == dealerUpCard.Value {
-			if CardsMatchSuite(secondCard, dealerUpCard) {
+			if CardsMatchSuit(secondCard, dealerUpCard) {
 				winnings += Spanish21MatchSuitMultiplier * hand.TrifectaWager
 			} else {
 				winnings += Spanish21MatchUnsuitedMultiplier * hand.TrifectaWager
@@ -273,7 +273,7 @@ func GetSpanish21Winnings(hand player.Hand) int {
 		}
 
 		if firstCard.Value == dealerDownCard.Value {
-			if CardsMatchSuite(firstCard, dealerDownCard) {
+			if CardsMatchSuit(firstCard, dealerDownCard) {
 				winnings += Spanish21MatchSuitMultiplier * hand.TrifectaWager
 			} else {
 				winnings += Spanish21MatchUnsuitedMultiplier * hand.TrifectaWager
@@ -281,7 +281,7 @@ func GetSpanish21Winnings(hand player.Hand) int {
 		}
 
 		if secondCard.Value == dealerDownCard.Value {
-			if CardsMatchSuite(secondCard, dealerDownCard) {
+			if CardsMatchSuit(secondCard, dealerDownCard) {
 				winnings += Spanish21MatchSuitMultiplier * hand.TrifectaWager
 			} else {
 				winnings += Spanish21MatchUnsuitedMultiplier * hand.TrifectaWager
@@ -429,6 +429,6 @@ func PayTrifectaStax() {
 	game.SaveBlackjackStateYaml()
 }
 
-func CardsMatchSuite(aCard cards.Card, bCard cards.Card) bool {
-	return aCard.Suite == bCard.Suite
+func CardsMatchSuit(aCard cards.Card, bCard cards.Card) bool {
+	return aCard.Suit == bCard.Suit
 }

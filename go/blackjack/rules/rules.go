@@ -485,9 +485,9 @@ func IsFlush(hand player.Hand) bool {
 	for i := 0; i < len(hand.Cards); i++ {
 		card := hand.Cards[i]
 		if i == 0 {
-			suit = card.Suite
+			suit = card.Suit
 		}
-		isFlush = isFlush && card.Suite == suit
+		isFlush = isFlush && card.Suit == suit
 	}
 
 	return isFlush
@@ -508,7 +508,7 @@ func IsPairHand(hand player.Hand, value cards.CardValue, suited bool) bool {
 
 	isPair := hand.Cards[0].Value == value && hand.Cards[1].Value == value
 	if suited {
-		return isPair && hand.Cards[0].Suite == hand.Cards[1].Suite
+		return isPair && hand.Cards[0].Suit == hand.Cards[1].Suit
 	} else {
 		return isPair
 	}

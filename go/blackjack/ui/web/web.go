@@ -296,19 +296,19 @@ func cardToImage(c cards.Card) string {
 	if c.Masked {
 		return "/assets/boardgame/PNG/Cards/cardBack_blue1.png"
 	}
-        suit := ""
-        switch c.Suite {
-        case cards.Spades:
-                suit = "Spades"
-        case cards.Hearts:
-                suit = "Hearts"
-        case cards.Diamonds:
-                suit = "Diamonds"
-        case cards.Clubs:
-                suit = "Clubs"
-        }
-        val := cards.CardValueToString[c.Value]
-        return fmt.Sprintf("/assets/boardgame/PNG/Cards/card%s%s.png", suit, val)
+	suit := ""
+	switch c.Suit {
+	case cards.Spades:
+		suit = "Spades"
+	case cards.Hearts:
+		suit = "Hearts"
+	case cards.Diamonds:
+		suit = "Diamonds"
+	case cards.Clubs:
+		suit = "Clubs"
+	}
+	val := cards.CardValueToString[c.Value]
+	return fmt.Sprintf("/assets/boardgame/PNG/Cards/card%s%s.png", suit, val)
 }
 
 func PrintCurrency(value int) string {

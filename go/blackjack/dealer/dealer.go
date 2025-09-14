@@ -428,7 +428,7 @@ func PayWinners(payBlackjacks bool, payAllOthers bool, updateStats bool) {
 				game.State.DealerBlackjacks += 1
 			} else if dealerValue > 21 {
 				game.State.DealerBusts += 1
-				firstCard := cards.CreateCard(dealerHand.Cards[0].Suite, dealerHand.Cards[0].Value)
+				firstCard := cards.CreateCard(dealerHand.Cards[0].Suit, dealerHand.Cards[0].Value)
 				game.State.BustCards = append(game.State.BustCards, firstCard)
 				game.State.BustCounts[firstCard.Value] += 1
 			}
@@ -452,7 +452,7 @@ func PayWinners(payBlackjacks bool, payAllOthers bool, updateStats bool) {
 
 				if playerValue > 21 {
 					game.State.PlayerBusts += 1
-					game.State.BustCards = append(game.State.BustCards, cards.CreateCard(hand.Cards[0].Suite, hand.Cards[0].Value))
+					game.State.BustCards = append(game.State.BustCards, cards.CreateCard(hand.Cards[0].Suit, hand.Cards[0].Value))
 					game.State.BustCounts[hand.Cards[0].Value] += 1
 				}
 

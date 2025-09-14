@@ -89,7 +89,7 @@ var CardValueToString = map[CardValue]string{
 }
 
 type Card struct {
-	Suite      CardSuit  `yaml:"suite"`
+	Suit       CardSuit  `yaml:"suit"`
 	Value      CardValue `yaml:"value"`
 	Masked     bool      `yaml:"masked"`  // only hidden cards are masked
 	Demoted    bool      `yaml:"demoted"` // means our value is One
@@ -99,7 +99,7 @@ type Card struct {
 func CardToGlyph(card Card) string {
 	switch card.Value {
 	case One, Ace:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂡"
 		case Hearts:
@@ -110,7 +110,7 @@ func CardToGlyph(card Card) string {
 			return "🃑"
 		}
 	case Two:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂢"
 		case Hearts:
@@ -121,7 +121,7 @@ func CardToGlyph(card Card) string {
 			return "🃒"
 		}
 	case Three:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂣"
 		case Hearts:
@@ -132,7 +132,7 @@ func CardToGlyph(card Card) string {
 			return "🃓"
 		}
 	case Four:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂤"
 		case Hearts:
@@ -143,7 +143,7 @@ func CardToGlyph(card Card) string {
 			return "🃔"
 		}
 	case Five:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂥"
 		case Hearts:
@@ -154,7 +154,7 @@ func CardToGlyph(card Card) string {
 			return "🃕"
 		}
 	case Six:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂦"
 		case Hearts:
@@ -165,7 +165,7 @@ func CardToGlyph(card Card) string {
 			return "🃖"
 		}
 	case Seven:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂧"
 		case Hearts:
@@ -176,7 +176,7 @@ func CardToGlyph(card Card) string {
 			return "🃗"
 		}
 	case Eight:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂨"
 		case Hearts:
@@ -187,7 +187,7 @@ func CardToGlyph(card Card) string {
 			return "🃘"
 		}
 	case Nine:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂩"
 		case Hearts:
@@ -198,7 +198,7 @@ func CardToGlyph(card Card) string {
 			return "🃙"
 		}
 	case Ten:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂪"
 		case Hearts:
@@ -209,7 +209,7 @@ func CardToGlyph(card Card) string {
 			return "🃚"
 		}
 	case Jack:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂫"
 		case Hearts:
@@ -220,7 +220,7 @@ func CardToGlyph(card Card) string {
 			return "🃛"
 		}
 	case Queen:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂭"
 		case Hearts:
@@ -231,7 +231,7 @@ func CardToGlyph(card Card) string {
 			return "🃝"
 		}
 	case King:
-		switch card.Suite {
+		switch card.Suit {
 		case Spades:
 			return "🂮"
 		case Hearts:
@@ -296,9 +296,9 @@ func CardToString(card Card, printValue bool, useGlyphs bool, colorTerminal bool
 	if useGlyphs {
 		return fmt.Sprintf("%s ", CardToGlyph(card))
 	} else {
-		suitStr := SuitToString[card.Suite]
+		suitStr := SuitToString[card.Suit]
 		if colorTerminal {
-			suitStr = SuitToColorString[card.Suite]
+			suitStr = SuitToColorString[card.Suit]
 		}
 
 		if printValue {
@@ -397,7 +397,7 @@ func ToCard(cardString string) Card {
 
 func CreateCard(suit CardSuit, value CardValue) Card {
 	card := Card{Demoted: false, DoubleDown: false, Masked: false}
-	card.Suite = suit
+	card.Suit = suit
 	card.Value = value
 	return card
 }
@@ -433,7 +433,7 @@ func IsAce(card Card) bool {
 }
 
 func IsOneEyedJack(card Card) bool {
-	return card.Value == Jack && (card.Suite == Hearts || card.Suite == Spades)
+	return card.Value == Jack && (card.Suit == Hearts || card.Suit == Spades)
 }
 
 func ShuffleCards(cards []Card) {

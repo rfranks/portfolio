@@ -50,7 +50,7 @@ func suitsAreEqual(hand player.Hand) bool {
 			continue
 		}
 
-		suitsAreEqual = suitsAreEqual && hand.Cards[i].Suite == hand.Cards[i-1].Suite
+		suitsAreEqual = suitsAreEqual && hand.Cards[i].Suit == hand.Cards[i-1].Suit
 		if !suitsAreEqual {
 			return false
 		}
