@@ -7,6 +7,7 @@ import {
   Button,
   CircularProgress,
   Skeleton,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -21,6 +22,7 @@ import {
 
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { pdfToMarkdown, parseResumeText } from "@/utils/talentforge/pdfParser";
+import { parsePastedHtml } from "@/utils/talentforge/pasteParser";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import OpenAiKeyModal from "./OpenAiKeyModal";
@@ -37,6 +39,7 @@ export default function ResumeManager() {
   const [searchText, setSearchText] = useState("");
   const [searchTag, setSearchTag] = useState("");
   const [loadingResumes, setLoadingResumes] = useState(true);
+  const [toastOpen, setToastOpen] = useState(false);
 
   useEffect(() => {
     setResumes(getResumes());
@@ -45,20 +48,22 @@ export default function ResumeManager() {
 
   const handleSave = async () => {
     if (!text.trim()) return;
-    const tags = await tagResume(text);
-    const parsed = parseResumeText(text);
+    const sanitized = parsePastedHtml(text);
+    const tags = await tagResume(sanitized);
+    const parsed = parseResumeText(sanitized);
     const newResume: ResumeEntry = {
       id: uuid(),
       userId: "",
       label: "",
       url: "",
-      content: text,
+      content: sanitized,
       parsed,
       tags,
     };
     const updated = addResume(newResume);
     setResumes(updated);
     setText("");
+    setToastOpen(true);
   };
 
   const handleCompare = async () => {
@@ -117,6 +122,16 @@ export default function ResumeManager() {
         fullWidth
         value={text}
         onChange={(e) => setText(e.target.value)}
+        onPaste={(e) => {
+          const pasted =
+            e.clipboardData.getData("text/html") ||
+            e.clipboardData.getData("text/plain");
+          if (pasted) {
+            e.preventDefault();
+            const sanitized = parsePastedHtml(pasted);
+            setText(sanitized);
+          }
+        }}
       />
       <TextField
         label="Paste job description"
@@ -176,6 +191,12 @@ export default function ResumeManager() {
           />
         )}
       </Stack>
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={3000}
+        message="Resume saved"
+        onClose={() => setToastOpen(false)}
+      />
     </Box>
   );
 }
