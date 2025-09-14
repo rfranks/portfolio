@@ -47,7 +47,15 @@ export default function ResumePaste() {
     setInput(text);
     setFields(extractFields(text));
     const parsed = parseResumeText(text);
-    addResume({ id: uuid(), content: text, parsed, tags: [] });
+    addResume({
+      id: uuid(),
+      userId: "",
+      label: "",
+      url: "",
+      content: text,
+      parsed,
+      tags: [],
+    });
     setToastOpen(true);
   };
 

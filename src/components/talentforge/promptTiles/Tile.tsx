@@ -21,14 +21,12 @@ import { parseResumeText } from "@/utils/talentforge/pdfParser";
 import { v4 as uuid } from "uuid";
 
 export interface PromptTileProps {
-  id: string;
   display: string;
   fullPrompt: string;
   inputs: string[];
 }
 
 export default function Tile({
-  id,
   display,
   fullPrompt,
   inputs,
