@@ -1,8 +1,13 @@
 "use client";
 
 import Inbox from "@/components/talentforge/Inbox";
+import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 
 export default function InboxPage() {
-  return <Inbox />;
+  return (
+    <ErrorBoundary>
+      <Inbox />
+    </ErrorBoundary>
+  );
 }
 

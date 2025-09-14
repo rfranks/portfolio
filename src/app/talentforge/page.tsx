@@ -2,6 +2,7 @@
 
 import React from "react";
 import Dashboard from "@/components/talentforge/Dashboard";
+import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import insertMockData from "@/utils/mockData";
 
@@ -13,6 +14,10 @@ export default function TalentForgePage() {
     setDocumentTitle("TalentForge");
   }, [setDocumentTitle]);
 
-  return <Dashboard />;
+  return (
+    <ErrorBoundary>
+      <Dashboard />
+    </ErrorBoundary>
+  );
 }
 

@@ -12,6 +12,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 
 import OpenAiKeyModal from "@/components/talentforge/OpenAiKeyModal";
 import { hasOpenAIKey, setOpenAIKey } from "@/utils/talentforge/utils";
@@ -64,75 +65,77 @@ export default function TalentForgeSettingsPage() {
   };
 
   return (
-    <Stack spacing={4}>
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            OpenAI API Key
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {openAiKeySet ? "A key is currently stored." : "No key has been set."}
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button variant="contained" onClick={() => setOpenKeyModal(true)}>
-            {openAiKeySet ? "Update Key" : "Set Key"}
-          </Button>
-          {openAiKeySet && (
-            <Button onClick={handleRemoveKey}>Remove Key</Button>
-          )}
-        </CardActions>
-      </Card>
+    <ErrorBoundary>
+      <Stack spacing={4}>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              OpenAI API Key
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {openAiKeySet ? "A key is currently stored." : "No key has been set."}
+            </Typography>
+          </CardContent>
+          <CardActions>
+            <Button variant="contained" onClick={() => setOpenKeyModal(true)}>
+              {openAiKeySet ? "Update Key" : "Set Key"}
+            </Button>
+            {openAiKeySet && (
+              <Button onClick={handleRemoveKey}>Remove Key</Button>
+            )}
+          </CardActions>
+        </Card>
 
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Connectors
-          </Typography>
-          <List>
-            <ListItem>
-              <ListItemText
-                primary="LinkedIn"
-                secondary="Configuration coming soon"
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Connectors
+            </Typography>
+            <List>
+              <ListItem>
+                <ListItemText
+                  primary="LinkedIn"
+                  secondary="Configuration coming soon"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="Indeed"
+                  secondary="Configuration coming soon"
+                />
+              </ListItem>
+            </List>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Data
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Export or import your stored TalentForge data.
+            </Typography>
+          </CardContent>
+          <CardActions>
+            <Button onClick={handleExport} variant="contained">
+              Export Data
+            </Button>
+            <Button component="label">
+              Import Data
+              <input
+                type="file"
+                accept="application/json"
+                hidden
+                onChange={handleImport}
               />
-            </ListItem>
-            <ListItem>
-              <ListItemText
-                primary="Indeed"
-                secondary="Configuration coming soon"
-              />
-            </ListItem>
-          </List>
-        </CardContent>
-      </Card>
+            </Button>
+          </CardActions>
+        </Card>
 
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Data
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Export or import your stored TalentForge data.
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button onClick={handleExport} variant="contained">
-            Export Data
-          </Button>
-          <Button component="label">
-            Import Data
-            <input
-              type="file"
-              accept="application/json"
-              hidden
-              onChange={handleImport}
-            />
-          </Button>
-        </CardActions>
-      </Card>
-
-      <OpenAiKeyModal open={openKeyModal} onClose={handleCloseModal} />
-    </Stack>
+        <OpenAiKeyModal open={openKeyModal} onClose={handleCloseModal} />
+      </Stack>
+    </ErrorBoundary>
   );
 }
 
