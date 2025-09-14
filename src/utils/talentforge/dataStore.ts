@@ -12,6 +12,7 @@ import type {
   JobListing,
   StatusChange,
 } from "@/types/talentforge/job";
+import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply";
 import type {
   User,
   ResumeVariant,
@@ -65,6 +66,7 @@ interface StoreSchema {
   onboarding: number;
   openai: string | undefined;
   connectorTokens: Record<string, ConnectorToken>;
+  autoReplyTemplates: Record<string, string>;
 }
 
 const KEYS: { [K in keyof StoreSchema]: string } = {
@@ -77,6 +79,7 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   onboarding: "onboardingStep",
   openai: "talentforge-openai-key",
   connectorTokens: "connectorTokens",
+  autoReplyTemplates: "autoReplyTemplates",
 } as const;
 
 const VERSION: { [K in keyof StoreSchema]: number } = {
@@ -89,6 +92,7 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   onboarding: 1,
   openai: 1,
   connectorTokens: 1,
+  autoReplyTemplates: 1,
 } as const;
 
 export const SNAPSHOT_VERSION = 3;
@@ -233,6 +237,15 @@ export function cloneResume(resume: ResumeEntry): ResumeEntry[] {
   const updated = [...getResumes(), clone];
   saveResumes(updated);
   return updated;
+}
+
+// Auto reply templates
+export function getAutoReplyTemplates(): Record<string, string> {
+  return load("autoReplyTemplates", AUTO_REPLY_TEMPLATES as Record<string, string>);
+}
+
+export function saveAutoReplyTemplates(templates: Record<string, string>): void {
+  save("autoReplyTemplates", templates);
 }
 
 // Messages
@@ -544,6 +557,8 @@ const dataStore = {
   updateRecruiter,
   deleteRecruiter,
   linkThreadToRecruiter,
+  getAutoReplyTemplates,
+  saveAutoReplyTemplates,
   getOnboardingStep,
   setOnboardingStep,
   clearOnboardingStep,
