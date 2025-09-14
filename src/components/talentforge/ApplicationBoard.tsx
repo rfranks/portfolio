@@ -131,6 +131,7 @@ function Card({
           value={app.resumeVariant?.id || ""}
           onChange={(e) => onAssignResume(app.id, e.target.value)}
           sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}
+          fullWidth
         >
           {resumes.map((r) => (
             <MenuItem key={r.id} value={r.id}>
