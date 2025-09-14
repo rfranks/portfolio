@@ -91,7 +91,12 @@ export const mockOffers: Offer[] = [
 ];
 
 mockUserProfile.resumeVariants = mockResumes.map(
-  ({ content, parsed, tags, ...rv }) => rv,
+  ({ content, parsed, tags, ...rv }) => {
+    void content;
+    void parsed;
+    void tags;
+    return rv;
+  },
 );
 mockUserProfile.applications = mockApplications;
 
