@@ -20,7 +20,7 @@ import {
   addJobApplication,
   getJobApplications,
   updateJobApplicationStatus,
-} from "@/utils/talentforge/applicationStore";
+} from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
 

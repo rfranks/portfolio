@@ -140,6 +140,16 @@ interface LegacyMessage {
   replies?: LegacyMessageReply[];
 }
 
+function migrateLegacyApplications(data: unknown): JobApplication[] {
+  if (!Array.isArray(data)) return [];
+  return (data as JobApplication[]).map((app) => ({
+    ...app,
+    history: app.history ?? [
+      { status: app.status, changedAt: new Date().toISOString() },
+    ],
+  }));
+}
+
 function migrateLegacyOffers(data: unknown): Offer[] {
   if (!Array.isArray(data)) return [];
   return (data as LegacyOffer[]).map((o) => ({
@@ -284,7 +294,7 @@ export function deleteOffer(id: string): Offer[] {
 
 // Job applications
 export function getJobApplications(): JobApplication[] {
-  return load("applications", []);
+  return load("applications", [], migrateLegacyApplications);
 }
 export function addJobApplication(app: JobApplication): JobApplication[] {
   const withHistory = {
