@@ -29,6 +29,7 @@ import "./page.css"; // Ensure global styles are applied
 import { hasOpenAIKey, setOpenAIKey } from "@/utils/talentforge/utils";
 import Image from "next/image";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import insertMockData from "@/utils/mockData";
 
 export default function TalentForgePage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");
@@ -37,6 +38,7 @@ export default function TalentForgePage() {
   const { setDocumentTitle } = useDocumentTitle();
 
   React.useEffect(() => {
+    insertMockData();
     setDocumentTitle("TalentForge");
   }, [setDocumentTitle]);
 
