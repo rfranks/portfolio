@@ -8,12 +8,12 @@ import debounce from "lodash/debounce";
 import type { DebouncedFunc } from "lodash";
 
 /**
- * Dimensions of a component or element-its height, width, and breakpoint size.
+ * Dimensions of an element—its height, width, and breakpoint size.
  */
 export interface Dimensions {
-  /** The width of the dimension */
+  /** The width of the element */
   width: number;
-  /** The height of the dimension */
+  /** The height of the element */
   height: number;
   /** The breakpoint of the dimension */
   breakpoint: Breakpoint;
