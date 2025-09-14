@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -36,6 +36,7 @@ export interface PromptTileProps {
   inputs: string[];
   onInsert?: (text: string) => void;
   onResponse?: (response: string) => void;
+  initialValues?: Record<string, string>;
 }
 
 export default function Tile({
@@ -45,17 +46,31 @@ export default function Tile({
   inputs,
   onInsert,
   onResponse,
+  initialValues = {},
 }: PromptTileProps) {
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(initialValues);
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [openKeyModal, setOpenKeyModal] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [drafts, setDrafts] = useState<
-    | { email: string; linkedin: string; indeed: string }
+  const [offerDrafts, setOfferDrafts] = useState<
+    { email: string; linkedin: string; indeed: string } | null
+  >(null);
+  const [nudgeDrafts, setNudgeDrafts] = useState<
+    | {
+        followUp: { email: string; linkedin: string; indeed: string };
+        decline: { email: string; linkedin: string; indeed: string };
+      }
     | null
   >(null);
   const [activeTab, setActiveTab] = useState(0);
+  const [nudgeMode, setNudgeMode] = useState<"followUp" | "decline">(
+    "followUp",
+  );
+
+  useEffect(() => {
+    setValues(initialValues);
+  }, [initialValues]);
 
   const handleChange = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -72,6 +87,9 @@ export default function Tile({
     }
     setLoading(true);
     try {
+      setResponse("");
+      setOfferDrafts(null);
+      setNudgeDrafts(null);
       let prompt = fullPrompt;
       for (const key of inputs) {
         prompt = prompt.replaceAll(`{{${key}}}`, values[key] || "");
@@ -111,7 +129,8 @@ export default function Tile({
       }
 
       if (id === "negotiateOffer") {
-        setDrafts(null);
+        setOfferDrafts(null);
+        setNudgeDrafts(null);
         setActiveTab(0);
         const context = `Offer Letter:\n${values["offerLetter"] || ""}\n\nCurrent Compensation:\n${values["currentComp"] || ""}`;
         const res = await askOpenAI({
@@ -129,13 +148,52 @@ export default function Tile({
             linkedin?: string;
             indeed?: string;
           };
-          setDrafts({
+          setOfferDrafts({
             email: parsed.email || "",
             linkedin: parsed.linkedin || "",
             indeed: parsed.indeed || "",
           });
         } catch {
-          setDrafts({ email: message, linkedin: "", indeed: "" });
+          setOfferDrafts({ email: message, linkedin: "", indeed: "" });
+        }
+        onResponse?.(message);
+        onInsert?.(message);
+        return;
+      }
+
+      if (id === "recruiterNudge") {
+        setOfferDrafts(null);
+        setNudgeDrafts(null);
+        setActiveTab(0);
+        setNudgeMode("followUp");
+        const res = await askOpenAI({
+          context: "",
+          user: prompt,
+          system:
+            "You craft professional recruiter follow-up and decline messages.",
+          returnFirstResponse: true,
+          chatHistory: [],
+        });
+        const message = res?.message || "";
+        try {
+          const parsed = JSON.parse(message) as {
+            followUp?: { email?: string; linkedin?: string; indeed?: string };
+            decline?: { email?: string; linkedin?: string; indeed?: string };
+          };
+          setNudgeDrafts({
+            followUp: {
+              email: parsed.followUp?.email || "",
+              linkedin: parsed.followUp?.linkedin || "",
+              indeed: parsed.followUp?.indeed || "",
+            },
+            decline: {
+              email: parsed.decline?.email || "",
+              linkedin: parsed.decline?.linkedin || "",
+              indeed: parsed.decline?.indeed || "",
+            },
+          });
+        } catch {
+          setResponse(message);
         }
         onResponse?.(message);
         onInsert?.(message);
@@ -227,9 +285,9 @@ export default function Tile({
           ),
         )}
         <Button variant="contained" onClick={handleRun} disabled={loading}>
-        {loading ? "Running..." : "Run"}
+          {loading ? "Running..." : "Run"}
         </Button>
-        {id === "negotiateOffer" && drafts && (
+        {id === "negotiateOffer" && offerDrafts && (
           <Box>
             <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}>
               <Tab label="Email" />
@@ -245,10 +303,10 @@ export default function Tile({
                       onClick={() =>
                         navigator.clipboard.writeText(
                           activeTab === 0
-                            ? drafts.email
+                            ? offerDrafts.email
                             : activeTab === 1
-                              ? drafts.linkedin
-                              : drafts.indeed,
+                              ? offerDrafts.linkedin
+                              : offerDrafts.indeed,
                         )
                       }
                       size="small"
@@ -258,13 +316,63 @@ export default function Tile({
                   </Tooltip>
                 )}
               </Box>
-              {activeTab === 0 && <Markdown>{drafts.email}</Markdown>}
-              {activeTab === 1 && <Markdown>{drafts.linkedin}</Markdown>}
-              {activeTab === 2 && <Markdown>{drafts.indeed}</Markdown>}
+              {activeTab === 0 && <Markdown>{offerDrafts.email}</Markdown>}
+              {activeTab === 1 && <Markdown>{offerDrafts.linkedin}</Markdown>}
+              {activeTab === 2 && <Markdown>{offerDrafts.indeed}</Markdown>}
             </Box>
           </Box>
         )}
-        {id !== "negotiateOffer" && response && (
+        {id === "recruiterNudge" && nudgeDrafts && (
+          <Box>
+            <Tabs
+              value={nudgeMode === "followUp" ? 0 : 1}
+              onChange={(_, v) =>
+                setNudgeMode(v === 0 ? "followUp" : "decline")
+              }
+            >
+              <Tab label="Follow Up" />
+              <Tab label="Decline" />
+            </Tabs>
+            <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}>
+              <Tab label="Email" />
+              <Tab label="LinkedIn" />
+              <Tab label="Indeed" />
+            </Tabs>
+            <Box sx={{ mt: 2 }}>
+              <Box display="flex" justifyContent="flex-end">
+                {navigator.clipboard && (
+                  <Tooltip title="copy to clipboard" arrow>
+                    <IconButton
+                      aria-label="copy response to clipboard"
+                      onClick={() =>
+                        navigator.clipboard.writeText(
+                          activeTab === 0
+                            ? nudgeDrafts[nudgeMode].email
+                            : activeTab === 1
+                              ? nudgeDrafts[nudgeMode].linkedin
+                              : nudgeDrafts[nudgeMode].indeed,
+                        )
+                      }
+                      size="small"
+                    >
+                      <ContentCopy fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+              {activeTab === 0 && (
+                <Markdown>{nudgeDrafts[nudgeMode].email}</Markdown>
+              )}
+              {activeTab === 1 && (
+                <Markdown>{nudgeDrafts[nudgeMode].linkedin}</Markdown>
+              )}
+              {activeTab === 2 && (
+                <Markdown>{nudgeDrafts[nudgeMode].indeed}</Markdown>
+              )}
+            </Box>
+          </Box>
+        )}
+        {id !== "negotiateOffer" && id !== "recruiterNudge" && response && (
           <>
             <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
               {response}

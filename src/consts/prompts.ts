@@ -69,6 +69,11 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Draft a message to connect with professionals in this industry or company for networking purposes.",
   },
+  recruiterNudge: {
+    displayText: "Recruiter Nudge",
+    fullText:
+      "Generate polite follow-up and decline messages for a recruiter. Provide versions for email, LinkedIn, and Indeed.",
+  },
   portfolioReview: {
     displayText: "Portfolio Review",
     fullText:
@@ -105,7 +110,11 @@ export const PROMPT_GROUPS: Record<string, string[]> = {
     "projectSummary",
   ],
   Offers: ["negotiateOffer", "salaryResearch"],
-  "Recruiter Replies": ["interviewPreparation", "networkingOutreach"],
+  "Recruiter Replies": [
+    "interviewPreparation",
+    "networkingOutreach",
+    "recruiterNudge",
+  ],
   "Career Growth": [
     "skillGapAnalysis",
     "jobDescriptionRewrite",
