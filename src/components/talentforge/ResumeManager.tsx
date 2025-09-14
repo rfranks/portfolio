@@ -20,13 +20,9 @@ import {
   type ResumeEntry,
 } from "@/utils/talentforge/dataStore";
 
-import {
-  askOpenAI,
-  hasOpenAIKey,
-  pdfToMarkdown,
-} from "@/utils/talentforge/utils";
+import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
+import { pdfToMarkdown, parseResumeText } from "@/utils/talentforge/pdfParser";
 import { tagResume } from "@/utils/talentforge/tagging";
-import { parseResumeText } from "@/utils/talentforge/pdfParser";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
