@@ -43,7 +43,7 @@ describe("autoReply utilities", () => {
     });
     setOpenAIKey("key");
     const result = await autoReply([] as AutoReplyMessage[]);
-    expect(result).toBe("foo bar ");
+    expect(result).toBe("foo bar");
   });
 
   test("autoReply throws on non-ok response", async () => {
