@@ -6,11 +6,16 @@ import {
   Button,
   Card,
   CardContent,
+  Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
 
 import useResumeParser from "@/hooks/useResumeParser";
+import { parsePastedHtml } from "@/utils/talentforge/pasteParser";
+import { parseResumeText } from "@/utils/talentforge/pdfParser";
+import { addResume } from "@/utils/talentforge/dataStore";
+import { v4 as uuid } from "uuid";
 
 interface ExtractedFields {
   name: string;
@@ -34,10 +39,16 @@ export default function ResumePaste() {
   const { resume, parseResume } = useResumeParser();
   const [input, setInput] = useState("");
   const [fields, setFields] = useState<ExtractedFields | null>(null);
+  const [toastOpen, setToastOpen] = useState(false);
 
   const handleParse = async () => {
-    const text = await parseResume(input);
+    const sanitized = parsePastedHtml(input);
+    const text = await parseResume(sanitized);
+    setInput(text);
     setFields(extractFields(text));
+    const parsed = parseResumeText(text);
+    addResume({ id: uuid(), content: text, parsed, tags: [] });
+    setToastOpen(true);
   };
 
   return (
@@ -75,6 +86,12 @@ export default function ResumePaste() {
           </CardContent>
         </Card>
       )}
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={3000}
+        message="Resume saved"
+        onClose={() => setToastOpen(false)}
+      />
     </Box>
   );
 }
