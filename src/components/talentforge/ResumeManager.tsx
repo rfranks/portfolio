@@ -11,7 +11,8 @@ import {
   Typography,
 } from "@mui/material";
 
-import { askOpenAI } from "@/utils/talentforge/utils";
+import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
+import OpenAiKeyModal from "./OpenAiKeyModal";
 
 interface StoredResume {
   id: string;
@@ -45,6 +46,7 @@ const suggestTags = async (content: string): Promise<string[]> => {
 export default function ResumeManager() {
   const [resumes, setResumes] = useState<StoredResume[]>([]);
   const [text, setText] = useState("");
+  const [openKeyModal, setOpenKeyModal] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -58,6 +60,10 @@ export default function ResumeManager() {
   }, []);
 
   const handleSave = async () => {
+    if (!hasOpenAIKey()) {
+      setOpenKeyModal(true);
+      return;
+    }
     if (!text.trim()) return;
     const tags = await suggestTags(text);
     const newResume: StoredResume = { id: uuid(), content: text, tags };
@@ -69,6 +75,10 @@ export default function ResumeManager() {
 
   return (
     <Box>
+      <OpenAiKeyModal
+        open={openKeyModal}
+        onClose={() => setOpenKeyModal(false)}
+      />
       <TextField
         label="Paste your resume"
         multiline

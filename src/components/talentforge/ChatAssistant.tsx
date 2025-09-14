@@ -12,12 +12,14 @@ import {
 } from "@mui/material";
 
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
-import { askOpenAI } from "@/utils/talentforge/utils";
+import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
+import OpenAiKeyModal from "./OpenAiKeyModal";
 import { ChatMessage } from "@/types/talentforge/types";
 
 export default function ChatAssistant() {
   const [selectedPrompt, setSelectedPrompt] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<(ChatMessage | null)[]>([]);
+  const [openKeyModal, setOpenKeyModal] = useState(false);
 
   const handleChange = (event: SelectChangeEvent) => {
     setSelectedPrompt(event.target.value as string);
@@ -27,6 +29,10 @@ export default function ChatAssistant() {
     if (!selectedPrompt) return;
     const fullText = PROMPT_TEMPLATES[selectedPrompt]?.fullText;
     if (!fullText) return;
+    if (!hasOpenAIKey()) {
+      setOpenKeyModal(true);
+      return;
+    }
 
     askOpenAI({
       context: "",
@@ -40,6 +46,10 @@ export default function ChatAssistant() {
 
   return (
     <Box>
+      <OpenAiKeyModal
+        open={openKeyModal}
+        onClose={() => setOpenKeyModal(false)}
+      />
       <Stack spacing={2}>
         <Select
           value={selectedPrompt}

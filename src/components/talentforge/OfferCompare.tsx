@@ -13,7 +13,8 @@ import {
 } from "@mui/material";
 
 import FileUploader from "./FileUploader";
-import { askOpenAI, pdfToMarkdown } from "@/utils/talentforge/utils";
+import { askOpenAI, pdfToMarkdown, hasOpenAIKey } from "@/utils/talentforge/utils";
+import OpenAiKeyModal from "./OpenAiKeyModal";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 
 export default function OfferCompare() {
@@ -21,6 +22,7 @@ export default function OfferCompare() {
   const [compensation, setCompensation] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
+  const [openKeyModal, setOpenKeyModal] = useState(false);
 
   const handleFileChange = async (filesFromParam: File[] | string | undefined) => {
     const files = filesFromParam as File[];
@@ -33,6 +35,10 @@ export default function OfferCompare() {
   };
 
   const analyzeOffer = async () => {
+    if (!hasOpenAIKey()) {
+      setOpenKeyModal(true);
+      return;
+    }
     const context = `Offer Letter:\n${offerText}\n\nCurrent Compensation:\n${compensation}`;
     const prompt = PROMPT_TEMPLATES["Negotiate Offer"]?.fullText || "";
     setLoading(true);
@@ -50,6 +56,10 @@ export default function OfferCompare() {
 
   return (
     <Box>
+      <OpenAiKeyModal
+        open={openKeyModal}
+        onClose={() => setOpenKeyModal(false)}
+      />
       <Stack spacing={2}>
         <FileUploader
           accept=".pdf,.txt"
