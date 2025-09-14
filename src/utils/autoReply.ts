@@ -78,5 +78,11 @@ export async function autoReply(
         .join("") || ""
     );
   }
-  return (content || "").trim();
+  if (typeof content === "string") {
+    return content.trim();
+  }
+  if (typeof content === "object" && content !== null && "text" in content) {
+    return ((content as { text?: string }).text || "").trim();
+  }
+  return "";
 }
