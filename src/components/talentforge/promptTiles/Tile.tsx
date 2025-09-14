@@ -15,7 +15,12 @@ import Markdown from "react-markdown";
 
 import OpenAiKeyModal from "../OpenAiKeyModal";
 import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
-import { getResumes, addResume, type ResumeEntry } from "@/utils/talentforge/dataStore";
+import {
+  getResumes,
+  addResume,
+  updateResume,
+  type ResumeEntry,
+} from "@/utils/talentforge/dataStore";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { parseResumeText } from "@/utils/talentforge/pdfParser";
 import { v4 as uuid } from "uuid";
@@ -39,6 +44,7 @@ export default function Tile({
 }: PromptTileProps) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [response, setResponse] = useState("");
+  const [variants, setVariants] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [openKeyModal, setOpenKeyModal] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -55,6 +61,7 @@ export default function Tile({
     }
     setLoading(true);
     try {
+      setVariants([]);
       let prompt = fullPrompt;
       for (const key of inputs) {
         prompt = prompt.replaceAll(`{{${key}}}`, values[key] || "");
@@ -79,9 +86,20 @@ export default function Tile({
         chatHistory: [],
       });
       const message = res?.message || "";
-      setResponse(message);
-      onResponse?.(message);
-      onInsert?.(message);
+      if (id === "bulletVariants") {
+        const lines = message
+          .split(/\n+/)
+          .map((l) => l.replace(/^[-*\d\.\)]+\s*/, "").trim())
+          .filter(Boolean)
+          .slice(0, 3);
+        setVariants(lines);
+        setResponse("");
+        onResponse?.(lines.join("\n"));
+      } else {
+        setResponse(message);
+        onResponse?.(message);
+        onInsert?.(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -110,6 +128,19 @@ export default function Tile({
     }
   };
 
+  const handleInsertVariant = (variant: string) => {
+    const original = values["bulletText"];
+    if (!original) return;
+    const resume = getResumes().find((r) => r.content.includes(original));
+    if (!resume) return;
+    const updated: ResumeEntry = {
+      ...resume,
+      content: resume.content.replace(original, variant),
+    };
+    updateResume(updated);
+    onInsert?.(variant);
+  };
+
   return (
     <Box>
       <OpenAiKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
@@ -127,7 +158,37 @@ export default function Tile({
         <Button variant="contained" onClick={handleRun} disabled={loading}>
           {loading ? "Running..." : "Run"}
         </Button>
-        {response && (
+        {id === "bulletVariants" && variants.length > 0 && (
+          <Stack spacing={1}>
+            {variants.map((v, idx) => (
+              <Stack
+                key={idx}
+                direction="row"
+                spacing={1}
+                alignItems="center"
+              >
+                <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                  {v}
+                </Typography>
+                {navigator.clipboard && (
+                  <Tooltip title="copy to clipboard" arrow>
+                    <IconButton
+                      aria-label="copy variant to clipboard"
+                      onClick={() => navigator.clipboard.writeText(v)}
+                      size="small"
+                    >
+                      <ContentCopy fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+                <Button size="small" onClick={() => handleInsertVariant(v)}>
+                  Insert into resume
+                </Button>
+              </Stack>
+            ))}
+          </Stack>
+        )}
+        {id !== "bulletVariants" && response && (
           <>
             <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
               {response}

@@ -49,5 +49,12 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "From the following job description, list the key job requirements as bullet points:\n\n{{jobDescription}}",
     inputs: ["jobDescription"],
   },
+  bulletVariants: {
+    id: "bulletVariants",
+    display: "Bullet Variants",
+    fullPrompt:
+      "You are an expert resume writer. Rewrite the resume bullet in STAR (Situation, Task, Action, Result) format with quantifiable metrics. Provide three distinct bullet point variants separated by newlines.\n\nOriginal bullet: {{bulletText}}",
+    inputs: ["bulletText"],
+  },
 };
 
