@@ -17,6 +17,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import DifferenceIcon from "@mui/icons-material/Difference";
 import {
   type ResumeEntry,
   deleteResume,
@@ -26,6 +27,7 @@ import {
 import { exportElementToPdf } from "@/utils/pdfExport";
 import Detail from "./Detail";
 import EmptyState from "../EmptyState";
+import Diff from "./Diff";
 
 interface Props {
   resumes: ResumeEntry[];
@@ -35,6 +37,7 @@ interface Props {
 export default function List({ resumes, setResumes }: Props) {
   const [selected, setSelected] = useState<ResumeEntry | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<ResumeEntry | null>(null);
+  const [diffTarget, setDiffTarget] = useState<ResumeEntry | null>(null);
 
   const handleSave = (resume: ResumeEntry) => {
     const updated = updateResume(resume);
@@ -50,6 +53,11 @@ export default function List({ resumes, setResumes }: Props) {
     const updated = deleteResume(id);
     setResumes(updated);
   };
+
+  const parsedToString = (p: ResumeEntry["parsed"]) =>
+    [p.contact, ...p.experience, ...p.education, ...p.skills]
+      .filter(Boolean)
+      .join("\n");
 
   if (resumes.length === 0) {
     return (
@@ -73,6 +81,9 @@ export default function List({ resumes, setResumes }: Props) {
             </IconButton>
             <IconButton size="small" onClick={() => handleClone(r)} aria-label="clone">
               <ContentCopyIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" onClick={() => setDiffTarget(r)} aria-label="diff">
+              <DifferenceIcon fontSize="small" />
             </IconButton>
             <IconButton
               size="small"
@@ -106,10 +117,22 @@ export default function List({ resumes, setResumes }: Props) {
           onClose={() => setSelected(null)}
           onSave={(res) => {
             handleSave(res);
-            setSelected(null);
           }}
-          onClone={(res) => handleClone(res)}
         />
+      )}
+      {diffTarget && (
+        <Dialog open onClose={() => setDiffTarget(null)} fullWidth maxWidth="md">
+          <DialogTitle>Diff {diffTarget.id}</DialogTitle>
+          <DialogContent dividers>
+            <Diff
+              original={diffTarget.content}
+              updated={parsedToString(diffTarget.parsed)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDiffTarget(null)}>Close</Button>
+          </DialogActions>
+        </Dialog>
       )}
       {confirmDelete && (
         <Dialog open onClose={() => setConfirmDelete(null)}>
