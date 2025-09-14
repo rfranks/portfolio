@@ -29,7 +29,7 @@ export function parseOfferText(text: string): ParsedOffer {
     comps.push({
       type: "equity",
       amount: extractAmount(equity[1]),
-      notes: equity[2]?.toUpperCase(),
+      notes: equity[2]?.trim(),
     });
   }
 
