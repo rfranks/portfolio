@@ -27,7 +27,7 @@ export function baseToColor(base: string): string {
 
 export function baseTo2bit(basePair: string): string {
   // .2Bit format is
-  // T to 00, C to 01, A to 10, and G to 11
+  // T/U to 00, C to 01, A to 10, and G to 11
   // see https://genome.ucsc.edu/FAQ/FAQformat.html#format7
   /** @todo support other formats listed */
   switch (basePair.toUpperCase()) {
