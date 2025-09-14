@@ -69,15 +69,15 @@ func CreatePlayer(playerStartStack int, minWager int) Player {
 
 func ForAllHands(player *Player, handFunc func(hand *Hand)) {
 	for i := 0; i < len(player.Hands); i++ {
-		hand := player.Hands[i]
-		handFunc(&hand)
+		hand := &player.Hands[i]
+		handFunc(hand)
 	}
 }
 
 func ForAllPlayers(players []Player, playerFunc func(player *Player)) {
 	for i := 0; i < len(players); i++ {
-		player := players[i]
-		playerFunc(&player)
+		p := &players[i]
+		playerFunc(p)
 	}
 }
 
