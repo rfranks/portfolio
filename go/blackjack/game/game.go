@@ -138,7 +138,7 @@ func CreateDeck() Deck {
 	deck := Deck{}
 	deck.Cards = make([]cards.Card, 0)
 
-	for _, suite := range cards.Suites {
+	for _, suit := range cards.Suits {
 		for _, value := range cards.CardValues {
 			if value != cards.One {
 				// it's not a One until it is Demoted, adding these to the deck would duplicate Aces
@@ -146,10 +146,10 @@ func CreateDeck() Deck {
 				case Spanish21:
 					if value != cards.Ten {
 						// there are no 10s in Spanish21
-						deck.Cards = append(deck.Cards, cards.CreateCard(suite, value))
+						deck.Cards = append(deck.Cards, cards.CreateCard(suit, value))
 					}
 				default:
-					deck.Cards = append(deck.Cards, cards.CreateCard(suite, value))
+					deck.Cards = append(deck.Cards, cards.CreateCard(suit, value))
 				}
 			}
 		}

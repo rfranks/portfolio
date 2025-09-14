@@ -10,7 +10,7 @@ import (
 func RandomCard() cards.Card {
 	// Skip cards.One so each rank has equal probability
 	value := cards.CardValues[rand.Intn(len(cards.CardValues)-1)+1]
-	return cards.CreateCard(cards.Suites[rand.Intn(len(cards.Suites))], value)
+	return cards.CreateCard(cards.Suits[rand.Intn(len(cards.Suits))], value)
 }
 
 func RandomCardSlice(length int) []cards.Card {

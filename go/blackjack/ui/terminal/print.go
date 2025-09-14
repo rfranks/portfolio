@@ -29,18 +29,18 @@ func DrawHand(hand player.Hand, colorTerminal bool) {
 
 	for i := 0; i < len(hand.Cards); i++ {
 		card := hand.Cards[i]
-		suiteStr := cards.SuiteToString[card.Suite]
+		suitStr := cards.SuitToString[card.Suite]
 		if colorTerminal {
-			suiteStr = cards.SuiteToColorString[card.Suite]
+			suitStr = cards.SuitToColorString[card.Suite]
 		}
 
 		if card.Masked {
 			fmt.Printf("│░░░░░░░░│   ")
 		} else {
 			if card.Value == cards.Ten {
-				fmt.Printf("│%s%s     │   ", suiteStr, cards.CardValueToString[card.Value])
+				fmt.Printf("│%s%s     │   ", suitStr, cards.CardValueToString[card.Value])
 			} else {
-				fmt.Printf("│%s%s      │   ", suiteStr, cards.CardValueToString[card.Value])
+				fmt.Printf("│%s%s      │   ", suitStr, cards.CardValueToString[card.Value])
 			}
 		}
 	}
@@ -60,18 +60,18 @@ func DrawHand(hand player.Hand, colorTerminal bool) {
 	for i := 0; i < len(hand.Cards); i++ {
 		card := hand.Cards[i]
 
-		suiteStr := cards.SuiteToString[card.Suite]
+		suitStr := cards.SuitToString[card.Suite]
 		if colorTerminal {
-			suiteStr = cards.SuiteToColorString[card.Suite]
+			suitStr = cards.SuitToColorString[card.Suite]
 		}
 
 		if card.Masked {
 			fmt.Printf("│░░░░░░░░│   ")
 		} else {
 			if card.Value == cards.Ten {
-				fmt.Printf("│     %s%s│   ", cards.CardValueToString[card.Value], suiteStr)
+				fmt.Printf("│     %s%s│   ", cards.CardValueToString[card.Value], suitStr)
 			} else {
-				fmt.Printf("│      %s%s│   ", cards.CardValueToString[card.Value], suiteStr)
+				fmt.Printf("│      %s%s│   ", cards.CardValueToString[card.Value], suitStr)
 			}
 		}
 	}

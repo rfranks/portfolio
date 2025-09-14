@@ -6,31 +6,31 @@ import (
 	"math/rand"
 )
 
-type CardSuite int8
+type CardSuit int8
 type CardValue int8
 
 const (
-	Hearts CardSuite = iota
+	Hearts CardSuit = iota
 	Spades
 	Clubs
 	Diamonds
 )
 
-var Suites = []CardSuite{
+var Suits = []CardSuit{
 	Hearts,
 	Spades,
 	Clubs,
 	Diamonds,
 }
 
-var SuiteToColorString = map[CardSuite]string{
+var SuitToColorString = map[CardSuit]string{
 	Spades:   constants.Gray + "♠" + constants.Reset,
 	Hearts:   constants.Red + "♥" + constants.Reset,
 	Diamonds: constants.Red + "♦" + constants.Reset,
 	Clubs:    constants.Gray + "♣" + constants.Reset,
 }
 
-var SuiteToString = map[CardSuite]string{
+var SuitToString = map[CardSuit]string{
 	Spades:   "♠",
 	Hearts:   "♥",
 	Diamonds: "♦",
@@ -89,7 +89,7 @@ var CardValueToString = map[CardValue]string{
 }
 
 type Card struct {
-	Suite      CardSuite `yaml:"suite"`
+	Suite      CardSuit  `yaml:"suite"`
 	Value      CardValue `yaml:"value"`
 	Masked     bool      `yaml:"masked"`  // only hidden cards are masked
 	Demoted    bool      `yaml:"demoted"` // means our value is One
@@ -296,15 +296,15 @@ func CardToString(card Card, printValue bool, useGlyphs bool, colorTerminal bool
 	if useGlyphs {
 		return fmt.Sprintf("%s ", CardToGlyph(card))
 	} else {
-		suiteStr := SuiteToString[card.Suite]
+		suitStr := SuitToString[card.Suite]
 		if colorTerminal {
-			suiteStr = SuiteToColorString[card.Suite]
+			suitStr = SuitToColorString[card.Suite]
 		}
 
 		if printValue {
-			return fmt.Sprintf("%s%s (%d)", suiteStr, CardValueToString[card.Value], CardToValue(card, false))
+			return fmt.Sprintf("%s%s (%d)", suitStr, CardValueToString[card.Value], CardToValue(card, false))
 		} else {
-			return fmt.Sprintf("%s%s", suiteStr, CardValueToString[card.Value])
+			return fmt.Sprintf("%s%s", suitStr, CardValueToString[card.Value])
 		}
 	}
 }
@@ -349,18 +349,18 @@ func CardToValue(card Card, soft bool) int {
 }
 
 func ToCard(cardString string) Card {
-	var suite CardSuite
+	var suit CardSuit
 	var value CardValue
 
 	switch string([]rune(cardString)[0]) {
 	case "♠":
-		suite = Spades
+		suit = Spades
 	case "♥":
-		suite = Hearts
+		suit = Hearts
 	case "♦":
-		suite = Diamonds
+		suit = Diamonds
 	case "♣":
-		suite = Clubs
+		suit = Clubs
 	}
 
 	switch string([]rune(cardString)[1]) {
@@ -392,12 +392,12 @@ func ToCard(cardString string) Card {
 		value = Ace
 	}
 
-	return CreateCard(suite, value)
+	return CreateCard(suit, value)
 }
 
-func CreateCard(suite CardSuite, value CardValue) Card {
+func CreateCard(suit CardSuit, value CardValue) Card {
 	card := Card{Demoted: false, DoubleDown: false, Masked: false}
-	card.Suite = suite
+	card.Suite = suit
 	card.Value = value
 	return card
 }
@@ -405,8 +405,8 @@ func CreateCard(suite CardSuite, value CardValue) Card {
 func ForAllCards(cardFunc func(card Card)) {
 	for i := 0; i < len(CardValues); i++ {
 		aValue := CardValues[i]
-		for aSuite := range Suites {
-			card := CreateCard(CardSuite(aSuite), aValue)
+		for aSuit := range Suits {
+			card := CreateCard(CardSuit(aSuit), aValue)
 			cardFunc(card)
 		}
 	}
@@ -415,7 +415,7 @@ func ForAllCards(cardFunc func(card Card)) {
 func ForAllCardValues(cardFunc func(card Card)) {
 	for i := 0; i < len(CardValues); i++ {
 		aValue := CardValues[i]
-		card := CreateCard(CardSuite(Suites[0]), aValue)
+		card := CreateCard(CardSuit(Suits[0]), aValue)
 		cardFunc(card)
 	}
 }
