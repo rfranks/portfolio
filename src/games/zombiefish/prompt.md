@@ -1,8 +1,8 @@
 Look at and study the `src/games/warbirds/` game to understand how to write a canvas-driven click-based lightgun-web shooter game.  
 
-Study the asset images available under the folder `public/assets/fish/` to use as assets in building a game called zombiefish, where clicking(shooting) a fish randomly turns it into a bony skeleton that starts to chase other fish turning them into skeletons as well.  
+Study the asset images available under the folder `public/assets/fish/` to use as assets in building a game called zombiefish, where clicking (shooting) a fish randomly turns it into a bony skeleton that starts to chase other fish turning them into skeletons as well.
 
-Skeleton fish take 2 clicks(shots) to kill.  Use `public/assets/fish/Sample.png` to "see" the layout of the game.  
+Skeleton fish take 2 clicks (shots) to kill.  Use `public/assets/fish/Sample.png` to "see" the layout of the game.
 
 The game has a timer using make and drawTextLabel in utils built from assets for TextLabel.imgs in `public/assets/fish/PNG/HUDText`.  In the end, the game all comes down to accuracy of your clicks/shots.  In the end show an accuracy % at the end of the round, that counts upward using makeTextLabel/drawTextLabel.  Clicking on accuracy starts a new round of zombiefish.
 
