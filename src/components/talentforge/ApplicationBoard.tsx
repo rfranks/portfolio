@@ -285,7 +285,9 @@ export default function ApplicationBoard() {
       prompt = prompt.replaceAll(`{{${key}}}`, values[key] || "");
     }
     if (tileId === "coverLetter") {
-      const resume = app.resumeVariant || getResumes()[0];
+      const resume: ResumeEntry | undefined = app.resumeVariant
+        ? getResumes().find((r) => r.id === app.resumeVariant?.id)
+        : getResumes()[0];
       if (resume) {
         prompt = `${prompt}\n\nJob Description:\n${values.jobDescription}\n\nResume:\n${resume.content}`;
       } else if (values.jobDescription) {
