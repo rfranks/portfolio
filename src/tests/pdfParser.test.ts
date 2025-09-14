@@ -34,7 +34,7 @@ describe("cleanPdfText", () => {
   test("removes numeric page headers and footers", () => {
     const pages = [
       ["1", "Experience", "Company A", "2"],
-      ["1", "Education", "2"],
+      ["2", "Education", "3"],
     ];
 
     const result = cleanPdfText(pages);
