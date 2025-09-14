@@ -80,4 +80,18 @@ describe("autoReply utilities", () => {
       { role: "user", content: "We are unable to proceed." },
     ]);
   });
+
+  test("buildAutoReplyMessages supports polite follow-up", () => {
+    const messages = buildAutoReplyMessages(
+      "politeFollowUp",
+      "Just checking in.",
+    );
+    expect(messages).toEqual([
+      {
+        role: "system",
+        content: AUTO_REPLY_TEMPLATES.politeFollowUp,
+      },
+      { role: "user", content: "Just checking in." },
+    ]);
+  });
 });

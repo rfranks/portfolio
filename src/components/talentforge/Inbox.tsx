@@ -33,6 +33,7 @@ export default function Inbox() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [templates, setTemplates] = useState<Record<string, AutoReplyTemplate>>({});
+  const [quickTones, setQuickTones] = useState<Record<string, AutoReplyTemplate>>({});
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -54,6 +55,16 @@ export default function Inbox() {
       buildAutoReplyMessages(template, message.body),
     );
     setDrafts((d) => ({ ...d, [message.id]: reply }));
+  };
+
+  const handleQuickInsert = async (message: Message) => {
+    const tone = quickTones[message.id] || "politeFollowUp";
+    const text = await autoReply(
+      buildAutoReplyMessages(tone, message.body),
+    );
+    const reply = { id: uuidv4(), body: text, sentAt: new Date().toISOString() };
+    const updated = data.addMessageReply(message.id, reply);
+    setMessages(updated);
   };
 
   const handleSendReply = (message: Message) => {
@@ -127,6 +138,29 @@ export default function Inbox() {
                         {r.body}
                       </Typography>
                     ))}
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Select
+                        size="small"
+                        value={quickTones[message.id] || "politeFollowUp"}
+                        onChange={(e) =>
+                          setQuickTones((t) => ({
+                            ...t,
+                            [message.id]: e.target.value as AutoReplyTemplate,
+                          }))
+                        }
+                        sx={{ maxWidth: 200 }}
+                      >
+                        <MenuItem value="politeFollowUp">Polite follow-up</MenuItem>
+                        <MenuItem value="politeDecline">Politely decline</MenuItem>
+                      </Select>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => void handleQuickInsert(message)}
+                      >
+                        Quick insert
+                      </Button>
+                    </Stack>
                     <TextField
                       label="Your reply"
                       multiline
