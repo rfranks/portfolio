@@ -31,11 +31,13 @@ export default function OfferDetail({ offer, onSave }: OfferDetailProps) {
   const [compensation, setCompensation] = useState<OfferComp[]>(
     offer?.compensation ?? defaultComp,
   );
-  const [summary, setSummary] = useState(offer?.summary || "");
+  const [summary, setSummary] = useState(
+    offer?.summary?.join("\n") || "",
+  );
 
   useEffect(() => {
     setCompensation(offer?.compensation ?? defaultComp);
-    setSummary(offer?.summary || "");
+    setSummary(offer?.summary?.join("\n") || "");
   }, [offer]);
 
   const handleCompChange = (
@@ -68,7 +70,10 @@ export default function OfferDetail({ offer, onSave }: OfferDetailProps) {
       id: offer?.id || uuid(),
       application: offer?.application || ({} as ApplicationRecord),
       compensation: filtered,
-      summary,
+      summary: summary
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
     };
 
     if (offer) {

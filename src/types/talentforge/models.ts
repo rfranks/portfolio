@@ -127,7 +127,7 @@ export interface Offer {
   /** Compensation components that make up the offer. */
   compensation: OfferComp[];
   /** Optional summary or notes about the offer. */
-  summary?: string;
+  summary?: string[];
 }
 
 export interface OfferComp {

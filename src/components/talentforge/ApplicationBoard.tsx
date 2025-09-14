@@ -19,6 +19,9 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
 import { Close, ExpandMore } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
@@ -238,9 +241,16 @@ function Card({
             </Stack>
           )}
           {app.offer?.summary && (
-            <Box sx={{ mt: 1 }}>
-              <Markdown>{app.offer.summary}</Markdown>
-            </Box>
+            <List dense sx={{ mt: 1, listStyleType: "disc", pl: 2 }}>
+              {app.offer.summary.map((line, idx) => (
+                <ListItem key={idx} sx={{ display: "list-item", py: 0 }}>
+                  <ListItemText
+                    primary={line}
+                    primaryTypographyProps={{ variant: "body2" }}
+                  />
+                </ListItem>
+              ))}
+            </List>
           )}
         </Box>
       )}
@@ -263,7 +273,11 @@ export default function ApplicationBoard() {
   const [drawerPrompt, setDrawerPrompt] = useState("");
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [drawerMessages, setDrawerMessages] = useState<
-    { role: "user" | "assistant"; text: string }[]
+    {
+      role: "user" | "assistant";
+      text?: string;
+      data?: { compensation?: OfferComp[]; summary?: string[] };
+    }[]
   >([]);
   const [drawerAnalysis, setDrawerAnalysis] = useState<Analysis | null>(null);
   const [drawerMode, setDrawerMode] = useState<
@@ -483,27 +497,32 @@ export default function ApplicationBoard() {
         chatHistory: [],
       });
       const message = res?.message || "";
-      let parsed: { compensation?: OfferComp[]; summary?: string } = {};
+      let parsed: { compensation?: OfferComp[]; summary?: string[] | string } = {};
       try {
         parsed = JSON.parse(message);
       } catch {
         parsed.summary = message;
       }
-      const bulletSummary = (parsed.summary || "")
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => (line.startsWith("-") ? line : `- ${line}`))
-        .join("\n");
+      const summaryLines = Array.isArray(parsed.summary)
+        ? parsed.summary
+        : (parsed.summary || "")
+            .split(/\r?\n/)
+            .map((line) => line.replace(/^\-\s*/, "").trim())
+            .filter(Boolean);
       const offer: Offer = {
         id: uuid(),
         application: drawerApp,
         compensation: parsed.compensation || [],
-        summary: bulletSummary,
+        summary: summaryLines,
       };
       const updated = updateJobApplication(drawerApp.id, { offer });
       setApplications(updated);
-      setDrawerMessages([{ role: "assistant", text: bulletSummary }]);
+      setDrawerMessages([
+        {
+          role: "assistant",
+          data: { compensation: offer.compensation, summary: offer.summary },
+        },
+      ]);
     } finally {
       setDrawerLoading(false);
     }
@@ -751,7 +770,34 @@ export default function ApplicationBoard() {
                     maxWidth: "100%",
                   }}
                 >
-                  <Markdown>{m.text}</Markdown>
+                  {m.text ? (
+                    <Markdown>{m.text}</Markdown>
+                  ) : m.data ? (
+                    <>
+                      {m.data.compensation && m.data.compensation.length > 0 && (
+                        <Stack spacing={0.5}>
+                          {m.data.compensation.map((c) => (
+                            <Typography key={c.type} variant="body2">
+                              {c.type.charAt(0).toUpperCase() + c.type.slice(1)}: {"$"}
+                              {c.amount.toLocaleString()} {c.notes ? `(${c.notes})` : ""}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      )}
+                      {m.data.summary && (
+                        <List dense sx={{ mt: 1, listStyleType: "disc", pl: 2 }}>
+                          {m.data.summary.map((line, i) => (
+                            <ListItem key={i} sx={{ display: "list-item", py: 0 }}>
+                              <ListItemText
+                                primary={line}
+                                primaryTypographyProps={{ variant: "body2" }}
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      )}
+                    </>
+                  ) : null}
                 </Box>
               ))}
               {drawerMode === "resumeCompare" && !drawerLoading && (

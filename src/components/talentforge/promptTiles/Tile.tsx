@@ -124,7 +124,12 @@ export default function Tile({
           id: uuid(),
           application: {} as ApplicationRecord,
           compensation: [],
-          summary: message,
+          summary: [
+            ...message
+              .split(/\r?\n/)
+              .map((s) => s.trim())
+              .filter(Boolean),
+          ],
         };
         addOffer(offer);
         onResponse?.(message);

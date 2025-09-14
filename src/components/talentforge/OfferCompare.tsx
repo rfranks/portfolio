@@ -96,12 +96,12 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
         id: uuid(),
         application: {} as ApplicationRecord,
         compensation: [{ type: "note", amount: 0, notes: compensation }],
-        summary:
-          `**Analysis:**\n${parsed.analysis || ""}\n\n**Email Draft:**\n${
-            parsed.email || ""
-          }\n\n**LinkedIn Draft:**\n${parsed.linkedin || ""}\n\n**Indeed Draft:**\n${
-            parsed.indeed || ""
-          }`,
+        summary: [
+          `Analysis: ${parsed.analysis || ""}`,
+          `Email Draft: ${parsed.email || ""}`,
+          `LinkedIn Draft: ${parsed.linkedin || ""}`,
+          `Indeed Draft: ${parsed.indeed || ""}`,
+        ],
       };
       addOffer(offer);
     } catch {
@@ -111,7 +111,7 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
         id: uuid(),
         application: {} as ApplicationRecord,
         compensation: [{ type: "note", amount: 0, notes: compensation }],
-        summary: message,
+        summary: [message],
       };
       addOffer(offer);
     }
