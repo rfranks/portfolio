@@ -1,5 +1,9 @@
 import { cleanPdfText, parseResumeText } from "@/utils/talentforge/pdfParser";
 
+// pdfjs-dist is only needed for pdf parsing, which these tests don't exercise.
+// Mock it to avoid issues loading the actual ESM bundle in Jest.
+jest.mock("pdfjs-dist", () => ({}));
+
 describe("cleanPdfText", () => {
   test("removes repeating headers and footers", () => {
     const pages = [
@@ -25,6 +29,16 @@ describe("cleanPdfText", () => {
 
     const result = cleanPdfText(pages);
     expect(result).toBe("Only line");
+  });
+
+  test("removes numeric page headers and footers", () => {
+    const pages = [
+      ["1", "Experience", "Company A", "2"],
+      ["1", "Education", "2"],
+    ];
+
+    const result = cleanPdfText(pages);
+    expect(result).toBe("Experience\nCompany A\n\nEducation");
   });
 });
 
