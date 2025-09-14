@@ -14,11 +14,18 @@ import {
 } from "@mui/material";
 
 import FileUploader from "./FileUploader";
-import { askOpenAI, pdfToMarkdown, hasOpenAIKey } from "@/utils/talentforge/utils";
+import {
+  askOpenAI,
+  pdfToMarkdown,
+  hasOpenAIKey,
+} from "@/utils/talentforge/utils";
 import OpenAiKeyModal from "./OpenAiKeyModal";
-import { PROMPT_TEMPLATES } from "@/consts/prompts";
-import { addOffer } from "@/utils/talentforge/dataStore";
-import type { Offer } from "@/utils/talentforge/dataStore";
+import {
+  addOffer,
+  type Offer,
+  type Message,
+} from "@/utils/talentforge/dataStore";
+import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import type { ApplicationRecord } from "@/types";
 
 interface OfferCompareProps {
@@ -26,9 +33,15 @@ interface OfferCompareProps {
 }
 
 export default function OfferCompare({ onSave }: OfferCompareProps) {
+  const data = useTalentForgeData();
   const [offerText, setOfferText] = useState("");
   const [compensation, setCompensation] = useState("");
-  const [result, setResult] = useState("");
+  const [analysis, setAnalysis] = useState("");
+  const [drafts, setDrafts] = useState({
+    email: "",
+    linkedin: "",
+    indeed: "",
+  });
   const [loading, setLoading] = useState(false);
   const [openKeyModal, setOpenKeyModal] = useState(false);
 
@@ -52,27 +65,73 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
       return;
     }
     const context = `Offer Letter:\n${offerText}\n\nCurrent Compensation:\n${compensation}`;
-    const prompt = PROMPT_TEMPLATES.negotiateOffer?.fullText || "";
+    const prompt =
+      "Compare the offer letter to the current compensation and summarize key differences. " +
+      "Then draft professional replies for email, LinkedIn, and Indeed. " +
+      "Respond in JSON with keys analysis, email, linkedin, indeed.";
     setLoading(true);
     const response = await askOpenAI({
       context,
       user: prompt,
       system:
-        "You are an assistant that compares job offers with current compensation and drafts negotiation responses.",
+        "You analyze offers and produce structured response drafts.",
       chatHistory: [],
       returnFirstResponse: true,
     });
     const message = response?.message || "";
-    setResult(message);
-    const offer: Offer = {
-      id: uuid(),
-      application: {} as ApplicationRecord,
-      compensation: [{ type: "note", amount: 0, notes: compensation }],
-      summary: message,
-    };
-    addOffer(offer);
+    try {
+      const parsed = JSON.parse(message) as {
+        analysis?: string;
+        email?: string;
+        linkedin?: string;
+        indeed?: string;
+      };
+      setAnalysis(parsed.analysis || "");
+      setDrafts({
+        email: parsed.email || "",
+        linkedin: parsed.linkedin || "",
+        indeed: parsed.indeed || "",
+      });
+      const offer: Offer = {
+        id: uuid(),
+        application: {} as ApplicationRecord,
+        compensation: [{ type: "note", amount: 0, notes: compensation }],
+        summary:
+          `**Analysis:**\n${parsed.analysis || ""}\n\n**Email Draft:**\n${
+            parsed.email || ""
+          }\n\n**LinkedIn Draft:**\n${parsed.linkedin || ""}\n\n**Indeed Draft:**\n${
+            parsed.indeed || ""
+          }`,
+      };
+      addOffer(offer);
+    } catch {
+      setAnalysis(message);
+      setDrafts({ email: "", linkedin: "", indeed: "" });
+      const offer: Offer = {
+        id: uuid(),
+        application: {} as ApplicationRecord,
+        compensation: [{ type: "note", amount: 0, notes: compensation }],
+        summary: message,
+      };
+      addOffer(offer);
+    }
     setLoading(false);
     onSave?.();
+  };
+
+  const insertDraft = (connector: string, body: string) => {
+    if (!body) return;
+    const message: Message = {
+      id: uuid(),
+      threadId: uuid(),
+      senderId: connector,
+      sentAt: new Date().toISOString(),
+      body,
+      connector,
+      status: "unread",
+      replies: [],
+    };
+    data.addMessage(message);
   };
 
   return (
@@ -108,14 +167,66 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
             <CircularProgress />
           </Box>
         )}
-        {result && (
+        {analysis && (
           <Box sx={{ mt: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Draft Response
+              Analysis
             </Typography>
             <Typography variant="body2" component="div">
-              <Markdown>{result}</Markdown>
+              <Markdown>{analysis}</Markdown>
             </Typography>
+          </Box>
+        )}
+        {(drafts.email || drafts.linkedin || drafts.indeed) && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Draft Replies
+            </Typography>
+            {drafts.email && (
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="subtitle2">Email</Typography>
+                <Typography variant="body2" component="div">
+                  <Markdown>{drafts.email}</Markdown>
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => insertDraft("Email", drafts.email)}
+                  sx={{ mt: 1 }}
+                >
+                  Insert into Inbox
+                </Button>
+              </Box>
+            )}
+            {drafts.linkedin && (
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="subtitle2">LinkedIn</Typography>
+                <Typography variant="body2" component="div">
+                  <Markdown>{drafts.linkedin}</Markdown>
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => insertDraft("LinkedIn", drafts.linkedin)}
+                  sx={{ mt: 1 }}
+                >
+                  Insert into Inbox
+                </Button>
+              </Box>
+            )}
+            {drafts.indeed && (
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="subtitle2">Indeed</Typography>
+                <Typography variant="body2" component="div">
+                  <Markdown>{drafts.indeed}</Markdown>
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => insertDraft("Indeed", drafts.indeed)}
+                  sx={{ mt: 1 }}
+                >
+                  Insert into Inbox
+                </Button>
+              </Box>
+            )}
           </Box>
         )}
       </Stack>

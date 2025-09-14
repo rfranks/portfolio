@@ -12,7 +12,7 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
   coverLetter: {
     displayText: "Cover Letter",
     fullText:
-      "Draft a concise cover letter highlighting why you are a great fit for the role.",
+      "Write a professional cover letter with exactly three paragraphs tailored to the job description.",
   },
   negotiateOffer: {
     displayText: "Negotiate Offer",
@@ -48,6 +48,11 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     displayText: "Job Description Risk",
     fullText:
       "Identify potential issues in this job description like unpaid overtime, vague responsibilities, or compliance red flags. Return JSON with a 'summary' and an 'issues' array of objects with 'severity' ('red' or 'yellow') and 'message'.",
+  },
+  jobRequirements: {
+    displayText: "Job Requirements",
+    fullText:
+      "List the key job requirements from the provided job description in bullet points.",
   },
   networkingOutreach: {
     displayText: "Networking Outreach",
@@ -88,6 +93,7 @@ export const PROMPT_GROUPS: Record<string, string[]> = {
   "Career Growth": [
     "skillGapAnalysis",
     "jobDescriptionRewrite",
+    "jobRequirements",
     "careerGoals",
     "elevatorPitch",
     "linkedinProfileOptimization",

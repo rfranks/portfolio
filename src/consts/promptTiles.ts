@@ -35,5 +35,19 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "Craft a short elevator pitch for a professional with experience in {{experience}} looking for {{goal}}.",
     inputs: ["experience", "goal"],
   },
+  resumeRewrite: {
+    ...BASE_TILES.resumeSummary,
+    id: "resumeRewrite",
+    display: "Resume Rewrite",
+    fullPrompt:
+      "Rewrite this resume to emphasize how the candidate meets the role requirements.",
+    inputs: ["resumeVariantId", "jobDescription"],
+  },
+  jobRequirements: {
+    ...BASE_TILES.jobRequirements,
+    fullPrompt:
+      "From the following job description, list the key job requirements as bullet points:\n\n{{jobDescription}}",
+    inputs: ["jobDescription"],
+  },
 };
 
