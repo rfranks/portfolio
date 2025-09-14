@@ -488,7 +488,7 @@ export default function ApplicationBoard() {
       };
       const updated = updateJobApplication(drawerApp.id, { offer });
       setApplications(updated);
-      setDrawerMessages([{ role: "assistant", text: offer.summary }]);
+      setDrawerMessages([{ role: "assistant", text: offer.summary || "" }]);
     } finally {
       setDrawerLoading(false);
     }
