@@ -13,7 +13,7 @@ import {
   updateOffer,
   type Offer,
 } from "@/utils/talentforge/dataStore";
-import type { OfferComp } from "@/types";
+import type { ApplicationRecord, OfferComp } from "@/types";
 
 interface OfferDetailProps {
   offer?: Offer;
@@ -41,7 +41,7 @@ export default function OfferDetail({ offer, onSave }: OfferDetailProps) {
 
     const newOffer: Offer = {
       id: offer?.id || uuid(),
-      application: offer?.application || ({} as any),
+      application: offer?.application || ({} as ApplicationRecord),
       compensation,
       summary,
     };
