@@ -315,6 +315,15 @@ export const projects: {
     interestsMeWhy:
       "Turning clinical events into podcasts explores a novel medium for physician updates. It combines summarization, text-to-speech, and healthcare data.",
   },
+  {
+    name: "Petly",
+    description:
+      "Pet owner portal mixing a social feed with full veterinary EHR access including vaccinations, x-rays, visits, and invoices.",
+    href: "/petly",
+    type: "work",
+    interestsMeWhy:
+      "At IDEXX we reshaped boxy Liferay portals into a playful notebook of sticky notes, lists, and photos—no square portlets in sight.",
+  },
 ];
 
 export const recognition: {
