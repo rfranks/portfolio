@@ -80,7 +80,11 @@ export default function Inbox() {
   };
 
   const handleOpenThread = (message: Message) => {
+    const isCurrent = replyingTo === message.id;
     setReplyingTo((current) => (current === message.id ? null : message.id));
+    if (!isCurrent && !drafts[message.id]) {
+      void handleAutoReply(message);
+    }
     if (message.status === "unread") {
       const updated = data.updateMessageStatus(message.id, "read");
       setMessages(updated);

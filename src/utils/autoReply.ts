@@ -55,9 +55,12 @@ export async function autoReply(
     );
   }
 
-  let data: any;
+  interface OpenAIChatResponse {
+    choices?: Array<{ message?: { content?: unknown } }>;
+  }
+  let data: OpenAIChatResponse;
   try {
-    data = await response.json();
+    data = (await response.json()) as OpenAIChatResponse;
   } catch {
     throw new Error("Failed to parse OpenAI response");
   }
