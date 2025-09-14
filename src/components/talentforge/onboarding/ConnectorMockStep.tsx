@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Checkbox, FormControlLabel, Stack } from "@mui/material";
+import { Button, Stack, Typography } from "@mui/material";
+import { v4 as uuid } from "uuid";
+
+import { ConnectorToken } from "@/types/connector";
+import {
+  deleteConnectorToken,
+  getConnectorToken,
+  saveConnectorToken,
+} from "@/utils/talentforge/dataStore";
 
 interface StepProps {
   onNext: () => void;
@@ -9,36 +17,51 @@ interface StepProps {
 }
 
 export default function ConnectorMockStep({ onNext, onBack }: StepProps) {
-  const [connected, setConnected] = useState(false);
+  const [token, setToken] = useState<ConnectorToken | null>(() =>
+    getConnectorToken("mock") ?? null,
+  );
+
+  const handleConnect = () => {
+    const newToken: ConnectorToken = { accessToken: uuid() };
+    saveConnectorToken("mock", newToken);
+    setToken(newToken);
+  };
+
+  const handleDisconnect = () => {
+    deleteConnectorToken("mock");
+    setToken(null);
+  };
 
   return (
     <Stack spacing={2} aria-label="Connect accounts">
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={connected}
-              onChange={(e) => setConnected(e.target.checked)}
-              inputProps={{ "aria-label": "Mock connector" }}
-            />
-          }
-          label="Mock Connector"
-        />
-        <Stack direction="row" spacing={1}>
-          {onBack && (
-            <Button onClick={onBack} aria-label="Back">
-              Back
-            </Button>
-          )}
-          <Button
-            variant="contained"
-            onClick={onNext}
-            disabled={!connected}
-            aria-label="Continue"
-          >
-            Continue
+      <Typography aria-label="Connection status">
+        {token ? `Connected: ${token.accessToken}` : "Not connected"}
+      </Typography>
+      {token ? (
+        <Button onClick={handleDisconnect} aria-label="Disconnect">
+          Disconnect
+        </Button>
+      ) : (
+        <Button onClick={handleConnect} aria-label="Connect">
+          Generate Token
+        </Button>
+      )}
+      <Stack direction="row" spacing={1}>
+        {onBack && (
+          <Button onClick={onBack} aria-label="Back">
+            Back
           </Button>
-        </Stack>
+        )}
+        <Button
+          variant="contained"
+          onClick={onNext}
+          disabled={!token}
+          aria-label="Continue"
+        >
+          Continue
+        </Button>
       </Stack>
+    </Stack>
   );
 }
 
