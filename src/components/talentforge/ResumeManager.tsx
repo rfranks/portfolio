@@ -22,31 +22,11 @@ import {
 
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { pdfToMarkdown, parseResumeText } from "@/utils/talentforge/pdfParser";
+import { tagResume } from "@/utils/talentforge/tagging";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAiKeyModal from "./OpenAiKeyModal";
 import FileUploader from "./FileUploader";
-
-const suggestTags = async (content: string): Promise<string[]> => {
-  try {
-    const res = await askOpenAI({
-      context: content,
-      user: "Suggest tags for this resume",
-      system:
-        "You are an assistant that extracts up to 5 concise tags from resume text. Return tags separated by commas.",
-      logMessagesToChatHistory: false,
-      returnFirstResponse: true,
-      chatHistory: [],
-    });
-    const message = res?.message?.trim() ?? "";
-    return message
-      .split(/,|\n/)
-      .map((t) => t.trim())
-      .filter(Boolean);
-  } catch {
-    return [];
-  }
-};
 
 export default function ResumeManager() {
   const [resumes, setResumes] = useState<ResumeEntry[]>([]);
@@ -65,12 +45,8 @@ export default function ResumeManager() {
   }, []);
 
   const handleSave = async () => {
-    if (!hasOpenAIKey()) {
-      setOpenKeyModal(true);
-      return;
-    }
     if (!text.trim()) return;
-    const tags = await suggestTags(text);
+    const tags = await tagResume(text);
     const parsed = parseResumeText(text);
     const newResume = { id: uuid(), content: text, parsed, tags };
     const updated = addResume(newResume);
