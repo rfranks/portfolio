@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   Paper,
@@ -60,6 +60,7 @@ import {
 import OpenAIKeyModal from "./OpenAiKeyModal";
 import FileUploader from "./FileUploader";
 import { exportElementToPdf } from "@/utils/pdfExport";
+import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -71,12 +72,6 @@ interface Analysis {
   issues: Issue[];
 }
 
-const STATUSES: ApplicationStatus[] = [
-  "applied",
-  "interview",
-  "offer",
-  "rejected",
-];
 
 function Column({
   id,
@@ -91,6 +86,8 @@ function Column({
   return (
     <Paper
       ref={setNodeRef}
+      role="list"
+      aria-label={title}
       sx={{ p: 2, width: 260, minHeight: 400, bgcolor: "background.paper" }}
     >
       <Typography variant="h6" gutterBottom>
@@ -108,6 +105,8 @@ function Card({
   onAssignResume,
   onSetInterviewDate,
   onSetInterviewLocation,
+  onKeyDown,
+  activeId,
 }: {
   app: JobApplication;
   onRunTile: (id: string, app: JobApplication) => void;
@@ -115,6 +114,8 @@ function Card({
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
   onSetInterviewLocation: (appId: string, value: string) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  activeId: string | null;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app.id });
@@ -129,12 +130,21 @@ function Card({
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      role="listitem"
+      aria-roledescription="draggable"
+      aria-grabbed={activeId === app.id}
+      tabIndex={0}
+      onKeyDown={onKeyDown}
       sx={{
         p: 1,
         border: "1px solid",
         borderColor: "divider",
         borderRadius: 1,
         bgcolor: "background.default",
+        '&:focus-visible': {
+          outline: '2px solid',
+          outlineColor: 'primary.main',
+        },
         ...style,
       }}
     >
@@ -313,6 +323,8 @@ export default function ApplicationBoard() {
   const [drawerApp, setDrawerApp] = useState<JobApplication | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [openKeyModal, setOpenKeyModal] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [liveMessage, setLiveMessage] = useState("");
   const negotiationRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -344,6 +356,48 @@ export default function ApplicationBoard() {
     const newStatus = over.id as ApplicationStatus;
     const updated = updateJobApplicationStatus(active.id as string, newStatus);
     setApplications(updated);
+    const movedApp = updated.find((a) => a.id === active.id);
+    if (movedApp) {
+      setLiveMessage(`${movedApp.role.title} moved to ${newStatus}`);
+    }
+  };
+
+  const handleKeyboardMove = (appId: string, key: string) => {
+    const app = applications.find((a) => a.id === appId);
+    if (!app) return;
+    const newStatus = getNextStatus(app.status, key);
+    if (newStatus !== app.status) {
+      const updated = updateJobApplicationStatus(appId, newStatus);
+      setApplications(updated);
+      const movedApp = updated.find((a) => a.id === appId);
+      if (movedApp) {
+        setLiveMessage(`${movedApp.role.title} moved to ${newStatus}`);
+      }
+    }
+  };
+
+  const handleCardKeyDown = (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    app: JobApplication,
+  ) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (activeId === app.id) {
+        setActiveId(null);
+        setLiveMessage(`${app.role.title} dropped in ${app.status}`);
+      } else {
+        setActiveId(app.id);
+        setLiveMessage(`${app.role.title} picked up`);
+      }
+      return;
+    }
+    if (
+      activeId === app.id &&
+      ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(e.key)
+    ) {
+      e.preventDefault();
+      handleKeyboardMove(app.id, e.key);
+    }
   };
 
   const handleAdd = () => {
@@ -729,6 +783,18 @@ export default function ApplicationBoard() {
 
   return (
     <>
+      <Box
+        sx={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          overflow: "hidden",
+          clip: "rect(0 0 0 0)",
+        }}
+        aria-live="polite"
+      >
+        {liveMessage}
+      </Box>
       <Button
         variant="contained"
         onClick={() => setDialogOpen(true)}
@@ -761,6 +827,8 @@ export default function ApplicationBoard() {
                       onAssignResume={handleAssignResume}
                       onSetInterviewDate={handleInterviewDate}
                       onSetInterviewLocation={handleInterviewLocation}
+                      onKeyDown={(e) => handleCardKeyDown(e, app)}
+                      activeId={activeId}
                     />
                   ))}
               </Column>
