@@ -261,7 +261,7 @@ function Card({
                 fullWidth
                 sx={{ mt: 1 }}
               >
-                Renegotiate Offer
+                {PROMPT_TILES.offerNegotiation.display}
               </Button>
             </>
           )}
@@ -434,7 +434,6 @@ export default function ApplicationBoard() {
       setDrawerMessages((prev) => [
         ...prev,
         { role: "assistant", text: "Generating negotiation..." },
-        { role: "user", text: prompt },
       ]);
       setDrawerLoading(true);
       try {
@@ -797,7 +796,7 @@ export default function ApplicationBoard() {
           >
             <Close />
           </IconButton>
-          {drawerTileId === "screenRole" ? (
+          {drawerTileId === "screenRole" || drawerTileId === "offerNegotiation" ? (
             <Accordion sx={{ mb: 2 }}>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography variant="h6">{drawerTitle}</Typography>
