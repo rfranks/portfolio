@@ -71,7 +71,7 @@ const Timeline: React.FC<TimelineProps> = ({
       .split("\n")
       .map((l) => l.trim())
       .filter((l) => l && !/^timeline\b/.test(l))
-      .map((line) => {
+      .map((line): TimelineEvent | null => {
         // format is expected to be one of "<dateTime>: <title>: <detail>: <category>: <id>"
         // but detail could contain colons, so we need to handle that
         let working = line;
