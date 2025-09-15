@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography, TextField } from "@mui/material";
 
 import PromptTileGrid from "./promptTiles/PromptTileGrid";
 
@@ -15,6 +15,7 @@ export default function ChatWorkspace({
   onSaveResumeVariant,
 }: ChatWorkspaceProps) {
   const [output, setOutput] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
 
   const handleCopy = () => {
     if (navigator.clipboard && output) {
@@ -39,7 +40,19 @@ export default function ChatWorkspace({
       }}
     >
       <Box sx={{ flex: 1 }}>
-        <PromptTileGrid onResponse={setOutput} />
+        <TextField
+          label="Job Description"
+          multiline
+          minRows={4}
+          fullWidth
+          value={jobDescription}
+          onChange={(e) => setJobDescription(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+        <PromptTileGrid
+          onResponse={setOutput}
+          initialValues={{ jdRequirements: { jobDescription } }}
+        />
       </Box>
       <Box
         sx={{
