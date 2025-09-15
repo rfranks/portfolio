@@ -1,4 +1,4 @@
-// src/components/Timeline/Timeline.test.tsx
+// src/components/showcase/Timeline/Timeline.test.tsx
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import Timeline, { TimelineEvent, TimelineProps } from "../Timeline";
