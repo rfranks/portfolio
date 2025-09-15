@@ -260,7 +260,7 @@ function Card({
                 fullWidth
                 sx={{ mt: 1 }}
               >
-                Negotiate Offer
+                Renegotiate Offer
               </Button>
             </>
           )}
