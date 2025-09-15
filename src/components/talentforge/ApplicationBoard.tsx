@@ -57,6 +57,7 @@ import {
   hasValidOpenAIKey,
   pdfToMarkdown,
 } from "@/utils/talentforge/utils";
+import { docxToText } from "@/utils/talentforge/resumeIngest";
 import OpenAIKeyModal from "./OpenAiKeyModal";
 import FileUploader from "./FileUploader";
 import { exportElementToPdf } from "@/utils/pdfExport";
@@ -604,6 +605,8 @@ export default function ApplicationBoard() {
       const text =
         file.type === "application/pdf"
           ? await pdfToMarkdown(file)
+          : file.name.toLowerCase().endsWith(".docx")
+          ? await docxToText(file)
           : await file.text();
       setDrawerMessages((prev) => [
         ...prev,
@@ -895,7 +898,7 @@ export default function ApplicationBoard() {
             <Stack spacing={2} sx={{ mt: 2 }}>
               {drawerMode === "offerUpload" && (
                 <FileUploader
-                  accept=".pdf,.txt,.md"
+                  accept=".pdf,.docx,.txt,.md"
                   label="Upload Offer"
                   variant="upload"
                   outputType="files"

@@ -25,7 +25,7 @@ import {
   type Offer,
 } from "@/utils/talentforge/dataStore";
 import { tagResume } from "@/utils/talentforge/tagging";
-import { parseResumeText } from "@/utils/talentforge/pdfParser";
+import { parseResumeText } from "@/utils/talentforge/resumeIngest";
 import { v4 as uuid } from "uuid";
 import type { ApplicationRecord } from "@/types";
 

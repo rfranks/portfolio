@@ -19,6 +19,7 @@ import {
   pdfToMarkdown,
   hasOpenAIKey,
 } from "@/utils/talentforge/utils";
+import { docxToText } from "@/utils/talentforge/resumeIngest";
 import OpenAIKeyModal from "./OpenAiKeyModal";
 import {
   addOffer,
@@ -53,7 +54,11 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
       const file = files[0];
       void (async () => {
         const text =
-          file.type === "application/pdf" ? await pdfToMarkdown(file) : await file.text();
+          file.type === "application/pdf"
+            ? await pdfToMarkdown(file)
+            : file.name.toLowerCase().endsWith(".docx")
+            ? await docxToText(file)
+            : await file.text();
         setOfferText(text);
       })();
     }
@@ -142,7 +147,7 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
       />
       <Stack spacing={2}>
         <FileUploader
-          accept=".pdf,.txt"
+          accept=".pdf,.docx,.txt"
           label="Upload offer letter"
           outputType="files"
           onChange={handleFileChange}

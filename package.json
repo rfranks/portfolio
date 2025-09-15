@@ -28,6 +28,7 @@
     "marked": "^12.0.2",
     "pdf-lib": "^1.17.1",
     "dompurify": "^3.0.6",
+    "docx-parser": "^1.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-markdown": "^10.1.0",

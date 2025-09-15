@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { pdfToText } from "@/utils/talentforge/pdfParser";
+import { fileToText } from "@/utils/talentforge/resumeIngest";
 
 export default function useResumeParser() {
   const [resume, setResume] = useState("");
@@ -10,7 +10,7 @@ export default function useResumeParser() {
       setResume(input);
       return input;
     }
-    const text = await pdfToText(input);
+    const text = await fileToText(input);
     setResume(text);
     return text;
   }, []);

@@ -127,6 +127,40 @@ export async function pdfToText(file: File): Promise<string> {
 }
 
 /**
+ * Extract plain text from a DOCX file using docx-parser.
+ */
+export async function docxToText(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer();
+  const mod = (await import("docx-parser")) as {
+    parseDocx: (buf: Buffer, cb: (data: unknown) => void) => void;
+  };
+  return new Promise((resolve, reject) => {
+    try {
+      mod.parseDocx(Buffer.from(buffer), (data: unknown) =>
+        resolve((data as string) || ""),
+      );
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+/**
+ * Extract plain text from a resume file of various types.
+ */
+export async function fileToText(file: File): Promise<string> {
+  if (file.type === "application/pdf") return pdfToText(file);
+  if (
+    file.type ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    file.name.toLowerCase().endsWith(".docx")
+  ) {
+    return docxToText(file);
+  }
+  return file.text();
+}
+
+/**
  * Naively extract sections from resume text.
  * Everything before the first recognized section header is treated as contact information.
  */
@@ -174,10 +208,10 @@ export function parseResumeText(text: string): ParsedResume {
 /**
  * Convenience helper to convert a PDF file to plain text and parse its sections.
  */
-export async function parsePdf(
+export async function parseFile(
   file: File,
 ): Promise<{ text: string; parsed: ParsedResume }> {
-  const text = await pdfToText(file);
+  const text = await fileToText(file);
   return { text, parsed: parseResumeText(text) };
 }
 

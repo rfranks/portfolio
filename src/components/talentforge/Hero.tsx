@@ -33,6 +33,7 @@ import OpenAIKeyModal from "./OpenAiKeyModal";
 import CircularProgressWithLabel from "./CircularProgressWithLabel";
 import FileUploader from "./FileUploader";
 import TermsDialog from "./TermsDialog";
+import { docxToText } from "@/utils/talentforge/resumeIngest";
 
 export default function Hero() {
   const [chatHistory, setChatHistoryState] = React.useState<
@@ -190,7 +191,7 @@ export default function Hero() {
             sx={{ pt: 2, width: { xs: "100%" } }}
           >
             <FileUploader
-              accept=".pdf"
+              accept=".pdf,.docx"
               label="Upload your pdf"
               outputType="files"
               sx={{ width: { xs: "100%" } }}
@@ -201,7 +202,10 @@ export default function Hero() {
                 }
                 const files = filesFromParam as File[];
                 if (files && files.length > 0) {
-                  const markdown = await pdfToMarkdown(files[0]);
+                  const markdown =
+                    files[0].type === "application/pdf"
+                      ? await pdfToMarkdown(files[0])
+                      : await docxToText(files[0]);
 
                   setPdfAsMarkdown(markdown);
 
