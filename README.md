@@ -46,6 +46,10 @@ For quick configuration, you can copy `talentforge.env.example` to `talentforge.
 - `NEXT_PUBLIC_OPENAI_API_KEY` – OpenAI API key.
 - `NEXT_PUBLIC_APP_NAME` – application name displayed in the UI.
 
+### Snapshot Versioning
+
+TalentForge exports and imports data as versioned snapshots. Each snapshot includes a `version` field that corresponds to the `SNAPSHOT_VERSION` constant in `src/utils/talentforge/dataStore.ts`. When importing, older snapshots are migrated to the latest format automatically. Update this version number whenever the data schema changes.
+
 ## Getting Started
 
 First, run the development server:
