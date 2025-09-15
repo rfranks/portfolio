@@ -88,6 +88,16 @@ export default function AccoladesCarousel({
           </CardContent>
           {(acc.launchUrl || acc.githubUrl) && (
             <CardActions>
+              {acc.launchUrl && (
+                <Button
+                  size="small"
+                  href={withBasePath(acc.launchUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Launch
+                </Button>
+              )}
               {acc.githubUrl && (
                 <Button
                   size="small"
