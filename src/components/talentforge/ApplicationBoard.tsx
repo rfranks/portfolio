@@ -32,7 +32,8 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import Markdown from "react-markdown";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 import type { ApplicationStatus } from "@/types/talentforge/job";
 import type {
   JobApplication,
@@ -927,7 +928,11 @@ export default function ApplicationBoard() {
                   }}
                 >
                   {m.text ? (
-                    <Markdown>{m.text}</Markdown>
+                    <Box
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(marked.parse(m.text)),
+                      }}
+                    />
                   ) : m.data ? (
                     <>
                       {m.data.compensation &&
