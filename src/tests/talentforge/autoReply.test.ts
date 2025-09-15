@@ -46,6 +46,18 @@ describe("autoReply utilities", () => {
     expect(result).toBe("foo bar");
   });
 
+  test("autoReply returns object text content", async () => {
+    (fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: { text: "hello" } } }],
+      }),
+    });
+    setOpenAIKey("key");
+    const result = await autoReply([] as AutoReplyMessage[]);
+    expect(result).toBe("hello");
+  });
+
   test("autoReply throws on non-ok response", async () => {
     (fetch as jest.Mock).mockResolvedValue({
       ok: false,
