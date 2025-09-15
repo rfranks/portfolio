@@ -10,6 +10,7 @@ import {
   ListItem,
   ListItemText,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
@@ -22,10 +23,16 @@ export default function Settings() {
   const dataStore = useTalentForgeData();
   const [openKeyModal, setOpenKeyModal] = React.useState(false);
   const [openAiKeySet, setOpenAiKeySet] = React.useState(false);
+  const [comp, setComp] = React.useState({
+    salary: "",
+    benefits: "",
+    stock: "",
+  });
 
   React.useEffect(() => {
     setOpenAiKeySet(hasOpenAIKey());
-  }, []);
+    setComp(dataStore.getCurrentCompensation());
+  }, [dataStore]);
 
   const handleRemoveKey = () => {
     setOpenAIKey("");
@@ -73,6 +80,15 @@ export default function Settings() {
     clearDemoData();
   };
 
+  const handleCompChange = (field: "salary" | "benefits" | "stock") =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setComp((c) => ({ ...c, [field]: e.target.value }));
+    };
+  const handleSaveComp = () => {
+    dataStore.saveCurrentCompensation(comp);
+  };
+  const compHasValue = Object.values(comp).some((v) => v.trim() !== "");
+
   return (
     <ErrorBoundary>
       <Stack spacing={4}>
@@ -90,6 +106,42 @@ export default function Settings() {
               {openAiKeySet ? "Update Key" : "Set Key"}
             </Button>
             {openAiKeySet && <Button onClick={handleRemoveKey}>Remove Key</Button>}
+          </CardActions>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Current Compensation
+            </Typography>
+            <Stack spacing={2} aria-label="Update current compensation">
+              <Typography variant="body2" color="text.secondary">
+                This information is only used to negotiate better offers on your behalf and compare them against your current compensation.
+              </Typography>
+              <TextField
+                label="Current Salary"
+                value={comp.salary}
+                onChange={handleCompChange("salary")}
+                inputProps={{ "aria-label": "Current salary" }}
+              />
+              <TextField
+                label="Benefits"
+                value={comp.benefits}
+                onChange={handleCompChange("benefits")}
+                inputProps={{ "aria-label": "Benefits" }}
+              />
+              <TextField
+                label="Stock Options / RSUs"
+                value={comp.stock}
+                onChange={handleCompChange("stock")}
+                inputProps={{ "aria-label": "Stock options and RSUs" }}
+              />
+            </Stack>
+          </CardContent>
+          <CardActions>
+            <Button variant="contained" onClick={handleSaveComp} disabled={!compHasValue}>
+              Save
+            </Button>
           </CardActions>
         </Card>
 
