@@ -72,6 +72,65 @@ describe("useDimensions cleanup", () => {
   });
 });
 
+describe("useDimensions resize updates", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test("updates state when dimensions change", () => {
+    const listeners: Record<string, () => void> = {};
+    const addEventListener = jest.fn((event: string, handler: () => void) => {
+      listeners[event] = handler;
+    });
+    const removeEventListener = jest.fn();
+    const g = globalThis as unknown as {
+      window: {
+        addEventListener: typeof addEventListener;
+        removeEventListener: typeof removeEventListener;
+      };
+    };
+    g.window = { addEventListener, removeEventListener };
+
+    const ref = {
+      current: { offsetWidth: 100, offsetHeight: 100 },
+    } as React.RefObject<HTMLElement>;
+
+    const setSpy = jest.fn();
+    const originalUseState = React.useState;
+    jest.spyOn(React, "useState").mockImplementation((init: unknown) => {
+      if (
+        typeof init === "object" &&
+        init !== null &&
+        "width" in (init as Record<string, unknown>) &&
+        "height" in (init as Record<string, unknown>) &&
+        "breakpoint" in (init as Record<string, unknown>)
+      ) {
+        return [init, setSpy];
+      }
+      return originalUseState(init);
+    });
+
+    jest
+      .spyOn(React, "useEffect")
+      .mockImplementation((effect: () => void | (() => void)) => {
+        effect();
+      });
+
+    useDimensions(ref);
+    setSpy.mockClear();
+
+    (ref.current as unknown as { offsetWidth: number; offsetHeight: number }).offsetWidth = 200;
+    (ref.current as unknown as { offsetWidth: number; offsetHeight: number }).offsetHeight = 150;
+
+    listeners["resize"]?.();
+    jest.advanceTimersByTime(100);
+
+    expect(setSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 200, height: 150 }),
+    );
+  });
+});
+
 describe("useDimensions breakpoints", () => {
   afterEach(() => {
     jest.restoreAllMocks();
