@@ -25,6 +25,8 @@ export function cleanPdfText(pageLines: string[][]): string {
   const numPages = pageLines.length;
   let header: string | null = null;
   let footer: string | null = null;
+  let numericHeader = false;
+  let numericFooter = false;
 
   if (numPages > 1) {
     const firstLines = pageLines.map((p) => p[0]).filter(Boolean);
@@ -33,12 +35,23 @@ export function cleanPdfText(pageLines: string[][]): string {
     const lastCandidate = lastLines[0];
     if (firstLines.every((l) => l === firstCandidate)) header = firstCandidate;
     if (lastLines.every((l) => l === lastCandidate)) footer = lastCandidate;
+
+    numericHeader = firstLines.every((l) => /^\d+$/.test(l));
+    numericFooter = lastLines.every((l) => /^\d+$/.test(l));
   }
 
   const cleanedPages = pageLines.map((lines) => {
     const work = [...lines];
-    if (header && work[0] === header) work.shift();
-    if (footer && work[work.length - 1] === footer) work.pop();
+    if (header && work[0] === header) {
+      work.shift();
+    } else if (numericHeader && /^\d+$/.test(work[0])) {
+      work.shift();
+    }
+    if (footer && work[work.length - 1] === footer) {
+      work.pop();
+    } else if (numericFooter && /^\d+$/.test(work[work.length - 1])) {
+      work.pop();
+    }
 
     const collapsed = work.map((l) => l.replace(/[ \t]+/g, " ").trim());
     const joined: string[] = [];
