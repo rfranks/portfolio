@@ -128,7 +128,7 @@ func CutShoe() {
 	die2 := utils.RollDice()
 
 	if die1+die2 > int(float32(.8)*float32(len(utils.Die)*2)) {
-		// this still not right
+		// re-roll when the dice sum exceeds 80% of the maximum total
 		CutShoe()
 	} else {
 		State.Shoe.Cut = int(len(State.Shoe.Cards) * (die1 + die2) / (2 * utils.Die[len(utils.Die)-1]))
