@@ -124,14 +124,18 @@ func CreateShoe(numOfDecks int) {
 }
 
 func CutShoe() {
-	die1 := utils.RollDice()
-	die2 := utils.RollDice()
+	// roll dice until the sum falls below the threshold rather than
+	// relying on recursive calls
+	threshold := int(float32(.8) * float32(len(utils.Die)*2))
+	for {
+		die1 := utils.RollDice()
+		die2 := utils.RollDice()
 
-	if die1+die2 > int(float32(.8)*float32(len(utils.Die)*2)) {
-		// this still not right
-		CutShoe()
-	} else {
-		State.Shoe.Cut = int(len(State.Shoe.Cards) * (die1 + die2) / (2 * utils.Die[len(utils.Die)-1]))
+		sum := die1 + die2
+		if sum <= threshold {
+			State.Shoe.Cut = int(len(State.Shoe.Cards) * sum / (2 * utils.Die[len(utils.Die)-1]))
+			break
+		}
 	}
 }
 
