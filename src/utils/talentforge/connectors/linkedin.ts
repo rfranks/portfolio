@@ -45,9 +45,19 @@ export class LinkedInConnector {
   }
 
   async searchJobs(query: string): Promise<JobListing[]> {
-    void query;
     const data = await this.fetchData();
-    return data.listings;
+    const trimmed = query.trim();
+
+    if (!trimmed) {
+      return data.listings;
+    }
+
+    const lowerQuery = trimmed.toLowerCase();
+    return data.listings.filter(
+      (listing) =>
+        listing.title.toLowerCase().includes(lowerQuery) ||
+        listing.company.toLowerCase().includes(lowerQuery),
+    );
   }
 
   async sendMessage(message: string): Promise<void> {
