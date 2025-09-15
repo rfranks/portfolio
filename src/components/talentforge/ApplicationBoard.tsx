@@ -380,7 +380,7 @@ export default function ApplicationBoard() {
       if (resumes.length === 0) {
         setDrawerTitle(tile.display);
         setDrawerTileId(tile.id);
-        setDrawerMessages([{ role: "assistant", text: "No resume available" }]);
+        setDrawerMessages([{ role: "assistant", text: "No resumes available" }]);
         setDrawerAnalysis(null);
         setDrawerOpen(true);
         setDrawerApp(app);
