@@ -12,12 +12,14 @@ import {
 import KeyEntryStep from "./onboarding/KeyEntryStep";
 import ResumeImportStep from "./onboarding/ResumeImportStep";
 import ConnectorMockStep from "./onboarding/ConnectorMockStep";
+import CompensationStep from "./onboarding/CompensationStep";
 import GoalSelectionStep from "./onboarding/GoalSelectionStep";
 
 const steps = [
   { label: "Enter API Key", Component: KeyEntryStep },
   { label: "Import Resume", Component: ResumeImportStep },
   { label: "Connect Accounts", Component: ConnectorMockStep },
+  { label: "Enter Compensation", Component: CompensationStep },
   { label: "Select Goals", Component: GoalSelectionStep },
 ];
 
