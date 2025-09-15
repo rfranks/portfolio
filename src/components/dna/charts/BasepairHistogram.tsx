@@ -98,7 +98,7 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
               key={`${seq.description}-${index}`}
               dataKey={seq.description}
               fill={getSequenceColor(index)}
-              label={"# of basepairs"}
+              label={"# of base pairs"}
             />
           ))}
         </BarChart>
