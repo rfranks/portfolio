@@ -471,6 +471,7 @@ export default function ApplicationBoard() {
       setDrawerMessages([{ role: "assistant", text: "Analyzing offer..." }]);
       setDrawerAnalysis(null);
       setDrawerOpen(true);
+      setDrawerMode("chat");
       setDrawerApp(app);
       const offerLines: string[] = [];
       app.offer?.compensation.forEach((c) =>
@@ -502,7 +503,8 @@ export default function ApplicationBoard() {
           chatHistory: [],
         });
         const message = res?.message || "";
-        setDrawerMessages([{ role: "assistant", text: message }]);
+        // Wrap response with newlines so Markdown tables render properly
+        setDrawerMessages([{ role: "assistant", text: `\n${message}\n` }]);
       } finally {
         setDrawerLoading(false);
       }
