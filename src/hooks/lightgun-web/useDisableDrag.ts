@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 
 /**
- * Prevents default drag behaviour on images and other elements.
+ * Prevents default drag behavior on images and other elements.
  * Useful for lightgun setups where the pointer should never initiate a drag
  * operation (e.g. Sinden lightgun).
  */
