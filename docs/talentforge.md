@@ -17,7 +17,7 @@ TalentForge uses TypeScript interfaces to describe core entities:
 - **UserProfile** – user identifier, display name, email, and associated resumes.
 - **Resume** – file metadata and optional tags for the uploaded resume.
 - **JobListing** – title, company, location, URL, and source of a job post.
-- **JobApplication** – extends `JobListing` with an `id` and an application status (`applied`, `interview`, `offer`, or `rejected`).
+- **JobApplication** – extends `JobListing` with an `id`, a `status` (`applied`, `interview`, `offer`, or `rejected`), and a `history` field (`StatusChange[]`).
 - **Message** – sender, recipient, timestamp, and message body.
 - **Offer** – compensation details tied to a specific application.
 - **ChatMessage** – conversational messages exchanged with the AI assistant.
