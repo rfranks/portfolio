@@ -1,4 +1,4 @@
-import type { JobListing } from "@/types/talentforge/job";
+import type { JobListing } from "@/types";
 import { LinkedInConnector } from "./connectors/linkedin";
 import { IndeedConnector } from "./connectors/indeed";
 

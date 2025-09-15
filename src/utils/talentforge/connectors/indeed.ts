@@ -5,7 +5,7 @@
  * application can be developed without external API access.
  */
 
-import type { JobListing } from "@/types/talentforge/job";
+import type { JobListing } from "@/types";
 import type { ConnectorToken } from "@/types/connector";
 
 /** Sample job listings returned by the mocked Indeed connector. */

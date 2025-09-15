@@ -14,11 +14,8 @@ import {
 } from "@mui/material";
 import { filterByTag, filterByText } from "@/utils/search";
 
-import {
-  getResumes,
-  addResume,
-  type ResumeEntry,
-} from "@/utils/talentforge/dataStore";
+import { getResumes, addResume } from "@/utils/talentforge/dataStore";
+import type { ResumeEntry } from "@/types";
 
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
 import { pdfToText, parseResumeText } from "@/utils/talentforge/pdfParser";

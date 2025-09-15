@@ -34,13 +34,13 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import type { ApplicationStatus } from "@/types/talentforge/job";
 import type {
+  ApplicationStatus,
   JobApplication,
   ResumeEntry,
   Offer,
-} from "@/utils/talentforge/dataStore";
-import type { OfferComp } from "@/types";
+  OfferComp,
+} from "@/types";
 import {
   addJobApplication,
   getJobApplications,

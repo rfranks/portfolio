@@ -20,13 +20,9 @@ import {
   hasOpenAIKey,
 } from "@/utils/talentforge/utils";
 import OpenAIKeyModal from "./OpenAiKeyModal";
-import {
-  addOffer,
-  type Offer,
-  type Message,
-} from "@/utils/talentforge/dataStore";
+import { addOffer } from "@/utils/talentforge/dataStore";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
-import type { ApplicationRecord } from "@/types";
+import type { Offer, Message, ApplicationRecord } from "@/types";
 
 interface OfferCompareProps {
   onSave?: () => void;

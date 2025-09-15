@@ -16,7 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { v4 as uuid } from "uuid";
-import type { JobListing } from "@/types/talentforge/job";
+import type { JobListing } from "@/types";
 import jobAggregator from "@/utils/talentforge/jobAggregator";
 import { addJobApplication } from "@/utils/talentforge/dataStore";
 

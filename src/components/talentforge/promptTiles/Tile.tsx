@@ -17,17 +17,11 @@ import Markdown from "react-markdown";
 
 import OpenAIKeyModal from "../OpenAiKeyModal";
 import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
-import {
-  getResumes,
-  addResume,
-  addOffer,
-  type ResumeEntry,
-  type Offer,
-} from "@/utils/talentforge/dataStore";
+import { getResumes, addResume, addOffer } from "@/utils/talentforge/dataStore";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { parseResumeText } from "@/utils/talentforge/pdfParser";
 import { v4 as uuid } from "uuid";
-import type { ApplicationRecord } from "@/types";
+import type { ApplicationRecord, ResumeEntry, Offer } from "@/types";
 
 export interface PromptTileProps {
   id: string;

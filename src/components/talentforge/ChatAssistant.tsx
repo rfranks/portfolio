@@ -19,7 +19,7 @@ import {
 import { exportElementToPdf } from "@/utils/pdfExport";
 import OpenAIKeyModal from "./OpenAiKeyModal";
 import RequireAIKey from "./RequireAIKey";
-import { ChatMessage } from "@/types/talentforge/types";
+import { ChatMessage } from "@/types";
 export default function ChatAssistant() {
   const [selectedTile, setSelectedTile] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<(ChatMessage | null)[]>([]);

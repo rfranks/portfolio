@@ -3,7 +3,7 @@
 import * as pdfjs from "pdfjs-dist";
 
 import { Buffer } from "buffer";
-import { ParsedResume } from "@/types/talentforge/resume";
+import { ParsedResume } from "@/types";
 
 declare global {
   interface Window {
