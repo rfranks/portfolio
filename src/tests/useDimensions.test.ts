@@ -228,3 +228,61 @@ describe("useDimensions with null ref", () => {
     expect(addEventListenerSpy).not.toHaveBeenCalled();
   });
 });
+
+describe("useDimensions visibility polling", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test("clears interval once element becomes visible", () => {
+    const addEventListener = jest.fn();
+    const removeEventListener = jest.fn();
+    const g = globalThis as unknown as {
+      window: {
+        addEventListener: typeof addEventListener;
+        removeEventListener: typeof removeEventListener;
+      };
+    };
+    g.window = { addEventListener, removeEventListener };
+
+    const clearIntervalSpy = jest.spyOn(global, "clearInterval");
+
+    const ref = {
+      current: { offsetWidth: 0, offsetHeight: 0 },
+    } as React.RefObject<HTMLElement>;
+
+    const setSpy = jest.fn();
+    const originalUseState = React.useState;
+    jest.spyOn(React, "useState").mockImplementation((init: unknown) => {
+      if (
+        typeof init === "object" &&
+        init !== null &&
+        "width" in (init as Record<string, unknown>) &&
+        "height" in (init as Record<string, unknown>) &&
+        "breakpoint" in (init as Record<string, unknown>)
+      ) {
+        return [init, setSpy];
+      }
+      return originalUseState(init);
+    });
+
+    jest
+      .spyOn(React, "useEffect")
+      .mockImplementation((effect: () => void | (() => void)) => {
+        effect();
+      });
+
+    useDimensions(ref);
+
+    (ref.current as unknown as { offsetWidth: number; offsetHeight: number }).offsetWidth =
+      100;
+    (ref.current as unknown as { offsetWidth: number; offsetHeight: number }).offsetHeight =
+      100;
+
+    jest.advanceTimersByTime(20);
+    expect(clearIntervalSpy).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(100);
+    expect(clearIntervalSpy).toHaveBeenCalledTimes(1);
+  });
+});
