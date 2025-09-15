@@ -2,12 +2,12 @@
 
 import { Box, Typography, useTheme } from "@mui/material";
 
-interface DiffLine {
+export interface DiffLine {
   text: string | null;
   type: "same" | "added" | "removed";
 }
 
-interface DiffRow {
+export interface DiffRow {
   original: DiffLine;
   updated: DiffLine;
 }
@@ -17,7 +17,7 @@ interface Props {
   updated: string;
 }
 
-function computeDiff(a: string, b: string): DiffRow[] {
+export function computeDiff(a: string, b: string): DiffRow[] {
   const aLines = a.split("\n");
   const bLines = b.split("\n");
   const max = Math.max(aLines.length, bLines.length);
