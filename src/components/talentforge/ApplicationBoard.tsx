@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Box,
   Paper,
@@ -57,6 +57,7 @@ import {
 } from "@/utils/talentforge/utils";
 import OpenAIKeyModal from "./OpenAiKeyModal";
 import FileUploader from "./FileUploader";
+import { exportElementToPdf } from "@/utils/pdfExport";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -300,6 +301,7 @@ export default function ApplicationBoard() {
   const [drawerApp, setDrawerApp] = useState<JobApplication | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [openKeyModal, setOpenKeyModal] = useState(false);
+  const negotiationRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const existing = getJobApplications();
@@ -641,6 +643,34 @@ export default function ApplicationBoard() {
     setDrawerPrompt("");
   };
 
+  const handleDownloadNegotiationMd = () => {
+    const text = negotiationRef.current?.innerText || "";
+    const blob = new Blob([text], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "renegotiation.md";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadNegotiationPdf = () => {
+    if (negotiationRef.current) {
+      exportElementToPdf(negotiationRef.current, "renegotiation.pdf");
+    }
+  };
+
+  const handleAttachOfferHistory = () => {
+    if (!drawerApp) return;
+    const text = negotiationRef.current?.innerText || "";
+    const history = [...(drawerApp.offerHistory || []), text];
+    const updated = updateJobApplication(drawerApp.id, { offerHistory: history });
+    setApplications(updated);
+    setDrawerApp(updated.find((a) => a.id === drawerApp.id) || null);
+  };
+
   return (
     <>
       <Button
@@ -822,6 +852,13 @@ export default function ApplicationBoard() {
               {drawerMessages.map((m, idx) => (
                 <Box
                   key={idx}
+                  ref={
+                    drawerTileId === "offerNegotiation" &&
+                    m.role === "assistant" &&
+                    m.text
+                      ? negotiationRef
+                      : undefined
+                  }
                   sx={{
                     alignSelf: m.role === "user" ? "flex-start" : "flex-end",
                     bgcolor: m.role === "user" ? "grey.200" : "primary.main",
@@ -874,6 +911,32 @@ export default function ApplicationBoard() {
                   ) : null}
                 </Box>
               ))}
+              {drawerTileId === "offerNegotiation" && !drawerLoading && (
+                <>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleDownloadNegotiationPdf}
+                  >
+                    Download PDF
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleDownloadNegotiationMd}
+                  >
+                    Download MD
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleAttachOfferHistory}
+                    disabled={!drawerApp}
+                  >
+                    Attach to Offer History
+                  </Button>
+                </>
+              )}
               {drawerMode === "resumeCompare" && !drawerLoading && (
                 <TextField
                   select

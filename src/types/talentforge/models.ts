@@ -72,6 +72,8 @@ export interface ApplicationRecord {
   threads?: Thread[];
   /** Offer details if an offer has been made. */
   offer?: Offer;
+  /** Generated offer negotiations attached to this application. */
+  offerHistory?: string[];
 }
 
 export interface Recruiter {

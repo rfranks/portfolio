@@ -336,6 +336,7 @@ function migrateLegacyApplications(data: unknown): JobApplication[] {
     history: a.history,
     recruiters: [],
     threads: [],
+    offerHistory: [],
   }));
 }
 
@@ -542,6 +543,7 @@ export function addJobApplication(app: JobApplication): JobApplication[] {
       ...(app.history ?? []),
       { status: app.status, changedAt: new Date().toISOString() },
     ],
+    offerHistory: app.offerHistory || [],
   } as JobApplication;
   const updated = [...getJobApplications(), withHistory];
   save("applications", updated);
