@@ -366,9 +366,7 @@ export default function ApplicationBoard() {
       if (resumes.length === 0) {
         setDrawerTitle(tile.display);
         setDrawerTileId(tile.id);
-        setDrawerMessages([
-          { role: "assistant", text: "No resume available" },
-        ]);
+        setDrawerMessages([{ role: "assistant", text: "No resume available" }]);
         setDrawerAnalysis(null);
         setDrawerOpen(true);
         setDrawerApp(app);
@@ -414,10 +412,12 @@ export default function ApplicationBoard() {
       const offerLines: string[] = [];
       app.offer?.compensation.forEach((c) =>
         offerLines.push(
-          `${c.type}: $${c.amount.toLocaleString()}${c.notes ? ` (${c.notes})` : ""}`,
-        ),
+          `${c.type}: $${c.amount.toLocaleString()}${
+            c.notes ? ` (${c.notes})` : ""
+          }`
+        )
       );
-      app.offer?.summary.forEach((s) => offerLines.push(s));
+      app.offer?.summary?.forEach((s) => offerLines.push(s));
       const offerSummary = offerLines.join("\n");
       const listings = await fetchAllListings(app.role.title);
       const marketData = listings
@@ -553,7 +553,7 @@ export default function ApplicationBoard() {
       ]);
       const prompt = PROMPT_TILES.offerDetails.fullPrompt.replace(
         "{{offerText}}",
-        text,
+        text
       );
       const res = await askOpenAI({
         context: "",
@@ -563,7 +563,8 @@ export default function ApplicationBoard() {
         chatHistory: [],
       });
       const message = res?.message || "";
-      let parsed: { compensation?: OfferComp[]; summary?: string[] | string } = {};
+      let parsed: { compensation?: OfferComp[]; summary?: string[] | string } =
+        {};
       try {
         parsed = JSON.parse(message);
       } catch {
@@ -602,10 +603,7 @@ export default function ApplicationBoard() {
       { role: "user", text: `Using resume: ${resume.title}` },
     ]);
     const prompt = PROMPT_TILES.resumeCompare.fullPrompt
-      .replaceAll(
-        "{{jobDescription}}",
-        resumeCompareApp.role.description || "",
-      )
+      .replaceAll("{{jobDescription}}", resumeCompareApp.role.description || "")
       .replaceAll("{{resumeContent}}", resume.content);
     setDrawerLoading(true);
     try {
@@ -633,7 +631,7 @@ export default function ApplicationBoard() {
     const updated = updateJobApplicationStatus(
       drawerApp.id,
       "rejected",
-      rejectReason || undefined,
+      rejectReason || undefined
     );
     setApplications(updated);
     setRejectReason("");
@@ -713,7 +711,7 @@ export default function ApplicationBoard() {
               select
               fullWidth
             >
-              {['LinkedIn', 'Indeed', 'Company Site'].map((s) => (
+              {["LinkedIn", "Indeed", "Company Site"].map((s) => (
                 <MenuItem key={s} value={s}>
                   {s}
                 </MenuItem>
@@ -840,20 +838,30 @@ export default function ApplicationBoard() {
                     <Markdown>{m.text}</Markdown>
                   ) : m.data ? (
                     <>
-                      {m.data.compensation && m.data.compensation.length > 0 && (
-                        <Stack spacing={0.5}>
-                          {m.data.compensation.map((c) => (
-                            <Typography key={c.type} variant="body2">
-                              {c.type.charAt(0).toUpperCase() + c.type.slice(1)}: {"$"}
-                              {c.amount.toLocaleString()} {c.notes ? `(${c.notes})` : ""}
-                            </Typography>
-                          ))}
-                        </Stack>
-                      )}
+                      {m.data.compensation &&
+                        m.data.compensation.length > 0 && (
+                          <Stack spacing={0.5}>
+                            {m.data.compensation.map((c) => (
+                              <Typography key={c.type} variant="body2">
+                                {c.type.charAt(0).toUpperCase() +
+                                  c.type.slice(1)}
+                                : {"$"}
+                                {c.amount.toLocaleString()}{" "}
+                                {c.notes ? `(${c.notes})` : ""}
+                              </Typography>
+                            ))}
+                          </Stack>
+                        )}
                       {m.data.summary && (
-                        <List dense sx={{ mt: 1, listStyleType: "disc", pl: 2 }}>
+                        <List
+                          dense
+                          sx={{ mt: 1, listStyleType: "disc", pl: 2 }}
+                        >
                           {m.data.summary.map((line, i) => (
-                            <ListItem key={i} sx={{ display: "list-item", py: 0 }}>
+                            <ListItem
+                              key={i}
+                              sx={{ display: "list-item", py: 0 }}
+                            >
                               <ListItemText
                                 primary={line}
                                 primaryTypographyProps={{ variant: "body2" }}
@@ -909,8 +917,10 @@ export default function ApplicationBoard() {
           </Box>
         </Drawer>
       )}
-      <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
+      <OpenAIKeyModal
+        open={openKeyModal}
+        onClose={() => setOpenKeyModal(false)}
+      />
     </>
   );
 }
-
