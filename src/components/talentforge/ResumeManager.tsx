@@ -42,8 +42,11 @@ export default function ResumeManager() {
   const [toastOpen, setToastOpen] = useState(false);
 
   useEffect(() => {
-    setResumes(getResumes());
-    setLoadingResumes(false);
+    const id = setTimeout(() => {
+      setResumes(getResumes());
+      setLoadingResumes(false);
+    }, 0);
+    return () => clearTimeout(id);
   }, []);
 
   const handleSave = async () => {
@@ -156,7 +159,11 @@ export default function ResumeManager() {
         </Button>
       </Stack>
       {loadingCompare && (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+        <Box
+          sx={{ display: "flex", justifyContent: "center", mt: 2 }}
+          aria-busy="true"
+          aria-label="Comparing resume"
+        >
           <CircularProgress />
         </Box>
       )}
