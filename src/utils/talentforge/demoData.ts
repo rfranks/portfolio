@@ -1,7 +1,12 @@
 "use client";
 
-import type { User, ResumeVariant, RolePosting, ApplicationRecord } from "@/types";
-import type { ResumeEntry } from "./dataStore";
+import type {
+  User,
+  ResumeVariant,
+  RolePosting,
+  ApplicationRecord,
+  ResumeEntry,
+} from "@/types";
 import dataStore from "./dataStore";
 
 /**

@@ -8,13 +8,8 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import {
-  addOffer,
-  updateOffer,
-  deleteOffer,
-  type Offer,
-} from "@/utils/talentforge/dataStore";
-import type { ApplicationRecord, OfferComp } from "@/types";
+import { addOffer, updateOffer, deleteOffer } from "@/utils/talentforge/dataStore";
+import type { Offer, ApplicationRecord, OfferComp } from "@/types";
 
 interface OfferDetailProps {
   offer?: Offer;

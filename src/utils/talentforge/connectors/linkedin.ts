@@ -1,4 +1,4 @@
-import type { JobListing } from "@/types/talentforge/job";
+import type { JobListing } from "@/types";
 
 export interface LinkedInProfile {
   id: string;

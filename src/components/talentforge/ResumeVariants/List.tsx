@@ -20,8 +20,8 @@ import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DifferenceIcon from "@mui/icons-material/Difference";
 import { v4 as uuid } from "uuid";
+import type { ResumeEntry } from "@/types";
 import {
-  type ResumeEntry,
   deleteResume,
   updateResume,
   cloneResume,

@@ -12,7 +12,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { ResumeEntry } from "@/utils/talentforge/dataStore";
+import type { ResumeEntry } from "@/types";
 import { updateResume } from "@/utils/talentforge/dataStore";
 
 interface Props {

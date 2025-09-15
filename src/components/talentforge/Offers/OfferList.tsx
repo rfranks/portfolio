@@ -19,7 +19,8 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
-import { getOffers, type Offer } from "@/utils/talentforge/dataStore";
+import { getOffers } from "@/utils/talentforge/dataStore";
+import type { Offer } from "@/types";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import EmptyState from "../EmptyState";
 

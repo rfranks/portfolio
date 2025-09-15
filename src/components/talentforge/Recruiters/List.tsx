@@ -10,10 +10,7 @@ import {
   Button,
 } from "@mui/material";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
-import type {
-  RecruiterEntry,
-  Message,
-} from "@/utils/talentforge/dataStore";
+import type { RecruiterEntry, Message } from "@/types";
 
 export default function RecruiterList() {
   const data = useTalentForgeData();

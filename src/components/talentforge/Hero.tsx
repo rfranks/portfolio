@@ -22,7 +22,7 @@ import {
   summarizePDFPrompt,
   userQuestionPrompt,
 } from "@/consts/talentforge/consts";
-import { ChatMessage } from "@/types/talentforge/types";
+import { ChatMessage } from "@/types";
 import {
   askOpenAI,
   pdfToMarkdown,

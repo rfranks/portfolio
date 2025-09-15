@@ -11,50 +11,20 @@ import type {
   ApplicationStatus,
   JobListing,
   StatusChange,
-} from "@/types/talentforge/job";
-import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply";
-import type {
   User,
-  ResumeVariant,
-  Message as ModelMessage,
-  Offer as ModelOffer,
+  ResumeEntry,
+  Message,
+  MessageReply,
+  Offer,
   ApplicationRecord,
   OfferComp,
-  Recruiter,
+  RecruiterEntry,
 } from "@/types";
-import { ParsedResume } from "@/types/talentforge/resume";
+import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply";
 
 export type UserProfile = User;
 
-export type ResumeEntry = ResumeVariant & {
-  content: string;
-  parsed: ParsedResume;
-  tags: string[];
-};
-
-export type MessageReply = {
-  id: string;
-  body: string;
-  sentAt: string;
-  connector: string;
-};
-
-export interface Message extends ModelMessage {
-  connector: string;
-  status: "unread" | "read";
-  replies: MessageReply[];
-}
-
-export type Offer = ModelOffer;
-
 export type JobApplication = ApplicationRecord;
-
-export type RecruiterEntry = Recruiter & {
-  connector: string;
-  tags: string[];
-  notes: string;
-  threadIds: string[];
-};
 
 export interface CurrentCompensation {
   salary: string;

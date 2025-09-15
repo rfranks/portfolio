@@ -28,7 +28,7 @@ import {
 } from "@/utils/autoReply";
 
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
-import { Message, RecruiterEntry } from "@/utils/talentforge/dataStore";
+import type { Message, RecruiterEntry } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import PromptSelector from "./PromptSelector";
 import Tile from "./promptTiles/Tile";

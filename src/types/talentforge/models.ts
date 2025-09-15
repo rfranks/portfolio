@@ -1,4 +1,5 @@
 import type { ApplicationStatus, StatusChange } from "./job";
+import type { ParsedResume } from "./resume";
 
 export interface User {
   /** Unique identifier for the user. */
@@ -26,9 +27,20 @@ export interface ResumeVariant {
   title: string;
   /** URL where the resume file is stored. */
   url: string;
+  /** Raw text content of the resume. */
+  content: string;
+  /** Parsed resume sections extracted from the content. */
+  parsed: ParsedResume;
+  /** Tags describing the resume. */
+  tags: string[];
   /** Additional notes about this resume variant. */
   notes?: string;
 }
+
+/**
+ * Alias maintained for backwards compatibility with older imports.
+ */
+export type ResumeEntry = ResumeVariant;
 
 export interface RolePosting {
   /** Unique identifier for the role posting. */
@@ -57,7 +69,7 @@ export interface ApplicationRecord {
   /** Role being applied to. */
   role: RolePosting;
   /** Resume variant used for the application, if any. */
-  resumeVariant?: ResumeVariant;
+  resumeVariant?: ResumeEntry;
   /** Current status of the application. */
   status: ApplicationStatus;
   /** History of status changes for the application. */
@@ -73,7 +85,7 @@ export interface ApplicationRecord {
   /** Offer details if an offer has been made. */
   offer?: Offer;
   /** Generated offer negotiations attached to this application. */
-  offerHistory?: string[];
+  offerHistory: string[];
 }
 
 export interface Recruiter {
@@ -86,14 +98,19 @@ export interface Recruiter {
   /** Applications managed by this recruiter. */
   applications?: ApplicationRecord[];
   /** Connector that surfaced this recruiter. */
-  connector?: string;
+  connector: string;
   /** Tags describing the recruiter. */
-  tags?: string[];
+  tags: string[];
   /** Notes about the recruiter. */
-  notes?: string;
+  notes: string;
   /** Message thread IDs linked to this recruiter. */
-  threadIds?: string[];
+  threadIds: string[];
 }
+
+/**
+ * Alias maintained for backwards compatibility with older imports.
+ */
+export type RecruiterEntry = Recruiter;
 
 export interface Thread {
   /** Unique identifier for the thread. */
@@ -104,6 +121,17 @@ export interface Thread {
   participantIds: string[];
   /** Messages that belong to this thread. */
   messages: Message[];
+}
+
+export interface MessageReply {
+  /** Unique identifier for the message reply. */
+  id: string;
+  /** Body content of the reply. */
+  body: string;
+  /** Timestamp in ISO format indicating when the reply was sent. */
+  sentAt: string;
+  /** Connector through which the reply was sent. */
+  connector: string;
 }
 
 export interface Message {
@@ -119,6 +147,12 @@ export interface Message {
   sentAt: string;
   /** Body content of the message. */
   body: string;
+  /** Connector through which the message was received. */
+  connector: string;
+  /** Current read status of the message. */
+  status: "unread" | "read";
+  /** Replies to the message, if any. */
+  replies: MessageReply[];
 }
 
 export interface Offer {

@@ -2,7 +2,7 @@
 
 import * as pdfjs from "pdfjs-dist";
 
-import { ChatMessage } from "@/types/talentforge/types";
+import { ChatMessage } from "@/types";
 import { aiBufferSize } from "@/consts/talentforge/consts";
 
 import { Buffer } from "buffer";

@@ -1,6 +1,12 @@
-import type { ApplicationRecord, RolePosting, Offer, OfferComp, User } from "@/types";
-import type { ResumeEntry } from "@/utils/talentforge/dataStore";
-import type { ParsedResume } from "@/types/talentforge/resume";
+import type {
+  ApplicationRecord,
+  RolePosting,
+  Offer,
+  OfferComp,
+  User,
+  ResumeEntry,
+  ParsedResume,
+} from "@/types";
 
 const mockUserProfile: User = {
   id: "user-1",
