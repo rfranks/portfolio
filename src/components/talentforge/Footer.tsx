@@ -54,7 +54,7 @@ Our team consists of passionate individuals dedicated to making document handlin
 
 ## Contact Us
 
-Have questions or feedback? We'd love to hear from you! Feel free to reach out to us at [richardfrankskr@hotmail.com](mailto:richardfranksjr@hotmail.com) and join us on our mission to revolutionize document handling and comprehension with TalentForge.
+Have questions or feedback? We'd love to hear from you! Feel free to reach out to us at [richardfranksjr@hotmail.com](mailto:richardfranksjr@hotmail.com) and join us on our mission to revolutionize document handling and comprehension with TalentForge.
 `;
 
 function Copyright() {
