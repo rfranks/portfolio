@@ -9,6 +9,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -18,6 +19,8 @@ import OpenAIKeyModal from "@/components/talentforge/OpenAiKeyModal";
 import { hasOpenAIKey, setOpenAIKey } from "@/utils/talentforge/utils";
 import { loadDemoData, clearDemoData } from "@/utils/talentforge/demoData";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
+import { exportSnapshot, importSnapshot } from "@/utils/talentforge/snapshot";
+import { SNAPSHOT_VERSION } from "@/utils/talentforge/dataStore";
 
 export default function Settings() {
   const dataStore = useTalentForgeData();
@@ -28,6 +31,8 @@ export default function Settings() {
     benefits: "",
     stock: "",
   });
+  const [toastOpen, setToastOpen] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState("");
 
   React.useEffect(() => {
     setOpenAiKeySet(hasOpenAIKey());
@@ -43,14 +48,21 @@ export default function Settings() {
   };
 
   const handleExport = () => {
-    const data = dataStore.exportToJson();
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "talentforge-data.json";
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const data = exportSnapshot();
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `talentforge-snapshot-v${SNAPSHOT_VERSION}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setToastMessage("Snapshot exported");
+      setToastOpen(true);
+    } catch {
+      setToastMessage("Export failed");
+      setToastOpen(true);
+    }
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,8 +72,15 @@ export default function Settings() {
     reader.onload = () => {
       const text = reader.result;
       if (typeof text === "string") {
-        dataStore.importFromJson(text);
-        setOpenAiKeySet(hasOpenAIKey());
+        try {
+          importSnapshot(text);
+          setOpenAiKeySet(hasOpenAIKey());
+          setToastMessage("Snapshot imported");
+        } catch {
+          setToastMessage("Import failed");
+        } finally {
+          setToastOpen(true);
+        }
       }
     };
     reader.readAsText(file);
@@ -167,15 +186,15 @@ export default function Settings() {
               Data
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Export or import your stored TalentForge data.
+              Export or import a snapshot of your stored TalentForge data.
             </Typography>
           </CardContent>
           <CardActions>
             <Button onClick={handleExport} variant="contained">
-              Export Data
+              Export Snapshot
             </Button>
             <Button component="label">
-              Import Data
+              Import Snapshot
               <input type="file" accept="application/json" hidden onChange={handleImport} />
             </Button>
           </CardActions>
@@ -199,6 +218,12 @@ export default function Settings() {
         </Card>
 
         <OpenAIKeyModal open={openKeyModal} onClose={handleCloseModal} />
+        <Snackbar
+          open={toastOpen}
+          autoHideDuration={3000}
+          message={toastMessage}
+          onClose={() => setToastOpen(false)}
+        />
       </Stack>
     </ErrorBoundary>
   );
