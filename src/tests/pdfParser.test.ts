@@ -88,5 +88,12 @@ describe("parseResumeText", () => {
       skills: ["javascript"],
     });
   });
+
+  test("parses singular Skill section header", () => {
+    const text = `John Doe\njohn@example.com\nSkill\nJavaScript\nTypeScript`;
+
+    const result = parseResumeText(text);
+    expect(result.skills).toEqual(["JavaScript", "TypeScript"]);
+  });
 });
 
