@@ -8,7 +8,7 @@ import { IndeedConnector } from "./connectors/indeed";
  * This utility currently aggregates listings from the mocked LinkedIn and
  * Indeed connectors used within TalentForge. Each connector returns listings in
  * the {@link JobListing} format, or data that contains such listings. The
- * aggregator normalises these responses into a single array.
+ * aggregator normalizes these responses into a single array.
  */
 export async function fetchAllListings(query: string = ""): Promise<JobListing[]> {
   const linkedin = new LinkedInConnector();
