@@ -930,7 +930,9 @@ export default function ApplicationBoard() {
                   {m.text ? (
                     <Box
                       dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(marked.parse(m.text)),
+                        __html: DOMPurify.sanitize(
+                          marked.parse(m.text) as string
+                        ),
                       }}
                     />
                   ) : m.data ? (
