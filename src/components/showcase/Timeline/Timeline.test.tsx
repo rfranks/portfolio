@@ -103,7 +103,7 @@ describe("Timeline component", () => {
       timeline
       05/16 12∶30 : Event A: Detail A : notes : 123
       05/16 13∶00:Event B:Detail B : testResults : 123
-      05/16 14∶00 : Event C : labs : 123
+      05/16 14∶00 : Event C: Detail C : labs : 123
     `;
 
     it("overrides events with parsed mermaid lines", () => {
@@ -119,15 +119,33 @@ describe("Timeline component", () => {
 
       expect(screen.getByText("05/16 14∶00")).toBeInTheDocument();
       expect(screen.getByText("Event C")).toBeInTheDocument();
+      expect(screen.getByText("Detail C")).toBeInTheDocument();
     });
 
     it("respects reverseOrder for mermaid", () => {
       renderWithTheme(
         <Timeline mermaid={mermaid} reverseOrder alignment="right" />,
       );
-      // first title now the bad line
+      // first title now the last line
       const titles = screen.getAllByText(/Event A|Event B|Event C/);
       expect(titles[0].textContent).toBe("Event C");
+    });
+
+    it("ignores malformed lines", () => {
+      const badMermaid = `
+        timeline
+        05/16 12∶30 : Good: Detail : notes : 123
+        05/16 13∶00 : MissingParts
+        05/16 14∶00 : Also : missing : id
+      `;
+      const { container } = renderWithTheme(
+        <Timeline mermaid={badMermaid} />,
+      );
+      // Only the well-formed line should render
+      expect(container.querySelectorAll(".MuiTimelineItem-root")).toHaveLength(1);
+      expect(screen.getByText("Good")).toBeInTheDocument();
+      expect(screen.queryByText("MissingParts")).not.toBeInTheDocument();
+      expect(screen.queryByText("Also")).not.toBeInTheDocument();
     });
   });
 });
