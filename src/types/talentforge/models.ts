@@ -85,7 +85,7 @@ export interface ApplicationRecord {
   /** Offer details if an offer has been made. */
   offer?: Offer;
   /** Generated offer negotiations attached to this application. */
-  offerHistory: string[];
+  offerHistory?: string[];
 }
 
 export interface Recruiter {

@@ -101,7 +101,7 @@ mockUserProfile.resumeVariants = mockResumes.map(
     void content;
     void parsed;
     void tags;
-    return rv;
+    return { ...rv, content: "", parsed: { ...emptyParsed }, tags: [] };
   },
 );
 mockUserProfile.applications = mockApplications;
