@@ -105,7 +105,7 @@ export const competencies = {
     "IntelliJ IDEA",
     "Eclipse",
     "Maven",
-    "Github",
+    "GitHub",
     "UML",
     "Windows",
     "Mac OS X",
