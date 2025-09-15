@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Stack, TextField, Typography } from "@mui/material";
+import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 
 interface StepProps {
   onNext: () => void;
@@ -9,11 +10,17 @@ interface StepProps {
 }
 
 export default function CompensationStep({ onNext, onBack }: StepProps) {
+  const dataStore = useTalentForgeData();
   const [comp, setComp] = useState({
     salary: "",
     benefits: "",
     stock: "",
   });
+
+  useEffect(() => {
+    const existing = dataStore.getCurrentCompensation();
+    setComp(existing);
+  }, [dataStore]);
 
   const handleChange = (field: "salary" | "benefits" | "stock") => (
     event: React.ChangeEvent<HTMLInputElement>
@@ -55,7 +62,10 @@ export default function CompensationStep({ onNext, onBack }: StepProps) {
         )}
         <Button
           variant="contained"
-          onClick={onNext}
+        onClick={() => {
+          dataStore.saveCurrentCompensation(comp);
+          onNext();
+        }}
           disabled={!hasValue}
           aria-label="Next"
         >

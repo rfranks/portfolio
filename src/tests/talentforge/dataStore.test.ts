@@ -1,4 +1,11 @@
-import { importFromJson, MESSAGES_VERSION, OFFERS_VERSION, APPLICATIONS_VERSION } from "../../utils/talentforge/dataStore";
+import {
+  importFromJson,
+  MESSAGES_VERSION,
+  OFFERS_VERSION,
+  APPLICATIONS_VERSION,
+  getCurrentCompensation,
+  saveCurrentCompensation,
+} from "../../utils/talentforge/dataStore";
 import { loadItem } from "../../utils/storage";
 
 interface Message {
@@ -92,5 +99,11 @@ describe("dataStore migrations", () => {
   test("importFromJson ignores malformed json", () => {
     expect(() => importFromJson("{invalid")).not.toThrow();
     expect(localStorage.length).toBe(0);
+  });
+
+  test("current compensation save and load", () => {
+    const comp = { salary: "100k", benefits: "health", stock: "50" };
+    saveCurrentCompensation(comp);
+    expect(getCurrentCompensation()).toEqual(comp);
   });
 });

@@ -56,6 +56,12 @@ export type RecruiterEntry = Recruiter & {
   threadIds: string[];
 };
 
+export interface CurrentCompensation {
+  salary: string;
+  benefits: string;
+  stock: string;
+}
+
 interface StoreSchema {
   user: UserProfile | undefined;
   resumes: ResumeEntry[];
@@ -67,6 +73,7 @@ interface StoreSchema {
   openai: string | undefined;
   connectorTokens: Record<string, ConnectorToken>;
   autoReplyTemplates: Record<string, string>;
+  currentCompensation: CurrentCompensation;
 }
 
 // Storage keys for each entity
@@ -81,6 +88,7 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   openai: "talentforge-openai-key",
   connectorTokens: "connectorTokens",
   autoReplyTemplates: "autoReplyTemplates",
+  currentCompensation: "currentCompensation",
 } as const;
 
 // Version constants per entity so tests and other modules can reference them.
@@ -94,6 +102,7 @@ export const ONBOARDING_VERSION = 1;
 export const OPENAI_VERSION = 1;
 export const CONNECTOR_TOKENS_VERSION = 1;
 export const AUTO_REPLY_TEMPLATES_VERSION = 1;
+export const CURRENT_COMP_VERSION = 1;
 
 const VERSION: { [K in keyof StoreSchema]: number } = {
   user: USER_VERSION,
@@ -106,6 +115,7 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   openai: OPENAI_VERSION,
   connectorTokens: CONNECTOR_TOKENS_VERSION,
   autoReplyTemplates: AUTO_REPLY_TEMPLATES_VERSION,
+  currentCompensation: CURRENT_COMP_VERSION,
 } as const;
 
 export const SNAPSHOT_VERSION = 3;
@@ -213,6 +223,23 @@ function migrateAutoReplyTemplates(
   );
 }
 
+function migrateCurrentCompensation(
+  data: unknown,
+  version: number,
+): CurrentCompensation {
+  return migrate<CurrentCompensation>(
+    data,
+    version,
+    CURRENT_COMP_VERSION,
+    {
+      0: (d) =>
+        d && typeof d === "object"
+          ? (d as CurrentCompensation)
+          : { salary: "", benefits: "", stock: "" },
+    },
+  );
+}
+
 const MIGRATORS: {
   [K in keyof StoreSchema]: (
     data: unknown,
@@ -229,6 +256,7 @@ const MIGRATORS: {
   openai: migrateOpenAI,
   connectorTokens: migrateConnectorTokens,
   autoReplyTemplates: migrateAutoReplyTemplates,
+  currentCompensation: migrateCurrentCompensation,
 };
 
 const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
@@ -242,6 +270,7 @@ const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
   openai: undefined,
   connectorTokens: {},
   autoReplyTemplates: AUTO_REPLY_TEMPLATES as Record<string, string>,
+  currentCompensation: { salary: "", benefits: "", stock: "" },
 } as const;
 
 function load<K extends keyof StoreSchema>(
@@ -346,6 +375,13 @@ export function getUserProfile(): UserProfile | undefined {
 }
 export function saveUserProfile(profile: UserProfile): void {
   save("user", profile);
+}
+
+export function getCurrentCompensation(): CurrentCompensation {
+  return load("currentCompensation", { salary: "", benefits: "", stock: "" });
+}
+export function saveCurrentCompensation(comp: CurrentCompensation): void {
+  save("currentCompensation", comp);
 }
 
 // Resumes
@@ -761,6 +797,8 @@ export function importFromJson(json: string): void {
 const dataStore = {
   getUserProfile,
   saveUserProfile,
+  getCurrentCompensation,
+  saveCurrentCompensation,
   getResumes,
   saveResumes,
   addResume,
