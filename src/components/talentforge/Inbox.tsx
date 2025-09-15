@@ -56,10 +56,13 @@ export default function Inbox() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setThreads(data.getThreads());
-    setRecruiters(data.getRecruiters());
-    setTemplateDefs(data.getAutoReplyTemplates());
-    setLoading(false);
+    const id = setTimeout(() => {
+      setThreads(data.getThreads());
+      setRecruiters(data.getRecruiters());
+      setTemplateDefs(data.getAutoReplyTemplates());
+      setLoading(false);
+    }, 0);
+    return () => clearTimeout(id);
   }, [data]);
 
   const handleFilterChange = (event: SelectChangeEvent) => {
@@ -218,7 +221,7 @@ export default function Inbox() {
   }
 
   return (
-    <Box>
+    <Box aria-busy={loading} aria-label={loading ? "Loading inbox" : undefined}>
       <Stack direction="row" spacing={2} sx={{ height: "100%" }}>
         <Box sx={{ width: 300 }}>
           <Stack spacing={2}>

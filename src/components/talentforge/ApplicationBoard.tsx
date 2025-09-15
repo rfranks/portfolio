@@ -295,6 +295,7 @@ function Card({
 
 export default function ApplicationBoard() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
@@ -344,11 +345,26 @@ export default function ApplicationBoard() {
           });
         });
         setApplications(apps);
+        setLoading(false);
       });
     } else {
       setApplications(existing);
+      setLoading(false);
     }
   }, []);
+
+  if (loading) {
+    return (
+      <Stack
+        spacing={2}
+        alignItems="center"
+        aria-busy="true"
+        aria-label="Loading applications"
+      >
+        <CircularProgress />
+      </Stack>
+    );
+  }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
