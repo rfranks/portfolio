@@ -46,6 +46,7 @@ import {
   updateJobApplicationStatus,
   updateJobApplication,
   getResumes,
+  getCurrentCompensation,
 } from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
@@ -263,6 +264,16 @@ function Card({
               >
                 {PROMPT_TILES.offerNegotiation.display}
               </Button>
+              <Button
+                size="small"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => onRunTile("compareCurrentComp", app)}
+                variant="outlined"
+                fullWidth
+                sx={{ mt: 1 }}
+              >
+                {PROMPT_TILES.compareCurrentComp.display}
+              </Button>
             </>
           )}
         </Box>
@@ -449,6 +460,49 @@ export default function ApplicationBoard() {
           ...prev,
           { role: "assistant", text: message },
         ]);
+      } finally {
+        setDrawerLoading(false);
+      }
+      return;
+    }
+    if (tileId === "compareCurrentComp") {
+      setDrawerTitle(tile.display);
+      setDrawerTileId(tile.id);
+      setDrawerMessages([{ role: "assistant", text: "Analyzing offer..." }]);
+      setDrawerAnalysis(null);
+      setDrawerOpen(true);
+      setDrawerApp(app);
+      const offerLines: string[] = [];
+      app.offer?.compensation.forEach((c) =>
+        offerLines.push(
+          `${c.type}: $${c.amount.toLocaleString()}${
+            c.notes ? ` (${c.notes})` : ""
+          }`
+        )
+      );
+      app.offer?.summary?.forEach((s) => offerLines.push(s));
+      const offerText = offerLines.join("\n");
+      const current = getCurrentCompensation();
+      const currentLines: string[] = [];
+      if (current.salary) currentLines.push(`Salary: ${current.salary}`);
+      if (current.benefits) currentLines.push(`Benefits: ${current.benefits}`);
+      if (current.stock) currentLines.push(`Stock: ${current.stock}`);
+      const currentComp = currentLines.join("\n");
+      const prompt = tile.fullPrompt
+        .replaceAll("{{offer}}", offerText)
+        .replaceAll("{{currentComp}}", currentComp);
+      setDrawerPrompt(prompt);
+      setDrawerLoading(true);
+      try {
+        const res = await askOpenAI({
+          context: "",
+          user: prompt,
+          system: "You are a helpful assistant.",
+          returnFirstResponse: true,
+          chatHistory: [],
+        });
+        const message = res?.message || "";
+        setDrawerMessages([{ role: "assistant", text: message }]);
       } finally {
         setDrawerLoading(false);
       }

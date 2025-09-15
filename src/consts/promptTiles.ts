@@ -95,6 +95,13 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "marketData",
     ],
   },
+  compareCurrentComp: {
+    id: "compareCurrentComp",
+    display: "Compare to Current Comp",
+    fullPrompt:
+      "Compare the following job offer details with the employee's current compensation. Provide a markdown table highlighting differences in base salary, bonus, equity, benefits, and other notable factors, followed by a brief summary.\n\nOffer:\n{{offer}}\n\nCurrent Compensation:\n{{currentComp}}",
+    inputs: ["offer", "currentComp"],
+  },
   screenRole: {
     ...BASE_TILES.screenRole,
     fullPrompt:
