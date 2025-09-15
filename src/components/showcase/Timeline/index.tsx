@@ -74,15 +74,29 @@ const Timeline: React.FC<TimelineProps> = ({
       .map((line) => {
         // format is expected to be one of "<dateTime>: <title>: <detail>: <category>: <id>"
         // but detail could contain colons, so we need to handle that
-        const rawTime = line.slice(0, line.indexOf(":")).trim();
-        line = line.slice(line.indexOf(":") + 1);
-        const title = line.slice(0, line.indexOf(":")).trim();
-        line = line.slice(line.indexOf(":") + 1);
-        const id = line.slice(line.lastIndexOf(":") + 1).trim();
-        line = line.slice(0, line.lastIndexOf(":"));
-        const category = line.slice(line.lastIndexOf(":") + 1).trim();
-        line = line.slice(0, line.lastIndexOf(":"));
-        const detail = line.trim();
+        let working = line;
+
+        const firstColon = working.indexOf(":");
+        if (firstColon === -1) return null;
+        const rawTime = working.slice(0, firstColon).trim();
+        working = working.slice(firstColon + 1);
+
+        const secondColon = working.indexOf(":");
+        if (secondColon === -1) return null;
+        const title = working.slice(0, secondColon).trim();
+        working = working.slice(secondColon + 1);
+
+        const lastColon = working.lastIndexOf(":");
+        if (lastColon === -1) return null;
+        const id = working.slice(lastColon + 1).trim();
+        working = working.slice(0, lastColon);
+
+        const penultimateColon = working.lastIndexOf(":");
+        if (penultimateColon === -1) return null;
+        const category = working.slice(penultimateColon + 1).trim();
+        working = working.slice(0, penultimateColon);
+
+        const detail = working.trim();
 
         return {
           label: rawTime,
@@ -105,7 +119,8 @@ const Timeline: React.FC<TimelineProps> = ({
             }
           },
         };
-      });
+      })
+      .filter((e): e is TimelineEvent => e !== null);
   }, [mermaid, events]);
 
   // if reverseOrder is true, reverse the order of events
