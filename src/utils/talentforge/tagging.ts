@@ -69,7 +69,7 @@ async function fetchAiTags(
   maxRetries = 3,
   baseDelay = 500,
 ): Promise<string[]> {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const res = await askOpenAI({
         context: content,
@@ -90,7 +90,7 @@ async function fetchAiTags(
       const msg = message?.toLowerCase?.() ?? "";
       const isNetworkError =
         (code && NETWORK_ERROR_CODES.includes(code)) || msg.includes("network");
-      if (!isNetworkError || attempt === maxRetries) {
+      if (!isNetworkError || attempt === maxRetries - 1) {
         throw err;
       }
       const delay = baseDelay * 2 ** attempt;
