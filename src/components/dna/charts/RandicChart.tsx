@@ -93,8 +93,6 @@ export function RandicChart({ sequences = [], bpRange }: RandicChartProps) {
         </YAxis>
         <Tooltip
           formatter={function (value, name, index) {
-            debugger;
-
             return `${
               sequences?.find((seq) => seq.description === name)?.sequence[
                 Math.ceil(index?.payload?.x)
