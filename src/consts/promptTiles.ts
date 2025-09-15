@@ -83,6 +83,18 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "Extract base salary, bonus, equity, start date, and other key details from the following offer letter. Return ONLY valid JSON with keys compensation (array of {type:string, amount:number, notes?:string}) and summary (array of strings). Do not include any text outside the JSON.\n\n{{offerText}}",
     inputs: ["offerText"],
   },
+  offerNegotiation: {
+    id: "offerNegotiation",
+    display: "Negotiate Offer",
+    fullPrompt:
+      "Using the job description, resume, current offer summary, and recent market job listings, craft a persuasive counteroffer in the candidate's favor. Reference the resume and market data to justify improved compensation. Provide only the negotiation message.\n\nJob Description:\n{{jobDescription}}\n\nResume:\n{{resumeContent}}\n\nCurrent Offer:\n{{offerSummary}}\n\nMarket Data:\n{{marketData}}",
+    inputs: [
+      "jobDescription",
+      "resumeContent",
+      "offerSummary",
+      "marketData",
+    ],
+  },
   screenRole: {
     ...BASE_TILES.screenRole,
     fullPrompt:

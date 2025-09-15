@@ -241,16 +241,28 @@ function Card({
             </Stack>
           )}
           {app.offer?.summary && (
-            <List dense sx={{ mt: 1, listStyleType: "disc", pl: 2 }}>
-              {app.offer.summary.map((line, idx) => (
-                <ListItem key={idx} sx={{ display: "list-item", py: 0 }}>
-                  <ListItemText
-                    primary={line}
-                    primaryTypographyProps={{ variant: "body2" }}
-                  />
-                </ListItem>
-              ))}
-            </List>
+            <>
+              <List dense sx={{ mt: 1, listStyleType: "disc", pl: 2 }}>
+                {app.offer.summary.map((line, idx) => (
+                  <ListItem key={idx} sx={{ display: "list-item", py: 0 }}>
+                    <ListItemText
+                      primary={line}
+                      primaryTypographyProps={{ variant: "body2" }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+              <Button
+                size="small"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => onRunTile("offerNegotiation", app)}
+                variant="outlined"
+                fullWidth
+                sx={{ mt: 1 }}
+              >
+                Negotiate Offer
+              </Button>
+            </>
           )}
         </Box>
       )}
@@ -385,6 +397,60 @@ export default function ApplicationBoard() {
       setDrawerOpen(true);
       setDrawerMode("offerUpload");
       setDrawerApp(app);
+      return;
+    }
+    if (tileId === "offerNegotiation") {
+      setDrawerTitle(tile.display);
+      setDrawerTileId(tile.id);
+      setDrawerMessages([
+        { role: "assistant", text: "Gathering market data..." },
+      ]);
+      setDrawerAnalysis(null);
+      setDrawerOpen(true);
+      setDrawerApp(app);
+      const resume: ResumeEntry | undefined = app.resumeVariant
+        ? getResumes().find((r) => r.id === app.resumeVariant?.id)
+        : getResumes()[0];
+      const offerLines: string[] = [];
+      app.offer?.compensation.forEach((c) =>
+        offerLines.push(
+          `${c.type}: $${c.amount.toLocaleString()}${c.notes ? ` (${c.notes})` : ""}`,
+        ),
+      );
+      app.offer?.summary.forEach((s) => offerLines.push(s));
+      const offerSummary = offerLines.join("\n");
+      const listings = await fetchAllListings(app.role.title);
+      const marketData = listings
+        .map((l) => `${l.title} at ${l.company} – ${l.location}`)
+        .join("\n");
+      const prompt = tile.fullPrompt
+        .replaceAll("{{jobDescription}}", app.role.description || "")
+        .replaceAll("{{resumeContent}}", resume?.content || "")
+        .replaceAll("{{offerSummary}}", offerSummary)
+        .replaceAll("{{marketData}}", marketData);
+      setDrawerPrompt(prompt);
+      setDrawerMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: "Generating negotiation..." },
+        { role: "user", text: prompt },
+      ]);
+      setDrawerLoading(true);
+      try {
+        const res = await askOpenAI({
+          context: "",
+          user: prompt,
+          system: "You are a helpful assistant.",
+          returnFirstResponse: true,
+          chatHistory: [],
+        });
+        const message = res?.message || "";
+        setDrawerMessages((prev) => [
+          ...prev,
+          { role: "assistant", text: message },
+        ]);
+      } finally {
+        setDrawerLoading(false);
+      }
       return;
     }
     setDrawerTitle(tile.display);
