@@ -71,7 +71,7 @@ export function QiChart({ sequences = [], bpRange }: QiChartProps) {
               ...theme.typography.body1,
             }}
           >
-            # of basepairs
+            # of base pairs
           </Label>
         </XAxis>
         <YAxis
@@ -102,7 +102,7 @@ export function QiChart({ sequences = [], bpRange }: QiChartProps) {
             }  (${value})`;
           }}
           labelFormatter={(label) =>
-            `basepair #${Math.ceil(label) + 1}`
+            `base pair #${Math.ceil(label) + 1}`
           }
         />
         {sequences?.map((sequence, index) => (
