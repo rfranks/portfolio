@@ -66,6 +66,29 @@ describe("dataStore migrations", () => {
     expect(apps[0].role.title).toBe("Engineer");
   });
 
+  test("importFromJson ignores unknown keys", () => {
+    const snapshot = {
+      messages: [
+        {
+          id: "m1",
+          connector: "email",
+          content: "hello",
+          status: "unread",
+          replies: [
+            { id: "r1", content: "thanks", sentAt: "2023-01-01T00:00:00.000Z" },
+          ],
+        },
+      ],
+      unknownKey: { foo: "bar" },
+    };
+
+    importFromJson(JSON.stringify(snapshot));
+
+    const messages = loadItem<Message[]>("messages", MESSAGES_VERSION)!;
+    expect(messages).toHaveLength(1);
+    expect(localStorage.getItem("unknownKey")).toBeNull();
+  });
+
   test("importFromJson ignores malformed json", () => {
     expect(() => importFromJson("{invalid")).not.toThrow();
     expect(localStorage.length).toBe(0);
