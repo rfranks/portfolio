@@ -8,6 +8,8 @@ const NEW_TILE_IDS = [
   "negotiateBetterOffer",
   "compareTwoOffers",
   "screenRoleForRedFlags",
+  "recruiterFollowUp",
+  "recruiterDecline",
   "recruiterFollowUpNudge",
 ] as const;
 
@@ -59,5 +61,23 @@ describe("prompt registry new tiles", () => {
     const tile = PROMPT_TILES.recruiterFollowUpNudge;
     expect(tile.fullPrompt).toMatch(/Email/);
     expect(tile.fullPrompt).toMatch(/LinkedIn/);
+  });
+
+  test("recruiter follow up tile requests JSON per channel", () => {
+    const tile = PROMPT_TILES.recruiterFollowUp;
+    expect(tile.inputs).toEqual(["messageContext"]);
+    expect(tile.fullPrompt).toMatch(/JSON/i);
+    expect(tile.fullPrompt).toMatch(/email/i);
+    expect(tile.fullPrompt).toMatch(/LinkedIn/i);
+    expect(tile.fullPrompt).toMatch(/Indeed/i);
+  });
+
+  test("recruiter decline tile requests JSON per channel", () => {
+    const tile = PROMPT_TILES.recruiterDecline;
+    expect(tile.inputs).toEqual(["messageContext"]);
+    expect(tile.fullPrompt).toMatch(/JSON/i);
+    expect(tile.fullPrompt).toMatch(/email/i);
+    expect(tile.fullPrompt).toMatch(/LinkedIn/i);
+    expect(tile.fullPrompt).toMatch(/Indeed/i);
   });
 });

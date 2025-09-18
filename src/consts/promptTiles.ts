@@ -156,6 +156,18 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
       "Compare the offer letter to the current compensation and summarize key differences. Then draft professional replies for email, LinkedIn, and Indeed. Respond in JSON with keys email, linkedin, indeed.",
     inputs: ["offerLetter", "currentComp"],
   },
+  recruiterFollowUp: {
+    ...BASE_TILES.recruiterFollowUp,
+    fullPrompt:
+      "You're helping a candidate send a courteous follow-up to a recruiter. Use the conversation context below to craft three polished variants for email, LinkedIn, and Indeed. Return ONLY valid JSON with keys email, linkedin, and indeed where each value is the full message ready to send. Conversation context:\n{{messageContext}}",
+    inputs: ["messageContext"],
+  },
+  recruiterDecline: {
+    ...BASE_TILES.recruiterDecline,
+    fullPrompt:
+      "You're helping a candidate gracefully decline a recruiter. Use the conversation context below to write professional variants for email, LinkedIn, and Indeed that thank the recruiter, clearly decline, and keep the door open. Return ONLY valid JSON with keys email, linkedin, and indeed. Conversation context:\n{{messageContext}}",
+    inputs: ["messageContext"],
+  },
   recruiterNudge: {
     ...BASE_TILES.recruiterNudge,
     fullPrompt:

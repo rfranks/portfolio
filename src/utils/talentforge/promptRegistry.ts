@@ -94,6 +94,14 @@ const TILE_METADATA: Record<keyof typeof PROMPT_TILES, {
     contexts: ["messaging", "jobSearch"],
     recommendedGoalTags: ["networking"],
   },
+  recruiterFollowUp: {
+    contexts: ["messaging"],
+    recommendedGoalTags: ["networking"],
+  },
+  recruiterDecline: {
+    contexts: ["messaging"],
+    recommendedGoalTags: ["networking"],
+  },
   recruiterNudge: {
     contexts: ["messaging"],
     recommendedGoalTags: ["networking"],

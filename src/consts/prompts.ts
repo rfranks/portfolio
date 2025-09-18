@@ -99,6 +99,16 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Draft a message to connect with professionals in this industry or company for networking purposes.",
   },
+  recruiterFollowUp: {
+    displayText: "Recruiter follow-up",
+    fullText:
+      "Draft a polished follow-up to a recruiter based on the conversation context I share. Provide distinct versions for email, LinkedIn, and Indeed.",
+  },
+  recruiterDecline: {
+    displayText: "Recruiter decline",
+    fullText:
+      "Write a gracious decline to a recruiter using the conversation context I provide. Return professional variants for email, LinkedIn, and Indeed.",
+  },
   recruiterNudge: {
     displayText: "Recruiter Nudge",
     fullText:
@@ -155,6 +165,8 @@ export const PROMPT_GROUPS: Record<string, string[]> = {
   "Recruiter Replies": [
     "interviewPreparation",
     "networkingOutreach",
+    "recruiterFollowUp",
+    "recruiterDecline",
     "recruiterNudge",
     "recruiterFollowUpNudge",
   ],
