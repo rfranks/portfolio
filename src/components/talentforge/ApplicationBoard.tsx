@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   Box,
   Paper,
@@ -62,6 +62,7 @@ import { exportElementToPdf } from "@/utils/pdfExport";
 import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
 import { getPromptTile, type PromptContext } from "@/utils/talentforge/promptRegistry";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
+import ApplicationDetailDrawer from "./ApplicationDetailDrawer";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -109,6 +110,7 @@ function Card({
   app,
   onRunTile,
   onOpenWorkspace,
+  onOpenDetails,
   resumes,
   onAssignResume,
   onSetInterviewDate,
@@ -119,6 +121,7 @@ function Card({
   app: JobApplication;
   onRunTile: (id: string, context: PromptContext) => void;
   onOpenWorkspace: (app: JobApplication) => void;
+  onOpenDetails: (app: JobApplication) => void;
   resumes: ResumeEntry[];
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
@@ -128,6 +131,7 @@ function Card({
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app.id });
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const style = {
     transform: transform ? CSS.Translate.toString(transform) : undefined,
     opacity: isDragging ? 0.5 : 1,
@@ -141,6 +145,36 @@ function Card({
     contexts: "offers",
   });
 
+  const handlePointerDownCapture = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    pointerStart.current = { x: event.clientX, y: event.clientY };
+  };
+
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const start = pointerStart.current;
+    if (start) {
+      const dx = event.clientX - start.x;
+      const dy = event.clientY - start.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance > 5) {
+        pointerStart.current = null;
+        return;
+      }
+    }
+    const target = event.target as HTMLElement | null;
+    if (
+      target?.closest(
+        "button, [role='button'], a, input, textarea, select, [contenteditable='true']",
+      )
+    ) {
+      pointerStart.current = null;
+      return;
+    }
+    pointerStart.current = null;
+    onOpenDetails(app);
+  };
+
   return (
     <Box
       ref={setNodeRef}
@@ -151,6 +185,8 @@ function Card({
       aria-grabbed={activeId === app.id}
       tabIndex={0}
       onKeyDown={onKeyDown}
+      onPointerDownCapture={handlePointerDownCapture}
+      onClick={handleClick}
       sx={{
         p: 1,
         border: "1px solid",
@@ -350,6 +386,8 @@ export default function ApplicationBoard() {
     useState<JobApplication | null>(null);
   const [drawerApp, setDrawerApp] = useState<JobApplication | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [liveMessage, setLiveMessage] = useState("");
   const [resumes, setResumes] = useState<ResumeEntry[]>(() => getResumes());
@@ -357,6 +395,14 @@ export default function ApplicationBoard() {
   const [manageResumesOpen, setManageResumesOpen] = useState(false);
   const negotiationRef = useRef<HTMLDivElement | null>(null);
   const data = useTalentForgeData();
+  const selectedApplication = useMemo(() => {
+    if (!selectedApplicationId) {
+      return null;
+    }
+    return (
+      applications.find((application) => application.id === selectedApplicationId) || null
+    );
+  }, [applications, selectedApplicationId]);
 
   useEffect(() => {
     const existing = getJobApplications();
@@ -382,6 +428,13 @@ export default function ApplicationBoard() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (detailDrawerOpen && !selectedApplication) {
+      setDetailDrawerOpen(false);
+      setSelectedApplicationId(null);
+    }
+  }, [detailDrawerOpen, selectedApplication]);
 
   if (loading) {
     return (
@@ -444,6 +497,16 @@ export default function ApplicationBoard() {
       e.preventDefault();
       handleKeyboardMove(app.id, e.key);
     }
+  };
+
+  const handleOpenDetails = (app: JobApplication) => {
+    setSelectedApplicationId(app.id);
+    setDetailDrawerOpen(true);
+  };
+
+  const handleCloseDetails = () => {
+    setDetailDrawerOpen(false);
+    setSelectedApplicationId(null);
   };
 
   const handleOpenWorkspace = (app: JobApplication) => {
@@ -1014,6 +1077,7 @@ export default function ApplicationBoard() {
                       app={app}
                       onRunTile={(id, context) => runTile(id, context, app)}
                       onOpenWorkspace={handleOpenWorkspace}
+                      onOpenDetails={handleOpenDetails}
                       resumes={resumes}
                       onAssignResume={handleAssignResume}
                       onSetInterviewDate={handleInterviewDate}
@@ -1094,6 +1158,12 @@ export default function ApplicationBoard() {
           </Button>
         </DialogActions>
       </Dialog>
+      <ApplicationDetailDrawer
+        open={detailDrawerOpen && Boolean(selectedApplication)}
+        application={selectedApplication}
+        onClose={handleCloseDetails}
+        promptDrawerOpen={drawerOpen}
+      />
       {drawerOpen && (
         <Drawer
           anchor="right"
