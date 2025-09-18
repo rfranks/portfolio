@@ -35,3 +35,25 @@ button {
   margin-top: 1rem;
   white-space: pre-line;
 }
+
+.text-win {
+  color: #15803d;
+}
+
+.text-loss {
+  color: #dc2626;
+}
+
+.text-bonus {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.text-bonus-reason {
+  color: #16a34a;
+  font-style: italic;
+}
+
+.text-neutral {
+  color: #4b5563;
+}

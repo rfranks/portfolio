@@ -10,16 +10,20 @@ import (
 	"blackjack/rules"
 	"blackjack/sidebets"
 	"blackjack/ui"
+	"blackjack/ui/messages"
 	"errors"
 	"fmt"
+	"html"
 	"syscall/js"
 )
 
 type WebUI struct {
-	actionCh     chan rune
-	handlers     []handler
-	cfg          flags.Config
-	lastWinnings int
+	actionCh            chan rune
+	handlers            []handler
+	cfg                 flags.Config
+	lastWinnings        int
+	lastSidebetWinnings int
+	lastSidebetLosses   int
 }
 
 type handler struct {
@@ -193,29 +197,75 @@ func (w *WebUI) Render(state ui.GameState) {
 	// round result
 	if el := doc.Call("getElementById", "result"); el.Truthy() {
 		if state.AskingToDeal {
-			text := ""
-			color := ""
+			message := ""
 			if len(game.State.Players) > 0 {
 				p := game.State.Players[0]
-				diff := p.Winnings - w.lastWinnings
-				if diff > 0 {
-					text = fmt.Sprintf("You won %s", PrintCurrency(diff*100))
-					color = "green"
-				} else if diff < 0 {
-					text = fmt.Sprintf("You lost %s", PrintCurrency(-diff*100))
-					color = "red"
-				} else {
-					text = "Push"
+				baseDiff := p.Winnings - w.lastWinnings
+				bonusWinDiff := game.State.SidebetWinnings - w.lastSidebetWinnings
+				bonusLossDiff := game.State.SidebetLosses - w.lastSidebetLosses
+				bonusDiff := bonusWinDiff - bonusLossDiff
+				netDiff := baseDiff + bonusDiff
+
+				bonusReasonText := ""
+				if bonusDiff > 0 && len(p.Hands) > 0 {
+					if reasons := messages.SidebetReasons(p.Hands[0]); len(reasons) > 0 {
+						if joined := messages.JoinReasons(reasons, " "); joined != "" {
+							bonusReasonText = fmt.Sprintf(" <span class=\"text-bonus-reason\">%s</span>", html.EscapeString(joined))
+						}
+					}
+				}
+
+				netClass := func(amount int) string {
+					if amount > 0 {
+						return "text-win"
+					}
+					if amount < 0 {
+						return "text-loss"
+					}
+					return "text-neutral"
+				}
+
+				switch {
+				case baseDiff > 0:
+					message = fmt.Sprintf("Winner! <span class=\"text-win\">You won %s for the hand.</span>", PrintCurrency(baseDiff*100))
+					switch {
+					case bonusDiff > 0:
+						message += fmt.Sprintf(" You also won a <span class=\"text-bonus\">bonus of %s</span>!%s", PrintCurrency(bonusDiff*100), bonusReasonText)
+					case bonusDiff < 0:
+						message += fmt.Sprintf(" but <span class=\"text-loss\">lost %s on bonus wagers</span>.", PrintCurrency(-bonusDiff*100))
+						message += fmt.Sprintf(" For a net of <span class=\"%s\">%s</span>.", netClass(netDiff), PrintCurrency(netDiff*100))
+					}
+				case baseDiff < 0:
+					message = fmt.Sprintf("<span class=\"text-loss\">You lost %s on the hand</span>", PrintCurrency(-baseDiff*100))
+					switch {
+					case bonusDiff > 0:
+						message += fmt.Sprintf(", but <span class=\"text-bonus\">won a bonus of %s</span>%s,", PrintCurrency(bonusDiff*100), bonusReasonText)
+						message += fmt.Sprintf(" for a net of <span class=\"%s\">%s</span>.", netClass(netDiff), PrintCurrency(netDiff*100))
+					case bonusDiff < 0:
+						message += fmt.Sprintf(" and <span class=\"text-loss\">lost %s on bonus wagers</span>.", PrintCurrency(-bonusDiff*100))
+						message += fmt.Sprintf(" For a net of <span class=\"%s\">%s</span>.", netClass(netDiff), PrintCurrency(netDiff*100))
+					default:
+						message += "."
+					}
+				default:
+					message = "Push."
+					switch {
+					case bonusDiff > 0:
+						message += fmt.Sprintf(" You also won a <span class=\"text-bonus\">bonus of %s</span>!%s", PrintCurrency(bonusDiff*100), bonusReasonText)
+					case bonusDiff < 0:
+						message += fmt.Sprintf(" <span class=\"text-loss\">You lost %s on bonus wagers</span>.", PrintCurrency(-bonusDiff*100))
+						message += fmt.Sprintf(" For a net of <span class=\"%s\">%s</span>.", netClass(netDiff), PrintCurrency(netDiff*100))
+					}
 				}
 			}
-			el.Set("innerText", text)
-			el.Get("style").Set("color", color)
+			el.Set("innerHTML", message)
 		} else {
 			if len(game.State.Players) > 0 {
 				w.lastWinnings = game.State.Players[0].Winnings
 			}
-			el.Set("innerText", "")
-			el.Get("style").Set("color", "")
+			w.lastSidebetWinnings = game.State.SidebetWinnings
+			w.lastSidebetLosses = game.State.SidebetLosses
+			el.Set("innerHTML", "")
 		}
 	}
 
