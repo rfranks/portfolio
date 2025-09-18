@@ -14,7 +14,7 @@ import {
 import type { ResumeEntry } from "@/types";
 import {
   getPromptTiles,
-  type PromptTileWithMetadata,
+  type PromptContext,
 } from "@/utils/talentforge/promptRegistry";
 import { askOpenAI } from "@/utils/talentforge/utils";
 
@@ -28,7 +28,7 @@ interface ChatWorkspaceProps {
   resumes?: ResumeEntry[];
 }
 
-const WORKSPACE_CONTEXTS = ["resume", "jobSearch"] as const;
+const WORKSPACE_CONTEXTS: PromptContext[] = ["resume", "jobSearch"];
 
 export default function ChatWorkspace({
   onInsertIntoInbox,

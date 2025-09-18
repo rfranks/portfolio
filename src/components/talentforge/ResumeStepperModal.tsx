@@ -497,7 +497,7 @@ export default function ResumeStepperModal({
     emptyLibraryMessage: string;
     emptySelectionMessage: string;
     showOverview?: boolean;
-  }): JSX.Element => (
+  }) => (
     <Stack spacing={3}>
       <Typography variant="body1">{intro}</Typography>
       {loadingResumes ? (

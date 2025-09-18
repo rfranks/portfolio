@@ -159,7 +159,7 @@ export function OpenAIKeyProvider({
   children,
 }: {
   children: React.ReactNode;
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <OpenAIKeyContext.Provider value={store}>
       {children}
