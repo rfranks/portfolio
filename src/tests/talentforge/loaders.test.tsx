@@ -1,6 +1,5 @@
 import React from 'react';
 import { renderToString } from 'react-dom/server';
-import ResumeManager from '@/components/talentforge/ResumeManager';
 import Inbox from '@/components/talentforge/Inbox';
 import ApplicationBoard from '@/components/talentforge/ApplicationBoard';
 
@@ -64,11 +63,6 @@ jest.mock('@/consts/prompts', () => ({ PROMPT_TEMPLATES: {} }));
 jest.mock('@/consts/promptTiles', () => ({ PROMPT_TILES: {} }));
 
 describe('Loader visuals', () => {
-  test('ResumeManager initial render shows loader', () => {
-    const html = renderToString(<ResumeManager />);
-    expect(html).toContain('aria-label="Loading resumes"');
-  });
-
   test('Inbox initial render shows loader', () => {
     const html = renderToString(<Inbox />);
     expect(html).toContain('aria-label="Loading inbox"');

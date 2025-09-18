@@ -26,7 +26,6 @@ export default function TalentForgeLayout({
   const navItems = [
     { label: "Dashboard", href: "/talentforge" },
     { label: "Applications", href: "/talentforge/applications" },
-    { label: "Resumes", href: "/talentforge/resumes" },
     { label: "Inbox", href: "/talentforge/inbox" },
     { label: "Settings", href: "/talentforge/settings" },
   ];
