@@ -38,6 +38,8 @@ export function getDemoData(): {
       skills: ["TypeScript", "React"],
     },
     tags: ["typescript", "react"],
+    sourceFilename: "demo-resume.pdf",
+    importedAt: "2024-01-01T00:00:00.000Z",
   };
 
   const role: RolePosting = {

@@ -88,7 +88,7 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   currentCompensation: CURRENT_COMP_VERSION,
 } as const;
 
-export const SNAPSHOT_VERSION = 3;
+export const SNAPSHOT_VERSION = 4;
 
 // Generic migration helper which applies migrations sequentially until the
 // data reaches `targetVersion`.
@@ -389,7 +389,8 @@ export function saveResumes(resumes: ResumeEntry[]): void {
 export function addResume(resume: ResumeEntry): ResumeEntry[] {
   const current = getResumes();
   const title = generateUniqueTitle(resume.title || "Resume", current);
-  const newResume = { ...resume, title };
+  const importedAt = resume.importedAt ?? new Date().toISOString();
+  const newResume = { ...resume, title, importedAt };
   const updated = [...current, newResume];
   saveResumes(updated);
   return updated;
@@ -696,6 +697,31 @@ function migrateSnapshot(
   const migrated = { ...data };
   if (fromVersion < 2) {
     migrated[KEYS.connectorTokens] = migrated[KEYS.connectorTokens] || {};
+  }
+  if (fromVersion < 4) {
+    const resumesEntry = migrated[KEYS.resumes];
+    if (
+      resumesEntry &&
+      typeof resumesEntry === "object" &&
+      "data" in (resumesEntry as Record<string, unknown>)
+    ) {
+      const payload = resumesEntry as { data?: ResumeEntry[] };
+      if (Array.isArray(payload.data)) {
+        const timestamp = new Date().toISOString();
+        const migratedResumes = payload.data.map((resume) => {
+          if (!resume || typeof resume !== "object") {
+            return resume;
+          }
+          const typed = resume as ResumeEntry;
+          return {
+            ...typed,
+            sourceFilename: typed.sourceFilename ?? "Imported resume",
+            importedAt: typed.importedAt ?? timestamp,
+          };
+        });
+        migrated[KEYS.resumes] = { ...(resumesEntry as Record<string, unknown>), data: migratedResumes };
+      }
+    }
   }
   return migrated;
 }

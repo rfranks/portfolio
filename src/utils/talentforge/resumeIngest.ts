@@ -3,7 +3,7 @@
 import * as pdfjs from "pdfjs-dist";
 
 import { Buffer } from "buffer";
-import { ParsedResume } from "@/types";
+import type { ParsedResume, ResumeEntry } from "@/types";
 
 declare global {
   interface Window {
@@ -13,6 +13,33 @@ declare global {
 
 if (typeof window !== "undefined") {
   window.Buffer = window.Buffer || Buffer;
+}
+
+export type ResumeImportMetadata = Pick<ResumeEntry, "sourceFilename" | "importedAt">;
+
+export interface ResumeTextResult {
+  text: string;
+  metadata: ResumeImportMetadata;
+}
+
+const PASTED_RESUME_LABEL = "Pasted resume";
+
+function nowIsoString(): string {
+  return new Date().toISOString();
+}
+
+function createMetadataFromFile(file: File): ResumeImportMetadata {
+  return {
+    sourceFilename: file.name || undefined,
+    importedAt: nowIsoString(),
+  };
+}
+
+export function createPastedResumeMetadata(): ResumeImportMetadata {
+  return {
+    sourceFilename: PASTED_RESUME_LABEL,
+    importedAt: nowIsoString(),
+  };
 }
 
 /**
@@ -307,21 +334,23 @@ export async function docxToText(file: File): Promise<string> {
 }
 
 /**
- * Extract text from a file, supporting PDF and DOCX.
+ * Extract text from a file, supporting PDF and DOCX, and attach import metadata.
  */
-export async function fileToText(file: File): Promise<string> {
+export async function fileToText(file: File): Promise<ResumeTextResult> {
   const name = file.name.toLowerCase();
+  let text: string;
   if (file.type === "application/pdf" || name.endsWith(".pdf")) {
-    return pdfToText(file);
-  }
-  if (
+    text = await pdfToText(file);
+  } else if (
     file.type ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
     name.endsWith(".docx")
   ) {
-    return docxToText(file);
+    text = await docxToText(file);
+  } else {
+    text = await file.text();
   }
-  return await file.text();
+  return { text, metadata: createMetadataFromFile(file) };
 }
 
 /**
@@ -374,22 +403,22 @@ export function parseResumeText(text: string): ParsedResume {
  */
 export async function parsePdf(
   file: File,
-): Promise<{ text: string; parsed: ParsedResume }> {
+): Promise<{ text: string; parsed: ParsedResume; metadata: ResumeImportMetadata }> {
   const text = await pdfToText(file);
-  return { text, parsed: parseResumeText(text) };
+  return { text, parsed: parseResumeText(text), metadata: createMetadataFromFile(file) };
 }
 
 export async function parseDocx(
   file: File,
-): Promise<{ text: string; parsed: ParsedResume }> {
+): Promise<{ text: string; parsed: ParsedResume; metadata: ResumeImportMetadata }> {
   const text = await docxToText(file);
-  return { text, parsed: parseResumeText(text) };
+  return { text, parsed: parseResumeText(text), metadata: createMetadataFromFile(file) };
 }
 
 export async function parseResumeFile(
   file: File,
-): Promise<{ text: string; parsed: ParsedResume }> {
-  const text = await fileToText(file);
-  return { text, parsed: parseResumeText(text) };
+): Promise<{ text: string; parsed: ParsedResume; metadata: ResumeImportMetadata }> {
+  const { text, metadata } = await fileToText(file);
+  return { text, metadata, parsed: parseResumeText(text) };
 }
 
