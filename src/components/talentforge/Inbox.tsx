@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { MouseEvent } from "react";
 import {
+  Alert,
   Box,
   Button,
   Dialog,
   DialogContent,
   DialogTitle,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -16,7 +19,12 @@ import {
   SelectChangeEvent,
   Skeleton,
   Stack,
+  Tab,
+  Tabs,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { filterByText } from "@/utils/search";
@@ -26,6 +34,7 @@ import {
   buildAutoReplyMessages,
   AutoReplyTemplate,
 } from "@/utils/autoReply";
+import { askOpenAI } from "@/utils/talentforge/utils";
 
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import type {
@@ -35,6 +44,7 @@ import type {
   RecruiterEntry,
 } from "@/types";
 import { v4 as uuidv4 } from "uuid";
+import { ContentCopy } from "@mui/icons-material";
 import PromptSelector from "./PromptSelector";
 import Tile from "./promptTiles/Tile";
 import { getPromptTile } from "@/utils/talentforge/promptRegistry";
@@ -47,6 +57,26 @@ type StatusFilterValue = ApplicationStatus | "all" | "unlinked";
 const formatStatus = (status: string) =>
   status.charAt(0).toUpperCase() + status.slice(1);
 
+type QuickReplyChannel = "email" | "linkedin" | "indeed";
+type QuickReplyType = "followUp" | "decline";
+
+interface QuickReplyContent {
+  email: string;
+  linkedin: string;
+  indeed: string;
+}
+
+interface QuickReplyEntry {
+  contextKey: string;
+  content: QuickReplyContent;
+}
+
+const QUICK_REPLY_CHANNELS: QuickReplyChannel[] = [
+  "email",
+  "linkedin",
+  "indeed",
+];
+
 export default function Inbox() {
   const data = useTalentForgeData();
   const [threads, setThreads] = useState<Message[]>([]);
@@ -58,7 +88,15 @@ export default function Inbox() {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [templateSelections, setTemplateSelections] =
     useState<Record<string, AutoReplyTemplate>>({});
-  const [quickTones, setQuickTones] = useState<Record<string, AutoReplyTemplate>>({});
+  const [quickReplyCache, setQuickReplyCache] = useState<
+    Record<string, Partial<Record<QuickReplyType, QuickReplyEntry>>>
+  >({});
+  const [quickReplyType, setQuickReplyType] =
+    useState<QuickReplyType>("followUp");
+  const [quickReplyChannel, setQuickReplyChannel] =
+    useState<QuickReplyChannel>("email");
+  const [quickReplyLoading, setQuickReplyLoading] = useState(false);
+  const [quickReplyError, setQuickReplyError] = useState<string | null>(null);
   const [templateDefs, setTemplateDefs] = useState<Record<string, string>>({});
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorTemplates, setEditorTemplates] = useState<
@@ -147,6 +185,128 @@ export default function Inbox() {
     },
   );
 
+  const buildQuickReplyContext = (message: Message) => {
+    const parts: string[] = [];
+    const application = message.applicationId
+      ? applicationById[message.applicationId]
+      : undefined;
+    const recruiter = message.recruiterId
+      ? recruiters.find((r) => r.id === message.recruiterId)
+      : undefined;
+
+    const sentDate = new Date(message.sentAt);
+    const formattedSentDate = Number.isNaN(sentDate.getTime())
+      ? message.sentAt
+      : sentDate.toLocaleString();
+
+    parts.push(
+      `Recruiter message received via ${message.connector} on ${formattedSentDate}:\n${message.body.trim()}`,
+    );
+
+    if (application) {
+      parts.push(
+        `Linked application: ${application.role.title} at ${application.role.company} (status: ${formatStatus(application.status)}).`,
+      );
+    }
+
+    if (recruiter) {
+      const note = recruiter.notes?.trim();
+      parts.push(
+        note
+          ? `Recruiter: ${recruiter.name}. Notes: ${note}`
+          : `Recruiter: ${recruiter.name}.`,
+      );
+    }
+
+    if (message.replies.length > 0) {
+      parts.push("Previous replies from the candidate:");
+      for (const reply of message.replies) {
+        const replyDate = new Date(reply.sentAt);
+        const formattedReplyDate = Number.isNaN(replyDate.getTime())
+          ? reply.sentAt
+          : replyDate.toLocaleString();
+        parts.push(
+          `Sent via ${reply.connector} on ${formattedReplyDate}:\n${reply.body.trim()}`,
+        );
+      }
+    }
+
+    return parts.filter(Boolean).join("\n\n");
+  };
+
+  const parseQuickReplyContent = (raw: string): QuickReplyContent | null => {
+    const sanitize = (value: unknown) =>
+      typeof value === "string" ? value.trim() : "";
+
+    const attemptFromObject = (
+      obj: Record<string, unknown>,
+    ): QuickReplyContent | null => {
+      const channelKeys: Record<QuickReplyChannel, string[]> = {
+        email: ["email", "Email", "EMAIL"],
+        linkedin: ["linkedin", "LinkedIn", "Linkedin", "LINKEDIN"],
+        indeed: ["indeed", "Indeed", "INDEED"],
+      };
+
+      const result: Partial<Record<QuickReplyChannel, string>> = {};
+
+      for (const channel of QUICK_REPLY_CHANNELS) {
+        for (const key of channelKeys[channel]) {
+          if (key in obj) {
+            const text = sanitize(obj[key]);
+            if (text) {
+              result[channel] = text;
+              break;
+            }
+          }
+        }
+      }
+
+      if (result.email || result.linkedin || result.indeed) {
+        return {
+          email: result.email || "",
+          linkedin: result.linkedin || "",
+          indeed: result.indeed || "",
+        };
+      }
+
+      for (const value of Object.values(obj)) {
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+          const nested = attemptFromObject(value as Record<string, unknown>);
+          if (nested) {
+            return nested;
+          }
+        }
+      }
+
+      return null;
+    };
+
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+
+    const candidates = [trimmed];
+    const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (fencedMatch?.[1]) {
+      candidates.unshift(fencedMatch[1]);
+    }
+
+    for (const candidate of candidates) {
+      try {
+        const parsed = JSON.parse(candidate) as unknown;
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          const content = attemptFromObject(parsed as Record<string, unknown>);
+          if (content) {
+            return content;
+          }
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return null;
+  };
+
   const selected = threads.find((m) => m.id === selectedId) || null;
 
   const selectedApplication = selected?.applicationId
@@ -162,16 +322,23 @@ export default function Inbox() {
     selected?.applicationId && !selectedApplication,
   );
 
+  const quickReplyEntry = selected
+    ? quickReplyCache[selected.id]?.[quickReplyType]
+    : undefined;
+  const quickReplyContent = quickReplyEntry?.content;
+  const currentQuickReplyText = quickReplyContent
+    ? quickReplyContent[quickReplyChannel]
+    : "";
+
   const templateNames = Object.keys(templateDefs) as AutoReplyTemplate[];
   const defaultTemplate: AutoReplyTemplate = templateDefs.general
     ? "general"
     : templateNames[0];
-  const defaultQuickTone: AutoReplyTemplate = templateDefs.politeFollowUp
-    ? "politeFollowUp"
-    : defaultTemplate;
 
   const handleSelectThread = (message: Message) => {
     setSelectedId(message.id);
+    setQuickReplyChannel("email");
+    setQuickReplyError(null);
     if (!drafts[message.id]) void handleAutoReply(message);
     if (message.status === "unread") {
       const updated = data.updateThreadStatus(message.id, "read");
@@ -187,19 +354,132 @@ export default function Inbox() {
     setDrafts((d) => ({ ...d, [message.id]: reply }));
   };
 
-  const handleQuickInsert = async (message: Message) => {
-    const tone = quickTones[message.id] || defaultQuickTone;
-    const text = await autoReply(
-      buildAutoReplyMessages(tone, message.body, templateDefs),
-    );
-    const reply = {
-      id: uuidv4(),
-      body: text,
-      sentAt: new Date().toISOString(),
-      connector: message.connector,
-    };
-    const updated = data.addThreadReply(message.id, reply);
-    setThreads(updated);
+  const handleGenerateQuickReply = async (message: Message) => {
+    setQuickReplyError(null);
+    setQuickReplyChannel("email");
+
+    const context = buildQuickReplyContext(message);
+    const cached = quickReplyCache[message.id]?.[quickReplyType];
+    if (cached && cached.contextKey === context) {
+      return;
+    }
+
+    const tileId =
+      quickReplyType === "followUp"
+        ? "recruiterFollowUp"
+        : "recruiterDecline";
+    const tile = getPromptTile(tileId, { contexts: "messaging" });
+    if (!tile) {
+      setQuickReplyError("This prompt is unavailable in the current workspace.");
+      return;
+    }
+
+    let prompt = tile.fullPrompt;
+    for (const input of tile.inputs) {
+      const value = input === "messageContext" ? context : "";
+      prompt = prompt.replaceAll(`{{${input}}}`, value);
+    }
+
+    setQuickReplyLoading(true);
+
+    try {
+      const systemPrompt =
+        quickReplyType === "followUp"
+          ? "You craft professional recruiter follow-up messages. Always respond with strictly valid JSON containing keys email, linkedin, and indeed. Do not add markdown fences or commentary."
+          : "You craft professional recruiter decline messages. Always respond with strictly valid JSON containing keys email, linkedin, and indeed. Do not add markdown fences or commentary.";
+
+      const response = await askOpenAI({
+        context: "",
+        user: prompt,
+        system: systemPrompt,
+        returnFirstResponse: true,
+        chatHistory: [],
+      });
+
+      const messageText = response?.message?.trim() || "";
+      const parsed = parseQuickReplyContent(messageText);
+
+      if (!parsed) {
+        const fallback = messageText;
+        if (!fallback) {
+          setQuickReplyError("The AI response was empty. Please try again.");
+          return;
+        }
+
+        setQuickReplyError(
+          "We couldn't parse the AI response into channels. The same text is available for each option.",
+        );
+
+        const fallbackContent: QuickReplyContent = {
+          email: fallback,
+          linkedin: fallback,
+          indeed: fallback,
+        };
+
+        setQuickReplyCache((prev) => ({
+          ...prev,
+          [message.id]: {
+            ...prev[message.id],
+            [quickReplyType]: {
+              contextKey: context,
+              content: fallbackContent,
+            },
+          },
+        }));
+
+        return;
+      }
+
+      setQuickReplyCache((prev) => ({
+        ...prev,
+        [message.id]: {
+          ...prev[message.id],
+          [quickReplyType]: { contextKey: context, content: parsed },
+        },
+      }));
+    } catch (error) {
+      setQuickReplyError(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate a quick reply.",
+      );
+    } finally {
+      setQuickReplyLoading(false);
+    }
+  };
+
+  const handleQuickReplyTypeChange = (
+    _event: MouseEvent<HTMLElement>,
+    value: QuickReplyType | null,
+  ) => {
+    if (!value) return;
+    setQuickReplyType(value);
+    setQuickReplyChannel("email");
+    setQuickReplyError(null);
+  };
+
+  const handleQuickReplyChannelChange = (
+    _event: unknown,
+    value: QuickReplyChannel,
+  ) => {
+    setQuickReplyChannel(value);
+  };
+
+  const handleInsertQuickReply = (messageId: string, text: string) => {
+    if (!text) return;
+    setDrafts((prev) => ({
+      ...prev,
+      [messageId]: text,
+    }));
+  };
+
+  const handleCopyQuickReply = async (text: string) => {
+    if (!text || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Ignore clipboard errors; users can still manually copy.
+    }
   };
 
   const handleSendReply = (message: Message) => {
@@ -527,41 +807,105 @@ export default function Inbox() {
                   ))}
                 </Select>
               </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Select
-                  size="small"
-                  value={quickTones[selected.id] || defaultQuickTone}
-                  onChange={(e) =>
-                    setQuickTones((t) => ({
-                      ...t,
-                      [selected.id]: e.target.value as AutoReplyTemplate,
-                    }))
-                  }
-                  sx={{ maxWidth: 200 }}
-                  aria-label="Quick tone"
+              <Stack spacing={1}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Quick replies
+                </Typography>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
+                  sx={{ flexWrap: "wrap", rowGap: 1 }}
                 >
-                  {templateNames.map((name) => (
-                    <MenuItem key={name} value={name}>
-                      {name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => void handleQuickInsert(selected)}
-                  aria-label="Quick insert"
-                >
-                  Quick insert
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => handleDraftWithAI(selected.id)}
-                  aria-label="Draft with AI"
-                >
-                  Draft with AI
-                </Button>
+                  <ToggleButtonGroup
+                    size="small"
+                    exclusive
+                    value={quickReplyType}
+                    onChange={handleQuickReplyTypeChange}
+                    aria-label="Quick reply type"
+                  >
+                    <ToggleButton value="followUp">Follow up</ToggleButton>
+                    <ToggleButton value="decline">Decline</ToggleButton>
+                  </ToggleButtonGroup>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => void handleGenerateQuickReply(selected)}
+                    disabled={quickReplyLoading}
+                    aria-label="Generate quick reply"
+                  >
+                    {quickReplyLoading ? "Generating..." : "Generate"}
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleDraftWithAI(selected.id)}
+                    aria-label="Draft with AI"
+                  >
+                    Draft with AI
+                  </Button>
+                </Stack>
+                {quickReplyError && (
+                  <Alert severity="warning" variant="outlined">
+                    {quickReplyError}
+                  </Alert>
+                )}
+                {quickReplyLoading && !quickReplyContent && (
+                  <Typography variant="body2" color="text.secondary">
+                    Generating quick reply…
+                  </Typography>
+                )}
+                {quickReplyContent && (
+                  <Box
+                    sx={{
+                      border: "1px solid",
+                      borderColor: "divider",
+                      borderRadius: 1,
+                      p: 2,
+                      bgcolor: "background.paper",
+                    }}
+                  >
+                    <Tabs
+                      value={quickReplyChannel}
+                      onChange={handleQuickReplyChannelChange}
+                      aria-label="Quick reply channel"
+                    >
+                      <Tab label="Email" value="email" />
+                      <Tab label="LinkedIn" value="linkedin" />
+                      <Tab label="Indeed" value="indeed" />
+                    </Tabs>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      justifyContent="flex-end"
+                      sx={{ mt: 1 }}
+                    >
+                      <Tooltip title="Copy to clipboard" arrow>
+                        <IconButton
+                          aria-label="Copy quick reply"
+                          size="small"
+                          onClick={() => handleCopyQuickReply(currentQuickReplyText)}
+                        >
+                          <ContentCopy fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Button
+                        size="small"
+                        onClick={() =>
+                          handleInsertQuickReply(selected.id, currentQuickReplyText)
+                        }
+                      >
+                        Insert into draft
+                      </Button>
+                    </Stack>
+                    <Typography
+                      variant="body2"
+                      sx={{ whiteSpace: "pre-wrap", mt: 1 }}
+                    >
+                      {currentQuickReplyText}
+                    </Typography>
+                  </Box>
+                )}
               </Stack>
               <TextField
                 label="Your reply"
