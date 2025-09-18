@@ -17,6 +17,7 @@ import type {
   MessageReply,
   Offer,
   ApplicationRecord,
+  OfferHistoryEntry,
   OfferComp,
   RecruiterEntry,
 } from "@/types";
@@ -520,11 +521,65 @@ export function deleteOffer(id: string): Offer[] {
 }
 
 // Job applications
+function normalizeOfferHistoryEntries(
+  history: JobApplication["offerHistory"] | string[] | undefined,
+): { entries: OfferHistoryEntry[]; changed: boolean } {
+  if (!Array.isArray(history)) {
+    return { entries: [], changed: Boolean(history) };
+  }
+
+  let changed = false;
+  const normalized: OfferHistoryEntry[] = [];
+
+  history.forEach((item, index) => {
+    if (typeof item === "string") {
+      changed = true;
+      normalized.push({
+        id: uuid(),
+        createdAt: new Date().toISOString(),
+        sourceLabel: `Offer note ${index + 1}`,
+        content: item,
+      });
+      return;
+    }
+
+    const entry = item as Partial<OfferHistoryEntry>;
+    const hasId = typeof entry.id === "string" && entry.id.length > 0;
+    const hasCreatedAt =
+      typeof entry.createdAt === "string" && entry.createdAt.length > 0;
+    const hasSourceLabel =
+      typeof entry.sourceLabel === "string" && entry.sourceLabel.trim().length > 0;
+    const hasContent = typeof entry.content === "string";
+
+    if (hasId && hasCreatedAt && hasSourceLabel && hasContent) {
+      normalized.push(entry as OfferHistoryEntry);
+      return;
+    }
+
+    changed = true;
+    normalized.push({
+      id: hasId ? (entry.id as string) : uuid(),
+      createdAt: hasCreatedAt
+        ? (entry.createdAt as string)
+        : new Date().toISOString(),
+      sourceLabel: hasSourceLabel
+        ? (entry.sourceLabel as string).trim()
+        : `Offer note ${index + 1}`,
+      content: hasContent ? (entry.content as string) : "",
+    });
+  });
+
+  return changed
+    ? { entries: normalized, changed: true }
+    : { entries: history as OfferHistoryEntry[], changed: false };
+}
+
 export function getJobApplications(): JobApplication[] {
   const apps = load("applications", []);
   let migrated = false;
   const updated = apps.map((app) => {
     const summary = app.offer?.summary as unknown;
+    let nextApp = app;
     if (app.offer && summary && !Array.isArray(summary)) {
       migrated = true;
       const summaryLines =
@@ -534,9 +589,16 @@ export function getJobApplications(): JobApplication[] {
               .map((line) => line.replace(/^\-\s*/, "").trim())
               .filter(Boolean)
           : [];
-      return { ...app, offer: { ...app.offer, summary: summaryLines } };
+      nextApp = { ...app, offer: { ...app.offer, summary: summaryLines } };
     }
-    return app;
+
+    const { entries, changed } = normalizeOfferHistoryEntries(nextApp.offerHistory);
+    if (changed) {
+      migrated = true;
+      nextApp = { ...nextApp, offerHistory: entries };
+    }
+
+    return nextApp;
   });
   if (migrated) {
     save("applications", updated);
@@ -544,13 +606,14 @@ export function getJobApplications(): JobApplication[] {
   return updated;
 }
 export function addJobApplication(app: JobApplication): JobApplication[] {
+  const { entries: offerHistory } = normalizeOfferHistoryEntries(app.offerHistory);
   const withHistory = {
     ...app,
     history: [
       ...(app.history ?? []),
       { status: app.status, changedAt: new Date().toISOString() },
     ],
-    offerHistory: app.offerHistory || [],
+    offerHistory,
   } as JobApplication;
   const updated = [...getJobApplications(), withHistory];
   save("applications", updated);
@@ -560,8 +623,17 @@ export function updateJobApplication(
   id: string,
   updates: Partial<JobApplication>,
 ): JobApplication[] {
+  const normalizedUpdates = Object.prototype.hasOwnProperty.call(
+    updates,
+    "offerHistory",
+  )
+    ? {
+        ...updates,
+        offerHistory: normalizeOfferHistoryEntries(updates.offerHistory).entries,
+      }
+    : updates;
   const updated = getJobApplications().map((app) =>
-    app.id === id ? { ...app, ...updates } : app,
+    app.id === id ? { ...app, ...normalizedUpdates } : app,
   );
   save("applications", updated);
   return updated;

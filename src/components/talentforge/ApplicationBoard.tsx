@@ -23,7 +23,7 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
-import { Close, ExpandMore } from "@mui/icons-material";
+import { Check, Close, Delete, Edit, ExpandMore } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import {
   DndContext,
@@ -37,6 +37,7 @@ import DOMPurify from "dompurify";
 import type {
   ApplicationStatus,
   JobApplication,
+  OfferHistoryEntry,
   ResumeEntry,
   Offer,
   OfferComp,
@@ -58,12 +59,12 @@ import FileUploader from "./FileUploader";
 import ResumeStepperModal from "./ResumeStepperModal";
 import ManageResumesModal from "./ManageResumesModal";
 import ChatWorkspace from "./ChatWorkspace";
-import { exportElementToPdf } from "@/utils/pdfExport";
 import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
 import { getPromptTile, type PromptContext } from "@/utils/talentforge/promptRegistry";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import ApplicationDetailDrawer from "./ApplicationDetailDrawer";
 import CompareOffers from "./offers/CompareOffers";
+import useOfferExports from "@/hooks/talentforge/useOfferExports";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -73,6 +74,14 @@ interface Issue {
 interface Analysis {
   summary?: string;
   issues: Issue[];
+}
+
+function formatOfferHistoryTimestamp(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString();
 }
 
 
@@ -397,7 +406,17 @@ export default function ApplicationBoard() {
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const [manageResumesOpen, setManageResumesOpen] = useState(false);
   const [compareOffersOpen, setCompareOffersOpen] = useState(false);
+  const [editingHistoryId, setEditingHistoryId] = useState<string | null>(null);
+  const [editingHistoryLabel, setEditingHistoryLabel] = useState("");
   const negotiationRef = useRef<HTMLDivElement | null>(null);
+  const {
+    downloadMarkdown: downloadNegotiationMarkdown,
+    downloadPdf: downloadNegotiationPdf,
+    getContent: getNegotiationContent,
+  } = useOfferExports({
+    contentRef: negotiationRef,
+    baseFileName: "renegotiation",
+  });
   const data = useTalentForgeData();
   const selectedApplication = useMemo(() => {
     if (!selectedApplicationId) {
@@ -434,6 +453,18 @@ export default function ApplicationBoard() {
   }, []);
 
   useEffect(() => {
+    setEditingHistoryId(null);
+    setEditingHistoryLabel("");
+  }, [drawerApp?.id]);
+
+  useEffect(() => {
+    if (!drawerOpen) {
+      setEditingHistoryId(null);
+      setEditingHistoryLabel("");
+    }
+  }, [drawerOpen]);
+
+  useEffect(() => {
     if (detailDrawerOpen && !selectedApplication) {
       setDetailDrawerOpen(false);
       setSelectedApplicationId(null);
@@ -460,6 +491,8 @@ export default function ApplicationBoard() {
       </Stack>
     );
   }
+
+  const offerHistoryEntries = drawerApp?.offerHistory ?? [];
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -1002,32 +1035,75 @@ export default function ApplicationBoard() {
     }
   };
 
+  const updateDrawerOfferHistory = (history: OfferHistoryEntry[]) => {
+    if (!drawerApp) return null;
+    const updated = updateJobApplication(drawerApp.id, { offerHistory: history });
+    setApplications(updated);
+    const refreshed = updated.find((a) => a.id === drawerApp.id) || null;
+    setDrawerApp(refreshed);
+    return refreshed;
+  };
+
   const handleDownloadNegotiationMd = () => {
-    const text = negotiationRef.current?.innerText || "";
-    const blob = new Blob([text], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "renegotiation.md";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    downloadNegotiationMarkdown();
   };
 
   const handleDownloadNegotiationPdf = () => {
-    if (negotiationRef.current) {
-      exportElementToPdf(negotiationRef.current, "renegotiation.pdf");
-    }
+    downloadNegotiationPdf();
   };
 
   const handleAttachOfferHistory = () => {
     if (!drawerApp) return;
-    const text = negotiationRef.current?.innerText || "";
-    const history = [...(drawerApp.offerHistory || []), text];
-    const updated = updateJobApplication(drawerApp.id, { offerHistory: history });
-    setApplications(updated);
-    setDrawerApp(updated.find((a) => a.id === drawerApp.id) || null);
+    const content = getNegotiationContent();
+    const existingHistory = drawerApp.offerHistory || [];
+    const nextIndex = existingHistory.length + 1;
+    const trimmedTitle = drawerTitle.trim();
+    const baseLabel = trimmedTitle || "Offer negotiation";
+    const label = nextIndex > 1 ? `${baseLabel} (${nextIndex})` : baseLabel;
+    const entry: OfferHistoryEntry = {
+      id: uuid(),
+      createdAt: new Date().toISOString(),
+      sourceLabel: label,
+      content,
+    };
+    updateDrawerOfferHistory([...existingHistory, entry]);
+    setLiveMessage(`${label} saved to offer history`);
+  };
+
+  const handleBeginRenameHistoryEntry = (entry: OfferHistoryEntry) => {
+    setEditingHistoryId(entry.id);
+    setEditingHistoryLabel(entry.sourceLabel);
+  };
+
+  const handleCancelRenameHistoryEntry = () => {
+    setEditingHistoryId(null);
+    setEditingHistoryLabel("");
+  };
+
+  const handleSaveHistoryEntryLabel = (entryId: string) => {
+    if (!drawerApp) return;
+    const trimmed = editingHistoryLabel.trim();
+    if (!trimmed) return;
+    const history = drawerApp.offerHistory || [];
+    const updatedHistory = history.map((entry) =>
+      entry.id === entryId ? { ...entry, sourceLabel: trimmed } : entry,
+    );
+    updateDrawerOfferHistory(updatedHistory);
+    setEditingHistoryId(null);
+    setEditingHistoryLabel("");
+    setLiveMessage(`Offer history renamed to ${trimmed}`);
+  };
+
+  const handleDeleteHistoryEntry = (entryId: string) => {
+    if (!drawerApp) return;
+    const history = drawerApp.offerHistory || [];
+    const updatedHistory = history.filter((entry) => entry.id !== entryId);
+    updateDrawerOfferHistory(updatedHistory);
+    if (editingHistoryId === entryId) {
+      setEditingHistoryId(null);
+      setEditingHistoryLabel("");
+    }
+    setLiveMessage("Offer history entry removed");
   };
 
   const handleResumesUpdated = (updated: ResumeEntry[]) => {
@@ -1393,6 +1469,133 @@ export default function ApplicationBoard() {
                   </Button>
                 </>
               )}
+              {drawerTileId === "offerNegotiation" &&
+                offerHistoryEntries.length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Offer History
+                    </Typography>
+                    <List dense disablePadding sx={{ mt: 1 }}>
+                      {offerHistoryEntries.map((entry) => {
+                        const isEditing = editingHistoryId === entry.id;
+                        const timestamp = formatOfferHistoryTimestamp(
+                          entry.createdAt,
+                        );
+                        const disableSave = editingHistoryLabel.trim().length === 0;
+                        return (
+                          <ListItem
+                            key={entry.id}
+                            disableGutters
+                            alignItems="flex-start"
+                            sx={{
+                              flexDirection: "column",
+                              alignItems: "stretch",
+                              border: "1px solid",
+                              borderColor: "divider",
+                              borderRadius: 1,
+                              p: 1.5,
+                              mb: 1,
+                              bgcolor: "background.default",
+                            }}
+                          >
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                              sx={{
+                                width: "100%",
+                                flexWrap: "wrap",
+                                rowGap: 1,
+                              }}
+                            >
+                              {isEditing ? (
+                                <TextField
+                                  size="small"
+                                  label="Source label"
+                                  value={editingHistoryLabel}
+                                  onChange={(event) =>
+                                    setEditingHistoryLabel(event.target.value)
+                                  }
+                                  sx={{ flexGrow: 1 }}
+                                />
+                              ) : (
+                                <Typography
+                                  variant="subtitle2"
+                                  sx={{ flexGrow: 1, minWidth: 160 }}
+                                >
+                                  {entry.sourceLabel}
+                                </Typography>
+                              )}
+                              {!isEditing && (
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{ whiteSpace: "nowrap" }}
+                                >
+                                  {timestamp}
+                                </Typography>
+                              )}
+                              <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                                {isEditing ? (
+                                  <>
+                                    <IconButton
+                                      size="small"
+                                      aria-label="Save label"
+                                      onClick={() => handleSaveHistoryEntryLabel(entry.id)}
+                                      disabled={disableSave}
+                                    >
+                                      <Check fontSize="small" />
+                                    </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      aria-label="Cancel rename"
+                                      onClick={handleCancelRenameHistoryEntry}
+                                    >
+                                      <Close fontSize="small" />
+                                    </IconButton>
+                                  </>
+                                ) : (
+                                  <>
+                                    <IconButton
+                                      size="small"
+                                      aria-label="Rename history entry"
+                                      onClick={() => handleBeginRenameHistoryEntry(entry)}
+                                    >
+                                      <Edit fontSize="small" />
+                                    </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      aria-label="Delete history entry"
+                                      onClick={() => handleDeleteHistoryEntry(entry.id)}
+                                    >
+                                      <Delete fontSize="small" />
+                                    </IconButton>
+                                  </>
+                                )}
+                              </Stack>
+                            </Stack>
+                            {isEditing && (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{ mt: 1 }}
+                              >
+                                {timestamp}
+                              </Typography>
+                            )}
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ mt: 1, whiteSpace: "pre-wrap" }}
+                            >
+                              {entry.content}
+                            </Typography>
+                          </ListItem>
+                        );
+                      })}
+                    </List>
+                  </Box>
+                )}
               {drawerMode === "resumeCompare" && !drawerLoading && (
                 <TextField
                   select
