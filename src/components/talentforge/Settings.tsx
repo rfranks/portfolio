@@ -6,6 +6,10 @@ import {
   Card,
   CardActions,
   CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   List,
   ListItem,
   ListItemText,
@@ -15,6 +19,7 @@ import {
   Typography,
 } from "@mui/material";
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
+import CompareOffers from "./offers/CompareOffers";
 import OpenAIKeyModal from "@/components/talentforge/OpenAIKeyModal";
 import { loadDemoData, clearDemoData } from "@/utils/talentforge/demoData";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
@@ -32,7 +37,17 @@ export default function Settings() {
   });
   const [toastOpen, setToastOpen] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState("");
+  const [compareOpen, setCompareOpen] = React.useState(false);
   const { hasKey, clearKey, reloadFromStorage } = useOpenAIKey();
+
+  const offers = dataStore.getOffers();
+  const hasMultipleOffers = offers.length >= 2;
+
+  React.useEffect(() => {
+    if (!hasMultipleOffers && compareOpen) {
+      setCompareOpen(false);
+    }
+  }, [hasMultipleOffers, compareOpen]);
 
   React.useEffect(() => {
     setComp(dataStore.getCurrentCompensation());
@@ -155,14 +170,39 @@ export default function Settings() {
             <Button variant="contained" onClick={handleSaveComp} disabled={!compHasValue}>
               Save
             </Button>
-          </CardActions>
-        </Card>
+        </CardActions>
+      </Card>
 
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Connectors
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Compare Offers
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Select two saved offers to review them side by side and generate an AI analysis.
+          </Typography>
+        </CardContent>
+        <CardActions sx={{ gap: 1, flexWrap: "wrap" }}>
+          <Button
+            variant="outlined"
+            onClick={() => setCompareOpen(true)}
+            disabled={!hasMultipleOffers}
+          >
+            Compare Offers
+          </Button>
+          {!hasMultipleOffers && (
+            <Typography variant="caption" color="text.secondary">
+              Save at least two offers to enable comparison.
             </Typography>
+          )}
+        </CardActions>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Connectors
+          </Typography>
             <List>
               <ListItem>
                 <ListItemText primary="LinkedIn" secondary="Configuration coming soon" />
@@ -212,6 +252,20 @@ export default function Settings() {
         </Card>
 
         <OpenAIKeyModal open={openKeyModal} onClose={handleCloseModal} />
+        <Dialog
+          open={compareOpen}
+          onClose={() => setCompareOpen(false)}
+          fullWidth
+          maxWidth="lg"
+        >
+          <DialogTitle>Compare Offers</DialogTitle>
+          <DialogContent dividers>
+            <CompareOffers />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setCompareOpen(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
         <Snackbar
           open={toastOpen}
           autoHideDuration={3000}
