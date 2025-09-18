@@ -3,10 +3,12 @@ import {
   MESSAGES_VERSION,
   OFFERS_VERSION,
   APPLICATIONS_VERSION,
+  RESUMES_VERSION,
   getCurrentCompensation,
   saveCurrentCompensation,
 } from "../../utils/talentforge/dataStore";
 import { loadItem } from "../../utils/storage";
+import type { ResumeEntry } from "../../types";
 
 interface Message {
   replies: { body: string }[];
@@ -71,6 +73,44 @@ describe("dataStore migrations", () => {
     const apps = loadItem<JobApplication[]>("jobApplications", APPLICATIONS_VERSION)!;
     expect(apps).toHaveLength(1);
     expect(apps[0].role.title).toBe("Engineer");
+  });
+
+  test("importFromJson adds resume metadata when migrating snapshots", () => {
+    jest.useFakeTimers();
+    try {
+      const fixedDate = new Date("2024-03-01T12:00:00.000Z");
+      jest.setSystemTime(fixedDate);
+
+      const snapshot = {
+        version: 3,
+        data: {
+          resumes: {
+            version: 1,
+            data: [
+              {
+                id: "r1",
+                userId: "",
+                label: "",
+                title: "Legacy Resume",
+                url: "",
+                content: "",
+                tags: [],
+                parsed: { contact: "", experience: [], education: [], skills: [] },
+              },
+            ],
+          },
+        },
+      };
+
+      importFromJson(JSON.stringify(snapshot));
+
+      const resumes = loadItem<ResumeEntry[]>("resumes", RESUMES_VERSION)!;
+      expect(resumes).toHaveLength(1);
+      expect(resumes[0].importedAt).toBe(fixedDate.toISOString());
+      expect(resumes[0].sourceFilename).toBe("Imported resume");
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test("importFromJson ignores unknown keys", () => {

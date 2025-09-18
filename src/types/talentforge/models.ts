@@ -35,6 +35,10 @@ export interface ResumeVariant {
   tags: string[];
   /** Additional notes about this resume variant. */
   notes?: string;
+  /** Original filename of the resume source, if known. */
+  sourceFilename?: string;
+  /** ISO timestamp capturing when this resume was imported. */
+  importedAt?: string;
 }
 
 /**

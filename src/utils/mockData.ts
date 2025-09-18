@@ -21,6 +21,8 @@ const emptyParsed: ParsedResume = {
   skills: [],
 };
 
+const MOCK_IMPORTED_AT = "2024-01-01T00:00:00.000Z";
+
 export const mockResumes: ResumeEntry[] = [
   {
     id: "resume-1",
@@ -31,16 +33,20 @@ export const mockResumes: ResumeEntry[] = [
     content: "",
     parsed: { ...emptyParsed },
     tags: ["software", "typescript"],
+    sourceFilename: "jane-doe-software.pdf",
+    importedAt: MOCK_IMPORTED_AT,
   },
   {
     id: "resume-2",
     userId: mockUserProfile.id,
     label: "Product Resume",
-     title: "Product Resume",
+    title: "Product Resume",
     url: "https://example.com/jane-doe-product.pdf",
     content: "",
     parsed: { ...emptyParsed },
     tags: ["product", "management"],
+    sourceFilename: "jane-doe-product.pdf",
+    importedAt: MOCK_IMPORTED_AT,
   },
 ];
 

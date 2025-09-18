@@ -16,6 +16,8 @@ describe("resume cloning", () => {
       content: "content A",
       tags: [],
       parsed: { contact: "", experience: [], education: [], skills: [] },
+      sourceFilename: "my-resume.pdf",
+      importedAt: "2024-01-01T00:00:00.000Z",
     };
     addResume(resume);
     const updated = cloneResume(resume);

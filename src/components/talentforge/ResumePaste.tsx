@@ -43,7 +43,7 @@ export default function ResumePaste() {
 
   const handleParse = async () => {
     const sanitized = parsePastedHtml(input);
-    const text = await parseResume(sanitized);
+    const { text, metadata } = await parseResume(sanitized);
     setInput(text);
     setFields(extractFields(text));
     const parsed = parseResumeText(text);
@@ -56,6 +56,7 @@ export default function ResumePaste() {
       content: text,
       parsed,
       tags: [],
+      ...metadata,
     });
     setToastOpen(true);
   };

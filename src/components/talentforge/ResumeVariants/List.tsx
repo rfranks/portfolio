@@ -12,6 +12,7 @@ import {
   DialogActions,
   Button,
   TextField,
+  Typography,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -34,6 +35,31 @@ import Diff from "./Diff";
 interface Props {
   resumes: ResumeEntry[];
   setResumes: (resumes: ResumeEntry[]) => void;
+}
+
+const importDateFormatter =
+  typeof Intl !== "undefined" && typeof Intl.DateTimeFormat === "function"
+    ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" })
+    : null;
+
+function formatResumeMetadata(resume: ResumeEntry): string | null {
+  const parts: string[] = [];
+  if (resume.sourceFilename) {
+    parts.push(resume.sourceFilename);
+  }
+  if (resume.importedAt) {
+    const date = new Date(resume.importedAt);
+    if (!Number.isNaN(date.getTime())) {
+      const formatted = importDateFormatter
+        ? importDateFormatter.format(date)
+        : date.toLocaleString();
+      parts.push(`Imported ${formatted}`);
+    }
+  }
+  if (!parts.length) {
+    return null;
+  }
+  return parts.join(" • ");
 }
 
 export default function List({ resumes, setResumes }: Props) {
@@ -95,6 +121,8 @@ export default function List({ resumes, setResumes }: Props) {
           education: [],
           skills: [],
         },
+        sourceFilename: file.name || "Imported resume",
+        importedAt: new Date().toISOString(),
       };
       const updated = addResume(newResume);
       setResumes(updated);
@@ -120,71 +148,75 @@ export default function List({ resumes, setResumes }: Props) {
 
   return (
     <Box aria-label="Resume list">
-      {resumes.map((r) => (
-        <Box key={r.id} sx={{ mb: 2 }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <TextField
-              size="small"
-              value={r.title}
-              onChange={(e) =>
-                setResumes(
-                  resumes.map((res) =>
-                    res.id === r.id ? { ...res, title: e.target.value } : res,
-                  ),
-                )
-              }
-              onBlur={(e) => handleSave({ ...r, title: e.target.value })}
-              sx={{ flexGrow: 1 }}
-              inputProps={{ "aria-label": "Resume title" }}
-            />
-            <IconButton size="small" onClick={() => setSelected(r)} aria-label="edit">
-              <EditIcon fontSize="small" />
-            </IconButton>
-            <IconButton size="small" onClick={() => handleClone(r)} aria-label="clone">
-              <ContentCopyIcon fontSize="small" />
-            </IconButton>
-            <IconButton size="small" onClick={() => setDiffTarget(r)} aria-label="diff">
-              <DifferenceIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              size="small"
-              onClick={() => setConfirmDelete(r)}
-              aria-label="delete"
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              size="small"
-              onClick={() => handleExport(r)}
-              aria-label="export"
-            >
-              <FileDownloadIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              component="label"
-              size="small"
-              aria-label="import"
-            >
-              <UploadFileIcon fontSize="small" />
-              <input
-                type="file"
-                hidden
-                accept="application/json"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) void handleImport(file);
-                  e.target.value = "";
-                }}
+      {resumes.map((r) => {
+        const metadataLabel = formatResumeMetadata(r);
+        return (
+          <Box key={r.id} sx={{ mb: 2 }}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <TextField
+                size="small"
+                value={r.title}
+                onChange={(e) =>
+                  setResumes(
+                    resumes.map((res) =>
+                      res.id === r.id ? { ...res, title: e.target.value } : res,
+                    ),
+                  )
+                }
+                onBlur={(e) => handleSave({ ...r, title: e.target.value })}
+                sx={{ flexGrow: 1 }}
+                inputProps={{ "aria-label": "Resume title" }}
               />
-            </IconButton>
-          </Stack>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {r.tags.map((tag) => (
-              <Chip key={tag} label={tag} sx={{ mb: 1 }} />
-            ))}
-          </Stack>
-        </Box>
-      ))}
+              <IconButton size="small" onClick={() => setSelected(r)} aria-label="edit">
+                <EditIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="small" onClick={() => handleClone(r)} aria-label="clone">
+                <ContentCopyIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="small" onClick={() => setDiffTarget(r)} aria-label="diff">
+                <DifferenceIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={() => setConfirmDelete(r)}
+                aria-label="delete"
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={() => handleExport(r)}
+                aria-label="export"
+              >
+                <FileDownloadIcon fontSize="small" />
+              </IconButton>
+              <IconButton component="label" size="small" aria-label="import">
+                <UploadFileIcon fontSize="small" />
+                <input
+                  type="file"
+                  hidden
+                  accept="application/json"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleImport(file);
+                    e.target.value = "";
+                  }}
+                />
+              </IconButton>
+            </Stack>
+            {metadataLabel && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+                {metadataLabel}
+              </Typography>
+            )}
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              {r.tags.map((tag) => (
+                <Chip key={tag} label={tag} sx={{ mb: 1 }} />
+              ))}
+            </Stack>
+          </Box>
+        );
+      })}
       {selected && (
         <Detail
           resume={selected}

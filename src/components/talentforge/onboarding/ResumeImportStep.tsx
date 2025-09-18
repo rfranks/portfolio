@@ -33,7 +33,7 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
     setLoading(true);
     setError(null);
     try {
-      const text = await fileToText(file);
+      const { text, metadata } = await fileToText(file);
       const tags = await tagResume(text);
       let parsed;
       try {
@@ -51,6 +51,7 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
         content: text,
         parsed,
         tags,
+        ...metadata,
       });
       setFile(null);
       onNext();

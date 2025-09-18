@@ -27,7 +27,11 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import { getResumes, addResume, updateResume } from "@/utils/talentforge/dataStore";
 import type { ResumeEntry } from "@/types";
 import { askOpenAI } from "@/utils/talentforge/utils";
-import { fileToText, parseResumeText } from "@/utils/talentforge/resumeIngest";
+import {
+  fileToText,
+  parseResumeText,
+  createPastedResumeMetadata,
+} from "@/utils/talentforge/resumeIngest";
 import { parsePastedHtml } from "@/utils/talentforge/pasteParser";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
@@ -357,6 +361,7 @@ export default function ResumeStepperModal({
         console.error("Failed to parse resume text", parseError);
         throw parseError;
       }
+      const metadata = createPastedResumeMetadata();
       const newResume: ResumeEntry = {
         id: uuid(),
         userId: "",
@@ -366,6 +371,7 @@ export default function ResumeStepperModal({
         content: sanitized,
         parsed,
         tags,
+        ...metadata,
       };
       const updated = addResume(newResume);
       handleResumesChange(updated);
@@ -463,7 +469,7 @@ export default function ResumeStepperModal({
                         let lastContent = "";
                         let lastAddedId = "";
                         for (const file of files) {
-                          const content = await fileToText(file);
+                          const { text: content, metadata } = await fileToText(file);
                           const tags = await tagResume(content);
                           let parsed: ResumeEntry["parsed"];
                           try {
@@ -482,6 +488,7 @@ export default function ResumeStepperModal({
                             content,
                             parsed,
                             tags,
+                            ...metadata,
                           });
                           lastContent = content;
                           lastAddedId = generatedId;
