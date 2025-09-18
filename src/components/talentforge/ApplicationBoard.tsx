@@ -63,6 +63,7 @@ import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
 import { getPromptTile, type PromptContext } from "@/utils/talentforge/promptRegistry";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import ApplicationDetailDrawer from "./ApplicationDetailDrawer";
+import CompareOffers from "./offers/CompareOffers";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -395,6 +396,7 @@ export default function ApplicationBoard() {
   const [resumes, setResumes] = useState<ResumeEntry[]>(() => getResumes());
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const [manageResumesOpen, setManageResumesOpen] = useState(false);
+  const [compareOffersOpen, setCompareOffersOpen] = useState(false);
   const negotiationRef = useRef<HTMLDivElement | null>(null);
   const data = useTalentForgeData();
   const selectedApplication = useMemo(() => {
@@ -437,6 +439,14 @@ export default function ApplicationBoard() {
       setSelectedApplicationId(null);
     }
   }, [detailDrawerOpen, selectedApplication]);
+
+  const hasMultipleOffers = data.getOffers().length >= 2;
+
+  useEffect(() => {
+    if (!hasMultipleOffers && compareOffersOpen) {
+      setCompareOffersOpen(false);
+    }
+  }, [hasMultipleOffers, compareOffersOpen]);
 
   if (loading) {
     return (
@@ -1055,6 +1065,14 @@ export default function ApplicationBoard() {
         >
           Manage Resumes
         </Button>
+        {hasMultipleOffers && (
+          <Button
+            variant="outlined"
+            onClick={() => setCompareOffersOpen(true)}
+          >
+            Compare Offers
+          </Button>
+        )}
       </Stack>
       <ResumeStepperModal
         open={resumeModalOpen}
@@ -1066,6 +1084,20 @@ export default function ApplicationBoard() {
         onClose={handleManageModalClose}
         onResumesUpdated={handleResumesUpdated}
       />
+      <Dialog
+        open={compareOffersOpen}
+        onClose={() => setCompareOffersOpen(false)}
+        fullWidth
+        maxWidth="lg"
+      >
+        <DialogTitle>Compare Offers</DialogTitle>
+        <DialogContent dividers>
+          <CompareOffers />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCompareOffersOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
       <DndContext onDragEnd={handleDragEnd}>
         {applications.length === 0 ? (
           <EmptyState
