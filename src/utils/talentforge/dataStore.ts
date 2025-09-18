@@ -569,14 +569,63 @@ export function updateJobApplication(
 export function updateJobApplicationStatus(
   id: string,
   status: ApplicationStatus,
-  reason?: string,
+  options?: { reason?: string; changedAt?: string },
 ): JobApplication[] {
   const updated = getJobApplications().map((app) => {
     if (app.id === id) {
-      const history = [
-        ...(app.history || []),
-        { status, changedAt: new Date().toISOString(), ...(reason ? { reason } : {}) },
-      ];
+      const opts = options ?? {};
+      const hasReasonOption = Object.prototype.hasOwnProperty.call(opts, "reason");
+      const rawReason = hasReasonOption ? opts.reason ?? "" : undefined;
+      const trimmedReason = rawReason?.trim();
+      const hasChangedAtOption = Object.prototype.hasOwnProperty.call(
+        opts,
+        "changedAt",
+      );
+      const changedAtValue = hasChangedAtOption ? opts.changedAt : undefined;
+
+      const parseChangedAt = (value?: string) => {
+        if (!value) return new Date();
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+      };
+
+      const history = [...(app.history || [])];
+      const lastEntry = history[history.length - 1];
+
+      if (
+        lastEntry &&
+        lastEntry.status === status &&
+        (hasReasonOption || hasChangedAtOption)
+      ) {
+        const updatedEntry: StatusChange = {
+          ...lastEntry,
+          status,
+          changedAt: hasChangedAtOption
+            ? parseChangedAt(changedAtValue).toISOString()
+            : lastEntry.changedAt,
+        };
+        if (hasReasonOption) {
+          if (trimmedReason) {
+            updatedEntry.reason = trimmedReason;
+          } else {
+            delete updatedEntry.reason;
+          }
+        }
+        history[history.length - 1] = updatedEntry;
+        return { ...app, status, history };
+      }
+
+      const baseDate = hasChangedAtOption
+        ? parseChangedAt(changedAtValue)
+        : new Date();
+      const entry: StatusChange = {
+        status,
+        changedAt: baseDate.toISOString(),
+      };
+      if (trimmedReason) {
+        entry.reason = trimmedReason;
+      }
+      history.push(entry);
       return { ...app, status, history };
     }
     return app;
