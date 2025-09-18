@@ -16,16 +16,15 @@ import {
 } from "@mui/material";
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 import OpenAIKeyModal from "@/components/talentforge/OpenAiKeyModal";
-import { hasOpenAIKey, setOpenAIKey } from "@/utils/talentforge/utils";
 import { loadDemoData, clearDemoData } from "@/utils/talentforge/demoData";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import { exportSnapshot, importSnapshot } from "@/utils/talentforge/snapshot";
 import { SNAPSHOT_VERSION } from "@/utils/talentforge/dataStore";
+import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 
 export default function Settings() {
   const dataStore = useTalentForgeData();
   const [openKeyModal, setOpenKeyModal] = React.useState(false);
-  const [openAiKeySet, setOpenAiKeySet] = React.useState(false);
   const [comp, setComp] = React.useState({
     salary: "",
     benefits: "",
@@ -33,18 +32,14 @@ export default function Settings() {
   });
   const [toastOpen, setToastOpen] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState("");
+  const { hasKey, clearKey, reloadFromStorage } = useOpenAIKey();
 
   React.useEffect(() => {
-    setOpenAiKeySet(hasOpenAIKey());
     setComp(dataStore.getCurrentCompensation());
   }, [dataStore]);
 
   const handleRemoveKey = () => {
-    setOpenAIKey("");
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("talentforge-openai-key");
-    }
-    setOpenAiKeySet(false);
+    clearKey();
   };
 
   const handleExport = () => {
@@ -74,7 +69,7 @@ export default function Settings() {
       if (typeof text === "string") {
         try {
           importSnapshot(text);
-          setOpenAiKeySet(hasOpenAIKey());
+          reloadFromStorage();
           setToastMessage("Snapshot imported");
         } catch {
           setToastMessage("Import failed");
@@ -88,7 +83,6 @@ export default function Settings() {
 
   const handleCloseModal = () => {
     setOpenKeyModal(false);
-    setOpenAiKeySet(hasOpenAIKey());
   };
 
   const handleLoadDemo = () => {
@@ -117,14 +111,14 @@ export default function Settings() {
               OpenAI API Key
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {openAiKeySet ? "A key is currently stored." : "No key has been set."}
+              {hasKey ? "A key is currently stored." : "No key has been set."}
             </Typography>
           </CardContent>
           <CardActions>
             <Button variant="contained" onClick={() => setOpenKeyModal(true)}>
-              {openAiKeySet ? "Update Key" : "Set Key"}
+              {hasKey ? "Update Key" : "Set Key"}
             </Button>
-            {openAiKeySet && <Button onClick={handleRemoveKey}>Remove Key</Button>}
+            {hasKey && <Button onClick={handleRemoveKey}>Remove Key</Button>}
           </CardActions>
         </Card>
 

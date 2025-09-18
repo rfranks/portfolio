@@ -17,12 +17,7 @@ import {
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 
-import { setOpenAIKey as setInMemoryKey } from "@/utils/talentforge/utils";
-import {
-  getOpenAIKey,
-  setOpenAIKey as persistOpenAIKey,
-  deleteOpenAIKey,
-} from "@/utils/talentforge/dataStore";
+import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 
 export interface OpenAIKeyModalProps
   extends Omit<DialogProps, "open" | "onClose"> {
@@ -35,65 +30,27 @@ export default function OpenAIKeyModal({
   onClose,
   ...props
 }: OpenAIKeyModalProps) {
-  const [key, setKey] = React.useState("");
-  const [persist, setPersist] = React.useState(false);
-
-  const loadStoredKey = React.useCallback(() => {
-    if (typeof window === "undefined") return;
-
-    const storedPersist = window.localStorage.getItem(
-      "talentforge-openai-key-persist",
-    );
-    const shouldPersist = storedPersist === "true";
-    setPersist(shouldPersist);
-
-    const storedKey = shouldPersist
-      ? getOpenAIKey() || ""
-      : window.sessionStorage.getItem("talentforge-openai-key") || "";
-
-    if (storedKey) {
-      setInMemoryKey(storedKey);
-      if (!shouldPersist) {
-        deleteOpenAIKey();
-      }
-      setKey(storedKey);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    loadStoredKey();
-  }, [loadStoredKey]);
+  const { key: storedKey, persist, setKey, setPersist, setValidity } =
+    useOpenAIKey();
+  const [draftKey, setDraftKey] = React.useState(storedKey);
 
   React.useEffect(() => {
     if (open) {
-      loadStoredKey();
+      setDraftKey(storedKey);
     }
-  }, [open, loadStoredKey]);
+  }, [open, storedKey]);
 
   const handleClose = () => {
-    setKey("");
+    setDraftKey(storedKey);
     onClose?.();
   };
 
   const handleSave = () => {
-    const trimmed = key.trim();
+    const trimmed = draftKey.trim();
     if (!trimmed) return;
 
-    setInMemoryKey(trimmed);
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem("talentforge-openai-key", trimmed);
-      window.localStorage.setItem(
-        "talentforge-openai-key-persist",
-        persist ? "true" : "false",
-      );
-
-      if (persist) {
-        persistOpenAIKey(trimmed);
-      } else {
-        deleteOpenAIKey();
-      }
-    }
-
+    setKey(trimmed);
+    setDraftKey(trimmed);
     handleClose();
   };
 
@@ -102,20 +59,16 @@ export default function OpenAIKeyModal({
   ) => {
     const value = e.target.checked;
     setPersist(value);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(
-        "talentforge-openai-key-persist",
-        value ? "true" : "false",
-      );
-      if (!value) {
-        deleteOpenAIKey();
-      }
-    }
   };
 
   const handleTest = async () => {
-    const trimmed = key.trim();
+    const trimmed = draftKey.trim();
     if (!trimmed) return;
+    const normalizedStored = storedKey.trim();
+    const isCurrentKey = trimmed === normalizedStored;
+    if (isCurrentKey) {
+      setValidity("checking");
+    }
     try {
       const res = await fetch("/api/test-openai-key", {
         method: "POST",
@@ -124,11 +77,20 @@ export default function OpenAIKeyModal({
       });
       if (res.ok) {
         alert("Key is valid!");
+        if (isCurrentKey) {
+          setValidity("valid");
+        }
       } else {
         alert("Key test failed.");
+        if (isCurrentKey) {
+          setValidity("invalid");
+        }
       }
     } catch {
       alert("Key test failed.");
+      if (isCurrentKey) {
+        setValidity("invalid");
+      }
     }
   };
 
@@ -170,8 +132,8 @@ export default function OpenAIKeyModal({
           label="OpenAI API Key"
           type="password"
           fullWidth
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
+          value={draftKey}
+          onChange={(e) => setDraftKey(e.target.value)}
         />
         <FormControlLabel
           control={<Switch checked={persist} onChange={handlePersistChange} />}
@@ -180,10 +142,10 @@ export default function OpenAIKeyModal({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleTest} disabled={!key.trim()}>
+        <Button onClick={handleTest} disabled={!draftKey.trim()}>
           Test Key
         </Button>
-        <Button onClick={handleSave} disabled={!key.trim()}>
+        <Button onClick={handleSave} disabled={!draftKey.trim()}>
           Save
         </Button>
       </DialogActions>
