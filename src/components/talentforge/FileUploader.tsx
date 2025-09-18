@@ -27,7 +27,7 @@ export interface FileUploaderProps
    * * The string image/* meaning "any image file".
 
    * The accept attribute takes a string containing one or more of these unique file type specifiers as its value, separated by commas.
-   * @default "*.*"
+   * @default accepts all files (no restriction)
    */
   accept?: string;
   /**
