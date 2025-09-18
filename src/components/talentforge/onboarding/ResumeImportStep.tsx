@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Stack } from "@mui/material";
+import { Alert, Button, CircularProgress, Stack } from "@mui/material";
 import { v4 as uuid } from "uuid";
 
 import { fileToText, parseResumeText } from "@/utils/talentforge/resumeIngest";
@@ -16,19 +16,32 @@ interface StepProps {
 export default function ResumeImportStep({ onNext, onBack }: StepProps) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0] || null;
+    const target = e.target as HTMLInputElement;
+    const selected = target.files?.[0] || null;
     setFile(selected);
+    setError(null);
+    if (target) {
+      target.value = "";
+    }
   };
 
   const handleContinue = async () => {
     if (!file) return;
     setLoading(true);
+    setError(null);
     try {
       const text = await fileToText(file);
       const tags = await tagResume(text);
-      const parsed = parseResumeText(text);
+      let parsed;
+      try {
+        parsed = parseResumeText(text);
+      } catch (parseError) {
+        console.error("Failed to parse resume text", parseError);
+        throw parseError;
+      }
       addResume({
         id: uuid(),
         userId: "",
@@ -39,7 +52,15 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
         parsed,
         tags,
       });
+      setFile(null);
       onNext();
+    } catch (err) {
+      console.error("Failed to import resume", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to import resume. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -47,7 +68,17 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
 
   return (
     <Stack spacing={2} aria-label="Resume import">
-        <Button component="label" variant="outlined" aria-label="Upload resume">
+      {error && (
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+      <Button
+        component="label"
+        variant="outlined"
+        aria-label="Upload resume"
+        disabled={loading}
+      >
           Upload Resume
           <input
             type="file"
@@ -55,23 +86,23 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
             hidden
             onChange={handleFileChange}
           />
-        </Button>
-        <Stack direction="row" spacing={1}>
-          {onBack && (
-            <Button onClick={onBack} aria-label="Back">
-              Back
-            </Button>
-          )}
-          <Button
-            variant="contained"
-            onClick={handleContinue}
-            disabled={!file || loading}
-            aria-label="Continue"
-          >
-            Continue
+      </Button>
+      <Stack direction="row" spacing={1}>
+        {onBack && (
+          <Button onClick={onBack} aria-label="Back" disabled={loading}>
+            Back
           </Button>
-        </Stack>
+        )}
+        <Button
+          variant="contained"
+          onClick={handleContinue}
+          disabled={!file || loading}
+          aria-label="Continue"
+        >
+          {loading ? <CircularProgress size={24} /> : "Continue"}
+        </Button>
       </Stack>
+    </Stack>
   );
 }
 
