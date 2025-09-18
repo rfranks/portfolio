@@ -396,7 +396,7 @@ I enjoy working with Richard very much, and would choose to be on a team with hi
       date: "February 24, 2020",
       relationship: "worked with Richard on the same team",
       imageSrcUrl: "/colleagues/satyajeet_nandekar.jpeg",
-      text: `It is pleasure to work with Richard Franks in the same team for more than 5 years. During this time, we worked very closely on multiple successful projects from start to finish. He is creative, energetic, solution oriented, highly motivated with great communication skills and aims for excellence all the time.
+      text: `It is a pleasure to work with Richard Franks in the same team for more than 5 years. During this time, we worked very closely on multiple successful projects from start to finish. He is creative, energetic, solution oriented, highly motivated with great communication skills and aims for excellence all the time.
 
 Richards’s deeper understanding of the technical nuances always helped us during the tough time of our project. His inputs in design discussions and architecture meetings have always been valuable. From my past experience, I can easily say that a problem assigned to him is already half solved. He is an asset to any company.`,
     },
