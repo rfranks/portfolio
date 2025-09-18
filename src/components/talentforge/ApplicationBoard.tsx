@@ -40,6 +40,7 @@ import type {
   ResumeEntry,
   Offer,
   OfferComp,
+  Message,
 } from "@/types";
 import {
   addJobApplication,
@@ -56,9 +57,11 @@ import RequireAIKey from "./RequireAIKey";
 import FileUploader from "./FileUploader";
 import ResumeStepperModal from "./ResumeStepperModal";
 import ManageResumesModal from "./ManageResumesModal";
+import ChatWorkspace from "./ChatWorkspace";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
 import { getPromptTile, type PromptContext } from "@/utils/talentforge/promptRegistry";
+import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -86,7 +89,13 @@ function Column({
       ref={setNodeRef}
       role="list"
       aria-label={title}
-      sx={{ p: 2, width: 260, minHeight: 400, bgcolor: "background.paper" }}
+      sx={{
+        p: 2,
+        width: { xs: "100%", sm: 280, lg: 300 },
+        minHeight: 400,
+        bgcolor: "background.paper",
+        flexShrink: 0,
+      }}
     >
       <Typography variant="h6" gutterBottom>
         {title}
@@ -99,6 +108,7 @@ function Column({
 function Card({
   app,
   onRunTile,
+  onOpenWorkspace,
   resumes,
   onAssignResume,
   onSetInterviewDate,
@@ -108,6 +118,7 @@ function Card({
 }: {
   app: JobApplication;
   onRunTile: (id: string, context: PromptContext) => void;
+  onOpenWorkspace: (app: JobApplication) => void;
   resumes: ResumeEntry[];
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
@@ -201,42 +212,53 @@ function Card({
               fullWidth
             />
           </>
-        )}
-      {app.role.description && (
-        <Stack direction="column" spacing={1} sx={{ mt: 1 }}>
-          <Button
-            size="small"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => onRunTile("screenRole", "jobSearch")}
-            variant="outlined"
-            fullWidth
-          >
-            Analyze Risks
-          </Button>
-          {app.status !== "offer" && (
-            <>
-              <Button
-                size="small"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => onRunTile("resumeCompare", "resume")}
-                variant="outlined"
-                fullWidth
-              >
-                Compare to Resume
-              </Button>
-              <Button
-                size="small"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => onRunTile("coverLetter", "resume")}
-                variant="outlined"
-                fullWidth
-              >
-                Cover Letter
-              </Button>
-            </>
-          )}
-        </Stack>
       )}
+      <Stack direction="column" spacing={1} sx={{ mt: 1 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onOpenWorkspace(app)}
+          fullWidth
+        >
+          Open Workspace
+        </Button>
+        {app.role.description && (
+          <>
+            <Button
+              size="small"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => onRunTile("screenRole", "jobSearch")}
+              variant="outlined"
+              fullWidth
+            >
+              Analyze Risks
+            </Button>
+            {app.status !== "offer" && (
+              <>
+                <Button
+                  size="small"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => onRunTile("resumeCompare", "resume")}
+                  variant="outlined"
+                  fullWidth
+                >
+                  Compare to Resume
+                </Button>
+                <Button
+                  size="small"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => onRunTile("coverLetter", "resume")}
+                  variant="outlined"
+                  fullWidth
+                >
+                  Cover Letter
+                </Button>
+              </>
+            )}
+          </>
+        )}
+      </Stack>
       {app.status === "offer" && (
         <Box sx={{ mt: 1 }}>
           <Button
@@ -322,7 +344,7 @@ export default function ApplicationBoard() {
   >([]);
   const [drawerAnalysis, setDrawerAnalysis] = useState<Analysis | null>(null);
   const [drawerMode, setDrawerMode] = useState<
-    "chat" | "resumeCompare" | "offerUpload"
+    "chat" | "resumeCompare" | "offerUpload" | "workspace"
   >("chat");
   const [resumeCompareApp, setResumeCompareApp] =
     useState<JobApplication | null>(null);
@@ -334,6 +356,7 @@ export default function ApplicationBoard() {
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const [manageResumesOpen, setManageResumesOpen] = useState(false);
   const negotiationRef = useRef<HTMLDivElement | null>(null);
+  const data = useTalentForgeData();
 
   useEffect(() => {
     const existing = getJobApplications();
@@ -421,6 +444,89 @@ export default function ApplicationBoard() {
       e.preventDefault();
       handleKeyboardMove(app.id, e.key);
     }
+  };
+
+  const handleOpenWorkspace = (app: JobApplication) => {
+    setDrawerTitle(`${app.role.title} Workspace`);
+    setDrawerTileId("workspace");
+    setDrawerMessages([]);
+    setDrawerAnalysis(null);
+    setDrawerPrompt("");
+    setDrawerMode("workspace");
+    setDrawerApp(app);
+    setResumeCompareApp(null);
+    setDrawerLoading(false);
+    setRejectReason("");
+    setDrawerOpen(true);
+  };
+
+  const handleWorkspaceInsertDraft = (text: string) => {
+    if (!drawerApp) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const connectorLabel = [drawerApp.role.company, drawerApp.role.title]
+      .filter(Boolean)
+      .join(" – ")
+      .trim();
+    const connector = connectorLabel || "Workspace Draft";
+    const message: Message = {
+      id: uuid(),
+      threadId: uuid(),
+      senderId: "workspace",
+      sentAt: new Date().toISOString(),
+      body: text,
+      connector,
+      status: "unread",
+      replies: [],
+    };
+    data.addThread(message);
+    setLiveMessage(`Draft added to inbox for ${connector}`);
+  };
+
+  const handleWorkspaceSaveResume = (text: string, resumeId?: string) => {
+    if (!drawerApp) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const baseResume =
+      (resumeId ? resumes.find((r) => r.id === resumeId) : undefined) ||
+      (drawerApp.resumeVariant
+        ? resumes.find((r) => r.id === drawerApp.resumeVariant?.id)
+        : undefined) ||
+      resumes[0];
+    if (!baseResume) {
+      setLiveMessage("Upload a resume before saving a variant.");
+      return;
+    }
+    const newResumeId = uuid();
+    const roleTitle = drawerApp.role.title || "Workspace Variant";
+    const companySuffix = drawerApp.role.company
+      ? ` at ${drawerApp.role.company}`
+      : "";
+    const generatedTitle = `${baseResume.title} – ${roleTitle}`;
+    const newResume: ResumeEntry = {
+      ...baseResume,
+      id: newResumeId,
+      title: generatedTitle,
+      label: `${baseResume.label || baseResume.title} – ${roleTitle}`,
+      content: text,
+      notes: `Generated for ${roleTitle}${companySuffix}`.trim(),
+      importedAt: new Date().toISOString(),
+    };
+    const updatedResumes = data.addResume(newResume);
+    setResumes(updatedResumes);
+    const storedResume =
+      updatedResumes.find((resume) => resume.id === newResumeId) || newResume;
+    const updatedApps = updateJobApplication(drawerApp.id, {
+      resumeVariant: storedResume,
+    });
+    setApplications(updatedApps);
+    const refreshed =
+      updatedApps.find((application) => application.id === drawerApp.id) ||
+      ({ ...drawerApp, resumeVariant: storedResume } as JobApplication);
+    setDrawerApp(refreshed);
+    setLiveMessage(
+      `Saved resume variant ${storedResume.title} for ${drawerApp.role.title}`,
+    );
   };
 
   const handleAdd = () => {
@@ -884,7 +990,16 @@ export default function ApplicationBoard() {
             helperText="Start tracking your job applications here."
           />
         ) : (
-          <Box sx={{ display: "flex", gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              alignItems: { xs: "stretch", md: "flex-start" },
+              gap: 2,
+              overflowX: { xs: "visible", md: "auto" },
+              pb: 2,
+            }}
+          >
             {STATUSES.map((status) => (
               <Column
                 key={status}
@@ -898,6 +1013,7 @@ export default function ApplicationBoard() {
                       key={app.id}
                       app={app}
                       onRunTile={(id, context) => runTile(id, context, app)}
+                      onOpenWorkspace={handleOpenWorkspace}
                       resumes={resumes}
                       onAssignResume={handleAssignResume}
                       onSetInterviewDate={handleInterviewDate}
@@ -984,7 +1100,8 @@ export default function ApplicationBoard() {
           variant="permanent"
           sx={{
             "& .MuiDrawer-paper": {
-              width: { xs: "100%", sm: 360 },
+              width: { xs: "100%", md: 420, lg: 520 },
+              maxWidth: "100vw",
               p: 2,
             },
           }}
@@ -996,172 +1113,198 @@ export default function ApplicationBoard() {
           >
             <Close />
           </IconButton>
-          {drawerTileId === "screenRole" || drawerTileId === "offerNegotiation" ? (
-            <Accordion sx={{ mb: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography variant="h6">{drawerTitle}</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                  {drawerPrompt}
-                </Typography>
-              </AccordionDetails>
-            </Accordion>
-          ) : (
-            <Typography variant="h6" gutterBottom>
-              {drawerTitle}
-            </Typography>
-          )}
-          {drawerAnalysis ? (
-            <Box sx={{ mt: 2 }}>
-              {drawerAnalysis.issues.map((issue, idx) => (
-                <Stack
-                  key={idx}
-                  direction="row"
-                  spacing={1}
-                  alignItems="flex-start"
-                  sx={{ mb: 1 }}
-                >
-                  <Typography>
-                    {issue.severity === "red" ? "🚩" : "⚠️"}
-                  </Typography>
-                  <Typography variant="body2">{issue.message}</Typography>
-                </Stack>
-              ))}
-              {drawerAnalysis.summary && (
-                <Typography variant="body2" sx={{ mt: 2 }}>
-                  {drawerAnalysis.summary}
+          {drawerMode === "workspace" ? (
+            <>
+              <Typography variant="h6" gutterBottom>
+                {drawerTitle || "Workspace"}
+              </Typography>
+              {drawerApp ? (
+                <Box sx={{ mt: 2 }}>
+                  <ChatWorkspace
+                    key={drawerApp.id}
+                    onInsertIntoInbox={handleWorkspaceInsertDraft}
+                    onSaveResumeVariant={handleWorkspaceSaveResume}
+                    initialJobDescription={drawerApp.role.description}
+                    initialResumeId={drawerApp.resumeVariant?.id}
+                    resumes={resumes}
+                  />
+                </Box>
+              ) : (
+                <Typography color="text.secondary" sx={{ mt: 2 }}>
+                  Select an application to open the workspace.
                 </Typography>
               )}
-            </Box>
+            </>
           ) : (
-            <Stack spacing={2} sx={{ mt: 2 }}>
-              {drawerMode === "offerUpload" && (
-                <FileUploader
-                  accept=".pdf,.txt,.md"
-                  label="Upload Offer"
-                  variant="upload"
-                  outputType="files"
-                  onChange={(files) => {
-                    const f = (files as File[])[0];
-                    if (f) handleOfferUpload(f);
-                  }}
-                />
+            <>
+              {drawerTileId === "screenRole" || drawerTileId === "offerNegotiation" ? (
+                <Accordion sx={{ mb: 2 }}>
+                  <AccordionSummary expandIcon={<ExpandMore />}>
+                    <Typography variant="h6">{drawerTitle}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                      {drawerPrompt}
+                    </Typography>
+                  </AccordionDetails>
+                </Accordion>
+              ) : (
+                <Typography variant="h6" gutterBottom>
+                  {drawerTitle}
+                </Typography>
               )}
-              {drawerMessages.map((m, idx) => (
-                <Box
-                  key={idx}
-                  ref={
-                    drawerTileId === "offerNegotiation" &&
-                    m.role === "assistant" &&
-                    m.text
-                      ? negotiationRef
-                      : undefined
-                  }
-                  sx={{
-                    alignSelf: m.role === "user" ? "flex-start" : "flex-end",
-                    bgcolor: m.role === "user" ? "grey.200" : "primary.main",
-                    color:
-                      m.role === "user"
-                        ? "text.primary"
-                        : "primary.contrastText",
-                    p: 1.5,
-                    borderRadius: 1,
-                    maxWidth: "100%",
-                  }}
-                >
-                  {m.text ? (
-                    <Box
-                      dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(
-                          marked.parse(m.text) as string
-                        ),
+              {drawerAnalysis ? (
+                <Box sx={{ mt: 2 }}>
+                  {drawerAnalysis.issues.map((issue, idx) => (
+                    <Stack
+                      key={idx}
+                      direction="row"
+                      spacing={1}
+                      alignItems="flex-start"
+                      sx={{ mb: 1 }}
+                    >
+                      <Typography>
+                        {issue.severity === "red" ? "🚩" : "⚠️"}
+                      </Typography>
+                      <Typography variant="body2">{issue.message}</Typography>
+                    </Stack>
+                  ))}
+                  {drawerAnalysis.summary && (
+                    <Typography variant="body2" sx={{ mt: 2 }}>
+                      {drawerAnalysis.summary}
+                    </Typography>
+                  )}
+                </Box>
+              ) : (
+                <Stack spacing={2} sx={{ mt: 2 }}>
+                  {drawerMode === "offerUpload" && (
+                    <FileUploader
+                      accept=".pdf,.txt,.md"
+                      label="Upload Offer"
+                      variant="upload"
+                      outputType="files"
+                      onChange={(files) => {
+                        const f = (files as File[])[0];
+                        if (f) handleOfferUpload(f);
                       }}
                     />
-                  ) : m.data ? (
-                    <>
-                      {m.data.compensation &&
-                        m.data.compensation.length > 0 && (
-                          <Stack spacing={0.5}>
-                            {m.data.compensation.map((c) => (
-                              <Typography key={c.type} variant="body2">
-                                {c.type.charAt(0).toUpperCase() +
-                                  c.type.slice(1)}
-                                : {"$"}
-                                {c.amount.toLocaleString()}{" "}
-                                {c.notes ? `(${c.notes})` : ""}
-                              </Typography>
-                            ))}
-                          </Stack>
-                        )}
-                      {m.data.summary && (
-                        <List
-                          dense
-                          sx={{ mt: 1, listStyleType: "disc", pl: 2 }}
-                        >
-                          {m.data.summary.map((line, i) => (
-                            <ListItem
-                              key={i}
-                              sx={{ display: "list-item", py: 0 }}
+                  )}
+                  {drawerMessages.map((m, idx) => (
+                    <Box
+                      key={idx}
+                      ref={
+                        drawerTileId === "offerNegotiation" &&
+                        m.role === "assistant" &&
+                        m.text
+                          ? negotiationRef
+                          : undefined
+                      }
+                      sx={{
+                        alignSelf: m.role === "user" ? "flex-start" : "flex-end",
+                        bgcolor: m.role === "user" ? "grey.200" : "primary.main",
+                        color:
+                          m.role === "user"
+                            ? "text.primary"
+                            : "primary.contrastText",
+                        p: 1.5,
+                        borderRadius: 1,
+                        maxWidth: "100%",
+                      }}
+                    >
+                      {m.text ? (
+                        <Box
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(
+                              marked.parse(m.text) as string
+                            ),
+                          }}
+                        />
+                      ) : m.data ? (
+                        <>
+                          {m.data.compensation &&
+                            m.data.compensation.length > 0 && (
+                              <Stack spacing={0.5}>
+                                {m.data.compensation.map((c) => (
+                                  <Typography key={c.type} variant="body2">
+                                    {c.type.charAt(0).toUpperCase() +
+                                      c.type.slice(1)}
+                                    : {"$"}
+                                    {c.amount.toLocaleString()}{" "}
+                                    {c.notes ? `(${c.notes})` : ""}
+                                  </Typography>
+                                ))}
+                              </Stack>
+                            )}
+                          {m.data.summary && (
+                            <List
+                              dense
+                              sx={{ mt: 1, listStyleType: "disc", pl: 2 }}
                             >
-                              <ListItemText
-                                primary={line}
-                                primaryTypographyProps={{ variant: "body2" }}
-                              />
-                            </ListItem>
-                          ))}
-                        </List>
-                      )}
-                    </>
-                  ) : null}
-                </Box>
-              ))}
-              {drawerTileId === "offerNegotiation" && !drawerLoading && (
-                <>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleDownloadNegotiationPdf}
-                  >
-                    Download PDF
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleDownloadNegotiationMd}
-                  >
-                    Download MD
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleAttachOfferHistory}
-                    disabled={!drawerApp}
-                  >
-                    Attach to Offer History
-                  </Button>
-                </>
-              )}
-              {drawerMode === "resumeCompare" && !drawerLoading && (
-                <TextField
-                  select
-                  label="Resume"
-                  value=""
-                  onChange={(e) => handleResumeCompareSelect(e.target.value)}
-                >
-                  {resumes.map((r) => (
-                    <MenuItem key={r.id} value={r.id}>
-                      {r.title}
-                    </MenuItem>
+                              {m.data.summary.map((line, i) => (
+                                <ListItem
+                                  key={i}
+                                  sx={{ display: "list-item", py: 0 }}
+                                >
+                                  <ListItemText
+                                    primary={line}
+                                    primaryTypographyProps={{ variant: "body2" }}
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          )}
+                        </>
+                      ) : null}
+                    </Box>
                   ))}
-                </TextField>
+                  {drawerTileId === "offerNegotiation" && !drawerLoading && (
+                    <>
+                      <Button
+                        variant="outlined"
+                        fullWidth
+                        onClick={handleDownloadNegotiationPdf}
+                      >
+                        Download PDF
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        fullWidth
+                        onClick={handleDownloadNegotiationMd}
+                      >
+                        Download MD
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        fullWidth
+                        onClick={handleAttachOfferHistory}
+                        disabled={!drawerApp}
+                      >
+                        Attach to Offer History
+                      </Button>
+                    </>
+                  )}
+                  {drawerMode === "resumeCompare" && !drawerLoading && (
+                    <TextField
+                      select
+                      label="Resume"
+                      value=""
+                      onChange={(e) => handleResumeCompareSelect(e.target.value)}
+                    >
+                      {resumes.map((r) => (
+                        <MenuItem key={r.id} value={r.id}>
+                          {r.title}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+                  {drawerLoading && (
+                    <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  )}
+                </Stack>
               )}
-              {drawerLoading && (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-                  <CircularProgress size={24} />
-                </Box>
-              )}
-            </Stack>
+            </>
           )}
           <Box sx={{ mt: 3 }}>
             <TextField
