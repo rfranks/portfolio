@@ -736,6 +736,17 @@ export function deleteRecruiter(id: string): RecruiterEntry[] {
   return updated;
 }
 
+export function linkThreadToApplication(
+  threadId: string,
+  applicationId?: string,
+): Message[] {
+  const messages = getMessages().map((m) =>
+    m.id === threadId ? { ...m, applicationId: applicationId || undefined } : m,
+  );
+  save("messages", messages);
+  return messages;
+}
+
 export function linkThreadToRecruiter(
   threadId: string,
   recruiterId: string,

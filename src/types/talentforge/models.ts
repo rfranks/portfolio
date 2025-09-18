@@ -158,6 +158,8 @@ export interface Message {
   senderId: string;
   /** Recruiter associated with this thread, if any. */
   recruiterId?: string;
+  /** Application associated with this message thread, if any. */
+  applicationId?: string;
   /** Timestamp in ISO format indicating when the message was sent. */
   sentAt: string;
   /** Body content of the message. */

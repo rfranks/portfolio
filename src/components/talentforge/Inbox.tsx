@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -28,17 +28,32 @@ import {
 } from "@/utils/autoReply";
 
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
-import type { Message, RecruiterEntry } from "@/types";
+import type {
+  ApplicationStatus,
+  JobApplication,
+  Message,
+  RecruiterEntry,
+} from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import PromptSelector from "./PromptSelector";
 import Tile from "./promptTiles/Tile";
 import { getPromptTile } from "@/utils/talentforge/promptRegistry";
 import EmptyState from "./EmptyState";
+import { STATUSES } from "@/utils/talentforge/keyboard";
+
+const NO_COMPANY_FILTER = "__no_company__";
+type StatusFilterValue = ApplicationStatus | "all" | "unlinked";
+
+const formatStatus = (status: string) =>
+  status.charAt(0).toUpperCase() + status.slice(1);
 
 export default function Inbox() {
   const data = useTalentForgeData();
   const [threads, setThreads] = useState<Message[]>([]);
+  const [applications, setApplications] = useState<JobApplication[]>([]);
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
+  const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [templateSelections, setTemplateSelections] =
@@ -58,6 +73,7 @@ export default function Inbox() {
   useEffect(() => {
     const id = setTimeout(() => {
       setThreads(data.getThreads());
+      setApplications(data.getJobApplications());
       setRecruiters(data.getRecruiters());
       setTemplateDefs(data.getAutoReplyTemplates());
       setLoading(false);
@@ -69,11 +85,82 @@ export default function Inbox() {
     setFilter(event.target.value as "all" | "unread" | "read");
   };
 
+  const handleStatusFilterChange = (event: SelectChangeEvent) => {
+    setStatusFilter(event.target.value as StatusFilterValue);
+  };
+
+  const handleCompanyFilterChange = (event: SelectChangeEvent) => {
+    setCompanyFilter(event.target.value as string);
+  };
+
+  const applicationById = useMemo(() => {
+    const map: Record<string, JobApplication> = {};
+    for (const app of applications) {
+      map[app.id] = app;
+    }
+    return map;
+  }, [applications]);
+
+  const sortedApplications = useMemo(() => {
+    return [...applications].sort((a, b) => {
+      const companyCompare = a.role.company.localeCompare(b.role.company);
+      if (companyCompare !== 0) return companyCompare;
+      return a.role.title.localeCompare(b.role.title);
+    });
+  }, [applications]);
+
+  const companyOptions = useMemo(() => {
+    const companies = new Set<string>();
+    applications.forEach((app) => {
+      if (app.role.company.trim()) {
+        companies.add(app.role.company);
+      }
+    });
+    return Array.from(companies).sort((a, b) => a.localeCompare(b));
+  }, [applications]);
+
   const filteredThreads = filterByText(threads, search, ["body", "connector"]).filter(
-    (m) => filter === "all" || m.status === filter,
+    (m) => {
+      if (filter !== "all" && m.status !== filter) return false;
+
+      const application = m.applicationId
+        ? applicationById[m.applicationId]
+        : undefined;
+
+      if (statusFilter === "unlinked") {
+        if (application) return false;
+      } else if (statusFilter !== "all") {
+        if (!application || application.status !== statusFilter) {
+          return false;
+        }
+      }
+
+      if (companyFilter === NO_COMPANY_FILTER) {
+        if (application) return false;
+      } else if (companyFilter !== "all") {
+        if (!application || application.role.company !== companyFilter) {
+          return false;
+        }
+      }
+
+      return true;
+    },
   );
 
   const selected = threads.find((m) => m.id === selectedId) || null;
+
+  const selectedApplication = selected?.applicationId
+    ? applicationById[selected.applicationId]
+    : undefined;
+
+  const selectedRecruiter = selected?.recruiterId
+    ? recruiters.find((r) => r.id === selected.recruiterId)
+    : undefined;
+
+  const recruiterNotes = selectedRecruiter?.notes?.trim() || "";
+  const linkedApplicationMissing = Boolean(
+    selected?.applicationId && !selectedApplication,
+  );
 
   const templateNames = Object.keys(templateDefs) as AutoReplyTemplate[];
   const defaultTemplate: AutoReplyTemplate = templateDefs.general
@@ -142,6 +229,14 @@ export default function Inbox() {
     const updated = data.updateThreadStatus(
       message.id,
       message.status === "unread" ? "read" : "unread",
+    );
+    setThreads(updated);
+  };
+
+  const handleLinkApplication = (threadId: string, applicationId: string) => {
+    const updated = data.linkThreadToApplication(
+      threadId,
+      applicationId ? applicationId : undefined,
     );
     setThreads(updated);
   };
@@ -248,6 +343,36 @@ export default function Inbox() {
               <MenuItem value="unread">Unread</MenuItem>
               <MenuItem value="read">Read</MenuItem>
             </Select>
+            <Select
+              value={statusFilter}
+              onChange={handleStatusFilterChange}
+              sx={{ maxWidth: 200 }}
+              displayEmpty
+              aria-label="Filter by application status"
+            >
+              <MenuItem value="all">All application statuses</MenuItem>
+              <MenuItem value="unlinked">No linked application</MenuItem>
+              {STATUSES.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {formatStatus(status)}
+                </MenuItem>
+              ))}
+            </Select>
+            <Select
+              value={companyFilter}
+              onChange={handleCompanyFilterChange}
+              sx={{ maxWidth: 200 }}
+              displayEmpty
+              aria-label="Filter by company"
+            >
+              <MenuItem value="all">All companies</MenuItem>
+              <MenuItem value={NO_COMPANY_FILTER}>No linked application</MenuItem>
+              {companyOptions.map((company) => (
+                <MenuItem key={company} value={company}>
+                  {company}
+                </MenuItem>
+              ))}
+            </Select>
             <TextField
               label="Search"
               value={search}
@@ -279,13 +404,78 @@ export default function Inbox() {
           {selected ? (
             <Stack spacing={2}>
               <Typography variant="h6">{selected.connector}</Typography>
+              <Stack spacing={1}>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 1,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    bgcolor: "background.paper",
+                  }}
+                >
+                  <Stack spacing={0.5}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Linked application
+                    </Typography>
+                    {selectedApplication ? (
+                      <>
+                        <Typography variant="body1" fontWeight={600}>
+                          {`${selectedApplication.role.title} · ${selectedApplication.role.company}`}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Status: {formatStatus(selectedApplication.status)}
+                        </Typography>
+                        {selectedApplication.resumeVariant && (
+                          <Typography variant="body2" color="text.secondary">
+                            Resume: {selectedApplication.resumeVariant.title}
+                          </Typography>
+                        )}
+                      </>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No application linked.
+                      </Typography>
+                    )}
+                  </Stack>
+                </Box>
+                {selectedRecruiter && (
+                  <Box
+                    sx={{
+                      p: 2,
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      bgcolor: "background.paper",
+                    }}
+                  >
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Recruiter notes
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.primary"
+                        sx={{ whiteSpace: "pre-wrap" }}
+                      >
+                        {recruiterNotes || "No notes saved yet."}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                )}
+              </Stack>
               <Typography>{selected.body}</Typography>
               {selected.replies.map((r) => (
                 <Typography key={r.id} variant="body2">
                   {r.body}
                 </Typography>
               ))}
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{ flexWrap: "wrap", rowGap: 1 }}
+              >
                 <Button
                   size="small"
                   onClick={() => handleToggleStatus(selected)}
@@ -309,6 +499,30 @@ export default function Inbox() {
                   {recruiters.map((r) => (
                     <MenuItem key={r.id} value={r.id}>
                       {r.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <Select
+                  size="small"
+                  displayEmpty
+                  value={selected.applicationId || ""}
+                  onChange={(e) =>
+                    handleLinkApplication(selected.id, e.target.value as string)
+                  }
+                  sx={{ minWidth: 200 }}
+                  aria-label="Linked application"
+                >
+                  <MenuItem value="">
+                    <em>No application</em>
+                  </MenuItem>
+                  {linkedApplicationMissing && selected.applicationId && (
+                    <MenuItem value={selected.applicationId}>
+                      Unknown application
+                    </MenuItem>
+                  )}
+                  {sortedApplications.map((app) => (
+                    <MenuItem key={app.id} value={app.id}>
+                      {app.role.company} – {app.role.title}
                     </MenuItem>
                   ))}
                 </Select>
