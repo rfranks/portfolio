@@ -42,7 +42,7 @@ jest.mock('@/utils/autoReply', () => ({
 jest.mock('@/components/talentforge/PromptSelector', () => () => null);
 jest.mock('@/components/talentforge/promptTiles/Tile', () => () => null);
 jest.mock('@/components/talentforge/EmptyState', () => () => null);
-jest.mock('@/components/talentforge/OpenAiKeyModal', () => () => null);
+jest.mock('@/components/talentforge/OpenAIKeyModal', () => () => null);
 jest.mock('@/components/talentforge/FileUploader', () => () => null);
 jest.mock('@/components/talentforge/ResumeVariants/List', () => () => null);
 jest.mock('@/utils/talentforge/tagging', () => ({ tagResume: jest.fn() }));

@@ -3,7 +3,7 @@
 import { ReactNode, useRef } from "react";
 import { Alert, Box, Button, Stack } from "@mui/material";
 
-import OpenAiKeyModal from "./OpenAiKeyModal";
+import OpenAIKeyModal from "./OpenAIKeyModal";
 import useOpenAIKey from "@/hooks/talentforge/useOpenAIKey";
 
 interface RequireAIKeyProps {
@@ -26,7 +26,7 @@ export default function RequireAIKey({ children }: RequireAIKeyProps) {
 
   return (
     <>
-      <OpenAiKeyModal open={modalOpen} onClose={handleClose} />
+      <OpenAIKeyModal open={modalOpen} onClose={handleClose} />
       {hasKey ? (
         <>{children}</>
       ) : (
