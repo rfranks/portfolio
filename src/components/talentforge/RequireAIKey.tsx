@@ -1,35 +1,51 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
-import { Alert, Box } from "@mui/material";
+import { ReactNode, useRef } from "react";
+import { Alert, Box, Button, Stack } from "@mui/material";
 
-import { hasValidOpenAIKey } from "@/utils/talentforge/utils";
+import OpenAiKeyModal from "./OpenAiKeyModal";
+import useOpenAIKey from "@/hooks/talentforge/useOpenAIKey";
 
 interface RequireAIKeyProps {
   children: ReactNode;
 }
 
 export default function RequireAIKey({ children }: RequireAIKeyProps) {
-  const [hasKey, setHasKey] = useState<boolean | null>(null);
+  const { hasKey, isChecking, modalOpen, openModal, closeModal } =
+    useOpenAIKey();
+  const ctaRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    const checkKey = async () => {
-      const valid = await hasValidOpenAIKey();
-      setHasKey(valid);
-    };
-    checkKey();
-  }, []);
+  const handleClose = () => {
+    closeModal();
+    ctaRef.current?.focus();
+  };
 
-  if (hasKey === null) return null;
-  if (!hasKey) {
-    return (
-      <Box>
-        <Alert severity="warning">
-          OpenAI API key not found. Please add your key to use this feature.
-        </Alert>
-      </Box>
-    );
+  if (isChecking) {
+    return null;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <OpenAiKeyModal open={modalOpen} onClose={handleClose} />
+      {hasKey ? (
+        <>{children}</>
+      ) : (
+        <Box role="region" aria-live="polite">
+          <Stack spacing={2} alignItems="flex-start">
+            <Alert severity="warning" sx={{ width: "100%" }}>
+              OpenAI API key not found. Please add your key to use this feature.
+            </Alert>
+            <Button
+              variant="contained"
+              onClick={openModal}
+              ref={ctaRef}
+              autoFocus
+            >
+              Add your OpenAI key
+            </Button>
+          </Stack>
+        </Box>
+      )}
+    </>
+  );
 }

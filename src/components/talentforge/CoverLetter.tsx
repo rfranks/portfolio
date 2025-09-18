@@ -10,28 +10,23 @@ import {
   Typography,
 } from "@mui/material";
 
-import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
+import { askOpenAI } from "@/utils/talentforge/utils";
 import { getResumes } from "@/utils/talentforge/dataStore";
 import { exportElementToPdf } from "@/utils/pdfExport";
-import OpenAIKeyModal from "./OpenAiKeyModal";
 import EmptyState from "./EmptyState";
+import RequireAIKey from "./RequireAIKey";
 
 export default function CoverLetter() {
   const [resumeVariantId, setResumeVariantId] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
   const [loading, setLoading] = useState(false);
-  const [openKeyModal, setOpenKeyModal] = useState(false);
   const coverRef = useRef<HTMLDivElement>(null);
 
   const resumes = getResumes();
 
   const handleGenerate = async () => {
     if (!resumeVariantId || !jobDescription) return;
-    if (!hasOpenAIKey()) {
-      setOpenKeyModal(true);
-      return;
-    }
     const resume = resumes.find((r) => r.id === resumeVariantId);
     if (!resume) return;
     setLoading(true);
@@ -50,66 +45,67 @@ export default function CoverLetter() {
     setLoading(false);
   };
 
-  if (resumes.length === 0) {
-    return (
-      <EmptyState
-        message="No resumes available"
-        helperText="Add a resume before generating a cover letter."
-      />
-    );
-  }
-
   return (
-    <Box>
-      <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
-      <Stack spacing={2}>
-        <TextField
-          select
-          label="Resume Variant"
-          value={resumeVariantId}
-          onChange={(e) => setResumeVariantId(e.target.value)}
-        >
-          {resumes.map((r) => (
-            <MenuItem key={r.id} value={r.id}>
-              {r.title}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          label="Job Description"
-          multiline
-          minRows={6}
-          value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
+    <RequireAIKey>
+      {resumes.length === 0 ? (
+        <EmptyState
+          message="No resumes available"
+          helperText="Add a resume before generating a cover letter."
         />
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="contained"
-            onClick={handleGenerate}
-            disabled={!resumeVariantId || !jobDescription || loading}
-            aria-label="Generate cover letter"
-          >
-            Generate
-          </Button>
-          <Button
-            variant="outlined"
-            disabled={!coverLetter}
-            onClick={() =>
-              coverRef.current &&
-              exportElementToPdf(coverRef.current, "cover-letter.pdf")
-            }
-            aria-label="Export cover letter"
-          >
-            Export
-          </Button>
-        </Stack>
-        {coverLetter && (
-          <Box ref={coverRef}>
-            <Typography sx={{ whiteSpace: "pre-wrap" }}>{coverLetter}</Typography>
-          </Box>
-        )}
-      </Stack>
-    </Box>
+      ) : (
+        <Box>
+          <Stack spacing={2}>
+            <TextField
+              select
+              label="Resume Variant"
+              value={resumeVariantId}
+              onChange={(e) => setResumeVariantId(e.target.value)}
+            >
+              {resumes.map((r) => (
+                <MenuItem key={r.id} value={r.id}>
+                  {r.title}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="Job Description"
+              multiline
+              minRows={6}
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+            />
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="contained"
+                onClick={handleGenerate}
+                disabled={!resumeVariantId || !jobDescription || loading}
+                aria-label="Generate cover letter"
+              >
+                Generate
+              </Button>
+              <Button
+                variant="outlined"
+                disabled={!coverLetter}
+                onClick={() =>
+                  coverRef.current &&
+                  exportElementToPdf(coverRef.current, "cover-letter.pdf")
+                }
+                aria-label="Export cover letter"
+              >
+                Export
+              </Button>
+            </Stack>
+            {coverLetter && (
+              <Box ref={coverRef}>
+                <Typography sx={{ whiteSpace: "pre-wrap" }}>
+                  {coverLetter}
+                </Typography>
+              </Box>
+            )}
+          </Stack>
+        </Box>
+      )}
+    </RequireAIKey>
   );
 }
 

@@ -23,12 +23,8 @@ import {
   userQuestionPrompt,
 } from "@/consts/talentforge/consts";
 import { ChatMessage } from "@/types";
-import {
-  askOpenAI,
-  pdfToMarkdown,
-  hasOpenAIKey,
-} from "@/utils/talentforge/utils";
-import OpenAIKeyModal from "./OpenAiKeyModal";
+import { askOpenAI, pdfToMarkdown } from "@/utils/talentforge/utils";
+import RequireAIKey from "./RequireAIKey";
 
 import CircularProgressWithLabel from "./CircularProgressWithLabel";
 import FileUploader from "./FileUploader";
@@ -46,7 +42,6 @@ export default function Hero() {
   >(0);
   const [pdfProgress, setPdfProgress] = React.useState<number | null>(null);
   const [openTerms, setOpenTerms] = React.useState<boolean>(false);
-  const [openKeyModal, setOpenKeyModal] = React.useState(false);
   const setChatHistory = (newChatHistory: typeof chatHistory) => {
     setChatHistoryState(newChatHistory);
     setActiveQuestionIndex(null);
@@ -56,10 +51,6 @@ export default function Hero() {
   const userQuestionInputRef = React.useRef<HTMLInputElement>(null);
 
   const askUserQuestion = async () => {
-    if (!hasOpenAIKey()) {
-      setOpenKeyModal(true);
-      return;
-    }
     const context =
       pdfAsMarkdown?.length > aiBufferSize ? pdfSummary : pdfAsMarkdown;
 
@@ -122,23 +113,20 @@ export default function Hero() {
   });
 
   return (
-    <Box
-      id="hero"
-      sx={(theme) => ({
-        width: "100%",
-        backgroundImage:
-          theme.palette.mode === "light"
-            ? "linear-gradient(180deg, #CEE5FD, #FFF)"
-            : `linear-gradient(#02294F, ${alpha("#090E10", 0.0)})`,
-        backgroundSize: "100% 20%",
-        backgroundRepeat: "no-repeat",
-      })}
-    >
-      <TermsDialog open={openTerms} onClose={() => setOpenTerms(false)} />
-      <OpenAIKeyModal
-        open={openKeyModal}
-        onClose={() => setOpenKeyModal(false)}
-      />
+    <RequireAIKey>
+      <Box
+        id="hero"
+        sx={(theme) => ({
+          width: "100%",
+          backgroundImage:
+            theme.palette.mode === "light"
+              ? "linear-gradient(180deg, #CEE5FD, #FFF)"
+              : `linear-gradient(#02294F, ${alpha("#090E10", 0.0)})`,
+          backgroundSize: "100% 20%",
+          backgroundRepeat: "no-repeat",
+        })}
+      >
+        <TermsDialog open={openTerms} onClose={() => setOpenTerms(false)} />
       <Container
         sx={{
           display: "flex",
@@ -195,10 +183,6 @@ export default function Hero() {
               outputType="files"
               sx={{ width: { xs: "100%" } }}
               onChange={async (filesFromParam) => {
-                if (!hasOpenAIKey()) {
-                  setOpenKeyModal(true);
-                  return;
-                }
                 const files = filesFromParam as File[];
                 if (files && files.length > 0) {
                   const markdown = await pdfToMarkdown(files[0]);
@@ -399,6 +383,7 @@ export default function Hero() {
           }
         />
       </Container>
-    </Box>
+      </Box>
+    </RequireAIKey>
   );
 }

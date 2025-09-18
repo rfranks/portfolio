@@ -52,12 +52,8 @@ import {
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
 import { PROMPT_TILES } from "@/consts/promptTiles";
-import {
-  askOpenAI,
-  hasValidOpenAIKey,
-  pdfToMarkdown,
-} from "@/utils/talentforge/utils";
-import OpenAIKeyModal from "./OpenAiKeyModal";
+import { askOpenAI, pdfToMarkdown } from "@/utils/talentforge/utils";
+import RequireAIKey from "./RequireAIKey";
 import FileUploader from "./FileUploader";
 import ResumeStepperModal from "./ResumeStepperModal";
 import { exportElementToPdf } from "@/utils/pdfExport";
@@ -324,7 +320,6 @@ export default function ApplicationBoard() {
     useState<JobApplication | null>(null);
   const [drawerApp, setDrawerApp] = useState<JobApplication | null>(null);
   const [rejectReason, setRejectReason] = useState("");
-  const [openKeyModal, setOpenKeyModal] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [liveMessage, setLiveMessage] = useState("");
   const [resumes, setResumes] = useState<ResumeEntry[]>(() => getResumes());
@@ -443,11 +438,6 @@ export default function ApplicationBoard() {
   const runTile = async (tileId: string, app: JobApplication) => {
     const tile = PROMPT_TILES[tileId];
     if (!tile) return;
-    const valid = await hasValidOpenAIKey();
-    if (!valid) {
-      setOpenKeyModal(true);
-      return;
-    }
     if (tileId === "resumeCompare") {
       if (resumes.length === 0) {
         setDrawerTitle(tile.display);
@@ -810,7 +800,8 @@ export default function ApplicationBoard() {
   };
 
   return (
-    <>
+    <RequireAIKey>
+      <>
       <Box
         sx={{
           position: "absolute",
@@ -1151,10 +1142,7 @@ export default function ApplicationBoard() {
           </Box>
         </Drawer>
       )}
-      <OpenAIKeyModal
-        open={openKeyModal}
-        onClose={() => setOpenKeyModal(false)}
-      />
     </>
+    </RequireAIKey>
   );
 }

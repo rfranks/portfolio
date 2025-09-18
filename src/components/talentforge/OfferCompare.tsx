@@ -14,12 +14,8 @@ import {
 } from "@mui/material";
 
 import FileUploader from "./FileUploader";
-import {
-  askOpenAI,
-  pdfToMarkdown,
-  hasOpenAIKey,
-} from "@/utils/talentforge/utils";
-import OpenAIKeyModal from "./OpenAiKeyModal";
+import { askOpenAI, pdfToMarkdown } from "@/utils/talentforge/utils";
+import RequireAIKey from "./RequireAIKey";
 import { addOffer } from "@/utils/talentforge/dataStore";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import type { Offer, Message, ApplicationRecord } from "@/types";
@@ -39,7 +35,6 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
     indeed: "",
   });
   const [loading, setLoading] = useState(false);
-  const [openKeyModal, setOpenKeyModal] = useState(false);
 
   const handleFileChange = (
     filesFromParam: File[] | string | { filename: string; type: string; content: string } | undefined
@@ -56,10 +51,6 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
   };
 
   const analyzeOffer = async () => {
-    if (!hasOpenAIKey()) {
-      setOpenKeyModal(true);
-      return;
-    }
     const context = `Offer Letter:\n${offerText}\n\nCurrent Compensation:\n${compensation}`;
     const prompt =
       "Compare the offer letter to the current compensation and summarize key differences. " +
@@ -131,11 +122,8 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
   };
 
   return (
-    <Box>
-      <OpenAIKeyModal
-        open={openKeyModal}
-        onClose={() => setOpenKeyModal(false)}
-      />
+    <RequireAIKey>
+      <Box>
       <Stack spacing={2}>
         <FileUploader
           accept=".pdf,.txt"
@@ -226,7 +214,8 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
           </Box>
         )}
       </Stack>
-    </Box>
+      </Box>
+    </RequireAIKey>
   );
 }
 
