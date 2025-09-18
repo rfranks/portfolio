@@ -46,6 +46,24 @@ interface StoreSchema {
   currentCompensation: CurrentCompensation;
 }
 
+type StoreKey = keyof StoreSchema;
+type StoreListener = (key: StoreKey) => void;
+
+const listeners = new Set<StoreListener>();
+
+export function subscribe(listener: StoreListener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function notify(key: StoreKey): void {
+  for (const listener of listeners) {
+    listener(key);
+  }
+}
+
 // Storage keys for each entity
 const KEYS: { [K in keyof StoreSchema]: string } = {
   user: "userProfile",
@@ -258,10 +276,12 @@ function load<K extends keyof StoreSchema>(
 
 function save<K extends keyof StoreSchema>(key: K, value: StoreSchema[K]): void {
   saveItem(KEYS[key], value, VERSION[key]);
+  notify(key);
 }
 
 function remove<K extends keyof StoreSchema>(key: K): void {
   deleteItem(KEYS[key]);
+  notify(key);
 }
 
 // Migrations
@@ -784,6 +804,7 @@ export function importFromJson(json: string): void {
     // Trigger migrations for all known keys after importing
     for (const key of Object.keys(KEYS) as (keyof StoreSchema)[]) {
       load(key, DEFAULTS[key]);
+      notify(key);
     }
   } catch {
     // ignore parse errors
@@ -837,6 +858,7 @@ const dataStore = {
   deleteConnectorToken,
   exportToJson,
   importFromJson,
+  subscribe,
 };
 
 export default dataStore;

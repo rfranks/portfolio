@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Button, Stack, TextField, Typography } from "@mui/material";
-import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
+import {
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
 
 interface StepProps {
   onNext: () => void;
@@ -11,16 +14,14 @@ interface StepProps {
 
 export default function CompensationStep({ onNext, onBack }: StepProps) {
   const dataStore = useTalentForgeData();
-  const [comp, setComp] = useState({
-    salary: "",
-    benefits: "",
-    stock: "",
-  });
+  const currentComp = useTalentForgeSelector((store) =>
+    store.getCurrentCompensation(),
+  );
+  const [comp, setComp] = useState(currentComp);
 
   useEffect(() => {
-    const existing = dataStore.getCurrentCompensation();
-    setComp(existing);
-  }, [dataStore]);
+    setComp(currentComp);
+  }, [currentComp]);
 
   const handleChange = (field: "salary" | "benefits" | "stock") => (
     event: React.ChangeEvent<HTMLInputElement>
@@ -62,10 +63,10 @@ export default function CompensationStep({ onNext, onBack }: StepProps) {
         )}
         <Button
           variant="contained"
-        onClick={() => {
-          dataStore.saveCurrentCompensation(comp);
-          onNext();
-        }}
+          onClick={() => {
+            dataStore.saveCurrentCompensation(comp);
+            onNext();
+          }}
           disabled={!hasValue}
           aria-label="Next"
         >

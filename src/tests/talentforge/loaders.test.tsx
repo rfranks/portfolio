@@ -16,18 +16,35 @@ jest.mock('@/utils/talentforge/dataStore', () => ({
   linkThreadToRecruiter: jest.fn(),
   saveAutoReplyTemplates: jest.fn(),
   getCurrentCompensation: jest.fn(),
+  subscribe: jest.fn(() => jest.fn()),
 }));
 
+const mockStore = {
+  getThreads: () => [],
+  getRecruiters: () => [],
+  getAutoReplyTemplates: () => ({}),
+  updateThreadStatus: jest.fn(() => []),
+  addThreadReply: jest.fn(() => []),
+  linkThreadToRecruiter: jest.fn(() => []),
+  saveAutoReplyTemplates: jest.fn(),
+  addJobApplication: jest.fn(() => []),
+  updateJobApplicationStatus: jest.fn(() => []),
+  updateJobApplication: jest.fn(() => []),
+  addResume: jest.fn(() => []),
+  getJobApplications: () => [],
+  getResumes: () => [],
+  getCurrentCompensation: () => ({ salary: '', benefits: '', stock: '' }),
+  addThread: jest.fn(() => []),
+  addMessage: jest.fn(() => []),
+  getMessages: () => [],
+  getOffers: () => [],
+  subscribe: () => jest.fn(),
+} as const;
+
 jest.mock('@/contexts/TalentForgeDataContext', () => ({
-  useTalentForgeData: () => ({
-    getThreads: () => [],
-    getRecruiters: () => [],
-    getAutoReplyTemplates: () => ({}),
-    updateThreadStatus: jest.fn(),
-    addThreadReply: jest.fn(),
-    linkThreadToRecruiter: jest.fn(),
-    saveAutoReplyTemplates: jest.fn(),
-  }),
+  useTalentForgeData: () => mockStore,
+  useTalentForgeSelector: (selector: (store: typeof mockStore) => unknown) =>
+    selector(mockStore),
 }));
 
 jest.mock('@/utils/talentforge/jobAggregator', () => ({

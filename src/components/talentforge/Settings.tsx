@@ -17,26 +17,28 @@ import {
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 import OpenAIKeyModal from "@/components/talentforge/OpenAiKeyModal";
 import { loadDemoData, clearDemoData } from "@/utils/talentforge/demoData";
-import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
+import {
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
 import { exportSnapshot, importSnapshot } from "@/utils/talentforge/snapshot";
 import { SNAPSHOT_VERSION } from "@/utils/talentforge/dataStore";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 
 export default function Settings() {
   const dataStore = useTalentForgeData();
+  const currentComp = useTalentForgeSelector((store) =>
+    store.getCurrentCompensation(),
+  );
   const [openKeyModal, setOpenKeyModal] = React.useState(false);
-  const [comp, setComp] = React.useState({
-    salary: "",
-    benefits: "",
-    stock: "",
-  });
+  const [comp, setComp] = React.useState(currentComp);
   const [toastOpen, setToastOpen] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState("");
   const { hasKey, clearKey, reloadFromStorage } = useOpenAIKey();
 
   React.useEffect(() => {
-    setComp(dataStore.getCurrentCompensation());
-  }, [dataStore]);
+    setComp(currentComp);
+  }, [currentComp]);
 
   const handleRemoveKey = () => {
     clearKey();

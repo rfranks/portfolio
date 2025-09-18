@@ -9,22 +9,24 @@ import {
   TextField,
   Button,
 } from "@mui/material";
-import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
+import {
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
 import type { RecruiterEntry, Message } from "@/types";
 
 export default function RecruiterList() {
   const data = useTalentForgeData();
-  const [recruiters, setRecruiters] = useState<RecruiterEntry[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const recruiters = useTalentForgeSelector((store) => store.getRecruiters());
+  const messages = useTalentForgeSelector((store) => store.getMessages());
+  const [draftRecruiters, setDraftRecruiters] = useState(recruiters);
 
   useEffect(() => {
-    setRecruiters(data.getRecruiters());
-    setMessages(data.getMessages());
-  }, [data]);
+    setDraftRecruiters(recruiters);
+  }, [recruiters]);
 
   const handleSave = (recruiter: RecruiterEntry) => {
-    const updated = data.updateRecruiter(recruiter);
-    setRecruiters(updated);
+    data.updateRecruiter(recruiter);
   };
 
   return (
@@ -32,7 +34,7 @@ export default function RecruiterList() {
       <Typography variant="h5" sx={{ mb: 2 }}>
         Recruiters
       </Typography>
-      {recruiters.map((r) => (
+      {draftRecruiters.map((r) => (
         <Box key={r.id} sx={{ mb: 3 }}>
           <Typography variant="subtitle1" fontWeight="bold">
             {r.name}
@@ -46,7 +48,7 @@ export default function RecruiterList() {
             label="Tags"
             value={r.tags.join(", ")}
             onChange={(e) =>
-              setRecruiters((rec) =>
+              setDraftRecruiters((rec) =>
                 rec.map((rr) =>
                   rr.id === r.id
                     ? {
@@ -69,7 +71,7 @@ export default function RecruiterList() {
             rows={3}
             value={r.notes}
             onChange={(e) =>
-              setRecruiters((rec) =>
+              setDraftRecruiters((rec) =>
                 rec.map((rr) =>
                   rr.id === r.id ? { ...rr, notes: e.target.value } : rr,
                 ),
