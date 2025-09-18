@@ -49,8 +49,24 @@ export class IndeedConnector {
   }
 
   async searchJobs(query: string): Promise<JobListing[]> {
-    void query;
-    return SAMPLE_LISTINGS;
+    const trimmed = query.trim();
+
+    if (!trimmed) {
+      return SAMPLE_LISTINGS;
+    }
+
+    const lowerQuery = trimmed.toLowerCase();
+    return SAMPLE_LISTINGS.filter((listing) => {
+      const title = listing.title.toLowerCase();
+      const company = listing.company.toLowerCase();
+      const location = listing.location.toLowerCase();
+
+      return (
+        title.includes(lowerQuery) ||
+        company.includes(lowerQuery) ||
+        location.includes(lowerQuery)
+      );
+    });
   }
 
   /**
