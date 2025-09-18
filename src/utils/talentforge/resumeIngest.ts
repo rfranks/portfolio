@@ -127,6 +127,37 @@ export async function pdfToText(file: File): Promise<string> {
 }
 
 /**
+ * Extract plain text from a DOCX file using docx-parser.
+ */
+export async function docxToText(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+  const parser = (await import("docx-parser")) as {
+    default?: (b: ArrayBuffer | Uint8Array | Buffer) => Promise<string>;
+    parseDocx?: (b: ArrayBuffer | Uint8Array | Buffer) => Promise<string>;
+  };
+  const fn = parser.default || parser.parseDocx;
+  return fn ? await fn(arrayBuffer) : "";
+}
+
+/**
+ * Extract text from a file, supporting PDF and DOCX.
+ */
+export async function fileToText(file: File): Promise<string> {
+  const name = file.name.toLowerCase();
+  if (file.type === "application/pdf" || name.endsWith(".pdf")) {
+    return pdfToText(file);
+  }
+  if (
+    file.type ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    name.endsWith(".docx")
+  ) {
+    return docxToText(file);
+  }
+  return await file.text();
+}
+
+/**
  * Naively extract sections from resume text.
  * Everything before the first recognized section header is treated as contact information.
  */
@@ -178,6 +209,20 @@ export async function parsePdf(
   file: File,
 ): Promise<{ text: string; parsed: ParsedResume }> {
   const text = await pdfToText(file);
+  return { text, parsed: parseResumeText(text) };
+}
+
+export async function parseDocx(
+  file: File,
+): Promise<{ text: string; parsed: ParsedResume }> {
+  const text = await docxToText(file);
+  return { text, parsed: parseResumeText(text) };
+}
+
+export async function parseResumeFile(
+  file: File,
+): Promise<{ text: string; parsed: ParsedResume }> {
+  const text = await fileToText(file);
   return { text, parsed: parseResumeText(text) };
 }
 

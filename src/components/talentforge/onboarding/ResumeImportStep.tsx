@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, Stack } from "@mui/material";
 import { v4 as uuid } from "uuid";
 
-import { pdfToText, parseResumeText } from "@/utils/talentforge/pdfParser";
+import { fileToText, parseResumeText } from "@/utils/talentforge/resumeIngest";
 import { addResume } from "@/utils/talentforge/dataStore";
 import { tagResume } from "@/utils/talentforge/tagging";
 
@@ -26,7 +26,7 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
     if (!file) return;
     setLoading(true);
     try {
-      const text = await pdfToText(file);
+      const text = await fileToText(file);
       const tags = await tagResume(text);
       const parsed = parseResumeText(text);
       addResume({
@@ -51,6 +51,7 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
           Upload Resume
           <input
             type="file"
+            accept=".pdf,.docx,.txt,.md"
             hidden
             onChange={handleFileChange}
           />

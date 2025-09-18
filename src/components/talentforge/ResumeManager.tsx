@@ -18,7 +18,7 @@ import { getResumes, addResume } from "@/utils/talentforge/dataStore";
 import type { ResumeEntry } from "@/types";
 
 import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
-import { pdfToText, parseResumeText } from "@/utils/talentforge/pdfParser";
+import { fileToText, parseResumeText } from "@/utils/talentforge/resumeIngest";
 import { parsePastedHtml } from "@/utils/talentforge/pasteParser";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
@@ -101,19 +101,32 @@ export default function ResumeManager() {
         onClose={() => setOpenKeyModal(false)}
       />
       <FileUploader
-        accept=".pdf,.txt,.md"
+        accept=".pdf,.docx,.txt,.md"
         label="Upload your resume"
         outputType="files"
+        limit={10}
         sx={{ mb: 2 }}
         onChange={async (filesFromParam) => {
           const files = filesFromParam as File[];
           if (!files || files.length === 0) return;
-          const file = files[0];
-          const content =
-            file.type === "application/pdf"
-              ? await pdfToText(file)
-              : await file.text();
-          setText(content);
+          for (const file of files) {
+            const content = await fileToText(file);
+            const tags = await tagResume(content);
+            const parsed = parseResumeText(content);
+            addResume({
+              id: uuid(),
+              userId: "",
+              label: "",
+              title: "",
+              url: "",
+              content,
+              parsed,
+              tags,
+            });
+          }
+          setResumes(getResumes());
+          setText("");
+          setToastOpen(true);
         }}
       />
       <TextField

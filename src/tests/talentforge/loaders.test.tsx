@@ -54,7 +54,7 @@ jest.mock('@/utils/talentforge/utils', () => ({
   pdfToMarkdown: jest.fn(),
   pdfToText: jest.fn(),
 }));
-jest.mock('@/utils/talentforge/pdfParser', () => ({
+jest.mock('@/utils/talentforge/resumeIngest', () => ({
   parseResumeText: jest.fn(),
 }));
 jest.mock('@/utils/talentforge/pasteParser', () => ({
