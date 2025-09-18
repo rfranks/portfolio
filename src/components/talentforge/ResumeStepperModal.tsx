@@ -50,13 +50,12 @@ interface ResumeStepperModalProps {
   onResumesUpdated?: (resumes: ResumeEntry[]) => void;
 }
 
-const STEPS = ["Upload", "Manage", "Compare", "Enhance"] as const;
+const STEPS = ["Upload", "Manage", "Compare"] as const;
 
 const STEP_INDEX = {
   upload: 0,
   manage: 1,
   compare: 2,
-  enhance: 3,
 } as const;
 
 function inferTitleFromFilename(filename?: string | null): string | null {
@@ -95,7 +94,7 @@ export default function ResumeStepperModal({
   const editingInputRef = useRef<HTMLInputElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const [tagging, setTagging] = useState(false);
-  const [enhanceFeedback, setEnhanceFeedback] = useState<
+  const [tagFeedback, setTagFeedback] = useState<
     { type: "success" | "error"; message: string } | null
   >(null);
   const [copyTagsFeedback, setCopyTagsFeedback] = useState<
@@ -125,7 +124,7 @@ export default function ResumeStepperModal({
       setEditingError(null);
       setTitleDraft("");
       setTitleError(null);
-      setEnhanceFeedback(null);
+      setTagFeedback(null);
       setCopyTagsFeedback(null);
       setCopyResumeFeedback(null);
       setTagging(false);
@@ -174,7 +173,7 @@ export default function ResumeStepperModal({
       setEditingError(null);
       setTitleDraft("");
       setTitleError(null);
-      setEnhanceFeedback(null);
+      setTagFeedback(null);
       setCopyTagsFeedback(null);
       setCopyResumeFeedback(null);
       setTagging(false);
@@ -188,7 +187,7 @@ export default function ResumeStepperModal({
     setEditingError(null);
     setTitleDraft(selectedResume.title);
     setTitleError(null);
-    setEnhanceFeedback(null);
+    setTagFeedback(null);
     setCopyTagsFeedback(null);
     setCopyResumeFeedback(null);
     setTagging(false);
@@ -209,7 +208,7 @@ export default function ResumeStepperModal({
       setSelectedResumeId(updatedResume.id);
     }
     if (!options?.fromAi) {
-      setEnhanceFeedback(null);
+      setTagFeedback(null);
     }
     return changed;
   };
@@ -302,38 +301,38 @@ export default function ResumeStepperModal({
     setInputError(null);
   };
 
-  const handleGenerateTags = async () => {
+  const handleRegenerateTags = async () => {
     if (!selectedResume) return;
     if (!selectedResume.content.trim()) {
-      setEnhanceFeedback({
+      setTagFeedback({
         type: "error",
         message: "Resume content is empty, so no tags can be generated.",
       });
       return;
     }
     setTagging(true);
-    setEnhanceFeedback(null);
+    setTagFeedback(null);
     try {
       const aiTags = await tagResume(selectedResume.content);
       const normalized = normalizeTags(
         aiTags.filter((tag) => tag.trim().length <= MAX_TAG_LENGTH),
       );
       if (!normalized.length) {
-        setEnhanceFeedback({
+        setTagFeedback({
           type: "error",
           message: "AI couldn't suggest any tags.",
         });
         return;
       }
       const changed = applyTags(normalized, { fromAi: true });
-      setEnhanceFeedback({
+      setTagFeedback({
         type: "success",
         message: changed
           ? "Tags updated from AI suggestions."
           : "Tags already match the AI suggestions.",
       });
     } catch (error) {
-      setEnhanceFeedback({
+      setTagFeedback({
         type: "error",
         message:
           error instanceof Error && error.message
@@ -707,7 +706,7 @@ export default function ResumeStepperModal({
               >
                 <Button
                   variant="outlined"
-                  onClick={handleGenerateTags}
+                  onClick={handleRegenerateTags}
                   disabled={tagging || !selectedResume.content.trim()}
                   startIcon={
                     tagging ? (
@@ -717,7 +716,7 @@ export default function ResumeStepperModal({
                     )
                   }
                 >
-                  {tagging ? "Generating tags..." : "Generate tags with AI"}
+                  {tagging ? "Regenerating tags..." : "Regen tags from AI"}
                 </Button>
                 <Button
                   variant="outlined"
@@ -736,14 +735,14 @@ export default function ResumeStepperModal({
                   Copy resume text
                 </Button>
               </Stack>
-              {enhanceFeedback && (
+              {tagFeedback && (
                 <Typography
                   variant="body2"
                   color={
-                    enhanceFeedback.type === "success" ? "success.main" : "error"
+                    tagFeedback.type === "success" ? "success.main" : "error"
                   }
                 >
-                  {enhanceFeedback.message}
+                  {tagFeedback.message}
                 </Typography>
               )}
               {copyTagsFeedback && (
@@ -1010,10 +1009,11 @@ export default function ResumeStepperModal({
             {activeStep === STEP_INDEX.manage &&
               renderResumeManagement({
                 intro:
-                  "Rename your resume and curate tags to organize your library.",
+                  "Rename your resume, curate tags, and review structured details to organize your library.",
                 emptyLibraryMessage:
                   "Upload a resume in the first step to start managing it.",
                 emptySelectionMessage: "Select a resume to manage.",
+                showOverview: true,
               })}
             {activeStep === STEP_INDEX.compare && (
               <Stack spacing={3}>
@@ -1060,15 +1060,6 @@ export default function ResumeStepperModal({
                 )}
               </Stack>
             )}
-            {activeStep === STEP_INDEX.enhance &&
-              renderResumeManagement({
-                intro:
-                  "Generate intelligent tags and review structured details for a specific resume.",
-                emptyLibraryMessage:
-                  "Upload a resume in the first step to start enhancing it.",
-                emptySelectionMessage: "Select a resume to enhance.",
-                showOverview: true,
-              })}
           </Box>
         </DialogContent>
         <DialogActions>
