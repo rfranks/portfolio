@@ -56,7 +56,7 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
   const analyzeOffer = async () => {
     const context = `Offer Letter:\n${offerText}\n\nCurrent Compensation:\n${compensation}`;
     const prompt =
-      "Compare the offer letter to the current compensation and summarize key differences. " +
+      "Using the provided offer and compensation context, compare the offer letter to the current compensation and summarize key differences. " +
       "Then draft professional replies for email, LinkedIn, and Indeed. " +
       "Respond in JSON with keys analysis, email, linkedin, indeed.";
     setLoading(true);
