@@ -11,7 +11,10 @@ import {
 } from "@mui/material";
 
 import type { ResumeEntry } from "@/types";
-import { getPromptTiles } from "@/utils/talentforge/promptRegistry";
+import {
+  getPromptTiles,
+  type PromptContext,
+} from "@/utils/talentforge/promptRegistry";
 
 import PromptTileGrid from "./promptTiles/PromptTileGrid";
 
@@ -23,7 +26,7 @@ interface ChatWorkspaceProps {
   resumes?: ResumeEntry[];
 }
 
-const WORKSPACE_CONTEXTS = ["resume", "jobSearch"] as const;
+const WORKSPACE_CONTEXTS: PromptContext[] = ["resume", "jobSearch"];
 
 export default function ChatWorkspace({
   onInsertIntoInbox,

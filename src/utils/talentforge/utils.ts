@@ -190,6 +190,8 @@ export const askOpenAI = async ({
   return newChatHistory[newChatIndex];
 };
 
+export type AskOpenAIFunc = typeof askOpenAI;
+
 declare global {
   interface Window {
     Buffer: typeof Buffer;
