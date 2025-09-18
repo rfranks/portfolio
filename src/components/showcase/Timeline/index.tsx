@@ -31,9 +31,16 @@ export interface TimelineEvent {
 }
 
 export interface TimelineProps {
-  /** Events to render, in order.  One of events or mermaid is required. */
+  /**
+   * Optional events to render, in order.  Leaving both events and mermaid
+   * undefined renders an empty timeline, and tests cover that empty state to
+   * guard against regressions.
+   */
   events?: TimelineEvent[];
-  /** Optional Mermaid‐format timeline.  One of mermaid or events is required. */
+  /**
+   * Optional Mermaid‐format timeline.  Omitting both mermaid and events renders
+   * an empty timeline, which is covered by tests to catch regressions.
+   */
   mermaid?: string;
   /** Show a loading skeleton instead of real events */
   loading?: boolean;
