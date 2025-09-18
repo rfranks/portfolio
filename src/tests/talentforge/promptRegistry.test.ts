@@ -9,6 +9,15 @@ describe("promptRegistry", () => {
     }
   });
 
+  it("filters tiles by goal tags", () => {
+    const tiles = getPromptTiles({ goalTags: "networking" });
+    expect(tiles.length).toBeGreaterThan(0);
+    for (const tile of tiles) {
+      expect(tile.recommendedGoalTags).toContain("networking");
+    }
+    expect(tiles.map((tile) => tile.id)).not.toContain("resumeSummary");
+  });
+
   it("respects id ordering when filtering", () => {
     const ids = ["resumeSummary", "offerDetails", "coverLetter"];
     const tiles = getPromptTiles({ ids, contexts: "resume" });
