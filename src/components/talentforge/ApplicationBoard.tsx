@@ -51,7 +51,6 @@ import {
 } from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
-import { PROMPT_TILES } from "@/consts/promptTiles";
 import { askOpenAI, pdfToMarkdown } from "@/utils/talentforge/utils";
 import RequireAIKey from "./RequireAIKey";
 import FileUploader from "./FileUploader";
@@ -59,6 +58,7 @@ import ResumeStepperModal from "./ResumeStepperModal";
 import ManageResumesModal from "./ManageResumesModal";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
+import { getPromptTile, type PromptContext } from "@/utils/talentforge/promptRegistry";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -107,7 +107,7 @@ function Card({
   activeId,
 }: {
   app: JobApplication;
-  onRunTile: (id: string, app: JobApplication) => void;
+  onRunTile: (id: string, context: PromptContext) => void;
   resumes: ResumeEntry[];
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
@@ -122,6 +122,13 @@ function Card({
     opacity: isDragging ? 0.5 : 1,
     cursor: "grab",
   } as const;
+
+  const offerNegotiationTile = getPromptTile("offerNegotiation", {
+    contexts: "offers",
+  });
+  const compareCurrentCompTile = getPromptTile("compareCurrentComp", {
+    contexts: "offers",
+  });
 
   return (
     <Box
@@ -200,7 +207,7 @@ function Card({
           <Button
             size="small"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => onRunTile("screenRole", app)}
+            onClick={() => onRunTile("screenRole", "jobSearch")}
             variant="outlined"
             fullWidth
           >
@@ -211,7 +218,7 @@ function Card({
               <Button
                 size="small"
                 onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => onRunTile("resumeCompare", app)}
+                onClick={() => onRunTile("resumeCompare", "resume")}
                 variant="outlined"
                 fullWidth
               >
@@ -220,7 +227,7 @@ function Card({
               <Button
                 size="small"
                 onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => onRunTile("coverLetter", app)}
+                onClick={() => onRunTile("coverLetter", "resume")}
                 variant="outlined"
                 fullWidth
               >
@@ -235,7 +242,7 @@ function Card({
           <Button
             size="small"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => onRunTile("offerDetails", app)}
+            onClick={() => onRunTile("offerDetails", "offers")}
             variant="outlined"
             fullWidth
           >
@@ -266,22 +273,22 @@ function Card({
               <Button
                 size="small"
                 onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => onRunTile("offerNegotiation", app)}
+                onClick={() => onRunTile("offerNegotiation", "offers")}
                 variant="outlined"
                 fullWidth
                 sx={{ mt: 1 }}
               >
-                {PROMPT_TILES.offerNegotiation.display}
+                {offerNegotiationTile?.display || "Renegotiation Offer"}
               </Button>
               <Button
                 size="small"
                 onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => onRunTile("compareCurrentComp", app)}
+                onClick={() => onRunTile("compareCurrentComp", "offers")}
                 variant="outlined"
                 fullWidth
                 sx={{ mt: 1 }}
               >
-                {PROMPT_TILES.compareCurrentComp.display}
+                {compareCurrentCompTile?.display || "Compare to Current Comp"}
               </Button>
             </>
           )}
@@ -437,8 +444,12 @@ export default function ApplicationBoard() {
     setSource("Company Site");
   };
 
-  const runTile = async (tileId: string, app: JobApplication) => {
-    const tile = PROMPT_TILES[tileId];
+  const runTile = async (
+    tileId: string,
+    context: PromptContext,
+    app: JobApplication,
+  ) => {
+    const tile = getPromptTile(tileId, { contexts: context });
     if (!tile) return;
     if (tileId === "resumeCompare") {
       if (resumes.length === 0) {
@@ -671,10 +682,14 @@ export default function ApplicationBoard() {
         ...prev,
         { role: "assistant", text: "Parsing offer details..." },
       ]);
-      const prompt = PROMPT_TILES.offerDetails.fullPrompt.replace(
-        "{{offerText}}",
-        text
-      );
+      const offerTile = getPromptTile("offerDetails", { contexts: "offers" });
+      if (!offerTile) {
+        setDrawerMessages([
+          { role: "assistant", text: "Offer analysis prompt unavailable." },
+        ]);
+        return;
+      }
+      const prompt = offerTile.fullPrompt.replace("{{offerText}}", text);
       const res = await askOpenAI({
         context: "",
         user: prompt,
@@ -722,7 +737,20 @@ export default function ApplicationBoard() {
       ...prev,
       { role: "user", text: `Using resume: ${resume.title}` },
     ]);
-    const prompt = PROMPT_TILES.resumeCompare.fullPrompt
+    const resumeTile = getPromptTile("resumeCompare", {
+      contexts: ["resume", "jobSearch"],
+    });
+    if (!resumeTile) {
+      setDrawerMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: "Resume comparison prompt unavailable." },
+      ]);
+      setDrawerLoading(false);
+      setDrawerMode("chat");
+      setResumeCompareApp(null);
+      return;
+    }
+    const prompt = resumeTile.fullPrompt
       .replaceAll("{{jobDescription}}", resumeCompareApp.role.description || "")
       .replaceAll("{{resumeContent}}", resume.content);
     setDrawerLoading(true);
@@ -869,7 +897,7 @@ export default function ApplicationBoard() {
                     <Card
                       key={app.id}
                       app={app}
-                      onRunTile={(id) => runTile(id, app)}
+                      onRunTile={(id, context) => runTile(id, context, app)}
                       resumes={resumes}
                       onAssignResume={handleAssignResume}
                       onSetInterviewDate={handleInterviewDate}

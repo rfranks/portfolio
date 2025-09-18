@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Button,
@@ -14,20 +14,25 @@ import {
 import RequireAIKey from "../RequireAIKey";
 import { askOpenAI } from "@/utils/talentforge/utils";
 import { getResumes } from "@/utils/talentforge/dataStore";
-import { PROMPT_TILES, type PromptTileDefinition } from "@/consts/promptTiles";
-
-const registry: Record<string, PromptTileDefinition> = PROMPT_TILES;
+import {
+  getPromptTiles,
+  type PromptContext,
+  type PromptTileFilters,
+  type PromptTileWithMetadata,
+} from "@/utils/talentforge/promptRegistry";
 
 interface PromptTileGridProps {
   onResponse?: (response: string) => void;
   tileIds?: string[];
   initialValues?: Record<string, Record<string, string>>;
+  contexts?: PromptContext | PromptContext[];
 }
 
 export default function PromptTileGrid({
   onResponse,
   tileIds,
   initialValues = {},
+  contexts,
 }: PromptTileGridProps) {
   const [values, setValues] = useState<
     Record<string, Record<string, string>>
@@ -45,8 +50,19 @@ export default function PromptTileGrid({
     }));
   };
 
+  const tiles: PromptTileWithMetadata[] = useMemo(() => {
+    const filters: PromptTileFilters = {};
+    if (tileIds && tileIds.length > 0) {
+      filters.ids = tileIds;
+    }
+    if (contexts !== undefined) {
+      filters.contexts = contexts;
+    }
+    return getPromptTiles(filters);
+  }, [tileIds, contexts]);
+
   const runTile = async (id: string) => {
-    const tile = registry[id];
+    const tile = tiles.find((entry) => entry.id === id);
     if (!tile) return;
 
     setLoading((prev) => ({ ...prev, [id]: true }));
@@ -86,10 +102,6 @@ export default function PromptTileGrid({
       setLoading((prev) => ({ ...prev, [id]: false }));
     }
   };
-
-  const tiles = tileIds
-    ? tileIds.map((id) => registry[id]).filter(Boolean)
-    : Object.values(registry);
 
   return (
     <RequireAIKey>

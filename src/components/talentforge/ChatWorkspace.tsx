@@ -52,6 +52,7 @@ export default function ChatWorkspace({
         <PromptTileGrid
           onResponse={setOutput}
           initialValues={{ jdRequirements: { jobDescription } }}
+          contexts={["resume", "jobSearch"]}
         />
       </Box>
       <Box
