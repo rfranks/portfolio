@@ -32,7 +32,7 @@ import type { Message, RecruiterEntry } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import PromptSelector from "./PromptSelector";
 import Tile from "./promptTiles/Tile";
-import { PROMPT_TILES } from "@/consts/promptTiles";
+import { getPromptTile } from "@/utils/talentforge/promptRegistry";
 import EmptyState from "./EmptyState";
 
 export default function Inbox() {
@@ -220,6 +220,18 @@ export default function Inbox() {
     );
   }
 
+  const selectedPromptTile =
+    promptKey !== ""
+      ? getPromptTile(promptKey, { contexts: "messaging" })
+      : undefined;
+
+  const promptTileInitialValues =
+    promptKey === "recruiterNudge" && aiThread
+      ? {
+          messageContext: threads.find((m) => m.id === aiThread)?.body || "",
+        }
+      : undefined;
+
   return (
     <Box aria-busy={loading} aria-label={loading ? "Loading inbox" : undefined}>
       <Stack direction="row" spacing={2} sx={{ height: "100%" }}>
@@ -392,18 +404,21 @@ export default function Inbox() {
         <DialogTitle>Draft with AI</DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
-            <PromptSelector value={promptKey} onChange={setPromptKey} />
-            {promptKey && (
+            <PromptSelector
+              value={promptKey}
+              onChange={setPromptKey}
+              contexts="messaging"
+            />
+            {promptKey && !selectedPromptTile && (
+              <Typography color="text.secondary">
+                The selected prompt is unavailable in this workspace.
+              </Typography>
+            )}
+            {selectedPromptTile && (
               <Tile
-                {...PROMPT_TILES[promptKey]}
+                {...selectedPromptTile}
                 onInsert={handleInsertAIDraft}
-                initialValues=
-                  {promptKey === "recruiterNudge" && aiThread
-                    ? {
-                        messageContext:
-                          threads.find((m) => m.id === aiThread)?.body || "",
-                      }
-                    : undefined}
+                initialValues={promptTileInitialValues}
               />
             )}
           </Stack>
