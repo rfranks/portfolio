@@ -22,6 +22,7 @@ import type {
   RecruiterEntry,
 } from "@/types";
 import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply/templates";
+import type { TalentForgeGoalTag } from "./promptRegistry";
 
 export type UserProfile = User;
 
@@ -45,6 +46,7 @@ interface StoreSchema {
   connectorTokens: Record<string, ConnectorToken>;
   autoReplyTemplates: Record<string, string>;
   currentCompensation: CurrentCompensation;
+  goalSelections: TalentForgeGoalTag[];
 }
 
 // Storage keys for each entity
@@ -60,6 +62,7 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   connectorTokens: "connectorTokens",
   autoReplyTemplates: "autoReplyTemplates",
   currentCompensation: "currentCompensation",
+  goalSelections: "talentforge-goal-selections",
 } as const;
 
 // Version constants per entity so tests and other modules can reference them.
@@ -74,6 +77,7 @@ export const OPENAI_VERSION = 1;
 export const CONNECTOR_TOKENS_VERSION = 1;
 export const AUTO_REPLY_TEMPLATES_VERSION = 1;
 export const CURRENT_COMP_VERSION = 1;
+export const GOAL_SELECTIONS_VERSION = 1;
 
 const VERSION: { [K in keyof StoreSchema]: number } = {
   user: USER_VERSION,
@@ -87,6 +91,7 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   connectorTokens: CONNECTOR_TOKENS_VERSION,
   autoReplyTemplates: AUTO_REPLY_TEMPLATES_VERSION,
   currentCompensation: CURRENT_COMP_VERSION,
+  goalSelections: GOAL_SELECTIONS_VERSION,
 } as const;
 
 export const SNAPSHOT_VERSION = 4;
@@ -211,6 +216,35 @@ function migrateCurrentCompensation(
   );
 }
 
+function migrateGoalSelections(
+  data: unknown,
+  version: number,
+): TalentForgeGoalTag[] {
+  return migrate<TalentForgeGoalTag[]>(
+    data,
+    version,
+    GOAL_SELECTIONS_VERSION,
+    {
+      0: (d) => {
+        if (!Array.isArray(d)) return [];
+        const validTags: TalentForgeGoalTag[] = [];
+        for (const value of d) {
+          if (
+            value === "resume" ||
+            value === "networking" ||
+            value === "search"
+          ) {
+            if (!validTags.includes(value)) {
+              validTags.push(value);
+            }
+          }
+        }
+        return validTags;
+      },
+    },
+  );
+}
+
 const MIGRATORS: {
   [K in keyof StoreSchema]: (
     data: unknown,
@@ -228,6 +262,7 @@ const MIGRATORS: {
   connectorTokens: migrateConnectorTokens,
   autoReplyTemplates: migrateAutoReplyTemplates,
   currentCompensation: migrateCurrentCompensation,
+  goalSelections: migrateGoalSelections,
 };
 
 const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
@@ -242,6 +277,7 @@ const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
   connectorTokens: {},
   autoReplyTemplates: AUTO_REPLY_TEMPLATES as Record<string, string>,
   currentCompensation: { salary: "", benefits: "", stock: "" },
+  goalSelections: [],
 } as const;
 
 function load<K extends keyof StoreSchema>(
@@ -353,6 +389,17 @@ export function getCurrentCompensation(): CurrentCompensation {
 }
 export function saveCurrentCompensation(comp: CurrentCompensation): void {
   save("currentCompensation", comp);
+}
+
+export function getSelectedGoals(): TalentForgeGoalTag[] {
+  return load("goalSelections", []);
+}
+export function saveSelectedGoals(goals: TalentForgeGoalTag[]): void {
+  const allowed = new Set<TalentForgeGoalTag>(["resume", "networking", "search"]);
+  const unique = goals.filter(
+    (goal, index) => allowed.has(goal) && goals.indexOf(goal) === index,
+  );
+  save("goalSelections", unique);
 }
 
 // Resumes
@@ -927,6 +974,8 @@ const dataStore = {
   saveUserProfile,
   getCurrentCompensation,
   saveCurrentCompensation,
+  getSelectedGoals,
+  saveSelectedGoals,
   getResumes,
   saveResumes,
   addResume,
