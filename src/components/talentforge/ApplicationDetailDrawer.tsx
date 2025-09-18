@@ -220,7 +220,7 @@ export default function ApplicationDetailDrawer({
   }, [application, history]);
 
   const handleStatusDraftChange = (
-    event: SelectChangeEvent<ApplicationStatus>,
+    event: SelectChangeEvent<unknown>,
   ) => {
     const nextStatus = event.target.value as ApplicationStatus;
     setStatusDraft(nextStatus);
@@ -375,7 +375,7 @@ export default function ApplicationDetailDrawer({
                       select
                       size="small"
                       value={statusDraft}
-                      onChange={handleStatusDraftChange}
+                      SelectProps={{ onChange: handleStatusDraftChange }}
                       fullWidth
                     >
                       {STATUSES.map((status) => (
