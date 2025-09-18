@@ -56,6 +56,7 @@ import { askOpenAI, pdfToMarkdown } from "@/utils/talentforge/utils";
 import RequireAIKey from "./RequireAIKey";
 import FileUploader from "./FileUploader";
 import ResumeStepperModal from "./ResumeStepperModal";
+import ManageResumesModal from "./ManageResumesModal";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
 
@@ -324,6 +325,7 @@ export default function ApplicationBoard() {
   const [liveMessage, setLiveMessage] = useState("");
   const [resumes, setResumes] = useState<ResumeEntry[]>(() => getResumes());
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
+  const [manageResumesOpen, setManageResumesOpen] = useState(false);
   const negotiationRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -799,6 +801,11 @@ export default function ApplicationBoard() {
     handleResumesUpdated(getResumes());
   };
 
+  const handleManageModalClose = () => {
+    setManageResumesOpen(false);
+    handleResumesUpdated(getResumes());
+  };
+
   return (
     <RequireAIKey>
       <>
@@ -822,16 +829,24 @@ export default function ApplicationBoard() {
         <Button variant="contained" onClick={() => setDialogOpen(true)}>
           Add Application
         </Button>
+        <Button variant="outlined" onClick={() => setResumeModalOpen(true)}>
+          Upload Resume
+        </Button>
         <Button
           variant="outlined"
-          onClick={() => setResumeModalOpen(true)}
+          onClick={() => setManageResumesOpen(true)}
         >
-          Upload Resume
+          Manage Resumes
         </Button>
       </Stack>
       <ResumeStepperModal
         open={resumeModalOpen}
         onClose={handleResumeModalClose}
+        onResumesUpdated={handleResumesUpdated}
+      />
+      <ManageResumesModal
+        open={manageResumesOpen}
+        onClose={handleManageModalClose}
         onResumesUpdated={handleResumesUpdated}
       />
       <DndContext onDragEnd={handleDragEnd}>
