@@ -1,22 +1,22 @@
 "use client";
 
+import {
+  ensureOpenAIKey as ensureStoredOpenAIKey,
+  hasOpenAIKey as hasStoredOpenAIKey,
+  setOpenAIKey as setStoredOpenAIKey,
+} from "@/contexts/OpenAIKeyContext";
+import {
+  AUTO_REPLY_TEMPLATES,
+  type AutoReplyTemplate,
+} from "./autoReply/templates";
+
+export { AUTO_REPLY_TEMPLATES };
+export type { AutoReplyTemplate };
+
 export interface AutoReplyMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
-
-export const AUTO_REPLY_TEMPLATES = {
-  general:
-    "You are a helpful assistant crafting concise professional replies to incoming messages.",
-  politeFollowUp:
-    "You are a helpful assistant that writes courteous follow-up messages to check in professionally.",
-  politeDecline:
-    "You are a helpful assistant that politely declines opportunities while maintaining professionalism.",
-  requestMoreInfo:
-    "You are a helpful assistant that requests more information when needed while remaining courteous.",
-} as const;
-
-export type AutoReplyTemplate = keyof typeof AUTO_REPLY_TEMPLATES;
 
 export const buildAutoReplyMessages = (
   template: AutoReplyTemplate,
@@ -27,17 +27,18 @@ export const buildAutoReplyMessages = (
   { role: "user", content },
 ];
 
-let apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
-
 export const setOpenAIKey = (key: string) => {
-  apiKey = key;
+  setStoredOpenAIKey(key);
 };
 
-export const hasOpenAIKey = () => apiKey.trim().length > 0;
+export const hasOpenAIKey = () => hasStoredOpenAIKey();
+
+export const ensureOpenAIKey = () => ensureStoredOpenAIKey();
 
 export async function autoReply(
   messages: AutoReplyMessage[],
 ): Promise<string> {
+  const apiKey = ensureStoredOpenAIKey();
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {

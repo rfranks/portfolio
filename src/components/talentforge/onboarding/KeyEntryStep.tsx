@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Button,
   CircularProgress,
@@ -10,7 +10,8 @@ import {
 } from "@mui/material";
 import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutline from "@mui/icons-material/ErrorOutline";
-import { askOpenAI, setOpenAIKey } from "@/utils/talentforge/utils";
+import { askOpenAI } from "@/utils/talentforge/utils";
+import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 
 interface StepProps {
   onNext: () => void;
@@ -22,41 +23,45 @@ export default function KeyEntryStep({ onNext }: StepProps) {
   const [status, setStatus] = useState<
     "idle" | "checking" | "success" | "error"
   >("idle");
+  const { setKey: setStoredKey, setValidity } = useOpenAIKey();
 
-  const validateKey = async (keyToCheck: string) => {
-    setStatus("checking");
-    setOpenAIKey(keyToCheck);
-    try {
-      await askOpenAI({
-        context: "",
-        user: "ping",
-        system: "{{context}}",
-        logMessagesToChatHistory: false,
-        returnFirstResponse: true,
-        chatHistory: [],
-      });
-      if (keyToCheck === key.trim()) {
-        setStatus("success");
+  const validateKey = useCallback(
+    async (keyToCheck: string) => {
+      setStatus("checking");
+      setStoredKey(keyToCheck, { validity: "checking" });
+      try {
+        await askOpenAI({
+          context: "",
+          user: "ping",
+          system: "{{context}}",
+          logMessagesToChatHistory: false,
+          returnFirstResponse: true,
+          chatHistory: [],
+        });
+        if (keyToCheck === key.trim()) {
+          setStatus("success");
+          setValidity("valid");
+        }
+      } catch {
+        if (keyToCheck === key.trim()) {
+          setStatus("error");
+          setStoredKey("", { validity: "invalid" });
+        }
       }
-    } catch {
-      if (keyToCheck === key.trim()) {
-        setStatus("error");
-        setOpenAIKey("");
-      }
-    }
-  };
+    },
+    [key, setStoredKey, setValidity],
+  );
 
   useEffect(() => {
     const trimmed = key.trim();
     if (!trimmed) {
       setStatus("idle");
-      setOpenAIKey("");
+      setStoredKey("", { validity: "unknown" });
       return;
     }
     const handle = setTimeout(() => validateKey(trimmed), 500);
     return () => clearTimeout(handle);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, setStoredKey, validateKey]);
 
   const adornment =
     status === "checking"

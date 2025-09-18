@@ -20,7 +20,7 @@ import type {
   OfferComp,
   RecruiterEntry,
 } from "@/types";
-import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply";
+import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply/templates";
 
 export type UserProfile = User;
 
