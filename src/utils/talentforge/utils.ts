@@ -7,33 +7,27 @@ import { aiBufferSize } from "@/consts/talentforge/consts";
 
 import { Buffer } from "buffer";
 import {
-  getOpenAIKey as loadOpenAIKey,
-  setOpenAIKey as storeOpenAIKey,
-} from "./dataStore";
+  ensureOpenAIKey as ensureStoredOpenAIKey,
+  hasOpenAIKey as hasStoredOpenAIKey,
+  setOpenAIKey as setStoredOpenAIKey,
+} from "@/contexts/OpenAIKeyContext";
+import type { OpenAIKeyValidity } from "@/contexts/OpenAIKeyContext";
 
-let apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
-if (typeof window !== "undefined" && !apiKey) {
-  apiKey = loadOpenAIKey() || "";
-}
-
-export const setOpenAIKey = (key: string) => {
-  apiKey = key;
-  storeOpenAIKey(key);
+export const setOpenAIKey = (
+  key: string,
+  options?: { persist?: boolean; validity?: OpenAIKeyValidity },
+) => {
+  setStoredOpenAIKey(key, options);
 };
 
-export const hasOpenAIKey = () => {
-  if (apiKey.trim().length > 0) return true;
-  const stored = loadOpenAIKey();
-  if (stored) {
-    apiKey = stored;
-    return true;
-  }
-  return false;
-};
+export const ensureOpenAIKey = () => ensureStoredOpenAIKey();
+
+export const hasOpenAIKey = () => hasStoredOpenAIKey();
 
 export const hasValidOpenAIKey = async () => {
-  if (!hasOpenAIKey()) return false;
+  if (!hasStoredOpenAIKey()) return false;
   try {
+    const apiKey = ensureStoredOpenAIKey();
     const res = await fetch("https://api.openai.com/v1/models", {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
@@ -43,7 +37,7 @@ export const hasValidOpenAIKey = async () => {
   }
 };
 
-const requestCompletion = async (systemMessage: string) => {
+const requestCompletion = async (apiKey: string, systemMessage: string) => {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -108,6 +102,7 @@ export const askOpenAI = async ({
   onChatHistoryChange?: (chatHistory: (ChatMessage | null)[]) => void;
   onPDFProgressChange?: (progress: number) => void;
 }) => {
+  const apiKey = ensureStoredOpenAIKey();
   const newChatHistory = [
     ...chatHistory,
     logMessagesToChatHistory
@@ -129,6 +124,7 @@ export const askOpenAI = async ({
 
   const newChatIndex = newChatHistory.length - 1;
   const initialContext = `${context}`;
+  const totalContextLength = initialContext.length;
 
   let responseText = "";
 
@@ -138,7 +134,7 @@ export const askOpenAI = async ({
 
     const systemMessage =
       `Question: ${user}\n\n` + system.replaceAll("{{context}}", context);
-    responseText = await requestCompletion(systemMessage);
+    responseText = await requestCompletion(apiKey, systemMessage);
 
     newChatHistory[newChatIndex] = {
       role: "assistant" as "user" | "assistant",
@@ -155,10 +151,13 @@ export const askOpenAI = async ({
     };
 
     context = rest;
-    onPDFProgressChange?.(
-      ((initialContext.length - rest.length) / (1.0 * initialContext.length)) *
-        100
-    );
+
+    const progress =
+      totalContextLength === 0
+        ? 100
+        : ((totalContextLength - rest.length) / totalContextLength) * 100;
+
+    onPDFProgressChange?.(progress);
 
     if (returnFirstResponse && responseText) {
       break;

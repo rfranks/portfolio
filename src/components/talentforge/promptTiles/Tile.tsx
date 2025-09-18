@@ -15,8 +15,7 @@ import {
 import { ContentCopy } from "@mui/icons-material";
 import Markdown from "react-markdown";
 
-import OpenAIKeyModal from "../OpenAiKeyModal";
-import { askOpenAI, hasValidOpenAIKey } from "@/utils/talentforge/utils";
+import { askOpenAI } from "@/utils/talentforge/utils";
 import { getResumes, addResume, addOffer } from "@/utils/talentforge/dataStore";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { parseResumeText } from "@/utils/talentforge/resumeIngest";
@@ -45,7 +44,6 @@ export default function Tile({
   const [values, setValues] = useState<Record<string, string>>(initialValues);
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
-  const [openKeyModal, setOpenKeyModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [offerDrafts, setOfferDrafts] = useState<
     { email: string; linkedin: string; indeed: string } | null
@@ -74,11 +72,6 @@ export default function Tile({
     getResumes().find((r) => r.id === values["resumeVariantId"]);
 
   const handleRun = async () => {
-    const valid = await hasValidOpenAIKey();
-    if (!valid) {
-      setOpenKeyModal(true);
-      return;
-    }
     setLoading(true);
     try {
       setResponse("");
@@ -264,7 +257,6 @@ export default function Tile({
 
   return (
     <Box>
-      <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
       <Stack spacing={1}>
         <Typography variant="subtitle1">{display}</Typography>
         {inputs.map((name) =>

@@ -26,12 +26,11 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { getResumes, addResume, updateResume } from "@/utils/talentforge/dataStore";
 import type { ResumeEntry } from "@/types";
-import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
+import { askOpenAI } from "@/utils/talentforge/utils";
 import { fileToText, parseResumeText } from "@/utils/talentforge/resumeIngest";
 import { parsePastedHtml } from "@/utils/talentforge/pasteParser";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
-import OpenAIKeyModal from "./OpenAiKeyModal";
 import FileUploader from "./FileUploader";
 import {
   INPUT_DELIMITERS,
@@ -60,6 +59,8 @@ export default function ResumeStepperModal({
   const [comparison, setComparison] = useState("");
   const [loadingCompare, setLoadingCompare] = useState(false);
   const [openKeyModal, setOpenKeyModal] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [searchTag, setSearchTag] = useState("");
   const [loadingResumes, setLoadingResumes] = useState(true);
   const [toastOpen, setToastOpen] = useState(false);
   const [activeStep, setActiveStep] = useState<number>(0);
@@ -386,10 +387,6 @@ export default function ResumeStepperModal({
   };
 
   const handleCompare = async () => {
-    if (!hasOpenAIKey()) {
-      setOpenKeyModal(true);
-      return;
-    }
     if (!text.trim() || !jobDescription.trim()) return;
     const context = `Resume:\n${text}\n\nJob Description:\n${jobDescription}`;
     const prompt = PROMPT_TEMPLATES.compareResumeToJob?.fullText || "";
@@ -941,7 +938,6 @@ export default function ResumeStepperModal({
           )}
         </DialogActions>
       </Dialog>
-      <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
       <Snackbar
         open={toastOpen}
         autoHideDuration={3000}

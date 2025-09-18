@@ -9,10 +9,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import OpenAIKeyModal from "./OpenAiKeyModal";
-import { askOpenAI, hasOpenAIKey } from "@/utils/talentforge/utils";
+import { askOpenAI } from "@/utils/talentforge/utils";
 import { PROMPT_TEMPLATES } from "@/consts/prompts";
 import EmptyState from "./EmptyState";
+import RequireAIKey from "./RequireAIKey";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -28,13 +28,8 @@ export default function ScreenRole() {
   const [jobDescription, setJobDescription] = useState("");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
-  const [openKeyModal, setOpenKeyModal] = useState(false);
 
   const analyze = async () => {
-    if (!hasOpenAIKey()) {
-      setOpenKeyModal(true);
-      return;
-    }
     if (!jobDescription.trim()) return;
     const context = `Job Description:\n${jobDescription}`;
     const prompt = PROMPT_TEMPLATES.screenRole?.fullText || "";
@@ -61,8 +56,8 @@ export default function ScreenRole() {
   };
 
   return (
-    <Box>
-      <OpenAIKeyModal open={openKeyModal} onClose={() => setOpenKeyModal(false)} />
+    <RequireAIKey>
+      <Box>
       <TextField
         label="Paste job description"
         multiline
@@ -112,7 +107,8 @@ export default function ScreenRole() {
           />
         )
       )}
-    </Box>
+      </Box>
+    </RequireAIKey>
   );
 }
 
