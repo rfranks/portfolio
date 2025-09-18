@@ -25,12 +25,12 @@ import {
   validateTag as validateTagValue,
 } from "@/utils/talentforge/tagUtils";
 
-const MAX_TAG_LENGTH = 40;
-const INPUT_DELIMITERS = new Set(["Enter", ",", ";", "Tab"]);
-
 const importDateFormatter =
   typeof Intl !== "undefined" && typeof Intl.DateTimeFormat === "function"
-    ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" })
+    ? new Intl.DateTimeFormat(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
     : null;
 
 function formatResumeMetadata(resume: ResumeEntry): string | null {
@@ -52,30 +52,6 @@ function formatResumeMetadata(resume: ResumeEntry): string | null {
   }
   return parts.join(" • ");
 }
-
-const normalizeTags = (values: string[]): string[] => {
-  const seen = new Set<string>();
-  const normalized: string[] = [];
-  for (const raw of values) {
-    const trimmed = raw.trim();
-    if (!trimmed) {
-      continue;
-    }
-    const key = trimmed.toLowerCase();
-    if (seen.has(key)) {
-      continue;
-    }
-    normalized.push(trimmed);
-    seen.add(key);
-  }
-  return normalized;
-};
-
-const tagsEqual = (a: string[], b: string[]): boolean => {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  return a.every((tag, idx) => tag === b[idx]);
-};
 
 interface Props {
   resume: ResumeEntry;
@@ -213,7 +189,7 @@ export default function Detail({ resume, onClose, onSave }: Props) {
     try {
       const aiTags = await tagResume(resume.content);
       const normalized = normalizeTags(
-        aiTags.filter((tag) => tag.trim().length <= MAX_TAG_LENGTH),
+        aiTags.filter((tag) => tag.trim().length <= MAX_TAG_LENGTH)
       );
       if (!normalized.length) {
         setRetagError("AI couldn't suggest any tags.");
@@ -224,7 +200,7 @@ export default function Detail({ resume, onClose, onSave }: Props) {
       setRetagError(
         error instanceof Error && error.message
           ? error.message
-          : "Unable to refresh tags right now.",
+          : "Unable to refresh tags right now."
       );
       setRetagSuccess(false);
     } finally {
@@ -246,7 +222,12 @@ export default function Detail({ resume, onClose, onSave }: Props) {
             </Typography>
           )}
           <Stack spacing={0.5}>
-            <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
+            <Stack
+              direction="row"
+              spacing={1}
+              flexWrap="wrap"
+              alignItems="center"
+            >
               {tags.map((tag, idx) =>
                 editingIdx === idx ? (
                   <TextField
@@ -306,7 +287,7 @@ export default function Detail({ resume, onClose, onSave }: Props) {
                     aria-label={`Edit tag ${tag}`}
                     sx={{ mb: 1 }}
                   />
-                ),
+                )
               )}
               <TextField
                 size="small"
@@ -382,13 +363,22 @@ export default function Detail({ resume, onClose, onSave }: Props) {
         </Stack>
       </DialogContent>
       <DialogActions sx={{ flexWrap: "wrap", gap: 1 }}>
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ flexGrow: 1 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{ flexGrow: 1 }}
+        >
           <Button
             variant="outlined"
             onClick={handleRetag}
             disabled={retagging || !hasContent}
             startIcon={
-              retagging ? <CircularProgress size={18} /> : <AutoAwesomeIcon fontSize="small" />
+              retagging ? (
+                <CircularProgress size={18} />
+              ) : (
+                <AutoAwesomeIcon fontSize="small" />
+              )
             }
           >
             Retag with AI
