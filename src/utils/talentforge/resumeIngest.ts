@@ -127,16 +127,28 @@ export async function pdfToText(file: File): Promise<string> {
 }
 
 /**
- * Extract plain text from a DOCX file using docx-parser.
+ * Extract plain text from a DOCX file by delegating to a server-side parser.
  */
 export async function docxToText(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const parser = (await import("docx-parser")) as {
-    default?: (b: ArrayBuffer | Uint8Array | Buffer) => Promise<string>;
-    parseDocx?: (b: ArrayBuffer | Uint8Array | Buffer) => Promise<string>;
-  };
-  const fn = parser.default || parser.parseDocx;
-  return fn ? await fn(arrayBuffer) : "";
+  if (typeof fetch === "undefined") {
+    throw new Error("DOCX parsing is not available in this environment");
+  }
+
+  const form = new FormData();
+  form.append("file", file);
+
+  const response = await fetch("/api/talentforge/docx-to-text", {
+    method: "POST",
+    body: form,
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Failed to parse DOCX file");
+  }
+
+  const payload = (await response.json()) as { text?: string };
+  return payload.text ?? "";
 }
 
 /**
