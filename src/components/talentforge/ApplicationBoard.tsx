@@ -344,11 +344,13 @@ export default function ApplicationBoard() {
   >([]);
   const [drawerAnalysis, setDrawerAnalysis] = useState<Analysis | null>(null);
   const [drawerMode, setDrawerMode] = useState<
-    "chat" | "resumeCompare" | "offerUpload" | "workspace"
+    "chat" | "resumeCompare" | "offerUpload"
   >("chat");
+  const [drawerApp, setDrawerApp] = useState<JobApplication | null>(null);
   const [resumeCompareApp, setResumeCompareApp] =
     useState<JobApplication | null>(null);
-  const [drawerApp, setDrawerApp] = useState<JobApplication | null>(null);
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  const [workspaceApp, setWorkspaceApp] = useState<JobApplication | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [liveMessage, setLiveMessage] = useState("");
@@ -447,24 +449,31 @@ export default function ApplicationBoard() {
   };
 
   const handleOpenWorkspace = (app: JobApplication) => {
-    setDrawerTitle(`${app.role.title} Workspace`);
-    setDrawerTileId("workspace");
+    setWorkspaceApp(app);
+    setWorkspaceOpen(true);
+    setDrawerOpen(false);
+    setDrawerApp(null);
+    setDrawerTitle("");
+    setDrawerTileId("");
     setDrawerMessages([]);
     setDrawerAnalysis(null);
     setDrawerPrompt("");
-    setDrawerMode("workspace");
-    setDrawerApp(app);
+    setDrawerMode("chat");
     setResumeCompareApp(null);
     setDrawerLoading(false);
     setRejectReason("");
-    setDrawerOpen(true);
+  };
+
+  const handleCloseWorkspace = () => {
+    setWorkspaceOpen(false);
+    setWorkspaceApp(null);
   };
 
   const handleWorkspaceInsertDraft = (text: string) => {
-    if (!drawerApp) return;
+    if (!workspaceApp) return;
     const trimmed = text.trim();
     if (!trimmed) return;
-    const connectorLabel = [drawerApp.role.company, drawerApp.role.title]
+    const connectorLabel = [workspaceApp.role.company, workspaceApp.role.title]
       .filter(Boolean)
       .join(" – ")
       .trim();
@@ -484,13 +493,13 @@ export default function ApplicationBoard() {
   };
 
   const handleWorkspaceSaveResume = (text: string, resumeId?: string) => {
-    if (!drawerApp) return;
+    if (!workspaceApp) return;
     const trimmed = text.trim();
     if (!trimmed) return;
     const baseResume =
       (resumeId ? resumes.find((r) => r.id === resumeId) : undefined) ||
-      (drawerApp.resumeVariant
-        ? resumes.find((r) => r.id === drawerApp.resumeVariant?.id)
+      (workspaceApp.resumeVariant
+        ? resumes.find((r) => r.id === workspaceApp.resumeVariant?.id)
         : undefined) ||
       resumes[0];
     if (!baseResume) {
@@ -498,9 +507,9 @@ export default function ApplicationBoard() {
       return;
     }
     const newResumeId = uuid();
-    const roleTitle = drawerApp.role.title || "Workspace Variant";
-    const companySuffix = drawerApp.role.company
-      ? ` at ${drawerApp.role.company}`
+    const roleTitle = workspaceApp.role.title || "Workspace Variant";
+    const companySuffix = workspaceApp.role.company
+      ? ` at ${workspaceApp.role.company}`
       : "";
     const generatedTitle = `${baseResume.title} – ${roleTitle}`;
     const newResume: ResumeEntry = {
@@ -516,16 +525,19 @@ export default function ApplicationBoard() {
     setResumes(updatedResumes);
     const storedResume =
       updatedResumes.find((resume) => resume.id === newResumeId) || newResume;
-    const updatedApps = updateJobApplication(drawerApp.id, {
+    const updatedApps = updateJobApplication(workspaceApp.id, {
       resumeVariant: storedResume,
     });
     setApplications(updatedApps);
     const refreshed =
-      updatedApps.find((application) => application.id === drawerApp.id) ||
-      ({ ...drawerApp, resumeVariant: storedResume } as JobApplication);
-    setDrawerApp(refreshed);
+      updatedApps.find((application) => application.id === workspaceApp.id) ||
+      ({ ...workspaceApp, resumeVariant: storedResume } as JobApplication);
+    setWorkspaceApp(refreshed);
+    if (drawerApp?.id === refreshed.id) {
+      setDrawerApp(refreshed);
+    }
     setLiveMessage(
-      `Saved resume variant ${storedResume.title} for ${drawerApp.role.title}`,
+      `Saved resume variant ${storedResume.title} for ${workspaceApp.role.title}`,
     );
   };
 
@@ -557,6 +569,8 @@ export default function ApplicationBoard() {
   ) => {
     const tile = getPromptTile(tileId, { contexts: context });
     if (!tile) return;
+    setWorkspaceOpen(false);
+    setWorkspaceApp(null);
     if (tileId === "resumeCompare") {
       if (resumes.length === 0) {
         setDrawerTitle(tile.display);
@@ -880,19 +894,25 @@ export default function ApplicationBoard() {
     }
   };
 
-  const handleReject = () => {
-    if (!drawerApp) return;
+  const handleReject = (source: "drawer" | "workspace") => {
+    const app = source === "drawer" ? drawerApp : workspaceApp;
+    if (!app) return;
     const updated = updateJobApplicationStatus(
-      drawerApp.id,
+      app.id,
       "rejected",
       rejectReason || undefined
     );
     setApplications(updated);
     setRejectReason("");
-    setDrawerOpen(false);
-    setDrawerApp(null);
-    setDrawerTileId("");
-    setDrawerPrompt("");
+    if (source === "drawer") {
+      setDrawerOpen(false);
+      setDrawerApp(null);
+      setDrawerTileId("");
+      setDrawerPrompt("");
+    } else {
+      setWorkspaceOpen(false);
+      setWorkspaceApp(null);
+    }
   };
 
   const handleDownloadNegotiationMd = () => {
@@ -1113,198 +1133,169 @@ export default function ApplicationBoard() {
           >
             <Close />
           </IconButton>
-          {drawerMode === "workspace" ? (
-            <>
-              <Typography variant="h6" gutterBottom>
-                {drawerTitle || "Workspace"}
-              </Typography>
-              {drawerApp ? (
-                <Box sx={{ mt: 2 }}>
-                  <ChatWorkspace
-                    key={drawerApp.id}
-                    onInsertIntoInbox={handleWorkspaceInsertDraft}
-                    onSaveResumeVariant={handleWorkspaceSaveResume}
-                    initialJobDescription={drawerApp.role.description}
-                    initialResumeId={drawerApp.resumeVariant?.id}
-                    resumes={resumes}
-                  />
-                </Box>
-              ) : (
-                <Typography color="text.secondary" sx={{ mt: 2 }}>
-                  Select an application to open the workspace.
+          {drawerTileId === "screenRole" || drawerTileId === "offerNegotiation" ? (
+            <Accordion sx={{ mb: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="h6">{drawerTitle}</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                  {drawerPrompt}
                 </Typography>
-              )}
-            </>
+              </AccordionDetails>
+            </Accordion>
           ) : (
-            <>
-              {drawerTileId === "screenRole" || drawerTileId === "offerNegotiation" ? (
-                <Accordion sx={{ mb: 2 }}>
-                  <AccordionSummary expandIcon={<ExpandMore />}>
-                    <Typography variant="h6">{drawerTitle}</Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                      {drawerPrompt}
-                    </Typography>
-                  </AccordionDetails>
-                </Accordion>
-              ) : (
-                <Typography variant="h6" gutterBottom>
-                  {drawerTitle}
+            <Typography variant="h6" gutterBottom>
+              {drawerTitle}
+            </Typography>
+          )}
+          {drawerAnalysis ? (
+            <Box sx={{ mt: 2 }}>
+              {drawerAnalysis.issues.map((issue, idx) => (
+                <Stack
+                  key={idx}
+                  direction="row"
+                  spacing={1}
+                  alignItems="flex-start"
+                  sx={{ mb: 1 }}
+                >
+                  <Typography>
+                    {issue.severity === "red" ? "🚩" : "⚠️"}
+                  </Typography>
+                  <Typography variant="body2">{issue.message}</Typography>
+                </Stack>
+              ))}
+              {drawerAnalysis.summary && (
+                <Typography variant="body2" sx={{ mt: 2 }}>
+                  {drawerAnalysis.summary}
                 </Typography>
               )}
-              {drawerAnalysis ? (
-                <Box sx={{ mt: 2 }}>
-                  {drawerAnalysis.issues.map((issue, idx) => (
-                    <Stack
-                      key={idx}
-                      direction="row"
-                      spacing={1}
-                      alignItems="flex-start"
-                      sx={{ mb: 1 }}
-                    >
-                      <Typography>
-                        {issue.severity === "red" ? "🚩" : "⚠️"}
-                      </Typography>
-                      <Typography variant="body2">{issue.message}</Typography>
-                    </Stack>
-                  ))}
-                  {drawerAnalysis.summary && (
-                    <Typography variant="body2" sx={{ mt: 2 }}>
-                      {drawerAnalysis.summary}
-                    </Typography>
-                  )}
-                </Box>
-              ) : (
-                <Stack spacing={2} sx={{ mt: 2 }}>
-                  {drawerMode === "offerUpload" && (
-                    <FileUploader
-                      accept=".pdf,.txt,.md"
-                      label="Upload Offer"
-                      variant="upload"
-                      outputType="files"
-                      onChange={(files) => {
-                        const f = (files as File[])[0];
-                        if (f) handleOfferUpload(f);
+            </Box>
+          ) : (
+            <Stack spacing={2} sx={{ mt: 2 }}>
+              {drawerMode === "offerUpload" && (
+                <FileUploader
+                  accept=".pdf,.txt,.md"
+                  label="Upload Offer"
+                  variant="upload"
+                  outputType="files"
+                  onChange={(files) => {
+                    const f = (files as File[])[0];
+                    if (f) handleOfferUpload(f);
+                  }}
+                />
+              )}
+              {drawerMessages.map((m, idx) => (
+                <Box
+                  key={idx}
+                  ref={
+                    drawerTileId === "offerNegotiation" &&
+                    m.role === "assistant" &&
+                    m.text
+                      ? negotiationRef
+                      : undefined
+                  }
+                  sx={{
+                    alignSelf: m.role === "user" ? "flex-start" : "flex-end",
+                    bgcolor: m.role === "user" ? "grey.200" : "primary.main",
+                    color:
+                      m.role === "user"
+                        ? "text.primary"
+                        : "primary.contrastText",
+                    p: 1.5,
+                    borderRadius: 1,
+                    maxWidth: "100%",
+                  }}
+                >
+                  {m.text ? (
+                    <Box
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(
+                          marked.parse(m.text) as string
+                        ),
                       }}
                     />
-                  )}
-                  {drawerMessages.map((m, idx) => (
-                    <Box
-                      key={idx}
-                      ref={
-                        drawerTileId === "offerNegotiation" &&
-                        m.role === "assistant" &&
-                        m.text
-                          ? negotiationRef
-                          : undefined
-                      }
-                      sx={{
-                        alignSelf: m.role === "user" ? "flex-start" : "flex-end",
-                        bgcolor: m.role === "user" ? "grey.200" : "primary.main",
-                        color:
-                          m.role === "user"
-                            ? "text.primary"
-                            : "primary.contrastText",
-                        p: 1.5,
-                        borderRadius: 1,
-                        maxWidth: "100%",
-                      }}
-                    >
-                      {m.text ? (
-                        <Box
-                          dangerouslySetInnerHTML={{
-                            __html: DOMPurify.sanitize(
-                              marked.parse(m.text) as string
-                            ),
-                          }}
-                        />
-                      ) : m.data ? (
-                        <>
-                          {m.data.compensation &&
-                            m.data.compensation.length > 0 && (
-                              <Stack spacing={0.5}>
-                                {m.data.compensation.map((c) => (
-                                  <Typography key={c.type} variant="body2">
-                                    {c.type.charAt(0).toUpperCase() +
-                                      c.type.slice(1)}
-                                    : {"$"}
-                                    {c.amount.toLocaleString()}{" "}
-                                    {c.notes ? `(${c.notes})` : ""}
-                                  </Typography>
-                                ))}
-                              </Stack>
-                            )}
-                          {m.data.summary && (
-                            <List
-                              dense
-                              sx={{ mt: 1, listStyleType: "disc", pl: 2 }}
-                            >
-                              {m.data.summary.map((line, i) => (
-                                <ListItem
-                                  key={i}
-                                  sx={{ display: "list-item", py: 0 }}
-                                >
-                                  <ListItemText
-                                    primary={line}
-                                    primaryTypographyProps={{ variant: "body2" }}
-                                  />
-                                </ListItem>
-                              ))}
-                            </List>
-                          )}
-                        </>
-                      ) : null}
-                    </Box>
-                  ))}
-                  {drawerTileId === "offerNegotiation" && !drawerLoading && (
+                  ) : m.data ? (
                     <>
-                      <Button
-                        variant="outlined"
-                        fullWidth
-                        onClick={handleDownloadNegotiationPdf}
-                      >
-                        Download PDF
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        fullWidth
-                        onClick={handleDownloadNegotiationMd}
-                      >
-                        Download MD
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        fullWidth
-                        onClick={handleAttachOfferHistory}
-                        disabled={!drawerApp}
-                      >
-                        Attach to Offer History
-                      </Button>
+                      {m.data.compensation &&
+                        m.data.compensation.length > 0 && (
+                          <Stack spacing={0.5}>
+                            {m.data.compensation.map((c) => (
+                              <Typography key={c.type} variant="body2">
+                                {c.type.charAt(0).toUpperCase() +
+                                  c.type.slice(1)}
+                                : {"$"}
+                                {c.amount.toLocaleString()}{" "}
+                                {c.notes ? `(${c.notes})` : ""}
+                              </Typography>
+                            ))}
+                          </Stack>
+                        )}
+                      {m.data.summary && (
+                        <List
+                          dense
+                          sx={{ mt: 1, listStyleType: "disc", pl: 2 }}
+                        >
+                          {m.data.summary.map((line, i) => (
+                            <ListItem key={i} sx={{ display: "list-item", py: 0 }}>
+                              <ListItemText
+                                primary={line}
+                                primaryTypographyProps={{ variant: "body2" }}
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      )}
                     </>
-                  )}
-                  {drawerMode === "resumeCompare" && !drawerLoading && (
-                    <TextField
-                      select
-                      label="Resume"
-                      value=""
-                      onChange={(e) => handleResumeCompareSelect(e.target.value)}
-                    >
-                      {resumes.map((r) => (
-                        <MenuItem key={r.id} value={r.id}>
-                          {r.title}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )}
-                  {drawerLoading && (
-                    <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-                      <CircularProgress size={24} />
-                    </Box>
-                  )}
-                </Stack>
+                  ) : null}
+                </Box>
+              ))}
+              {drawerTileId === "offerNegotiation" && !drawerLoading && (
+                <>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleDownloadNegotiationPdf}
+                  >
+                    Download PDF
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleDownloadNegotiationMd}
+                  >
+                    Download MD
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleAttachOfferHistory}
+                    disabled={!drawerApp}
+                  >
+                    Attach to Offer History
+                  </Button>
+                </>
               )}
-            </>
+              {drawerMode === "resumeCompare" && !drawerLoading && (
+                <TextField
+                  select
+                  label="Resume"
+                  value=""
+                  onChange={(e) => handleResumeCompareSelect(e.target.value)}
+                >
+                  {resumes.map((r) => (
+                    <MenuItem key={r.id} value={r.id}>
+                      {r.title}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+              {drawerLoading && (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              )}
+            </Stack>
           )}
           <Box sx={{ mt: 3 }}>
             <TextField
@@ -1320,8 +1311,68 @@ export default function ApplicationBoard() {
             <Button
               variant="outlined"
               color="error"
-              onClick={handleReject}
+              onClick={() => handleReject("drawer")}
               disabled={!drawerApp || drawerApp.status === "rejected"}
+            >
+              Reject Application
+            </Button>
+          </Box>
+        </Drawer>
+      )}
+      {workspaceOpen && (
+        <Drawer
+          anchor="right"
+          variant="permanent"
+          sx={{
+            "& .MuiDrawer-paper": {
+              width: { xs: "100%", md: 420, lg: 520 },
+              maxWidth: "100vw",
+              p: 2,
+            },
+          }}
+        >
+          <IconButton
+            onClick={handleCloseWorkspace}
+            sx={{ alignSelf: "flex-end" }}
+            size="small"
+          >
+            <Close />
+          </IconButton>
+          <Typography variant="h6" gutterBottom>
+            {workspaceApp ? `${workspaceApp.role.title} Workspace` : "Workspace"}
+          </Typography>
+          {workspaceApp ? (
+            <Box sx={{ mt: 2 }}>
+              <ChatWorkspace
+                key={workspaceApp.id}
+                onInsertIntoInbox={handleWorkspaceInsertDraft}
+                onSaveResumeVariant={handleWorkspaceSaveResume}
+                initialJobDescription={workspaceApp.role.description}
+                initialResumeId={workspaceApp.resumeVariant?.id}
+                resumes={resumes}
+              />
+            </Box>
+          ) : (
+            <Typography color="text.secondary" sx={{ mt: 2 }}>
+              Select an application to open the workspace.
+            </Typography>
+          )}
+          <Box sx={{ mt: 3 }}>
+            <TextField
+              label="Rejection Reason (optional)"
+              size="small"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              sx={{ mb: 1 }}
+            />
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => handleReject("workspace")}
+              disabled={!workspaceApp || workspaceApp.status === "rejected"}
             >
               Reject Application
             </Button>
