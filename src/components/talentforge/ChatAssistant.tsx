@@ -12,12 +12,8 @@ import {
 } from "@mui/material";
 
 import { PROMPT_TILES } from "@/consts/promptTiles";
-import {
-  askOpenAI,
-  hasValidOpenAIKey,
-} from "@/utils/talentforge/utils";
+import { askOpenAI } from "@/utils/talentforge/utils";
 import { exportElementToPdf } from "@/utils/pdfExport";
-import OpenAIKeyModal from "./OpenAiKeyModal";
 import RequireAIKey from "./RequireAIKey";
 import { ChatMessage } from "@/types";
 export default function ChatAssistant() {
@@ -40,7 +36,6 @@ export default function ChatAssistant() {
   useEffect(() => {
     localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
   }, [chatHistory]);
-  const [openKeyModal, setOpenKeyModal] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async () => {
@@ -48,11 +43,6 @@ export default function ChatAssistant() {
     const tile = PROMPT_TILES[selectedTile];
     const fullText = tile?.fullPrompt;
     if (!fullText) return;
-    const valid = await hasValidOpenAIKey();
-    if (!valid) {
-      setOpenKeyModal(true);
-      return;
-    }
 
     askOpenAI({
       context: "",
@@ -67,10 +57,6 @@ export default function ChatAssistant() {
   return (
     <RequireAIKey>
       <Box>
-        <OpenAIKeyModal
-          open={openKeyModal}
-          onClose={() => setOpenKeyModal(false)}
-        />
         <Stack spacing={2}>
           <Select
             value={selectedTile}

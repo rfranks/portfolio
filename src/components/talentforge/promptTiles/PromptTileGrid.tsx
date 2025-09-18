@@ -11,11 +11,8 @@ import {
   MenuItem,
 } from "@mui/material";
 
-import OpenAiKeyModal from "../OpenAiKeyModal";
-import {
-  askOpenAI,
-  hasValidOpenAIKey,
-} from "@/utils/talentforge/utils";
+import RequireAIKey from "../RequireAIKey";
+import { askOpenAI } from "@/utils/talentforge/utils";
 import { getResumes } from "@/utils/talentforge/dataStore";
 import { PROMPT_TILES, type PromptTileDefinition } from "@/consts/promptTiles";
 
@@ -40,7 +37,6 @@ export default function PromptTileGrid({
   }, [initialValues]);
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [openKeyModal, setOpenKeyModal] = useState(false);
 
   const handleChange = (id: string, key: string, value: string) => {
     setValues((prev) => ({
@@ -52,12 +48,6 @@ export default function PromptTileGrid({
   const runTile = async (id: string) => {
     const tile = registry[id];
     if (!tile) return;
-
-    const valid = await hasValidOpenAIKey();
-    if (!valid) {
-      setOpenKeyModal(true);
-      return;
-    }
 
     setLoading((prev) => ({ ...prev, [id]: true }));
     try {
@@ -102,11 +92,7 @@ export default function PromptTileGrid({
     : Object.values(registry);
 
   return (
-    <>
-      <OpenAiKeyModal
-        open={openKeyModal}
-        onClose={() => setOpenKeyModal(false)}
-      />
+    <RequireAIKey>
       <Grid container spacing={2}>
         {tiles.map((tile) => (
           <Grid item xs={12} sm={6} md={4} key={tile.id}>
@@ -163,7 +149,7 @@ export default function PromptTileGrid({
           </Grid>
         ))}
       </Grid>
-    </>
+    </RequireAIKey>
   );
 }
 
