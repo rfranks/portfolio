@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { Box, Button, Step, StepLabel, Stepper, Typography } from "@mui/material";
 
 import {
@@ -18,10 +18,10 @@ import DemoDataStep from "./onboarding/DemoDataStep";
 import CompensationStep from "./onboarding/CompensationStep";
 import GoalSelectionStep from "./onboarding/GoalSelectionStep";
 
-type OnboardingStepComponent = (props: {
+type OnboardingStepComponent = ComponentType<{
   onNext: () => void;
   onBack?: () => void;
-}) => JSX.Element;
+}>;
 
 const steps: Array<{
   label: string;
