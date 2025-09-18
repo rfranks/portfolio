@@ -9,12 +9,16 @@ import {
   TextField,
   MenuItem,
   Chip,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
+import ClearIcon from "@mui/icons-material/Clear";
 
 import type { ResumeEntry } from "@/types";
 import {
   getPromptTiles,
   type PromptContext,
+  type PromptTileWithMetadata,
 } from "@/utils/talentforge/promptRegistry";
 import { askOpenAI } from "@/utils/talentforge/utils";
 
@@ -76,11 +80,22 @@ export default function ChatWorkspace({
     Record<string, Record<string, string>>
   >({});
   const [isRunning, setIsRunning] = useState(false);
+  const [promptSearch, setPromptSearch] = useState("");
 
   const selectedTile: PromptTileWithMetadata | null = useMemo(
     () => tiles.find((tile) => tile.id === selectedTileId) ?? null,
     [tiles, selectedTileId],
   );
+
+  const filteredTiles = useMemo(() => {
+    const query = promptSearch.trim().toLowerCase();
+    if (!query) {
+      return tiles;
+    }
+    return tiles.filter((tile) =>
+      tile.display.toLowerCase().includes(query),
+    );
+  }, [tiles, promptSearch]);
 
   const getInputLabel = (key: string) => {
     switch (key) {
@@ -216,107 +231,126 @@ export default function ChatWorkspace({
 
   return (
     <RequireAIKey>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: 2,
-        }}
-      >
-        <Box sx={{ flex: 1 }}>
-          <Stack spacing={2}>
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                Prompts
-              </Typography>
-              <Stack
-                direction="row"
-                spacing={1}
-                sx={{ flexWrap: "wrap", rowGap: 1 }}
-              >
-                {tiles.map((tile) => {
-                  const isSelected = tile.id === selectedTileId;
-                  return (
-                    <Chip
-                      key={tile.id}
-                      label={tile.display}
-                      onClick={() => setSelectedTileId(tile.id)}
-                      variant={isSelected ? "filled" : "outlined"}
-                      color={isSelected ? "primary" : "default"}
-                    />
-                  );
-                })}
-              </Stack>
-            </Box>
-            {selectedTile ? (
-              <Stack spacing={2}>
-                <Typography variant="h6">{selectedTile.display}</Typography>
-                {selectedTile.inputs.length === 0 && (
-                  <Typography color="text.secondary">
-                    No additional information required. Run the prompt to generate a response.
-                  </Typography>
-                )}
-                {selectedTile.inputs.map((input) => {
-                  if (input === "resumeVariantId") {
-                    if (resumes.length === 0) {
-                      return (
-                        <Typography key={input} color="text.secondary">
-                          Upload a resume to unlock resume-aware prompts.
-                        </Typography>
-                      );
-                    }
-                    return (
-                      <TextField
-                        key={input}
-                        select
-                        label={getInputLabel(input)}
-                        value={selectedResumeId}
-                        onChange={(e) => handleInputChange(input, e.target.value)}
-                        fullWidth
+      <Stack spacing={2}>
+        <Stack spacing={2}>
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+              Prompts
+            </Typography>
+            <Stack spacing={1}>
+              <TextField
+                label="Search prompts"
+                value={promptSearch}
+                onChange={(event) => setPromptSearch(event.target.value)}
+                fullWidth
+                InputProps={{
+                  endAdornment: promptSearch ? (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="Clear prompt search"
+                        onClick={() => setPromptSearch("")}
+                        edge="end"
+                        size="small"
                       >
-                        {resumes.map((resume) => (
-                          <MenuItem key={resume.id} value={resume.id}>
-                            {resume.title}
-                          </MenuItem>
-                        ))}
-                      </TextField>
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : undefined,
+                }}
+              />
+              {filteredTiles.length > 0 ? (
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ flexWrap: "wrap", rowGap: 1 }}
+                >
+                  {filteredTiles.map((tile) => {
+                    const isSelected = tile.id === selectedTileId;
+                    return (
+                      <Chip
+                        key={tile.id}
+                        label={tile.display}
+                        onClick={() => setSelectedTileId(tile.id)}
+                        variant={isSelected ? "filled" : "outlined"}
+                        color={isSelected ? "primary" : "default"}
+                      />
+                    );
+                  })}
+                </Stack>
+              ) : (
+                <Typography color="text.secondary">
+                  No prompts match your search.
+                </Typography>
+              )}
+            </Stack>
+          </Box>
+          {selectedTile ? (
+            <Stack spacing={2}>
+              <Typography variant="h6">{selectedTile.display}</Typography>
+              {selectedTile.inputs.length === 0 && (
+                <Typography color="text.secondary">
+                  No additional information required. Run the prompt to generate a response.
+                </Typography>
+              )}
+              {selectedTile.inputs.map((input) => {
+                if (input === "resumeVariantId") {
+                  if (resumes.length === 0) {
+                    return (
+                      <Typography key={input} color="text.secondary">
+                        Upload a resume to unlock resume-aware prompts.
+                      </Typography>
                     );
                   }
-
-                  const value = getInputValue(selectedTile.id, input);
-                  const isLong = isLongTextInput(input);
-                  const minRows = input === "jobDescription" ? 4 : isLong ? 3 : undefined;
-
                   return (
                     <TextField
                       key={input}
+                      select
                       label={getInputLabel(input)}
-                      value={value}
+                      value={selectedResumeId}
                       onChange={(e) => handleInputChange(input, e.target.value)}
                       fullWidth
-                      multiline={Boolean(minRows)}
-                      minRows={minRows}
-                    />
+                    >
+                      {resumes.map((resume) => (
+                        <MenuItem key={resume.id} value={resume.id}>
+                          {resume.title}
+                        </MenuItem>
+                      ))}
+                    </TextField>
                   );
-                })}
-                <Button
-                  variant="contained"
-                  onClick={handleRun}
-                  disabled={isRunning || !canRunSelectedTile}
-                >
-                  {isRunning ? "Running..." : "Run Prompt"}
-                </Button>
-              </Stack>
-            ) : (
-              <Typography color="text.secondary">
-                Select a prompt chip to get started.
-              </Typography>
-            )}
-          </Stack>
-        </Box>
+                }
+
+                const value = getInputValue(selectedTile.id, input);
+                const isLong = isLongTextInput(input);
+                const minRows = input === "jobDescription" ? 4 : isLong ? 3 : undefined;
+
+                return (
+                  <TextField
+                    key={input}
+                    label={getInputLabel(input)}
+                    value={value}
+                    onChange={(e) => handleInputChange(input, e.target.value)}
+                    fullWidth
+                    multiline={Boolean(minRows)}
+                    minRows={minRows}
+                  />
+                );
+              })}
+              <Button
+                variant="contained"
+                onClick={handleRun}
+                disabled={isRunning || !canRunSelectedTile}
+              >
+                {isRunning ? "Running..." : "Run Prompt"}
+              </Button>
+            </Stack>
+          ) : (
+            <Typography color="text.secondary">
+              Select a prompt chip to get started.
+            </Typography>
+          )}
+        </Stack>
         <Box
           sx={{
-            flexBasis: { md: "30%" },
             border: 1,
             borderColor: "divider",
             p: 2,
@@ -382,7 +416,7 @@ export default function ChatWorkspace({
             )}
           </Stack>
         </Box>
-      </Box>
+      </Stack>
     </RequireAIKey>
   );
 }
