@@ -1,7 +1,7 @@
 import { v4 as uuid } from "uuid";
 
 import type { Offer, ApplicationRecord } from "@/types";
-import type { askOpenAI as AskOpenAIFunc } from "@/utils/talentforge/utils";
+import type { AskOpenAIFunc } from "@/utils/talentforge/utils";
 
 export type OfferDrafts = {
   email: string;
@@ -18,7 +18,7 @@ export interface AnalyzeOfferOptions {
   setError: (value: string | null) => void;
   setLoading: (value: boolean) => void;
   onSave?: () => void;
-  ask: (...args: Parameters<AskOpenAIFunc>) => ReturnType<AskOpenAIFunc>;
+  ask: AskOpenAIFunc;
   addOfferFn: (offer: Offer) => void;
 }
 
