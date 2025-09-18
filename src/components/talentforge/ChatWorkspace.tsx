@@ -15,6 +15,7 @@ import type { ResumeEntry } from "@/types";
 import {
   getPromptTiles,
   type PromptContext,
+  type PromptTileWithMetadata,
 } from "@/utils/talentforge/promptRegistry";
 import { askOpenAI } from "@/utils/talentforge/utils";
 
