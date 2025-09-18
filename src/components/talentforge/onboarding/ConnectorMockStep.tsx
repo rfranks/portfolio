@@ -33,19 +33,30 @@ export default function ConnectorMockStep({ onNext, onBack }: StepProps) {
   };
 
   return (
-    <Stack spacing={2} aria-label="Connect accounts">
-      <Typography aria-label="Connection status">
-        {token ? `Connected: ${token.accessToken}` : "Not connected"}
+    <Stack spacing={2} aria-label="Sync mock connector">
+      <Typography variant="body1">
+        Sync the mock connector to simulate pulling recruiter conversations and
+        offers into TalentForge.
       </Typography>
-      {token ? (
-        <Button onClick={handleDisconnect} aria-label="Disconnect">
-          Disconnect
+      <Typography aria-live="polite">
+        {token
+          ? "Mock connector synced. You can resync or disconnect if needed."
+          : "Mock connector not yet synced."}
+      </Typography>
+      <Stack direction="row" spacing={1}>
+        <Button
+          onClick={handleConnect}
+          aria-label={token ? "Resync mock connector" : "Sync mock connector"}
+          variant="outlined"
+        >
+          {token ? "Resync Mock Connector" : "Sync Mock Connector"}
         </Button>
-      ) : (
-        <Button onClick={handleConnect} aria-label="Connect">
-          Generate Token
-        </Button>
-      )}
+        {token && (
+          <Button onClick={handleDisconnect} aria-label="Disconnect mock connector">
+            Disconnect
+          </Button>
+        )}
+      </Stack>
       <Stack direction="row" spacing={1}>
         {onBack && (
           <Button onClick={onBack} aria-label="Back">

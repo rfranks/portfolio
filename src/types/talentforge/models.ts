@@ -17,6 +17,10 @@ export interface User {
   id: string;
   /** User's full name. */
   name: string;
+  /** User's given name captured during onboarding. */
+  firstName?: string;
+  /** User's family name captured during onboarding. */
+  lastName?: string;
   /** Email address for contacting the user. */
   email: string;
   /** Resume variants owned by the user. Optional because not all users upload resumes. */

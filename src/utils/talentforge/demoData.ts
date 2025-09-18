@@ -9,6 +9,8 @@ import type {
 } from "@/types";
 import dataStore from "./dataStore";
 
+const DEMO_DATA_FLAG = "tf_demo_data_inserted";
+
 /**
  * Generate a small set of demo data for TalentForge.
  */
@@ -75,6 +77,9 @@ export function loadDemoData(): void {
   dataStore.saveUserProfile(user);
   dataStore.saveResumes(resumes);
   jobApplications.forEach((app) => dataStore.addJobApplication(app));
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(DEMO_DATA_FLAG, "true");
+  }
 }
 
 /**
@@ -87,7 +92,7 @@ export function clearDemoData(): void {
     window.localStorage.removeItem("resumes");
     window.localStorage.removeItem("jobApplications");
     window.localStorage.removeItem("offers");
-    window.localStorage.removeItem("tf_demo_data_inserted");
+    window.localStorage.removeItem(DEMO_DATA_FLAG);
   }
 }
 
