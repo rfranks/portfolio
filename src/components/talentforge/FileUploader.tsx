@@ -97,12 +97,12 @@ export default function FileUploader(props: FileUploaderProps) {
           if (validFiles.indexOf(file) > limit - 1) {
             updatedErrors[
               file.name
-            ] = `File not uploaded.  Maximum number of files exceeded. Must not be more than ${limit}.`;
+            ] = `File not uploaded. Maximum number of files exceeded. Must not be more than ${limit}.`;
             validFiles = validFiles.filter((f) => f.name !== file.name);
           } else if (file.size > maxFileSize) {
             updatedErrors[
               file.name
-            ] = `File not uploaded.  Maximum file size exceeded. Must not be more than ${getFileSize(
+            ] = `File not uploaded. Maximum file size exceeded. Must not be more than ${getFileSize(
               maxFileSize
             )}.`;
             validFiles = validFiles.filter((f) => f.name !== file.name);
