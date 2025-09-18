@@ -22,7 +22,15 @@ const TILE_METADATA: Record<keyof typeof PROMPT_TILES, {
     contexts: ["resume"],
     recommendedGoalTags: ["resume"],
   },
+  tailorResumeToRole: {
+    contexts: ["resume"],
+    recommendedGoalTags: ["resume"],
+  },
   coverLetter: {
+    contexts: ["resume", "messaging"],
+    recommendedGoalTags: ["resume", "networking"],
+  },
+  targetedCoverLetter: {
     contexts: ["resume", "messaging"],
     recommendedGoalTags: ["resume", "networking"],
   },
@@ -31,6 +39,10 @@ const TILE_METADATA: Record<keyof typeof PROMPT_TILES, {
     recommendedGoalTags: ["resume"],
   },
   negotiateOffer: {
+    contexts: ["offers", "messaging"],
+    recommendedGoalTags: ["search", "networking"],
+  },
+  negotiateBetterOffer: {
     contexts: ["offers", "messaging"],
     recommendedGoalTags: ["search", "networking"],
   },
@@ -50,6 +62,10 @@ const TILE_METADATA: Record<keyof typeof PROMPT_TILES, {
     contexts: ["resume", "jobSearch"],
     recommendedGoalTags: ["resume", "search"],
   },
+  compareTwoOffers: {
+    contexts: ["offers"],
+    recommendedGoalTags: ["search"],
+  },
   jobDescriptionRewrite: {
     contexts: ["jobSearch"],
     recommendedGoalTags: ["search"],
@@ -62,7 +78,15 @@ const TILE_METADATA: Record<keyof typeof PROMPT_TILES, {
     contexts: ["jobSearch"],
     recommendedGoalTags: ["search"],
   },
+  screenRoleForRedFlags: {
+    contexts: ["jobSearch"],
+    recommendedGoalTags: ["search"],
+  },
   jobRequirements: {
+    contexts: ["jobSearch"],
+    recommendedGoalTags: ["search"],
+  },
+  extractKeyRequirements: {
     contexts: ["jobSearch"],
     recommendedGoalTags: ["search"],
   },
@@ -71,6 +95,10 @@ const TILE_METADATA: Record<keyof typeof PROMPT_TILES, {
     recommendedGoalTags: ["networking"],
   },
   recruiterNudge: {
+    contexts: ["messaging"],
+    recommendedGoalTags: ["networking"],
+  },
+  recruiterFollowUpNudge: {
     contexts: ["messaging"],
     recommendedGoalTags: ["networking"],
   },

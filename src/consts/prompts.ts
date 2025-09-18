@@ -9,10 +9,20 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Summarize your professional experience and key strengths in 2-3 sentences.",
   },
+  tailorResumeToRole: {
+    displayText: "Tailor my résumé to this role",
+    fullText:
+      "Analyze the job description alongside my resume and outline a tailored summary, priority bullet updates, keywords to weave in, and gaps I should close for the role.",
+  },
   coverLetter: {
     displayText: "Cover Letter",
     fullText:
       "Write a professional cover letter with exactly three paragraphs tailored to the job description.",
+  },
+  targetedCoverLetter: {
+    displayText: "Create a targeted cover letter",
+    fullText:
+      "Using my resume highlights and the job description, craft a three-paragraph cover letter that clearly ties my achievements to the role and ends with a confident call to action.",
   },
   bulletRewrite: {
     displayText: "Bullet Rewrite",
@@ -23,6 +33,16 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     displayText: "Negotiate Offer",
     fullText:
       "Review the job offer alongside the current compensation and suggest negotiation strategies. Draft a polite response to the employer summarizing your position.",
+  },
+  negotiateBetterOffer: {
+    displayText: "Help me negotiate a more favorable offer",
+    fullText:
+      "Compare the current offer to my existing compensation, leverage the proof points I provide, and draft a persuasive negotiation message requesting improved terms.",
+  },
+  compareTwoOffers: {
+    displayText: "Compare two offers",
+    fullText:
+      "Review two offers side by side, highlight the major differences across compensation and benefits, and recommend which option best aligns with the stated priorities.",
   },
   interviewPreparation: {
     displayText: "Interview Preparation",
@@ -59,10 +79,20 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     fullText:
       "Review the following job description, provide a brief summary, and list potential issues candidates should note. Return JSON with a 'summary' and an 'issues' array of objects with 'severity' ('red' or 'yellow') and 'message'.",
   },
+  screenRoleForRedFlags: {
+    displayText: "Screen this role for red flags",
+    fullText:
+      "Evaluate the job description for potential red flags, note anything unusual or vague, and provide clarifying questions I should ask before proceeding.",
+  },
   jobRequirements: {
     displayText: "Job Requirements",
     fullText:
       "List the key job requirements from the provided job description in bullet points.",
+  },
+  extractKeyRequirements: {
+    displayText: "Extract key requirements",
+    fullText:
+      "Break down the job description into core responsibilities, required qualifications, nice-to-have skills, and high-priority keywords so I can target my application.",
   },
   networkingOutreach: {
     displayText: "Networking Outreach",
@@ -73,6 +103,11 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
     displayText: "Recruiter Nudge",
     fullText:
       "Generate polite follow-up and decline messages for a recruiter. Provide versions for email, LinkedIn, and Indeed.",
+  },
+  recruiterFollowUpNudge: {
+    displayText: "Recruiter follow-up nudge",
+    fullText:
+      "Draft a friendly follow-up that reaffirms my interest, references our last conversation, and asks about next steps across both email and LinkedIn.",
   },
   portfolioReview: {
     displayText: "Portfolio Review",
@@ -104,21 +139,31 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
 export const PROMPT_GROUPS: Record<string, string[]> = {
   Resumes: [
     "resumeSummary",
+    "tailorResumeToRole",
     "coverLetter",
+    "targetedCoverLetter",
     "bulletRewrite",
     "portfolioReview",
     "projectSummary",
   ],
-  Offers: ["negotiateOffer", "salaryResearch"],
+  Offers: [
+    "negotiateOffer",
+    "negotiateBetterOffer",
+    "compareTwoOffers",
+    "salaryResearch",
+  ],
   "Recruiter Replies": [
     "interviewPreparation",
     "networkingOutreach",
     "recruiterNudge",
+    "recruiterFollowUpNudge",
   ],
   "Career Growth": [
     "skillGapAnalysis",
     "jobDescriptionRewrite",
     "jobRequirements",
+    "extractKeyRequirements",
+    "screenRoleForRedFlags",
     "careerGoals",
     "elevatorPitch",
     "linkedinProfileOptimization",
