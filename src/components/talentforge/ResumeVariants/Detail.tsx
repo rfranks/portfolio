@@ -17,33 +17,13 @@ import {
 import type { ResumeEntry } from "@/types";
 import { updateResume } from "@/utils/talentforge/dataStore";
 import { tagResume } from "@/utils/talentforge/tagging";
-
-const MAX_TAG_LENGTH = 40;
-const INPUT_DELIMITERS = new Set(["Enter", ",", ";", "Tab"]);
-
-const normalizeTags = (values: string[]): string[] => {
-  const seen = new Set<string>();
-  const normalized: string[] = [];
-  for (const raw of values) {
-    const trimmed = raw.trim();
-    if (!trimmed) {
-      continue;
-    }
-    const key = trimmed.toLowerCase();
-    if (seen.has(key)) {
-      continue;
-    }
-    normalized.push(trimmed);
-    seen.add(key);
-  }
-  return normalized;
-};
-
-const tagsEqual = (a: string[], b: string[]): boolean => {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  return a.every((tag, idx) => tag === b[idx]);
-};
+import {
+  INPUT_DELIMITERS,
+  MAX_TAG_LENGTH,
+  normalizeTags,
+  tagsEqual,
+  validateTag as validateTagValue,
+} from "@/utils/talentforge/tagUtils";
 
 interface Props {
   resume: ResumeEntry;
@@ -117,22 +97,8 @@ export default function Detail({ resume, onClose, onSave }: Props) {
     setRetagError(null);
   };
 
-  const validateTag = (value: string, idx?: number): string | null => {
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return "Tag cannot be empty.";
-    }
-    if (trimmed.length > MAX_TAG_LENGTH) {
-      return `Tag must be ${MAX_TAG_LENGTH} characters or fewer.`;
-    }
-    const duplicateIndex = tags.findIndex(
-      (tag, i) => tag.toLowerCase() === trimmed.toLowerCase() && i !== idx,
-    );
-    if (duplicateIndex !== -1) {
-      return "Tag already exists.";
-    }
-    return null;
-  };
+  const validateTag = (value: string, idx?: number): string | null =>
+    validateTagValue(value, tags, { ignoreIndex: idx });
 
   const handleDelete = (idx: number) => {
     if (editingIdx !== null) {
