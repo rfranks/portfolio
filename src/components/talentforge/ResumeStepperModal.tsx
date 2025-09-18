@@ -50,7 +50,21 @@ interface ResumeStepperModalProps {
   onResumesUpdated?: (resumes: ResumeEntry[]) => void;
 }
 
-const STEPS = ["Upload", "Compare", "Enhance"] as const;
+const STEPS = ["Upload", "Manage", "Compare", "Enhance"] as const;
+
+const STEP_INDEX = {
+  upload: 0,
+  manage: 1,
+  compare: 2,
+  enhance: 3,
+} as const;
+
+function inferTitleFromFilename(filename?: string | null): string | null {
+  if (!filename) return null;
+  const withoutExt = filename.replace(/\.[^.]+$/, "");
+  const cleaned = withoutExt.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+  return cleaned || null;
+}
 
 export default function ResumeStepperModal({
   open,
@@ -62,12 +76,9 @@ export default function ResumeStepperModal({
   const [jobDescription, setJobDescription] = useState("");
   const [comparison, setComparison] = useState("");
   const [loadingCompare, setLoadingCompare] = useState(false);
-  const [openKeyModal, setOpenKeyModal] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [searchTag, setSearchTag] = useState("");
   const [loadingResumes, setLoadingResumes] = useState(true);
   const [toastOpen, setToastOpen] = useState(false);
-  const [activeStep, setActiveStep] = useState<number>(0);
+  const [activeStep, setActiveStep] = useState<number>(STEP_INDEX.upload);
   const [fileImportLoading, setFileImportLoading] = useState(false);
   const [fileImportError, setFileImportError] = useState<string | null>(null);
   const [textImportLoading, setTextImportLoading] = useState(false);
@@ -79,7 +90,10 @@ export default function ResumeStepperModal({
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [editingValue, setEditingValue] = useState("");
   const [editingError, setEditingError] = useState<string | null>(null);
+  const [titleDraft, setTitleDraft] = useState("");
+  const [titleError, setTitleError] = useState<string | null>(null);
   const editingInputRef = useRef<HTMLInputElement | null>(null);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
   const [tagging, setTagging] = useState(false);
   const [enhanceFeedback, setEnhanceFeedback] = useState<
     { type: "success" | "error"; message: string } | null
@@ -93,7 +107,7 @@ export default function ResumeStepperModal({
 
   useEffect(() => {
     if (!open) {
-      setActiveStep(0);
+      setActiveStep(STEP_INDEX.upload);
       setText("");
       setJobDescription("");
       setComparison("");
@@ -109,6 +123,8 @@ export default function ResumeStepperModal({
       setEditingIdx(null);
       setEditingValue("");
       setEditingError(null);
+      setTitleDraft("");
+      setTitleError(null);
       setEnhanceFeedback(null);
       setCopyTagsFeedback(null);
       setCopyResumeFeedback(null);
@@ -156,6 +172,8 @@ export default function ResumeStepperModal({
       setEditingIdx(null);
       setEditingValue("");
       setEditingError(null);
+      setTitleDraft("");
+      setTitleError(null);
       setEnhanceFeedback(null);
       setCopyTagsFeedback(null);
       setCopyResumeFeedback(null);
@@ -168,9 +186,12 @@ export default function ResumeStepperModal({
     setEditingIdx(null);
     setEditingValue("");
     setEditingError(null);
+    setTitleDraft(selectedResume.title);
+    setTitleError(null);
     setEnhanceFeedback(null);
     setCopyTagsFeedback(null);
     setCopyResumeFeedback(null);
+    setTagging(false);
   }, [selectedResume]);
 
   const applyTags = (values: string[], options?: { fromAi?: boolean }) => {
@@ -232,6 +253,41 @@ export default function ResumeStepperModal({
     setEditingIdx(null);
     setEditingValue("");
     setEditingError(null);
+  };
+
+  const handleTitleCommit = (): boolean => {
+    if (!selectedResume) return true;
+    const trimmed = titleDraft.trim();
+    if (!trimmed) {
+      setTitleError("Resume name cannot be empty.");
+      return false;
+    }
+    if (trimmed === selectedResume.title) {
+      setTitleDraft(selectedResume.title);
+      setTitleError(null);
+      return true;
+    }
+    const updatedResume = { ...selectedResume, title: trimmed };
+    const updated = updateResume(updatedResume);
+    handleResumesChange(updated);
+    const saved = updated.find((resume) => resume.id === updatedResume.id);
+    if (saved) {
+      setTitleDraft(saved.title);
+      setSelectedResumeId(saved.id);
+    } else {
+      setTitleDraft(trimmed);
+    }
+    setTitleError(null);
+    return true;
+  };
+
+  const handleTitleCancel = () => {
+    if (!selectedResume) {
+      setTitleDraft("");
+    } else {
+      setTitleDraft(selectedResume.title);
+    }
+    setTitleError(null);
   };
 
   const handleAddTag = () => {
@@ -379,7 +435,9 @@ export default function ResumeStepperModal({
       setText(sanitized);
       setComparison("");
       setToastOpen(true);
-      setActiveStep((prev) => (prev === 0 ? 1 : prev));
+      setActiveStep((prev) =>
+        prev === STEP_INDEX.upload ? STEP_INDEX.manage : prev,
+      );
     } catch (error) {
       console.error("Failed to save pasted resume", error);
       setTextImportError(
@@ -411,12 +469,374 @@ export default function ResumeStepperModal({
   };
 
   const handleStepNext = () => {
+    if (activeStep === STEP_INDEX.manage) {
+      const titleCommitted = handleTitleCommit();
+      const tagsCommitted = handleEditCommit();
+      if (!titleCommitted) {
+        window.setTimeout(() => titleInputRef.current?.focus(), 0);
+        return;
+      }
+      if (!tagsCommitted) {
+        window.setTimeout(() => editingInputRef.current?.focus(), 0);
+        return;
+      }
+    }
     setActiveStep((prev) => Math.min(prev + 1, STEPS.length - 1));
   };
 
   const handleStepBack = () => {
-    setActiveStep((prev) => Math.max(prev - 1, 0));
+    setActiveStep((prev) => Math.max(prev - 1, STEP_INDEX.upload));
   };
+
+  const renderResumeManagement = ({
+    intro,
+    emptyLibraryMessage,
+    emptySelectionMessage,
+    showOverview = false,
+  }: {
+    intro: string;
+    emptyLibraryMessage: string;
+    emptySelectionMessage: string;
+    showOverview?: boolean;
+  }): JSX.Element => (
+    <Stack spacing={3}>
+      <Typography variant="body1">{intro}</Typography>
+      {loadingResumes ? (
+        <Box
+          sx={{ display: "flex", justifyContent: "center" }}
+          aria-busy="true"
+          aria-label="Loading resumes"
+        >
+          <CircularProgress size={24} />
+        </Box>
+      ) : resumes.length === 0 ? (
+        <Alert severity="info">{emptyLibraryMessage}</Alert>
+      ) : (
+        <Stack spacing={3}>
+          <TextField
+            select
+            label="Select resume"
+            value={selectedResumeId}
+            onChange={(e) => setSelectedResumeId(e.target.value)}
+            fullWidth
+          >
+            {resumes.map((resume) => (
+              <MenuItem key={resume.id} value={resume.id}>
+                {resume.title}
+              </MenuItem>
+            ))}
+          </TextField>
+          {selectedResume ? (
+            <Stack spacing={3}>
+              <Stack spacing={1}>
+                <Typography variant="subtitle1">Resume name</Typography>
+                <TextField
+                  size="small"
+                  label="Resume name"
+                  value={titleDraft}
+                  onChange={(e) => {
+                    setTitleDraft(e.target.value);
+                    if (titleError) setTitleError(null);
+                  }}
+                  onBlur={() => {
+                    const committed = handleTitleCommit();
+                    if (!committed) {
+                      window.setTimeout(() => titleInputRef.current?.focus(), 0);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const committed = handleTitleCommit();
+                      if (!committed) {
+                        window.setTimeout(() => titleInputRef.current?.focus(), 0);
+                      }
+                    } else if (e.key === "Escape") {
+                      e.preventDefault();
+                      handleTitleCancel();
+                    } else if (e.key === "Tab") {
+                      const committed = handleTitleCommit();
+                      if (!committed) {
+                        e.preventDefault();
+                        window.setTimeout(
+                          () => titleInputRef.current?.focus(),
+                          0,
+                        );
+                      }
+                    }
+                  }}
+                  helperText={
+                    titleError
+                      ?? "This name appears anywhere you reference the resume."
+                  }
+                  error={Boolean(titleError)}
+                  FormHelperTextProps={{ sx: { ml: 0 } }}
+                  inputRef={titleInputRef}
+                  inputProps={{ "aria-label": "Resume name" }}
+                  fullWidth
+                />
+              </Stack>
+              <Stack spacing={1}>
+                <Typography variant="subtitle1">Tags</Typography>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  flexWrap="wrap"
+                  alignItems="center"
+                >
+                  {tagDraft.map((tag, idx) =>
+                    editingIdx === idx ? (
+                      <TextField
+                        key={`edit-${idx}`}
+                        size="small"
+                        value={editingValue}
+                        inputRef={editingInputRef}
+                        onChange={(e) => {
+                          setEditingValue(e.target.value);
+                          if (editingError) setEditingError(null);
+                        }}
+                        onBlur={() => {
+                          const committed = handleEditCommit();
+                          if (!committed) {
+                            window.setTimeout(
+                              () => editingInputRef.current?.focus(),
+                              0,
+                            );
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleEditCommit();
+                          } else if (e.key === "Escape") {
+                            e.preventDefault();
+                            handleEditCancel();
+                          } else if (e.key === "Tab") {
+                            const committed = handleEditCommit();
+                            if (!committed) {
+                              e.preventDefault();
+                            }
+                          }
+                        }}
+                        error={Boolean(editingError)}
+                        helperText={
+                          editingError
+                            ?? "Press Enter to save or Esc to cancel."
+                        }
+                        FormHelperTextProps={{ sx: { ml: 0 } }}
+                        inputProps={{
+                          "aria-label": `Edit tag ${tag}`,
+                        }}
+                        sx={{ mb: 1, minWidth: 160 }}
+                      />
+                    ) : (
+                      <Chip
+                        key={`${tag}-${idx}`}
+                        label={tag}
+                        onDelete={() => handleDeleteTag(idx)}
+                        onClick={() => handleEditStart(idx)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleEditStart(idx);
+                          } else if (e.key === "Backspace" || e.key === "Delete") {
+                            e.preventDefault();
+                            handleDeleteTag(idx);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`Edit tag ${tag}`}
+                        sx={{ mb: 1 }}
+                      />
+                    ),
+                  )}
+                </Stack>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  alignItems={{ sm: "flex-start" }}
+                >
+                  <TextField
+                    size="small"
+                    label="Add tag"
+                    value={newTag}
+                    onChange={(e) => {
+                      setNewTag(e.target.value);
+                      if (inputError) setInputError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (INPUT_DELIMITERS.has(e.key)) {
+                        if (newTag.trim()) {
+                          e.preventDefault();
+                          handleAddTag();
+                        }
+                      } else if (e.key === "Backspace" && !newTag) {
+                        if (tagDraft.length) {
+                          e.preventDefault();
+                          handleDeleteTag(tagDraft.length - 1);
+                        }
+                      } else if (e.key === "Escape" && newTag) {
+                        e.preventDefault();
+                        setNewTag("");
+                        setInputError(null);
+                      }
+                    }}
+                    helperText={
+                      inputError
+                        ?? "Press Enter, Tab, or comma to add a tag. Backspace removes the last tag."
+                    }
+                    error={Boolean(inputError)}
+                    FormHelperTextProps={{ sx: { ml: 0 } }}
+                    inputProps={{ "aria-label": "Add new tag" }}
+                    sx={{ mb: { xs: 1, sm: 0 }, flexGrow: 1, minWidth: 200 }}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={handleAddTag}
+                    disabled={!newTag.trim()}
+                  >
+                    Add tag
+                  </Button>
+                </Stack>
+              </Stack>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={1}
+                alignItems={{ sm: "center" }}
+              >
+                <Button
+                  variant="outlined"
+                  onClick={handleGenerateTags}
+                  disabled={tagging || !selectedResume.content.trim()}
+                  startIcon={
+                    tagging ? (
+                      <CircularProgress size={18} />
+                    ) : (
+                      <AutoAwesomeIcon fontSize="small" />
+                    )
+                  }
+                >
+                  {tagging ? "Generating tags..." : "Generate tags with AI"}
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleCopyTags}
+                  disabled={!tagDraft.length}
+                  startIcon={<ContentCopyIcon fontSize="small" />}
+                >
+                  Copy tags
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleCopyResume}
+                  disabled={!selectedResume.content.trim()}
+                  startIcon={<DescriptionIcon fontSize="small" />}
+                >
+                  Copy resume text
+                </Button>
+              </Stack>
+              {enhanceFeedback && (
+                <Typography
+                  variant="body2"
+                  color={
+                    enhanceFeedback.type === "success" ? "success.main" : "error"
+                  }
+                >
+                  {enhanceFeedback.message}
+                </Typography>
+              )}
+              {copyTagsFeedback && (
+                <Typography
+                  variant="body2"
+                  color={
+                    copyTagsFeedback.type === "success"
+                      ? "success.main"
+                      : "error"
+                  }
+                >
+                  {copyTagsFeedback.message}
+                </Typography>
+              )}
+              {copyResumeFeedback && (
+                <Typography
+                  variant="body2"
+                  color={
+                    copyResumeFeedback.type === "success"
+                      ? "success.main"
+                      : "error"
+                  }
+                >
+                  {copyResumeFeedback.message}
+                </Typography>
+              )}
+              {showOverview && selectedResume && (
+                <Stack spacing={2}>
+                  <Typography variant="subtitle1">Structured overview</Typography>
+                  <Stack spacing={1}>
+                    <Typography variant="subtitle2">Contact</Typography>
+                    {selectedResume.parsed.contact ? (
+                      <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                        {selectedResume.parsed.contact}
+                      </Typography>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No contact information detected.
+                      </Typography>
+                    )}
+                  </Stack>
+                  <Stack spacing={1}>
+                    <Typography variant="subtitle2">Experience</Typography>
+                    {selectedResume.parsed.experience.length ? (
+                      selectedResume.parsed.experience.map((line, idx) => (
+                        <Typography key={idx} variant="body2">
+                          {line}
+                        </Typography>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No experience entries detected.
+                      </Typography>
+                    )}
+                  </Stack>
+                  <Stack spacing={1}>
+                    <Typography variant="subtitle2">Education</Typography>
+                    {selectedResume.parsed.education.length ? (
+                      selectedResume.parsed.education.map((line, idx) => (
+                        <Typography key={idx} variant="body2">
+                          {line}
+                        </Typography>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No education entries detected.
+                      </Typography>
+                    )}
+                  </Stack>
+                  <Stack spacing={1}>
+                    <Typography variant="subtitle2">Skills</Typography>
+                    {selectedResume.parsed.skills.length ? (
+                      selectedResume.parsed.skills.map((line, idx) => (
+                        <Typography key={idx} variant="body2">
+                          {line}
+                        </Typography>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No skills detected.
+                      </Typography>
+                    )}
+                  </Stack>
+                </Stack>
+              )}
+            </Stack>
+          ) : (
+            <Alert severity="info">{emptySelectionMessage}</Alert>
+          )}
+        </Stack>
+      )}
+    </Stack>
+  );
 
   return (
     <>
@@ -437,7 +857,7 @@ export default function ResumeStepperModal({
             ))}
           </Stepper>
           <Box sx={{ mt: 4 }}>
-            {activeStep === 0 && (
+            {activeStep === STEP_INDEX.upload && (
               <Stack spacing={3}>
                 <Typography variant="body1">
                   Upload files or paste your resume text to add it to your library.
@@ -470,6 +890,9 @@ export default function ResumeStepperModal({
                         let lastAddedId = "";
                         for (const file of files) {
                           const { text: content, metadata } = await fileToText(file);
+                          const inferredTitle = inferTitleFromFilename(
+                            metadata.sourceFilename ?? file.name,
+                          );
                           const tags = await tagResume(content);
                           let parsed: ResumeEntry["parsed"];
                           try {
@@ -483,7 +906,7 @@ export default function ResumeStepperModal({
                             id: generatedId,
                             userId: "",
                             label: "",
-                            title: "",
+                            title: inferredTitle ?? "",
                             url: "",
                             content,
                             parsed,
@@ -502,7 +925,11 @@ export default function ResumeStepperModal({
                           setComparison("");
                         }
                         setToastOpen(true);
-                        setActiveStep((prev) => (prev === 0 ? 1 : prev));
+                        setActiveStep((prev) =>
+                          prev === STEP_INDEX.upload
+                            ? STEP_INDEX.manage
+                            : prev,
+                        );
                       } catch (error) {
                         console.error("Failed to import resume from file", error);
                         setFileImportError(
@@ -580,7 +1007,15 @@ export default function ResumeStepperModal({
                 </Stack>
               </Stack>
             )}
-            {activeStep === 1 && (
+            {activeStep === STEP_INDEX.manage &&
+              renderResumeManagement({
+                intro:
+                  "Rename your resume and curate tags to organize your library.",
+                emptyLibraryMessage:
+                  "Upload a resume in the first step to start managing it.",
+                emptySelectionMessage: "Select a resume to manage.",
+              })}
+            {activeStep === STEP_INDEX.compare && (
               <Stack spacing={3}>
                 <Typography variant="body1">
                   Paste a job description to compare it against your resume.
@@ -625,312 +1060,15 @@ export default function ResumeStepperModal({
                 )}
               </Stack>
             )}
-            {activeStep === 2 && (
-              <Stack spacing={3}>
-                <Typography variant="body1">
-                  Generate intelligent tags and review structured details for a
-                  specific resume.
-                </Typography>
-                {loadingResumes ? (
-                  <Box
-                    sx={{ display: "flex", justifyContent: "center" }}
-                    aria-busy="true"
-                    aria-label="Loading resumes"
-                  >
-                    <CircularProgress size={24} />
-                  </Box>
-                ) : resumes.length === 0 ? (
-                  <Alert severity="info">
-                    Upload a resume in the first step to start enhancing it.
-                  </Alert>
-                ) : (
-                  <Stack spacing={3}>
-                    <TextField
-                      select
-                      label="Select resume"
-                      value={selectedResumeId}
-                      onChange={(e) => setSelectedResumeId(e.target.value)}
-                      fullWidth
-                    >
-                      {resumes.map((resume) => (
-                        <MenuItem key={resume.id} value={resume.id}>
-                          {resume.title}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                    {selectedResume ? (
-                      <Stack spacing={3}>
-                        <Stack spacing={1}>
-                          <Typography variant="subtitle1">Tags</Typography>
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            flexWrap="wrap"
-                            alignItems="center"
-                          >
-                            {tagDraft.map((tag, idx) =>
-                              editingIdx === idx ? (
-                                <TextField
-                                  key={`edit-${idx}`}
-                                  size="small"
-                                  value={editingValue}
-                                  inputRef={editingInputRef}
-                                  onChange={(e) => {
-                                    setEditingValue(e.target.value);
-                                    if (editingError) setEditingError(null);
-                                  }}
-                                  onBlur={() => {
-                                    const committed = handleEditCommit();
-                                    if (!committed) {
-                                      window.setTimeout(
-                                        () => editingInputRef.current?.focus(),
-                                        0,
-                                      );
-                                    }
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault();
-                                      handleEditCommit();
-                                    } else if (e.key === "Escape") {
-                                      e.preventDefault();
-                                      handleEditCancel();
-                                    } else if (e.key === "Tab") {
-                                      const committed = handleEditCommit();
-                                      if (!committed) {
-                                        e.preventDefault();
-                                      }
-                                    }
-                                  }}
-                                  error={Boolean(editingError)}
-                                  helperText={
-                                    editingError
-                                      ?? "Press Enter to save or Esc to cancel."
-                                  }
-                                  FormHelperTextProps={{ sx: { ml: 0 } }}
-                                  inputProps={{
-                                    "aria-label": `Edit tag ${tag}`,
-                                  }}
-                                  sx={{ mb: 1, minWidth: 160 }}
-                                />
-                              ) : (
-                                <Chip
-                                  key={`${tag}-${idx}`}
-                                  label={tag}
-                                  onDelete={() => handleDeleteTag(idx)}
-                                  onClick={() => handleEditStart(idx)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                      e.preventDefault();
-                                      handleEditStart(idx);
-                                    } else if (
-                                      e.key === "Backspace" ||
-                                      e.key === "Delete"
-                                    ) {
-                                      e.preventDefault();
-                                      handleDeleteTag(idx);
-                                    }
-                                  }}
-                                  tabIndex={0}
-                                  role="button"
-                                  aria-label={`Edit tag ${tag}`}
-                                  sx={{ mb: 1 }}
-                                />
-                              ),
-                            )}
-                          </Stack>
-                          <Stack
-                            direction={{ xs: "column", sm: "row" }}
-                            spacing={1}
-                            alignItems={{ sm: "flex-start" }}
-                          >
-                            <TextField
-                              size="small"
-                              label="Add tag"
-                              value={newTag}
-                              onChange={(e) => {
-                                setNewTag(e.target.value);
-                                if (inputError) setInputError(null);
-                              }}
-                              onKeyDown={(e) => {
-                                if (INPUT_DELIMITERS.has(e.key)) {
-                                  if (newTag.trim()) {
-                                    e.preventDefault();
-                                    handleAddTag();
-                                  }
-                                } else if (e.key === "Backspace" && !newTag) {
-                                  if (tagDraft.length) {
-                                    e.preventDefault();
-                                    handleDeleteTag(tagDraft.length - 1);
-                                  }
-                                } else if (e.key === "Escape" && newTag) {
-                                  e.preventDefault();
-                                  setNewTag("");
-                                  setInputError(null);
-                                }
-                              }}
-                              helperText={
-                                inputError
-                                  ?? "Press Enter, Tab, or comma to add a tag. Backspace removes the last tag."
-                              }
-                              error={Boolean(inputError)}
-                              FormHelperTextProps={{ sx: { ml: 0 } }}
-                              inputProps={{ "aria-label": "Add new tag" }}
-                              sx={{ mb: { xs: 1, sm: 0 }, flexGrow: 1, minWidth: 200 }}
-                            />
-                            <Button
-                              variant="contained"
-                              onClick={handleAddTag}
-                              disabled={!newTag.trim()}
-                            >
-                              Add tag
-                            </Button>
-                          </Stack>
-                        </Stack>
-                        <Stack
-                          direction={{ xs: "column", sm: "row" }}
-                          spacing={1}
-                          alignItems={{ sm: "center" }}
-                        >
-                          <Button
-                            variant="outlined"
-                            onClick={handleGenerateTags}
-                            disabled={
-                              tagging || !selectedResume.content.trim()
-                            }
-                            startIcon={
-                              tagging ? (
-                                <CircularProgress size={18} />
-                              ) : (
-                                <AutoAwesomeIcon fontSize="small" />
-                              )
-                            }
-                          >
-                            {tagging ? "Generating tags..." : "Generate tags with AI"}
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            onClick={handleCopyTags}
-                            disabled={!tagDraft.length}
-                            startIcon={<ContentCopyIcon fontSize="small" />}
-                          >
-                            Copy tags
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            onClick={handleCopyResume}
-                            disabled={!selectedResume.content.trim()}
-                            startIcon={<DescriptionIcon fontSize="small" />}
-                          >
-                            Copy resume text
-                          </Button>
-                        </Stack>
-                        {enhanceFeedback && (
-                          <Typography
-                            variant="body2"
-                            color={
-                              enhanceFeedback.type === "success"
-                                ? "success.main"
-                                : "error"
-                            }
-                          >
-                            {enhanceFeedback.message}
-                          </Typography>
-                        )}
-                        {copyTagsFeedback && (
-                          <Typography
-                            variant="body2"
-                            color={
-                              copyTagsFeedback.type === "success"
-                                ? "success.main"
-                                : "error"
-                            }
-                          >
-                            {copyTagsFeedback.message}
-                          </Typography>
-                        )}
-                        {copyResumeFeedback && (
-                          <Typography
-                            variant="body2"
-                            color={
-                              copyResumeFeedback.type === "success"
-                                ? "success.main"
-                                : "error"
-                            }
-                          >
-                            {copyResumeFeedback.message}
-                          </Typography>
-                        )}
-                        <Stack spacing={2}>
-                          <Typography variant="subtitle1">
-                            Structured overview
-                          </Typography>
-                          <Stack spacing={1}>
-                            <Typography variant="subtitle2">Contact</Typography>
-                            {selectedResume.parsed.contact ? (
-                              <Typography
-                                variant="body2"
-                                sx={{ whiteSpace: "pre-wrap" }}
-                              >
-                                {selectedResume.parsed.contact}
-                              </Typography>
-                            ) : (
-                              <Typography variant="body2" color="text.secondary">
-                                No contact information detected.
-                              </Typography>
-                            )}
-                          </Stack>
-                          <Stack spacing={1}>
-                            <Typography variant="subtitle2">Experience</Typography>
-                            {selectedResume.parsed.experience.length ? (
-                              selectedResume.parsed.experience.map((line, idx) => (
-                                <Typography key={idx} variant="body2">
-                                  {line}
-                                </Typography>
-                              ))
-                            ) : (
-                              <Typography variant="body2" color="text.secondary">
-                                No experience entries detected.
-                              </Typography>
-                            )}
-                          </Stack>
-                          <Stack spacing={1}>
-                            <Typography variant="subtitle2">Education</Typography>
-                            {selectedResume.parsed.education.length ? (
-                              selectedResume.parsed.education.map((line, idx) => (
-                                <Typography key={idx} variant="body2">
-                                  {line}
-                                </Typography>
-                              ))
-                            ) : (
-                              <Typography variant="body2" color="text.secondary">
-                                No education entries detected.
-                              </Typography>
-                            )}
-                          </Stack>
-                          <Stack spacing={1}>
-                            <Typography variant="subtitle2">Skills</Typography>
-                            {selectedResume.parsed.skills.length ? (
-                              selectedResume.parsed.skills.map((line, idx) => (
-                                <Typography key={idx} variant="body2">
-                                  {line}
-                                </Typography>
-                              ))
-                            ) : (
-                              <Typography variant="body2" color="text.secondary">
-                                No skills detected.
-                              </Typography>
-                            )}
-                          </Stack>
-                        </Stack>
-                      </Stack>
-                    ) : (
-                      <Alert severity="info">Select a resume to enhance.</Alert>
-                    )}
-                  </Stack>
-                )}
-              </Stack>
-            )}
+            {activeStep === STEP_INDEX.enhance &&
+              renderResumeManagement({
+                intro:
+                  "Generate intelligent tags and review structured details for a specific resume.",
+                emptyLibraryMessage:
+                  "Upload a resume in the first step to start enhancing it.",
+                emptySelectionMessage: "Select a resume to enhance.",
+                showOverview: true,
+              })}
           </Box>
         </DialogContent>
         <DialogActions>
