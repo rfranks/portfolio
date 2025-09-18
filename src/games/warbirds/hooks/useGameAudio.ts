@@ -5,10 +5,18 @@ import { AudioMgr } from "@/types/lightgun-web/audio";
 import { rewindAndPlayAudio, pauseAudio } from "@/utils/lightgun-web/audio";
 
 /**
- * Provides an audio manager for playing and pausing game SFX.
+ * Provides an audio manager implementing {@link AudioMgr} for Warbirds SFX.
  * All returned methods are memoized to ensure stable references.
  *
- * @returns {AudioMgr} Object with play, pause, and pauseAll methods.
+ * Methods:
+ * - {@link AudioMgr.play | play(key, options?)}: Rewinds and plays a single clip with optional loop/volume overrides.
+ * - {@link AudioMgr.playSequence | playSequence(keys, options?)}: Plays clips sequentially, optionally looping the sequence.
+ * - {@link AudioMgr.pause | pause(key)}: Pauses the specified clip if it is currently playing.
+ * - {@link AudioMgr.pauseAll | pauseAll()}: Pauses all clips and clears any active sequence handler.
+ *
+ * Update this list if {@link AudioMgr} gains additional helpers to keep the docs aligned.
+ *
+ * @returns {AudioMgr} Memoized audio manager exposing the methods listed above.
  */
 export function useGameAudio(): AudioMgr {
   // ─── AUDIO REFS ─────────────────────────────────────────────────────────
