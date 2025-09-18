@@ -5,6 +5,7 @@ import Markdown from "react-markdown";
 import { v4 as uuid } from "uuid";
 
 import {
+  Alert,
   Box,
   Button,
   CircularProgress,
@@ -18,7 +19,8 @@ import { askOpenAI, pdfToMarkdown } from "@/utils/talentforge/utils";
 import RequireAIKey from "./RequireAIKey";
 import { addOffer } from "@/utils/talentforge/dataStore";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
-import type { Offer, Message, ApplicationRecord } from "@/types";
+import type { Message } from "@/types";
+import { analyzeOfferWithAI, type OfferDrafts } from "./offerAnalysis";
 
 interface OfferCompareProps {
   onSave?: () => void;
@@ -29,12 +31,13 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
   const [offerText, setOfferText] = useState("");
   const [compensation, setCompensation] = useState("");
   const [analysis, setAnalysis] = useState("");
-  const [drafts, setDrafts] = useState({
+  const [drafts, setDrafts] = useState<OfferDrafts>({
     email: "",
     linkedin: "",
     indeed: "",
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (
     filesFromParam: File[] | string | { filename: string; type: string; content: string } | undefined
@@ -57,53 +60,19 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
       "Then draft professional replies for email, LinkedIn, and Indeed. " +
       "Respond in JSON with keys analysis, email, linkedin, indeed.";
     setLoading(true);
-    const response = await askOpenAI({
+    setError(null);
+    await analyzeOfferWithAI({
       context,
-      user: prompt,
-      system:
-        "You analyze offers and produce structured response drafts.",
-      chatHistory: [],
-      returnFirstResponse: true,
+      prompt,
+      compensation,
+      setAnalysis,
+      setDrafts,
+      setError,
+      setLoading,
+      onSave,
+      ask: askOpenAI,
+      addOfferFn: addOffer,
     });
-    const message = response?.message || "";
-    try {
-      const parsed = JSON.parse(message) as {
-        analysis?: string;
-        email?: string;
-        linkedin?: string;
-        indeed?: string;
-      };
-      setAnalysis(parsed.analysis || "");
-      setDrafts({
-        email: parsed.email || "",
-        linkedin: parsed.linkedin || "",
-        indeed: parsed.indeed || "",
-      });
-      const offer: Offer = {
-        id: uuid(),
-        application: {} as ApplicationRecord,
-        compensation: [{ type: "note", amount: 0, notes: compensation }],
-        summary: [
-          `Analysis: ${parsed.analysis || ""}`,
-          `Email Draft: ${parsed.email || ""}`,
-          `LinkedIn Draft: ${parsed.linkedin || ""}`,
-          `Indeed Draft: ${parsed.indeed || ""}`,
-        ],
-      };
-      addOffer(offer);
-    } catch {
-      setAnalysis(message);
-      setDrafts({ email: "", linkedin: "", indeed: "" });
-      const offer: Offer = {
-        id: uuid(),
-        application: {} as ApplicationRecord,
-        compensation: [{ type: "note", amount: 0, notes: compensation }],
-        summary: [message],
-      };
-      addOffer(offer);
-    }
-    setLoading(false);
-    onSave?.();
   };
 
   const insertDraft = (connector: string, body: string) => {
@@ -146,6 +115,15 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
         >
           Analyze Offer
         </Button>
+        {error && (
+          <Alert
+            severity="error"
+            onClose={() => setError(null)}
+            sx={{ mt: 1 }}
+          >
+            {error}
+          </Alert>
+        )}
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <CircularProgress />

@@ -1,0 +1,96 @@
+import { v4 as uuid } from "uuid";
+
+import type { Offer, ApplicationRecord } from "@/types";
+import type { askOpenAI as AskOpenAIFunc } from "@/utils/talentforge/utils";
+
+export type OfferDrafts = {
+  email: string;
+  linkedin: string;
+  indeed: string;
+};
+
+export interface AnalyzeOfferOptions {
+  context: string;
+  prompt: string;
+  compensation: string;
+  setAnalysis: (value: string) => void;
+  setDrafts: (value: OfferDrafts) => void;
+  setError: (value: string | null) => void;
+  setLoading: (value: boolean) => void;
+  onSave?: () => void;
+  ask: (...args: Parameters<AskOpenAIFunc>) => ReturnType<AskOpenAIFunc>;
+  addOfferFn: (offer: Offer) => void;
+}
+
+export async function analyzeOfferWithAI({
+  context,
+  prompt,
+  compensation,
+  setAnalysis,
+  setDrafts,
+  setError,
+  setLoading,
+  onSave,
+  ask,
+  addOfferFn,
+}: AnalyzeOfferOptions) {
+  try {
+    const response = await ask({
+      context,
+      user: prompt,
+      system: "You analyze offers and produce structured response drafts.",
+      chatHistory: [],
+      returnFirstResponse: true,
+    });
+    const message = response?.message || "";
+    try {
+      const parsed = JSON.parse(message) as {
+        analysis?: string;
+        email?: string;
+        linkedin?: string;
+        indeed?: string;
+      };
+      setAnalysis(parsed.analysis || "");
+      setDrafts({
+        email: parsed.email || "",
+        linkedin: parsed.linkedin || "",
+        indeed: parsed.indeed || "",
+      });
+      const offer: Offer = {
+        id: uuid(),
+        application: {} as ApplicationRecord,
+        compensation: [{ type: "note", amount: 0, notes: compensation }],
+        summary: [
+          `Analysis: ${parsed.analysis || ""}`,
+          `Email Draft: ${parsed.email || ""}`,
+          `LinkedIn Draft: ${parsed.linkedin || ""}`,
+          `Indeed Draft: ${parsed.indeed || ""}`,
+        ],
+      };
+      addOfferFn(offer);
+    } catch {
+      setAnalysis(message);
+      setDrafts({ email: "", linkedin: "", indeed: "" });
+      const offer: Offer = {
+        id: uuid(),
+        application: {} as ApplicationRecord,
+        compensation: [{ type: "note", amount: 0, notes: compensation }],
+        summary: [message],
+      };
+      addOfferFn(offer);
+    }
+    onSave?.();
+  } catch (err) {
+    console.error("Failed to analyze offer", err);
+    setAnalysis("");
+    setDrafts({ email: "", linkedin: "", indeed: "" });
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Failed to analyze offer. Please try again.",
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+

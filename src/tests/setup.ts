@@ -1,5 +1,8 @@
 export {};
 
+process.env.NEXT_PUBLIC_OPENAI_API_KEY =
+  process.env.NEXT_PUBLIC_OPENAI_API_KEY || "test-openai-key";
+
 const createStorage = () => {
   const storage: Record<string, string> = {};
   return {
