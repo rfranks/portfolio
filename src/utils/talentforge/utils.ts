@@ -129,6 +129,7 @@ export const askOpenAI = async ({
 
   const newChatIndex = newChatHistory.length - 1;
   const initialContext = `${context}`;
+  const totalContextLength = initialContext.length;
 
   let responseText = "";
 
@@ -155,10 +156,13 @@ export const askOpenAI = async ({
     };
 
     context = rest;
-    onPDFProgressChange?.(
-      ((initialContext.length - rest.length) / (1.0 * initialContext.length)) *
-        100
-    );
+
+    const progress =
+      totalContextLength === 0
+        ? 100
+        : ((totalContextLength - rest.length) / totalContextLength) * 100;
+
+    onPDFProgressChange?.(progress);
 
     if (returnFirstResponse && responseText) {
       break;
