@@ -2,40 +2,36 @@
 
 import { useEffect, useState } from "react";
 import { Box, Card, CardContent, Grid, Typography, Skeleton } from "@mui/material";
-import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
-
-interface Counts {
-  resumes: number;
-  applications: number;
-  offers: number;
-  messages: number;
-}
+import { useTalentForgeSelector } from "@/contexts/TalentForgeDataContext";
 
 export default function Dashboard() {
-  const data = useTalentForgeData();
-  const [counts, setCounts] = useState<Counts>({
-    resumes: 0,
-    applications: 0,
-    offers: 0,
-    messages: 0,
-  });
+  const resumes = useTalentForgeSelector(
+    (store) => store.getResumes(),
+    { keys: ["resumes"] },
+  );
+  const applications = useTalentForgeSelector(
+    (store) => store.getJobApplications(),
+    { keys: ["applications"] },
+  );
+  const offers = useTalentForgeSelector(
+    (store) => store.getOffers(),
+    { keys: ["offers"] },
+  );
+  const messages = useTalentForgeSelector(
+    (store) => store.getMessages(),
+    { keys: ["messages"] },
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setCounts({
-      resumes: data.getResumes().length,
-      applications: data.getJobApplications().length,
-      offers: data.getOffers().length,
-      messages: data.getMessages().length,
-    });
     setLoading(false);
-  }, [data]);
+  }, [resumes, applications, offers, messages]);
 
   const items = [
-    { label: "Resumes", value: counts.resumes },
-    { label: "Applications", value: counts.applications },
-    { label: "Offers", value: counts.offers },
-    { label: "Messages", value: counts.messages },
+    { label: "Resumes", value: resumes.length },
+    { label: "Applications", value: applications.length },
+    { label: "Offers", value: offers.length },
+    { label: "Messages", value: messages.length },
   ];
 
   return (

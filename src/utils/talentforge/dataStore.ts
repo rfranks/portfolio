@@ -46,6 +46,43 @@ interface StoreSchema {
   currentCompensation: CurrentCompensation;
 }
 
+export type TalentForgeStoreKey = keyof StoreSchema;
+export type TalentForgeSubscriber = (key: TalentForgeStoreKey) => void;
+
+const memoryStore: Partial<
+  Record<TalentForgeStoreKey, StoreSchema[TalentForgeStoreKey]>
+> = {};
+
+const subscribers = new Set<TalentForgeSubscriber>();
+
+function clearCache(key?: TalentForgeStoreKey): void {
+  if (key) {
+    delete memoryStore[key];
+    return;
+  }
+
+  for (const storeKey of Object.keys(KEYS) as TalentForgeStoreKey[]) {
+    delete memoryStore[storeKey];
+  }
+}
+
+function notifySubscribers(key: TalentForgeStoreKey): void {
+  for (const listener of subscribers) {
+    try {
+      listener(key);
+    } catch (error) {
+      console.error("TalentForge dataStore subscriber error", error);
+    }
+  }
+}
+
+export function subscribe(listener: TalentForgeSubscriber): () => void {
+  subscribers.add(listener);
+  return () => {
+    subscribers.delete(listener);
+  };
+}
+
 // Storage keys for each entity
 const KEYS: { [K in keyof StoreSchema]: string } = {
   user: "userProfile",
@@ -247,21 +284,29 @@ function load<K extends keyof StoreSchema>(
   key: K,
   fallback: StoreSchema[K],
 ): StoreSchema[K] {
+  if (Object.prototype.hasOwnProperty.call(memoryStore, key)) {
+    return memoryStore[key as TalentForgeStoreKey] as StoreSchema[K];
+  }
   const value = loadItem<StoreSchema[K]>(
     KEYS[key],
     VERSION[key],
     MIGRATORS[key],
   );
-  if (value !== undefined) return value;
-  return fallback;
+  const resolved = value !== undefined ? value : fallback;
+  memoryStore[key as TalentForgeStoreKey] = resolved;
+  return resolved;
 }
 
 function save<K extends keyof StoreSchema>(key: K, value: StoreSchema[K]): void {
+  memoryStore[key as TalentForgeStoreKey] = value;
   saveItem(KEYS[key], value, VERSION[key]);
+  notifySubscribers(key);
 }
 
 function remove<K extends keyof StoreSchema>(key: K): void {
+  clearCache(key as TalentForgeStoreKey);
   deleteItem(KEYS[key]);
+  notifySubscribers(key);
 }
 
 // Migrations
@@ -755,9 +800,11 @@ export function importFromJson(json: string): void {
         }
       }
     }
+    clearCache();
     // Trigger migrations for all known keys after importing
     for (const key of Object.keys(KEYS) as (keyof StoreSchema)[]) {
       load(key, DEFAULTS[key]);
+      notifySubscribers(key);
     }
   } catch {
     // ignore parse errors
@@ -811,6 +858,7 @@ const dataStore = {
   deleteConnectorToken,
   exportToJson,
   importFromJson,
+  subscribe,
 };
 
 export default dataStore;

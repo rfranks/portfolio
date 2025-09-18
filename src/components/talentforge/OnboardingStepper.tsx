@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 import { Box, Button, Step, StepLabel, Stepper, Typography } from "@mui/material";
 
 import {
-  getOnboardingStep,
-  setOnboardingStep,
-  clearOnboardingStep,
-} from "@/utils/talentforge/dataStore";
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
 
 import KeyEntryStep from "./onboarding/KeyEntryStep";
 import ResumeImportStep from "./onboarding/ResumeImportStep";
@@ -30,18 +29,21 @@ export default function OnboardingStepper({
 }: {
   onComplete?: () => void;
 }) {
-  const [activeStep, setActiveStep] = useState(0);
+  const dataStore = useTalentForgeData();
+  const storedStep = useTalentForgeSelector(
+    (store) => store.getOnboardingStep(),
+    { keys: ["onboarding"] },
+  );
+  const [activeStep, setActiveStep] = useState(storedStep);
 
   useEffect(() => {
-    const step = getOnboardingStep();
-    setActiveStep(step);
-    setOnboardingStep(step);
-  }, []);
+    setActiveStep(storedStep);
+  }, [storedStep]);
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => {
       const next = prevActiveStep + 1;
-      setOnboardingStep(next);
+      dataStore.setOnboardingStep(next);
       if (next === TOTAL_ONBOARDING_STEPS) onComplete?.();
       return next;
     });
@@ -50,13 +52,13 @@ export default function OnboardingStepper({
   const handleBack = () => {
     setActiveStep((prevActiveStep) => {
       const next = prevActiveStep - 1;
-      setOnboardingStep(next);
+      dataStore.setOnboardingStep(next);
       return next;
     });
   };
 
   const handleReset = () => {
-    clearOnboardingStep();
+    dataStore.clearOnboardingStep();
     setActiveStep(0);
   };
 

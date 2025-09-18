@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Button, Stack, TextField, Typography } from "@mui/material";
-import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
+import {
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
 
 interface StepProps {
   onNext: () => void;
@@ -11,16 +14,15 @@ interface StepProps {
 
 export default function CompensationStep({ onNext, onBack }: StepProps) {
   const dataStore = useTalentForgeData();
-  const [comp, setComp] = useState({
-    salary: "",
-    benefits: "",
-    stock: "",
-  });
+  const storedComp = useTalentForgeSelector(
+    (store) => store.getCurrentCompensation(),
+    { keys: ["currentCompensation"] },
+  );
+  const [comp, setComp] = useState(storedComp);
 
   useEffect(() => {
-    const existing = dataStore.getCurrentCompensation();
-    setComp(existing);
-  }, [dataStore]);
+    setComp(storedComp);
+  }, [storedComp]);
 
   const handleChange = (field: "salary" | "benefits" | "stock") => (
     event: React.ChangeEvent<HTMLInputElement>

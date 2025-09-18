@@ -18,8 +18,8 @@ jest.mock('@/utils/talentforge/dataStore', () => ({
   getCurrentCompensation: jest.fn(),
 }));
 
-jest.mock('@/contexts/TalentForgeDataContext', () => ({
-  useTalentForgeData: () => ({
+jest.mock('@/contexts/TalentForgeDataContext', () => {
+  const store = {
     getThreads: () => [],
     getRecruiters: () => [],
     getAutoReplyTemplates: () => ({}),
@@ -27,8 +27,17 @@ jest.mock('@/contexts/TalentForgeDataContext', () => ({
     addThreadReply: jest.fn(),
     linkThreadToRecruiter: jest.fn(),
     saveAutoReplyTemplates: jest.fn(),
-  }),
-}));
+    getJobApplications: () => [],
+    getResumes: () => [],
+    getCurrentCompensation: () => ({ salary: '', benefits: '', stock: '' }),
+    subscribe: () => () => undefined,
+  };
+
+  return {
+    useTalentForgeData: () => store,
+    useTalentForgeSelector: (selector: (s: typeof store) => unknown) => selector(store),
+  };
+});
 
 jest.mock('@/utils/talentforge/jobAggregator', () => ({
   fetchAllListings: jest.fn(() => Promise.resolve([])),

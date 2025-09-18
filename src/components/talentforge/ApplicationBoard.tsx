@@ -42,13 +42,9 @@ import type {
   OfferComp,
 } from "@/types";
 import {
-  addJobApplication,
-  getJobApplications,
-  updateJobApplicationStatus,
-  updateJobApplication,
-  getResumes,
-  getCurrentCompensation,
-} from "@/utils/talentforge/dataStore";
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
 import { PROMPT_TILES } from "@/consts/promptTiles";
@@ -295,7 +291,19 @@ function Card({
 }
 
 export default function ApplicationBoard() {
-  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const dataStore = useTalentForgeData();
+  const applications = useTalentForgeSelector(
+    (store) => store.getJobApplications(),
+    { keys: ["applications"] },
+  );
+  const resumes = useTalentForgeSelector(
+    (store) => store.getResumes(),
+    { keys: ["resumes"] },
+  );
+  const currentCompensation = useTalentForgeSelector(
+    (store) => store.getCurrentCompensation(),
+    { keys: ["currentCompensation"] },
+  );
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -327,34 +335,51 @@ export default function ApplicationBoard() {
   const [openKeyModal, setOpenKeyModal] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [liveMessage, setLiveMessage] = useState("");
-  const [resumes, setResumes] = useState<ResumeEntry[]>(() => getResumes());
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const negotiationRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const existing = getJobApplications();
-    if (existing.length === 0) {
-      fetchAllListings("").then((listings) => {
-        let apps = existing;
-        listings.forEach((listing) => {
-          apps = addJobApplication({
-            id: uuid(),
-            applicant: { id: "", name: "", email: "" },
-            role: { ...listing, id: uuid() },
-            status: "applied",
-            history: [
-              { status: "applied", changedAt: new Date().toISOString() },
-            ],
-          });
-        });
-        setApplications(apps);
-        setLoading(false);
-      });
-    } else {
-      setApplications(existing);
+    if (!loading) return;
+
+    const existing = dataStore.getJobApplications();
+    if (existing.length > 0) {
       setLoading(false);
+      return;
     }
-  }, []);
+
+    let cancelled = false;
+
+    fetchAllListings("").then((listings) => {
+      if (cancelled) return;
+      let apps = dataStore.getJobApplications();
+      if (apps.length > 0) {
+        setLoading(false);
+        return;
+      }
+      listings.forEach((listing) => {
+        apps = dataStore.addJobApplication({
+          id: uuid(),
+          applicant: { id: "", name: "", email: "" },
+          role: { ...listing, id: uuid() },
+          status: "applied",
+          history: [{ status: "applied", changedAt: new Date().toISOString() }],
+        });
+      });
+      if (!cancelled) {
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dataStore, loading]);
+
+  useEffect(() => {
+    if (resumeId && !resumes.some((r) => r.id === resumeId)) {
+      setResumeId("");
+    }
+  }, [resumeId, resumes]);
 
   if (loading) {
     return (
@@ -373,8 +398,10 @@ export default function ApplicationBoard() {
     const { active, over } = event;
     if (!over) return;
     const newStatus = over.id as ApplicationStatus;
-    const updated = updateJobApplicationStatus(active.id as string, newStatus);
-    setApplications(updated);
+    const updated = dataStore.updateJobApplicationStatus(
+      active.id as string,
+      newStatus,
+    );
     const movedApp = updated.find((a) => a.id === active.id);
     if (movedApp) {
       setLiveMessage(`${movedApp.role.title} moved to ${newStatus}`);
@@ -386,8 +413,7 @@ export default function ApplicationBoard() {
     if (!app) return;
     const newStatus = getNextStatus(app.status, key);
     if (newStatus !== app.status) {
-      const updated = updateJobApplicationStatus(appId, newStatus);
-      setApplications(updated);
+      const updated = dataStore.updateJobApplicationStatus(appId, newStatus);
       const movedApp = updated.find((a) => a.id === appId);
       if (movedApp) {
         setLiveMessage(`${movedApp.role.title} moved to ${newStatus}`);
@@ -429,8 +455,7 @@ export default function ApplicationBoard() {
       status: "applied",
       history: [{ status: "applied", changedAt: new Date().toISOString() }],
     };
-    const updated = addJobApplication(newApp);
-    setApplications(updated);
+    dataStore.addJobApplication(newApp);
     setDialogOpen(false);
     setTitle("");
     setCompany("");
@@ -556,11 +581,13 @@ export default function ApplicationBoard() {
       );
       app.offer?.summary?.forEach((s) => offerLines.push(s));
       const offerText = offerLines.join("\n");
-      const current = getCurrentCompensation();
       const currentLines: string[] = [];
-      if (current.salary) currentLines.push(`Salary: ${current.salary}`);
-      if (current.benefits) currentLines.push(`Benefits: ${current.benefits}`);
-      if (current.stock) currentLines.push(`Stock: ${current.stock}`);
+      if (currentCompensation.salary)
+        currentLines.push(`Salary: ${currentCompensation.salary}`);
+      if (currentCompensation.benefits)
+        currentLines.push(`Benefits: ${currentCompensation.benefits}`);
+      if (currentCompensation.stock)
+        currentLines.push(`Stock: ${currentCompensation.stock}`);
       const currentComp = currentLines.join("\n");
       const prompt = tile.fullPrompt
         .replaceAll("{{offer}}", offerText)
@@ -650,18 +677,15 @@ export default function ApplicationBoard() {
   const handleAssignResume = (appId: string, resId: string) => {
     const resume = resumes.find((r) => r.id === resId);
     if (!resume) return;
-    const updated = updateJobApplication(appId, { resumeVariant: resume });
-    setApplications(updated);
+    dataStore.updateJobApplication(appId, { resumeVariant: resume });
   };
 
   const handleInterviewDate = (appId: string, value: string) => {
-    const updated = updateJobApplication(appId, { interviewDateTime: value });
-    setApplications(updated);
+    dataStore.updateJobApplication(appId, { interviewDateTime: value });
   };
 
   const handleInterviewLocation = (appId: string, value: string) => {
-    const updated = updateJobApplication(appId, { interviewLocation: value });
-    setApplications(updated);
+    dataStore.updateJobApplication(appId, { interviewLocation: value });
   };
 
   const handleOfferUpload = async (file: File) => {
@@ -710,14 +734,14 @@ export default function ApplicationBoard() {
         compensation: parsed.compensation || [],
         summary: summaryLines,
       };
-      const updated = updateJobApplication(drawerApp.id, { offer });
-      setApplications(updated);
+      const updated = dataStore.updateJobApplication(drawerApp.id, { offer });
       setDrawerMessages([
         {
           role: "assistant",
           data: { compensation: offer.compensation, summary: offer.summary },
         },
       ]);
+      setDrawerApp(updated.find((a) => a.id === drawerApp.id) || null);
     } finally {
       setDrawerLoading(false);
     }
@@ -756,12 +780,11 @@ export default function ApplicationBoard() {
 
   const handleReject = () => {
     if (!drawerApp) return;
-    const updated = updateJobApplicationStatus(
+    dataStore.updateJobApplicationStatus(
       drawerApp.id,
       "rejected",
       rejectReason || undefined
     );
-    setApplications(updated);
     setRejectReason("");
     setDrawerOpen(false);
     setDrawerApp(null);
@@ -792,21 +815,14 @@ export default function ApplicationBoard() {
     if (!drawerApp) return;
     const text = negotiationRef.current?.innerText || "";
     const history = [...(drawerApp.offerHistory || []), text];
-    const updated = updateJobApplication(drawerApp.id, { offerHistory: history });
-    setApplications(updated);
+    const updated = dataStore.updateJobApplication(drawerApp.id, {
+      offerHistory: history,
+    });
     setDrawerApp(updated.find((a) => a.id === drawerApp.id) || null);
-  };
-
-  const handleResumesUpdated = (updated: ResumeEntry[]) => {
-    setResumes(updated);
-    if (resumeId && !updated.some((r) => r.id === resumeId)) {
-      setResumeId("");
-    }
   };
 
   const handleResumeModalClose = () => {
     setResumeModalOpen(false);
-    handleResumesUpdated(getResumes());
   };
 
   return (
@@ -841,7 +857,6 @@ export default function ApplicationBoard() {
       <ResumeStepperModal
         open={resumeModalOpen}
         onClose={handleResumeModalClose}
-        onResumesUpdated={handleResumesUpdated}
       />
       <DndContext onDragEnd={handleDragEnd}>
         {applications.length === 0 ? (

@@ -20,7 +20,6 @@ import {
   hasOpenAIKey,
 } from "@/utils/talentforge/utils";
 import OpenAIKeyModal from "./OpenAiKeyModal";
-import { addOffer } from "@/utils/talentforge/dataStore";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import type { Offer, Message, ApplicationRecord } from "@/types";
 
@@ -99,7 +98,7 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
           `Indeed Draft: ${parsed.indeed || ""}`,
         ],
       };
-      addOffer(offer);
+      data.addOffer(offer);
     } catch {
       setAnalysis(message);
       setDrafts({ email: "", linkedin: "", indeed: "" });
@@ -109,7 +108,7 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
         compensation: [{ type: "note", amount: 0, notes: compensation }],
         summary: [message],
       };
-      addOffer(offer);
+      data.addOffer(offer);
     }
     setLoading(false);
     onSave?.();

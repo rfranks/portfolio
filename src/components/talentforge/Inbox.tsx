@@ -27,8 +27,11 @@ import {
   AutoReplyTemplate,
 } from "@/utils/autoReply";
 
-import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
-import type { Message, RecruiterEntry } from "@/types";
+import {
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
+import type { Message } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import PromptSelector from "./PromptSelector";
 import Tile from "./promptTiles/Tile";
@@ -37,33 +40,36 @@ import EmptyState from "./EmptyState";
 
 export default function Inbox() {
   const data = useTalentForgeData();
-  const [threads, setThreads] = useState<Message[]>([]);
+  const threads = useTalentForgeSelector(
+    (store) => store.getThreads(),
+    { keys: ["messages"] },
+  );
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [templateSelections, setTemplateSelections] =
     useState<Record<string, AutoReplyTemplate>>({});
   const [quickTones, setQuickTones] = useState<Record<string, AutoReplyTemplate>>({});
-  const [templateDefs, setTemplateDefs] = useState<Record<string, string>>({});
+  const templateDefs = useTalentForgeSelector(
+    (store) => store.getAutoReplyTemplates(),
+    { keys: ["autoReplyTemplates"] },
+  );
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorTemplates, setEditorTemplates] = useState<
     Array<{ name: string; prompt: string }>
   >([]);
   const [search, setSearch] = useState("");
-  const [recruiters, setRecruiters] = useState<RecruiterEntry[]>([]);
+  const recruiters = useTalentForgeSelector(
+    (store) => store.getRecruiters(),
+    { keys: ["recruiters"] },
+  );
   const [aiThread, setAiThread] = useState<string | null>(null);
   const [promptKey, setPromptKey] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const id = setTimeout(() => {
-      setThreads(data.getThreads());
-      setRecruiters(data.getRecruiters());
-      setTemplateDefs(data.getAutoReplyTemplates());
-      setLoading(false);
-    }, 0);
-    return () => clearTimeout(id);
-  }, [data]);
+    setLoading(false);
+  }, [threads]);
 
   const handleFilterChange = (event: SelectChangeEvent) => {
     setFilter(event.target.value as "all" | "unread" | "read");
@@ -87,8 +93,7 @@ export default function Inbox() {
     setSelectedId(message.id);
     if (!drafts[message.id]) void handleAutoReply(message);
     if (message.status === "unread") {
-      const updated = data.updateThreadStatus(message.id, "read");
-      setThreads(updated);
+      data.updateThreadStatus(message.id, "read");
     }
   };
 
@@ -111,8 +116,7 @@ export default function Inbox() {
       sentAt: new Date().toISOString(),
       connector: message.connector,
     };
-    const updated = data.addThreadReply(message.id, reply);
-    setThreads(updated);
+    data.addThreadReply(message.id, reply);
   };
 
   const handleSendReply = (message: Message) => {
@@ -124,32 +128,27 @@ export default function Inbox() {
       sentAt: new Date().toISOString(),
       connector: message.connector,
     };
-    let updated = data.addThreadReply(message.id, reply);
+    data.addThreadReply(message.id, reply);
 
     const matchedRecruiter = recruiters.find(
       (r) => r.connector.toLowerCase() === message.connector.toLowerCase(),
     );
     if (matchedRecruiter) {
-      updated = data.linkThreadToRecruiter(message.id, matchedRecruiter.id);
-      setRecruiters(data.getRecruiters());
+      data.linkThreadToRecruiter(message.id, matchedRecruiter.id);
     }
 
-    setThreads(updated);
     setDrafts((d) => ({ ...d, [message.id]: "" }));
   };
 
   const handleToggleStatus = (message: Message) => {
-    const updated = data.updateThreadStatus(
+    data.updateThreadStatus(
       message.id,
       message.status === "unread" ? "read" : "unread",
     );
-    setThreads(updated);
   };
 
   const handleLinkRecruiter = (threadId: string, recruiterId: string) => {
-    const updated = data.linkThreadToRecruiter(threadId, recruiterId);
-    setThreads(updated);
-    setRecruiters(data.getRecruiters());
+    data.linkThreadToRecruiter(threadId, recruiterId);
   };
 
   const handleDraftWithAI = (threadId: string) => {
@@ -196,7 +195,6 @@ export default function Inbox() {
     for (const { name, prompt } of editorTemplates) {
       if (name.trim()) defs[name.trim()] = prompt;
     }
-    setTemplateDefs(defs);
     data.saveAutoReplyTemplates(defs);
     setEditorOpen(false);
   };

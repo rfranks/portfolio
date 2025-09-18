@@ -9,18 +9,27 @@ import {
   TextField,
   Button,
 } from "@mui/material";
-import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
-import type { RecruiterEntry, Message } from "@/types";
+import {
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
+import type { RecruiterEntry } from "@/types";
 
 export default function RecruiterList() {
   const data = useTalentForgeData();
-  const [recruiters, setRecruiters] = useState<RecruiterEntry[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const storeRecruiters = useTalentForgeSelector(
+    (store) => store.getRecruiters(),
+    { keys: ["recruiters"] },
+  );
+  const messages = useTalentForgeSelector(
+    (store) => store.getMessages(),
+    { keys: ["messages"] },
+  );
+  const [recruiters, setRecruiters] = useState<RecruiterEntry[]>(storeRecruiters);
 
   useEffect(() => {
-    setRecruiters(data.getRecruiters());
-    setMessages(data.getMessages());
-  }, [data]);
+    setRecruiters(storeRecruiters);
+  }, [storeRecruiters]);
 
   const handleSave = (recruiter: RecruiterEntry) => {
     const updated = data.updateRecruiter(recruiter);

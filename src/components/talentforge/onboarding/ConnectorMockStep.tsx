@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Stack, Typography } from "@mui/material";
 import { v4 as uuid } from "uuid";
 
 import { ConnectorToken } from "@/types/connector";
 import {
-  deleteConnectorToken,
-  getConnectorToken,
-  saveConnectorToken,
-} from "@/utils/talentforge/dataStore";
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
 
 interface StepProps {
   onNext: () => void;
@@ -17,18 +16,27 @@ interface StepProps {
 }
 
 export default function ConnectorMockStep({ onNext, onBack }: StepProps) {
-  const [token, setToken] = useState<ConnectorToken | null>(() =>
-    getConnectorToken("mock") ?? null,
+  const dataStore = useTalentForgeData();
+  const storedToken = useTalentForgeSelector(
+    (store) => store.getConnectorToken("mock"),
+    { keys: ["connectorTokens"] },
   );
+  const [token, setToken] = useState<ConnectorToken | null>(
+    storedToken ?? null,
+  );
+
+  useEffect(() => {
+    setToken(storedToken ?? null);
+  }, [storedToken]);
 
   const handleConnect = () => {
     const newToken: ConnectorToken = { accessToken: uuid() };
-    saveConnectorToken("mock", newToken);
+    dataStore.saveConnectorToken("mock", newToken);
     setToken(newToken);
   };
 
   const handleDisconnect = () => {
-    deleteConnectorToken("mock");
+    dataStore.deleteConnectorToken("mock");
     setToken(null);
   };
 
