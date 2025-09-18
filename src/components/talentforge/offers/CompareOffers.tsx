@@ -172,12 +172,12 @@ export default function CompareOffers() {
     setOffers(getOffers());
   };
 
-  const handleSelectOfferA = (event: SelectChangeEvent<string>) => {
-    setOfferAId(event.target.value);
+  const handleSelectOfferA = (event: SelectChangeEvent<unknown>) => {
+    setOfferAId(event.target.value as string);
   };
 
-  const handleSelectOfferB = (event: SelectChangeEvent<string>) => {
-    setOfferBId(event.target.value);
+  const handleSelectOfferB = (event: SelectChangeEvent<unknown>) => {
+    setOfferBId(event.target.value as string);
   };
 
   const handleCompare = async () => {
@@ -271,7 +271,7 @@ export default function CompareOffers() {
             fullWidth
             label="Offer A"
             value={offerAId}
-            onChange={handleSelectOfferA}
+            SelectProps={{ onChange: handleSelectOfferA }}
             helperText={hasEnoughOffers ? undefined : "Save at least two offers to compare."}
             disabled={offers.length === 0}
           >
@@ -286,7 +286,7 @@ export default function CompareOffers() {
             fullWidth
             label="Offer B"
             value={offerBId}
-            onChange={handleSelectOfferB}
+            SelectProps={{ onChange: handleSelectOfferB }}
             disabled={offers.length < 2}
           >
             {offers.map((offer, index) => (
