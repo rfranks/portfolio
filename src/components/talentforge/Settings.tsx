@@ -19,8 +19,8 @@ import {
   Typography,
 } from "@mui/material";
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
-import OpenAIKeyModal from "@/components/talentforge/OpenAiKeyModal";
 import CompareOffers from "./offers/CompareOffers";
+import OpenAIKeyModal from "@/components/talentforge/OpenAIKeyModal";
 import { loadDemoData, clearDemoData } from "@/utils/talentforge/demoData";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import { exportSnapshot, importSnapshot } from "@/utils/talentforge/snapshot";
