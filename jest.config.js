@@ -5,7 +5,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testPathIgnorePatterns: ['/src/tests/pdfParser.test.ts'],
+  testPathIgnorePatterns: ['/src/tests/resumeIngest.test.ts'],
   setupFiles: ['<rootDir>/src/tests/setup.ts'],
   globals: {
     'ts-jest': {

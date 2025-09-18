@@ -13,7 +13,7 @@ import {
 
 import useResumeParser from "@/hooks/useResumeParser";
 import { parsePastedHtml } from "@/utils/talentforge/pasteParser";
-import { parseResumeText } from "@/utils/talentforge/pdfParser";
+import { parseResumeText } from "@/utils/talentforge/resumeIngest";
 import { addResume } from "@/utils/talentforge/dataStore";
 import { v4 as uuid } from "uuid";
 
