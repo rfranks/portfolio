@@ -11,8 +11,10 @@ import (
 	"blackjack/player"
 	"blackjack/rules"
 	"blackjack/sidebets"
+	"blackjack/ui/messages"
 	"blackjack/utils"
 	"fmt"
+	"strings"
 	"unicode"
 )
 
@@ -527,87 +529,27 @@ func PrintShoeDetails() {
 }
 
 func PrintSidebetsOutcome(hand player.Hand) string {
+	reasons := messages.SidebetReasons(hand)
+	if len(reasons) == 0 {
+		return ""
+	}
+
+	outcome := constants.Purple + strings.Join(reasons, "")
+
 	switch game.GameMode {
 	case game.Spanish21:
-		firstCard := hand.Cards[0]
-		secondCard := hand.Cards[1]
-
-		outcome := constants.Purple
-		dealerUpCard := sidebets.DealerUpCard()
 		dealerDownCard := sidebets.DealerDownCard()
-
-		if firstCard.Value == dealerUpCard.Value {
-			if sidebets.CardsMatchSuit(firstCard, dealerUpCard) {
-				outcome += fmt.Sprintf("First Card Matches Up Card, Matches Suit! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
-			} else {
-				outcome += fmt.Sprintf("First Card Matches Up Card! %d to 1 WINNER!", sidebets.Spanish21MatchUnsuitedMultiplier)
-			}
-		}
-
-		if secondCard.Value == dealerUpCard.Value {
-			if sidebets.CardsMatchSuit(secondCard, dealerUpCard) {
-				outcome += fmt.Sprintf("Second Card Matches Up Card, Matches Suit! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
-			} else {
-				outcome += fmt.Sprintf("Second Card Matches Up Card! %d to 1 WINNER!", sidebets.Spanish21MatchUnsuitedMultiplier)
-			}
-		}
-
-		if !dealerDownCard.Masked {
-			if firstCard.Value == dealerDownCard.Value {
-				if sidebets.CardsMatchSuit(firstCard, dealerDownCard) {
-					outcome += fmt.Sprintf("First Card Matches Down Card, Matches Suit! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
-				} else {
-					outcome += fmt.Sprintf("First Card Matches Down Card! %d to 1 WINNER!", sidebets.Spanish21MatchUnsuitedMultiplier)
-				}
-			}
-
-			if secondCard.Value == dealerDownCard.Value {
-				if sidebets.CardsMatchSuit(secondCard, dealerDownCard) {
-					outcome += fmt.Sprintf("Second Card Matches Down Card, Matches Suit! %d to 1 WINNER!", sidebets.Spanish21MatchSuitMultiplier)
-				} else {
-					outcome += fmt.Sprintf("Second Card Matches Down Card! %d to 1 WINNER!", sidebets.Spanish21MatchUnsuitedMultiplier)
-				}
-			}
-		}
-
 		winnings := sidebets.GetSpanish21Winnings(hand)
 		if winnings > 0 && !dealerDownCard.Masked {
 			outcome += fmt.Sprintf("\t$%d", winnings)
 		}
-
-		outcome += constants.Reset
-
-		return outcome
 	case game.TrifectaStaxx:
-		if hand.TrifectaWager > 0 && hand.TrifectaWinnings > 0 {
-			outcome := constants.Purple
-
-			if sidebets.IsTrifectaTripAces(hand, true) || sidebets.IsTrifectaTripAces(hand, false) || sidebets.IsTrifectaTriplet(hand, cards.King, false) || sidebets.IsTrifectaTriplet(hand, cards.Queen, false) {
-				outcome += "Trifecta PROGRESSIVE!"
-			} else if sidebets.IsTrifectaStraightFlush(hand) {
-				outcome += "Trifecta STRAIGHT FLUSH!"
-			} else if sidebets.IsTrifectaTrips(hand, false) {
-				outcome += "Trifecta TRIPS!"
-			} else if sidebets.IsTrifectaFlush(hand) {
-				outcome += "Trifecta FLUSH!"
-			} else if sidebets.IsTrifectaStraight(hand) {
-				outcome += "Trifecta STRAIGHT!"
-			}
-
-			if hand.TrifectaWinnings > 0 {
-				outcome += outcome + "\t" + PrintCurrency(hand.TrifectaWinnings)
-			}
-
-			outcome += constants.Reset
-
-			return outcome
+		if hand.TrifectaWinnings > 0 {
+			outcome += "\t" + PrintCurrency(hand.TrifectaWinnings)
 		}
-
-		return ""
-	case game.Blackjack:
-	default:
-		return ""
 	}
 
-	return ""
+	outcome += constants.Reset
+
+	return outcome
 }
