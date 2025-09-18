@@ -33,5 +33,56 @@ describe("tagResume", () => {
     expect(askOpenAI).toHaveBeenCalledTimes(1);
     expect(tags).toEqual(["React", "Node", "Python", "Go", "AWS"]);
   });
+
+  test("retries on network errors before succeeding", async () => {
+    jest.useFakeTimers();
+    try {
+      (hasOpenAIKey as jest.Mock).mockReturnValue(true);
+
+      const networkError = new Error("Temporary network issue") as NodeJS.ErrnoException;
+      networkError.code = "ETIMEDOUT";
+
+      (askOpenAI as jest.Mock)
+        .mockRejectedValueOnce(networkError)
+        .mockResolvedValueOnce({ message: "React, GraphQL" });
+
+      const content = "React specialist building GraphQL APIs";
+      const taggingPromise = tagResume(content);
+
+      await jest.advanceTimersByTimeAsync(500);
+
+      const tags = await taggingPromise;
+
+      expect(askOpenAI).toHaveBeenCalledTimes(2);
+      expect(tags).toEqual(["React", "GraphQL"]);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test("returns keyword tags when askOpenAI keeps failing", async () => {
+    jest.useFakeTimers();
+    try {
+      (hasOpenAIKey as jest.Mock).mockReturnValue(true);
+
+      const networkError = new Error("Network down") as NodeJS.ErrnoException;
+      networkError.code = "ECONNRESET";
+
+      (askOpenAI as jest.Mock).mockRejectedValue(networkError);
+
+      const content = "React and Node engineer";
+      const taggingPromise = tagResume(content);
+
+      await jest.advanceTimersByTimeAsync(500);
+      await jest.advanceTimersByTimeAsync(1000);
+
+      const tags = await taggingPromise;
+
+      expect(askOpenAI).toHaveBeenCalledTimes(3);
+      expect(tags).toEqual(["React", "Node"]);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });
 
