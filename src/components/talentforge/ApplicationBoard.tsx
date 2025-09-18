@@ -511,6 +511,19 @@ export default function ApplicationBoard() {
     setSelectedApplicationId(null);
   };
 
+  const handleDetailStatusUpdate = (
+    appId: string,
+    status: ApplicationStatus,
+    options?: { reason?: string; changedAt?: string },
+  ) => {
+    const updated = updateJobApplicationStatus(appId, status, options);
+    setApplications(updated);
+    const updatedApp = updated.find((a) => a.id === appId);
+    if (updatedApp) {
+      setLiveMessage(`${updatedApp.role.title} updated to ${status}`);
+    }
+  };
+
   const handleOpenWorkspace = (app: JobApplication) => {
     setWorkspaceApp(app);
     setWorkspaceOpen(true);
@@ -960,10 +973,11 @@ export default function ApplicationBoard() {
   const handleReject = (source: "drawer" | "workspace") => {
     const app = source === "drawer" ? drawerApp : workspaceApp;
     if (!app) return;
+    const trimmedReason = rejectReason.trim();
     const updated = updateJobApplicationStatus(
       app.id,
       "rejected",
-      rejectReason || undefined
+      trimmedReason ? { reason: trimmedReason } : undefined,
     );
     setApplications(updated);
     setRejectReason("");
@@ -1183,6 +1197,7 @@ export default function ApplicationBoard() {
         application={selectedApplication}
         onClose={handleCloseDetails}
         promptDrawerOpen={drawerOpen}
+        onUpdateStatus={handleDetailStatusUpdate}
       />
       {drawerOpen && (
         <Drawer
