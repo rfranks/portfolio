@@ -1,16 +1,24 @@
 import { getNextStatus } from "@/utils/talentforge/keyboard";
 
+const advancingKeys = ["ArrowRight", "ArrowDown"] as const;
+const retreatingKeys = ["ArrowLeft", "ArrowUp"] as const;
+const clampCases = [
+  ["applied", "ArrowLeft"],
+  ["applied", "ArrowUp"],
+  ["rejected", "ArrowRight"],
+  ["rejected", "ArrowDown"],
+] as const;
+
 describe("keyboard move helpers", () => {
-  test("ArrowRight advances status", () => {
-    expect(getNextStatus("applied", "ArrowRight")).toBe("interview");
+  test.each(advancingKeys)("%s advances status", (key) => {
+    expect(getNextStatus("applied", key)).toBe("interview");
   });
 
-  test("ArrowLeft goes back", () => {
-    expect(getNextStatus("offer", "ArrowLeft")).toBe("interview");
+  test.each(retreatingKeys)("%s goes back", (key) => {
+    expect(getNextStatus("offer", key)).toBe("interview");
   });
 
-  test("clamps at ends", () => {
-    expect(getNextStatus("applied", "ArrowLeft")).toBe("applied");
-    expect(getNextStatus("rejected", "ArrowRight")).toBe("rejected");
+  test.each(clampCases)("clamps %s when pressing %s", (status, key) => {
+    expect(getNextStatus(status, key)).toBe(status);
   });
 });
