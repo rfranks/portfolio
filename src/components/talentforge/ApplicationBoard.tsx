@@ -40,6 +40,7 @@ import type {
   ResumeEntry,
   Offer,
   OfferComp,
+  Message,
 } from "@/types";
 import {
   addJobApplication,
@@ -48,6 +49,8 @@ import {
   updateJobApplication,
   getResumes,
   getCurrentCompensation,
+  cloneResume,
+  updateResume,
 } from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
@@ -59,6 +62,8 @@ import ResumeStepperModal from "./ResumeStepperModal";
 import ManageResumesModal from "./ManageResumesModal";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
+import ChatWorkspace from "./ChatWorkspace";
+import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -105,6 +110,7 @@ function Card({
   onSetInterviewLocation,
   onKeyDown,
   activeId,
+  onOpenWorkspace,
 }: {
   app: JobApplication;
   onRunTile: (id: string, app: JobApplication) => void;
@@ -114,6 +120,7 @@ function Card({
   onSetInterviewLocation: (appId: string, value: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   activeId: string | null;
+  onOpenWorkspace: (app: JobApplication) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app.id });
@@ -195,41 +202,56 @@ function Card({
             />
           </>
         )}
-      {app.role.description && (
-        <Stack direction="column" spacing={1} sx={{ mt: 1 }}>
-          <Button
-            size="small"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => onRunTile("screenRole", app)}
-            variant="outlined"
-            fullWidth
-          >
-            Analyze Risks
-          </Button>
-          {app.status !== "offer" && (
-            <>
-              <Button
-                size="small"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => onRunTile("resumeCompare", app)}
-                variant="outlined"
-                fullWidth
-              >
-                Compare to Resume
-              </Button>
-              <Button
-                size="small"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => onRunTile("coverLetter", app)}
-                variant="outlined"
-                fullWidth
-              >
-                Cover Letter
-              </Button>
-            </>
-          )}
-        </Stack>
-      )}
+      <Stack
+        direction="column"
+        spacing={1}
+        sx={{ mt: app.role.description ? 1 : 2 }}
+      >
+        <Button
+          size="small"
+          variant="contained"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onOpenWorkspace(app)}
+          fullWidth
+        >
+          Open Workspace
+        </Button>
+        {app.role.description && (
+          <>
+            <Button
+              size="small"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => onRunTile("screenRole", app)}
+              variant="outlined"
+              fullWidth
+            >
+              Analyze Risks
+            </Button>
+            {app.status !== "offer" && (
+              <>
+                <Button
+                  size="small"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => onRunTile("resumeCompare", app)}
+                  variant="outlined"
+                  fullWidth
+                >
+                  Compare to Resume
+                </Button>
+                <Button
+                  size="small"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => onRunTile("coverLetter", app)}
+                  variant="outlined"
+                  fullWidth
+                >
+                  Cover Letter
+                </Button>
+              </>
+            )}
+          </>
+        )}
+      </Stack>
       {app.status === "offer" && (
         <Box sx={{ mt: 1 }}>
           <Button
@@ -292,6 +314,7 @@ function Card({
 }
 
 export default function ApplicationBoard() {
+  const data = useTalentForgeData();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -327,6 +350,7 @@ export default function ApplicationBoard() {
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const [manageResumesOpen, setManageResumesOpen] = useState(false);
   const negotiationRef = useRef<HTMLDivElement | null>(null);
+  const [workspaceResumeId, setWorkspaceResumeId] = useState<string | null>(null);
 
   useEffect(() => {
     const existing = getJobApplications();
@@ -352,6 +376,10 @@ export default function ApplicationBoard() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    setWorkspaceResumeId(drawerApp?.resumeVariant?.id || null);
+  }, [drawerApp]);
 
   if (loading) {
     return (
@@ -644,16 +672,26 @@ export default function ApplicationBoard() {
     if (!resume) return;
     const updated = updateJobApplication(appId, { resumeVariant: resume });
     setApplications(updated);
+    if (drawerApp && drawerApp.id === appId) {
+      setDrawerApp(updated.find((a) => a.id === appId) || null);
+    }
+    setWorkspaceResumeId(resume.id);
   };
 
   const handleInterviewDate = (appId: string, value: string) => {
     const updated = updateJobApplication(appId, { interviewDateTime: value });
     setApplications(updated);
+    if (drawerApp && drawerApp.id === appId) {
+      setDrawerApp(updated.find((a) => a.id === appId) || null);
+    }
   };
 
   const handleInterviewLocation = (appId: string, value: string) => {
     const updated = updateJobApplication(appId, { interviewLocation: value });
     setApplications(updated);
+    if (drawerApp && drawerApp.id === appId) {
+      setDrawerApp(updated.find((a) => a.id === appId) || null);
+    }
   };
 
   const handleOfferUpload = async (file: File) => {
@@ -794,6 +832,12 @@ export default function ApplicationBoard() {
     if (resumeId && !updated.some((r) => r.id === resumeId)) {
       setResumeId("");
     }
+    if (
+      workspaceResumeId &&
+      !updated.some((resume) => resume.id === workspaceResumeId)
+    ) {
+      setWorkspaceResumeId(null);
+    }
   };
 
   const handleResumeModalClose = () => {
@@ -804,6 +848,76 @@ export default function ApplicationBoard() {
   const handleManageModalClose = () => {
     setManageResumesOpen(false);
     handleResumesUpdated(getResumes());
+  };
+
+  const openWorkspace = (app: JobApplication) => {
+    setDrawerTitle(`${app.role.title} Workspace`);
+    setDrawerTileId("workspace");
+    setDrawerMessages([]);
+    setDrawerAnalysis(null);
+    setDrawerMode("chat");
+    setDrawerPrompt("");
+    setDrawerLoading(false);
+    setDrawerOpen(true);
+    setDrawerApp(app);
+    setWorkspaceResumeId(app.resumeVariant?.id || null);
+  };
+
+  const handleWorkspaceInsert = (text: string) => {
+    const body = text.trim();
+    if (!body) return;
+    const decoratedBody = drawerApp
+      ? `Draft for ${drawerApp.role.title} at ${drawerApp.role.company}\n\n${body}`
+      : body;
+    const message: Message = {
+      id: uuid(),
+      threadId: uuid(),
+      senderId: "talentforge-ai",
+      sentAt: new Date().toISOString(),
+      body: decoratedBody,
+      connector: "Workspace",
+      status: "unread",
+      replies: [],
+    };
+    data.addMessage(message);
+    setLiveMessage("Draft inserted into Inbox");
+  };
+
+  const handleSaveResumeVariantFromWorkspace = (text: string) => {
+    if (!drawerApp) return;
+    const content = text.trim();
+    if (!content) return;
+    const selectedId =
+      workspaceResumeId || drawerApp.resumeVariant?.id || resumes[0]?.id;
+    const baseResume = selectedId
+      ? resumes.find((resume) => resume.id === selectedId)
+      : undefined;
+    if (!baseResume) return;
+
+    const previousIds = new Set(resumes.map((resume) => resume.id));
+    const cloned = cloneResume(baseResume);
+    const newResume = cloned.find((resume) => !previousIds.has(resume.id));
+    if (!newResume) return;
+
+    const variant: ResumeEntry = {
+      ...newResume,
+      content,
+      title: `${baseResume.title} – ${drawerApp.role.title}`,
+      notes: `Variant generated for ${drawerApp.role.title} at ${drawerApp.role.company}`,
+      importedAt: new Date().toISOString(),
+    };
+    const updatedResumes = updateResume(variant);
+    handleResumesUpdated(updatedResumes);
+    const finalResume =
+      updatedResumes.find((resume) => resume.id === variant.id) || variant;
+    const updatedApplications = updateJobApplication(drawerApp.id, {
+      resumeVariant: finalResume,
+    });
+    setApplications(updatedApplications);
+    const refreshed = updatedApplications.find((app) => app.id === drawerApp.id) || null;
+    setDrawerApp(refreshed);
+    setWorkspaceResumeId(finalResume.id);
+    setLiveMessage(`Saved resume variant for ${drawerApp.role.title}`);
   };
 
   return (
@@ -856,7 +970,15 @@ export default function ApplicationBoard() {
             helperText="Start tracking your job applications here."
           />
         ) : (
-          <Box sx={{ display: "flex", gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              flexWrap: { xs: "nowrap", md: "wrap" },
+              overflowX: { xs: "auto", md: "visible" },
+              pb: { xs: 1, md: 0 },
+            }}
+          >
             {STATUSES.map((status) => (
               <Column
                 key={status}
@@ -876,6 +998,7 @@ export default function ApplicationBoard() {
                       onSetInterviewLocation={handleInterviewLocation}
                       onKeyDown={(e) => handleCardKeyDown(e, app)}
                       activeId={activeId}
+                      onOpenWorkspace={openWorkspace}
                     />
                   ))}
               </Column>
@@ -956,8 +1079,9 @@ export default function ApplicationBoard() {
           variant="permanent"
           sx={{
             "& .MuiDrawer-paper": {
-              width: { xs: "100%", sm: 360 },
+              width: { xs: "100%", sm: 360, md: 400, lg: 420 },
               p: 2,
+              maxWidth: "100%",
             },
           }}
         >
@@ -965,10 +1089,15 @@ export default function ApplicationBoard() {
             onClick={() => setDrawerOpen(false)}
             sx={{ alignSelf: "flex-end" }}
             size="small"
+            aria-label="Close workspace"
           >
             <Close />
           </IconButton>
-          {drawerTileId === "screenRole" || drawerTileId === "offerNegotiation" ? (
+          {drawerTileId === "workspace" ? (
+            <Typography variant="h6" gutterBottom>
+              {drawerTitle}
+            </Typography>
+          ) : drawerTileId === "screenRole" || drawerTileId === "offerNegotiation" ? (
             <Accordion sx={{ mb: 2 }}>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography variant="h6">{drawerTitle}</Typography>
@@ -984,7 +1113,20 @@ export default function ApplicationBoard() {
               {drawerTitle}
             </Typography>
           )}
-          {drawerAnalysis ? (
+          {drawerTileId === "workspace" ? (
+            <ChatWorkspace
+              onInsertIntoInbox={handleWorkspaceInsert}
+              onSaveResumeVariant={handleSaveResumeVariantFromWorkspace}
+              jobDescription={drawerApp?.role.description || ""}
+              resumes={resumes}
+              selectedResumeId={workspaceResumeId || drawerApp?.resumeVariant?.id}
+              onResumeSelect={(id) => {
+                if (drawerApp) {
+                  handleAssignResume(drawerApp.id, id);
+                }
+              }}
+            />
+          ) : drawerAnalysis ? (
             <Box sx={{ mt: 2 }}>
               {drawerAnalysis.issues.map((issue, idx) => (
                 <Stack
