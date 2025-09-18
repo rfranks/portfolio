@@ -91,11 +91,14 @@ export default function RecruiterList() {
               <Typography variant="body2" color="text.secondary">
                 Threads:
               </Typography>
-              {r.threadIds.map((id) => {
-                const msg = messages.find((m) => m.id === id);
+              {r.threadIds.map((threadId) => {
+                const threadMessage = messages.find(
+                  (message) => message.threadId === threadId,
+                );
+                const previewText = threadMessage?.body ?? `Thread ${threadId}`;
                 return (
-                  <Typography key={id} variant="body2">
-                    {msg ? msg.body : id}
+                  <Typography key={threadId} variant="body2">
+                    {previewText}
                   </Typography>
                 );
               })}
