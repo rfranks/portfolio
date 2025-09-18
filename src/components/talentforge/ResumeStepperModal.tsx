@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { v4 as uuid } from "uuid";
 import {
+  Alert,
   Box,
   Button,
   CircularProgress,
@@ -55,6 +56,10 @@ export default function ResumeStepperModal({
   const [loadingResumes, setLoadingResumes] = useState(true);
   const [toastOpen, setToastOpen] = useState(false);
   const [activeStep, setActiveStep] = useState<number>(0);
+  const [fileImportLoading, setFileImportLoading] = useState(false);
+  const [fileImportError, setFileImportError] = useState<string | null>(null);
+  const [textImportLoading, setTextImportLoading] = useState(false);
+  const [textImportError, setTextImportError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -65,6 +70,10 @@ export default function ResumeStepperModal({
       setSearchText("");
       setSearchTag("");
       setToastOpen(false);
+      setFileImportLoading(false);
+      setTextImportLoading(false);
+      setFileImportError(null);
+      setTextImportError(null);
       return;
     }
 
@@ -90,26 +99,45 @@ export default function ResumeStepperModal({
   };
 
   const handleSave = async () => {
-    if (!text.trim()) return;
-    const sanitized = parsePastedHtml(text);
-    const tags = await tagResume(sanitized);
-    const parsed = parseResumeText(sanitized);
-    const newResume: ResumeEntry = {
-      id: uuid(),
-      userId: "",
-      label: "",
-      title: "",
-      url: "",
-      content: sanitized,
-      parsed,
-      tags,
-    };
-    const updated = addResume(newResume);
-    handleResumesChange(updated);
-    setText(sanitized);
-    setComparison("");
-    setToastOpen(true);
-    setActiveStep((prev) => (prev === 0 ? 1 : prev));
+    if (!text.trim() || fileImportLoading || textImportLoading) return;
+    setTextImportError(null);
+    setTextImportLoading(true);
+    try {
+      const sanitized = parsePastedHtml(text);
+      const tags = await tagResume(sanitized);
+      let parsed: ResumeEntry["parsed"];
+      try {
+        parsed = parseResumeText(sanitized);
+      } catch (parseError) {
+        console.error("Failed to parse resume text", parseError);
+        throw parseError;
+      }
+      const newResume: ResumeEntry = {
+        id: uuid(),
+        userId: "",
+        label: "",
+        title: "",
+        url: "",
+        content: sanitized,
+        parsed,
+        tags,
+      };
+      const updated = addResume(newResume);
+      handleResumesChange(updated);
+      setText(sanitized);
+      setComparison("");
+      setToastOpen(true);
+      setActiveStep((prev) => (prev === 0 ? 1 : prev));
+    } catch (error) {
+      console.error("Failed to save pasted resume", error);
+      setTextImportError(
+        error instanceof Error
+          ? error.message
+          : "Failed to save resume. Please try again.",
+      );
+    } finally {
+      setTextImportLoading(false);
+    }
   };
 
   const handleCompare = async () => {
@@ -166,48 +194,100 @@ export default function ResumeStepperModal({
                 <Typography variant="body1">
                   Upload files or paste your resume text to add it to your library.
                 </Typography>
-                <FileUploader
-                  accept=".pdf,.docx,.txt,.md"
-                  label="Upload your resume"
-                  outputType="files"
-                  limit={10}
-                  onChange={async (filesFromParam) => {
-                    const files = filesFromParam as File[];
-                    if (!files || files.length === 0) return;
-                    let latest = resumes;
-                    let lastContent = "";
-                    for (const file of files) {
-                      const content = await fileToText(file);
-                      lastContent = content;
-                      const tags = await tagResume(content);
-                      const parsed = parseResumeText(content);
-                      latest = addResume({
-                        id: uuid(),
-                        userId: "",
-                        label: "",
-                        title: "",
-                        url: "",
-                        content,
-                        parsed,
-                        tags,
-                      });
-                    }
-                    handleResumesChange(latest);
-                    if (files.length === 1 && lastContent) {
-                      setText(parsePastedHtml(lastContent));
-                      setComparison("");
-                    }
-                    setToastOpen(true);
-                    setActiveStep((prev) => (prev === 0 ? 1 : prev));
+                <Box
+                  sx={{
+                    pointerEvents:
+                      fileImportLoading || textImportLoading ? "none" : "auto",
+                    opacity: fileImportLoading ? 0.6 : 1,
                   }}
-                />
+                  aria-busy={fileImportLoading}
+                  aria-label={
+                    fileImportLoading ? "Uploading resume" : undefined
+                  }
+                >
+                  <FileUploader
+                    accept=".pdf,.docx,.txt,.md"
+                    label="Upload your resume"
+                    outputType="files"
+                    limit={10}
+                    onChange={async (filesFromParam) => {
+                      if (fileImportLoading || textImportLoading) return;
+                      const files = filesFromParam as File[];
+                      if (!files || files.length === 0) return;
+                      setFileImportError(null);
+                      setFileImportLoading(true);
+                      try {
+                        let latest = resumes;
+                        let lastContent = "";
+                        for (const file of files) {
+                          const content = await fileToText(file);
+                          const tags = await tagResume(content);
+                          let parsed: ResumeEntry["parsed"];
+                          try {
+                            parsed = parseResumeText(content);
+                          } catch (parseError) {
+                            console.error("Failed to parse resume text", parseError);
+                            throw parseError;
+                          }
+                          latest = addResume({
+                            id: uuid(),
+                            userId: "",
+                            label: "",
+                            title: "",
+                            url: "",
+                            content,
+                            parsed,
+                            tags,
+                          });
+                          lastContent = content;
+                        }
+                        handleResumesChange(latest);
+                        if (files.length === 1 && lastContent) {
+                          setText(parsePastedHtml(lastContent));
+                          setComparison("");
+                        }
+                        setToastOpen(true);
+                        setActiveStep((prev) => (prev === 0 ? 1 : prev));
+                      } catch (error) {
+                        console.error("Failed to import resume from file", error);
+                        setFileImportError(
+                          error instanceof Error
+                            ? error.message
+                            : "Failed to import resume. Please try again.",
+                        );
+                      } finally {
+                        setFileImportLoading(false);
+                      }
+                    }}
+                  />
+                </Box>
+                {fileImportError && (
+                  <Alert
+                    severity="error"
+                    onClose={() => setFileImportError(null)}
+                  >
+                    {fileImportError}
+                  </Alert>
+                )}
+                {fileImportLoading && (
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center" }}
+                    aria-busy="true"
+                    aria-label="Processing uploaded resume"
+                  >
+                    <CircularProgress size={24} />
+                  </Box>
+                )}
                 <TextField
                   label="Paste your resume"
                   multiline
                   minRows={6}
                   fullWidth
                   value={text}
-                  onChange={(e) => setText(e.target.value)}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    setTextImportError(null);
+                  }}
                   onPaste={(e) => {
                     const pasted =
                       e.clipboardData.getData("text/html") ||
@@ -216,16 +296,31 @@ export default function ResumeStepperModal({
                       e.preventDefault();
                       const sanitized = parsePastedHtml(pasted);
                       setText(sanitized);
+                      setTextImportError(null);
                     }
                   }}
                 />
+                {textImportError && (
+                  <Alert
+                    severity="error"
+                    onClose={() => setTextImportError(null)}
+                  >
+                    {textImportError}
+                  </Alert>
+                )}
                 <Stack direction="row" justifyContent="flex-end" spacing={2}>
                   <Button
                     variant="contained"
                     onClick={handleSave}
-                    disabled={!text.trim()}
+                    disabled={
+                      !text.trim() || textImportLoading || fileImportLoading
+                    }
                   >
-                    Save
+                    {textImportLoading ? (
+                      <CircularProgress size={24} />
+                    ) : (
+                      "Save"
+                    )}
                   </Button>
                 </Stack>
               </Stack>
