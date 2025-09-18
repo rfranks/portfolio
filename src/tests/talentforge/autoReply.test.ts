@@ -106,4 +106,30 @@ describe("autoReply utilities", () => {
       { role: "user", content: "Just checking in." },
     ]);
   });
+
+  test("buildAutoReplyMessages falls back to defaults when overrides are cleared", () => {
+    const messages = buildAutoReplyMessages(
+      "politeFollowUp",
+      "Checking in.",
+      {},
+    );
+
+    expect(messages[0].content).toBe(
+      AUTO_REPLY_TEMPLATES.politeFollowUp,
+    );
+    expect(messages[0].content).toBeDefined();
+  });
+
+  test("buildAutoReplyMessages handles undefined template", () => {
+    const messages = buildAutoReplyMessages(
+      undefined,
+      "Hello there.",
+      {},
+    );
+
+    expect(messages[0]).toEqual({
+      role: "system",
+      content: AUTO_REPLY_TEMPLATES.general,
+    });
+  });
 });

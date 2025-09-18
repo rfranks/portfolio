@@ -19,13 +19,28 @@ export interface AutoReplyMessage {
 }
 
 export const buildAutoReplyMessages = (
-  template: AutoReplyTemplate,
+  template: AutoReplyTemplate | undefined,
   content: string,
-  templates: Record<AutoReplyTemplate, string> = AUTO_REPLY_TEMPLATES,
-): AutoReplyMessage[] => [
-  { role: "system", content: templates[template] || templates.general },
-  { role: "user", content },
-];
+  templates: Record<string, string> = AUTO_REPLY_TEMPLATES,
+): AutoReplyMessage[] => {
+  const mergedTemplates: Record<string, string> = {
+    ...AUTO_REPLY_TEMPLATES,
+    ...templates,
+  };
+
+  const fallbackTemplate: AutoReplyTemplate = template ?? "general";
+
+  const systemPrompt =
+    (template ? mergedTemplates[template] : undefined) ??
+    AUTO_REPLY_TEMPLATES[fallbackTemplate] ??
+    mergedTemplates.general ??
+    AUTO_REPLY_TEMPLATES.general;
+
+  return [
+    { role: "system", content: systemPrompt },
+    { role: "user", content },
+  ];
+};
 
 export const setOpenAIKey = (key: string) => {
   setStoredOpenAIKey(key);
