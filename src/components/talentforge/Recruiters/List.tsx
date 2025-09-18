@@ -9,22 +9,74 @@ import {
   TextField,
   Button,
 } from "@mui/material";
-import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
+import {
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
 import type { RecruiterEntry, Message } from "@/types";
+
+function cloneRecruiter(recruiter: RecruiterEntry): RecruiterEntry {
+  return {
+    ...recruiter,
+    tags: [...recruiter.tags],
+    threadIds: [...recruiter.threadIds],
+  };
+}
+
+function areStringArraysEqual(a: string[], b: string[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function mergeRecruiterDrafts(
+  source: RecruiterEntry[],
+  drafts: RecruiterEntry[],
+): RecruiterEntry[] {
+  if (drafts.length === 0) {
+    return source.map(cloneRecruiter);
+  }
+
+  const draftMap = new Map(drafts.map((draft) => [draft.id, draft]));
+
+  return source.map((recruiter) => {
+    const existing = draftMap.get(recruiter.id);
+    if (!existing) {
+      return cloneRecruiter(recruiter);
+    }
+
+    const merged = cloneRecruiter(recruiter);
+
+    if (!areStringArraysEqual(existing.tags, recruiter.tags)) {
+      merged.tags = [...existing.tags];
+    }
+
+    if (existing.notes !== recruiter.notes) {
+      merged.notes = existing.notes;
+    }
+
+    return merged;
+  });
+}
 
 export default function RecruiterList() {
   const data = useTalentForgeData();
-  const [recruiters, setRecruiters] = useState<RecruiterEntry[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const recruiterList = useTalentForgeSelector((store) => store.getRecruiters());
+  const messages = useTalentForgeSelector((store) => store.getMessages());
+  const [recruiterDrafts, setRecruiterDrafts] = useState<RecruiterEntry[]>([]);
 
   useEffect(() => {
-    setRecruiters(data.getRecruiters());
-    setMessages(data.getMessages());
-  }, [data]);
+    setRecruiterDrafts((drafts) => mergeRecruiterDrafts(recruiterList, drafts));
+  }, [recruiterList]);
 
   const handleSave = (recruiter: RecruiterEntry) => {
     const updated = data.updateRecruiter(recruiter);
-    setRecruiters(updated);
+    setRecruiterDrafts((drafts) => mergeRecruiterDrafts(updated, drafts));
   };
 
   return (
@@ -32,7 +84,7 @@ export default function RecruiterList() {
       <Typography variant="h5" sx={{ mb: 2 }}>
         Recruiters
       </Typography>
-      {recruiters.map((r) => (
+      {recruiterDrafts.map((r) => (
         <Box key={r.id} sx={{ mb: 3 }}>
           <Typography variant="subtitle1" fontWeight="bold">
             {r.name}
@@ -46,7 +98,7 @@ export default function RecruiterList() {
             label="Tags"
             value={r.tags.join(", ")}
             onChange={(e) =>
-              setRecruiters((rec) =>
+              setRecruiterDrafts((rec) =>
                 rec.map((rr) =>
                   rr.id === r.id
                     ? {
@@ -69,7 +121,7 @@ export default function RecruiterList() {
             rows={3}
             value={r.notes}
             onChange={(e) =>
-              setRecruiters((rec) =>
+              setRecruiterDrafts((rec) =>
                 rec.map((rr) =>
                   rr.id === r.id ? { ...rr, notes: e.target.value } : rr,
                 ),

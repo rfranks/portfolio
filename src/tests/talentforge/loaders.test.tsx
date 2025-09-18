@@ -5,21 +5,26 @@ import ApplicationBoard from '@/components/talentforge/ApplicationBoard';
 
 jest.mock('@/utils/talentforge/dataStore', () => ({
   getResumes: jest.fn(() => []),
-  addResume: jest.fn(),
+  addResume: jest.fn(() => []),
   getJobApplications: jest.fn(() => []),
   addJobApplication: jest.fn(),
-  updateJobApplicationStatus: jest.fn(),
-  updateJobApplication: jest.fn(),
+  updateJobApplicationStatus: jest.fn(() => []),
+  updateJobApplication: jest.fn(() => []),
   getRecruiters: jest.fn(() => []),
   getThreads: jest.fn(() => []),
   getAutoReplyTemplates: jest.fn(() => ({})),
   linkThreadToRecruiter: jest.fn(),
   saveAutoReplyTemplates: jest.fn(),
-  getCurrentCompensation: jest.fn(),
+  getCurrentCompensation: jest.fn(() => ({
+    salary: '',
+    benefits: '',
+    stock: '',
+  })),
+  subscribe: jest.fn(() => () => {}),
 }));
 
-jest.mock('@/contexts/TalentForgeDataContext', () => ({
-  useTalentForgeData: () => ({
+jest.mock('@/contexts/TalentForgeDataContext', () => {
+  const store = {
     getThreads: () => [],
     getRecruiters: () => [],
     getAutoReplyTemplates: () => ({}),
@@ -27,8 +32,27 @@ jest.mock('@/contexts/TalentForgeDataContext', () => ({
     addThreadReply: jest.fn(),
     linkThreadToRecruiter: jest.fn(),
     saveAutoReplyTemplates: jest.fn(),
-  }),
-}));
+    addThread: jest.fn(),
+    addResume: jest.fn(() => []),
+    addJobApplication: jest.fn(),
+    updateJobApplicationStatus: jest.fn(() => []),
+    updateJobApplication: jest.fn(() => []),
+    getJobApplications: () => [],
+    getResumes: () => [],
+    getCurrentCompensation: () => ({
+      salary: '',
+      benefits: '',
+      stock: '',
+    }),
+    subscribe: jest.fn(() => () => {}),
+  } as const;
+
+  return {
+    useTalentForgeData: () => store,
+    useTalentForgeSelector: (selector: (store: typeof store) => unknown) =>
+      selector(store),
+  };
+});
 
 jest.mock('@/utils/talentforge/jobAggregator', () => ({
   fetchAllListings: jest.fn(() => Promise.resolve([])),

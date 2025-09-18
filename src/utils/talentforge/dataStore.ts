@@ -61,6 +61,13 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   currentCompensation: "currentCompensation",
 } as const;
 
+const KEY_LOOKUP = Object.fromEntries(
+  (Object.entries(KEYS) as [keyof StoreSchema, string][]).map(([key, value]) => [
+    value,
+    key,
+  ]),
+) as Record<string, keyof StoreSchema>;
+
 // Version constants per entity so tests and other modules can reference them.
 export const USER_VERSION = 1;
 export const RESUMES_VERSION = 1;
@@ -243,25 +250,58 @@ const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
   currentCompensation: { salary: "", benefits: "", stock: "" },
 } as const;
 
+type StoreSubscriber = (key: keyof StoreSchema) => void;
+
+const subscribers = new Set<StoreSubscriber>();
+
+const cache: Partial<{ [K in keyof StoreSchema]: StoreSchema[K] }> = {};
+
+const hasOwn = Object.prototype.hasOwnProperty;
+
+function notify(key: keyof StoreSchema) {
+  for (const listener of subscribers) {
+    try {
+      listener(key);
+    } catch {
+      // Ignore subscriber errors to avoid breaking the data flow
+    }
+  }
+}
+
+export function subscribe(listener: StoreSubscriber): () => void {
+  subscribers.add(listener);
+  return () => {
+    subscribers.delete(listener);
+  };
+}
+
 function load<K extends keyof StoreSchema>(
   key: K,
   fallback: StoreSchema[K],
 ): StoreSchema[K] {
+  if (hasOwn.call(cache, key)) {
+    return cache[key] as StoreSchema[K];
+  }
   const value = loadItem<StoreSchema[K]>(
     KEYS[key],
     VERSION[key],
     MIGRATORS[key],
   );
-  if (value !== undefined) return value;
-  return fallback;
+  const result = value !== undefined ? value : fallback;
+  cache[key] = result;
+  return result;
 }
 
 function save<K extends keyof StoreSchema>(key: K, value: StoreSchema[K]): void {
+  cache[key] = value;
   saveItem(KEYS[key], value, VERSION[key]);
+  notify(key);
 }
 
 function remove<K extends keyof StoreSchema>(key: K): void {
+  delete cache[key];
   deleteItem(KEYS[key]);
+  notify(key);
 }
 
 // Migrations
@@ -375,13 +415,20 @@ export function getResumes(): ResumeEntry[] {
     const title = r.title
       ? generateUniqueTitle(r.title, existing)
       : generateUniqueTitle("Resume", existing);
-    if (title !== r.title) changed = true;
-    const updatedResume = { ...r, title };
-    existing.push(updatedResume);
-    return updatedResume;
+    if (title !== r.title) {
+      changed = true;
+      const updatedResume = { ...r, title };
+      existing.push(updatedResume);
+      return updatedResume;
+    }
+    existing.push(r);
+    return r;
   });
-  if (changed) saveResumes(updated);
-  return updated;
+  if (changed) {
+    saveResumes(updated);
+    return updated;
+  }
+  return loaded;
 }
 export function saveResumes(resumes: ResumeEntry[]): void {
   save("resumes", resumes);
@@ -500,8 +547,9 @@ export function getOffers(): Offer[] {
   });
   if (migrated) {
     save("offers", updated);
+    return updated;
   }
-  return updated;
+  return offers;
 }
 export function addOffer(offer: Offer): Offer[] {
   const updated = [...getOffers(), offer];
@@ -540,8 +588,9 @@ export function getJobApplications(): JobApplication[] {
   });
   if (migrated) {
     save("applications", updated);
+    return updated;
   }
-  return updated;
+  return apps;
 }
 export function addJobApplication(app: JobApplication): JobApplication[] {
   const withHistory = {
@@ -625,15 +674,25 @@ export function linkThreadToRecruiter(
   save("messages", messages);
 
   const recruiters = getRecruiters();
-  for (const r of recruiters) {
+  let recruitersChanged = false;
+  const updatedRecruiters = recruiters.map((r) => {
     const hasThread = r.threadIds.includes(threadId);
-    if (r.id === recruiterId && !hasThread) {
-      r.threadIds.push(threadId);
-    } else if (r.id !== recruiterId && hasThread) {
-      r.threadIds = r.threadIds.filter((t) => t !== threadId);
+    if (r.id === recruiterId) {
+      if (hasThread) {
+        return r;
+      }
+      recruitersChanged = true;
+      return { ...r, threadIds: [...r.threadIds, threadId] };
     }
+    if (!hasThread) {
+      return r;
+    }
+    recruitersChanged = true;
+    return { ...r, threadIds: r.threadIds.filter((t) => t !== threadId) };
+  });
+  if (recruitersChanged) {
+    save("recruiters", updatedRecruiters);
   }
-  save("recruiters", recruiters);
   return messages;
 }
 
@@ -679,14 +738,17 @@ export function saveConnectorToken(
   token: ConnectorToken,
 ): void {
   const tokens = getConnectorTokens();
-  tokens[connector] = token;
-  save("connectorTokens", tokens);
+  const updated = { ...tokens, [connector]: token };
+  save("connectorTokens", updated);
 }
 
 export function deleteConnectorToken(connector: string): void {
   const tokens = getConnectorTokens();
-  delete tokens[connector];
-  save("connectorTokens", tokens);
+  if (!hasOwn.call(tokens, connector)) {
+    return;
+  }
+  const { [connector]: _removed, ...rest } = tokens;
+  save("connectorTokens", rest as ConnectorTokenMap);
 }
 
 // Export / Import
@@ -768,6 +830,7 @@ export function importFromJson(json: string): void {
       data = migrateSnapshot(version, data);
     }
     const validKeys = Object.values(KEYS) as string[];
+    const changedKeys = new Set<keyof StoreSchema>();
     for (const [key, value] of Object.entries(data)) {
       if (validKeys.includes(key)) {
         try {
@@ -776,14 +839,24 @@ export function importFromJson(json: string): void {
               ? (value as object)
               : { version: 0, data: value };
           window.localStorage.setItem(key, JSON.stringify(payload));
+          const storeKey = KEY_LOOKUP[key];
+          if (storeKey) {
+            delete cache[storeKey];
+            changedKeys.add(storeKey);
+          }
         } catch {
           // ignore write errors
         }
       }
     }
-    // Trigger migrations for all known keys after importing
+    // Trigger migrations for changed keys after importing
     for (const key of Object.keys(KEYS) as (keyof StoreSchema)[]) {
-      load(key, DEFAULTS[key]);
+      if (changedKeys.has(key) || !hasOwn.call(cache, key)) {
+        load(key, DEFAULTS[key]);
+      }
+    }
+    for (const key of changedKeys) {
+      notify(key);
     }
   } catch {
     // ignore parse errors
@@ -837,6 +910,7 @@ const dataStore = {
   deleteConnectorToken,
   exportToJson,
   importFromJson,
+  subscribe,
 };
 
 export default dataStore;

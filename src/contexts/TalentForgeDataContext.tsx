@@ -21,4 +21,41 @@ export function useTalentForgeData() {
   return context;
 }
 
+export function useTalentForgeSelector<T>(
+  selector: (store: typeof dataStore) => T,
+  isEqual: (a: T, b: T) => boolean = Object.is,
+) {
+  const store = useTalentForgeData();
+  const selectorRef = React.useRef(selector);
+  selectorRef.current = selector;
+  const equalityRef = React.useRef(isEqual);
+  equalityRef.current = isEqual;
+  const lastValueRef = React.useRef<T>();
+
+  const getSnapshot = React.useCallback(() => {
+    const next = selectorRef.current(store);
+    lastValueRef.current = next;
+    return next;
+  }, [store]);
+
+  return React.useSyncExternalStore(
+    (onStoreChange) => {
+      const handleChange = () => {
+        const next = selectorRef.current(store);
+        const previous = lastValueRef.current;
+        if (previous === undefined || !equalityRef.current(previous, next)) {
+          lastValueRef.current = next;
+          onStoreChange();
+        }
+      };
+      const unsubscribe = store.subscribe(handleChange);
+      return () => {
+        unsubscribe();
+      };
+    },
+    getSnapshot,
+    getSnapshot,
+  );
+}
+
 export default TalentForgeDataContext;

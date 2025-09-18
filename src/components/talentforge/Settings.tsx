@@ -17,13 +17,19 @@ import {
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
 import OpenAIKeyModal from "@/components/talentforge/OpenAiKeyModal";
 import { loadDemoData, clearDemoData } from "@/utils/talentforge/demoData";
-import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
+import {
+  useTalentForgeData,
+  useTalentForgeSelector,
+} from "@/contexts/TalentForgeDataContext";
 import { exportSnapshot, importSnapshot } from "@/utils/talentforge/snapshot";
 import { SNAPSHOT_VERSION } from "@/utils/talentforge/dataStore";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 
 export default function Settings() {
   const dataStore = useTalentForgeData();
+  const currentCompensation = useTalentForgeSelector((store) =>
+    store.getCurrentCompensation(),
+  );
   const [openKeyModal, setOpenKeyModal] = React.useState(false);
   const [comp, setComp] = React.useState({
     salary: "",
@@ -35,8 +41,8 @@ export default function Settings() {
   const { hasKey, clearKey, reloadFromStorage } = useOpenAIKey();
 
   React.useEffect(() => {
-    setComp(dataStore.getCurrentCompensation());
-  }, [dataStore]);
+    setComp(currentCompensation);
+  }, [currentCompensation]);
 
   const handleRemoveKey = () => {
     clearKey();
