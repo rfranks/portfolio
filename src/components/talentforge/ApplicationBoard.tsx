@@ -59,6 +59,7 @@ import {
 } from "@/utils/talentforge/utils";
 import OpenAIKeyModal from "./OpenAiKeyModal";
 import FileUploader from "./FileUploader";
+import ResumeStepperModal from "./ResumeStepperModal";
 import { exportElementToPdf } from "@/utils/pdfExport";
 import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
 
@@ -326,6 +327,8 @@ export default function ApplicationBoard() {
   const [openKeyModal, setOpenKeyModal] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [liveMessage, setLiveMessage] = useState("");
+  const [resumes, setResumes] = useState<ResumeEntry[]>(() => getResumes());
+  const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const negotiationRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -417,7 +420,7 @@ export default function ApplicationBoard() {
   };
 
   const handleAdd = () => {
-    const resume = getResumes().find((r) => r.id === resumeId);
+    const resume = resumes.find((r) => r.id === resumeId);
     const newApp: JobApplication = {
       id: uuid(),
       applicant: { id: "", name: "", email: "" },
@@ -446,7 +449,6 @@ export default function ApplicationBoard() {
       return;
     }
     if (tileId === "resumeCompare") {
-      const resumes = getResumes();
       if (resumes.length === 0) {
         setDrawerTitle(tile.display);
         setDrawerTileId(tile.id);
@@ -491,8 +493,8 @@ export default function ApplicationBoard() {
       setDrawerOpen(true);
       setDrawerApp(app);
       const resume: ResumeEntry | undefined = app.resumeVariant
-        ? getResumes().find((r) => r.id === app.resumeVariant?.id)
-        : getResumes()[0];
+        ? resumes.find((r) => r.id === app.resumeVariant?.id)
+        : resumes[0];
       const offerLines: string[] = [];
       app.offer?.compensation.forEach((c) =>
         offerLines.push(
@@ -602,8 +604,8 @@ export default function ApplicationBoard() {
     }
     if (tileId === "coverLetter") {
       const resume: ResumeEntry | undefined = app.resumeVariant
-        ? getResumes().find((r) => r.id === app.resumeVariant?.id)
-        : getResumes()[0];
+        ? resumes.find((r) => r.id === app.resumeVariant?.id)
+        : resumes[0];
       if (resume) {
         prompt = `${prompt}\n\nJob Description:\n${values.jobDescription}\n\nResume:\n${resume.content}`;
       } else if (values.jobDescription) {
@@ -644,8 +646,6 @@ export default function ApplicationBoard() {
       setDrawerLoading(false);
     }
   };
-
-  const resumes = getResumes();
 
   const handleAssignResume = (appId: string, resId: string) => {
     const resume = resumes.find((r) => r.id === resId);
@@ -724,7 +724,7 @@ export default function ApplicationBoard() {
   };
 
   const handleResumeCompareSelect = async (resId: string) => {
-    const resume = getResumes().find((r) => r.id === resId);
+    const resume = resumes.find((r) => r.id === resId);
     if (!resume || !resumeCompareApp) return;
     setDrawerMessages((prev) => [
       ...prev,
@@ -797,6 +797,18 @@ export default function ApplicationBoard() {
     setDrawerApp(updated.find((a) => a.id === drawerApp.id) || null);
   };
 
+  const handleResumesUpdated = (updated: ResumeEntry[]) => {
+    setResumes(updated);
+    if (resumeId && !updated.some((r) => r.id === resumeId)) {
+      setResumeId("");
+    }
+  };
+
+  const handleResumeModalClose = () => {
+    setResumeModalOpen(false);
+    handleResumesUpdated(getResumes());
+  };
+
   return (
     <>
       <Box
@@ -811,13 +823,26 @@ export default function ApplicationBoard() {
       >
         {liveMessage}
       </Box>
-      <Button
-        variant="contained"
-        onClick={() => setDialogOpen(true)}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
         sx={{ mb: 2 }}
       >
-        Add Application
-      </Button>
+        <Button variant="contained" onClick={() => setDialogOpen(true)}>
+          Add Application
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={() => setResumeModalOpen(true)}
+        >
+          Upload Resume
+        </Button>
+      </Stack>
+      <ResumeStepperModal
+        open={resumeModalOpen}
+        onClose={handleResumeModalClose}
+        onResumesUpdated={handleResumesUpdated}
+      />
       <DndContext onDragEnd={handleDragEnd}>
         {applications.length === 0 ? (
           <EmptyState
