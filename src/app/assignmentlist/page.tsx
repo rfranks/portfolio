@@ -4,7 +4,7 @@ import { projectData } from "./project";
 
 export const metadata: Metadata = {
   title: "Patient Assignment List Project",
-  description: "Powerpoint-style presentation for the Patient List project",
+  description: "PowerPoint-style presentation for the Patient List project",
 };
 
 export default function Page() {
