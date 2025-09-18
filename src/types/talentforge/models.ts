@@ -1,6 +1,17 @@
 import type { ApplicationStatus, StatusChange } from "./job";
 import type { ParsedResume } from "./resume";
 
+export interface OfferHistoryEntry {
+  /** Unique identifier for this offer history entry. */
+  id: string;
+  /** Timestamp when the entry was created, stored as an ISO string. */
+  createdAt: string;
+  /** Human readable label describing the entry source. */
+  sourceLabel: string;
+  /** Raw markdown content that was captured for this entry. */
+  content: string;
+}
+
 export interface User {
   /** Unique identifier for the user. */
   id: string;
@@ -89,7 +100,7 @@ export interface ApplicationRecord {
   /** Offer details if an offer has been made. */
   offer?: Offer;
   /** Generated offer negotiations attached to this application. */
-  offerHistory?: string[];
+  offerHistory?: OfferHistoryEntry[];
 }
 
 export interface Recruiter {
