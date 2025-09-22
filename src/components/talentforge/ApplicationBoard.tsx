@@ -23,6 +23,7 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Check, Close, Delete, Edit, ExpandMore } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import {
@@ -60,6 +61,11 @@ import ResumeStepperModal from "./ResumeStepperModal";
 import ManageResumesModal from "./ManageResumesModal";
 import ChatWorkspace from "./ChatWorkspace";
 import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
+import {
+  calculateStageMetrics,
+  getMetricDisplay,
+  type StageMetric,
+} from "@/utils/talentforge/metrics";
 import { getPromptTile, type PromptContext } from "@/utils/talentforge/promptRegistry";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import ApplicationDetailDrawer from "./ApplicationDetailDrawer";
@@ -93,28 +99,41 @@ function formatStatusLabel(status: ApplicationStatus): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-
 function Column({
   id,
   title,
   children,
+  highlight = false,
+  assistiveText,
 }: {
   id: ApplicationStatus;
   title: string;
   children: React.ReactNode;
+  highlight?: boolean;
+  assistiveText?: string;
 }) {
   const { setNodeRef } = useDroppable({ id });
   return (
     <Paper
       ref={setNodeRef}
       role="list"
-      aria-label={title}
+      aria-label={assistiveText ? `${title}. ${assistiveText}` : title}
+      elevation={highlight ? 6 : 1}
       sx={{
         p: 2,
         width: { xs: "100%", sm: 280, lg: 300 },
         minHeight: 400,
-        bgcolor: "background.paper",
+        bgcolor: (theme) =>
+          highlight
+            ? alpha(theme.palette.error.main, 0.08)
+            : theme.palette.background.paper,
         flexShrink: 0,
+        ...(highlight
+          ? {
+              outline: "2px solid",
+              outlineColor: "error.main",
+            }
+          : {}),
       }}
     >
       <Typography variant="h6" gutterBottom>
@@ -376,7 +395,15 @@ function Card({
 }
 
 export default function ApplicationBoard() {
-  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const initialApplicationsRef = useRef<JobApplication[]>();
+  if (!initialApplicationsRef.current) {
+    initialApplicationsRef.current = getJobApplications();
+  }
+  const initialApplications = initialApplicationsRef.current!;
+
+  const [applications, setApplications] = useState<JobApplication[]>(
+    initialApplications,
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ApplicationFilters["status"]>(
     "all",
@@ -384,7 +411,7 @@ export default function ApplicationBoard() {
   const [companyFilter, setCompanyFilter] = useState("");
   const [recruiterFilter, setRecruiterFilter] = useState("");
   const [resumeFilter, setResumeFilter] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialApplications.length === 0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
@@ -515,10 +542,27 @@ export default function ApplicationBoard() {
   const recruiterOptions = useMemo(() => {
     const options = data.getRecruiters();
     return [...options].sort((a, b) => a.name.localeCompare(b.name));
-  }, [applications, data]);
+  }, [data]);
 
   const hasApplications = applications.length > 0;
   const hasMatches = filteredApplications.length > 0;
+
+  const stageMetrics = useMemo(
+    () => calculateStageMetrics(filteredApplications),
+    [filteredApplications],
+  );
+
+  const metricsByStatus = useMemo(
+    () =>
+      stageMetrics.reduce(
+        (acc, metric) => {
+          acc[metric.status] = metric;
+          return acc;
+        },
+        {} as Record<ApplicationStatus, StageMetric>,
+      ),
+    [stageMetrics],
+  );
 
   const hasMultipleOffers = data.getOffers().length >= 2;
 
@@ -1371,42 +1415,107 @@ export default function ApplicationBoard() {
             helperText="Try adjusting the search or filter selections."
           />
         ) : (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              alignItems: { xs: "stretch", md: "flex-start" },
-              gap: 2,
-              overflowX: { xs: "visible", md: "auto" },
-              pb: 2,
-            }}
-          >
-            {STATUSES.map((status) => (
-              <Column
-                key={status}
-                id={status}
-                title={formatStatusLabel(status)}
+          <Stack spacing={2} sx={{ pb: 2 }}>
+            <Paper
+              component="section"
+              aria-label="Application pipeline summary"
+              sx={{ p: 2 }}
+            >
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                spacing={2}
+                useFlexGap
+                sx={{ flexWrap: "wrap" }}
               >
-                {filteredApplications
-                  .filter((app) => app.status === status)
-                  .map((app) => (
-                    <Card
-                      key={app.id}
-                      app={app}
-                      onRunTile={(id, context) => runTile(id, context, app)}
-                      onOpenWorkspace={handleOpenWorkspace}
-                      onOpenDetails={handleOpenDetails}
-                      resumes={resumes}
-                      onAssignResume={handleAssignResume}
-                      onSetInterviewDate={handleInterviewDate}
-                      onSetInterviewLocation={handleInterviewLocation}
-                      onKeyDown={(e) => handleCardKeyDown(e, app)}
-                      activeId={activeId}
-                    />
-                  ))}
-              </Column>
-            ))}
-          </Box>
+                {stageMetrics.map((metric) => {
+                  const {
+                    averageLabel,
+                    thresholdLabel,
+                    conversionLabel,
+                    assistiveText,
+                    countLabel,
+                  } = getMetricDisplay(metric);
+                  return (
+                    <Box
+                      key={metric.status}
+                      role="group"
+                      aria-label={assistiveText}
+                      sx={{
+                        borderRadius: 1,
+                        border: "1px solid",
+                        borderColor: metric.slaBreached ? "error.main" : "divider",
+                        bgcolor: (theme) =>
+                          metric.slaBreached
+                            ? alpha(theme.palette.error.main, 0.08)
+                            : theme.palette.background.paper,
+                        minWidth: { xs: "100%", sm: 220 },
+                        p: 1.5,
+                      }}
+                    >
+                      <Typography variant="subtitle2" component="h3" gutterBottom>
+                        {metric.label}
+                      </Typography>
+                      <Typography variant="body2" component="p">
+                        {countLabel} in stage
+                      </Typography>
+                      <Typography variant="body2" component="p">
+                        Conversion {conversionLabel}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        component="p"
+                        color={metric.slaBreached ? "error.main" : "text.secondary"}
+                      >
+                        Avg dwell {averageLabel ?? "—"}
+                        {thresholdLabel ? ` (SLA ${thresholdLabel})` : ""}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            </Paper>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: { xs: "stretch", md: "flex-start" },
+                gap: 2,
+                overflowX: { xs: "visible", md: "auto" },
+              }}
+            >
+              {STATUSES.map((status) => {
+                const metric = metricsByStatus[status];
+                const metricDisplay = metric ? getMetricDisplay(metric) : null;
+                return (
+                  <Column
+                    key={status}
+                    id={status}
+                    title={formatStatusLabel(status)}
+                    highlight={metric?.slaBreached ?? false}
+                    assistiveText={metricDisplay?.assistiveText}
+                  >
+                    {filteredApplications
+                      .filter((app) => app.status === status)
+                      .map((app) => (
+                        <Card
+                          key={app.id}
+                          app={app}
+                          onRunTile={(id, context) => runTile(id, context, app)}
+                          onOpenWorkspace={handleOpenWorkspace}
+                          onOpenDetails={handleOpenDetails}
+                          resumes={resumes}
+                          onAssignResume={handleAssignResume}
+                          onSetInterviewDate={handleInterviewDate}
+                          onSetInterviewLocation={handleInterviewLocation}
+                          onKeyDown={(e) => handleCardKeyDown(e, app)}
+                          activeId={activeId}
+                        />
+                      ))}
+                  </Column>
+                );
+              })}
+            </Box>
+          </Stack>
         )}
       </DndContext>
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
