@@ -1,0 +1,71 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Application pipeline metrics calculateStageMetrics snapshot 1`] = `
+[
+  {
+    "averageDurationDays": 19.666666666666668,
+    "conversionRate": 1,
+    "currentCount": 1,
+    "reachedCount": 3,
+    "slaBreached": true,
+    "status": "applied",
+  },
+  {
+    "averageDurationDays": 6.5,
+    "conversionRate": 0.6666666666666666,
+    "currentCount": 0,
+    "reachedCount": 2,
+    "slaBreached": true,
+    "status": "interview",
+  },
+  {
+    "averageDurationDays": 17,
+    "conversionRate": 0.3333333333333333,
+    "currentCount": 1,
+    "reachedCount": 1,
+    "slaBreached": true,
+    "status": "offer",
+  },
+  {
+    "averageDurationDays": 12,
+    "conversionRate": 0.3333333333333333,
+    "currentCount": 1,
+    "reachedCount": 1,
+    "slaBreached": true,
+    "status": "rejected",
+  },
+]
+`;
+
+exports[`Application pipeline metrics getMetricDisplay snapshot 1`] = `
+[
+  {
+    "assistiveText": "Applied stage. 1 in stage. conversion 100%. average dwell 19.7 days. exceeds SLA of 7 days",
+    "averageLabel": "19.7 days",
+    "conversionLabel": "100%",
+    "countLabel": "1",
+    "thresholdLabel": "7 days",
+  },
+  {
+    "assistiveText": "Interview stage. 0 in stage. conversion 67%. average dwell 6.5 days. exceeds SLA of 5 days",
+    "averageLabel": "6.5 days",
+    "conversionLabel": "67%",
+    "countLabel": "0",
+    "thresholdLabel": "5 days",
+  },
+  {
+    "assistiveText": "Offer stage. 1 in stage. conversion 33%. average dwell 17 days. exceeds SLA of 3 days",
+    "averageLabel": "17 days",
+    "conversionLabel": "33%",
+    "countLabel": "1",
+    "thresholdLabel": "3 days",
+  },
+  {
+    "assistiveText": "Rejected stage. 1 in stage. conversion 33%. average dwell 12 days. exceeds SLA of 2 days",
+    "averageLabel": "12 days",
+    "conversionLabel": "33%",
+    "countLabel": "1",
+    "thresholdLabel": "2 days",
+  },
+]
+`;
