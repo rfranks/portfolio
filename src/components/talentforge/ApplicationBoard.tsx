@@ -395,11 +395,11 @@ function Card({
 }
 
 export default function ApplicationBoard() {
-  const initialApplicationsRef = useRef<JobApplication[]>();
+  const initialApplicationsRef = useRef<JobApplication[] | null>(null);
   if (!initialApplicationsRef.current) {
     initialApplicationsRef.current = getJobApplications();
   }
-  const initialApplications = initialApplicationsRef.current!;
+  const initialApplications = initialApplicationsRef.current ?? [];
 
   const [applications, setApplications] = useState<JobApplication[]>(
     initialApplications,
