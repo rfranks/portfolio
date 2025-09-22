@@ -10,6 +10,8 @@ import {
   getJobApplications,
   getOnboardingStep,
   getOpenAIKey,
+  getConnectorSyncSnapshot,
+  getLinkedInProfileSnapshot,
 } from "./dataStore";
 
 export function exportSnapshot(): string {
@@ -27,5 +29,7 @@ export function importSnapshot(json: string): void {
   getJobApplications();
   getOnboardingStep();
   getOpenAIKey();
+  getConnectorSyncSnapshot();
+  getLinkedInProfileSnapshot();
 }
 
