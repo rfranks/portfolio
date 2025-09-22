@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import {
   Button,
   Checkbox,
@@ -10,10 +10,7 @@ import {
 } from "@mui/material";
 
 import type { TalentForgeGoalTag } from "@/utils/talentforge/promptRegistry";
-import {
-  getSelectedGoals,
-  saveSelectedGoals,
-} from "@/utils/talentforge/dataStore";
+import { getGoals, setGoals } from "@/utils/talentforge/dataStore";
 
 interface StepProps {
   onNext: () => void;
@@ -43,10 +40,11 @@ const GOAL_OPTIONS: Array<{
 ];
 
 export default function GoalSelectionStep({ onNext, onBack }: StepProps) {
-  const initialGoals = useMemo(() => getSelectedGoals(), []);
-  const [selectedGoals, setSelectedGoals] = useState<TalentForgeGoalTag[]>(
-    initialGoals,
-  );
+  const [selectedGoals, setSelectedGoals] = useState<TalentForgeGoalTag[]>([]);
+
+  useEffect(() => {
+    setSelectedGoals(getGoals());
+  }, []);
 
   const handleChange = (goal: TalentForgeGoalTag) =>
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -63,7 +61,7 @@ export default function GoalSelectionStep({ onNext, onBack }: StepProps) {
     const orderedGoals = GOAL_OPTIONS.map((option) => option.key).filter((key) =>
       selectedGoals.includes(key),
     );
-    saveSelectedGoals(orderedGoals);
+    setGoals(orderedGoals);
     onNext();
   };
 

@@ -46,7 +46,7 @@ interface StoreSchema {
   connectorTokens: Record<string, ConnectorToken>;
   autoReplyTemplates: Record<string, string>;
   currentCompensation: CurrentCompensation;
-  goalSelections: TalentForgeGoalTag[];
+  goals: TalentForgeGoalTag[];
 }
 
 // Storage keys for each entity
@@ -62,8 +62,16 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   connectorTokens: "connectorTokens",
   autoReplyTemplates: "autoReplyTemplates",
   currentCompensation: "currentCompensation",
-  goalSelections: "talentforge-goal-selections",
+  goals: "talentforge-goals",
 } as const;
+
+const LEGACY_GOALS_KEY = "talentforge-goal-selections";
+const KNOWN_GOAL_TAGS: readonly TalentForgeGoalTag[] = [
+  "resume",
+  "networking",
+  "search",
+];
+const LEGACY_GOAL_SELECTIONS_VERSION = 1;
 
 // Version constants per entity so tests and other modules can reference them.
 export const USER_VERSION = 1;
@@ -77,7 +85,7 @@ export const OPENAI_VERSION = 1;
 export const CONNECTOR_TOKENS_VERSION = 1;
 export const AUTO_REPLY_TEMPLATES_VERSION = 1;
 export const CURRENT_COMP_VERSION = 1;
-export const GOAL_SELECTIONS_VERSION = 1;
+export const GOALS_VERSION = 1;
 
 const VERSION: { [K in keyof StoreSchema]: number } = {
   user: USER_VERSION,
@@ -91,10 +99,10 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   connectorTokens: CONNECTOR_TOKENS_VERSION,
   autoReplyTemplates: AUTO_REPLY_TEMPLATES_VERSION,
   currentCompensation: CURRENT_COMP_VERSION,
-  goalSelections: GOAL_SELECTIONS_VERSION,
+  goals: GOALS_VERSION,
 } as const;
 
-export const SNAPSHOT_VERSION = 4;
+export const SNAPSHOT_VERSION = 5;
 
 // Generic migration helper which applies migrations sequentially until the
 // data reaches `targetVersion`.
@@ -216,33 +224,26 @@ function migrateCurrentCompensation(
   );
 }
 
-function migrateGoalSelections(
-  data: unknown,
-  version: number,
-): TalentForgeGoalTag[] {
-  return migrate<TalentForgeGoalTag[]>(
-    data,
-    version,
-    GOAL_SELECTIONS_VERSION,
-    {
-      0: (d) => {
-        if (!Array.isArray(d)) return [];
-        const validTags: TalentForgeGoalTag[] = [];
-        for (const value of d) {
-          if (
-            value === "resume" ||
-            value === "networking" ||
-            value === "search"
-          ) {
-            if (!validTags.includes(value)) {
-              validTags.push(value);
-            }
-          }
-        }
-        return validTags;
-      },
-    },
-  );
+function normalizeGoalTags(value: unknown): TalentForgeGoalTag[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<TalentForgeGoalTag>();
+  const normalized: TalentForgeGoalTag[] = [];
+  for (const entry of value) {
+    if (typeof entry !== "string") continue;
+    const tag = entry as TalentForgeGoalTag;
+    if (KNOWN_GOAL_TAGS.includes(tag) && !seen.has(tag)) {
+      seen.add(tag);
+      normalized.push(tag);
+    }
+  }
+  return normalized;
+}
+
+function migrateGoals(data: unknown, version: number): TalentForgeGoalTag[] {
+  const migrated = migrate<TalentForgeGoalTag[]>(data, version, GOALS_VERSION, {
+    0: normalizeGoalTags,
+  });
+  return normalizeGoalTags(migrated);
 }
 
 const MIGRATORS: {
@@ -262,7 +263,7 @@ const MIGRATORS: {
   connectorTokens: migrateConnectorTokens,
   autoReplyTemplates: migrateAutoReplyTemplates,
   currentCompensation: migrateCurrentCompensation,
-  goalSelections: migrateGoalSelections,
+  goals: migrateGoals,
 };
 
 const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
@@ -277,7 +278,7 @@ const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
   connectorTokens: {},
   autoReplyTemplates: AUTO_REPLY_TEMPLATES as Record<string, string>,
   currentCompensation: { salary: "", benefits: "", stock: "" },
-  goalSelections: [],
+  goals: [],
 } as const;
 
 function load<K extends keyof StoreSchema>(
@@ -391,15 +392,45 @@ export function saveCurrentCompensation(comp: CurrentCompensation): void {
   save("currentCompensation", comp);
 }
 
+export function getGoals(): TalentForgeGoalTag[] {
+  const goals = load("goals", []);
+  if (typeof window === "undefined") {
+    return goals;
+  }
+
+  const hasNewEntry = window.localStorage.getItem(KEYS.goals) !== null;
+  if (hasNewEntry) {
+    return goals;
+  }
+
+  const legacy = loadItem<TalentForgeGoalTag[]>(
+    LEGACY_GOALS_KEY,
+    LEGACY_GOAL_SELECTIONS_VERSION,
+    (data, version) => migrateGoals(data, version),
+  );
+  if (legacy !== undefined) {
+    setGoals(legacy);
+    return legacy;
+  }
+
+  if (window.localStorage.getItem(LEGACY_GOALS_KEY) !== null) {
+    deleteItem(LEGACY_GOALS_KEY);
+  }
+
+  return goals;
+}
+
+export function setGoals(goals: TalentForgeGoalTag[]): void {
+  const normalized = normalizeGoalTags(goals);
+  save("goals", normalized);
+  deleteItem(LEGACY_GOALS_KEY);
+}
+
 export function getSelectedGoals(): TalentForgeGoalTag[] {
-  return load("goalSelections", []);
+  return getGoals();
 }
 export function saveSelectedGoals(goals: TalentForgeGoalTag[]): void {
-  const allowed = new Set<TalentForgeGoalTag>(["resume", "networking", "search"]);
-  const unique = goals.filter(
-    (goal, index) => allowed.has(goal) && goals.indexOf(goal) === index,
-  );
-  save("goalSelections", unique);
+  setGoals(goals);
 }
 
 // Resumes
@@ -877,6 +908,24 @@ function migrateSnapshot(
   if (fromVersion < 2) {
     migrated[KEYS.connectorTokens] = migrated[KEYS.connectorTokens] || {};
   }
+  if (fromVersion < 5) {
+    const legacyGoalsEntry = migrated[LEGACY_GOALS_KEY];
+    if (legacyGoalsEntry !== undefined) {
+      const payload =
+        legacyGoalsEntry &&
+        typeof legacyGoalsEntry === "object" &&
+        "data" in (legacyGoalsEntry as Record<string, unknown>)
+          ? (legacyGoalsEntry as { data?: unknown; version?: number })
+          : { data: legacyGoalsEntry, version: LEGACY_GOAL_SELECTIONS_VERSION };
+      const version =
+        typeof payload.version === "number"
+          ? payload.version
+          : LEGACY_GOAL_SELECTIONS_VERSION;
+      const migratedGoals = migrateGoals(payload.data, version);
+      migrated[KEYS.goals] = { version: GOALS_VERSION, data: migratedGoals };
+      delete migrated[LEGACY_GOALS_KEY];
+    }
+  }
   if (fromVersion < 4) {
     const resumesEntry = migrated[KEYS.resumes];
     if (
@@ -974,6 +1023,8 @@ const dataStore = {
   saveUserProfile,
   getCurrentCompensation,
   saveCurrentCompensation,
+  getGoals,
+  setGoals,
   getSelectedGoals,
   saveSelectedGoals,
   getResumes,
