@@ -65,6 +65,11 @@ import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import ApplicationDetailDrawer from "./ApplicationDetailDrawer";
 import CompareOffers from "./offers/CompareOffers";
 import useOfferExports from "@/hooks/talentforge/useOfferExports";
+import {
+  filterApplications,
+  hasActiveFilters,
+  type ApplicationFilters,
+} from "@/utils/talentforge/applicationFilters";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -82,6 +87,10 @@ function formatOfferHistoryTimestamp(value: string): string {
     return value;
   }
   return date.toLocaleString();
+}
+
+function formatStatusLabel(status: ApplicationStatus): string {
+  return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 
@@ -368,6 +377,13 @@ function Card({
 
 export default function ApplicationBoard() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ApplicationFilters["status"]>(
+    "all",
+  );
+  const [companyFilter, setCompanyFilter] = useState("");
+  const [recruiterFilter, setRecruiterFilter] = useState("");
+  const [resumeFilter, setResumeFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -470,6 +486,39 @@ export default function ApplicationBoard() {
       setSelectedApplicationId(null);
     }
   }, [detailDrawerOpen, selectedApplication]);
+
+  const filters = useMemo<ApplicationFilters>(() => ({
+    searchText: searchQuery,
+    status: statusFilter,
+    company: companyFilter,
+    recruiterId: recruiterFilter,
+    resumeId: resumeFilter,
+  }), [searchQuery, statusFilter, companyFilter, recruiterFilter, resumeFilter]);
+
+  const filteredApplications = useMemo(
+    () => filterApplications(applications, filters),
+    [applications, filters],
+  );
+
+  const filtersApplied = useMemo(() => hasActiveFilters(filters), [filters]);
+
+  const companies = useMemo(() => {
+    const uniqueCompanies = new Set<string>();
+    applications.forEach((app) => {
+      if (app.role.company) {
+        uniqueCompanies.add(app.role.company);
+      }
+    });
+    return Array.from(uniqueCompanies).sort((a, b) => a.localeCompare(b));
+  }, [applications]);
+
+  const recruiterOptions = useMemo(() => {
+    const options = data.getRecruiters();
+    return [...options].sort((a, b) => a.name.localeCompare(b.name));
+  }, [applications, data]);
+
+  const hasApplications = applications.length > 0;
+  const hasMatches = filteredApplications.length > 0;
 
   const hasMultipleOffers = data.getOffers().length >= 2;
 
@@ -1111,6 +1160,9 @@ export default function ApplicationBoard() {
     if (resumeId && !updated.some((r) => r.id === resumeId)) {
       setResumeId("");
     }
+    if (resumeFilter && !updated.some((r) => r.id === resumeFilter)) {
+      setResumeFilter("");
+    }
   };
 
   const handleResumeModalClose = () => {
@@ -1121,6 +1173,14 @@ export default function ApplicationBoard() {
   const handleManageModalClose = () => {
     setManageResumesOpen(false);
     handleResumesUpdated(getResumes());
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setCompanyFilter("");
+    setRecruiterFilter("");
+    setResumeFilter("");
   };
 
   return (
@@ -1164,6 +1224,117 @@ export default function ApplicationBoard() {
           </Button>
         )}
       </Stack>
+      <Paper
+        component="section"
+        aria-label="Filter applications"
+        sx={{ p: 2, mb: 2 }}
+      >
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+          useFlexGap
+          sx={{ flexWrap: "wrap" }}
+        >
+          <TextField
+            label="Search applications"
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            size="small"
+            sx={{
+              flexGrow: 1,
+              minWidth: { xs: "100%", md: 240 },
+              width: { xs: "100%", md: "auto" },
+            }}
+          />
+          <TextField
+            label="Status"
+            select
+            value={statusFilter}
+            onChange={(event) =>
+              setStatusFilter(event.target.value as ApplicationFilters["status"])
+            }
+            size="small"
+            sx={{
+              minWidth: { xs: "100%", md: 180 },
+              width: { xs: "100%", md: "auto" },
+            }}
+          >
+            <MenuItem value="all">All statuses</MenuItem>
+            {STATUSES.map((status) => (
+              <MenuItem key={status} value={status}>
+                {formatStatusLabel(status)}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            label="Company"
+            select
+            value={companyFilter}
+            onChange={(event) => setCompanyFilter(event.target.value)}
+            size="small"
+            sx={{
+              minWidth: { xs: "100%", md: 180 },
+              width: { xs: "100%", md: "auto" },
+            }}
+          >
+            <MenuItem value="">All companies</MenuItem>
+            {companies.map((company) => (
+              <MenuItem key={company} value={company}>
+                {company}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            label="Recruiter"
+            select
+            value={recruiterFilter}
+            onChange={(event) => setRecruiterFilter(event.target.value)}
+            size="small"
+            sx={{
+              minWidth: { xs: "100%", md: 200 },
+              width: { xs: "100%", md: "auto" },
+            }}
+          >
+            <MenuItem value="">All recruiters</MenuItem>
+            {recruiterOptions.map((recruiter) => (
+              <MenuItem key={recruiter.id} value={recruiter.id}>
+                {recruiter.name}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            label="Resume"
+            select
+            value={resumeFilter}
+            onChange={(event) => setResumeFilter(event.target.value)}
+            size="small"
+            sx={{
+              minWidth: { xs: "100%", md: 200 },
+              width: { xs: "100%", md: "auto" },
+            }}
+            disabled={resumes.length === 0}
+          >
+            <MenuItem value="">All resumes</MenuItem>
+            {resumes.map((resume) => (
+              <MenuItem key={resume.id} value={resume.id}>
+                {resume.title}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Button
+            variant="outlined"
+            onClick={handleClearFilters}
+            disabled={!filtersApplied}
+            sx={{
+              alignSelf: { xs: "stretch", md: "center" },
+              width: { xs: "100%", md: "auto" },
+            }}
+          >
+            Clear filters
+          </Button>
+        </Stack>
+      </Paper>
       <ResumeStepperModal
         open={resumeModalOpen}
         onClose={handleResumeModalClose}
@@ -1189,10 +1360,15 @@ export default function ApplicationBoard() {
         </DialogActions>
       </Dialog>
       <DndContext onDragEnd={handleDragEnd}>
-        {applications.length === 0 ? (
+        {!hasApplications ? (
           <EmptyState
             message="No applications yet"
             helperText="Start tracking your job applications here."
+          />
+        ) : !hasMatches ? (
+          <EmptyState
+            message="No applications match your filters"
+            helperText="Try adjusting the search or filter selections."
           />
         ) : (
           <Box
@@ -1209,9 +1385,9 @@ export default function ApplicationBoard() {
               <Column
                 key={status}
                 id={status}
-                title={status.charAt(0).toUpperCase() + status.slice(1)}
+                title={formatStatusLabel(status)}
               >
-                {applications
+                {filteredApplications
                   .filter((app) => app.status === status)
                   .map((app) => (
                     <Card
