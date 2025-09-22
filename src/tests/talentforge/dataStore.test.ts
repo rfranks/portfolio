@@ -4,10 +4,13 @@ import {
   OFFERS_VERSION,
   APPLICATIONS_VERSION,
   RESUMES_VERSION,
+  GOALS_VERSION,
   getCurrentCompensation,
   saveCurrentCompensation,
+  getGoals,
+  setGoals,
 } from "../../utils/talentforge/dataStore";
-import { loadItem } from "../../utils/storage";
+import { loadItem, saveItem } from "../../utils/storage";
 import type { ResumeEntry } from "../../types";
 
 interface Message {
@@ -57,6 +60,10 @@ describe("dataStore migrations", () => {
             history: [],
           },
         ],
+        "talentforge-goal-selections": {
+          version: 1,
+          data: ["resume", "networking", "resume"],
+        },
       },
     };
 
@@ -73,6 +80,10 @@ describe("dataStore migrations", () => {
     const apps = loadItem<JobApplication[]>("jobApplications", APPLICATIONS_VERSION)!;
     expect(apps).toHaveLength(1);
     expect(apps[0].role.title).toBe("Engineer");
+
+    const goals = loadItem<string[]>("talentforge-goals", GOALS_VERSION)!;
+    expect(goals).toEqual(["resume", "networking"]);
+    expect(getGoals()).toEqual(["resume", "networking"]);
   });
 
   test("importFromJson adds resume metadata when migrating snapshots", () => {
@@ -145,5 +156,29 @@ describe("dataStore migrations", () => {
     const comp = { salary: "100k", benefits: "health", stock: "50" };
     saveCurrentCompensation(comp);
     expect(getCurrentCompensation()).toEqual(comp);
+  });
+
+  test("setGoals saves normalized selections", () => {
+    localStorage.setItem(
+      "talentforge-goal-selections",
+      JSON.stringify({ version: 1, data: ["resume"] }),
+    );
+
+    setGoals(["resume", "networking", "resume"]);
+
+    const stored = loadItem<string[]>("talentforge-goals", GOALS_VERSION)!;
+    expect(stored).toEqual(["resume", "networking"]);
+    expect(localStorage.getItem("talentforge-goal-selections")).toBeNull();
+  });
+
+  test("getGoals migrates legacy selections", () => {
+    saveItem("talentforge-goal-selections", ["networking", "search"], 1);
+
+    const goals = getGoals();
+    expect(goals).toEqual(["networking", "search"]);
+
+    const stored = loadItem<string[]>("talentforge-goals", GOALS_VERSION)!;
+    expect(stored).toEqual(["networking", "search"]);
+    expect(localStorage.getItem("talentforge-goal-selections")).toBeNull();
   });
 });

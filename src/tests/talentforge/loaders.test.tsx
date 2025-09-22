@@ -23,6 +23,7 @@ jest.mock('@/contexts/TalentForgeDataContext', () => ({
     getThreads: () => [],
     getRecruiters: () => [],
     getAutoReplyTemplates: () => ({}),
+    getOffers: () => [],
     updateThreadStatus: jest.fn(),
     addThreadReply: jest.fn(),
     linkThreadToRecruiter: jest.fn(),
@@ -45,6 +46,7 @@ jest.mock('@/components/talentforge/EmptyState', () => () => null);
 jest.mock('@/components/talentforge/OpenAIKeyModal', () => () => null);
 jest.mock('@/components/talentforge/FileUploader', () => () => null);
 jest.mock('@/components/talentforge/ResumeVariants/List', () => () => null);
+jest.mock('@/components/talentforge/offers/CompareOffers', () => () => null);
 jest.mock('@/utils/talentforge/tagging', () => ({ tagResume: jest.fn() }));
 jest.mock('@/utils/talentforge/utils', () => ({
   askOpenAI: jest.fn(),
