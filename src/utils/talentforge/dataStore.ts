@@ -20,6 +20,10 @@ import type {
   OfferHistoryEntry,
   OfferComp,
   RecruiterEntry,
+  ConnectorSyncSnapshot,
+  ConnectorSyncState,
+  ConnectorSyncStatus,
+  LinkedInProfileSnapshot,
 } from "@/types";
 import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply/templates";
 import type { TalentForgeGoalTag } from "./promptRegistry";
@@ -44,6 +48,8 @@ interface StoreSchema {
   onboarding: number;
   openai: string | undefined;
   connectorTokens: Record<string, ConnectorToken>;
+  connectorSyncSnapshot: ConnectorSyncSnapshot;
+  linkedinProfileSnapshot: LinkedInProfileSnapshot;
   autoReplyTemplates: Record<string, string>;
   currentCompensation: CurrentCompensation;
   goals: TalentForgeGoalTag[];
@@ -60,6 +66,8 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   onboarding: "onboardingStep",
   openai: "talentforge-openai-key",
   connectorTokens: "connectorTokens",
+  connectorSyncSnapshot: "connectorSyncSnapshot",
+  linkedinProfileSnapshot: "linkedinProfileSnapshot",
   autoReplyTemplates: "autoReplyTemplates",
   currentCompensation: "currentCompensation",
   goals: "talentforge-goals",
@@ -83,6 +91,8 @@ export const RECRUITERS_VERSION = 1;
 export const ONBOARDING_VERSION = 1;
 export const OPENAI_VERSION = 1;
 export const CONNECTOR_TOKENS_VERSION = 1;
+export const CONNECTOR_SYNC_SNAPSHOT_VERSION = 1;
+export const LINKEDIN_PROFILE_SNAPSHOT_VERSION = 1;
 export const AUTO_REPLY_TEMPLATES_VERSION = 1;
 export const CURRENT_COMP_VERSION = 1;
 export const GOALS_VERSION = 1;
@@ -97,12 +107,14 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   onboarding: ONBOARDING_VERSION,
   openai: OPENAI_VERSION,
   connectorTokens: CONNECTOR_TOKENS_VERSION,
+  connectorSyncSnapshot: CONNECTOR_SYNC_SNAPSHOT_VERSION,
+  linkedinProfileSnapshot: LINKEDIN_PROFILE_SNAPSHOT_VERSION,
   autoReplyTemplates: AUTO_REPLY_TEMPLATES_VERSION,
   currentCompensation: CURRENT_COMP_VERSION,
   goals: GOALS_VERSION,
 } as const;
 
-export const SNAPSHOT_VERSION = 5;
+export const SNAPSHOT_VERSION = 6;
 
 // Generic migration helper which applies migrations sequentially until the
 // data reaches `targetVersion`.
@@ -190,6 +202,152 @@ function migrateConnectorTokens(
   );
 }
 
+function isConnectorSyncStatus(value: unknown): value is ConnectorSyncStatus {
+  return value === "idle" || value === "syncing" || value === "success" || value === "error";
+}
+
+function normalizeConnectorSyncState(value: unknown): ConnectorSyncState {
+  const base =
+    value && typeof value === "object"
+      ? (value as Partial<ConnectorSyncState>)
+      : {};
+  const state: ConnectorSyncState = {
+    status: isConnectorSyncStatus(base.status) ? base.status : "idle",
+  };
+  if (typeof base.lastAttemptedAt === "string") {
+    state.lastAttemptedAt = base.lastAttemptedAt;
+  }
+  if (typeof base.lastSuccessfulAt === "string") {
+    state.lastSuccessfulAt = base.lastSuccessfulAt;
+  }
+  if (typeof base.error === "string") {
+    state.error = base.error;
+  }
+  return state;
+}
+
+function normalizeConnectorSyncSnapshot(value: unknown): ConnectorSyncSnapshot {
+  if (!value || typeof value !== "object") return {};
+  const snapshot: ConnectorSyncSnapshot = {};
+  for (const [connector, details] of Object.entries(value as Record<string, unknown>)) {
+    snapshot[connector] = normalizeConnectorSyncState(details);
+  }
+  return snapshot;
+}
+
+function migrateConnectorSyncSnapshot(
+  data: unknown,
+  version: number,
+): ConnectorSyncSnapshot {
+  return migrate<ConnectorSyncSnapshot>(
+    data,
+    version,
+    CONNECTOR_SYNC_SNAPSHOT_VERSION,
+    {
+      0: normalizeConnectorSyncSnapshot,
+    },
+  );
+}
+
+function normalizeJobListings(value: unknown): JobListing[] {
+  if (!Array.isArray(value)) return [];
+  const listings: JobListing[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object") continue;
+    const record = entry as Record<string, unknown>;
+    const { title, company, location, url, source, description } = record;
+    if (
+      typeof title !== "string" ||
+      typeof company !== "string" ||
+      typeof location !== "string" ||
+      typeof url !== "string" ||
+      typeof source !== "string"
+    ) {
+      continue;
+    }
+    const listing: JobListing = {
+      title,
+      company,
+      location,
+      url,
+      source,
+    };
+    if (typeof description === "string") {
+      listing.description = description;
+    }
+    listings.push(listing);
+  }
+  return listings;
+}
+
+function normalizeLinkedInProfileSnapshot(value: unknown): LinkedInProfileSnapshot {
+  if (!value || typeof value !== "object") {
+    return { listings: [] };
+  }
+
+  const candidate = value as Partial<LinkedInProfileSnapshot> &
+    Record<string, unknown>;
+  const snapshot: LinkedInProfileSnapshot = {
+    listings: normalizeJobListings(candidate.listings),
+  };
+
+  if (typeof candidate.capturedAt === "string") {
+    snapshot.capturedAt = candidate.capturedAt;
+  }
+  if (typeof candidate.error === "string") {
+    snapshot.error = candidate.error;
+  }
+
+  const profileCandidate = candidate.profile;
+  if (profileCandidate && typeof profileCandidate === "object") {
+    const raw = profileCandidate as Record<string, unknown>;
+    const { id, firstName, lastName } = raw;
+    if (
+      typeof id === "string" &&
+      typeof firstName === "string" &&
+      typeof lastName === "string"
+    ) {
+      const profile: NonNullable<LinkedInProfileSnapshot["profile"]> = {
+        id,
+        firstName,
+        lastName,
+      };
+      if (typeof raw.headline === "string") {
+        profile.headline = raw.headline;
+      }
+      if (typeof raw.location === "string") {
+        profile.location = raw.location;
+      }
+      if (typeof raw.industry === "string") {
+        profile.industry = raw.industry;
+      }
+      if (typeof raw.summary === "string") {
+        profile.summary = raw.summary;
+      }
+      if (typeof raw.connections === "number") {
+        profile.connections = raw.connections;
+      }
+      snapshot.profile = profile;
+    }
+  }
+
+  return snapshot;
+}
+
+function migrateLinkedInProfileSnapshot(
+  data: unknown,
+  version: number,
+): LinkedInProfileSnapshot {
+  return migrate<LinkedInProfileSnapshot>(
+    data,
+    version,
+    LINKEDIN_PROFILE_SNAPSHOT_VERSION,
+    {
+      0: normalizeLinkedInProfileSnapshot,
+    },
+  );
+}
+
 function migrateAutoReplyTemplates(
   data: unknown,
   version: number,
@@ -261,6 +419,8 @@ const MIGRATORS: {
   onboarding: migrateOnboarding,
   openai: migrateOpenAI,
   connectorTokens: migrateConnectorTokens,
+  connectorSyncSnapshot: migrateConnectorSyncSnapshot,
+  linkedinProfileSnapshot: migrateLinkedInProfileSnapshot,
   autoReplyTemplates: migrateAutoReplyTemplates,
   currentCompensation: migrateCurrentCompensation,
   goals: migrateGoals,
@@ -276,6 +436,8 @@ const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
   onboarding: 0,
   openai: undefined,
   connectorTokens: {},
+  connectorSyncSnapshot: {},
+  linkedinProfileSnapshot: { listings: [] as JobListing[] },
   autoReplyTemplates: AUTO_REPLY_TEMPLATES as Record<string, string>,
   currentCompensation: { salary: "", benefits: "", stock: "" },
   goals: [],
@@ -899,6 +1061,26 @@ export function deleteConnectorToken(connector: string): void {
   save("connectorTokens", tokens);
 }
 
+export function getConnectorSyncSnapshot(): ConnectorSyncSnapshot {
+  return load("connectorSyncSnapshot", {});
+}
+
+export function saveConnectorSyncSnapshot(
+  snapshot: ConnectorSyncSnapshot,
+): void {
+  save("connectorSyncSnapshot", snapshot);
+}
+
+export function getLinkedInProfileSnapshot(): LinkedInProfileSnapshot {
+  return load("linkedinProfileSnapshot", { listings: [] });
+}
+
+export function saveLinkedInProfileSnapshot(
+  snapshot: LinkedInProfileSnapshot,
+): void {
+  save("linkedinProfileSnapshot", snapshot);
+}
+
 // Export / Import
 function migrateSnapshot(
   fromVersion: number,
@@ -907,6 +1089,20 @@ function migrateSnapshot(
   const migrated = { ...data };
   if (fromVersion < 2) {
     migrated[KEYS.connectorTokens] = migrated[KEYS.connectorTokens] || {};
+  }
+  if (fromVersion < 6) {
+    if (!(KEYS.connectorSyncSnapshot in migrated)) {
+      migrated[KEYS.connectorSyncSnapshot] = {
+        version: CONNECTOR_SYNC_SNAPSHOT_VERSION,
+        data: {},
+      };
+    }
+    if (!(KEYS.linkedinProfileSnapshot in migrated)) {
+      migrated[KEYS.linkedinProfileSnapshot] = {
+        version: LINKEDIN_PROFILE_SNAPSHOT_VERSION,
+        data: { listings: [] },
+      };
+    }
   }
   if (fromVersion < 5) {
     const legacyGoalsEntry = migrated[LEGACY_GOALS_KEY];
@@ -1067,6 +1263,10 @@ const dataStore = {
   getConnectorToken,
   saveConnectorToken,
   deleteConnectorToken,
+  getConnectorSyncSnapshot,
+  saveConnectorSyncSnapshot,
+  getLinkedInProfileSnapshot,
+  saveLinkedInProfileSnapshot,
   exportToJson,
   importFromJson,
 };

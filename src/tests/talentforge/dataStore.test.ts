@@ -9,9 +9,19 @@ import {
   saveCurrentCompensation,
   getGoals,
   setGoals,
+  CONNECTOR_SYNC_SNAPSHOT_VERSION,
+  LINKEDIN_PROFILE_SNAPSHOT_VERSION,
+  getConnectorSyncSnapshot,
+  saveConnectorSyncSnapshot,
+  getLinkedInProfileSnapshot,
+  saveLinkedInProfileSnapshot,
 } from "../../utils/talentforge/dataStore";
 import { loadItem, saveItem } from "../../utils/storage";
-import type { ResumeEntry } from "../../types";
+import type {
+  ResumeEntry,
+  ConnectorSyncSnapshot,
+  LinkedInProfileSnapshot,
+} from "../../types";
 
 interface Message {
   replies: { body: string }[];
@@ -86,6 +96,30 @@ describe("dataStore migrations", () => {
     expect(getGoals()).toEqual(["resume", "networking"]);
   });
 
+  test("importFromJson populates connector snapshot defaults", () => {
+    const snapshot = {
+      version: 5,
+      data: {},
+    };
+
+    importFromJson(JSON.stringify(snapshot));
+
+    const connectorSync = loadItem<ConnectorSyncSnapshot>(
+      "connectorSyncSnapshot",
+      CONNECTOR_SYNC_SNAPSHOT_VERSION,
+    )!;
+    expect(connectorSync).toEqual({});
+
+    const linkedinProfile = loadItem<LinkedInProfileSnapshot>(
+      "linkedinProfileSnapshot",
+      LINKEDIN_PROFILE_SNAPSHOT_VERSION,
+    )!;
+    expect(linkedinProfile).toEqual({ listings: [] });
+
+    expect(getConnectorSyncSnapshot()).toEqual({});
+    expect(getLinkedInProfileSnapshot()).toEqual({ listings: [] });
+  });
+
   test("importFromJson adds resume metadata when migrating snapshots", () => {
     jest.useFakeTimers();
     try {
@@ -156,6 +190,48 @@ describe("dataStore migrations", () => {
     const comp = { salary: "100k", benefits: "health", stock: "50" };
     saveCurrentCompensation(comp);
     expect(getCurrentCompensation()).toEqual(comp);
+  });
+
+  test("connector sync snapshot save and load", () => {
+    const snapshot: ConnectorSyncSnapshot = {
+      linkedin: {
+        status: "success",
+        lastAttemptedAt: "2024-02-01T00:00:00.000Z",
+        lastSuccessfulAt: "2024-02-01T00:00:00.000Z",
+      },
+      indeed: {
+        status: "error",
+        lastAttemptedAt: "2024-02-02T00:00:00.000Z",
+        error: "network",
+      },
+    };
+
+    saveConnectorSyncSnapshot(snapshot);
+    expect(getConnectorSyncSnapshot()).toEqual(snapshot);
+  });
+
+  test("linkedin profile snapshot save and load", () => {
+    const snapshot: LinkedInProfileSnapshot = {
+      capturedAt: "2024-02-03T00:00:00.000Z",
+      profile: {
+        id: "ln-1",
+        firstName: "Ada",
+        lastName: "Lovelace",
+        headline: "Pioneer",
+      },
+      listings: [
+        {
+          title: "Engineer",
+          company: "Acme",
+          location: "Remote",
+          url: "https://example.com/1",
+          source: "linkedin",
+        },
+      ],
+    };
+
+    saveLinkedInProfileSnapshot(snapshot);
+    expect(getLinkedInProfileSnapshot()).toEqual(snapshot);
   });
 
   test("setGoals saves normalized selections", () => {
