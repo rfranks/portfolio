@@ -76,7 +76,7 @@ By accessing or using TalentForge, you agree to be bound by these Terms of Use. 
 
 ### 8. Contact Us
 
-- If you have any questions about these Terms of Use, please contact us at [richardfrankskr@hotmail.com](mailto:richardfranksjr@hotmail.com).
+- If you have any questions about these Terms of Use, please contact us at [richardfranksjr@hotmail.com](mailto:richardfranksjr@hotmail.com).
 `;
 
 export interface TermsDialogProps
