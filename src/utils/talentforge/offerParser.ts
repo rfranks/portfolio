@@ -8,23 +8,34 @@ export interface ParsedOffer {
 }
 
 function extractAmount(value: string): number {
-  return Number(value.replace(/[^0-9]/g, ""));
+  const digitsAndDots = value.replace(/[^0-9.]/g, "");
+  const firstDecimalIndex = digitsAndDots.indexOf(".");
+
+  let normalized = digitsAndDots;
+  if (firstDecimalIndex !== -1) {
+    normalized =
+      digitsAndDots.slice(0, firstDecimalIndex + 1) +
+      digitsAndDots.slice(firstDecimalIndex + 1).replace(/\./g, "");
+  }
+
+  const amount = parseFloat(normalized);
+  return Number.isNaN(amount) ? 0 : amount;
 }
 
 export function parseOfferText(text: string): ParsedOffer {
   const comps: OfferComp[] = [];
 
-  const base = /base\s+salary[^$]*\$?([0-9,]+)/i.exec(text);
+  const base = /base\s+salary[^$]*\$?([0-9,]+(?:\.[0-9]+)?)/i.exec(text);
   if (base) {
     comps.push({ type: "base", amount: extractAmount(base[1]) });
   }
 
-  const bonus = /bonus[^$]*\$?([0-9,]+)/i.exec(text);
+  const bonus = /bonus[^$]*\$?([0-9,]+(?:\.[0-9]+)?)/i.exec(text);
   if (bonus) {
     comps.push({ type: "bonus", amount: extractAmount(bonus[1]) });
   }
 
-  const equity = /equity[^0-9]*([0-9,]+)\s*(RSUs|shares|options)?/i.exec(text);
+  const equity = /equity[^0-9]*([0-9,]+(?:\.[0-9]+)?)\s*(RSUs|shares|options)?/i.exec(text);
   if (equity) {
     comps.push({
       type: "equity",
