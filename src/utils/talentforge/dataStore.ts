@@ -23,6 +23,7 @@ import type {
   ConnectorSyncSnapshot,
   ConnectorSyncState,
   ConnectorSyncStatus,
+  LinkedInProfileDetails,
   LinkedInProfileSnapshot,
 } from "@/types";
 import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply/templates";
@@ -300,7 +301,7 @@ function normalizeLinkedInProfileSnapshot(value: unknown): LinkedInProfileSnapsh
 
   const profileCandidate = candidate.profile;
   if (profileCandidate && typeof profileCandidate === "object") {
-    const raw = profileCandidate as Record<string, unknown>;
+    const raw = profileCandidate as Partial<LinkedInProfileDetails>;
     const { id, firstName, lastName } = raw;
     if (
       typeof id === "string" &&
