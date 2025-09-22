@@ -13,7 +13,7 @@ export interface OpenAIKeyInterstitialContentProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  inputRef?: React.RefObject<HTMLInputElement>;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
   buttonLabel?: string;
   logoSrc?: string;
   logoAlt?: string;
