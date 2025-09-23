@@ -109,7 +109,9 @@ describe("OfferCompare analyzeOfferWithAI", () => {
       linkedin: "",
       indeed: "",
     });
-    expect(setError).toHaveBeenCalledWith("analysis failed");
+    expect(setError).toHaveBeenCalledWith(
+      "Failed to analyze offer. analysis failed",
+    );
     expect(setLoading).toHaveBeenCalledWith(false);
     expect(addOfferFn).not.toHaveBeenCalled();
     expect(onSave).not.toHaveBeenCalled();

@@ -21,6 +21,7 @@ import { addOffer } from "@/utils/talentforge/dataStore";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import type { Message } from "@/types";
 import { analyzeOfferWithAI, type OfferDrafts } from "./offerAnalysis";
+import useAIErrorHandler from "@/hooks/talentforge/useAIErrorHandler";
 
 interface OfferCompareProps {
   onSave?: () => void;
@@ -28,6 +29,7 @@ interface OfferCompareProps {
 
 export default function OfferCompare({ onSave }: OfferCompareProps) {
   const data = useTalentForgeData();
+  const notifyAIError = useAIErrorHandler();
   const [offerText, setOfferText] = useState("");
   const [compensation, setCompensation] = useState("");
   const [analysis, setAnalysis] = useState("");
@@ -72,6 +74,11 @@ export default function OfferCompare({ onSave }: OfferCompareProps) {
       onSave,
       ask: askOpenAI,
       addOfferFn: addOffer,
+      onAskError: (info) => {
+        notifyAIError(info, {
+          retry: () => analyzeOffer(),
+        });
+      },
     });
   };
 

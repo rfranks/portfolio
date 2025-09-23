@@ -35,6 +35,7 @@ import {
   AutoReplyTemplate,
 } from "@/utils/autoReply";
 import { askOpenAI } from "@/utils/talentforge/utils";
+import useAIErrorHandler from "@/hooks/talentforge/useAIErrorHandler";
 
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import { useSearchParams } from "next/navigation";
@@ -80,6 +81,7 @@ const QUICK_REPLY_CHANNELS: QuickReplyChannel[] = [
 
 export default function Inbox() {
   const data = useTalentForgeData();
+  const notifyAIError = useAIErrorHandler();
   const [threads, setThreads] = useState<Message[]>([]);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
@@ -450,11 +452,11 @@ export default function Inbox() {
         },
       }));
     } catch (error) {
-      setQuickReplyError(
-        error instanceof Error
-          ? error.message
-          : "Failed to generate a quick reply.",
-      );
+      const { message: errorMessage } = notifyAIError(error, {
+        getToastMessage: (msg) => `Unable to generate a quick reply. ${msg}`,
+        retry: () => handleGenerateQuickReply(message),
+      });
+      setQuickReplyError(`Unable to generate a quick reply. ${errorMessage}`);
     } finally {
       setQuickReplyLoading(false);
     }

@@ -50,6 +50,7 @@ import {
   formatUserProfileForPrompt,
 } from "@/utils/talentforge/customPromptFormatting";
 import { askOpenAI } from "@/utils/talentforge/utils";
+import useAIErrorHandler from "@/hooks/talentforge/useAIErrorHandler";
 
 import RequireAIKey from "./RequireAIKey";
 import AddPromptDrawer from "./customPrompts/AddPromptDrawer";
@@ -102,6 +103,7 @@ export default function ChatWorkspace({
   const [highlightedTileId, setHighlightedTileId] = useState<string | null>(
     null,
   );
+  const notifyAIError = useAIErrorHandler();
 
   useEffect(() => {
     setJobDescription(initialJobDescription || "");
@@ -403,8 +405,12 @@ export default function ChatWorkspace({
       });
       const message = res?.message || "";
       setOutput(message);
-    } catch {
-      setOutput("An error occurred while running the prompt.");
+    } catch (error) {
+      const { message } = notifyAIError(error, {
+        getToastMessage: (msg) => `We couldn't run that prompt. ${msg}`,
+        retry: () => handleRun(),
+      });
+      setOutput(`We couldn't run that prompt. ${message}`);
     } finally {
       setIsRunning(false);
     }

@@ -30,6 +30,7 @@ import { askOpenAI } from "@/utils/talentforge/utils";
 import { getPromptTile } from "@/utils/talentforge/promptRegistry";
 import RequireAIKey from "../RequireAIKey";
 import type { Offer } from "@/types";
+import useAIErrorHandler from "@/hooks/talentforge/useAIErrorHandler";
 
 const formatCurrency = (amount: number) => {
   if (!Number.isFinite(amount)) return "—";
@@ -103,6 +104,7 @@ export default function CompareOffers() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const analysisContainerRef = useRef<HTMLDivElement | null>(null);
+  const notifyAIError = useAIErrorHandler();
 
   useEffect(() => {
     const loaded = getOffers();
@@ -206,10 +208,12 @@ export default function CompareOffers() {
       });
       const message = response?.message || "";
       setAnalysis(message.trim());
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Unable to generate comparison.";
-      setError(message);
+    } catch (error) {
+      const { message } = notifyAIError(error, {
+        getToastMessage: (msg) => `Unable to generate comparison. ${msg}`,
+        retry: () => handleCompare(),
+      });
+      setError(`Unable to generate comparison. ${message}`);
     } finally {
       setLoading(false);
     }

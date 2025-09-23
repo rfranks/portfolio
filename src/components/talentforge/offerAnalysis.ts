@@ -2,6 +2,7 @@ import { v4 as uuid } from "uuid";
 
 import type { Offer, ApplicationRecord } from "@/types";
 import type { AskOpenAIFunc } from "@/utils/talentforge/utils";
+import { describeAskError, type AskErrorInfo } from "@/utils/talentforge/errors";
 
 export type OfferDrafts = {
   email: string;
@@ -20,6 +21,7 @@ export interface AnalyzeOfferOptions {
   onSave?: () => void;
   ask: AskOpenAIFunc;
   addOfferFn: (offer: Offer) => void;
+  onAskError?: (info: AskErrorInfo) => void;
 }
 
 export async function analyzeOfferWithAI({
@@ -33,6 +35,7 @@ export async function analyzeOfferWithAI({
   onSave,
   ask,
   addOfferFn,
+  onAskError,
 }: AnalyzeOfferOptions) {
   try {
     const response = await ask({
@@ -87,13 +90,12 @@ export async function analyzeOfferWithAI({
     onSave?.();
   } catch (err) {
     console.error("Failed to analyze offer", err);
+    const info = describeAskError(err);
+    const failureMessage = `Failed to analyze offer. ${info.message}`;
     setAnalysis("");
     setDrafts({ email: "", linkedin: "", indeed: "" });
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Failed to analyze offer. Please try again.",
-    );
+    setError(failureMessage);
+    onAskError?.({ ...info, message: failureMessage });
   } finally {
     setLoading(false);
   }

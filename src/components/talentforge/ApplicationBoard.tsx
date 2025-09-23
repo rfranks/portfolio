@@ -108,6 +108,7 @@ import CompareOffers from "./offers/CompareOffers";
 import ManageNegotiationLibraryModal from "./offers/ManageNegotiationLibraryModal";
 import NegotiationLibraryControls from "./offers/NegotiationLibraryControls";
 import useOfferExports from "@/hooks/talentforge/useOfferExports";
+import useAIErrorHandler from "@/hooks/talentforge/useAIErrorHandler";
 import {
   createApplicationsCsv,
   prepareApplicationsForJson,
@@ -858,6 +859,29 @@ export default function ApplicationBoard() {
     baseFileName: "renegotiation",
   });
   const data = useTalentForgeData();
+  const notifyAIError = useAIErrorHandler();
+  const handleAskError = useCallback(
+    (
+      error: unknown,
+      {
+        context,
+        retry,
+        retryLabel,
+      }: { context: string; retry?: () => void; retryLabel?: string },
+    ) => {
+      const info = notifyAIError(error, {
+        getToastMessage: (message) =>
+          context ? `${context} ${message}`.trim() : message,
+        retry,
+        retryLabel,
+      });
+      const combined = context
+        ? `${context} ${info.message}`.trim()
+        : info.message;
+      return { info, combined };
+    },
+    [notifyAIError],
+  );
   const exportMenuOpen = Boolean(exportAnchorEl);
   const selectedApplication = useMemo(() => {
     if (!selectedApplicationId) {
@@ -1714,18 +1738,6 @@ export default function ApplicationBoard() {
         syncApplicationReferences(updatedApps, targetId);
       },
     });
-    const describeTileError = (value: unknown): string => {
-      if (value instanceof Error && value.message) {
-        return value.message;
-      }
-      if (typeof value === "string") {
-        const trimmed = value.trim();
-        if (trimmed.length > 0) {
-          return trimmed;
-        }
-      }
-      return "An unexpected error occurred.";
-    };
     if (tileId === "resumeCompare") {
       if (resumes.length === 0) {
         setDrawerTitle(tile.display);
@@ -1813,15 +1825,18 @@ export default function ApplicationBoard() {
         ]);
         activityRecorder.recordSuccess();
       } catch (error) {
-        const description = describeTileError(error);
+        const { info, combined } = handleAskError(error, {
+          context: `Unable to generate ${tile.display}.`,
+          retry: () => runTile(tileId, context, app),
+        });
         setDrawerMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            text: `Unable to generate ${tile.display}. ${description}`,
+            text: combined,
           },
         ]);
-        setLiveMessage(`${tile.display} failed: ${description}`);
+        setLiveMessage(`${tile.display} failed: ${info.message}`);
         activityRecorder.recordError(error);
       } finally {
         setDrawerLoading(false);
@@ -1870,14 +1885,17 @@ export default function ApplicationBoard() {
         setDrawerMessages([{ role: "assistant", text: `\n${message}\n` }]);
         activityRecorder.recordSuccess();
       } catch (error) {
-        const description = describeTileError(error);
+        const { info, combined } = handleAskError(error, {
+          context: `Unable to generate ${tile.display}.`,
+          retry: () => runTile(tileId, context, app),
+        });
         setDrawerMessages([
           {
             role: "assistant",
-            text: `Unable to generate ${tile.display}. ${description}`,
+            text: combined,
           },
         ]);
-        setLiveMessage(`${tile.display} failed: ${description}`);
+        setLiveMessage(`${tile.display} failed: ${info.message}`);
         activityRecorder.recordError(error);
       } finally {
         setDrawerLoading(false);
@@ -1945,16 +1963,19 @@ export default function ApplicationBoard() {
       }
       activityRecorder.recordSuccess();
     } catch (error) {
-      const description = describeTileError(error);
+      const { info, combined } = handleAskError(error, {
+        context: `Unable to generate ${tile.display}.`,
+        retry: () => runTile(tileId, context, app),
+      });
       setDrawerAnalysis(null);
       setDrawerMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text: `Unable to generate ${tile.display}. ${description}`,
+          text: combined,
         },
       ]);
-      setLiveMessage(`${tile.display} failed: ${description}`);
+      setLiveMessage(`${tile.display} failed: ${info.message}`);
       activityRecorder.recordError(error);
     } finally {
       setDrawerLoading(false);
@@ -2131,6 +2152,16 @@ export default function ApplicationBoard() {
           data: { compensation: offer.compensation, summary: offer.summary },
         },
       ]);
+    } catch (error) {
+      const { combined } = handleAskError(error, {
+        context: "Unable to analyze the offer.",
+        retry: () => handleOfferUpload(file),
+      });
+      setDrawerMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: combined },
+      ]);
+      setLiveMessage(combined);
     } finally {
       setDrawerLoading(false);
     }
@@ -2185,6 +2216,16 @@ export default function ApplicationBoard() {
         ...prev,
         { role: "assistant", text: message },
       ]);
+    } catch (error) {
+      const { combined } = handleAskError(error, {
+        context: "Unable to compare the resume.",
+        retry: () => handleResumeCompareSelect(resId),
+      });
+      setDrawerMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: combined },
+      ]);
+      setLiveMessage(combined);
     } finally {
       setDrawerLoading(false);
       setDrawerMode("chat");
