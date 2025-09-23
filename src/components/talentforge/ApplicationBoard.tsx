@@ -62,6 +62,7 @@ import type {
   OfferComp,
   Message,
   OfferDecisionStatus,
+  RecruiterEntry,
 } from "@/types";
 import {
   OFFER_DECISION_DEFAULT_STATUS,
@@ -109,6 +110,7 @@ import {
   hasActiveFilters,
   type ApplicationFilters,
 } from "@/utils/talentforge/applicationFilters";
+import { interviewToICS } from "@/utils/talentforge/interviewToICS";
 import { visuallyHidden } from "@mui/utils";
 
 interface Issue {
@@ -277,7 +279,6 @@ function Column({
       ref={setNodeRef}
       role="list"
       aria-label={ariaLabel}
-      aria-expanded={!collapsed}
       data-status={id}
       elevation={highlight ? 6 : 1}
       sx={{
@@ -360,6 +361,7 @@ function Card({
   onAssignResume,
   onSetInterviewDate,
   onSetInterviewLocation,
+  onDownloadInvite,
   onKeyDown,
   activeId,
   selected,
@@ -378,6 +380,7 @@ function Card({
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
   onSetInterviewLocation: (appId: string, value: string) => void;
+  onDownloadInvite: (app: JobApplication) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   activeId: string | null;
   selected: boolean;
@@ -412,6 +415,10 @@ function Card({
     ? `${isOverdue ? "Overdue" : "Due"}: ${dueLabel}`
     : "";
   const hasReminder = Boolean(app.nextAction) || hasValidDue;
+  const interviewDateRaw =
+    typeof app.interviewDateTime === "string" ? app.interviewDateTime.trim() : "";
+  const hasValidInterviewTime =
+    Boolean(interviewDateRaw) && !Number.isNaN(new Date(interviewDateRaw).getTime());
 
   const decision = app.decision ?? app.offer?.decision;
   const decisionStatus =
@@ -610,7 +617,7 @@ function Card({
       )}
       {STATUSES.indexOf(app.status) >= STATUSES.indexOf("interview") &&
         app.status !== "offer" && (
-          <>
+          <Stack spacing={1} sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}>
             <TextField
               type="datetime-local"
               size="small"
@@ -618,19 +625,37 @@ function Card({
               value={app.interviewDateTime || ""}
               onChange={(e) => onSetInterviewDate(app.id, e.target.value)}
               InputLabelProps={{ shrink: true }}
-              sx={{ mt: 1 }}
               fullWidth
             />
-            <TextField
-              size="small"
-              label="Meeting URL/Location"
-              value={app.interviewLocation || ""}
-              onChange={(e) => onSetInterviewLocation(app.id, e.target.value)}
-              sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}
-              fullWidth
-            />
-          </>
-      )}
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              alignItems={{ xs: "stretch", sm: "flex-end" }}
+            >
+              <TextField
+                size="small"
+                label="Meeting URL/Location"
+                value={app.interviewLocation || ""}
+                onChange={(e) => onSetInterviewLocation(app.id, e.target.value)}
+                fullWidth
+                sx={{ flexGrow: 1 }}
+              />
+              <Button
+                size="small"
+                variant="outlined"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => onDownloadInvite(app)}
+                disabled={!hasValidInterviewTime}
+                sx={{
+                  alignSelf: { xs: "stretch", sm: "flex-end" },
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Download invite
+              </Button>
+            </Stack>
+          </Stack>
+        )}
       <Stack direction="column" spacing={1} sx={{ mt: 1 }}>
         <Button
           size="small"
@@ -973,6 +998,21 @@ export default function ApplicationBoard() {
     [pipelineLayout.collapsed],
   );
 
+  const getNextStatusFromOrder = useCallback(
+    (current: ApplicationStatus, key: string): ApplicationStatus => {
+      const index = statusOrder.indexOf(current);
+      if (index === -1) {
+        return current;
+      }
+      let nextIndex = index;
+      if (key === "ArrowRight" || key === "ArrowDown") nextIndex += 1;
+      if (key === "ArrowLeft" || key === "ArrowUp") nextIndex -= 1;
+      nextIndex = Math.min(Math.max(nextIndex, 0), statusOrder.length - 1);
+      return statusOrder[nextIndex] ?? current;
+    },
+    [statusOrder],
+  );
+
   const selectedApplications = useMemo(() => {
     if (selectedIds.length === 0) return [];
     const idSet = new Set(selectedIds);
@@ -1219,21 +1259,6 @@ export default function ApplicationBoard() {
     setBulkRejectReason("");
   };
 
-  const getNextStatusFromOrder = useCallback(
-    (current: ApplicationStatus, key: string): ApplicationStatus => {
-      const index = statusOrder.indexOf(current);
-      if (index === -1) {
-        return current;
-      }
-      let nextIndex = index;
-      if (key === "ArrowRight" || key === "ArrowDown") nextIndex += 1;
-      if (key === "ArrowLeft" || key === "ArrowUp") nextIndex -= 1;
-      nextIndex = Math.min(Math.max(nextIndex, 0), statusOrder.length - 1);
-      return statusOrder[nextIndex] ?? current;
-    },
-    [statusOrder],
-  );
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -1433,6 +1458,21 @@ export default function ApplicationBoard() {
       } else {
         setLiveMessage(`${title} attachments updated`);
       }
+    }
+  };
+
+  const handleDetailRecruitersUpdate = (
+    appId: string,
+    recruiters: RecruiterEntry[],
+  ) => {
+    const updated = updateJobApplication(appId, { recruiters });
+    setApplications(updated);
+    const updatedApp = updated.find((entry) => entry.id === appId);
+    if (updatedApp) {
+      const message = recruiters.length > 0
+        ? `${updatedApp.role.title} recruiter list updated`
+        : `${updatedApp.role.title} recruiters cleared`;
+      setLiveMessage(message);
     }
   };
 
@@ -1814,13 +1854,35 @@ export default function ApplicationBoard() {
   };
 
   const handleInterviewDate = (appId: string, value: string) => {
-    const updated = updateJobApplication(appId, { interviewDateTime: value });
+    const normalized = value.trim();
+    const updated = updateJobApplication(appId, {
+      interviewDateTime: normalized ? normalized : undefined,
+    });
     setApplications(updated);
   };
 
   const handleInterviewLocation = (appId: string, value: string) => {
-    const updated = updateJobApplication(appId, { interviewLocation: value });
+    const normalized = value.trim();
+    const updated = updateJobApplication(appId, {
+      interviewLocation: normalized ? normalized : undefined,
+    });
     setApplications(updated);
+  };
+
+  const handleDownloadInterviewInvite = (application: JobApplication) => {
+    const invite = interviewToICS(application);
+    if (!invite) {
+      setLiveMessage("Add a valid interview time before downloading an invite");
+      return;
+    }
+    const blob = new Blob([invite.content], { type: "text/calendar" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = invite.fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+    setLiveMessage("Interview invite downloaded");
   };
 
   const applyDecisionUpdate = (
@@ -2501,6 +2563,7 @@ export default function ApplicationBoard() {
                           onAssignResume={handleAssignResume}
                           onSetInterviewDate={handleInterviewDate}
                           onSetInterviewLocation={handleInterviewLocation}
+                          onDownloadInvite={handleDownloadInterviewInvite}
                           onKeyDown={(e) => handleCardKeyDown(e, app)}
                           activeId={activeId}
                           selected={selectedIdSet.has(app.id)}
@@ -2770,6 +2833,10 @@ export default function ApplicationBoard() {
         onSaveAction={handleDetailActionUpdate}
         onUpdateAttachments={handleDetailAttachmentsUpdate}
         onSaveDecision={handleDetailDecisionSave}
+        onSetInterviewDate={handleInterviewDate}
+        onSetInterviewLocation={handleInterviewLocation}
+        onDownloadInterviewInvite={handleDownloadInterviewInvite}
+        onUpdateRecruiters={handleDetailRecruitersUpdate}
       />
       {drawerOpen && (
         <Drawer

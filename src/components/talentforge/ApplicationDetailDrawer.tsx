@@ -5,6 +5,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import {
   Box,
   Button,
+  Autocomplete,
   Chip,
   Dialog,
   DialogActions,
@@ -25,18 +26,27 @@ import {
   Tooltip,
   Typography,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import { Close, Delete, Download, Visibility } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
+import NextLink from "next/link";
+import { useRouter } from "next/navigation";
+import { v4 as uuid } from "uuid";
 
 import type {
   ApplicationAttachment,
   ApplicationStatus,
   JobApplication,
   OfferDecisionStatus,
+  RecruiterEntry,
+  Message,
 } from "@/types";
 import {
   OFFER_DECISION_DEFAULT_STATUS,
@@ -78,6 +88,10 @@ interface ApplicationDetailDrawerProps {
       notes?: string;
     },
   ) => void;
+  onSetInterviewDate: (id: string, value: string) => void;
+  onSetInterviewLocation: (id: string, value: string) => void;
+  onDownloadInterviewInvite: (application: JobApplication) => void;
+  onUpdateRecruiters: (id: string, recruiters: RecruiterEntry[]) => void;
 }
 
 interface ConnectorStatus {
@@ -154,6 +168,10 @@ export default function ApplicationDetailDrawer({
   onSaveAction,
   onUpdateAttachments,
   onSaveDecision,
+  onSetInterviewDate,
+  onSetInterviewLocation,
+  onDownloadInterviewInvite,
+  onUpdateRecruiters,
   promptDrawerOpen = false,
 }: ApplicationDetailDrawerProps) {
   const data = useTalentForgeData();
@@ -161,6 +179,7 @@ export default function ApplicationDetailDrawer({
   const [previewAttachment, setPreviewAttachment] =
     useState<ApplicationAttachment | null>(null);
   const [uploaderKey, setUploaderKey] = useState(0);
+  const router = useRouter();
 
   const promptContexts = useMemo<PromptContext[]>(() => {
     if (!application) return [];
@@ -386,6 +405,19 @@ export default function ApplicationDetailDrawer({
     }));
   }, [application, data]);
 
+  const interviewDateValue = application?.interviewDateTime
+    ? toDateTimeLocalValue(application.interviewDateTime) ||
+      application.interviewDateTime
+    : "";
+  const interviewLocationValue = application?.interviewLocation ?? "";
+  const interviewDateRaw =
+    typeof application?.interviewDateTime === "string"
+      ? application.interviewDateTime.trim()
+      : "";
+  const hasValidInterviewTime =
+    Boolean(interviewDateRaw) && !Number.isNaN(new Date(interviewDateRaw).getTime());
+  const canDownloadInvite = Boolean(application) && hasValidInterviewTime;
+
   const promptInitialValues = useMemo(() => {
     if (!application || promptContexts.length === 0) {
       return {};
@@ -445,6 +477,18 @@ export default function ApplicationDetailDrawer({
     useState<OfferDecisionStatus>(OFFER_DECISION_DEFAULT_STATUS);
   const [decisionDateDraft, setDecisionDateDraft] = useState<string>("");
   const [decisionNotesDraft, setDecisionNotesDraft] = useState<string>("");
+  const [allRecruiters, setAllRecruiters] = useState<RecruiterEntry[]>([]);
+  const [allThreads, setAllThreads] = useState<Message[]>([]);
+  const [linkedRecruiterIds, setLinkedRecruiterIds] = useState<string[]>([]);
+  const [recruiterSelection, setRecruiterSelection] =
+    useState<RecruiterEntry | null>(null);
+  const [viewRecruiter, setViewRecruiter] = useState<RecruiterEntry | null>(
+    null,
+  );
+  const [editingRecruiterId, setEditingRecruiterId] = useState<string | null>(
+    null,
+  );
+  const [editingTags, setEditingTags] = useState<string>("");
 
   const decisionInitial = useMemo(() => {
     if (!application) {
@@ -474,6 +518,11 @@ export default function ApplicationDetailDrawer({
       setDecisionStatusDraft(OFFER_DECISION_DEFAULT_STATUS);
       setDecisionDateDraft("");
       setDecisionNotesDraft("");
+      setLinkedRecruiterIds([]);
+      setRecruiterSelection(null);
+      setViewRecruiter(null);
+      setEditingRecruiterId(null);
+      setEditingTags("");
       return;
     }
     const latest = history[history.length - 1];
@@ -486,6 +535,10 @@ export default function ApplicationDetailDrawer({
     setDecisionStatusDraft(decisionInitial.status);
     setDecisionDateDraft(decisionInitial.decidedAt);
     setDecisionNotesDraft(decisionInitial.notes);
+    setLinkedRecruiterIds(
+      (application.recruiters ?? []).map((recruiter) => recruiter.id),
+    );
+    setRecruiterSelection(null);
   }, [
     application,
     decisionInitial.decidedAt,
@@ -493,6 +546,72 @@ export default function ApplicationDetailDrawer({
     decisionInitial.status,
     history,
   ]);
+
+  useEffect(() => {
+    setAllRecruiters(data.getRecruiters());
+    setAllThreads(data.getMessages());
+  }, [data]);
+
+  const recruiterMap = useMemo(() => {
+    const map = new Map<string, RecruiterEntry>();
+    allRecruiters.forEach((recruiter) => {
+      map.set(recruiter.id, recruiter);
+    });
+    return map;
+  }, [allRecruiters]);
+
+  const linkedRecruiters = useMemo(() => {
+    const fallback = application?.recruiters ?? [];
+    return linkedRecruiterIds
+      .map((id) => recruiterMap.get(id) ?? fallback.find((r) => r.id === id))
+      .filter((value): value is RecruiterEntry => Boolean(value));
+  }, [linkedRecruiterIds, recruiterMap, application?.recruiters]);
+
+  const availableRecruiters = useMemo(
+    () =>
+      allRecruiters.filter((recruiter) => !linkedRecruiterIds.includes(recruiter.id)),
+    [allRecruiters, linkedRecruiterIds],
+  );
+
+  const relatedThreads = useMemo(() => {
+    if (!application) {
+      return [] as Message[];
+    }
+    const recruiterIds = new Set(linkedRecruiterIds);
+    const seen = new Set<string>();
+    const matches: Message[] = [];
+    for (const thread of allThreads) {
+      const matchesApplication = thread.applicationId === application.id;
+      const matchesRecruiter = Boolean(
+        thread.recruiterId && recruiterIds.has(thread.recruiterId),
+      );
+      if ((matchesApplication || matchesRecruiter) && !seen.has(thread.id)) {
+        matches.push(thread);
+        seen.add(thread.id);
+      }
+    }
+    return matches.sort((a, b) => {
+      const timeA = new Date(a.sentAt).getTime();
+      const timeB = new Date(b.sentAt).getTime();
+      return (Number.isNaN(timeB) ? 0 : timeB) - (Number.isNaN(timeA) ? 0 : timeA);
+    });
+  }, [allThreads, application, linkedRecruiterIds]);
+
+  const editingRecruiter = editingRecruiterId
+    ? recruiterMap.get(editingRecruiterId) ?? null
+    : null;
+
+  const buildRecruiterList = (
+    ids: string[],
+    map: Map<string, RecruiterEntry>,
+  ): RecruiterEntry[] => {
+    const fallback = application?.recruiters ?? [];
+    return ids
+      .map(
+        (id) => map.get(id) ?? fallback.find((recruiter) => recruiter.id === id),
+      )
+      .filter((value): value is RecruiterEntry => Boolean(value));
+  };
 
   const initialNextAction = application?.nextAction ?? "";
   const initialDueDraft = application?.dueAt
@@ -533,6 +652,23 @@ export default function ApplicationDetailDrawer({
 
   const handleReasonDraftChange = (event: ChangeEvent<HTMLInputElement>) => {
     setReasonDraft(event.target.value);
+  };
+
+  const handleInterviewDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (!application) return;
+    onSetInterviewDate(application.id, event.target.value);
+  };
+
+  const handleInterviewLocationChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (!application) return;
+    onSetInterviewLocation(application.id, event.target.value);
+  };
+
+  const handleDownloadInvite = () => {
+    if (!application) return;
+    onDownloadInterviewInvite(application);
   };
 
   const handleNextActionDraftChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -608,6 +744,107 @@ export default function ApplicationDetailDrawer({
       decidedAt: decisionDateIso,
       notes: trimmedDecisionNotesDraft ? trimmedDecisionNotesDraft : undefined,
     });
+  };
+
+  const handleLinkRecruiter = (
+    _: unknown,
+    recruiter: RecruiterEntry | null,
+  ) => {
+    if (!application || !recruiter) {
+      setRecruiterSelection(recruiter);
+      return;
+    }
+    if (linkedRecruiterIds.includes(recruiter.id)) {
+      setRecruiterSelection(null);
+      return;
+    }
+    const nextIds = [...linkedRecruiterIds, recruiter.id];
+    setLinkedRecruiterIds(nextIds);
+    setRecruiterSelection(null);
+    const recruiterList = buildRecruiterList(nextIds, recruiterMap);
+    onUpdateRecruiters(application.id, recruiterList);
+  };
+
+  const handleUnlinkRecruiter = (recruiterId: string) => {
+    if (!application) return;
+    const nextIds = linkedRecruiterIds.filter((id) => id !== recruiterId);
+    setLinkedRecruiterIds(nextIds);
+    const recruiterList = buildRecruiterList(nextIds, recruiterMap);
+    onUpdateRecruiters(application.id, recruiterList);
+  };
+
+  const handleOpenRecruiterView = (recruiterId: string) => {
+    const recruiter = recruiterMap.get(recruiterId);
+    setViewRecruiter(recruiter ?? null);
+  };
+
+  const handleCloseRecruiterView = () => {
+    setViewRecruiter(null);
+  };
+
+  const handleOpenEditTags = (recruiterId: string) => {
+    const recruiter = recruiterMap.get(recruiterId);
+    if (!recruiter) return;
+    setEditingRecruiterId(recruiterId);
+    setEditingTags(recruiter.tags.join(", "));
+  };
+
+  const handleCloseEditTags = () => {
+    setEditingRecruiterId(null);
+    setEditingTags("");
+  };
+
+  const handleSaveRecruiterTags = () => {
+    if (!application || !editingRecruiterId) return;
+    const recruiter = recruiterMap.get(editingRecruiterId);
+    if (!recruiter) {
+      handleCloseEditTags();
+      return;
+    }
+    const tags = editingTags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+    const updatedRecruiter = { ...recruiter, tags };
+    const updatedRecruiterList = data.updateRecruiter(updatedRecruiter);
+    setAllRecruiters(updatedRecruiterList);
+    const updatedMap = new Map<string, RecruiterEntry>();
+    updatedRecruiterList.forEach((entry) => {
+      updatedMap.set(entry.id, entry);
+    });
+    const recruiterList = buildRecruiterList(linkedRecruiterIds, updatedMap);
+    onUpdateRecruiters(application.id, recruiterList);
+    handleCloseEditTags();
+  };
+
+  const handleThreadRecruiterChange = (threadId: string, recruiterId: string) => {
+    const updated = data.linkThreadToRecruiter(threadId, recruiterId);
+    setAllThreads(updated);
+    setAllRecruiters(data.getRecruiters());
+  };
+
+  const handleComposeNewThread = () => {
+    if (!application) return;
+    const connectorLabel = [
+      application.role.company,
+      application.role.title,
+    ]
+      .filter((value): value is string => Boolean(value))
+      .join(" – ");
+    const message: Message = {
+      id: uuid(),
+      threadId: uuid(),
+      senderId: application.applicant?.id || "candidate",
+      sentAt: new Date().toISOString(),
+      body: "Draft message",
+      connector: connectorLabel || "Manual outreach",
+      status: "read",
+      replies: [],
+      applicationId: application.id,
+    };
+    const updated = data.addThread(message);
+    setAllThreads(updated);
+    router.push(`/talentforge/inbox?threadId=${message.id}&compose=1`);
   };
 
   const handleStatusSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -778,6 +1015,50 @@ export default function ApplicationDetailDrawer({
                     </Button>
                   </Stack>
                 </Box>
+              </Box>
+            )}
+            {application && (
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  Interview details
+                </Typography>
+                <Stack spacing={2}>
+                  <TextField
+                    label="Interview time"
+                    type="datetime-local"
+                    size="small"
+                    value={interviewDateValue}
+                    onChange={handleInterviewDateChange}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={1}
+                    alignItems={{ xs: "stretch", sm: "flex-end" }}
+                  >
+                    <TextField
+                      label="Meeting URL/Location"
+                      size="small"
+                      value={interviewLocationValue}
+                      onChange={handleInterviewLocationChange}
+                      fullWidth
+                      sx={{ flexGrow: 1 }}
+                    />
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleDownloadInvite}
+                      disabled={!canDownloadInvite}
+                      sx={{
+                        alignSelf: { xs: "stretch", sm: "flex-end" },
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Download invite
+                    </Button>
+                  </Stack>
+                </Stack>
               </Box>
             )}
             {application && (
@@ -1019,44 +1300,204 @@ export default function ApplicationDetailDrawer({
               <Typography variant="subtitle2" gutterBottom>
                 Recruiter info
               </Typography>
-              {application?.recruiters && application.recruiters.length > 0 ? (
+              {linkedRecruiters.length > 0 ? (
                 <Stack spacing={2}>
-                  {application.recruiters.map((recruiter) => (
-                    <Stack key={recruiter.id} spacing={0.5}>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {recruiter.name}
-                      </Typography>
-                      {recruiter.email && (
-                        <Link href={`mailto:${recruiter.email}`} variant="body2">
-                          {recruiter.email}
-                        </Link>
-                      )}
-                      <Typography variant="caption" color="text.secondary">
-                        Connector: {recruiter.connector}
-                      </Typography>
-                      {recruiter.tags.length > 0 && (
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          flexWrap="wrap"
-                          useFlexGap
-                        >
-                          {recruiter.tags.map((tag) => (
-                            <Chip key={tag} label={tag} size="small" />
-                          ))}
+                  {linkedRecruiters.map((recruiter) => (
+                    <Box
+                      key={recruiter.id}
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 1,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        bgcolor: "background.paper",
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        alignItems="flex-start"
+                        justifyContent="space-between"
+                        spacing={1}
+                      >
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {recruiter.name}
+                          </Typography>
+                          {recruiter.email && (
+                            <Link
+                              href={`mailto:${recruiter.email}`}
+                              variant="body2"
+                              sx={{ display: "inline-block" }}
+                            >
+                              {recruiter.email}
+                            </Link>
+                          )}
+                          <Typography variant="caption" color="text.secondary">
+                            Connector: {recruiter.connector}
+                          </Typography>
+                          {recruiter.tags.length > 0 && (
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              flexWrap="wrap"
+                              useFlexGap
+                              sx={{ mt: 0.5 }}
+                            >
+                              {recruiter.tags.map((tag) => (
+                                <Chip key={tag} label={tag} size="small" />
+                              ))}
+                            </Stack>
+                          )}
+                        </Box>
+                        <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => handleOpenRecruiterView(recruiter.id)}
+                          >
+                            View
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => handleOpenEditTags(recruiter.id)}
+                          >
+                            Edit tags
+                          </Button>
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => handleUnlinkRecruiter(recruiter.id)}
+                          >
+                            Unlink
+                          </Button>
                         </Stack>
-                      )}
-                      {recruiter.notes && (
-                        <Typography variant="body2" color="text.secondary">
-                          {recruiter.notes}
-                        </Typography>
-                      )}
-                    </Stack>
+                      </Stack>
+                    </Box>
                   ))}
                 </Stack>
               ) : (
                 <Typography variant="body2" color="text.secondary">
                   No recruiters are associated with this application yet.
+                </Typography>
+              )}
+              <Autocomplete
+                sx={{ mt: 2 }}
+                size="small"
+                value={recruiterSelection}
+                options={availableRecruiters}
+                getOptionLabel={(option) => option.name}
+                onChange={handleLinkRecruiter}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                disabled={!application || availableRecruiters.length === 0}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Link recruiter"
+                    placeholder={
+                      availableRecruiters.length === 0
+                        ? "All recruiters linked"
+                        : "Search recruiters"
+                    }
+                  />
+                )}
+                noOptionsText={
+                  availableRecruiters.length === 0
+                    ? "No additional recruiters available"
+                    : "No recruiters found"
+                }
+              />
+            </Box>
+            <Box>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={1}
+                alignItems={{ xs: "stretch", sm: "center" }}
+                justifyContent="space-between"
+              >
+                <Typography variant="subtitle2">Related inbox threads</Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleComposeNewThread}
+                  disabled={!application}
+                >
+                  Compose new message
+                </Button>
+              </Stack>
+              {relatedThreads.length > 0 ? (
+                <Stack spacing={2} sx={{ mt: 2 }}>
+                  {relatedThreads.map((thread) => (
+                    <Box
+                      key={thread.id}
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 1,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        bgcolor: "background.paper",
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                      >
+                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {thread.connector}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Sent {formatTimelineDate(thread.sentAt)}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mt: 0.5, whiteSpace: "pre-wrap" }}
+                          >
+                            {thread.body || "No preview available."}
+                          </Typography>
+                        </Box>
+                        <Button
+                          component={NextLink}
+                          href={`/talentforge/inbox?threadId=${thread.id}`}
+                          size="small"
+                          variant="outlined"
+                          sx={{ flexShrink: 0 }}
+                        >
+                          Open in inbox
+                        </Button>
+                      </Stack>
+                      <TextField
+                        select
+                        label="Linked recruiter"
+                        size="small"
+                        value={thread.recruiterId || ""}
+                        onChange={(event) =>
+                          handleThreadRecruiterChange(
+                            thread.id,
+                            event.target.value as string,
+                          )
+                        }
+                        sx={{ mt: 1 }}
+                        fullWidth
+                      >
+                        <MenuItem value="">
+                          <em>No recruiter</em>
+                        </MenuItem>
+                        {allRecruiters.map((recruiter) => (
+                          <MenuItem key={recruiter.id} value={recruiter.id}>
+                            {recruiter.name}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Box>
+                  ))}
+                </Stack>
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  No inbox threads are linked to this application yet.
                 </Typography>
               )}
             </Box>
@@ -1104,7 +1545,116 @@ export default function ApplicationDetailDrawer({
           </Stack>
         </Box>
       </Box>
-      </Drawer>
+      <Dialog open={Boolean(viewRecruiter)} onClose={handleCloseRecruiterView}>
+        <DialogTitle>Recruiter details</DialogTitle>
+        <DialogContent>
+          {viewRecruiter ? (
+            <Stack spacing={1.5} sx={{ mt: 0.5 }}>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Name
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  {viewRecruiter.name}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Email
+                </Typography>
+                {viewRecruiter.email ? (
+                  <Link href={`mailto:${viewRecruiter.email}`}>
+                    {viewRecruiter.email}
+                  </Link>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No email available.
+                  </Typography>
+                )}
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Connector
+                </Typography>
+                <Typography variant="body2">{viewRecruiter.connector}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Tags
+                </Typography>
+                {viewRecruiter.tags.length > 0 ? (
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    {viewRecruiter.tags.map((tag) => (
+                      <Chip key={tag} label={tag} size="small" />
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No tags have been added yet.
+                  </Typography>
+                )}
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Notes
+                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                  {viewRecruiter.notes || "No notes saved."}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Linked threads
+                </Typography>
+                <Typography variant="body2">
+                  {viewRecruiter.threadIds.length}
+                  {viewRecruiter.threadIds.length === 1 ? " thread" : " threads"}
+                </Typography>
+              </Box>
+            </Stack>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No recruiter selected.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseRecruiterView}>Close</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={Boolean(editingRecruiterId)}
+        onClose={handleCloseEditTags}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Edit recruiter tags</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1} sx={{ mt: 0.5 }}>
+            <Typography variant="body2" color="text.secondary">
+              Enter a comma-separated list of tags to help categorize this recruiter.
+            </Typography>
+            <TextField
+              label="Tags"
+              value={editingTags}
+              onChange={(event) => setEditingTags(event.target.value)}
+              placeholder="e.g. responsive, hiring manager"
+              autoFocus
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditTags}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveRecruiterTags}
+            disabled={!editingRecruiter}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Dialog
         open={Boolean(previewAttachment)}
         onClose={handleClosePreview}
@@ -1133,6 +1683,6 @@ export default function ApplicationDetailDrawer({
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </Drawer>
   );
 }
