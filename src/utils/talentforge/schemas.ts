@@ -195,7 +195,7 @@ function recordSchema<T>(schema: Schema<T>): Schema<Record<string, T>> {
 
 type Shape<T> = { [K in keyof T]?: Schema<T[K]> };
 
-function objectSchema<T extends Record<string, unknown>>(
+function objectSchema<T extends object>(
   shape: Shape<T>,
   options?: { allowUnknown?: boolean },
 ): Schema<T> {
@@ -475,7 +475,7 @@ const offerSchema: Schema<Offer> = createSchema((input, path) => {
   if (!isPlainObject(input)) {
     return failure(`${formatPath(path)} must be an object`);
   }
-  const source = input as Offer;
+  const source = input as Offer & Record<string, unknown>;
   const errors: string[] = [];
 
   if (typeof source.id !== "string") {
@@ -542,7 +542,7 @@ const jobApplicationSchema: Schema<ApplicationRecord> = createSchema((input, pat
   if (!isPlainObject(input)) {
     return failure(`${formatPath(path)} must be an object`);
   }
-  const source = input as ApplicationRecord;
+  const source = input as ApplicationRecord & Record<string, unknown>;
   const errors: string[] = [];
 
   if (typeof source.id !== "string") {
@@ -732,7 +732,7 @@ const jobApplicationSchema: Schema<ApplicationRecord> = createSchema((input, pat
     if (threadsResult.data === undefined) {
       delete (result as { threads?: Message[] }).threads;
     } else {
-      result.threads = threadsResult.data;
+      result.threads = threadsResult.data as unknown as NonNullable<ApplicationRecord["threads"]>;
     }
   }
 
