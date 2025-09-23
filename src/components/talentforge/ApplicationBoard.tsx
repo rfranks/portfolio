@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  DialogContentText,
   TextField,
   Drawer,
   CircularProgress,
@@ -22,6 +23,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  Checkbox,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Check, Close, Delete, Edit, ExpandMore } from "@mui/icons-material";
@@ -46,6 +48,8 @@ import type {
 } from "@/types";
 import {
   addJobApplication,
+  bulkUpdateJobApplicationStatus,
+  bulkUpdateJobApplications,
   getJobApplications,
   updateJobApplicationStatus,
   updateJobApplication,
@@ -76,6 +80,7 @@ import {
   hasActiveFilters,
   type ApplicationFilters,
 } from "@/utils/talentforge/applicationFilters";
+import { visuallyHidden } from "@mui/utils";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -149,23 +154,31 @@ function Card({
   onRunTile,
   onOpenWorkspace,
   onOpenDetails,
+  onToggleSelect,
   resumes,
   onAssignResume,
   onSetInterviewDate,
   onSetInterviewLocation,
   onKeyDown,
   activeId,
+  selected,
 }: {
   app: JobApplication;
   onRunTile: (id: string, context: PromptContext) => void;
   onOpenWorkspace: (app: JobApplication) => void;
   onOpenDetails: (app: JobApplication) => void;
+  onToggleSelect: (
+    app: JobApplication,
+    checked: boolean,
+    options?: { range?: boolean },
+  ) => void;
   resumes: ResumeEntry[];
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
   onSetInterviewLocation: (appId: string, value: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   activeId: string | null;
+  selected: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: app.id });
@@ -175,6 +188,13 @@ function Card({
     opacity: isDragging ? 0.5 : 1,
     cursor: "grab",
   } as const;
+  const selectionLabelId = `application-${app.id}-selector`;
+  const selectionLabel = [
+    app.role.title ? `Select ${app.role.title}` : "Select application",
+    app.role.company ? `at ${app.role.company}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const offerNegotiationTile = getPromptTile("offerNegotiation", {
     contexts: "offers",
@@ -213,6 +233,16 @@ function Card({
     onOpenDetails(app);
   };
 
+  const handleCheckboxChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    event.stopPropagation();
+    const nativeEvent = event.nativeEvent as MouseEvent | KeyboardEvent;
+    const range =
+      typeof nativeEvent.shiftKey === "boolean" ? nativeEvent.shiftKey : false;
+    onToggleSelect(app, event.target.checked, { range });
+  };
+
   return (
     <Box
       ref={setNodeRef}
@@ -221,6 +251,7 @@ function Card({
       role="listitem"
       aria-roledescription="draggable"
       aria-grabbed={activeId === app.id}
+      aria-selected={selected}
       tabIndex={0}
       onKeyDown={onKeyDown}
       onPointerDownCapture={handlePointerDownCapture}
@@ -228,9 +259,10 @@ function Card({
       sx={{
         p: 1,
         border: "1px solid",
-        borderColor: "divider",
+        borderColor: selected ? "primary.main" : "divider",
         borderRadius: 1,
-        bgcolor: "background.default",
+        bgcolor: selected ? "action.selected" : "background.default",
+        boxShadow: selected ? 3 : undefined,
         '&:focus-visible': {
           outline: '2px solid',
           outlineColor: 'primary.main',
@@ -238,15 +270,37 @@ function Card({
         ...style,
       }}
     >
-      <Typography fontWeight="bold">{app.role.title}</Typography>
-      <Typography variant="body2" color="text.secondary">
-        {app.role.company} – {app.role.location}
-      </Typography>
-      {app.role.source && (
-        <Typography variant="body2" color="text.secondary">
-          Source: {app.role.source}
-        </Typography>
-      )}
+      <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mb: 0.5 }}>
+        <Box sx={{ position: "relative" }}>
+          <Typography
+            component="span"
+            id={selectionLabelId}
+            sx={{ ...visuallyHidden }}
+          >
+            {selectionLabel}
+          </Typography>
+          <Checkbox
+            size="small"
+            checked={selected}
+            onChange={handleCheckboxChange}
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={(event) => event.stopPropagation()}
+            inputProps={{ "aria-labelledby": selectionLabelId }}
+            sx={{ p: 0.5, mt: -0.5 }}
+          />
+        </Box>
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+          <Typography fontWeight="bold">{app.role.title}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {app.role.company} – {app.role.location}
+          </Typography>
+          {app.role.source && (
+            <Typography variant="body2" color="text.secondary">
+              Source: {app.role.source}
+            </Typography>
+          )}
+        </Box>
+      </Stack>
       {resumes.length > 0 && app.status !== "offer" && (
         <TextField
           select
@@ -445,6 +499,10 @@ export default function ApplicationBoard() {
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [liveMessage, setLiveMessage] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
+  const [bulkRejectDialogOpen, setBulkRejectDialogOpen] = useState(false);
+  const [bulkRejectReason, setBulkRejectReason] = useState("");
   const [resumes, setResumes] = useState<ResumeEntry[]>(() => getResumes());
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const [manageResumesOpen, setManageResumesOpen] = useState(false);
@@ -514,6 +572,26 @@ export default function ApplicationBoard() {
     }
   }, [detailDrawerOpen, selectedApplication]);
 
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.length === 0) return prev;
+      const validIds = new Set(applications.map((app) => app.id));
+      const next = prev.filter((id) => validIds.has(id));
+      if (next.length === prev.length && next.every((id, index) => id === prev[index])) {
+        return prev;
+      }
+      return next;
+    });
+  }, [applications]);
+
+  useEffect(() => {
+    if (selectedIds.length === 0) {
+      setLastSelectedId(null);
+      setBulkRejectDialogOpen(false);
+      setBulkRejectReason("");
+    }
+  }, [selectedIds.length]);
+
   const filters = useMemo<ApplicationFilters>(() => ({
     searchText: searchQuery,
     status: statusFilter,
@@ -525,6 +603,26 @@ export default function ApplicationBoard() {
   const filteredApplications = useMemo(
     () => filterApplications(applications, filters),
     [applications, filters],
+  );
+
+  const visibleAppIds = useMemo(
+    () => filteredApplications.map((app) => app.id),
+    [filteredApplications],
+  );
+
+  const selectedApplications = useMemo(() => {
+    if (selectedIds.length === 0) return [];
+    const idSet = new Set(selectedIds);
+    return applications.filter((app) => idSet.has(app.id));
+  }, [applications, selectedIds]);
+
+  const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+
+  const selectedCount = selectedApplications.length;
+
+  const canBulkReject = useMemo(
+    () => selectedApplications.some((app) => app.status !== "rejected"),
+    [selectedApplications],
   );
 
   const filtersApplied = useMemo(() => hasActiveFilters(filters), [filters]);
@@ -587,6 +685,133 @@ export default function ApplicationBoard() {
 
   const offerHistoryEntries = drawerApp?.offerHistory ?? [];
 
+  const handleToggleSelection = (
+    app: JobApplication,
+    checked?: boolean,
+    options?: { range?: boolean },
+  ) => {
+    const visibleSet = new Set(visibleAppIds);
+    let changedIds: string[] = [];
+    let shouldSelectValue = false;
+    const title = app.role.title || "Application";
+    setSelectedIds((prev) => {
+      const idSet = new Set(prev);
+      const isSelected = idSet.has(app.id);
+      const shouldSelect =
+        typeof checked === "boolean" ? checked : !isSelected;
+      shouldSelectValue = shouldSelect;
+      const applyChange = (id: string) => {
+        const currentlySelected = idSet.has(id);
+        if (shouldSelect && !currentlySelected) {
+          idSet.add(id);
+          changedIds.push(id);
+        } else if (!shouldSelect && currentlySelected) {
+          idSet.delete(id);
+          changedIds.push(id);
+        }
+      };
+
+      if (options?.range && lastSelectedId && lastSelectedId !== app.id) {
+        const startIndex = visibleAppIds.indexOf(lastSelectedId);
+        const endIndex = visibleAppIds.indexOf(app.id);
+        if (startIndex !== -1 && endIndex !== -1) {
+          const [start, end] =
+            startIndex < endIndex
+              ? [startIndex, endIndex]
+              : [endIndex, startIndex];
+          visibleAppIds.slice(start, end + 1).forEach(applyChange);
+        } else {
+          applyChange(app.id);
+        }
+      } else {
+        applyChange(app.id);
+      }
+
+      const orderedVisible = visibleAppIds.filter((id) => idSet.has(id));
+      const remaining = Array.from(idSet).filter((id) => !visibleSet.has(id));
+      const next = [...orderedVisible, ...remaining];
+      if (next.length === prev.length && next.every((id, index) => id === prev[index])) {
+        changedIds = [];
+        return prev;
+      }
+      return next;
+    });
+    setLastSelectedId(app.id);
+    if (changedIds.length > 0) {
+      if (changedIds.length === 1) {
+        setLiveMessage(
+          `${title} ${shouldSelectValue ? "selected" : "deselected"}`,
+        );
+      } else {
+        setLiveMessage(
+          shouldSelectValue
+            ? `${changedIds.length} applications selected`
+            : `${changedIds.length} applications deselected`,
+        );
+      }
+    }
+  };
+
+  const handleClearSelection = () => {
+    if (selectedIds.length === 0) return;
+    setSelectedIds([]);
+    setLastSelectedId(null);
+    setLiveMessage("Selection cleared");
+  };
+
+  const handleBulkStatusChange = (status: ApplicationStatus) => {
+    if (selectedCount === 0) return;
+    const updated = bulkUpdateJobApplicationStatus(selectedIds, status);
+    setApplications(updated);
+    const label = formatStatusLabel(status);
+    const countLabel = selectedCount === 1 ? "application" : "applications";
+    setLiveMessage(`Updated ${selectedCount} ${countLabel} to ${label}`);
+  };
+
+  const handleBulkResumeAssign = (resumeId?: string) => {
+    if (selectedCount === 0) return;
+    const countLabel = selectedCount === 1 ? "application" : "applications";
+    const resume = resumeId
+      ? resumes.find((entry) => entry.id === resumeId)
+      : undefined;
+    if (resumeId && !resume) return;
+    const updates: Partial<JobApplication> = resume
+      ? { resumeVariant: resume }
+      : { resumeVariant: undefined };
+    const updated = bulkUpdateJobApplications(selectedIds, updates);
+    setApplications(updated);
+    if (resume) {
+      setLiveMessage(`Assigned ${resume.title} to ${selectedCount} ${countLabel}`);
+    } else {
+      setLiveMessage(`Removed resume assignment from ${selectedCount} ${countLabel}`);
+    }
+  };
+
+  const handleOpenBulkReject = () => {
+    setBulkRejectDialogOpen(true);
+  };
+
+  const handleCancelBulkReject = () => {
+    setBulkRejectDialogOpen(false);
+    setBulkRejectReason("");
+  };
+
+  const handleConfirmBulkReject = () => {
+    if (selectedCount === 0) {
+      setBulkRejectDialogOpen(false);
+      setBulkRejectReason("");
+      return;
+    }
+    const reason = bulkRejectReason.trim();
+    const options = reason ? { reason } : undefined;
+    const updated = bulkUpdateJobApplicationStatus(selectedIds, "rejected", options);
+    setApplications(updated);
+    const countLabel = selectedCount === 1 ? "application" : "applications";
+    setLiveMessage(`Rejected ${selectedCount} ${countLabel}`);
+    setBulkRejectDialogOpen(false);
+    setBulkRejectReason("");
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -617,6 +842,11 @@ export default function ApplicationBoard() {
     e: React.KeyboardEvent<HTMLDivElement>,
     app: JobApplication,
   ) => {
+    if (e.key === " " && e.shiftKey) {
+      e.preventDefault();
+      handleToggleSelection(app, undefined, { range: true });
+      return;
+    }
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       if (activeId === app.id) {
@@ -1503,12 +1733,14 @@ export default function ApplicationBoard() {
                           onRunTile={(id, context) => runTile(id, context, app)}
                           onOpenWorkspace={handleOpenWorkspace}
                           onOpenDetails={handleOpenDetails}
+                          onToggleSelect={handleToggleSelection}
                           resumes={resumes}
                           onAssignResume={handleAssignResume}
                           onSetInterviewDate={handleInterviewDate}
                           onSetInterviewLocation={handleInterviewLocation}
                           onKeyDown={(e) => handleCardKeyDown(e, app)}
                           activeId={activeId}
+                          selected={selectedIdSet.has(app.id)}
                         />
                       ))}
                   </Column>
@@ -1518,6 +1750,114 @@ export default function ApplicationBoard() {
           </Stack>
         )}
       </DndContext>
+      {selectedCount > 0 && (
+        <Paper
+          component="section"
+          aria-label="Bulk application actions"
+          sx={{
+            position: "sticky",
+            bottom: 16,
+            mt: 3,
+            p: 2,
+            boxShadow: 6,
+            borderRadius: 2,
+            border: "1px solid",
+            borderColor: "divider",
+            zIndex: (theme) => theme.zIndex.appBar,
+          }}
+        >
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={2}
+            alignItems={{ xs: "stretch", md: "center" }}
+            useFlexGap
+            sx={{ flexWrap: "wrap" }}
+          >
+            <Typography variant="subtitle1">
+              {selectedCount}{" "}
+              {selectedCount === 1
+                ? "application selected"
+                : "applications selected"}
+            </Typography>
+            <TextField
+              select
+              label="Bulk status"
+              value=""
+              onChange={(event) => {
+                const value = event.target.value as ApplicationStatus | "";
+                if (value) {
+                  handleBulkStatusChange(value as ApplicationStatus);
+                }
+              }}
+              SelectProps={{
+                displayEmpty: true,
+                renderValue: (value) =>
+                  value
+                    ? formatStatusLabel(value as ApplicationStatus)
+                    : "Change status",
+              }}
+              sx={{ minWidth: { xs: "100%", md: 200 } }}
+            >
+              <MenuItem value="" disabled>
+                Change status
+              </MenuItem>
+              {STATUSES.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {formatStatusLabel(status)}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Assign resume"
+              value=""
+              onChange={(event) => {
+                const value = event.target.value as string;
+                if (!value) return;
+                if (value === "__clear__") {
+                  handleBulkResumeAssign();
+                } else {
+                  handleBulkResumeAssign(value);
+                }
+              }}
+              SelectProps={{
+                displayEmpty: true,
+                renderValue: (value) => {
+                  const typed = value as string;
+                  if (!typed) return "Assign resume";
+                  if (typed === "__clear__") return "Remove resume";
+                  const resume = resumes.find((entry) => entry.id === typed);
+                  return resume?.title ?? "Assign resume";
+                },
+              }}
+              sx={{ minWidth: { xs: "100%", md: 220 } }}
+            >
+              <MenuItem value="" disabled>
+                Assign resume
+              </MenuItem>
+              <MenuItem value="__clear__">Remove resume</MenuItem>
+              {resumes.map((resume) => (
+                <MenuItem key={resume.id} value={resume.id}>
+                  {resume.title}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handleOpenBulkReject}
+                disabled={!canBulkReject}
+              >
+                Reject Selected
+              </Button>
+              <Button variant="text" onClick={handleClearSelection}>
+                Clear
+              </Button>
+            </Stack>
+          </Stack>
+        </Paper>
+      )}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <DialogTitle>New Application</DialogTitle>
         <DialogContent>
@@ -1582,6 +1922,39 @@ export default function ApplicationBoard() {
           <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleAdd} disabled={!title || !company}>
             Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={bulkRejectDialogOpen} onClose={handleCancelBulkReject}>
+        <DialogTitle>
+          Reject {selectedCount === 1
+            ? "selected application"
+            : `${selectedCount} selected applications`}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This action will move every selected application to the rejected stage.
+            You can optionally provide a note that will be stored with each update.
+          </DialogContentText>
+          <TextField
+            label="Rejection reason (optional)"
+            value={bulkRejectReason}
+            onChange={(event) => setBulkRejectReason(event.target.value)}
+            fullWidth
+            multiline
+            minRows={3}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelBulkReject}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmBulkReject}
+            disabled={!canBulkReject}
+          >
+            Reject
           </Button>
         </DialogActions>
       </Dialog>

@@ -879,71 +879,128 @@ export function updateJobApplication(
   save("applications", updated);
   return updated;
 }
+
+function applyStatusUpdate(
+  app: JobApplication,
+  status: ApplicationStatus,
+  options?: { reason?: string; changedAt?: string },
+): JobApplication {
+  const opts = options ?? {};
+  const hasReasonOption = Object.prototype.hasOwnProperty.call(opts, "reason");
+  const rawReason = hasReasonOption ? opts.reason ?? "" : undefined;
+  const trimmedReason = rawReason?.trim();
+  const hasChangedAtOption = Object.prototype.hasOwnProperty.call(
+    opts,
+    "changedAt",
+  );
+  const changedAtValue = hasChangedAtOption ? opts.changedAt : undefined;
+
+  const parseChangedAt = (value?: string) => {
+    if (!value) return new Date();
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  };
+
+  const history = [...(app.history || [])];
+  const lastEntry = history[history.length - 1];
+
+  if (
+    lastEntry &&
+    lastEntry.status === status &&
+    (hasReasonOption || hasChangedAtOption)
+  ) {
+    const updatedEntry: StatusChange = {
+      ...lastEntry,
+      status,
+      changedAt: hasChangedAtOption
+        ? parseChangedAt(changedAtValue).toISOString()
+        : lastEntry.changedAt,
+    };
+    if (hasReasonOption) {
+      if (trimmedReason) {
+        updatedEntry.reason = trimmedReason;
+      } else {
+        delete updatedEntry.reason;
+      }
+    }
+    history[history.length - 1] = updatedEntry;
+    return { ...app, status, history };
+  }
+
+  const baseDate = hasChangedAtOption
+    ? parseChangedAt(changedAtValue)
+    : new Date();
+  const entry: StatusChange = {
+    status,
+    changedAt: baseDate.toISOString(),
+  };
+  if (trimmedReason) {
+    entry.reason = trimmedReason;
+  }
+  return { ...app, status, history: [...history, entry] };
+}
 export function updateJobApplicationStatus(
   id: string,
   status: ApplicationStatus,
   options?: { reason?: string; changedAt?: string },
 ): JobApplication[] {
-  const updated = getJobApplications().map((app) => {
-    if (app.id === id) {
-      const opts = options ?? {};
-      const hasReasonOption = Object.prototype.hasOwnProperty.call(opts, "reason");
-      const rawReason = hasReasonOption ? opts.reason ?? "" : undefined;
-      const trimmedReason = rawReason?.trim();
-      const hasChangedAtOption = Object.prototype.hasOwnProperty.call(
-        opts,
-        "changedAt",
-      );
-      const changedAtValue = hasChangedAtOption ? opts.changedAt : undefined;
-
-      const parseChangedAt = (value?: string) => {
-        if (!value) return new Date();
-        const parsed = new Date(value);
-        return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
-      };
-
-      const history = [...(app.history || [])];
-      const lastEntry = history[history.length - 1];
-
-      if (
-        lastEntry &&
-        lastEntry.status === status &&
-        (hasReasonOption || hasChangedAtOption)
-      ) {
-        const updatedEntry: StatusChange = {
-          ...lastEntry,
-          status,
-          changedAt: hasChangedAtOption
-            ? parseChangedAt(changedAtValue).toISOString()
-            : lastEntry.changedAt,
-        };
-        if (hasReasonOption) {
-          if (trimmedReason) {
-            updatedEntry.reason = trimmedReason;
-          } else {
-            delete updatedEntry.reason;
-          }
-        }
-        history[history.length - 1] = updatedEntry;
-        return { ...app, status, history };
-      }
-
-      const baseDate = hasChangedAtOption
-        ? parseChangedAt(changedAtValue)
-        : new Date();
-      const entry: StatusChange = {
-        status,
-        changedAt: baseDate.toISOString(),
-      };
-      if (trimmedReason) {
-        entry.reason = trimmedReason;
-      }
-      history.push(entry);
-      return { ...app, status, history };
-    }
-    return app;
-  });
+  const updated = getJobApplications().map((app) =>
+    app.id === id ? applyStatusUpdate(app, status, options) : app,
+  );
   save("applications", updated);
+  return updated;
+}
+export function bulkUpdateJobApplications(
+  ids: string[],
+  updates: Partial<JobApplication>,
+): JobApplication[] {
+  if (ids.length === 0) {
+    return getJobApplications();
+  }
+  const normalizedUpdates = Object.prototype.hasOwnProperty.call(
+    updates,
+    "offerHistory",
+  )
+    ? {
+        ...updates,
+        offerHistory: normalizeOfferHistoryEntries(updates.offerHistory).entries,
+      }
+    : updates;
+  const idSet = new Set(ids);
+  let changed = false;
+  const updated = getJobApplications().map((app) => {
+    if (!idSet.has(app.id)) {
+      return app;
+    }
+    changed = true;
+    return { ...app, ...normalizedUpdates };
+  });
+  if (changed) {
+    save("applications", updated);
+  }
+  return updated;
+}
+
+export function bulkUpdateJobApplicationStatus(
+  ids: string[],
+  status: ApplicationStatus,
+  options?: { reason?: string; changedAt?: string },
+): JobApplication[] {
+  if (ids.length === 0) {
+    return getJobApplications();
+  }
+  const idSet = new Set(ids);
+  let changed = false;
+  const updated = getJobApplications().map((app) => {
+    if (!idSet.has(app.id)) {
+      return app;
+    }
+    changed = true;
+    return applyStatusUpdate(app, status, options);
+  });
+  if (changed) {
+    save("applications", updated);
+  }
   return updated;
 }
 export function deleteJobApplication(id: string): JobApplication[] {
