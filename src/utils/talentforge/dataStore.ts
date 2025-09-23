@@ -39,6 +39,7 @@ import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply/templates";
 import type { PromptContext, TalentForgeGoalTag } from "./promptTypes";
 import { STATUSES } from "./keyboard";
 import { PROMPT_TILES } from "@/consts/promptTiles";
+import { storeSchemas } from "./schemas";
 
 export type UserProfile = User;
 
@@ -88,7 +89,7 @@ export interface CustomPromptTileInput
   id?: string;
 }
 
-interface StoreSchema {
+export interface StoreSchema {
   user: UserProfile | undefined;
   resumes: ResumeEntry[];
   messages: Message[];
@@ -128,6 +129,10 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   negotiationLibrary: "negotiationLibrary",
   customPromptTiles: "customPromptTiles",
 } as const;
+
+const STORAGE_KEY_TO_STORE_KEY: Record<string, keyof StoreSchema> = Object.fromEntries(
+  Object.entries(KEYS).map(([storeKey, storageKey]) => [storageKey, storeKey as keyof StoreSchema]),
+) as Record<string, keyof StoreSchema>;
 
 const LEGACY_GOALS_KEY = "talentforge-goal-selections";
 const KNOWN_GOAL_TAGS: readonly TalentForgeGoalTag[] = [
@@ -1107,7 +1112,18 @@ function load<K extends keyof StoreSchema>(
     VERSION[key],
     MIGRATORS[key],
   );
-  if (value !== undefined) return value;
+  if (value !== undefined) {
+    const schema = storeSchemas[key];
+    const parsed = schema.safeParse(value, key);
+    if (parsed.success) {
+      return parsed.data;
+    }
+    if (typeof fallback !== "undefined") {
+      save(key, fallback);
+    } else {
+      remove(key);
+    }
+  }
   return fallback;
 }
 
@@ -2606,6 +2622,7 @@ export function exportToJson(): string {
 
 export function importFromJson(json: string): void {
   if (typeof window === "undefined") return;
+  const errors: string[] = [];
   try {
     const parsed = JSON.parse(json) as
       | { version?: number; data?: Record<string, unknown> }
@@ -2626,26 +2643,43 @@ export function importFromJson(json: string): void {
     if (version < SNAPSHOT_VERSION) {
       data = migrateSnapshot(version, data);
     }
-    const validKeys = Object.values(KEYS) as string[];
-    for (const [key, value] of Object.entries(data)) {
-      if (validKeys.includes(key)) {
-        try {
-          const payload =
-            value && typeof value === "object" && "version" in (value as object)
-              ? (value as object)
-              : { version: 0, data: value };
-          window.localStorage.setItem(key, JSON.stringify(payload));
-        } catch {
-          // ignore write errors
+    for (const [storageKey, value] of Object.entries(data)) {
+      const storeKey = STORAGE_KEY_TO_STORE_KEY[storageKey];
+      if (!storeKey) {
+        continue;
+      }
+      const payload =
+        value && typeof value === "object" && value !== null && "data" in (value as Record<string, unknown>)
+          ? (value as { version?: number; data?: unknown })
+          : { version: 0, data: value };
+      const storedVersion =
+        payload && typeof payload.version === "number" ? payload.version : 0;
+      const rawData = (payload as { data?: unknown }).data;
+      try {
+        const migrated = MIGRATORS[storeKey](rawData, storedVersion);
+        const parsedValue = storeSchemas[storeKey].safeParse(migrated, storeKey);
+        if (!parsedValue.success) {
+          errors.push(`${storageKey}: ${parsedValue.errors.join(", ")}`);
+          continue;
         }
+        save(storeKey, parsedValue.data);
+      } catch (error) {
+        errors.push(
+          `${storageKey}: ${
+            error instanceof Error ? error.message : "unable to import entry"
+          }`,
+        );
       }
     }
-    // Trigger migrations for all known keys after importing
     for (const key of Object.keys(KEYS) as (keyof StoreSchema)[]) {
       load(key, DEFAULTS[key]);
     }
   } catch {
-    // ignore parse errors
+    window.alert("Unable to parse import data.");
+    return;
+  }
+  if (errors.length > 0) {
+    window.alert(`Some data could not be imported:\n${errors.join("\n")}`);
   }
 }
 

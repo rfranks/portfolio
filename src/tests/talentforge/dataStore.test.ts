@@ -20,6 +20,7 @@ import {
   getOffers,
   getJobApplications,
   updateJobApplication,
+  getMessages,
   getPipelineLayoutPreferences,
   savePipelineLayoutPreferences,
   PIPELINE_LAYOUT_VERSION,
@@ -28,6 +29,7 @@ import {
   addNegotiationLibraryEntry,
   updateNegotiationLibraryEntry,
   deleteNegotiationLibraryEntry,
+  SNAPSHOT_VERSION,
 } from "../../utils/talentforge/dataStore";
 import type { PipelineLayoutPreferences } from "../../utils/talentforge/dataStore";
 import { loadItem, saveItem } from "../../utils/storage";
@@ -127,9 +129,12 @@ function createOffer(
 describe("dataStore migrations", () => {
   beforeEach(() => {
     localStorage.clear();
+    (window as unknown as { alert: () => void }).alert =
+      typeof window.alert === "function" ? window.alert : () => {};
   });
 
   test("importFromJson migrates legacy snapshot", () => {
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
     const legacySnapshot = {
       version: 1,
       data: {
@@ -186,6 +191,8 @@ describe("dataStore migrations", () => {
     const goals = loadItem<string[]>("talentforge-goals", GOALS_VERSION)!;
     expect(goals).toEqual(["resume", "networking"]);
     expect(getGoals()).toEqual(["resume", "networking"]);
+    expect(alertSpy).not.toHaveBeenCalled();
+    alertSpy.mockRestore();
   });
 
   test("importFromJson populates connector snapshot defaults", () => {
@@ -490,8 +497,58 @@ describe("dataStore migrations", () => {
   });
 
   test("importFromJson ignores malformed json", () => {
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
     expect(() => importFromJson("{invalid")).not.toThrow();
+    expect(alertSpy).toHaveBeenCalled();
     expect(localStorage.length).toBe(0);
+    alertSpy.mockRestore();
+  });
+
+  test("getMessages falls back when stored data is invalid", () => {
+    window.localStorage.setItem(
+      "messages",
+      JSON.stringify({ version: MESSAGES_VERSION, data: { broken: true } }),
+    );
+
+    expect(getMessages()).toEqual([]);
+
+    const stored = window.localStorage.getItem("messages");
+    expect(stored).not.toBeNull();
+    const parsed = JSON.parse(stored!);
+    expect(parsed.data).toEqual([]);
+  });
+
+  test("importFromJson reports invalid records", () => {
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+    const snapshot = {
+      version: SNAPSHOT_VERSION,
+      data: {
+        messages: {
+          version: MESSAGES_VERSION,
+          data: [
+            {
+              id: 123,
+              threadId: "thread-1",
+              senderId: "sender-1",
+              sentAt: "2024-01-01T00:00:00.000Z",
+              body: "hello",
+              connector: "email",
+              status: "unread",
+              replies: [],
+            },
+          ],
+        },
+      },
+    };
+
+    importFromJson(JSON.stringify(snapshot));
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      expect.stringContaining("messages:"),
+    );
+    expect(getMessages()).toEqual([]);
+    expect(window.localStorage.getItem("messages")).toBeNull();
+    alertSpy.mockRestore();
   });
 
   test("current compensation save and load", () => {
