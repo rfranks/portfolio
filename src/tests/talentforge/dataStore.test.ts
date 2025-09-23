@@ -18,7 +18,11 @@ import {
   bulkUpdateJobApplicationStatus,
   bulkUpdateJobApplications,
   getJobApplications,
+  getPipelineLayoutPreferences,
+  savePipelineLayoutPreferences,
+  PIPELINE_LAYOUT_VERSION,
 } from "../../utils/talentforge/dataStore";
+import type { PipelineLayoutPreferences } from "../../utils/talentforge/dataStore";
 import { loadItem, saveItem } from "../../utils/storage";
 import type {
   ResumeEntry,
@@ -26,6 +30,7 @@ import type {
   LinkedInProfileSnapshot,
   JobApplication,
 } from "../../types";
+import { STATUSES } from "../../utils/talentforge/keyboard";
 
 interface Message {
   replies: { body: string }[];
@@ -327,6 +332,60 @@ describe("dataStore migrations", () => {
 
     saveLinkedInProfileSnapshot(snapshot);
     expect(getLinkedInProfileSnapshot()).toEqual(snapshot);
+  });
+
+  test("getPipelineLayoutPreferences returns defaults when empty", () => {
+    const prefs = getPipelineLayoutPreferences();
+    expect(prefs.order).toEqual(STATUSES);
+    expect(prefs.collapsed).toEqual([]);
+  });
+
+  test("savePipelineLayoutPreferences normalizes duplicates", () => {
+    const custom = {
+      order: [STATUSES[2], STATUSES[0], STATUSES[0]],
+      collapsed: [STATUSES[2], "unknown"],
+    } as unknown as PipelineLayoutPreferences;
+
+    const normalized = savePipelineLayoutPreferences(custom);
+
+    const expectedOrder = [
+      STATUSES[2],
+      STATUSES[0],
+      ...STATUSES.filter(
+        (status) => status !== STATUSES[2] && status !== STATUSES[0],
+      ),
+    ];
+    expect(normalized.order).toEqual(expectedOrder);
+    expect(normalized.collapsed).toEqual([STATUSES[2]]);
+
+    const stored = loadItem<PipelineLayoutPreferences>(
+      "pipelineLayout",
+      PIPELINE_LAYOUT_VERSION,
+    )!;
+    expect(stored).toEqual(normalized);
+  });
+
+  test("getPipelineLayoutPreferences migrates stored payload", () => {
+    saveItem(
+      "pipelineLayout",
+      { order: ["offer", "applied"], collapsed: ["offer", "invalid"] },
+      0,
+    );
+
+    const prefs = getPipelineLayoutPreferences();
+    expect(prefs.order[0]).toBe("offer");
+    expect(prefs.order).toEqual([
+      "offer",
+      "applied",
+      ...STATUSES.filter((status) => status !== "offer" && status !== "applied"),
+    ]);
+    expect(prefs.collapsed).toEqual(["offer"]);
+
+    const stored = loadItem<PipelineLayoutPreferences>(
+      "pipelineLayout",
+      PIPELINE_LAYOUT_VERSION,
+    )!;
+    expect(stored).toEqual(prefs);
   });
 
   test("setGoals saves normalized selections", () => {
