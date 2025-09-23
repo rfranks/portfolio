@@ -73,6 +73,9 @@ interface ApplicationDetailDrawerProps {
       notes?: string;
     },
   ) => void;
+  onSetInterviewDate: (id: string, value: string) => void;
+  onSetInterviewLocation: (id: string, value: string) => void;
+  onDownloadInterviewInvite: (application: JobApplication) => void;
   onUpdateRecruiters: (id: string, recruiters: RecruiterEntry[]) => void;
 }
 
@@ -149,6 +152,9 @@ export default function ApplicationDetailDrawer({
   onUpdateStatus,
   onSaveAction,
   onSaveDecision,
+  onSetInterviewDate,
+  onSetInterviewLocation,
+  onDownloadInterviewInvite,
   onUpdateRecruiters,
   promptDrawerOpen = false,
 }: ApplicationDetailDrawerProps) {
@@ -197,6 +203,19 @@ export default function ApplicationDetailDrawer({
       connected: Boolean(data.getConnectorToken(key)),
     }));
   }, [application, data]);
+
+  const interviewDateValue = application?.interviewDateTime
+    ? toDateTimeLocalValue(application.interviewDateTime) ||
+      application.interviewDateTime
+    : "";
+  const interviewLocationValue = application?.interviewLocation ?? "";
+  const interviewDateRaw =
+    typeof application?.interviewDateTime === "string"
+      ? application.interviewDateTime.trim()
+      : "";
+  const hasValidInterviewTime =
+    Boolean(interviewDateRaw) && !Number.isNaN(new Date(interviewDateRaw).getTime());
+  const canDownloadInvite = Boolean(application) && hasValidInterviewTime;
 
   const promptInitialValues = useMemo(() => {
     if (!application || promptContexts.length === 0) {
@@ -432,6 +451,23 @@ export default function ApplicationDetailDrawer({
 
   const handleReasonDraftChange = (event: ChangeEvent<HTMLInputElement>) => {
     setReasonDraft(event.target.value);
+  };
+
+  const handleInterviewDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (!application) return;
+    onSetInterviewDate(application.id, event.target.value);
+  };
+
+  const handleInterviewLocationChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (!application) return;
+    onSetInterviewLocation(application.id, event.target.value);
+  };
+
+  const handleDownloadInvite = () => {
+    if (!application) return;
+    onDownloadInterviewInvite(application);
   };
 
   const handleNextActionDraftChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -777,6 +813,50 @@ export default function ApplicationDetailDrawer({
                     </Button>
                   </Stack>
                 </Box>
+              </Box>
+            )}
+            {application && (
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  Interview details
+                </Typography>
+                <Stack spacing={2}>
+                  <TextField
+                    label="Interview time"
+                    type="datetime-local"
+                    size="small"
+                    value={interviewDateValue}
+                    onChange={handleInterviewDateChange}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={1}
+                    alignItems={{ xs: "stretch", sm: "flex-end" }}
+                  >
+                    <TextField
+                      label="Meeting URL/Location"
+                      size="small"
+                      value={interviewLocationValue}
+                      onChange={handleInterviewLocationChange}
+                      fullWidth
+                      sx={{ flexGrow: 1 }}
+                    />
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleDownloadInvite}
+                      disabled={!canDownloadInvite}
+                      sx={{
+                        alignSelf: { xs: "stretch", sm: "flex-end" },
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Download invite
+                    </Button>
+                  </Stack>
+                </Stack>
               </Box>
             )}
             {application && (
