@@ -12,6 +12,7 @@ import {
   getOpenAIKey,
   getConnectorSyncSnapshot,
   getLinkedInProfileSnapshot,
+  getPipelineLayoutPreferences,
 } from "./dataStore";
 
 export function exportSnapshot(): string {
@@ -31,5 +32,6 @@ export function importSnapshot(json: string): void {
   getOpenAIKey();
   getConnectorSyncSnapshot();
   getLinkedInProfileSnapshot();
+  getPipelineLayoutPreferences();
 }
 

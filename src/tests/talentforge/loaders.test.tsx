@@ -1,25 +1,135 @@
 import React from 'react';
-import { renderToString } from 'react-dom/server';
+import { renderToStaticMarkup } from 'react-dom/server';
 import Inbox from '@/components/talentforge/Inbox';
 import ApplicationBoard, {
   loadListingsWhenEmpty,
 } from '@/components/talentforge/ApplicationBoard';
 import type { JobApplication } from '@/types';
 
+jest.mock('@dnd-kit/core', () => ({
+  DndContext: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  useDraggable: () => ({
+    attributes: {},
+    listeners: {},
+    setNodeRef: jest.fn(),
+    transform: null,
+    isDragging: false,
+  }),
+  useDroppable: () => ({ setNodeRef: jest.fn() }),
+}));
+
+const { STATUSES } = jest.requireActual('@/utils/talentforge/keyboard');
+type Status = (typeof STATUSES)[number];
+
+const layoutPreferencesMock: { order: Status[]; collapsed: Status[] } = {
+  order: [...STATUSES],
+  collapsed: [],
+};
+
+let jobApplicationsMock: JobApplication[] = [];
+
+const normalizeLayout = (prefs: { order?: string[]; collapsed?: string[] }) => {
+  const order: Status[] = [];
+  const seen = new Set<Status>();
+  (prefs.order ?? []).forEach((entry) => {
+    const status = entry as Status;
+    if (STATUSES.includes(status) && !seen.has(status)) {
+      seen.add(status);
+      order.push(status);
+    }
+  });
+  STATUSES.forEach((status) => {
+    if (!seen.has(status)) {
+      seen.add(status);
+      order.push(status);
+    }
+  });
+  const collapsedSet = new Set<Status>();
+  (prefs.collapsed ?? []).forEach((entry) => {
+    const status = entry as Status;
+    if (STATUSES.includes(status)) {
+      collapsedSet.add(status);
+    }
+  });
+  const collapsed = order.filter((status) => collapsedSet.has(status));
+  return { order, collapsed };
+};
+
 jest.mock('@/utils/talentforge/dataStore', () => ({
   getResumes: jest.fn(() => []),
   addResume: jest.fn(),
-  getJobApplications: jest.fn(() => []),
-  addJobApplication: jest.fn(),
-  updateJobApplicationStatus: jest.fn(),
-  updateJobApplication: jest.fn(),
+  getJobApplications: jest.fn(() => jobApplicationsMock),
+  addJobApplication: jest.fn((app: JobApplication) => {
+    jobApplicationsMock = [...jobApplicationsMock, app];
+    return jobApplicationsMock;
+  }),
+  updateJobApplicationStatus: jest.fn((id: string, status: Status) => {
+    jobApplicationsMock = jobApplicationsMock.map((app) =>
+      app.id === id ? { ...app, status } : app,
+    );
+    return jobApplicationsMock;
+  }),
+  updateJobApplication: jest.fn(
+    (id: string, updates: Partial<JobApplication>) => {
+      jobApplicationsMock = jobApplicationsMock.map((app) =>
+        app.id === id ? { ...app, ...updates } : app,
+      );
+      return jobApplicationsMock;
+    },
+  ),
   getRecruiters: jest.fn(() => []),
   getThreads: jest.fn(() => []),
   getAutoReplyTemplates: jest.fn(() => ({})),
   linkThreadToRecruiter: jest.fn(),
   saveAutoReplyTemplates: jest.fn(),
   getCurrentCompensation: jest.fn(),
+  getPipelineLayoutPreferences: jest.fn(() => ({
+    order: [...layoutPreferencesMock.order],
+    collapsed: [...layoutPreferencesMock.collapsed],
+  })),
+  savePipelineLayoutPreferences: jest.fn(
+    (prefs: { order?: string[]; collapsed?: string[] }) => {
+      const normalized = normalizeLayout(prefs);
+      layoutPreferencesMock.order = [...normalized.order];
+      layoutPreferencesMock.collapsed = [...normalized.collapsed];
+      return { ...normalized };
+    },
+  ),
 }));
+
+beforeEach(() => {
+  layoutPreferencesMock.order = [...STATUSES];
+  layoutPreferencesMock.collapsed = [];
+  jobApplicationsMock = [];
+});
+
+const baseApplicant: JobApplication['applicant'] = {
+  id: 'applicant-1',
+  name: 'Test User',
+  email: 'test@example.com',
+};
+
+const baseRole = {
+  title: 'Engineer',
+  company: 'Acme',
+  location: 'Remote',
+  description: '',
+  source: 'site',
+  url: '',
+};
+
+function buildApplication(id: string, status: Status): JobApplication {
+  return {
+    id,
+    applicant: baseApplicant,
+    role: { ...baseRole, id: `role-${id}` },
+    status,
+    history: [{ status, changedAt: '2024-01-01T00:00:00.000Z' }],
+    recruiters: [],
+    threads: [],
+    offerHistory: [],
+  } as JobApplication;
+}
 
 jest.mock('@/contexts/TalentForgeDataContext', () => ({
   useTalentForgeData: () => ({
@@ -69,12 +179,12 @@ jest.mock('@/consts/promptTiles', () => ({ PROMPT_TILES: {} }));
 
 describe('Loader visuals', () => {
   test('Inbox initial render shows loader', () => {
-    const html = renderToString(<Inbox />);
+    const html = renderToStaticMarkup(<Inbox />);
     expect(html).toContain('aria-label="Loading inbox"');
   });
 
   test('ApplicationBoard initial render shows loader', () => {
-    const html = renderToString(<ApplicationBoard />);
+    const html = renderToStaticMarkup(<ApplicationBoard />);
     expect(html).toContain('aria-label="Loading applications"');
   });
 });
