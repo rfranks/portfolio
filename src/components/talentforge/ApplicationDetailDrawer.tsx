@@ -7,8 +7,15 @@ import {
   Button,
   Autocomplete,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Drawer,
   IconButton,
+  List,
+  ListItem,
+  ListItemText,
   Link,
   MenuItem,
   Stack,
@@ -16,6 +23,7 @@ import {
   StepLabel,
   Stepper,
   TextField,
+  Tooltip,
   Typography,
   Divider,
   Dialog,
@@ -24,7 +32,8 @@ import {
   DialogActions,
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
-import { Close } from "@mui/icons-material";
+import { Close, Delete, Download, Visibility } from "@mui/icons-material";
+import { v4 as uuid } from "uuid";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 import NextLink from "next/link";
@@ -32,6 +41,7 @@ import { useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 
 import type {
+  ApplicationAttachment,
   ApplicationStatus,
   JobApplication,
   OfferDecisionStatus,
@@ -45,6 +55,7 @@ import {
 } from "@/types";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import PromptTileGrid from "./promptTiles/PromptTileGrid";
+import FileUploader from "./FileUploader";
 import {
   getPromptTiles,
   type PromptContext,
@@ -64,6 +75,10 @@ interface ApplicationDetailDrawerProps {
   onSaveAction: (
     id: string,
     updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">>,
+  ) => void;
+  onUpdateAttachments: (
+    id: string,
+    attachments: ApplicationAttachment[],
   ) => void;
   onSaveDecision: (
     id: string,
@@ -151,6 +166,7 @@ export default function ApplicationDetailDrawer({
   onClose,
   onUpdateStatus,
   onSaveAction,
+  onUpdateAttachments,
   onSaveDecision,
   onSetInterviewDate,
   onSetInterviewLocation,
@@ -159,6 +175,10 @@ export default function ApplicationDetailDrawer({
   promptDrawerOpen = false,
 }: ApplicationDetailDrawerProps) {
   const data = useTalentForgeData();
+  const attachments = application?.attachments ?? [];
+  const [previewAttachment, setPreviewAttachment] =
+    useState<ApplicationAttachment | null>(null);
+  const [uploaderKey, setUploaderKey] = useState(0);
   const router = useRouter();
 
   const promptContexts = useMemo<PromptContext[]>(() => {
@@ -182,6 +202,187 @@ export default function ApplicationDetailDrawer({
       (marked.parse(application.role.description) as string) || "",
     );
   }, [application?.role.description]);
+
+  useEffect(() => {
+    setUploaderKey((key) => key + 1);
+    setPreviewAttachment(null);
+  }, [application?.id]);
+
+  const readFileAsBase64 = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        if (typeof result === "string") {
+          const separatorIndex = result.indexOf(",");
+          resolve(separatorIndex >= 0 ? result.slice(separatorIndex + 1) : result);
+        } else {
+          reject(new Error("Unable to read file"));
+        }
+      };
+      reader.onerror = () => reject(reader.error ?? new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+
+  const handleAttachmentUpload = (
+    value:
+      | File[]
+      | string
+      | { filename: string; type: string; content: string }
+      | undefined,
+  ) => {
+    if (!application || !Array.isArray(value) || value.length === 0) {
+      return;
+    }
+    const files = value;
+    const appId = application.id;
+    void Promise.all(
+      files.map((file) =>
+        readFileAsBase64(file).then((content) => ({
+          id: uuid(),
+          name: file.name,
+          mimeType: file.type || "application/octet-stream",
+          content,
+        })),
+      ),
+    )
+      .then((newAttachments) => {
+        if (newAttachments.length === 0) {
+          return;
+        }
+        const latestApp = data
+          .getJobApplications()
+          .find((entry) => entry.id === appId);
+        const baseAttachments = latestApp?.attachments ?? [];
+        onUpdateAttachments(appId, [...baseAttachments, ...newAttachments]);
+        setUploaderKey((key) => key + 1);
+      })
+      .catch(() => {
+        // Ignore file read errors
+      });
+  };
+
+  const handleDeleteAttachment = (attachmentId: string) => {
+    if (!application) {
+      return;
+    }
+    const latestApp = data
+      .getJobApplications()
+      .find((entry) => entry.id === application.id);
+    const baseAttachments = latestApp?.attachments ?? [];
+    const nextAttachments = baseAttachments.filter(
+      (attachment) => attachment.id !== attachmentId,
+    );
+    onUpdateAttachments(application.id, nextAttachments);
+    if (previewAttachment?.id === attachmentId) {
+      setPreviewAttachment(null);
+    }
+  };
+
+  const handlePreviewAttachment = (attachment: ApplicationAttachment) => {
+    setPreviewAttachment(attachment);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewAttachment(null);
+  };
+
+  const handleDownloadAttachment = (attachment: ApplicationAttachment) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    try {
+      const binary = window.atob(attachment.content);
+      const length = binary.length;
+      const bytes = new Uint8Array(length);
+      for (let i = 0; i < length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], {
+        type: attachment.mimeType || "application/octet-stream",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = attachment.name || "attachment";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch {
+      // Ignore download errors
+    }
+  };
+
+  const buildAttachmentDataUrl = (attachment: ApplicationAttachment) => {
+    const mimeType = attachment.mimeType || "application/octet-stream";
+    return `data:${mimeType};base64,${attachment.content}`;
+  };
+
+  const decodeBase64ToText = (value: string): string => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+    try {
+      const binary = window.atob(value);
+      if (typeof TextDecoder !== "undefined") {
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return new TextDecoder().decode(bytes);
+      }
+      return binary;
+    } catch {
+      return "";
+    }
+  };
+
+  const renderPreviewContent = (attachment: ApplicationAttachment) => {
+    const mimeType = attachment.mimeType || "application/octet-stream";
+    const dataUrl = buildAttachmentDataUrl(attachment);
+    if (mimeType.startsWith("image/")) {
+      return (
+        <Box
+          component="img"
+          src={dataUrl}
+          alt={attachment.name}
+          sx={{ maxWidth: "100%", maxHeight: 360, display: "block", mx: "auto" }}
+        />
+      );
+    }
+    if (mimeType === "application/pdf") {
+      return (
+        <Box
+          component="iframe"
+          src={dataUrl}
+          title={attachment.name}
+          sx={{ width: "100%", height: 360, border: 0 }}
+        />
+      );
+    }
+    if (
+      mimeType.startsWith("text/") ||
+      mimeType.includes("json") ||
+      mimeType.includes("+json") ||
+      mimeType.includes("xml")
+    ) {
+      const text = decodeBase64ToText(attachment.content);
+      return (
+        <Box
+          component="pre"
+          sx={{ whiteSpace: "pre-wrap", fontFamily: "monospace", m: 0 }}
+        >
+          {text || "Unable to display text preview."}
+        </Box>
+      );
+    }
+    return (
+      <Typography variant="body2" color="text.secondary">
+        Preview unavailable for this file type. Use the download option instead.
+      </Typography>
+    );
+  };
 
   const connectors = useMemo<ConnectorStatus[]>(() => {
     if (!application) return [];
@@ -657,7 +858,8 @@ export default function ApplicationDetailDrawer({
   };
 
   return (
-    <Drawer
+    <>
+      <Drawer
       anchor="right"
       open={open}
       onClose={onClose}
@@ -1025,6 +1227,77 @@ export default function ApplicationDetailDrawer({
             </Box>
             <Box>
               <Typography variant="subtitle2" gutterBottom>
+                Attachments
+              </Typography>
+              {application ? (
+                <Stack spacing={1.5}>
+                  {attachments.length > 0 ? (
+                    <List dense disablePadding>
+                      {attachments.map((attachment) => (
+                        <ListItem
+                          key={attachment.id}
+                          secondaryAction={
+                            <Stack direction="row" spacing={0.5}>
+                              <Tooltip title="Preview">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handlePreviewAttachment(attachment)}
+                                  aria-label={`Preview ${attachment.name}`}
+                                >
+                                  <Visibility fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Download">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDownloadAttachment(attachment)}
+                                  aria-label={`Download ${attachment.name}`}
+                                >
+                                  <Download fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDeleteAttachment(attachment.id)}
+                                  aria-label={`Delete ${attachment.name}`}
+                                >
+                                  <Delete fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          }
+                        >
+                          <ListItemText
+                            primary={attachment.name}
+                            secondary={attachment.mimeType}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No attachments uploaded yet.
+                    </Typography>
+                  )}
+                  <FileUploader
+                    key={`${application.id}-${uploaderKey}`}
+                    label="Upload attachments"
+                    variant="upload"
+                    outputType="files"
+                    limit={5}
+                    maxFileSize={10 * 1024 * 1024}
+                    onChange={handleAttachmentUpload}
+                  />
+                </Stack>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Select an application to manage attachments.
+                </Typography>
+              )}
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
                 Recruiter info
               </Typography>
               {linkedRecruiters.length > 0 ? (
@@ -1379,6 +1652,34 @@ export default function ApplicationDetailDrawer({
             disabled={!editingRecruiter}
           >
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={Boolean(previewAttachment)}
+        onClose={handleClosePreview}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>
+          {previewAttachment?.name ?? "Attachment preview"}
+        </DialogTitle>
+        <DialogContent dividers sx={{ minHeight: 200 }}>
+          {previewAttachment ? renderPreviewContent(previewAttachment) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePreview}>Close</Button>
+          <Button
+            onClick={() => {
+              if (previewAttachment) {
+                handleDownloadAttachment(previewAttachment);
+              }
+            }}
+            startIcon={<Download />}
+            variant="contained"
+            disabled={!previewAttachment}
+          >
+            Download
           </Button>
         </DialogActions>
       </Dialog>

@@ -37,6 +37,17 @@ export interface OfferHistoryEntry {
   content: string;
 }
 
+export interface ApplicationAttachment {
+  /** Unique identifier for this attachment. */
+  id: string;
+  /** Human readable filename for the attachment. */
+  name: string;
+  /** MIME type describing the attachment content. */
+  mimeType: string;
+  /** Base64 encoded content of the attachment. */
+  content: string;
+}
+
 export interface User {
   /** Unique identifier for the user. */
   id: string;
@@ -136,6 +147,8 @@ export interface ApplicationRecord {
   decision?: OfferDecision;
   /** Generated offer negotiations attached to this application. */
   offerHistory?: OfferHistoryEntry[];
+  /** Files associated with this application such as offer letters or notes. */
+  attachments?: ApplicationAttachment[];
 }
 
 export interface Recruiter {

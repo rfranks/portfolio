@@ -32,6 +32,7 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import {
+  AttachFile,
   Check,
   Close,
   Delete,
@@ -52,6 +53,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import type {
+  ApplicationAttachment,
   ApplicationStatus,
   JobApplication,
   OfferHistoryEntry,
@@ -428,6 +430,7 @@ function Card({
       : decisionStatus === "declined"
         ? "error"
         : "default";
+  const attachmentCount = app.attachments?.length ?? 0;
 
   const offerNegotiationTile = getPromptTile("offerNegotiation", {
     contexts: "offers",
@@ -531,7 +534,12 @@ function Card({
               Source: {app.role.source}
             </Typography>
           )}
-          <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ mt: 0.5, flexWrap: "wrap" }}
+            useFlexGap
+          >
             <Chip
               label={`Decision: ${decisionLabel}`}
               color={
@@ -544,6 +552,16 @@ function Card({
               }
               size="small"
             />
+            {attachmentCount > 0 && (
+              <Chip
+                icon={<AttachFile fontSize="small" />}
+                label={`${attachmentCount} ${
+                  attachmentCount === 1 ? "attachment" : "attachments"
+                }`}
+                size="small"
+                variant="outlined"
+              />
+            )}
           </Stack>
         </Box>
       </Stack>
@@ -1414,6 +1432,33 @@ export default function ApplicationBoard() {
     updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">>,
   ) => {
     applyReminderUpdates(appId, updates);
+  };
+
+  const handleDetailAttachmentsUpdate = (
+    appId: string,
+    attachments: ApplicationAttachment[],
+  ) => {
+    const previousCount =
+      applications.find((entry) => entry.id === appId)?.attachments?.length ?? 0;
+    const updated = updateJobApplication(appId, { attachments });
+    setApplications(updated);
+    const updatedApp = updated.find((entry) => entry.id === appId);
+    if (updatedApp) {
+      const nextCount = updatedApp.attachments?.length ?? 0;
+      const title = updatedApp.role.title || "Application";
+      if (nextCount > previousCount) {
+        const added = nextCount - previousCount;
+        const label = added === 1 ? "attachment added" : "attachments added";
+        setLiveMessage(`${added} ${label} to ${title}`);
+      } else if (nextCount < previousCount) {
+        const removed = previousCount - nextCount;
+        const label =
+          removed === 1 ? "attachment removed" : "attachments removed";
+        setLiveMessage(`${removed} ${label} from ${title}`);
+      } else {
+        setLiveMessage(`${title} attachments updated`);
+      }
+    }
   };
 
   const handleDetailRecruitersUpdate = (
@@ -2786,6 +2831,7 @@ export default function ApplicationBoard() {
         promptDrawerOpen={drawerOpen}
         onUpdateStatus={handleDetailStatusUpdate}
         onSaveAction={handleDetailActionUpdate}
+        onUpdateAttachments={handleDetailAttachmentsUpdate}
         onSaveDecision={handleDetailDecisionSave}
         onSetInterviewDate={handleInterviewDate}
         onSetInterviewLocation={handleInterviewLocation}
