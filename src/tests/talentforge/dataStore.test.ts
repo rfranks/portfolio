@@ -220,6 +220,39 @@ describe("dataStore migrations", () => {
     }
   });
 
+  test("getJobApplications normalizes reminder fields", () => {
+    const legacyApps: JobApplication[] = [
+      {
+        ...createApplication("legacy-1"),
+        nextAction: "  Call recruiter  ",
+        dueAt: " 2024-04-12T09:00:00Z ",
+      },
+      {
+        ...createApplication("legacy-2"),
+        nextAction: "",
+        dueAt: "invalid-date",
+      },
+    ];
+
+    saveItem("jobApplications", legacyApps, APPLICATIONS_VERSION - 1);
+
+    const applications = getJobApplications();
+    expect(applications).toHaveLength(2);
+    expect(applications[0].nextAction).toBe("Call recruiter");
+    expect(applications[0].dueAt).toBe("2024-04-12T09:00:00.000Z");
+    expect(applications[1].nextAction).toBeUndefined();
+    expect(applications[1].dueAt).toBeUndefined();
+
+    const stored = loadItem<JobApplication[]>(
+      "jobApplications",
+      APPLICATIONS_VERSION,
+    )!;
+    expect(stored[0].nextAction).toBe("Call recruiter");
+    expect(stored[0].dueAt).toBe("2024-04-12T09:00:00.000Z");
+    expect(stored[1].nextAction).toBeUndefined();
+    expect(stored[1].dueAt).toBeUndefined();
+  });
+
   test("importFromJson ignores unknown keys", () => {
     const snapshot = {
       messages: [

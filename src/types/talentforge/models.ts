@@ -89,6 +89,10 @@ export interface ApplicationRecord {
   role: RolePosting;
   /** Resume variant used for the application, if any. */
   resumeVariant?: ResumeEntry;
+  /** Next follow-up action to take for this application. */
+  nextAction?: string;
+  /** When the next action is due, stored as an ISO timestamp. */
+  dueAt?: string;
   /** Current status of the application. */
   status: ApplicationStatus;
   /** History of status changes for the application. */

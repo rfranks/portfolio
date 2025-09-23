@@ -24,6 +24,8 @@ import {
   ListItem,
   ListItemText,
   Checkbox,
+  Chip,
+  Tooltip,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Check, Close, Delete, Edit, ExpandMore } from "@mui/icons-material";
@@ -104,6 +106,27 @@ function formatStatusLabel(status: ApplicationStatus): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
+function toDateTimeLocalValue(iso?: string): string {
+  if (!iso) {
+    return "";
+  }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+function toIsoOrUndefined(value: string): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
 function Column({
   id,
   title,
@@ -155,6 +178,7 @@ function Card({
   onOpenWorkspace,
   onOpenDetails,
   onToggleSelect,
+  onQuickEditReminder,
   resumes,
   onAssignResume,
   onSetInterviewDate,
@@ -172,6 +196,7 @@ function Card({
     checked: boolean,
     options?: { range?: boolean },
   ) => void;
+  onQuickEditReminder: (app: JobApplication) => void;
   resumes: ResumeEntry[];
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
@@ -195,6 +220,21 @@ function Card({
   ]
     .filter(Boolean)
     .join(" ");
+
+  const dueDate = app.dueAt ? new Date(app.dueAt) : null;
+  const hasValidDue =
+    dueDate instanceof Date && !Number.isNaN(dueDate.getTime());
+  const isOverdue = hasValidDue ? dueDate.getTime() < Date.now() : false;
+  const dueLabel = hasValidDue
+    ? dueDate.toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : "";
+  const dueChipLabel = hasValidDue
+    ? `${isOverdue ? "Overdue" : "Due"}: ${dueLabel}`
+    : "";
+  const hasReminder = Boolean(app.nextAction) || hasValidDue;
 
   const offerNegotiationTile = getPromptTile("offerNegotiation", {
     contexts: "offers",
@@ -251,7 +291,6 @@ function Card({
       role="listitem"
       aria-roledescription="draggable"
       aria-grabbed={activeId === app.id}
-      aria-selected={selected}
       tabIndex={0}
       onKeyDown={onKeyDown}
       onPointerDownCapture={handlePointerDownCapture}
@@ -301,6 +340,39 @@ function Card({
           )}
         </Box>
       </Stack>
+      {hasReminder && (
+        <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mt: 1 }}>
+          <Stack spacing={0.5} sx={{ flexGrow: 1, minWidth: 0 }}>
+            {app.nextAction && (
+              <Typography variant="body2" color="text.primary">
+                {app.nextAction}
+              </Typography>
+            )}
+            {hasValidDue && dueChipLabel && (
+              <Chip
+                label={dueChipLabel}
+                color={isOverdue ? "error" : "default"}
+                size="small"
+                sx={{ alignSelf: "flex-start" }}
+              />
+            )}
+          </Stack>
+          <Tooltip title="Edit next action">
+            <IconButton
+              size="small"
+              color={isOverdue ? "error" : "default"}
+              onClick={(event) => {
+                event.stopPropagation();
+                onQuickEditReminder(app);
+              }}
+              onPointerDown={(event) => event.stopPropagation()}
+              aria-label="Edit next action"
+            >
+              <Edit fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      )}
       {resumes.length > 0 && app.status !== "offer" && (
         <TextField
           select
@@ -509,6 +581,10 @@ export default function ApplicationBoard() {
   const [compareOffersOpen, setCompareOffersOpen] = useState(false);
   const [editingHistoryId, setEditingHistoryId] = useState<string | null>(null);
   const [editingHistoryLabel, setEditingHistoryLabel] = useState("");
+  const [reminderEditorApp, setReminderEditorApp] =
+    useState<JobApplication | null>(null);
+  const [reminderNextAction, setReminderNextAction] = useState("");
+  const [reminderDue, setReminderDue] = useState("");
   const negotiationRef = useRef<HTMLDivElement | null>(null);
   const {
     downloadMarkdown: downloadNegotiationMarkdown,
@@ -527,6 +603,20 @@ export default function ApplicationBoard() {
       applications.find((application) => application.id === selectedApplicationId) || null
     );
   }, [applications, selectedApplicationId]);
+
+  const reminderInitialAction = reminderEditorApp?.nextAction ?? "";
+  const reminderInitialDue = reminderEditorApp?.dueAt
+    ? toDateTimeLocalValue(reminderEditorApp.dueAt)
+    : "";
+  const trimmedReminderAction = reminderNextAction.trim();
+  const reminderDueIso = toIsoOrUndefined(reminderDue);
+  const reminderDueError = Boolean(reminderDue) && !reminderDueIso;
+  const reminderHasActionChange =
+    trimmedReminderAction !== reminderInitialAction;
+  const reminderHasDueChange = reminderDue !== reminderInitialDue;
+  const reminderHasChanges = reminderHasActionChange || reminderHasDueChange;
+  const canSaveReminder =
+    Boolean(reminderEditorApp) && reminderHasChanges && !reminderDueError;
 
   useEffect(() => {
     const existing = getJobApplications();
@@ -890,6 +980,31 @@ export default function ApplicationBoard() {
     }
   };
 
+  const applyReminderUpdates = (
+    appId: string,
+    updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">>,
+  ) => {
+    const updated = updateJobApplication(appId, updates);
+    setApplications(updated);
+    const updatedApp = updated.find((entry) => entry.id === appId);
+    if (updatedApp) {
+      const hasReminder = Boolean(updatedApp.nextAction) || Boolean(updatedApp.dueAt);
+      setLiveMessage(
+        hasReminder
+          ? `${updatedApp.role.title} reminder updated`
+          : `${updatedApp.role.title} reminder cleared`,
+      );
+    }
+    return updated;
+  };
+
+  const handleDetailActionUpdate = (
+    appId: string,
+    updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">>,
+  ) => {
+    applyReminderUpdates(appId, updates);
+  };
+
   const handleOpenWorkspace = (app: JobApplication) => {
     setWorkspaceApp(app);
     setWorkspaceOpen(true);
@@ -904,6 +1019,54 @@ export default function ApplicationBoard() {
     setResumeCompareApp(null);
     setDrawerLoading(false);
     setRejectReason("");
+  };
+
+  const handleOpenReminderEditor = (app: JobApplication) => {
+    setReminderEditorApp(app);
+    setReminderNextAction(app.nextAction ?? "");
+    setReminderDue(app.dueAt ? toDateTimeLocalValue(app.dueAt) : "");
+  };
+
+  const handleCloseReminderEditor = () => {
+    setReminderEditorApp(null);
+    setReminderNextAction("");
+    setReminderDue("");
+  };
+
+  const handleReminderNextActionChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setReminderNextAction(event.target.value);
+  };
+
+  const handleReminderDueChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setReminderDue(event.target.value);
+  };
+
+  const handleReminderSave = () => {
+    if (!reminderEditorApp || !reminderHasChanges || reminderDueError) {
+      return;
+    }
+    const updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">> = {};
+    if (reminderHasActionChange) {
+      updates.nextAction = trimmedReminderAction
+        ? trimmedReminderAction
+        : undefined;
+    }
+    if (reminderHasDueChange) {
+      updates.dueAt = reminderDueIso;
+    }
+    if (Object.keys(updates).length > 0) {
+      applyReminderUpdates(reminderEditorApp.id, updates);
+    }
+    handleCloseReminderEditor();
+  };
+
+  const handleReminderReset = () => {
+    setReminderNextAction(reminderInitialAction);
+    setReminderDue(reminderInitialDue);
   };
 
   const handleCloseWorkspace = () => {
@@ -1734,6 +1897,7 @@ export default function ApplicationBoard() {
                           onOpenWorkspace={handleOpenWorkspace}
                           onOpenDetails={handleOpenDetails}
                           onToggleSelect={handleToggleSelection}
+                          onQuickEditReminder={handleOpenReminderEditor}
                           resumes={resumes}
                           onAssignResume={handleAssignResume}
                           onSetInterviewDate={handleInterviewDate}
@@ -1958,12 +2122,53 @@ export default function ApplicationBoard() {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog open={Boolean(reminderEditorApp)} onClose={handleCloseReminderEditor}>
+        <DialogTitle>Edit next action</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Next action"
+              value={reminderNextAction}
+              onChange={handleReminderNextActionChange}
+              fullWidth
+              multiline
+              minRows={2}
+              placeholder="Describe the next follow-up step"
+            />
+            <TextField
+              label="Due date"
+              type="datetime-local"
+              size="small"
+              value={reminderDue}
+              onChange={handleReminderDueChange}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              error={reminderDueError}
+              helperText={reminderDueError ? "Enter a valid date and time" : undefined}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseReminderEditor}>Cancel</Button>
+          <Button onClick={handleReminderReset} disabled={!reminderHasChanges}>
+            Reset
+          </Button>
+          <Button
+            onClick={handleReminderSave}
+            disabled={!canSaveReminder}
+            variant="contained"
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
       <ApplicationDetailDrawer
         open={detailDrawerOpen && Boolean(selectedApplication)}
         application={selectedApplication}
         onClose={handleCloseDetails}
         promptDrawerOpen={drawerOpen}
         onUpdateStatus={handleDetailStatusUpdate}
+        onSaveAction={handleDetailActionUpdate}
       />
       {drawerOpen && (
         <Drawer
