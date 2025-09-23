@@ -18,6 +18,22 @@ jest.mock('@dnd-kit/core', () => ({
   useDroppable: () => ({ setNodeRef: jest.fn() }),
 }));
 
+jest.mock('@/hooks/talentforge/useOpenAIKey', () => {
+  const mock = jest.fn(() => ({
+    hasKey: true,
+    isChecking: false,
+    modalOpen: false,
+    openModal: jest.fn(),
+    closeModal: jest.fn(),
+    refresh: jest.fn(),
+  }));
+  return {
+    __esModule: true,
+    default: mock,
+    useOpenAIKey: mock,
+  };
+});
+
 const { STATUSES } = jest.requireActual('@/utils/talentforge/keyboard');
 type Status = (typeof STATUSES)[number];
 
@@ -121,6 +137,7 @@ jest.mock('@/utils/talentforge/dataStore', () => ({
     negotiationLibraryMock = negotiationLibraryMock.filter((entry) => entry.id !== id);
     return negotiationLibraryMock;
   }),
+  getCustomPromptTiles: jest.fn(() => []),
 }));
 
 beforeEach(() => {
@@ -163,6 +180,11 @@ jest.mock('@/components/talentforge/OpenAIKeyModal', () => () => null);
 jest.mock('@/components/talentforge/FileUploader', () => () => null);
 jest.mock('@/components/talentforge/ResumeVariants/List', () => () => null);
 jest.mock('@/components/talentforge/offers/CompareOffers', () => () => null);
+jest.mock('react-markdown', () => ({ __esModule: true, default: () => null }));
+jest.mock('@/hooks/talentforge/useAIErrorHandler', () => ({
+  __esModule: true,
+  default: jest.fn(() => jest.fn(() => ({ message: '', isKeyIssue: false }))),
+}));
 jest.mock('@/utils/talentforge/tagging', () => ({ tagResume: jest.fn() }));
 jest.mock('@/utils/talentforge/utils', () => ({
   askOpenAI: jest.fn(),
@@ -276,5 +298,39 @@ describe('loadListingsWhenEmpty', () => {
     expect(secondAttempt.applications).toHaveLength(1);
     expect(secondAttempt.applications[0].id).toBe('app-1');
     expect(logger).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('screen role analysis badges', () => {
+  test('renders severity chips when analysis data is present', async () => {
+    jobApplicationsMock = [
+      {
+        id: 'app-1',
+        applicant: { id: 'candidate-1', name: 'Casey Candidate', email: 'casey@example.com' },
+        role: {
+          id: 'role-1',
+          title: 'Platform Engineer',
+          company: 'Innotech',
+          location: 'Remote',
+          description: 'Maintain core infrastructure.',
+          source: 'LinkedIn',
+        },
+        status: 'applied',
+        history: [{ status: 'applied', changedAt: '2024-01-01T00:00:00.000Z' }],
+        screenRoleAnalysis: {
+          summary: 'Solid role but clarify long-term support expectations.',
+          issues: [
+            { severity: 'red', message: 'Non-compete clause extends two years.' },
+            { severity: 'yellow', message: 'Undefined on-call compensation.' },
+          ],
+        },
+      },
+    ];
+
+    const html = renderToStaticMarkup(<ApplicationBoard />);
+
+    expect(html).toContain('Red flag');
+    expect(html).toContain('Caution');
+    expect(html).toContain('Solid role but clarify long-term support expectations.');
   });
 });

@@ -25,6 +25,7 @@ import type {
   OfferDecision,
   OfferDecisionStatus,
   RecruiterEntry,
+  ScreenRoleAnalysis,
   ConnectorSyncSnapshot,
   ConnectorSyncState,
   ConnectorSyncStatus,
@@ -175,7 +176,7 @@ export const USER_VERSION = 1;
 export const RESUMES_VERSION = 1;
 export const MESSAGES_VERSION = 2;
 export const OFFERS_VERSION = 3;
-export const APPLICATIONS_VERSION = 7;
+export const APPLICATIONS_VERSION = 8;
 export const RECRUITERS_VERSION = 1;
 export const ONBOARDING_VERSION = 1;
 export const OPENAI_VERSION = 1;
@@ -416,6 +417,7 @@ function migrateApplications(data: unknown, version: number): JobApplication[] {
     4: migrateApplicationDecisions,
     5: migrateApplicationAttachments,
     6: migrateApplicationActivities,
+    7: migrateScreenRoleAnalysis,
   });
 }
 
@@ -1640,6 +1642,64 @@ function normalizeOfferHistoryEntries(
     : { entries: history as OfferHistoryEntry[], changed: false };
 }
 
+function normalizeScreenRoleAnalysisValue(
+  value: JobApplication["screenRoleAnalysis"] | unknown,
+): { analysis?: ScreenRoleAnalysis; changed: boolean } {
+  if (typeof value === "undefined") {
+    return { analysis: undefined, changed: false };
+  }
+  if (!value || typeof value !== "object") {
+    return { analysis: undefined, changed: true };
+  }
+
+  const source = value as Record<string, unknown>;
+  const summaryRaw = source.summary;
+  const hasSummary = typeof summaryRaw === "string";
+  const trimmedSummary = hasSummary ? summaryRaw.trim() : undefined;
+  let changed = Boolean(summaryRaw) && (!hasSummary || trimmedSummary !== summaryRaw);
+
+  const issuesRaw = source.issues;
+  const issues: ScreenRoleAnalysis["issues"] = [];
+  if (Array.isArray(issuesRaw)) {
+    issuesRaw.forEach((entry) => {
+      if (!entry || typeof entry !== "object") {
+        changed = true;
+        return;
+      }
+      const record = entry as Record<string, unknown>;
+      const severityValue = record.severity;
+      const messageValue = record.message;
+      const severity =
+        severityValue === "red" || severityValue === "yellow"
+          ? severityValue
+          : undefined;
+      const trimmedMessage =
+        typeof messageValue === "string" ? messageValue.trim() : undefined;
+      if (severity && trimmedMessage) {
+        issues.push({ severity, message: trimmedMessage });
+        if (severityValue !== severity || messageValue !== trimmedMessage) {
+          changed = true;
+        }
+      } else {
+        changed = true;
+      }
+    });
+  } else if (typeof issuesRaw !== "undefined") {
+    changed = true;
+  }
+
+  const hasContent = Boolean(trimmedSummary) || issues.length > 0;
+  if (!hasContent) {
+    return { analysis: undefined, changed };
+  }
+
+  const analysis: ScreenRoleAnalysis = { issues };
+  if (trimmedSummary) {
+    analysis.summary = trimmedSummary;
+  }
+  return { analysis, changed };
+}
+
 const ACTIVITY_OUTCOME_SUCCESS: ApplicationActivity["outcome"] = "success";
 const ACTIVITY_OUTCOME_ERROR: ApplicationActivity["outcome"] = "error";
 
@@ -2040,6 +2100,32 @@ function migrateApplicationActivities(data: unknown): JobApplication[] {
   return changed ? migrated : (data as JobApplication[]);
 }
 
+function migrateScreenRoleAnalysis(data: unknown): JobApplication[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  let changed = false;
+  const migrated = (data as JobApplication[]).map((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return entry as JobApplication;
+    }
+    const record = entry as JobApplication & { screenRoleAnalysis?: unknown };
+    const { analysis, changed: analysisChanged } =
+      normalizeScreenRoleAnalysisValue(record.screenRoleAnalysis);
+    if (analysisChanged) {
+      changed = true;
+      if (analysis) {
+        return { ...record, screenRoleAnalysis: analysis } as JobApplication;
+      }
+      const clone = { ...record } as Partial<JobApplication>;
+      delete clone.screenRoleAnalysis;
+      return clone as JobApplication;
+    }
+    return record as JobApplication;
+  });
+  return changed ? migrated : (data as JobApplication[]);
+}
+
 function normalizeApplicationUpdates(
   updates: Partial<JobApplication>,
 ): Partial<JobApplication> {
@@ -2048,7 +2134,8 @@ function normalizeApplicationUpdates(
     Object.prototype.hasOwnProperty.call(updates, "nextAction") ||
     Object.prototype.hasOwnProperty.call(updates, "dueAt") ||
     Object.prototype.hasOwnProperty.call(updates, "attachments") ||
-    Object.prototype.hasOwnProperty.call(updates, "activities");
+    Object.prototype.hasOwnProperty.call(updates, "activities") ||
+    Object.prototype.hasOwnProperty.call(updates, "screenRoleAnalysis");
   if (!needsNormalization) {
     return updates;
   }
@@ -2071,6 +2158,11 @@ function normalizeApplicationUpdates(
   if (Object.prototype.hasOwnProperty.call(updates, "activities")) {
     normalized.activities = normalizeActivities(updates.activities).activities;
   }
+  if (Object.prototype.hasOwnProperty.call(updates, "screenRoleAnalysis")) {
+    normalized.screenRoleAnalysis = normalizeScreenRoleAnalysisValue(
+      updates.screenRoleAnalysis,
+    ).analysis;
+  }
   return normalized;
 }
 
@@ -2086,6 +2178,7 @@ function applyApplicationUpdates(
     const {
       attachments: attachmentUpdates,
       activities: activityUpdates,
+      screenRoleAnalysis: screenRoleAnalysisUpdate,
       ...otherUpdates
     } = normalizedUpdates;
     if (Object.keys(otherUpdates).length > 0) {
@@ -2111,6 +2204,25 @@ function applyApplicationUpdates(
         : [];
       if (!activitiesEqual(currentActivities, nextActivities)) {
         nextApp = { ...nextApp, activities: nextActivities } as JobApplication;
+      }
+    }
+    if (
+      Object.prototype.hasOwnProperty.call(
+        normalizedUpdates,
+        "screenRoleAnalysis",
+      )
+    ) {
+      if (typeof screenRoleAnalysisUpdate === "undefined") {
+        if ("screenRoleAnalysis" in nextApp) {
+          const clone = { ...nextApp } as Partial<JobApplication>;
+          delete clone.screenRoleAnalysis;
+          nextApp = clone as JobApplication;
+        }
+      } else {
+        nextApp = {
+          ...nextApp,
+          screenRoleAnalysis: screenRoleAnalysisUpdate as ScreenRoleAnalysis,
+        } as JobApplication;
       }
     }
   }
@@ -2198,6 +2310,19 @@ export function getJobApplications(): JobApplication[] {
       nextApp = { ...nextApp, attachments: normalizedAttachments };
     }
 
+    const { analysis: normalizedAnalysis, changed: analysisChanged } =
+      normalizeScreenRoleAnalysisValue(nextApp.screenRoleAnalysis);
+    if (analysisChanged) {
+      migrated = true;
+      if (normalizedAnalysis) {
+        nextApp = { ...nextApp, screenRoleAnalysis: normalizedAnalysis };
+      } else {
+        const clone = { ...nextApp } as Partial<JobApplication>;
+        delete clone.screenRoleAnalysis;
+        nextApp = clone as JobApplication;
+      }
+    }
+
     const hasActivityArray = Array.isArray(nextApp.activities);
     const { activities: normalizedActivities, changed: activitiesChanged } =
       normalizeActivities(nextApp.activities);
@@ -2224,6 +2349,8 @@ export function addJobApplication(app: JobApplication): JobApplication[] {
   const { values: reminderValues } = normalizeReminderFields(app);
   const { attachments } = normalizeAttachments(app.attachments);
   const { activities } = normalizeActivities(app.activities);
+  const { analysis: normalizedScreenRoleAnalysis } =
+    normalizeScreenRoleAnalysisValue(app.screenRoleAnalysis);
   const withHistory = {
     ...app,
     ...reminderValues,
@@ -2235,6 +2362,12 @@ export function addJobApplication(app: JobApplication): JobApplication[] {
     ],
     offerHistory,
   } as JobApplication;
+  if (normalizedScreenRoleAnalysis) {
+    withHistory.screenRoleAnalysis = normalizedScreenRoleAnalysis;
+  } else {
+    delete (withHistory as { screenRoleAnalysis?: ScreenRoleAnalysis })
+      .screenRoleAnalysis;
+  }
   const { application: normalized } = ensureApplicationDecision(withHistory);
   const updated = [...getJobApplications(), normalized];
   save("applications", updated);

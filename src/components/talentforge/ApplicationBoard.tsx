@@ -39,6 +39,7 @@ import {
   DragIndicator,
   Edit,
   ExpandMore,
+  MoreVert,
   UnfoldLess,
   UnfoldMore,
 } from "@mui/icons-material";
@@ -64,6 +65,7 @@ import type {
   Message,
   OfferDecisionStatus,
   RecruiterEntry,
+  ScreenRoleAnalysis,
 } from "@/types";
 import {
   OFFER_DECISION_DEFAULT_STATUS,
@@ -122,16 +124,6 @@ import { interviewToICS } from "@/utils/talentforge/interviewToICS";
 import { visuallyHidden } from "@mui/utils";
 import { createApplicationTileActivityRecorder } from "@/utils/talentforge/applicationActivities";
 
-interface Issue {
-  severity: "red" | "yellow";
-  message: string;
-}
-
-interface Analysis {
-  summary?: string;
-  issues: Issue[];
-}
-
 function formatOfferHistoryTimestamp(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -180,6 +172,46 @@ function arrayMove<T>(array: readonly T[], from: number, to: number): T[] {
   const [item] = next.splice(clampedFrom, 1);
   next.splice(clampedTo, 0, item);
   return next;
+}
+
+function normalizeScreenRoleAnalysisResponse(
+  value: unknown,
+): ScreenRoleAnalysis | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  const source = value as Record<string, unknown>;
+  const summaryRaw = source.summary;
+  const trimmedSummary =
+    typeof summaryRaw === "string" ? summaryRaw.trim() : undefined;
+  const issuesRaw = source.issues;
+  const issues: ScreenRoleAnalysis["issues"] = [];
+  if (Array.isArray(issuesRaw)) {
+    issuesRaw.forEach((entry) => {
+      if (!entry || typeof entry !== "object") {
+        return;
+      }
+      const record = entry as Record<string, unknown>;
+      const severity = record.severity;
+      const messageRaw = record.message;
+      const normalizedSeverity =
+        severity === "red" || severity === "yellow" ? severity : undefined;
+      const trimmedMessage =
+        typeof messageRaw === "string" ? messageRaw.trim() : undefined;
+      if (normalizedSeverity && trimmedMessage) {
+        issues.push({ severity: normalizedSeverity, message: trimmedMessage });
+      }
+    });
+  }
+  const hasSummary = Boolean(trimmedSummary);
+  if (!hasSummary && issues.length === 0) {
+    return null;
+  }
+  const analysis: ScreenRoleAnalysis = { issues };
+  if (hasSummary) {
+    analysis.summary = trimmedSummary;
+  }
+  return analysis;
 }
 
 type FetchListingsFn = typeof fetchAllListings;
@@ -371,6 +403,7 @@ function Card({
   onSetInterviewDate,
   onSetInterviewLocation,
   onDownloadInvite,
+  onOpenMenu,
   onKeyDown,
   activeId,
   selected,
@@ -390,6 +423,10 @@ function Card({
   onSetInterviewDate: (appId: string, value: string) => void;
   onSetInterviewLocation: (appId: string, value: string) => void;
   onDownloadInvite: (app: JobApplication) => void;
+  onOpenMenu: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    app: JobApplication,
+  ) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   activeId: string | null;
   selected: boolean;
@@ -440,6 +477,11 @@ function Card({
         ? "error"
         : "default";
   const attachmentCount = app.attachments?.length ?? 0;
+  const screenRoleAnalysis = app.screenRoleAnalysis;
+  const screenRoleSummary = screenRoleAnalysis?.summary?.trim();
+  const screenRoleIssues = screenRoleAnalysis?.issues ?? [];
+  const hasScreenRoleAnalysis =
+    Boolean(screenRoleSummary) || screenRoleIssues.length > 0;
 
   const offerNegotiationTile = getPromptTile("offerNegotiation", {
     contexts: "offers",
@@ -543,6 +585,41 @@ function Card({
               Source: {app.role.source}
             </Typography>
           )}
+          {hasScreenRoleAnalysis && (
+            <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+              {screenRoleSummary && (
+                <Typography variant="body2" color="text.secondary">
+                  {screenRoleSummary}
+                </Typography>
+              )}
+              {screenRoleIssues.length > 0 && (
+                <Stack
+                  direction="row"
+                  spacing={0.5}
+                  sx={{ flexWrap: "wrap", rowGap: 0.5 }}
+                  useFlexGap
+                >
+                  {screenRoleIssues.map((issue, idx) => {
+                    const label = issue.severity === "red" ? "Red flag" : "Caution";
+                    return (
+                      <Tooltip
+                        key={`${issue.severity}-${idx}-${issue.message}`}
+                        title={issue.message}
+                      >
+                        <Chip
+                          label={label}
+                          size="small"
+                          color={issue.severity === "red" ? "error" : "warning"}
+                          variant="filled"
+                          aria-label={`${label}: ${issue.message}`}
+                        />
+                      </Tooltip>
+                    );
+                  })}
+                </Stack>
+              )}
+            </Stack>
+          )}
           <Stack
             direction="row"
             spacing={1}
@@ -573,6 +650,16 @@ function Card({
             )}
           </Stack>
         </Box>
+        <Tooltip title="Application actions">
+          <IconButton
+            size="small"
+            aria-label="Application actions"
+            onClick={(event) => onOpenMenu(event, app)}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            <MoreVert fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </Stack>
       {hasReminder && (
         <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mt: 1 }}>
@@ -812,7 +899,8 @@ export default function ApplicationBoard() {
       data?: { compensation?: OfferComp[]; summary?: string[] };
     }[]
   >([]);
-  const [drawerAnalysis, setDrawerAnalysis] = useState<Analysis | null>(null);
+  const [drawerAnalysis, setDrawerAnalysis] =
+    useState<ScreenRoleAnalysis | null>(null);
   const [drawerMode, setDrawerMode] = useState<
     "chat" | "resumeCompare" | "offerUpload"
   >("chat");
@@ -821,6 +909,17 @@ export default function ApplicationBoard() {
     useState<OfferDecisionStatus>(OFFER_DECISION_DEFAULT_STATUS);
   const [drawerDecisionDate, setDrawerDecisionDate] = useState("");
   const [drawerDecisionNotes, setDrawerDecisionNotes] = useState("");
+  const [cardMenuAnchorEl, setCardMenuAnchorEl] =
+    useState<HTMLElement | null>(null);
+  const [cardMenuApp, setCardMenuApp] = useState<JobApplication | null>(null);
+  const cardMenuOpen = Boolean(cardMenuAnchorEl);
+  const cardMenuSummary =
+    cardMenuApp?.screenRoleAnalysis?.summary?.trim() ?? "";
+  const cardMenuIssuesCount =
+    cardMenuApp?.screenRoleAnalysis?.issues?.length ?? 0;
+  const cardMenuHasAnalysis =
+    Boolean(cardMenuSummary) || cardMenuIssuesCount > 0;
+  const cardMenuCanRefresh = Boolean(cardMenuApp?.role.description);
   const [resumeCompareApp, setResumeCompareApp] =
     useState<JobApplication | null>(null);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
@@ -1905,7 +2004,9 @@ export default function ApplicationBoard() {
     setDrawerTitle(tile.display);
     setDrawerTileId(tile.id);
     setDrawerMessages([]);
-    setDrawerAnalysis(null);
+    setDrawerAnalysis(
+      tileId === "screenRole" ? app.screenRoleAnalysis ?? null : null,
+    );
     setDrawerOpen(true);
     setDrawerApp(app);
     setDrawerPrompt("");
@@ -1948,10 +2049,21 @@ export default function ApplicationBoard() {
       if (tileId === "screenRole") {
         try {
           const parsed = JSON.parse(message);
-          setDrawerAnalysis({
-            summary: parsed.summary,
-            issues: Array.isArray(parsed.issues) ? parsed.issues : [],
-          });
+          const normalized = normalizeScreenRoleAnalysisResponse(parsed);
+          const updates = normalized
+            ? { screenRoleAnalysis: normalized }
+            : { screenRoleAnalysis: undefined };
+          const updated = updateJobApplication(app.id, updates);
+          const refreshed = syncApplicationReferences(updated, app.id);
+          const latestAnalysis = refreshed?.screenRoleAnalysis ?? null;
+          setDrawerAnalysis(latestAnalysis);
+          if (refreshed) {
+            setLiveMessage(
+              normalized
+                ? `${tile.display} saved for ${refreshed.role.title}`
+                : `${tile.display} cleared for ${refreshed.role.title}`,
+            );
+          }
         } catch {
           setDrawerMessages([{ role: "assistant", text: message }]);
         }
@@ -1967,7 +2079,11 @@ export default function ApplicationBoard() {
         context: `Unable to generate ${tile.display}.`,
         retry: () => runTile(tileId, context, app),
       });
-      setDrawerAnalysis(null);
+      if (tileId === "screenRole") {
+        setDrawerAnalysis(app.screenRoleAnalysis ?? null);
+      } else {
+        setDrawerAnalysis(null);
+      }
       setDrawerMessages((prev) => [
         ...prev,
         {
@@ -1980,6 +2096,42 @@ export default function ApplicationBoard() {
     } finally {
       setDrawerLoading(false);
     }
+  };
+
+  const handleOpenCardMenu = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    app: JobApplication,
+  ) => {
+    event.stopPropagation();
+    setCardMenuAnchorEl(event.currentTarget);
+    setCardMenuApp(app);
+  };
+
+  const handleCloseCardMenu = () => {
+    setCardMenuAnchorEl(null);
+    setCardMenuApp(null);
+  };
+
+  const handleRefreshCardAnalysis = () => {
+    if (!cardMenuApp) return;
+    const target = cardMenuApp;
+    handleCloseCardMenu();
+    void runTile("screenRole", "jobSearch", target);
+  };
+
+  const handleDismissCardAnalysis = () => {
+    if (!cardMenuApp) return;
+    const target = cardMenuApp;
+    handleCloseCardMenu();
+    const updated = updateJobApplication(target.id, {
+      screenRoleAnalysis: undefined,
+    });
+    const refreshed = syncApplicationReferences(updated, target.id);
+    if (drawerApp?.id === target.id) {
+      setDrawerAnalysis(null);
+    }
+    const messageTarget = refreshed?.role.title || target.role.title;
+    setLiveMessage(`Screen role analysis dismissed for ${messageTarget}`);
   };
 
   const handleAssignResume = (appId: string, resId: string) => {
@@ -2502,6 +2654,23 @@ export default function ApplicationBoard() {
       >
         {liveMessage}
       </Box>
+      <Menu
+        anchorEl={cardMenuAnchorEl}
+        open={cardMenuOpen}
+        onClose={handleCloseCardMenu}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem onClick={handleRefreshCardAnalysis} disabled={!cardMenuCanRefresh}>
+          Refresh analysis
+        </MenuItem>
+        <MenuItem
+          onClick={handleDismissCardAnalysis}
+          disabled={!cardMenuHasAnalysis}
+        >
+          Dismiss analysis
+        </MenuItem>
+      </Menu>
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
@@ -2806,6 +2975,7 @@ export default function ApplicationBoard() {
                           onSetInterviewDate={handleInterviewDate}
                           onSetInterviewLocation={handleInterviewLocation}
                           onDownloadInvite={handleDownloadInterviewInvite}
+                          onOpenMenu={(event) => handleOpenCardMenu(event, app)}
                           onKeyDown={(e) => handleCardKeyDown(e, app)}
                           activeId={activeId}
                           selected={selectedIdSet.has(app.id)}
