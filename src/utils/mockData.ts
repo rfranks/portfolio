@@ -77,6 +77,7 @@ export const mockApplications: ApplicationRecord[] = [
     status: "applied",
     history: [{ status: "applied", changedAt: new Date().toISOString() }],
     decision: { status: "undecided" },
+    activities: [],
   },
   {
     id: "app-2",
@@ -86,6 +87,7 @@ export const mockApplications: ApplicationRecord[] = [
     status: "interview",
     history: [{ status: "interview", changedAt: new Date().toISOString() }],
     decision: { status: "undecided" },
+    activities: [],
   },
 ];
 

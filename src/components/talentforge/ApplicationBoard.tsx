@@ -112,6 +112,7 @@ import {
 } from "@/utils/talentforge/applicationFilters";
 import { interviewToICS } from "@/utils/talentforge/interviewToICS";
 import { visuallyHidden } from "@mui/utils";
+import { createApplicationTileActivityRecorder } from "@/utils/talentforge/applicationActivities";
 
 interface Issue {
   severity: "red" | "yellow";
@@ -1626,6 +1627,7 @@ export default function ApplicationBoard() {
       resumeVariant: resume,
       status: "applied",
       history: [{ status: "applied", changedAt: new Date().toISOString() }],
+      activities: [],
     };
     const updated = addJobApplication(newApp);
     setApplications(updated);
@@ -1638,6 +1640,27 @@ export default function ApplicationBoard() {
     setSource("Company Site");
   };
 
+  const syncApplicationReferences = (
+    updated: JobApplication[],
+    appId: string,
+  ) => {
+    setApplications(updated);
+    const refreshed = updated.find((application) => application.id === appId) ?? null;
+    if (drawerApp?.id === appId) {
+      setDrawerApp(refreshed);
+    }
+    if (workspaceApp?.id === appId) {
+      setWorkspaceApp(refreshed);
+    }
+    if (resumeCompareApp?.id === appId) {
+      setResumeCompareApp(refreshed);
+    }
+    if (reminderEditorApp?.id === appId) {
+      setReminderEditorApp(refreshed);
+    }
+    return refreshed;
+  };
+
   const runTile = async (
     tileId: string,
     context: PromptContext,
@@ -1647,6 +1670,27 @@ export default function ApplicationBoard() {
     if (!tile) return;
     setWorkspaceOpen(false);
     setWorkspaceApp(null);
+    const activityRecorder = createApplicationTileActivityRecorder({
+      application: app,
+      tileId: tile.id,
+      tileLabel: tile.display,
+      onPersist: (updatedApps, updatedApplication) => {
+        const targetId = updatedApplication?.id ?? app.id;
+        syncApplicationReferences(updatedApps, targetId);
+      },
+    });
+    const describeTileError = (value: unknown): string => {
+      if (value instanceof Error && value.message) {
+        return value.message;
+      }
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (trimmed.length > 0) {
+          return trimmed;
+        }
+      }
+      return "An unexpected error occurred.";
+    };
     if (tileId === "resumeCompare") {
       if (resumes.length === 0) {
         setDrawerTitle(tile.display);
@@ -1732,6 +1776,18 @@ export default function ApplicationBoard() {
           ...prev,
           { role: "assistant", text: message },
         ]);
+        activityRecorder.recordSuccess();
+      } catch (error) {
+        const description = describeTileError(error);
+        setDrawerMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            text: `Unable to generate ${tile.display}. ${description}`,
+          },
+        ]);
+        setLiveMessage(`${tile.display} failed: ${description}`);
+        activityRecorder.recordError(error);
       } finally {
         setDrawerLoading(false);
       }
@@ -1777,6 +1833,17 @@ export default function ApplicationBoard() {
         const message = res?.message || "";
         // Wrap response with newlines so Markdown tables render properly
         setDrawerMessages([{ role: "assistant", text: `\n${message}\n` }]);
+        activityRecorder.recordSuccess();
+      } catch (error) {
+        const description = describeTileError(error);
+        setDrawerMessages([
+          {
+            role: "assistant",
+            text: `Unable to generate ${tile.display}. ${description}`,
+          },
+        ]);
+        setLiveMessage(`${tile.display} failed: ${description}`);
+        activityRecorder.recordError(error);
       } finally {
         setDrawerLoading(false);
       }
@@ -1841,6 +1908,19 @@ export default function ApplicationBoard() {
           { role: "assistant", text: message },
         ]);
       }
+      activityRecorder.recordSuccess();
+    } catch (error) {
+      const description = describeTileError(error);
+      setDrawerAnalysis(null);
+      setDrawerMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: `Unable to generate ${tile.display}. ${description}`,
+        },
+      ]);
+      setLiveMessage(`${tile.display} failed: ${description}`);
+      activityRecorder.recordError(error);
     } finally {
       setDrawerLoading(false);
     }

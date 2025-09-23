@@ -62,6 +62,7 @@ export function getDemoData(): {
     history: [
       { status: "applied", changedAt: new Date().toISOString() },
     ],
+    activities: [],
     recruiters: [],
     threads: [],
   };

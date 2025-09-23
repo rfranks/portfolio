@@ -42,6 +42,7 @@ import type {
   OfferDecisionStatus,
   RecruiterEntry,
   Message,
+  ApplicationActivityOutcome,
 } from "@/types";
 import {
   OFFER_DECISION_DEFAULT_STATUS,
@@ -120,6 +121,15 @@ const toDateTimeLocalValue = (iso: string): string => {
   const local = new Date(date.getTime() - offset * 60_000);
   return local.toISOString().slice(0, 16);
 };
+
+interface ActivityTimelineEntry {
+  id: string;
+  type: "ai" | "manual";
+  timestamp: string;
+  title: string;
+  description?: string;
+  outcome?: ApplicationActivityOutcome;
+}
 
 const toIsoFromLocalValue = (value: string): string => {
   if (!value) {
@@ -461,6 +471,10 @@ export default function ApplicationDetailDrawer({
 
   const latestHistoryEntry = history.length > 0 ? history[history.length - 1] : null;
 
+  const [activityFilters, setActivityFilters] = useState({
+    ai: true,
+    manual: true,
+  });
   const [statusDraft, setStatusDraft] = useState<ApplicationStatus>("applied");
   const [dateDraft, setDateDraft] = useState<string>(() =>
     toDateTimeLocalValue(new Date().toISOString()),
@@ -502,6 +516,57 @@ export default function ApplicationDetailDrawer({
       notes: decision?.notes ?? "",
     };
   }, [application]);
+
+  useEffect(() => {
+    setActivityFilters({ ai: true, manual: true });
+  }, [application?.id]);
+
+  const activityTimeline = useMemo<ActivityTimelineEntry[]>(() => {
+    if (!application) {
+      return [];
+    }
+    const manualEntries = (application.history ?? []).map((entry, index) => {
+      const reason =
+        typeof entry.reason === "string" && entry.reason.trim().length > 0
+          ? entry.reason.trim()
+          : undefined;
+      return {
+        id: `history-${entry.changedAt}-${entry.status}-${index}`,
+        type: "manual" as const,
+        timestamp: entry.changedAt,
+        title: `Status changed to ${formatStatusLabel(entry.status)}`,
+        description: reason,
+      } satisfies ActivityTimelineEntry;
+    });
+    const aiEntries = (application.activities ?? []).map((activity) => {
+      const summary = activity.summary?.trim() ?? "";
+      const errorText =
+        activity.outcome === "error" && activity.error
+          ? activity.error.trim()
+          : undefined;
+      return {
+        id: activity.id,
+        type: "ai" as const,
+        timestamp: activity.createdAt,
+        title: summary,
+        description: errorText && errorText.length > 0 ? errorText : undefined,
+        outcome: activity.outcome,
+      } satisfies ActivityTimelineEntry;
+    });
+    return [...manualEntries, ...aiEntries].sort((a, b) => {
+      const timeA = new Date(a.timestamp).getTime();
+      const timeB = new Date(b.timestamp).getTime();
+      return (Number.isNaN(timeB) ? 0 : timeB) - (Number.isNaN(timeA) ? 0 : timeA);
+    });
+  }, [application]);
+
+  const filteredActivityTimeline = useMemo(() => {
+    return activityTimeline.filter((entry) =>
+      entry.type === "ai" ? activityFilters.ai : activityFilters.manual,
+    );
+  }, [activityFilters.ai, activityFilters.manual, activityTimeline]);
+
+  const hasActivityTimeline = activityTimeline.length > 0;
 
   useEffect(() => {
     if (!application) {
@@ -567,6 +632,10 @@ export default function ApplicationDetailDrawer({
       allRecruiters.filter((recruiter) => !linkedRecruiterIds.includes(recruiter.id)),
     [allRecruiters, linkedRecruiterIds],
   );
+
+  const handleActivityFilterToggle = (type: "ai" | "manual") => {
+    setActivityFilters((prev) => ({ ...prev, [type]: !prev[type] }));
+  };
 
   const relatedThreads = useMemo(() => {
     if (!application) {
@@ -920,6 +989,100 @@ export default function ApplicationDetailDrawer({
         </Stack>
         <Box sx={{ flexGrow: 1, overflowY: "auto", mt: 2, pr: 1 }}>
           <Stack spacing={3} divider={<Divider flexItem />}>
+            {application && (
+              <Box>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  alignItems={{ xs: "flex-start", sm: "center" }}
+                  justifyContent="space-between"
+                >
+                  <Typography variant="subtitle2">Activity log</Typography>
+                  <Stack direction="row" spacing={1}>
+                    <Chip
+                      label="AI"
+                      size="small"
+                      color={activityFilters.ai ? "primary" : "default"}
+                      variant={activityFilters.ai ? "filled" : "outlined"}
+                      onClick={() => handleActivityFilterToggle("ai")}
+                    />
+                    <Chip
+                      label="Manual"
+                      size="small"
+                      color={activityFilters.manual ? "primary" : "default"}
+                      variant={activityFilters.manual ? "filled" : "outlined"}
+                      onClick={() => handleActivityFilterToggle("manual")}
+                    />
+                  </Stack>
+                </Stack>
+                {filteredActivityTimeline.length > 0 ? (
+                  <List dense disablePadding sx={{ mt: 1 }}>
+                    {filteredActivityTimeline.map((entry) => (
+                      <ListItem
+                        key={`${entry.type}-${entry.id}`}
+                        alignItems="flex-start"
+                        sx={{ px: 0, py: 1 }}
+                      >
+                        <ListItemText
+                          primary={
+                            <Stack
+                              direction={{ xs: "column", sm: "row" }}
+                              spacing={1}
+                              alignItems={{ xs: "flex-start", sm: "center" }}
+                            >
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {entry.title}
+                              </Typography>
+                              <Stack direction="row" spacing={0.5}>
+                                <Chip
+                                  label={entry.type === "ai" ? "AI" : "Manual"}
+                                  size="small"
+                                  variant="outlined"
+                                />
+                                {entry.type === "ai" && entry.outcome && (
+                                  <Chip
+                                    label={
+                                      entry.outcome === "error"
+                                        ? "Error"
+                                        : "Success"
+                                    }
+                                    size="small"
+                                    color={
+                                      entry.outcome === "error" ? "error" : "success"
+                                    }
+                                    variant={
+                                      entry.outcome === "error" ? "filled" : "outlined"
+                                    }
+                                  />
+                                )}
+                              </Stack>
+                            </Stack>
+                          }
+                          secondary={
+                            <Stack spacing={0.5}>
+                              <Typography variant="caption" color="text.secondary">
+                                {formatTimelineDate(entry.timestamp)}
+                              </Typography>
+                              {entry.description && (
+                                <Typography variant="body2" color="text.secondary">
+                                  {entry.description}
+                                </Typography>
+                              )}
+                            </Stack>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    {hasActivityTimeline
+                      ? "No activity matches the selected filters."
+                      : "No activity recorded yet."}
+                  </Typography>
+                )}
+              </Box>
+            )}
             {application && (
               <Box>
                 <Typography variant="subtitle2" gutterBottom>
