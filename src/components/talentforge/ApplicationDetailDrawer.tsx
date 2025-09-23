@@ -1679,6 +1679,6 @@ export default function ApplicationDetailDrawer({
         </DialogActions>
       </Dialog>
     </Drawer>
-    </>
+  </>
   );
 }
