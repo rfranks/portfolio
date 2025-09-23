@@ -17,7 +17,9 @@ import {
   saveLinkedInProfileSnapshot,
   bulkUpdateJobApplicationStatus,
   bulkUpdateJobApplications,
+  getOffers,
   getJobApplications,
+  updateJobApplication,
 } from "../../utils/talentforge/dataStore";
 import { loadItem, saveItem } from "../../utils/storage";
 import type {
@@ -25,6 +27,7 @@ import type {
   ConnectorSyncSnapshot,
   LinkedInProfileSnapshot,
   JobApplication,
+  Offer,
 } from "../../types";
 
 interface Message {
@@ -92,6 +95,20 @@ function createResume(
     importedAt: overrides.importedAt ?? "2024-01-01T00:00:00.000Z",
     ...overrides,
   } as ResumeEntry;
+}
+
+function createOffer(
+  id: string,
+  application: JobApplication,
+  overrides: Partial<Offer> = {},
+): Offer {
+  const base: Offer = {
+    id,
+    application,
+    compensation: [],
+    summary: [],
+  } as Offer;
+  return { ...base, ...overrides } as Offer;
 }
 
 describe("dataStore migrations", () => {
@@ -251,6 +268,189 @@ describe("dataStore migrations", () => {
     expect(stored[0].dueAt).toBe("2024-04-12T09:00:00.000Z");
     expect(stored[1].nextAction).toBeUndefined();
     expect(stored[1].dueAt).toBeUndefined();
+  });
+
+  test("getOffers normalizes decision data", () => {
+    const app = createApplication("offer-app");
+    const decidedAtInput = "2024-05-02T09:30:00-04:00";
+    const offers: Offer[] = [
+      createOffer("offer-1", app),
+      createOffer("offer-2", app, {
+        decision: {
+          status: "accepted",
+          decidedAt: decidedAtInput,
+          notes: "  Signed  ",
+        },
+      }),
+    ];
+
+    saveItem("offers", offers, OFFERS_VERSION);
+
+    const normalized = getOffers();
+    expect(normalized).toHaveLength(2);
+    expect(normalized[0].decision).toEqual({ status: "undecided" });
+    expect(normalized[1].decision).toEqual({
+      status: "accepted",
+      decidedAt: new Date(decidedAtInput).toISOString(),
+      notes: "Signed",
+    });
+
+    const storedOffers = loadItem<Offer[]>("offers", OFFERS_VERSION)!;
+    expect(storedOffers[0].decision?.status).toBe("undecided");
+    expect(storedOffers[1].decision).toEqual({
+      status: "accepted",
+      decidedAt: new Date(decidedAtInput).toISOString(),
+      notes: "Signed",
+    });
+  });
+
+  test("getJobApplications migrates decisions and syncs offers", () => {
+    const decidedAtInput = "2024-06-01T14:15:00-04:00";
+    const baseAppWithOffer = createApplication("app-with-offer");
+    const offerWithDecision = createOffer("offer-with-decision", baseAppWithOffer, {
+      decision: {
+        status: "declined",
+        decidedAt: decidedAtInput,
+        notes: "  Found another role ",
+      },
+    });
+    const baseAppWithoutDecision = createApplication("app-without-decision");
+
+    const legacyApps: JobApplication[] = [
+      { ...baseAppWithOffer, offer: offerWithDecision },
+      baseAppWithoutDecision,
+    ];
+
+    saveItem("jobApplications", legacyApps, APPLICATIONS_VERSION - 1);
+
+    const applications = getJobApplications();
+    expect(applications).toHaveLength(2);
+
+    const [withOffer, withoutOffer] = applications;
+
+    expect(withOffer.decision).toEqual({
+      status: "declined",
+      decidedAt: new Date(decidedAtInput).toISOString(),
+      notes: "Found another role",
+    });
+    expect(withOffer.offer?.decision).toEqual(withOffer.decision);
+
+    expect(withoutOffer.decision).toEqual({ status: "undecided" });
+    expect(withoutOffer.offer).toBeUndefined();
+
+    const storedApps = loadItem<JobApplication[]>(
+      "jobApplications",
+      APPLICATIONS_VERSION,
+    )!;
+    expect(storedApps[0].decision?.status).toBe("declined");
+    expect(storedApps[0].offer?.decision?.status).toBe("declined");
+    expect(storedApps[1].decision?.status).toBe("undecided");
+  });
+
+  test("updateJobApplication normalizes decision updates and syncs offer", () => {
+    const baseApp = createApplication("app-update");
+    const initialApp: JobApplication = {
+      ...baseApp,
+      decision: { status: "undecided" },
+      offer: createOffer("offer-update", baseApp, {
+        decision: { status: "undecided" },
+      }),
+    };
+
+    saveItem("jobApplications", [initialApp], APPLICATIONS_VERSION);
+
+    const decidedAtInput = "2024-07-04T08:00:00-04:00";
+    const updated = updateJobApplication("app-update", {
+      decision: {
+        status: "accepted",
+        decidedAt: decidedAtInput,
+        notes: "  Signed contract  ",
+      },
+    });
+
+    const target = updated.find((app) => app.id === "app-update");
+    expect(target?.decision).toEqual({
+      status: "accepted",
+      decidedAt: new Date(decidedAtInput).toISOString(),
+      notes: "Signed contract",
+    });
+    expect(target?.offer?.decision).toEqual(target?.decision);
+
+    const cleared = updateJobApplication("app-update", {
+      decision: { decidedAt: "", notes: "" },
+    }).find((app) => app.id === "app-update");
+
+    expect(cleared?.decision?.status).toBe("accepted");
+    expect(cleared?.decision?.decidedAt).toBeUndefined();
+    expect(cleared?.decision?.notes).toBeUndefined();
+    expect(cleared?.offer?.decision?.decidedAt).toBeUndefined();
+    expect(cleared?.offer?.decision?.notes).toBeUndefined();
+
+    const storedApps = loadItem<JobApplication[]>(
+      "jobApplications",
+      APPLICATIONS_VERSION,
+    )!;
+    const stored = storedApps.find((app) => app.id === "app-update");
+    expect(stored?.decision?.status).toBe("accepted");
+    expect(stored?.decision?.decidedAt).toBeUndefined();
+    expect(stored?.decision?.notes).toBeUndefined();
+  });
+
+  test("bulkUpdateJobApplications applies decision updates", () => {
+    const existingDecidedAt = "2024-08-01T10:00:00.000Z";
+    const bulkOneBase = createApplication("bulk-1");
+    const bulkTwoBase = createApplication("bulk-2");
+    const applications: JobApplication[] = [
+      {
+        ...bulkOneBase,
+        decision: { status: "undecided" },
+        offer: createOffer("offer-bulk-1", bulkOneBase, {
+          decision: { status: "undecided" },
+        }),
+      },
+      {
+        ...bulkTwoBase,
+        decision: {
+          status: "accepted",
+          decidedAt: existingDecidedAt,
+          notes: "Initial",
+        },
+        offer: createOffer("offer-bulk-2", bulkTwoBase, {
+          decision: {
+            status: "accepted",
+            decidedAt: existingDecidedAt,
+            notes: "Initial",
+          },
+        }),
+      },
+    ];
+
+    saveItem("jobApplications", applications, APPLICATIONS_VERSION);
+
+    const updated = bulkUpdateJobApplications(["bulk-1", "bulk-2"], {
+      decision: { status: "declined", notes: "  Moving on  " },
+    });
+
+    expect(updated.map((app) => app.decision?.status)).toEqual([
+      "declined",
+      "declined",
+    ]);
+    updated.forEach((app) => {
+      expect(app.decision?.notes).toBe("Moving on");
+      expect(app.offer?.decision?.status).toBe("declined");
+    });
+
+    const bulkTwo = updated.find((app) => app.id === "bulk-2");
+    expect(bulkTwo?.decision?.decidedAt).toBe(existingDecidedAt);
+
+    const storedApps = loadItem<JobApplication[]>(
+      "jobApplications",
+      APPLICATIONS_VERSION,
+    )!;
+    storedApps.forEach((app) => {
+      expect(app.decision?.status).toBe("declined");
+      expect(app.offer?.decision?.status).toBe("declined");
+    });
   });
 
   test("importFromJson ignores unknown keys", () => {

@@ -19,12 +19,18 @@ import type {
   ApplicationRecord,
   OfferHistoryEntry,
   OfferComp,
+  OfferDecision,
+  OfferDecisionStatus,
   RecruiterEntry,
   ConnectorSyncSnapshot,
   ConnectorSyncState,
   ConnectorSyncStatus,
   LinkedInProfileDetails,
   LinkedInProfileSnapshot,
+} from "@/types";
+import {
+  OFFER_DECISION_DEFAULT_STATUS,
+  OFFER_DECISION_STATUSES,
 } from "@/types";
 import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply/templates";
 import type { TalentForgeGoalTag } from "./promptRegistry";
@@ -86,8 +92,8 @@ const LEGACY_GOAL_SELECTIONS_VERSION = 1;
 export const USER_VERSION = 1;
 export const RESUMES_VERSION = 1;
 export const MESSAGES_VERSION = 2;
-export const OFFERS_VERSION = 2;
-export const APPLICATIONS_VERSION = 4;
+export const OFFERS_VERSION = 3;
+export const APPLICATIONS_VERSION = 5;
 export const RECRUITERS_VERSION = 1;
 export const ONBOARDING_VERSION = 1;
 export const OPENAI_VERSION = 1;
@@ -159,6 +165,7 @@ function migrateMessages(data: unknown, version: number): Message[] {
 function migrateOffers(data: unknown, version: number): Offer[] {
   return migrate<Offer[]>(data, version, OFFERS_VERSION, {
     0: migrateLegacyOffers,
+    2: migrateOfferDecisions,
   });
 }
 
@@ -166,6 +173,7 @@ function migrateApplications(data: unknown, version: number): JobApplication[] {
   return migrate<JobApplication[]>(data, version, APPLICATIONS_VERSION, {
     0: migrateLegacyApplications,
     3: migrateReminderFields,
+    4: migrateApplicationDecisions,
   });
 }
 
@@ -397,6 +405,232 @@ function normalizeGoalTags(value: unknown): TalentForgeGoalTag[] {
     }
   }
   return normalized;
+}
+
+function createDefaultDecision(): OfferDecision {
+  return { status: OFFER_DECISION_DEFAULT_STATUS };
+}
+
+function normalizeIsoTimestamp(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  const parsed = new Date(trimmed);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
+function isDecisionStatus(value: unknown): value is OfferDecisionStatus {
+  return (
+    typeof value === "string" &&
+    (OFFER_DECISION_STATUSES as readonly string[]).includes(value)
+  );
+}
+
+function normalizeDecisionValue(value: unknown): OfferDecision {
+  if (!value || typeof value !== "object") {
+    return createDefaultDecision();
+  }
+  const raw = value as Partial<OfferDecision>;
+  const status = isDecisionStatus(raw.status)
+    ? raw.status
+    : OFFER_DECISION_DEFAULT_STATUS;
+  const decidedAt = normalizeIsoTimestamp(raw.decidedAt);
+  const notes =
+    typeof raw.notes === "string" && raw.notes.trim().length > 0
+      ? raw.notes.trim()
+      : undefined;
+  const decision: OfferDecision = { status };
+  if (decidedAt) {
+    decision.decidedAt = decidedAt;
+  }
+  if (notes) {
+    decision.notes = notes;
+  }
+  return decision;
+}
+
+function mergeDecision(
+  current: OfferDecision | undefined,
+  updates: Partial<OfferDecision> | undefined,
+): OfferDecision {
+  const base = current ? normalizeDecisionValue(current) : createDefaultDecision();
+  if (!updates || typeof updates !== "object") {
+    return base;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, "status")) {
+    base.status = isDecisionStatus(updates.status)
+      ? updates.status
+      : OFFER_DECISION_DEFAULT_STATUS;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, "decidedAt")) {
+    const normalized = normalizeIsoTimestamp(updates.decidedAt);
+    if (normalized) {
+      base.decidedAt = normalized;
+    } else {
+      delete base.decidedAt;
+    }
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, "notes")) {
+    const trimmed =
+      typeof updates.notes === "string" ? updates.notes.trim() : "";
+    if (trimmed) {
+      base.notes = trimmed;
+    } else {
+      delete base.notes;
+    }
+  }
+  return base;
+}
+
+function decisionsEqual(
+  a: OfferDecision | undefined,
+  b: OfferDecision | undefined,
+): boolean {
+  if (!a && !b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  const normalizedA = normalizeDecisionValue(a);
+  const normalizedB = normalizeDecisionValue(b);
+  return (
+    normalizedA.status === normalizedB.status &&
+    normalizedA.decidedAt === normalizedB.decidedAt &&
+    normalizedA.notes === normalizedB.notes
+  );
+}
+
+function offersEqual(a?: Offer, b?: Offer): boolean {
+  if (!a && !b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  if (a.id !== b.id) {
+    return false;
+  }
+  const summaryA = Array.isArray(a.summary) ? a.summary : [];
+  const summaryB = Array.isArray(b.summary) ? b.summary : [];
+  if (summaryA.length !== summaryB.length) {
+    return false;
+  }
+  for (let i = 0; i < summaryA.length; i += 1) {
+    if (summaryA[i] !== summaryB[i]) {
+      return false;
+    }
+  }
+  const compA = Array.isArray(a.compensation) ? a.compensation : [];
+  const compB = Array.isArray(b.compensation) ? b.compensation : [];
+  if (compA.length !== compB.length) {
+    return false;
+  }
+  for (let i = 0; i < compA.length; i += 1) {
+    const entryA = compA[i];
+    const entryB = compB[i];
+    if (
+      entryA.type !== entryB.type ||
+      entryA.amount !== entryB.amount ||
+      (entryA.notes ?? undefined) !== (entryB.notes ?? undefined)
+    ) {
+      return false;
+    }
+  }
+  if (!decisionsEqual(a.decision, b.decision)) {
+    return false;
+  }
+  return true;
+}
+
+function ensureOfferDecision(
+  offer: Offer,
+  fallback?: OfferDecision,
+): { offer: Offer; changed: boolean } {
+  const fallbackNormalized = fallback
+    ? normalizeDecisionValue(fallback)
+    : undefined;
+  const targetDecision =
+    fallbackNormalized ??
+    (offer.decision ? normalizeDecisionValue(offer.decision) : undefined) ??
+    createDefaultDecision();
+  const original = offer.decision;
+  const changed =
+    !original ||
+    original.status !== targetDecision.status ||
+    original.decidedAt !== targetDecision.decidedAt ||
+    original.notes !== targetDecision.notes;
+  if (!changed && original) {
+    return { offer, changed: false };
+  }
+  return { offer: { ...offer, decision: targetDecision }, changed: true };
+}
+
+function ensureApplicationDecision(
+  app: JobApplication,
+): { application: JobApplication; changed: boolean } {
+  const current = app.decision ? normalizeDecisionValue(app.decision) : undefined;
+  const offerDecision =
+    app.offer && app.offer.decision
+      ? normalizeDecisionValue(app.offer.decision)
+      : undefined;
+  const decision = current ?? offerDecision ?? createDefaultDecision();
+  let changed =
+    !app.decision ||
+    app.decision.status !== decision.status ||
+    app.decision.decidedAt !== decision.decidedAt ||
+    app.decision.notes !== decision.notes;
+  let nextOffer = app.offer;
+  if (app.offer) {
+    const { offer: normalizedOffer, changed: offerChanged } = ensureOfferDecision(
+      app.offer,
+      decision,
+    );
+    if (offerChanged) {
+      nextOffer = normalizedOffer;
+      changed = true;
+    }
+  }
+  if (!changed) {
+    return { application: app, changed: false };
+  }
+  const updated: JobApplication = { ...app, decision };
+  if (nextOffer) {
+    updated.offer = nextOffer;
+  } else {
+    delete (updated as Partial<JobApplication>).offer;
+  }
+  return { application: updated, changed: true };
+}
+
+function migrateOfferDecisions(data: unknown): Offer[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return (data as Offer[]).map((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return entry as Offer;
+    }
+    const { offer: normalized } = ensureOfferDecision(entry as Offer);
+    return normalized;
+  });
+}
+
+function migrateApplicationDecisions(data: unknown): JobApplication[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return (data as JobApplication[]).map((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return entry as JobApplication;
+    }
+    const { application } = ensureApplicationDecision(entry as JobApplication);
+    return application;
+  });
 }
 
 function migrateGoals(data: unknown, version: number): TalentForgeGoalTag[] {
@@ -737,7 +971,19 @@ export function getOffers(): Offer[] {
               .map((line) => line.replace(/^\-\s*/, "").trim())
               .filter(Boolean)
           : [];
-      return { ...offer, summary: summaryLines };
+      const normalizedSummaryOffer = { ...offer, summary: summaryLines };
+      const { offer: withDecision, changed } = ensureOfferDecision(
+        normalizedSummaryOffer,
+      );
+      if (changed) {
+        return withDecision;
+      }
+      return normalizedSummaryOffer;
+    }
+    const { offer: normalizedOffer, changed } = ensureOfferDecision(offer);
+    if (changed) {
+      migrated = true;
+      return normalizedOffer;
     }
     return offer;
   });
@@ -747,12 +993,16 @@ export function getOffers(): Offer[] {
   return updated;
 }
 export function addOffer(offer: Offer): Offer[] {
-  const updated = [...getOffers(), offer];
+  const { offer: normalized } = ensureOfferDecision(offer);
+  const updated = [...getOffers(), normalized];
   save("offers", updated);
   return updated;
 }
 export function updateOffer(offer: Offer): Offer[] {
-  const updated = getOffers().map((o) => (o.id === offer.id ? offer : o));
+  const { offer: normalized } = ensureOfferDecision(offer);
+  const updated = getOffers().map((o) =>
+    o.id === normalized.id ? normalized : o,
+  );
   save("offers", updated);
   return updated;
 }
@@ -918,6 +1168,61 @@ function normalizeApplicationUpdates(
   return normalized;
 }
 
+function applyApplicationUpdates(
+  app: JobApplication,
+  updates: Partial<JobApplication>,
+): JobApplication {
+  const normalizedUpdates = normalizeApplicationUpdates(updates);
+  const hasNormalizedChanges =
+    normalizedUpdates && Object.keys(normalizedUpdates).length > 0;
+  let nextApp = hasNormalizedChanges
+    ? ({ ...app, ...normalizedUpdates } as JobApplication)
+    : app;
+
+  const hasDecisionUpdate = Object.prototype.hasOwnProperty.call(
+    updates,
+    "decision",
+  );
+  let decisionFallback: OfferDecision | undefined =
+    nextApp.decision ?? app.decision ?? app.offer?.decision;
+  if (hasDecisionUpdate) {
+    const mergedDecision = mergeDecision(
+      app.decision ?? app.offer?.decision,
+      updates.decision as Partial<OfferDecision>,
+    );
+    if (!decisionsEqual(nextApp.decision, mergedDecision)) {
+      nextApp = { ...nextApp, decision: mergedDecision } as JobApplication;
+    }
+    decisionFallback = mergedDecision;
+  }
+
+  const hasOfferUpdate = Object.prototype.hasOwnProperty.call(
+    updates,
+    "offer",
+  );
+  if (hasOfferUpdate) {
+    const rawOffer = updates.offer;
+    if (rawOffer && typeof rawOffer === "object") {
+      const { offer: normalizedOffer } = ensureOfferDecision(
+        rawOffer as Offer,
+        decisionFallback,
+      );
+      if (!offersEqual(nextApp.offer, normalizedOffer)) {
+        nextApp = { ...nextApp, offer: normalizedOffer } as JobApplication;
+      }
+    } else {
+      if (nextApp.offer) {
+        const clone = { ...nextApp } as Partial<JobApplication>;
+        delete clone.offer;
+        nextApp = clone as JobApplication;
+      }
+    }
+  }
+
+  const { application: aligned } = ensureApplicationDecision(nextApp);
+  return aligned;
+}
+
 export function getJobApplications(): JobApplication[] {
   const apps = load("applications", []);
   let migrated = false;
@@ -949,6 +1254,12 @@ export function getJobApplications(): JobApplication[] {
       nextApp = { ...nextApp, ...reminderValues };
     }
 
+    const { application: normalizedApp, changed: decisionChanged } =
+      ensureApplicationDecision(nextApp);
+    if (decisionChanged) {
+      migrated = true;
+      return normalizedApp;
+    }
     return nextApp;
   });
   if (migrated) {
@@ -968,7 +1279,8 @@ export function addJobApplication(app: JobApplication): JobApplication[] {
     ],
     offerHistory,
   } as JobApplication;
-  const updated = [...getJobApplications(), withHistory];
+  const { application: normalized } = ensureApplicationDecision(withHistory);
+  const updated = [...getJobApplications(), normalized];
   save("applications", updated);
   return updated;
 }
@@ -976,11 +1288,20 @@ export function updateJobApplication(
   id: string,
   updates: Partial<JobApplication>,
 ): JobApplication[] {
-  const normalizedUpdates = normalizeApplicationUpdates(updates);
-  const updated = getJobApplications().map((app) =>
-    app.id === id ? { ...app, ...normalizedUpdates } : app,
-  );
-  save("applications", updated);
+  let changed = false;
+  const updated = getJobApplications().map((app) => {
+    if (app.id !== id) {
+      return app;
+    }
+    const nextApp = applyApplicationUpdates(app, updates);
+    if (nextApp !== app) {
+      changed = true;
+    }
+    return nextApp;
+  });
+  if (changed) {
+    save("applications", updated);
+  }
   return updated;
 }
 
@@ -1061,15 +1382,17 @@ export function bulkUpdateJobApplications(
   if (ids.length === 0) {
     return getJobApplications();
   }
-  const normalizedUpdates = normalizeApplicationUpdates(updates);
   const idSet = new Set(ids);
   let changed = false;
   const updated = getJobApplications().map((app) => {
     if (!idSet.has(app.id)) {
       return app;
     }
-    changed = true;
-    return { ...app, ...normalizedUpdates };
+    const nextApp = applyApplicationUpdates(app, updates);
+    if (nextApp !== app) {
+      changed = true;
+    }
+    return nextApp;
   });
   if (changed) {
     save("applications", updated);

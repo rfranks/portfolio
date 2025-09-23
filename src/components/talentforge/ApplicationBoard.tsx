@@ -50,6 +50,12 @@ import type {
   Offer,
   OfferComp,
   Message,
+  OfferDecisionStatus,
+} from "@/types";
+import {
+  OFFER_DECISION_DEFAULT_STATUS,
+  OFFER_DECISION_STATUS_LABELS,
+  OFFER_DECISION_STATUSES,
 } from "@/types";
 import {
   addJobApplication,
@@ -111,6 +117,10 @@ function formatOfferHistoryTimestamp(value: string): string {
 
 function formatStatusLabel(status: ApplicationStatus): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+function formatDecisionStatus(status: OfferDecisionStatus): string {
+  return OFFER_DECISION_STATUS_LABELS[status] ?? status;
 }
 
 function toDateTimeLocalValue(iso?: string): string {
@@ -305,6 +315,17 @@ function Card({
     : "";
   const hasReminder = Boolean(app.nextAction) || hasValidDue;
 
+  const decision = app.decision ?? app.offer?.decision;
+  const decisionStatus =
+    decision?.status ?? OFFER_DECISION_DEFAULT_STATUS;
+  const decisionLabel = formatDecisionStatus(decisionStatus);
+  const decisionChipColor =
+    decisionStatus === "accepted"
+      ? "success"
+      : decisionStatus === "declined"
+        ? "error"
+        : "default";
+
   const offerNegotiationTile = getPromptTile("offerNegotiation", {
     contexts: "offers",
   });
@@ -407,6 +428,20 @@ function Card({
               Source: {app.role.source}
             </Typography>
           )}
+          <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+            <Chip
+              label={`Decision: ${decisionLabel}`}
+              color={
+                decisionChipColor === "default"
+                  ? "default"
+                  : decisionChipColor
+              }
+              variant={
+                decisionChipColor === "default" ? "outlined" : "filled"
+              }
+              size="small"
+            />
+          </Stack>
         </Box>
       </Stack>
       {hasReminder && (
@@ -632,6 +667,10 @@ export default function ApplicationBoard() {
     "chat" | "resumeCompare" | "offerUpload"
   >("chat");
   const [drawerApp, setDrawerApp] = useState<JobApplication | null>(null);
+  const [drawerDecisionStatus, setDrawerDecisionStatus] =
+    useState<OfferDecisionStatus>(OFFER_DECISION_DEFAULT_STATUS);
+  const [drawerDecisionDate, setDrawerDecisionDate] = useState("");
+  const [drawerDecisionNotes, setDrawerDecisionNotes] = useState("");
   const [resumeCompareApp, setResumeCompareApp] =
     useState<JobApplication | null>(null);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
@@ -676,6 +715,36 @@ export default function ApplicationBoard() {
     );
   }, [applications, selectedApplicationId]);
 
+  const drawerDecisionInitial = useMemo(() => {
+    if (!drawerApp) {
+      return {
+        status: OFFER_DECISION_DEFAULT_STATUS,
+        decidedAt: "",
+        notes: "",
+      };
+    }
+    const decision = drawerApp.decision ?? drawerApp.offer?.decision;
+    return {
+      status: decision?.status ?? OFFER_DECISION_DEFAULT_STATUS,
+      decidedAt: decision?.decidedAt
+        ? toDateTimeLocalValue(decision.decidedAt)
+        : "",
+      notes: decision?.notes ?? "",
+    };
+  }, [drawerApp]);
+
+  useEffect(() => {
+    if (!drawerApp) {
+      setDrawerDecisionStatus(OFFER_DECISION_DEFAULT_STATUS);
+      setDrawerDecisionDate("");
+      setDrawerDecisionNotes("");
+      return;
+    }
+    setDrawerDecisionStatus(drawerDecisionInitial.status);
+    setDrawerDecisionDate(drawerDecisionInitial.decidedAt);
+    setDrawerDecisionNotes(drawerDecisionInitial.notes);
+  }, [drawerApp, drawerDecisionInitial]);
+
   const reminderInitialAction = reminderEditorApp?.nextAction ?? "";
   const reminderInitialDue = reminderEditorApp?.dueAt
     ? toDateTimeLocalValue(reminderEditorApp.dueAt)
@@ -689,6 +758,16 @@ export default function ApplicationBoard() {
   const reminderHasChanges = reminderHasActionChange || reminderHasDueChange;
   const canSaveReminder =
     Boolean(reminderEditorApp) && reminderHasChanges && !reminderDueError;
+
+  const drawerDecisionDateIso = toIsoOrUndefined(drawerDecisionDate);
+  const drawerDecisionDateError =
+    Boolean(drawerDecisionDate) && !drawerDecisionDateIso;
+  const drawerDecisionHasChanges =
+    drawerDecisionStatus !== drawerDecisionInitial.status ||
+    drawerDecisionDate !== drawerDecisionInitial.decidedAt ||
+    drawerDecisionNotes !== drawerDecisionInitial.notes;
+  const canSaveDrawerDecision =
+    Boolean(drawerApp) && drawerDecisionHasChanges && !drawerDecisionDateError;
 
   const loadInitialApplications = useCallback(async () => {
     const existing = getJobApplications();
@@ -705,15 +784,7 @@ export default function ApplicationBoard() {
     setApplications(result.applications);
     setListingsError(result.error);
     setLoading(result.loading);
-  }, [
-    addJobApplication,
-    fetchAllListings,
-    getJobApplications,
-    loadListingsWhenEmpty,
-    setApplications,
-    setListingsError,
-    setLoading,
-  ]);
+  }, [setApplications, setListingsError, setLoading]);
 
   useEffect(() => {
     void loadInitialApplications();
@@ -1516,6 +1587,75 @@ export default function ApplicationBoard() {
     setApplications(updated);
   };
 
+  const applyDecisionUpdate = (
+    appId: string,
+    decision: {
+      status: OfferDecisionStatus;
+      decidedAt?: string;
+      notes?: string;
+    },
+  ) => {
+    const updated = updateJobApplication(appId, {
+      decision: {
+        status: decision.status,
+        decidedAt: decision.decidedAt,
+        notes: decision.notes,
+      },
+    });
+    setApplications(updated);
+    const refreshed =
+      updated.find((application) => application.id === appId) ?? null;
+    if (drawerApp?.id === appId) {
+      setDrawerApp(refreshed);
+    }
+    if (workspaceApp?.id === appId) {
+      setWorkspaceApp(refreshed);
+    }
+    if (resumeCompareApp?.id === appId) {
+      setResumeCompareApp(refreshed);
+    }
+    if (reminderEditorApp?.id === appId) {
+      setReminderEditorApp(refreshed);
+    }
+    return refreshed;
+  };
+
+  const handleDrawerDecisionStatusChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setDrawerDecisionStatus(event.target.value as OfferDecisionStatus);
+  };
+
+  const handleDrawerDecisionDateChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setDrawerDecisionDate(event.target.value);
+  };
+
+  const handleDrawerDecisionNotesChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setDrawerDecisionNotes(event.target.value);
+  };
+
+  const handleDrawerDecisionReset = () => {
+    setDrawerDecisionStatus(drawerDecisionInitial.status);
+    setDrawerDecisionDate(drawerDecisionInitial.decidedAt);
+    setDrawerDecisionNotes(drawerDecisionInitial.notes);
+  };
+
+  const handleDrawerDecisionSave = () => {
+    if (!drawerApp || drawerDecisionDateError || !drawerDecisionHasChanges) {
+      return;
+    }
+    applyDecisionUpdate(drawerApp.id, {
+      status: drawerDecisionStatus,
+      decidedAt: drawerDecisionDateIso,
+      notes: drawerDecisionNotes,
+    });
+    setLiveMessage("Offer decision saved");
+  };
+
   const handleOfferUpload = async (file: File) => {
     if (!drawerApp) return;
     setDrawerMessages([
@@ -1565,6 +1705,10 @@ export default function ApplicationBoard() {
         application: drawerApp,
         compensation: parsed.compensation || [],
         summary: summaryLines,
+        decision:
+          drawerApp.decision ?? drawerApp.offer?.decision ?? {
+            status: OFFER_DECISION_DEFAULT_STATUS,
+          },
       };
       const updated = updateJobApplication(drawerApp.id, { offer });
       setApplications(updated);
@@ -1577,6 +1721,18 @@ export default function ApplicationBoard() {
     } finally {
       setDrawerLoading(false);
     }
+  };
+
+  const handleDetailDecisionSave = (
+    appId: string,
+    decision: {
+      status: OfferDecisionStatus;
+      decidedAt?: string;
+      notes?: string;
+    },
+  ) => {
+    applyDecisionUpdate(appId, decision);
+    setLiveMessage("Offer decision saved");
   };
 
   const handleResumeCompareSelect = async (resId: string) => {
@@ -2366,6 +2522,7 @@ export default function ApplicationBoard() {
         promptDrawerOpen={drawerOpen}
         onUpdateStatus={handleDetailStatusUpdate}
         onSaveAction={handleDetailActionUpdate}
+        onSaveDecision={handleDetailDecisionSave}
       />
       {drawerOpen && (
         <Drawer
@@ -2437,6 +2594,69 @@ export default function ApplicationBoard() {
                     if (f) handleOfferUpload(f);
                   }}
                 />
+              )}
+              {drawerApp && (drawerApp.status === "offer" || drawerApp.offer) && (
+                <Box>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Offer Decision
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    <TextField
+                      label="Decision Status"
+                      select
+                      size="small"
+                      value={drawerDecisionStatus}
+                      onChange={handleDrawerDecisionStatusChange}
+                      fullWidth
+                    >
+                      {OFFER_DECISION_STATUSES.map((status) => (
+                        <MenuItem key={status} value={status}>
+                          {formatDecisionStatus(status)}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                    <TextField
+                      label="Decision Date"
+                      type="datetime-local"
+                      size="small"
+                      value={drawerDecisionDate}
+                      onChange={handleDrawerDecisionDateChange}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                      error={drawerDecisionDateError}
+                      helperText={
+                        drawerDecisionDateError
+                          ? "Enter a valid date and time"
+                          : undefined
+                      }
+                    />
+                    <TextField
+                      label="Decision Notes"
+                      value={drawerDecisionNotes}
+                      onChange={handleDrawerDecisionNotesChange}
+                      fullWidth
+                      multiline
+                      minRows={2}
+                      placeholder="Add optional notes about this decision"
+                    />
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
+                      <Button
+                        variant="contained"
+                        onClick={handleDrawerDecisionSave}
+                        disabled={!canSaveDrawerDecision}
+                      >
+                        Save decision
+                      </Button>
+                      <Button
+                        variant="text"
+                        onClick={handleDrawerDecisionReset}
+                        disabled={!drawerDecisionHasChanges}
+                      >
+                        Reset
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
               )}
               {drawerMessages.map((m, idx) => (
                 <Box

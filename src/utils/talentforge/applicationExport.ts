@@ -2,6 +2,11 @@ import type {
   ApplicationStatus,
   JobApplication,
   Recruiter,
+  OfferDecision,
+  OfferDecisionStatus,
+} from "@/types";
+import {
+  OFFER_DECISION_STATUS_LABELS,
 } from "@/types";
 
 const HEADERS = [
@@ -17,6 +22,9 @@ const HEADERS = [
   { key: "interviewLocation", label: "Interview Location" },
   { key: "offerSummary", label: "Offer Summary" },
   { key: "offerCompensation", label: "Offer Compensation" },
+  { key: "decisionStatus", label: "Decision Status" },
+  { key: "decisionDate", label: "Decision Date" },
+  { key: "decisionNotes", label: "Decision Notes" },
   { key: "source", label: "Source" },
   { key: "url", label: "Job URL" },
 ] as const;
@@ -43,6 +51,11 @@ export interface OfferDetailsSummary {
   id: string;
   summary: string[];
   compensation: OfferCompensationSummary[];
+  decision?: {
+    status: OfferDecisionStatus;
+    decidedAt?: string;
+    notes?: string;
+  };
 }
 
 export interface ApplicationExportRecord extends ApplicationExportRow {
@@ -50,6 +63,11 @@ export interface ApplicationExportRecord extends ApplicationExportRow {
   history: { status: string; changedAt: string; reason?: string }[];
   recruiterDetails: RecruiterSummary[];
   offerDetails?: OfferDetailsSummary;
+  decision?: {
+    status: OfferDecisionStatus;
+    decidedAt?: string;
+    notes?: string;
+  };
   resumeVariant?: { id: string; title: string };
   jobDescription?: string;
 }
@@ -64,6 +82,31 @@ const toIsoString = (value?: string): string => {
 
 const formatStatusLabel = (status: ApplicationStatus): string =>
   status.charAt(0).toUpperCase() + status.slice(1);
+
+const formatDecisionStatus = (status: OfferDecisionStatus): string =>
+  OFFER_DECISION_STATUS_LABELS[status] ?? status;
+
+const getDecision = (application: JobApplication): OfferDecision | undefined =>
+  application.decision ?? application.offer?.decision;
+
+const normalizeDecisionForExport = (
+  decision?: OfferDecision,
+): { status: OfferDecisionStatus; decidedAt?: string; notes?: string } | undefined => {
+  if (!decision) {
+    return undefined;
+  }
+  const result: { status: OfferDecisionStatus; decidedAt?: string; notes?: string } = {
+    status: decision.status,
+  };
+  const decidedAtIso = toIsoString(decision.decidedAt);
+  if (decidedAtIso) {
+    result.decidedAt = decidedAtIso;
+  }
+  if (decision.notes && decision.notes.trim().length > 0) {
+    result.notes = decision.notes.trim();
+  }
+  return result;
+};
 
 const summarizeRecruiters = (recruiters?: Recruiter[]): {
   names: string;
@@ -122,6 +165,8 @@ const summarizeOffer = (
     .filter((line) => line.trim().length > 0)
     .join("; ");
 
+  const decisionDetails = normalizeDecisionForExport(offer.decision);
+
   return {
     summaryText,
     compensationText,
@@ -129,6 +174,7 @@ const summarizeOffer = (
       id: offer.id,
       summary,
       compensation,
+      ...(decisionDetails ? { decision: decisionDetails } : {}),
     },
   };
 };
@@ -147,6 +193,12 @@ export const mapApplicationToRow = (
 ): ApplicationExportRow => {
   const { names, emails } = summarizeRecruiters(application.recruiters);
   const { summaryText, compensationText } = summarizeOffer(application.offer);
+  const decision = getDecision(application);
+  const decisionStatus = decision ? formatDecisionStatus(decision.status) : "";
+  const decisionDate = decision?.decidedAt
+    ? toIsoString(decision.decidedAt)
+    : "";
+  const decisionNotes = decision?.notes ? decision.notes.trim() : "";
 
   return {
     title: application.role.title ?? "",
@@ -161,6 +213,9 @@ export const mapApplicationToRow = (
     interviewLocation: application.interviewLocation ?? "",
     offerSummary: summaryText,
     offerCompensation: compensationText,
+    decisionStatus,
+    decisionDate,
+    decisionNotes,
     source: application.role.source ?? "",
     url: application.role.url ?? "",
   };
@@ -172,6 +227,7 @@ export const mapApplicationToRecord = (
   const row = mapApplicationToRow(application);
   const recruiterSummary = summarizeRecruiters(application.recruiters);
   const offerSummary = summarizeOffer(application.offer);
+  const decisionDetails = normalizeDecisionForExport(getDecision(application));
 
   const history = (application.history ?? []).map((entry) => {
     const formatted: { status: string; changedAt: string; reason?: string } = {
@@ -200,7 +256,14 @@ export const mapApplicationToRecord = (
         amount: comp.amount,
         ...(comp.notes ? { notes: comp.notes } : {}),
       })),
+      ...(offerSummary.details.decision
+        ? { decision: offerSummary.details.decision }
+        : {}),
     };
+  }
+
+  if (decisionDetails) {
+    record.decision = decisionDetails;
   }
 
   if (application.resumeVariant) {

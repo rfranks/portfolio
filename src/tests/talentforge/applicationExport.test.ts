@@ -51,6 +51,7 @@ describe('applicationExport', () => {
   const dueAt = '2024-03-06T09:00:00-05:00';
   const interviewAt = '2024-03-07T13:30:00-05:00';
 
+  const decisionAt = '2024-03-10T09:00:00-05:00';
   const application: JobApplication = {
     id: 'application-1',
     applicant,
@@ -70,6 +71,11 @@ describe('applicationExport', () => {
     recruiters: [recruiter],
     interviewDateTime: interviewAt,
     interviewLocation: 'Zoom',
+    decision: {
+      status: 'accepted',
+      decidedAt: decisionAt,
+      notes: 'Signed offer',
+    },
     offer: {
       id: 'offer-1',
       application: {} as JobApplication,
@@ -78,6 +84,11 @@ describe('applicationExport', () => {
         { type: 'bonus', amount: 15000 },
       ],
       summary: ['Initial offer'],
+      decision: {
+        status: 'accepted',
+        decidedAt: decisionAt,
+        notes: 'Signed offer',
+      },
     },
   };
 
@@ -109,6 +120,9 @@ describe('applicationExport', () => {
     expect(record.interviewLocation).toBe('Zoom');
     expect(record.offerSummary).toBe('Initial offer');
     expect(record.offerCompensation).toBe('base: 150000 (USD); bonus: 15000');
+    expect(record.decisionStatus).toBe('Accepted');
+    expect(record.decisionDate).toBe(new Date(decisionAt).toISOString());
+    expect(record.decisionNotes).toBe('Signed offer');
     expect(record.source).toBe('LinkedIn');
     expect(record.url).toBe('https://example.com/job');
   });
