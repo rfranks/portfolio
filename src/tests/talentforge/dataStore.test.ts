@@ -15,12 +15,16 @@ import {
   saveConnectorSyncSnapshot,
   getLinkedInProfileSnapshot,
   saveLinkedInProfileSnapshot,
+  bulkUpdateJobApplicationStatus,
+  bulkUpdateJobApplications,
+  getJobApplications,
 } from "../../utils/talentforge/dataStore";
 import { loadItem, saveItem } from "../../utils/storage";
 import type {
   ResumeEntry,
   ConnectorSyncSnapshot,
   LinkedInProfileSnapshot,
+  JobApplication,
 } from "../../types";
 
 interface Message {
@@ -31,8 +35,63 @@ interface Offer {
   compensation: { notes: string }[];
 }
 
-interface JobApplication {
+interface StoredJobApplication {
   role: { title: string };
+}
+
+const baseApplicant: JobApplication["applicant"] = {
+  id: "user-1",
+  name: "Test User",
+  email: "test@example.com",
+};
+
+const baseRole: JobApplication["role"] = {
+  id: "role-base",
+  title: "Sample Role",
+  company: "Acme Corp",
+  location: "Remote",
+  description: "Sample description",
+};
+
+function createApplication(
+  id: string,
+  overrides: Partial<JobApplication> = {},
+): JobApplication {
+  const status = overrides.status ?? "applied";
+  const history =
+    overrides.history ?? [{ status, changedAt: "2024-01-01T00:00:00.000Z" }];
+  return {
+    id,
+    applicant: overrides.applicant ?? baseApplicant,
+    role: { ...baseRole, id: `role-${id}`, ...(overrides.role ?? {}) },
+    status,
+    history,
+    ...overrides,
+  };
+}
+
+function createResume(
+  id: string,
+  overrides: Partial<ResumeEntry> = {},
+): ResumeEntry {
+  return {
+    id,
+    userId: overrides.userId ?? "user-1",
+    label: overrides.label ?? "Resume",
+    title: overrides.title ?? "Resume",
+    url: overrides.url ?? "",
+    content: overrides.content ?? "",
+    parsed:
+      overrides.parsed ?? {
+        contact: "",
+        experience: [],
+        education: [],
+        skills: [],
+      },
+    tags: overrides.tags ?? [],
+    importedAt: overrides.importedAt ?? "2024-01-01T00:00:00.000Z",
+    ...overrides,
+  } as ResumeEntry;
 }
 
 describe("dataStore migrations", () => {
@@ -87,7 +146,10 @@ describe("dataStore migrations", () => {
     expect(offers).toHaveLength(1);
     expect(offers[0].compensation[0].notes).toBe("100k");
 
-    const apps = loadItem<JobApplication[]>("jobApplications", APPLICATIONS_VERSION)!;
+    const apps = loadItem<StoredJobApplication[]>(
+      "jobApplications",
+      APPLICATIONS_VERSION,
+    )!;
     expect(apps).toHaveLength(1);
     expect(apps[0].role.title).toBe("Engineer");
 
@@ -256,5 +318,64 @@ describe("dataStore migrations", () => {
     const stored = loadItem<string[]>("talentforge-goals", GOALS_VERSION)!;
     expect(stored).toEqual(["networking", "search"]);
     expect(localStorage.getItem("talentforge-goal-selections")).toBeNull();
+  });
+
+  test("bulkUpdateJobApplicationStatus updates multiple records", () => {
+    const apps = [
+      createApplication("app-1"),
+      createApplication("app-2", {
+        status: "interview",
+        history: [
+          { status: "applied", changedAt: "2024-01-01T00:00:00.000Z" },
+          { status: "interview", changedAt: "2024-01-05T00:00:00.000Z" },
+        ],
+      }),
+    ];
+    saveItem("jobApplications", apps, APPLICATIONS_VERSION);
+
+    const updated = bulkUpdateJobApplicationStatus(
+      ["app-1", "app-2"],
+      "offer",
+      { reason: "Accepted" },
+    );
+
+    expect(updated.map((app) => app.status)).toEqual(["offer", "offer"]);
+    updated.forEach((app) => {
+      const last = app.history[app.history.length - 1];
+      expect(last.status).toBe("offer");
+      expect(last.reason).toBe("Accepted");
+    });
+
+    expect(getJobApplications()).toEqual(updated);
+  });
+
+  test("bulkUpdateJobApplications persists resume assignments", () => {
+    const apps = [createApplication("app-1"), createApplication("app-2")];
+    saveItem("jobApplications", apps, APPLICATIONS_VERSION);
+
+    const resume = createResume("resume-1", {
+      title: "Frontend Resume",
+      label: "Frontend Resume",
+    });
+
+    const assigned = bulkUpdateJobApplications(["app-1", "app-2"], {
+      resumeVariant: resume,
+    });
+
+    assigned.forEach((app) => {
+      expect(app.resumeVariant?.id).toBe("resume-1");
+    });
+
+    expect(getJobApplications()).toEqual(assigned);
+
+    const cleared = bulkUpdateJobApplications(["app-1"], {
+      resumeVariant: undefined,
+    });
+
+    const appOne = cleared.find((app) => app.id === "app-1");
+    const appTwo = cleared.find((app) => app.id === "app-2");
+    expect(appOne?.resumeVariant).toBeUndefined();
+    expect(appTwo?.resumeVariant?.id).toBe("resume-1");
+    expect(getJobApplications()).toEqual(cleared);
   });
 });
