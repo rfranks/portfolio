@@ -2671,16 +2671,15 @@ export function importFromJson(json: string): void {
   try {
     const parsed = JSON.parse(json) as SnapshotImportPayload;
     let version = 0;
-    let data: Record<string, unknown>;
+    let data: Record<string, unknown> = {};
     if (typeof parsed === "object" && parsed !== null && "data" in parsed) {
       version = typeof parsed.version === "number" ? parsed.version : 0;
       const rawData = parsed.data;
-      data = rawData && typeof rawData === "object" ? rawData : {};
-    } else {
-      data =
-        parsed && typeof parsed === "object"
-          ? (parsed as Record<string, unknown>)
-          : {};
+      if (rawData && typeof rawData === "object") {
+        data = { ...rawData };
+      }
+    } else if (parsed && typeof parsed === "object") {
+      data = parsed as Record<string, unknown>;
     }
     if (version < SNAPSHOT_VERSION) {
       data = migrateSnapshot(version, data);
