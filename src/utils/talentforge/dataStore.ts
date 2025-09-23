@@ -1,5 +1,6 @@
 "use client";
 
+import packageJson from "../../../package.json";
 import {
   loadItem,
   saveItem,
@@ -40,6 +41,11 @@ import type { PromptContext, TalentForgeGoalTag } from "./promptTypes";
 import { STATUSES } from "./keyboard";
 import { PROMPT_TILES } from "@/consts/promptTiles";
 import { storeSchemas } from "./schemas";
+
+export const APP_VERSION =
+  typeof packageJson?.version === "string" && packageJson.version.length > 0
+    ? packageJson.version
+    : "unknown";
 
 export type UserProfile = User;
 
@@ -2508,6 +2514,27 @@ export function saveLinkedInProfileSnapshot(
   save("linkedinProfileSnapshot", snapshot);
 }
 
+export interface SnapshotMetadata {
+  exportedAt: string;
+  appVersion: string;
+  notes?: string;
+}
+
+interface SnapshotPayload extends SnapshotMetadata {
+  version: number;
+  data: Record<string, unknown>;
+}
+
+type SnapshotImportPayload =
+  | (Partial<SnapshotMetadata> & { version?: number; data?: Record<string, unknown> })
+  | Record<string, unknown>;
+
+interface ExportOptions {
+  notes?: string;
+}
+
+export type SnapshotExportOptions = ExportOptions;
+
 // Export / Import
 function migrateSnapshot(
   fromVersion: number,
@@ -2601,9 +2628,23 @@ function migrateSnapshot(
   return migrated;
 }
 
-export function exportToJson(): string {
+export function exportToJson(options?: ExportOptions): string {
+  const metadata: SnapshotMetadata = {
+    exportedAt: new Date().toISOString(),
+    appVersion: APP_VERSION,
+  };
+  const trimmedNotes = options?.notes?.trim();
+  if (trimmedNotes) {
+    metadata.notes = trimmedNotes;
+  }
+
   if (typeof window === "undefined") {
-    return JSON.stringify({ version: SNAPSHOT_VERSION, data: {} });
+    const payload: SnapshotPayload = {
+      version: SNAPSHOT_VERSION,
+      data: {},
+      ...metadata,
+    };
+    return JSON.stringify(payload);
   }
   const data: Record<string, unknown> = {};
   for (const key of Object.values(KEYS)) {
@@ -2616,7 +2657,11 @@ export function exportToJson(): string {
       }
     }
   }
-  const payload = { version: SNAPSHOT_VERSION, data };
+  const payload: SnapshotPayload = {
+    version: SNAPSHOT_VERSION,
+    data,
+    ...metadata,
+  };
   return JSON.stringify(payload, null, 2);
 }
 
@@ -2624,21 +2669,18 @@ export function importFromJson(json: string): void {
   if (typeof window === "undefined") return;
   const errors: string[] = [];
   try {
-    const parsed = JSON.parse(json) as
-      | { version?: number; data?: Record<string, unknown> }
-      | Record<string, unknown>;
+    const parsed = JSON.parse(json) as SnapshotImportPayload;
     let version = 0;
     let data: Record<string, unknown>;
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      "data" in parsed &&
-      "version" in parsed
-    ) {
+    if (typeof parsed === "object" && parsed !== null && "data" in parsed) {
       version = typeof parsed.version === "number" ? parsed.version : 0;
-      data = (parsed as { data: Record<string, unknown> }).data;
+      const rawData = parsed.data;
+      data = rawData && typeof rawData === "object" ? rawData : {};
     } else {
-      data = parsed as Record<string, unknown>;
+      data =
+        parsed && typeof parsed === "object"
+          ? (parsed as Record<string, unknown>)
+          : {};
     }
     if (version < SNAPSHOT_VERSION) {
       data = migrateSnapshot(version, data);
