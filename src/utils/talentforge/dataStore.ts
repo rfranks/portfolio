@@ -17,6 +17,7 @@ import type {
   MessageReply,
   Offer,
   ApplicationRecord,
+  ApplicationAttachment,
   OfferHistoryEntry,
   OfferComp,
   OfferDecision,
@@ -101,7 +102,7 @@ export const USER_VERSION = 1;
 export const RESUMES_VERSION = 1;
 export const MESSAGES_VERSION = 2;
 export const OFFERS_VERSION = 3;
-export const APPLICATIONS_VERSION = 5;
+export const APPLICATIONS_VERSION = 6;
 export const RECRUITERS_VERSION = 1;
 export const ONBOARDING_VERSION = 1;
 export const OPENAI_VERSION = 1;
@@ -131,7 +132,7 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   pipelineLayout: PIPELINE_LAYOUT_VERSION,
 } as const;
 
-export const SNAPSHOT_VERSION = 8;
+export const SNAPSHOT_VERSION = 9;
 
 // Generic migration helper which applies migrations sequentially until the
 // data reaches `targetVersion`.
@@ -184,6 +185,7 @@ function migrateApplications(data: unknown, version: number): JobApplication[] {
     0: migrateLegacyApplications,
     3: migrateReminderFields,
     4: migrateApplicationDecisions,
+    5: migrateApplicationAttachments,
   });
 }
 
@@ -1218,6 +1220,139 @@ function normalizeReminderFields(
   return { values: normalized, changed };
 }
 
+function normalizeAttachmentEntry(value: unknown): ApplicationAttachment | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  const candidate = value as Partial<ApplicationAttachment> &
+    Record<string, unknown>;
+
+  const rawId =
+    typeof candidate.id === "string" && candidate.id.trim().length > 0
+      ? candidate.id.trim()
+      : uuid();
+  const rawName =
+    typeof candidate.name === "string" && candidate.name.trim().length > 0
+      ? candidate.name.trim()
+      : undefined;
+  const rawMime =
+    typeof candidate.mimeType === "string" && candidate.mimeType.trim().length > 0
+      ? candidate.mimeType.trim()
+      : "application/octet-stream";
+  const base64Value =
+    typeof candidate["base64"] === "string"
+      ? (candidate["base64"] as string)
+      : undefined;
+  const rawContent =
+    typeof candidate.content === "string"
+      ? candidate.content
+      : base64Value;
+
+  if (!rawName || !rawContent) {
+    return null;
+  }
+
+  const normalizedContent = rawContent.replace(/\s+/g, "");
+
+  return {
+    id: rawId,
+    name: rawName,
+    mimeType: rawMime,
+    content: normalizedContent,
+  };
+}
+
+function normalizeAttachments(
+  value: unknown,
+): { attachments: ApplicationAttachment[]; changed: boolean } {
+  if (!Array.isArray(value)) {
+    return { attachments: [], changed: value !== undefined };
+  }
+
+  const attachments: ApplicationAttachment[] = [];
+  let changed = false;
+
+  value.forEach((entry) => {
+    const normalized = normalizeAttachmentEntry(entry);
+    if (!normalized) {
+      changed = true;
+      return;
+    }
+    attachments.push(normalized);
+    if (entry && typeof entry === "object") {
+      const candidate = entry as Partial<ApplicationAttachment> &
+        Record<string, unknown>;
+      const rawId =
+        typeof candidate.id === "string" && candidate.id.trim().length > 0
+          ? candidate.id.trim()
+          : undefined;
+      const rawName =
+        typeof candidate.name === "string" && candidate.name.trim().length > 0
+          ? candidate.name.trim()
+          : undefined;
+      const rawMime =
+        typeof candidate.mimeType === "string" && candidate.mimeType.trim().length > 0
+          ? candidate.mimeType.trim()
+          : undefined;
+      const candidateBase64 =
+        typeof candidate["base64"] === "string"
+          ? (candidate["base64"] as string)
+          : undefined;
+      const rawContent =
+        typeof candidate.content === "string"
+          ? candidate.content.replace(/\s+/g, "")
+          : candidateBase64
+            ? candidateBase64.replace(/\s+/g, "")
+            : undefined;
+
+      if (
+        rawId !== normalized.id ||
+        rawName !== normalized.name ||
+        rawMime !== normalized.mimeType ||
+        rawContent !== normalized.content
+      ) {
+        changed = true;
+      }
+    } else {
+      changed = true;
+    }
+  });
+
+  if (attachments.length !== value.length) {
+    changed = true;
+  }
+
+  return { attachments, changed };
+}
+
+function attachmentsEqual(
+  a: ApplicationAttachment[] | undefined,
+  b: ApplicationAttachment[] | undefined,
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return !a && !b;
+  }
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i += 1) {
+    const left = a[i];
+    const right = b[i];
+    if (
+      left.id !== right.id ||
+      left.name !== right.name ||
+      left.mimeType !== right.mimeType ||
+      left.content !== right.content
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function migrateReminderFields(data: unknown): JobApplication[] {
   if (!Array.isArray(data)) {
     return [];
@@ -1238,13 +1373,37 @@ function migrateReminderFields(data: unknown): JobApplication[] {
   });
 }
 
+function migrateApplicationAttachments(data: unknown): JobApplication[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  let changed = false;
+  const migrated = (data as JobApplication[]).map((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return entry as JobApplication;
+    }
+    const record = entry as JobApplication & { attachments?: unknown };
+    const hasArray = Array.isArray(record.attachments);
+    const { attachments, changed: attachmentsChanged } = normalizeAttachments(
+      record.attachments,
+    );
+    if (attachmentsChanged || !hasArray) {
+      changed = true;
+      return { ...record, attachments } as JobApplication;
+    }
+    return record as JobApplication;
+  });
+  return changed ? migrated : (data as JobApplication[]);
+}
+
 function normalizeApplicationUpdates(
   updates: Partial<JobApplication>,
 ): Partial<JobApplication> {
   const needsNormalization =
     Object.prototype.hasOwnProperty.call(updates, "offerHistory") ||
     Object.prototype.hasOwnProperty.call(updates, "nextAction") ||
-    Object.prototype.hasOwnProperty.call(updates, "dueAt");
+    Object.prototype.hasOwnProperty.call(updates, "dueAt") ||
+    Object.prototype.hasOwnProperty.call(updates, "attachments");
   if (!needsNormalization) {
     return updates;
   }
@@ -1261,6 +1420,9 @@ function normalizeApplicationUpdates(
   if (Object.prototype.hasOwnProperty.call(updates, "dueAt")) {
     normalized.dueAt = normalizeDueAt(updates.dueAt);
   }
+  if (Object.prototype.hasOwnProperty.call(updates, "attachments")) {
+    normalized.attachments = normalizeAttachments(updates.attachments).attachments;
+  }
   return normalized;
 }
 
@@ -1271,9 +1433,25 @@ function applyApplicationUpdates(
   const normalizedUpdates = normalizeApplicationUpdates(updates);
   const hasNormalizedChanges =
     normalizedUpdates && Object.keys(normalizedUpdates).length > 0;
-  let nextApp = hasNormalizedChanges
-    ? ({ ...app, ...normalizedUpdates } as JobApplication)
-    : app;
+  let nextApp = app;
+  if (hasNormalizedChanges) {
+    const { attachments: attachmentUpdates, ...otherUpdates } =
+      normalizedUpdates;
+    if (Object.keys(otherUpdates).length > 0) {
+      nextApp = { ...nextApp, ...otherUpdates } as JobApplication;
+    }
+    if (Object.prototype.hasOwnProperty.call(normalizedUpdates, "attachments")) {
+      const nextAttachments = Array.isArray(attachmentUpdates)
+        ? (attachmentUpdates as ApplicationAttachment[])
+        : [];
+      const currentAttachments = Array.isArray(nextApp.attachments)
+        ? nextApp.attachments
+        : [];
+      if (!attachmentsEqual(currentAttachments, nextAttachments)) {
+        nextApp = { ...nextApp, attachments: nextAttachments } as JobApplication;
+      }
+    }
+  }
 
   const hasDecisionUpdate = Object.prototype.hasOwnProperty.call(
     updates,
@@ -1350,6 +1528,14 @@ export function getJobApplications(): JobApplication[] {
       nextApp = { ...nextApp, ...reminderValues };
     }
 
+    const hasAttachmentArray = Array.isArray(nextApp.attachments);
+    const { attachments: normalizedAttachments, changed: attachmentsChanged } =
+      normalizeAttachments(nextApp.attachments);
+    if (attachmentsChanged || !hasAttachmentArray) {
+      migrated = true;
+      nextApp = { ...nextApp, attachments: normalizedAttachments };
+    }
+
     const { application: normalizedApp, changed: decisionChanged } =
       ensureApplicationDecision(nextApp);
     if (decisionChanged) {
@@ -1366,9 +1552,11 @@ export function getJobApplications(): JobApplication[] {
 export function addJobApplication(app: JobApplication): JobApplication[] {
   const { entries: offerHistory } = normalizeOfferHistoryEntries(app.offerHistory);
   const { values: reminderValues } = normalizeReminderFields(app);
+  const { attachments } = normalizeAttachments(app.attachments);
   const withHistory = {
     ...app,
     ...reminderValues,
+    attachments,
     history: [
       ...(app.history ?? []),
       { status: app.status, changedAt: new Date().toISOString() },

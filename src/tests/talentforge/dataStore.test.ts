@@ -33,6 +33,7 @@ import type {
   JobApplication,
   Offer,
 } from "../../types";
+import { exportSnapshot, importSnapshot } from "../../utils/talentforge/snapshot";
 import { STATUSES } from "../../utils/talentforge/keyboard";
 
 interface Message {
@@ -74,6 +75,7 @@ function createApplication(
     role: { ...baseRole, id: `role-${id}`, ...(overrides.role ?? {}) },
     status,
     history,
+    attachments: overrides.attachments ?? [],
     ...overrides,
   };
 }
@@ -669,5 +671,34 @@ describe("dataStore migrations", () => {
     expect(appOne?.resumeVariant).toBeUndefined();
     expect(appTwo?.resumeVariant?.id).toBe("resume-1");
     expect(getJobApplications()).toEqual(cleared);
+  });
+
+  test("attachments persist through snapshot export and import", () => {
+    const attachments = [
+      {
+        id: "att-1",
+        name: "offer-letter.pdf",
+        mimeType: "application/pdf",
+        content: Buffer.from("Offer details", "utf-8").toString("base64"),
+      },
+      {
+        id: "att-2",
+        name: "interview-notes.txt",
+        mimeType: "text/plain",
+        content: Buffer.from("Remember to follow up", "utf-8").toString("base64"),
+      },
+    ];
+
+    const application = createApplication("app-attachments", { attachments });
+    saveItem("jobApplications", [application], APPLICATIONS_VERSION);
+
+    const snapshot = exportSnapshot();
+
+    localStorage.clear();
+    importSnapshot(snapshot);
+
+    const restored = getJobApplications();
+    expect(restored).toHaveLength(1);
+    expect(restored[0].attachments).toEqual(attachments);
   });
 });
