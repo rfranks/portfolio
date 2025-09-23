@@ -122,6 +122,9 @@ export default function Inbox() {
   }, [data]);
 
   useEffect(() => {
+    if (!searchParams) {
+      return;
+    }
     const threadId = searchParams.get("threadId");
     if (threadId) {
       setSelectedId(threadId);

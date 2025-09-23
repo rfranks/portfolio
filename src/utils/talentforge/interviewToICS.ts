@@ -1,10 +1,9 @@
 import type { JobApplication } from "@/types";
 
-interface InterviewApplication
-  extends Pick<
-    JobApplication,
-    "id" | "role" | "interviewDateTime" | "interviewLocation"
-  > {}
+type InterviewApplication = Pick<
+  JobApplication,
+  "id" | "role" | "interviewDateTime" | "interviewLocation"
+>;
 
 interface InterviewToIcsOptions {
   /** Duration in minutes for the interview event. Defaults to 60 minutes. */
