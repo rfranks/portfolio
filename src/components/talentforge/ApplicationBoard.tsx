@@ -60,6 +60,7 @@ import type {
   OfferComp,
   Message,
   OfferDecisionStatus,
+  RecruiterEntry,
 } from "@/types";
 import {
   OFFER_DECISION_DEFAULT_STATUS,
@@ -275,7 +276,6 @@ function Column({
       ref={setNodeRef}
       role="list"
       aria-label={ariaLabel}
-      aria-expanded={!collapsed}
       data-status={id}
       elevation={highlight ? 6 : 1}
       sx={{
@@ -955,6 +955,21 @@ export default function ApplicationBoard() {
     [pipelineLayout.collapsed],
   );
 
+  const getNextStatusFromOrder = useCallback(
+    (current: ApplicationStatus, key: string): ApplicationStatus => {
+      const index = statusOrder.indexOf(current);
+      if (index === -1) {
+        return current;
+      }
+      let nextIndex = index;
+      if (key === "ArrowRight" || key === "ArrowDown") nextIndex += 1;
+      if (key === "ArrowLeft" || key === "ArrowUp") nextIndex -= 1;
+      nextIndex = Math.min(Math.max(nextIndex, 0), statusOrder.length - 1);
+      return statusOrder[nextIndex] ?? current;
+    },
+    [statusOrder],
+  );
+
   const selectedApplications = useMemo(() => {
     if (selectedIds.length === 0) return [];
     const idSet = new Set(selectedIds);
@@ -1201,21 +1216,6 @@ export default function ApplicationBoard() {
     setBulkRejectReason("");
   };
 
-  const getNextStatusFromOrder = useCallback(
-    (current: ApplicationStatus, key: string): ApplicationStatus => {
-      const index = statusOrder.indexOf(current);
-      if (index === -1) {
-        return current;
-      }
-      let nextIndex = index;
-      if (key === "ArrowRight" || key === "ArrowDown") nextIndex += 1;
-      if (key === "ArrowLeft" || key === "ArrowUp") nextIndex -= 1;
-      nextIndex = Math.min(Math.max(nextIndex, 0), statusOrder.length - 1);
-      return statusOrder[nextIndex] ?? current;
-    },
-    [statusOrder],
-  );
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -1389,6 +1389,21 @@ export default function ApplicationBoard() {
     updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">>,
   ) => {
     applyReminderUpdates(appId, updates);
+  };
+
+  const handleDetailRecruitersUpdate = (
+    appId: string,
+    recruiters: RecruiterEntry[],
+  ) => {
+    const updated = updateJobApplication(appId, { recruiters });
+    setApplications(updated);
+    const updatedApp = updated.find((entry) => entry.id === appId);
+    if (updatedApp) {
+      const message = recruiters.length > 0
+        ? `${updatedApp.role.title} recruiter list updated`
+        : `${updatedApp.role.title} recruiters cleared`;
+      setLiveMessage(message);
+    }
   };
 
   const handleOpenWorkspace = (app: JobApplication) => {
@@ -2724,6 +2739,7 @@ export default function ApplicationBoard() {
         onUpdateStatus={handleDetailStatusUpdate}
         onSaveAction={handleDetailActionUpdate}
         onSaveDecision={handleDetailDecisionSave}
+        onUpdateRecruiters={handleDetailRecruitersUpdate}
       />
       {drawerOpen && (
         <Drawer

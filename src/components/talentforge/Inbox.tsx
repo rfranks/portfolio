@@ -37,6 +37,7 @@ import {
 import { askOpenAI } from "@/utils/talentforge/utils";
 
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
+import { useSearchParams } from "next/navigation";
 import type {
   ApplicationStatus,
   JobApplication,
@@ -107,6 +108,7 @@ export default function Inbox() {
   const [aiThread, setAiThread] = useState<string | null>(null);
   const [promptKey, setPromptKey] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -118,6 +120,13 @@ export default function Inbox() {
     }, 0);
     return () => clearTimeout(id);
   }, [data]);
+
+  useEffect(() => {
+    const threadId = searchParams.get("threadId");
+    if (threadId) {
+      setSelectedId(threadId);
+    }
+  }, [searchParams]);
 
   const handleFilterChange = (event: SelectChangeEvent) => {
     setFilter(event.target.value as "all" | "unread" | "read");

@@ -103,34 +103,6 @@ beforeEach(() => {
   jobApplicationsMock = [];
 });
 
-const baseApplicant: JobApplication['applicant'] = {
-  id: 'applicant-1',
-  name: 'Test User',
-  email: 'test@example.com',
-};
-
-const baseRole = {
-  title: 'Engineer',
-  company: 'Acme',
-  location: 'Remote',
-  description: '',
-  source: 'site',
-  url: '',
-};
-
-function buildApplication(id: string, status: Status): JobApplication {
-  return {
-    id,
-    applicant: baseApplicant,
-    role: { ...baseRole, id: `role-${id}` },
-    status,
-    history: [{ status, changedAt: '2024-01-01T00:00:00.000Z' }],
-    recruiters: [],
-    threads: [],
-    offerHistory: [],
-  } as JobApplication;
-}
-
 jest.mock('@/contexts/TalentForgeDataContext', () => ({
   useTalentForgeData: () => ({
     getThreads: () => [],
