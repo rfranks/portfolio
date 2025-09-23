@@ -42,6 +42,10 @@ interface ApplicationDetailDrawerProps {
     status: ApplicationStatus,
     options?: { reason?: string; changedAt?: string },
   ) => void;
+  onSaveAction: (
+    id: string,
+    updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">>,
+  ) => void;
 }
 
 interface ConnectorStatus {
@@ -84,6 +88,14 @@ const toIsoFromLocalValue = (value: string): string => {
   return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
 };
 
+const toIsoOrUndefined = (value: string): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+};
+
 const formatTimelineDate = (value: string): string => {
   if (!value) return "Unknown date";
   const parsed = new Date(value);
@@ -104,6 +116,7 @@ export default function ApplicationDetailDrawer({
   application,
   onClose,
   onUpdateStatus,
+  onSaveAction,
   promptDrawerOpen = false,
 }: ApplicationDetailDrawerProps) {
   const data = useTalentForgeData();
@@ -204,12 +217,16 @@ export default function ApplicationDetailDrawer({
     toDateTimeLocalValue(new Date().toISOString()),
   );
   const [reasonDraft, setReasonDraft] = useState<string>("");
+  const [nextActionDraft, setNextActionDraft] = useState<string>("");
+  const [dueDraft, setDueDraft] = useState<string>("");
 
   useEffect(() => {
     if (!application) {
       setStatusDraft("applied");
       setDateDraft(toDateTimeLocalValue(new Date().toISOString()));
       setReasonDraft("");
+      setNextActionDraft("");
+      setDueDraft("");
       return;
     }
     const latest = history[history.length - 1];
@@ -217,7 +234,21 @@ export default function ApplicationDetailDrawer({
     const iso = ensureValidIso(latest?.changedAt);
     setDateDraft(toDateTimeLocalValue(iso));
     setReasonDraft(latest?.reason ?? "");
+    setNextActionDraft(application.nextAction ?? "");
+    setDueDraft(application.dueAt ? toDateTimeLocalValue(application.dueAt) : "");
   }, [application, history]);
+
+  const initialNextAction = application?.nextAction ?? "";
+  const initialDueDraft = application?.dueAt
+    ? toDateTimeLocalValue(application.dueAt)
+    : "";
+  const trimmedNextActionDraft = nextActionDraft.trim();
+  const dueIso = toIsoOrUndefined(dueDraft);
+  const dueHasError = Boolean(dueDraft) && !dueIso;
+  const hasNextActionChange = trimmedNextActionDraft !== initialNextAction;
+  const hasDueDraftChange = dueDraft !== initialDueDraft;
+  const hasReminderChanges = hasNextActionChange || hasDueDraftChange;
+  const canSaveReminder = Boolean(application) && hasReminderChanges && !dueHasError;
 
   const handleStatusDraftChange = (
     event: SelectChangeEvent<unknown>,
@@ -246,6 +277,35 @@ export default function ApplicationDetailDrawer({
 
   const handleReasonDraftChange = (event: ChangeEvent<HTMLInputElement>) => {
     setReasonDraft(event.target.value);
+  };
+
+  const handleNextActionDraftChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setNextActionDraft(event.target.value);
+  };
+
+  const handleDueDraftChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setDueDraft(event.target.value);
+  };
+
+  const handleReminderSave = () => {
+    if (!application || !hasReminderChanges || dueHasError) {
+      return;
+    }
+    const updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">> = {};
+    if (hasNextActionChange) {
+      updates.nextAction = trimmedNextActionDraft ? trimmedNextActionDraft : undefined;
+    }
+    if (hasDueDraftChange) {
+      updates.dueAt = dueIso;
+    }
+    if (Object.keys(updates).length > 0) {
+      onSaveAction(application.id, updates);
+    }
+  };
+
+  const handleReminderReset = () => {
+    setNextActionDraft(initialNextAction);
+    setDueDraft(initialDueDraft);
   };
 
   const handleStatusSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -415,6 +475,52 @@ export default function ApplicationDetailDrawer({
                     </Button>
                   </Stack>
                 </Box>
+              </Box>
+            )}
+            {application && (
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  Next action
+                </Typography>
+                <Stack spacing={2}>
+                  <TextField
+                    label="Next action"
+                    value={nextActionDraft}
+                    onChange={handleNextActionDraftChange}
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    placeholder="Describe the next follow-up step"
+                  />
+                  <TextField
+                    label="Due date"
+                    type="datetime-local"
+                    size="small"
+                    value={dueDraft}
+                    onChange={handleDueDraftChange}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    error={dueHasError}
+                    helperText={dueHasError ? "Enter a valid date and time" : undefined}
+                  />
+                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
+                    <Button
+                      variant="contained"
+                      onClick={handleReminderSave}
+                      disabled={!canSaveReminder}
+                      sx={{ alignSelf: "flex-start" }}
+                    >
+                      Save reminder
+                    </Button>
+                    <Button
+                      variant="text"
+                      onClick={handleReminderReset}
+                      disabled={!hasReminderChanges}
+                    >
+                      Reset
+                    </Button>
+                  </Stack>
+                </Stack>
               </Box>
             )}
             <Box>

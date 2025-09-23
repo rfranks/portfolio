@@ -87,7 +87,7 @@ export const USER_VERSION = 1;
 export const RESUMES_VERSION = 1;
 export const MESSAGES_VERSION = 2;
 export const OFFERS_VERSION = 2;
-export const APPLICATIONS_VERSION = 3;
+export const APPLICATIONS_VERSION = 4;
 export const RECRUITERS_VERSION = 1;
 export const ONBOARDING_VERSION = 1;
 export const OPENAI_VERSION = 1;
@@ -115,7 +115,7 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   goals: GOALS_VERSION,
 } as const;
 
-export const SNAPSHOT_VERSION = 6;
+export const SNAPSHOT_VERSION = 7;
 
 // Generic migration helper which applies migrations sequentially until the
 // data reaches `targetVersion`.
@@ -165,6 +165,7 @@ function migrateOffers(data: unknown, version: number): Offer[] {
 function migrateApplications(data: unknown, version: number): JobApplication[] {
   return migrate<JobApplication[]>(data, version, APPLICATIONS_VERSION, {
     0: migrateLegacyApplications,
+    3: migrateReminderFields,
   });
 }
 
@@ -815,6 +816,108 @@ function normalizeOfferHistoryEntries(
     : { entries: history as OfferHistoryEntry[], changed: false };
 }
 
+type ReminderFields = Partial<Pick<JobApplication, "nextAction" | "dueAt">>;
+
+function normalizeNextAction(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function normalizeDueAt(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return undefined;
+  }
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    return undefined;
+  }
+  return parsed.toISOString();
+}
+
+function normalizeReminderFields(
+  value: { nextAction?: unknown; dueAt?: unknown },
+): { values: ReminderFields; changed: boolean } {
+  const normalized: ReminderFields = {};
+  const originalNextAction =
+    typeof value.nextAction === "string" ? value.nextAction : undefined;
+  const originalDueAt =
+    typeof value.dueAt === "string" ? value.dueAt : undefined;
+
+  const normalizedNextAction = normalizeNextAction(value.nextAction);
+  const normalizedDueAt = normalizeDueAt(value.dueAt);
+
+  if (normalizedNextAction !== undefined) {
+    normalized.nextAction = normalizedNextAction;
+  } else if (originalNextAction !== undefined) {
+    normalized.nextAction = undefined;
+  }
+
+  if (normalizedDueAt !== undefined) {
+    normalized.dueAt = normalizedDueAt;
+  } else if (originalDueAt !== undefined) {
+    normalized.dueAt = undefined;
+  }
+
+  const changed =
+    normalizedNextAction !== originalNextAction ||
+    normalizedDueAt !== originalDueAt;
+
+  return { values: normalized, changed };
+}
+
+function migrateReminderFields(data: unknown): JobApplication[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return (data as JobApplication[]).map((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return entry as JobApplication;
+    }
+    const record = entry as JobApplication & {
+      nextAction?: unknown;
+      dueAt?: unknown;
+    };
+    const { values, changed } = normalizeReminderFields(record);
+    if (!changed) {
+      return record;
+    }
+    return { ...record, ...values } as JobApplication;
+  });
+}
+
+function normalizeApplicationUpdates(
+  updates: Partial<JobApplication>,
+): Partial<JobApplication> {
+  const needsNormalization =
+    Object.prototype.hasOwnProperty.call(updates, "offerHistory") ||
+    Object.prototype.hasOwnProperty.call(updates, "nextAction") ||
+    Object.prototype.hasOwnProperty.call(updates, "dueAt");
+  if (!needsNormalization) {
+    return updates;
+  }
+
+  const normalized: Partial<JobApplication> = { ...updates };
+  if (Object.prototype.hasOwnProperty.call(updates, "offerHistory")) {
+    normalized.offerHistory = normalizeOfferHistoryEntries(
+      updates.offerHistory,
+    ).entries;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, "nextAction")) {
+    normalized.nextAction = normalizeNextAction(updates.nextAction);
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, "dueAt")) {
+    normalized.dueAt = normalizeDueAt(updates.dueAt);
+  }
+  return normalized;
+}
+
 export function getJobApplications(): JobApplication[] {
   const apps = load("applications", []);
   let migrated = false;
@@ -839,6 +942,13 @@ export function getJobApplications(): JobApplication[] {
       nextApp = { ...nextApp, offerHistory: entries };
     }
 
+    const { values: reminderValues, changed: reminderChanged } =
+      normalizeReminderFields(nextApp);
+    if (reminderChanged) {
+      migrated = true;
+      nextApp = { ...nextApp, ...reminderValues };
+    }
+
     return nextApp;
   });
   if (migrated) {
@@ -848,8 +958,10 @@ export function getJobApplications(): JobApplication[] {
 }
 export function addJobApplication(app: JobApplication): JobApplication[] {
   const { entries: offerHistory } = normalizeOfferHistoryEntries(app.offerHistory);
+  const { values: reminderValues } = normalizeReminderFields(app);
   const withHistory = {
     ...app,
+    ...reminderValues,
     history: [
       ...(app.history ?? []),
       { status: app.status, changedAt: new Date().toISOString() },
@@ -864,15 +976,7 @@ export function updateJobApplication(
   id: string,
   updates: Partial<JobApplication>,
 ): JobApplication[] {
-  const normalizedUpdates = Object.prototype.hasOwnProperty.call(
-    updates,
-    "offerHistory",
-  )
-    ? {
-        ...updates,
-        offerHistory: normalizeOfferHistoryEntries(updates.offerHistory).entries,
-      }
-    : updates;
+  const normalizedUpdates = normalizeApplicationUpdates(updates);
   const updated = getJobApplications().map((app) =>
     app.id === id ? { ...app, ...normalizedUpdates } : app,
   );
@@ -957,15 +1061,7 @@ export function bulkUpdateJobApplications(
   if (ids.length === 0) {
     return getJobApplications();
   }
-  const normalizedUpdates = Object.prototype.hasOwnProperty.call(
-    updates,
-    "offerHistory",
-  )
-    ? {
-        ...updates,
-        offerHistory: normalizeOfferHistoryEntries(updates.offerHistory).entries,
-      }
-    : updates;
+  const normalizedUpdates = normalizeApplicationUpdates(updates);
   const idSet = new Set(ids);
   let changed = false;
   const updated = getJobApplications().map((app) => {
