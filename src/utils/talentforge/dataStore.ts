@@ -27,6 +27,8 @@ import type {
   ConnectorSyncStatus,
   LinkedInProfileDetails,
   LinkedInProfileSnapshot,
+  ApplicationActivity,
+  ApplicationActivityContentReference,
 } from "@/types";
 import {
   OFFER_DECISION_DEFAULT_STATUS,
@@ -101,7 +103,7 @@ export const USER_VERSION = 1;
 export const RESUMES_VERSION = 1;
 export const MESSAGES_VERSION = 2;
 export const OFFERS_VERSION = 3;
-export const APPLICATIONS_VERSION = 5;
+export const APPLICATIONS_VERSION = 6;
 export const RECRUITERS_VERSION = 1;
 export const ONBOARDING_VERSION = 1;
 export const OPENAI_VERSION = 1;
@@ -131,7 +133,7 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   pipelineLayout: PIPELINE_LAYOUT_VERSION,
 } as const;
 
-export const SNAPSHOT_VERSION = 8;
+export const SNAPSHOT_VERSION = 9;
 
 // Generic migration helper which applies migrations sequentially until the
 // data reaches `targetVersion`.
@@ -184,6 +186,7 @@ function migrateApplications(data: unknown, version: number): JobApplication[] {
     0: migrateLegacyApplications,
     3: migrateReminderFields,
     4: migrateApplicationDecisions,
+    5: migrateApplicationActivities,
   });
 }
 
@@ -1162,6 +1165,131 @@ function normalizeOfferHistoryEntries(
     : { entries: history as OfferHistoryEntry[], changed: false };
 }
 
+function normalizeActivityReference(
+  value: unknown,
+): ApplicationActivityContentReference | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const entry = value as Partial<ApplicationActivityContentReference>;
+  const type = typeof entry.type === "string" ? entry.type.trim() : "";
+  const id = typeof entry.id === "string" ? entry.id.trim() : "";
+  if (!type || !id) {
+    return undefined;
+  }
+  const reference: ApplicationActivityContentReference = { type, id };
+  if (typeof entry.label === "string") {
+    const label = entry.label.trim();
+    if (label) {
+      reference.label = label;
+    }
+  }
+  return reference;
+}
+
+function normalizeActivities(
+  activities: JobApplication["activities"],
+): { entries: ApplicationActivity[]; changed: boolean } {
+  if (!Array.isArray(activities)) {
+    return { entries: [], changed: true };
+  }
+
+  let changed = false;
+  const normalized: ApplicationActivity[] = [];
+
+  activities.forEach((item) => {
+    if (!item || typeof item !== "object") {
+      changed = true;
+      return;
+    }
+    const entry = item as Partial<ApplicationActivity>;
+    const summary =
+      typeof entry.summary === "string" ? entry.summary.trim() : "";
+    const timestampValue =
+      typeof entry.timestamp === "string" ? entry.timestamp : undefined;
+    if (!summary || !timestampValue) {
+      changed = true;
+      return;
+    }
+
+    const parsedTimestamp = new Date(timestampValue);
+    const timestamp = Number.isNaN(parsedTimestamp.getTime())
+      ? new Date().toISOString()
+      : parsedTimestamp.toISOString();
+    if (timestamp !== timestampValue) {
+      changed = true;
+    }
+
+    const rawId = typeof entry.id === "string" ? entry.id.trim() : "";
+    const id = rawId.length > 0 ? rawId : uuid();
+    if (id !== entry.id) {
+      changed = true;
+    }
+
+    const tileId =
+      typeof entry.tileId === "string" && entry.tileId.trim().length > 0
+        ? entry.tileId.trim()
+        : undefined;
+    if (tileId !== entry.tileId) {
+      changed = true;
+    }
+
+    const source: ApplicationActivity["source"] =
+      entry.source === "ai" || entry.source === "manual"
+        ? entry.source
+        : tileId
+          ? "ai"
+          : "manual";
+    if (source !== entry.source) {
+      changed = true;
+    }
+
+    const status: ApplicationActivity["status"] =
+      entry.status === "success" || entry.status === "error"
+        ? entry.status
+        : "success";
+    if (status !== entry.status) {
+      changed = true;
+    }
+
+    const generatedContentRef = normalizeActivityReference(
+      entry.generatedContentRef,
+    );
+    if (
+      (generatedContentRef &&
+        entry.generatedContentRef !== generatedContentRef) ||
+      (!generatedContentRef && entry.generatedContentRef)
+    ) {
+      changed = true;
+    }
+
+    const error =
+      typeof entry.error === "string" && entry.error.trim().length > 0
+        ? entry.error.trim()
+        : undefined;
+    if (error !== entry.error) {
+      changed = true;
+    }
+
+    normalized.push({
+      id,
+      summary,
+      timestamp,
+      ...(tileId ? { tileId } : {}),
+      source,
+      status,
+      ...(generatedContentRef ? { generatedContentRef } : {}),
+      ...(error ? { error } : {}),
+    });
+  });
+
+  if (normalized.length !== activities.length) {
+    changed = true;
+  }
+
+  return { entries: normalized, changed };
+}
+
 type ReminderFields = Partial<Pick<JobApplication, "nextAction" | "dueAt">>;
 
 function normalizeNextAction(value: unknown): string | undefined {
@@ -1238,13 +1366,31 @@ function migrateReminderFields(data: unknown): JobApplication[] {
   });
 }
 
+function migrateApplicationActivities(data: unknown): JobApplication[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return (data as JobApplication[]).map((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return entry as JobApplication;
+    }
+    const record = entry as JobApplication;
+    const { entries, changed } = normalizeActivities(record.activities);
+    if (!changed && Array.isArray(record.activities)) {
+      return record;
+    }
+    return { ...record, activities: entries } as JobApplication;
+  });
+}
+
 function normalizeApplicationUpdates(
   updates: Partial<JobApplication>,
 ): Partial<JobApplication> {
   const needsNormalization =
     Object.prototype.hasOwnProperty.call(updates, "offerHistory") ||
     Object.prototype.hasOwnProperty.call(updates, "nextAction") ||
-    Object.prototype.hasOwnProperty.call(updates, "dueAt");
+    Object.prototype.hasOwnProperty.call(updates, "dueAt") ||
+    Object.prototype.hasOwnProperty.call(updates, "activities");
   if (!needsNormalization) {
     return updates;
   }
@@ -1260,6 +1406,11 @@ function normalizeApplicationUpdates(
   }
   if (Object.prototype.hasOwnProperty.call(updates, "dueAt")) {
     normalized.dueAt = normalizeDueAt(updates.dueAt);
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, "activities")) {
+    normalized.activities = normalizeActivities(
+      updates.activities as JobApplication["activities"],
+    ).entries;
   }
   return normalized;
 }
@@ -1350,6 +1501,13 @@ export function getJobApplications(): JobApplication[] {
       nextApp = { ...nextApp, ...reminderValues };
     }
 
+    const { entries: activityEntries, changed: activitiesChanged } =
+      normalizeActivities(nextApp.activities);
+    if (activitiesChanged) {
+      migrated = true;
+      nextApp = { ...nextApp, activities: activityEntries };
+    }
+
     const { application: normalizedApp, changed: decisionChanged } =
       ensureApplicationDecision(nextApp);
     if (decisionChanged) {
@@ -1366,6 +1524,7 @@ export function getJobApplications(): JobApplication[] {
 export function addJobApplication(app: JobApplication): JobApplication[] {
   const { entries: offerHistory } = normalizeOfferHistoryEntries(app.offerHistory);
   const { values: reminderValues } = normalizeReminderFields(app);
+  const { entries: activities } = normalizeActivities(app.activities);
   const withHistory = {
     ...app,
     ...reminderValues,
@@ -1374,6 +1533,7 @@ export function addJobApplication(app: JobApplication): JobApplication[] {
       { status: app.status, changedAt: new Date().toISOString() },
     ],
     offerHistory,
+    activities,
   } as JobApplication;
   const { application: normalized } = ensureApplicationDecision(withHistory);
   const updated = [...getJobApplications(), normalized];
@@ -1394,6 +1554,26 @@ export function updateJobApplication(
       changed = true;
     }
     return nextApp;
+  });
+  if (changed) {
+    save("applications", updated);
+  }
+  return updated;
+}
+
+export function appendJobApplicationActivity(
+  id: string,
+  activity: ApplicationActivity,
+): JobApplication[] {
+  let changed = false;
+  const updated = getJobApplications().map((app) => {
+    if (app.id !== id) {
+      return app;
+    }
+    const existing = Array.isArray(app.activities) ? app.activities : [];
+    const { entries } = normalizeActivities([...existing, activity]);
+    changed = true;
+    return { ...app, activities: entries } as JobApplication;
   });
   if (changed) {
     save("applications", updated);
@@ -1828,6 +2008,7 @@ const dataStore = {
   getJobApplications,
   addJobApplication,
   updateJobApplication,
+  appendJobApplicationActivity,
   updateJobApplicationStatus,
   deleteJobApplication,
   getRecruiters,

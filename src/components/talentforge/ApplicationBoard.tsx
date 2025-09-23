@@ -60,6 +60,8 @@ import type {
   OfferComp,
   Message,
   OfferDecisionStatus,
+  ApplicationActivityStatus,
+  ApplicationActivityContentReference,
 } from "@/types";
 import {
   OFFER_DECISION_DEFAULT_STATUS,
@@ -78,8 +80,10 @@ import {
   getPipelineLayoutPreferences,
   savePipelineLayoutPreferences,
   type PipelineLayoutPreferences,
+  appendJobApplicationActivity,
 } from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
+import { createApplicationTileActivityRecorder } from "@/utils/talentforge/applicationActivities";
 import EmptyState from "./EmptyState";
 import { askOpenAI, pdfToMarkdown } from "@/utils/talentforge/utils";
 import RequireAIKey from "./RequireAIKey";
@@ -1597,6 +1601,45 @@ export default function ApplicationBoard() {
       setDrawerApp(app);
       return;
     }
+    const generatedContentRef: ApplicationActivityContentReference = {
+      type: "tileResult",
+      id: uuid(),
+      label: tile.display,
+    };
+    const successSummary = `Generated ${tile.display}`;
+    const failureSummary = `Failed to generate ${tile.display}`;
+    const toErrorMessage = (value: unknown): string => {
+      if (value instanceof Error) {
+        return value.message;
+      }
+      if (typeof value === "string") {
+        return value;
+      }
+      return "Unknown error";
+    };
+    const recordSuccess = () => {
+      recordApplicationTileActivity(app.id, {
+        tileId: tile.id,
+        summary: successSummary,
+        status: "success",
+        generatedContentRef,
+      });
+      setLiveMessage(`${tile.display} added to activity log`);
+    };
+    const recordFailure = (error: unknown): string => {
+      const errorMessage = toErrorMessage(error);
+      recordApplicationTileActivity(app.id, {
+        tileId: tile.id,
+        summary: failureSummary,
+        status: "error",
+        generatedContentRef,
+        error: errorMessage,
+      });
+      setLiveMessage(
+        `${tile.display} failed. See activity log for details.`,
+      );
+      return errorMessage;
+    };
     if (tileId === "offerNegotiation") {
       setDrawerTitle(tile.display);
       setDrawerTileId(tile.id);
@@ -1619,22 +1662,22 @@ export default function ApplicationBoard() {
       );
       app.offer?.summary?.forEach((s) => offerLines.push(s));
       const offerSummary = offerLines.join("\n");
-      const listings = await fetchAllListings(app.role.title);
-      const marketData = listings
-        .map((l) => `${l.title} at ${l.company} – ${l.location}`)
-        .join("\n");
-      const prompt = tile.fullPrompt
-        .replaceAll("{{jobDescription}}", app.role.description || "")
-        .replaceAll("{{resumeContent}}", resume?.content || "")
-        .replaceAll("{{offerSummary}}", offerSummary)
-        .replaceAll("{{marketData}}", marketData);
-      setDrawerPrompt(prompt);
-      setDrawerMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: "Generating negotiation..." },
-      ]);
       setDrawerLoading(true);
       try {
+        const listings = await fetchAllListings(app.role.title);
+        const marketData = listings
+          .map((l) => `${l.title} at ${l.company} – ${l.location}`)
+          .join("\n");
+        const prompt = tile.fullPrompt
+          .replaceAll("{{jobDescription}}", app.role.description || "")
+          .replaceAll("{{resumeContent}}", resume?.content || "")
+          .replaceAll("{{offerSummary}}", offerSummary)
+          .replaceAll("{{marketData}}", marketData);
+        setDrawerPrompt(prompt);
+        setDrawerMessages((prev) => [
+          ...prev,
+          { role: "assistant", text: "Generating negotiation..." },
+        ]);
         const res = await askOpenAI({
           context: "",
           user: prompt,
@@ -1646,6 +1689,16 @@ export default function ApplicationBoard() {
         setDrawerMessages((prev) => [
           ...prev,
           { role: "assistant", text: message },
+        ]);
+        recordSuccess();
+      } catch (error) {
+        const errorMessage = recordFailure(error);
+        setDrawerMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            text: `Unable to generate ${tile.display}. ${errorMessage}`,
+          },
         ]);
       } finally {
         setDrawerLoading(false);
@@ -1692,6 +1745,15 @@ export default function ApplicationBoard() {
         const message = res?.message || "";
         // Wrap response with newlines so Markdown tables render properly
         setDrawerMessages([{ role: "assistant", text: `\n${message}\n` }]);
+        recordSuccess();
+      } catch (error) {
+        const errorMessage = recordFailure(error);
+        setDrawerMessages([
+          {
+            role: "assistant",
+            text: `Unable to generate ${tile.display}. ${errorMessage}`,
+          },
+        ]);
       } finally {
         setDrawerLoading(false);
       }
@@ -1756,6 +1818,26 @@ export default function ApplicationBoard() {
           { role: "assistant", text: message },
         ]);
       }
+      recordSuccess();
+    } catch (error) {
+      const errorMessage = recordFailure(error);
+      if (tileId === "screenRole") {
+        setDrawerAnalysis(null);
+        setDrawerMessages([
+          {
+            role: "assistant",
+            text: `Unable to generate ${tile.display}. ${errorMessage}`,
+          },
+        ]);
+      } else {
+        setDrawerMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            text: `Unable to generate ${tile.display}. ${errorMessage}`,
+          },
+        ]);
+      }
     } finally {
       setDrawerLoading(false);
     }
@@ -1778,6 +1860,43 @@ export default function ApplicationBoard() {
     setApplications(updated);
   };
 
+  const syncApplicationReferences = useCallback(
+    (updatedApps: JobApplication[], applicationId: string) => {
+      const refreshed =
+        updatedApps.find((application) => application.id === applicationId) ??
+        null;
+      if (drawerApp?.id === applicationId) {
+        setDrawerApp(refreshed);
+      }
+      if (workspaceApp?.id === applicationId) {
+        setWorkspaceApp(refreshed);
+      }
+      if (resumeCompareApp?.id === applicationId) {
+        setResumeCompareApp(refreshed);
+      }
+      if (reminderEditorApp?.id === applicationId) {
+        setReminderEditorApp(refreshed);
+      }
+      return refreshed;
+    },
+    [
+      drawerApp,
+      workspaceApp,
+      resumeCompareApp,
+      reminderEditorApp,
+    ],
+  );
+
+  const recordApplicationTileActivity = useMemo(
+    () =>
+      createApplicationTileActivityRecorder({
+        appendActivity: appendJobApplicationActivity,
+        setApplications,
+        syncApplicationReferences,
+      }),
+    [syncApplicationReferences],
+  );
+
   const applyDecisionUpdate = (
     appId: string,
     decision: {
@@ -1794,21 +1913,7 @@ export default function ApplicationBoard() {
       },
     });
     setApplications(updated);
-    const refreshed =
-      updated.find((application) => application.id === appId) ?? null;
-    if (drawerApp?.id === appId) {
-      setDrawerApp(refreshed);
-    }
-    if (workspaceApp?.id === appId) {
-      setWorkspaceApp(refreshed);
-    }
-    if (resumeCompareApp?.id === appId) {
-      setResumeCompareApp(refreshed);
-    }
-    if (reminderEditorApp?.id === appId) {
-      setReminderEditorApp(refreshed);
-    }
-    return refreshed;
+    return syncApplicationReferences(updated, appId);
   };
 
   const handleDrawerDecisionStatusChange = (

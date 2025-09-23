@@ -64,6 +64,7 @@ export function getDemoData(): {
     ],
     recruiters: [],
     threads: [],
+    activities: [],
   };
 
   return { user, resumes: [resume], jobApplications: [application] };

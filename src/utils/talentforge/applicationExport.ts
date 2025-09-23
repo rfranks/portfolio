@@ -70,6 +70,7 @@ export interface ApplicationExportRecord extends ApplicationExportRow {
   };
   resumeVariant?: { id: string; title: string };
   jobDescription?: string;
+  activities?: JobApplication["activities"];
 }
 
 const toIsoString = (value?: string): string => {
@@ -275,6 +276,12 @@ export const mapApplicationToRecord = (
 
   if (application.role.description) {
     record.jobDescription = application.role.description;
+  }
+
+  if (application.activities && application.activities.length > 0) {
+    record.activities = application.activities.map((activity) => ({
+      ...activity,
+    }));
   }
 
   return record;

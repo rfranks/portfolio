@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { ChangeEvent, FormEvent } from "react";
+import type { ChangeEvent, FormEvent, MouseEvent } from "react";
 import {
   Box,
   Button,
@@ -17,6 +17,8 @@ import {
   TextField,
   Typography,
   Divider,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import { Close } from "@mui/icons-material";
@@ -27,6 +29,7 @@ import type {
   ApplicationStatus,
   JobApplication,
   OfferDecisionStatus,
+  ApplicationActivityStatus,
 } from "@/types";
 import {
   OFFER_DECISION_DEFAULT_STATUS,
@@ -36,6 +39,7 @@ import {
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import PromptTileGrid from "./promptTiles/PromptTileGrid";
 import {
+  getPromptTile,
   getPromptTiles,
   type PromptContext,
 } from "@/utils/talentforge/promptRegistry";
@@ -130,6 +134,23 @@ const formatStatusLabel = (status: ApplicationStatus): string =>
 
 const formatDecisionStatus = (status: OfferDecisionStatus): string =>
   OFFER_DECISION_STATUS_LABELS[status] ?? status;
+
+type ActivityKind = "ai" | "manual";
+
+interface ActivityListItem {
+  id: string;
+  timestamp: string;
+  summary: string;
+  kind: ActivityKind;
+  tileLabel?: string;
+  status?: ApplicationActivityStatus;
+  details?: string;
+}
+
+const parseActivityTimestamp = (value: string): number => {
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? 0 : time;
+};
 
 export default function ApplicationDetailDrawer({
   open,
@@ -230,6 +251,82 @@ export default function ApplicationDetailDrawer({
       return normalizedA - normalizedB;
     });
   }, [application?.history]);
+
+  const activityItems = useMemo<ActivityListItem[]>(() => {
+    if (!application) {
+      return [];
+    }
+    const items: ActivityListItem[] = [];
+    const activities = Array.isArray(application.activities)
+      ? application.activities
+      : [];
+    activities.forEach((activity) => {
+      const tile = activity.tileId ? getPromptTile(activity.tileId) : undefined;
+      const tileLabel =
+        tile?.display ?? activity.generatedContentRef?.label ?? activity.tileId;
+      const kind: ActivityKind =
+        activity.source === "manual"
+          ? "manual"
+          : activity.source === "ai"
+            ? "ai"
+            : activity.tileId
+              ? "ai"
+              : "manual";
+      const entry: ActivityListItem = {
+        id: `activity-${activity.id}`,
+        timestamp: activity.timestamp,
+        summary: activity.summary,
+        kind,
+        status: activity.status,
+      };
+      if (tileLabel) {
+        entry.tileLabel = tileLabel;
+      }
+      if (activity.status === "error" && activity.error) {
+        entry.details = activity.error;
+      }
+      items.push(entry);
+    });
+    history.forEach((entry, index) => {
+      const summary = `Status updated to ${formatStatusLabel(entry.status)}`;
+      items.push({
+        id: `history-${entry.changedAt}-${index}`,
+        timestamp: entry.changedAt,
+        summary,
+        kind: "manual",
+        status: "success",
+        details: entry.reason ? entry.reason : undefined,
+      });
+    });
+    return items.sort(
+      (a, b) =>
+        parseActivityTimestamp(b.timestamp) - parseActivityTimestamp(a.timestamp),
+    );
+  }, [application, history]);
+
+  const [activityFilters, setActivityFilters] = useState<ActivityKind[]>([
+    "ai",
+    "manual",
+  ]);
+
+  useEffect(() => {
+    setActivityFilters(["ai", "manual"]);
+  }, [application?.id]);
+
+  const filteredActivities = useMemo(
+    () => activityItems.filter((item) => activityFilters.includes(item.kind)),
+    [activityItems, activityFilters],
+  );
+
+  const handleActivityFilterChange = (
+    _event: MouseEvent<HTMLElement>,
+    values: ActivityKind[],
+  ) => {
+    if (values.length === 0) {
+      return;
+    }
+    setActivityFilters(values);
+  };
 
   const latestHistoryEntry = history.length > 0 ? history[history.length - 1] : null;
 
@@ -576,6 +673,102 @@ export default function ApplicationDetailDrawer({
                     </Button>
                   </Stack>
                 </Box>
+              </Box>
+            )}
+            {application && (
+              <Box>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  alignItems={{ xs: "flex-start", sm: "center" }}
+                  justifyContent="space-between"
+                >
+                  <Typography variant="subtitle2">Activity log</Typography>
+                  <ToggleButtonGroup
+                    size="small"
+                    value={activityFilters}
+                    onChange={handleActivityFilterChange}
+                    aria-label="Filter activities by source"
+                  >
+                    <ToggleButton value="ai" aria-label="Show AI activities">
+                      AI
+                    </ToggleButton>
+                    <ToggleButton
+                      value="manual"
+                      aria-label="Show manual activities"
+                    >
+                      Manual
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                </Stack>
+                {filteredActivities.length > 0 ? (
+                  <Stack spacing={1.5} sx={{ mt: 1 }}>
+                    {filteredActivities.map((activity) => (
+                      <Box
+                        key={activity.id}
+                        sx={{
+                          borderLeft: "2px solid",
+                          borderColor:
+                            activity.kind === "ai" ? "primary.main" : "divider",
+                          pl: 1.5,
+                          py: 0.5,
+                        }}
+                      >
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          justifyContent="space-between"
+                          spacing={1}
+                        >
+                          <Typography
+                            variant="body2"
+                            sx={{ fontWeight: 600, flexGrow: 1 }}
+                          >
+                            {activity.summary}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {formatTimelineDate(activity.timestamp)}
+                          </Typography>
+                        </Stack>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          alignItems="center"
+                          sx={{ mt: 0.5, flexWrap: "wrap", rowGap: 0.5 }}
+                        >
+                          <Chip
+                            size="small"
+                            label={activity.kind === "ai" ? "AI" : "Manual"}
+                            color={activity.kind === "ai" ? "primary" : "default"}
+                          />
+                          {activity.tileLabel && (
+                            <Chip
+                              size="small"
+                              variant="outlined"
+                              label={activity.tileLabel}
+                            />
+                          )}
+                          {activity.status === "error" && (
+                            <Chip size="small" color="error" label="Error" />
+                          )}
+                        </Stack>
+                        {activity.details && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mt: 0.5 }}
+                          >
+                            {activity.details}
+                          </Typography>
+                        )}
+                      </Box>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    No activities match the current filters.
+                  </Typography>
+                )}
               </Box>
             )}
             {application && (

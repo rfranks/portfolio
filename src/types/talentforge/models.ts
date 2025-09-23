@@ -105,6 +105,38 @@ export interface RolePosting {
   applications?: ApplicationRecord[];
 }
 
+export type ApplicationActivitySource = "ai" | "manual";
+
+export type ApplicationActivityStatus = "success" | "error";
+
+export interface ApplicationActivityContentReference {
+  /** Category describing what this activity links to. */
+  type: string;
+  /** Identifier that can be used to retrieve the generated content. */
+  id: string;
+  /** Optional human readable label for the referenced content. */
+  label?: string;
+}
+
+export interface ApplicationActivity {
+  /** Unique identifier for the activity entry. */
+  id: string;
+  /** Prompt tile associated with this activity, if any. */
+  tileId?: string;
+  /** ISO timestamp representing when the activity occurred. */
+  timestamp: string;
+  /** Short description of what happened. */
+  summary: string;
+  /** Indicates whether the activity was AI generated or manually recorded. */
+  source: ApplicationActivitySource;
+  /** Outcome of the activity. */
+  status: ApplicationActivityStatus;
+  /** Reference to generated content linked to this activity. */
+  generatedContentRef?: ApplicationActivityContentReference;
+  /** Optional error details when the activity failed. */
+  error?: string;
+}
+
 export interface ApplicationRecord {
   /** Unique identifier for the application. */
   id: string;
@@ -136,6 +168,8 @@ export interface ApplicationRecord {
   decision?: OfferDecision;
   /** Generated offer negotiations attached to this application. */
   offerHistory?: OfferHistoryEntry[];
+  /** Activity timeline containing AI and manual updates. */
+  activities?: ApplicationActivity[];
 }
 
 export interface Recruiter {
