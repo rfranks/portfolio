@@ -57,6 +57,7 @@ import type {
   ApplicationStatus,
   JobApplication,
   OfferHistoryEntry,
+  NegotiationLibraryEntry,
   ResumeEntry,
   Offer,
   OfferComp,
@@ -80,6 +81,10 @@ import {
   getCurrentCompensation,
   getPipelineLayoutPreferences,
   savePipelineLayoutPreferences,
+  getNegotiationLibrary,
+  addNegotiationLibraryEntry,
+  updateNegotiationLibraryEntry,
+  deleteNegotiationLibraryEntry,
   type PipelineLayoutPreferences,
 } from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
@@ -100,6 +105,8 @@ import { getPromptTile, type PromptContext } from "@/utils/talentforge/promptReg
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import ApplicationDetailDrawer from "./ApplicationDetailDrawer";
 import CompareOffers from "./offers/CompareOffers";
+import ManageNegotiationLibraryModal from "./offers/ManageNegotiationLibraryModal";
+import NegotiationLibraryControls from "./offers/NegotiationLibraryControls";
 import useOfferExports from "@/hooks/talentforge/useOfferExports";
 import {
   createApplicationsCsv,
@@ -837,6 +844,10 @@ export default function ApplicationBoard() {
     useState<JobApplication | null>(null);
   const [reminderNextAction, setReminderNextAction] = useState("");
   const [reminderDue, setReminderDue] = useState("");
+  const [negotiationLibrary, setNegotiationLibrary] =
+    useState<NegotiationLibraryEntry[]>(() => getNegotiationLibrary());
+  const [manageNegotiationLibraryOpen, setManageNegotiationLibraryOpen] =
+    useState(false);
   const negotiationRef = useRef<HTMLDivElement | null>(null);
   const {
     downloadMarkdown: downloadNegotiationMarkdown,
@@ -874,6 +885,30 @@ export default function ApplicationBoard() {
       notes: decision?.notes ?? "",
     };
   }, [drawerApp]);
+
+  const latestNegotiationDraft = useMemo(() => {
+    if (drawerTileId !== "offerNegotiation") {
+      return "";
+    }
+    for (let index = drawerMessages.length - 1; index >= 0; index -= 1) {
+      const message = drawerMessages[index];
+      if (message.role === "assistant" && message.text) {
+        const trimmed = message.text.trim();
+        if (trimmed.length > 0) {
+          return message.text;
+        }
+      }
+    }
+    return "";
+  }, [drawerMessages, drawerTileId]);
+
+  const canSaveNegotiationDraft =
+    latestNegotiationDraft.length > 0 && !drawerLoading;
+
+  const defaultNegotiationLabel = useMemo(() => {
+    const trimmed = drawerTitle.trim();
+    return trimmed || "Offer negotiation";
+  }, [drawerTitle]);
 
   useEffect(() => {
     if (!drawerApp) {
@@ -2201,8 +2236,7 @@ export default function ApplicationBoard() {
     const content = getNegotiationContent();
     const existingHistory = drawerApp.offerHistory || [];
     const nextIndex = existingHistory.length + 1;
-    const trimmedTitle = drawerTitle.trim();
-    const baseLabel = trimmedTitle || "Offer negotiation";
+    const baseLabel = defaultNegotiationLabel;
     const label = nextIndex > 1 ? `${baseLabel} (${nextIndex})` : baseLabel;
     const entry: OfferHistoryEntry = {
       id: uuid(),
@@ -2212,6 +2246,86 @@ export default function ApplicationBoard() {
     };
     updateDrawerOfferHistory([...existingHistory, entry]);
     setLiveMessage(`${label} saved to offer history`);
+  };
+
+  const handleSaveNegotiationAsNew = (label: string) => {
+    const trimmedLabel = label.trim();
+    if (!trimmedLabel || !latestNegotiationDraft) {
+      setLiveMessage("No negotiation draft available to save");
+      return;
+    }
+    const now = new Date().toISOString();
+    const entry: NegotiationLibraryEntry = {
+      id: uuid(),
+      label: trimmedLabel,
+      content: latestNegotiationDraft,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const updated = addNegotiationLibraryEntry(entry);
+    setNegotiationLibrary(updated);
+    setLiveMessage(`Saved "${trimmedLabel}" to negotiation library`);
+  };
+
+  const handleOverwriteNegotiationEntry = (id: string) => {
+    if (!latestNegotiationDraft) {
+      setLiveMessage("No negotiation draft available to save");
+      return;
+    }
+    const existing = negotiationLibrary.find((entry) => entry.id === id);
+    if (!existing) {
+      return;
+    }
+    const now = new Date().toISOString();
+    const updated = updateNegotiationLibraryEntry(id, {
+      content: latestNegotiationDraft,
+      updatedAt: now,
+    });
+    setNegotiationLibrary(updated);
+    setLiveMessage(`Updated "${existing.label}" in negotiation library`);
+  };
+
+  const handleInsertNegotiationEntry = (id: string) => {
+    const entry = negotiationLibrary.find((item) => item.id === id);
+    if (!entry) {
+      return;
+    }
+    setDrawerLoading(false);
+    setDrawerMode("chat");
+    setResumeCompareApp(null);
+    setDrawerAnalysis(null);
+    setDrawerPrompt("");
+    setDrawerMessages([{ role: "assistant", text: entry.content }]);
+    setLiveMessage(`Inserted "${entry.label}" from negotiation library`);
+  };
+
+  const handleRenameNegotiationEntry = (id: string, label: string) => {
+    const entry = negotiationLibrary.find((item) => item.id === id);
+    if (!entry) {
+      return;
+    }
+    const trimmed = label.trim();
+    if (!trimmed || trimmed === entry.label) {
+      return;
+    }
+    const now = new Date().toISOString();
+    const updated = updateNegotiationLibraryEntry(id, {
+      label: trimmed,
+      updatedAt: now,
+    });
+    setNegotiationLibrary(updated);
+    setLiveMessage(`Renamed negotiation draft to "${trimmed}"`);
+  };
+
+  const handleDeleteNegotiationEntry = (id: string) => {
+    const entry = negotiationLibrary.find((item) => item.id === id);
+    const updated = deleteNegotiationLibraryEntry(id);
+    setNegotiationLibrary(updated);
+    if (entry) {
+      setLiveMessage(`Deleted "${entry.label}" from negotiation library`);
+    } else {
+      setLiveMessage("Removed negotiation draft from library");
+    }
   };
 
   const handleBeginRenameHistoryEntry = (entry: OfferHistoryEntry) => {
@@ -2512,6 +2626,13 @@ export default function ApplicationBoard() {
         open={manageResumesOpen}
         onClose={handleManageModalClose}
         onResumesUpdated={handleResumesUpdated}
+      />
+      <ManageNegotiationLibraryModal
+        open={manageNegotiationLibraryOpen}
+        entries={negotiationLibrary}
+        onClose={() => setManageNegotiationLibraryOpen(false)}
+        onRename={handleRenameNegotiationEntry}
+        onDelete={handleDeleteNegotiationEntry}
       />
       <Dialog
         open={compareOffersOpen}
@@ -3118,7 +3239,16 @@ export default function ApplicationBoard() {
                 </Box>
               ))}
               {drawerTileId === "offerNegotiation" && !drawerLoading && (
-                <>
+                <Stack spacing={1}>
+                  <NegotiationLibraryControls
+                    disabled={!canSaveNegotiationDraft}
+                    entries={negotiationLibrary}
+                    defaultLabel={defaultNegotiationLabel}
+                    onSaveNew={handleSaveNegotiationAsNew}
+                    onOverwrite={handleOverwriteNegotiationEntry}
+                    onInsert={handleInsertNegotiationEntry}
+                    onManage={() => setManageNegotiationLibraryOpen(true)}
+                  />
                   <Button
                     variant="outlined"
                     fullWidth
@@ -3141,7 +3271,7 @@ export default function ApplicationBoard() {
                   >
                     Attach to Offer History
                   </Button>
-                </>
+                </Stack>
               )}
               {drawerTileId === "offerNegotiation" &&
                 offerHistoryEntries.length > 0 && (

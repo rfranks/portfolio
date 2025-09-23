@@ -37,6 +37,19 @@ export interface OfferHistoryEntry {
   content: string;
 }
 
+export interface NegotiationLibraryEntry {
+  /** Unique identifier for this saved negotiation draft. */
+  id: string;
+  /** Human readable label that helps identify the draft. */
+  label: string;
+  /** Markdown content that will be inserted into the negotiation drawer. */
+  content: string;
+  /** ISO timestamp describing when the draft was created. */
+  createdAt: string;
+  /** ISO timestamp describing when the draft was last updated. */
+  updatedAt: string;
+}
+
 export const APPLICATION_ACTIVITY_OUTCOMES = ["success", "error"] as const;
 
 export type ApplicationActivityOutcome =
