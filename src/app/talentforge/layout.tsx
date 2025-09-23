@@ -7,6 +7,7 @@ import getTalentforgeTheme from "@/themes/talentforgeTheme";
 import { TalentForgeDataProvider } from "@/contexts/TalentForgeDataContext";
 import { OpenAIKeyProvider } from "@/contexts/OpenAIKeyContext";
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
+import ToastProvider from "@/components/talentforge/ToastProvider";
 
 export default function TalentForgeLayout({
   children,
@@ -36,15 +37,17 @@ export default function TalentForgeLayout({
       <TalentForgeDataProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <ErrorBoundary>
-            <LayoutShell
-              navItems={navItems}
-              mode={mode}
-              toggleColorMode={toggleColorMode}
-            >
-              {children}
-            </LayoutShell>
-          </ErrorBoundary>
+          <ToastProvider>
+            <ErrorBoundary>
+              <LayoutShell
+                navItems={navItems}
+                mode={mode}
+                toggleColorMode={toggleColorMode}
+              >
+                {children}
+              </LayoutShell>
+            </ErrorBoundary>
+          </ToastProvider>
         </ThemeProvider>
       </TalentForgeDataProvider>
     </OpenAIKeyProvider>
