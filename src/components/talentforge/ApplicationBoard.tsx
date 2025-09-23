@@ -107,6 +107,7 @@ import {
   hasActiveFilters,
   type ApplicationFilters,
 } from "@/utils/talentforge/applicationFilters";
+import { interviewToICS } from "@/utils/talentforge/interviewToICS";
 import { visuallyHidden } from "@mui/utils";
 
 interface Issue {
@@ -358,6 +359,7 @@ function Card({
   onAssignResume,
   onSetInterviewDate,
   onSetInterviewLocation,
+  onDownloadInvite,
   onKeyDown,
   activeId,
   selected,
@@ -376,6 +378,7 @@ function Card({
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
   onSetInterviewLocation: (appId: string, value: string) => void;
+  onDownloadInvite: (app: JobApplication) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   activeId: string | null;
   selected: boolean;
@@ -410,6 +413,10 @@ function Card({
     ? `${isOverdue ? "Overdue" : "Due"}: ${dueLabel}`
     : "";
   const hasReminder = Boolean(app.nextAction) || hasValidDue;
+  const interviewDateRaw =
+    typeof app.interviewDateTime === "string" ? app.interviewDateTime.trim() : "";
+  const hasValidInterviewTime =
+    Boolean(interviewDateRaw) && !Number.isNaN(new Date(interviewDateRaw).getTime());
 
   const decision = app.decision ?? app.offer?.decision;
   const decisionStatus =
@@ -592,7 +599,7 @@ function Card({
       )}
       {STATUSES.indexOf(app.status) >= STATUSES.indexOf("interview") &&
         app.status !== "offer" && (
-          <>
+          <Stack spacing={1} sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}>
             <TextField
               type="datetime-local"
               size="small"
@@ -600,19 +607,37 @@ function Card({
               value={app.interviewDateTime || ""}
               onChange={(e) => onSetInterviewDate(app.id, e.target.value)}
               InputLabelProps={{ shrink: true }}
-              sx={{ mt: 1 }}
               fullWidth
             />
-            <TextField
-              size="small"
-              label="Meeting URL/Location"
-              value={app.interviewLocation || ""}
-              onChange={(e) => onSetInterviewLocation(app.id, e.target.value)}
-              sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}
-              fullWidth
-            />
-          </>
-      )}
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              alignItems={{ xs: "stretch", sm: "flex-end" }}
+            >
+              <TextField
+                size="small"
+                label="Meeting URL/Location"
+                value={app.interviewLocation || ""}
+                onChange={(e) => onSetInterviewLocation(app.id, e.target.value)}
+                fullWidth
+                sx={{ flexGrow: 1 }}
+              />
+              <Button
+                size="small"
+                variant="outlined"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => onDownloadInvite(app)}
+                disabled={!hasValidInterviewTime}
+                sx={{
+                  alignSelf: { xs: "stretch", sm: "flex-end" },
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Download invite
+              </Button>
+            </Stack>
+          </Stack>
+        )}
       <Stack direction="column" spacing={1} sx={{ mt: 1 }}>
         <Button
           size="small"
@@ -1769,13 +1794,35 @@ export default function ApplicationBoard() {
   };
 
   const handleInterviewDate = (appId: string, value: string) => {
-    const updated = updateJobApplication(appId, { interviewDateTime: value });
+    const normalized = value.trim();
+    const updated = updateJobApplication(appId, {
+      interviewDateTime: normalized ? normalized : undefined,
+    });
     setApplications(updated);
   };
 
   const handleInterviewLocation = (appId: string, value: string) => {
-    const updated = updateJobApplication(appId, { interviewLocation: value });
+    const normalized = value.trim();
+    const updated = updateJobApplication(appId, {
+      interviewLocation: normalized ? normalized : undefined,
+    });
     setApplications(updated);
+  };
+
+  const handleDownloadInterviewInvite = (application: JobApplication) => {
+    const invite = interviewToICS(application);
+    if (!invite) {
+      setLiveMessage("Add a valid interview time before downloading an invite");
+      return;
+    }
+    const blob = new Blob([invite.content], { type: "text/calendar" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = invite.fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+    setLiveMessage("Interview invite downloaded");
   };
 
   const applyDecisionUpdate = (
@@ -2456,6 +2503,7 @@ export default function ApplicationBoard() {
                           onAssignResume={handleAssignResume}
                           onSetInterviewDate={handleInterviewDate}
                           onSetInterviewLocation={handleInterviewLocation}
+                          onDownloadInvite={handleDownloadInterviewInvite}
                           onKeyDown={(e) => handleCardKeyDown(e, app)}
                           activeId={activeId}
                           selected={selectedIdSet.has(app.id)}
@@ -2724,6 +2772,9 @@ export default function ApplicationBoard() {
         onUpdateStatus={handleDetailStatusUpdate}
         onSaveAction={handleDetailActionUpdate}
         onSaveDecision={handleDetailDecisionSave}
+        onSetInterviewDate={handleInterviewDate}
+        onSetInterviewLocation={handleInterviewLocation}
+        onDownloadInterviewInvite={handleDownloadInterviewInvite}
       />
       {drawerOpen && (
         <Drawer
