@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import {
   Box,
   Paper,
@@ -27,6 +27,8 @@ import {
   Checkbox,
   Chip,
   Tooltip,
+  Alert,
+  Skeleton,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Check, Close, Delete, Edit, ExpandMore } from "@mui/icons-material";
@@ -130,6 +132,68 @@ function toIsoOrUndefined(value: string): string | undefined {
   }
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
+type FetchListingsFn = typeof fetchAllListings;
+type AddApplicationFn = typeof addJobApplication;
+
+interface ListingsLoaderOptions {
+  existingApplications: JobApplication[];
+  fetchListings: FetchListingsFn;
+  addApplication: AddApplicationFn;
+  createId?: () => string;
+  now?: () => string;
+  logger?: (message: string, error: unknown) => void;
+}
+
+interface ListingsLoaderResult {
+  applications: JobApplication[];
+  error: Error | null;
+  loading: boolean;
+}
+
+export async function loadListingsWhenEmpty({
+  existingApplications,
+  fetchListings,
+  addApplication,
+  createId = uuid,
+  now = () => new Date().toISOString(),
+  logger = (message: string, error: unknown) => console.error(message, error),
+}: ListingsLoaderOptions): Promise<ListingsLoaderResult> {
+  if (existingApplications.length > 0) {
+    return {
+      applications: existingApplications,
+      error: null,
+      loading: false,
+    };
+  }
+
+  try {
+    const listings = await fetchListings("");
+    let apps = existingApplications;
+    listings.forEach((listing) => {
+      const applicationId = createId();
+      apps = addApplication({
+        id: applicationId,
+        applicant: { id: "", name: "", email: "" },
+        role: { ...listing, id: createId() },
+        status: "applied",
+        history: [{ status: "applied", changedAt: now() }],
+      });
+    });
+    return { applications: apps, error: null, loading: false };
+  } catch (error) {
+    logger("Failed to fetch job listings", error);
+    const normalized =
+      error instanceof Error
+        ? error
+        : new Error("Failed to load job listings.");
+    return {
+      applications: existingApplications,
+      error: normalized,
+      loading: true,
+    };
+  }
 }
 
 function Column({
@@ -543,6 +607,7 @@ export default function ApplicationBoard() {
   const [recruiterFilter, setRecruiterFilter] = useState("");
   const [resumeFilter, setResumeFilter] = useState("");
   const [loading, setLoading] = useState(initialApplications.length === 0);
+  const [listingsError, setListingsError] = useState<Error | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
@@ -625,30 +690,38 @@ export default function ApplicationBoard() {
   const canSaveReminder =
     Boolean(reminderEditorApp) && reminderHasChanges && !reminderDueError;
 
-  useEffect(() => {
+  const loadInitialApplications = useCallback(async () => {
     const existing = getJobApplications();
     if (existing.length === 0) {
-      fetchAllListings("").then((listings) => {
-        let apps = existing;
-        listings.forEach((listing) => {
-          apps = addJobApplication({
-            id: uuid(),
-            applicant: { id: "", name: "", email: "" },
-            role: { ...listing, id: uuid() },
-            status: "applied",
-            history: [
-              { status: "applied", changedAt: new Date().toISOString() },
-            ],
-          });
-        });
-        setApplications(apps);
-        setLoading(false);
-      });
-    } else {
-      setApplications(existing);
-      setLoading(false);
+      setLoading(true);
     }
-  }, []);
+    const result = await loadListingsWhenEmpty({
+      existingApplications: existing,
+      fetchListings: fetchAllListings,
+      addApplication: addJobApplication,
+      createId: uuid,
+      now: () => new Date().toISOString(),
+    });
+    setApplications(result.applications);
+    setListingsError(result.error);
+    setLoading(result.loading);
+  }, [
+    addJobApplication,
+    fetchAllListings,
+    getJobApplications,
+    loadListingsWhenEmpty,
+    setApplications,
+    setListingsError,
+    setLoading,
+  ]);
+
+  useEffect(() => {
+    void loadInitialApplications();
+  }, [loadInitialApplications]);
+
+  const handleListingsRetry = () => {
+    void loadInitialApplications();
+  };
 
   useEffect(() => {
     setEditingHistoryId(null);
@@ -769,13 +842,57 @@ export default function ApplicationBoard() {
 
   if (loading) {
     return (
-      <Stack
-        spacing={2}
-        alignItems="center"
-        aria-busy="true"
-        aria-label="Loading applications"
-      >
-        <CircularProgress />
+      <Stack spacing={2} aria-busy="true" aria-label="Loading applications">
+        {listingsError ? (
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={handleListingsRetry}>
+                Retry
+              </Button>
+            }
+          >
+            Failed to load job listings. Please try again.
+            {listingsError.message
+              ? ` (${listingsError.message})`
+              : ""}
+          </Alert>
+        ) : (
+          <Stack spacing={1} alignItems="center">
+            <CircularProgress />
+            <Typography variant="body2" color="text.secondary">
+              Loading starter applications
+            </Typography>
+          </Stack>
+        )}
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+          sx={{ width: "100%" }}
+        >
+          {STATUSES.map((status) => (
+            <Paper
+              key={status}
+              sx={{
+                flex: "1 1 0",
+                minWidth: { xs: "100%", md: 260 },
+                p: 2,
+              }}
+            >
+              <Skeleton variant="text" width="60%" height={28} />
+              <Stack spacing={1.5} sx={{ mt: 2 }}>
+                {[0, 1, 2].map((offset) => (
+                  <Skeleton
+                    key={`${status}-skeleton-${offset}`}
+                    variant="rounded"
+                    height={96}
+                    animation="wave"
+                  />
+                ))}
+              </Stack>
+            </Paper>
+          ))}
+        </Stack>
       </Stack>
     );
   }
