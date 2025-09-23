@@ -3,20 +3,21 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import {
+  Autocomplete,
   Box,
   Button,
-  Autocomplete,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   Drawer,
   IconButton,
+  Link,
   List,
   ListItem,
   ListItemText,
-  Link,
   MenuItem,
   Stack,
   Step,
@@ -25,11 +26,6 @@ import {
   TextField,
   Tooltip,
   Typography,
-  Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import { Close, Delete, Download, Visibility } from "@mui/icons-material";
@@ -38,7 +34,6 @@ import DOMPurify from "dompurify";
 import { marked } from "marked";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
-import { v4 as uuid } from "uuid";
 
 import type {
   ApplicationAttachment,
