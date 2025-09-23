@@ -31,7 +31,16 @@ import {
   Skeleton,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Check, Close, Delete, Edit, ExpandMore } from "@mui/icons-material";
+import {
+  Check,
+  Close,
+  Delete,
+  DragIndicator,
+  Edit,
+  ExpandMore,
+  UnfoldLess,
+  UnfoldMore,
+} from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import {
   DndContext,
@@ -66,6 +75,9 @@ import {
   updateJobApplication,
   getResumes,
   getCurrentCompensation,
+  getPipelineLayoutPreferences,
+  savePipelineLayoutPreferences,
+  type PipelineLayoutPreferences,
 } from "@/utils/talentforge/dataStore";
 import { fetchAllListings } from "@/utils/talentforge/jobAggregator";
 import EmptyState from "./EmptyState";
@@ -75,7 +87,7 @@ import FileUploader from "./FileUploader";
 import ResumeStepperModal from "./ResumeStepperModal";
 import ManageResumesModal from "./ManageResumesModal";
 import ChatWorkspace from "./ChatWorkspace";
-import { STATUSES, getNextStatus } from "@/utils/talentforge/keyboard";
+import { STATUSES } from "@/utils/talentforge/keyboard";
 import {
   calculateStageMetrics,
   getMetricDisplay,
@@ -142,6 +154,19 @@ function toIsoOrUndefined(value: string): string | undefined {
   }
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
+function arrayMove<T>(array: readonly T[], from: number, to: number): T[] {
+  if (array.length === 0) return [];
+  const clampedFrom = Math.min(Math.max(from, 0), array.length - 1);
+  const clampedTo = Math.min(Math.max(to, 0), array.length - 1);
+  if (clampedFrom === clampedTo) {
+    return [...array];
+  }
+  const next = [...array];
+  const [item] = next.splice(clampedFrom, 1);
+  next.splice(clampedTo, 0, item);
+  return next;
 }
 
 type FetchListingsFn = typeof fetchAllListings;
@@ -212,29 +237,57 @@ function Column({
   children,
   highlight = false,
   assistiveText,
+  collapsed,
+  onToggleCollapse,
+  count,
 }: {
   id: ApplicationStatus;
   title: string;
   children: React.ReactNode;
   highlight?: boolean;
   assistiveText?: string;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+  count: number;
 }) {
-  const { setNodeRef } = useDroppable({ id });
+  const { setNodeRef } = useDroppable({
+    id,
+    data: { type: "status", status: id },
+  });
+  const { attributes, listeners, setNodeRef: setHandleRef, isDragging } =
+    useDraggable({
+      id: `column-${id}`,
+      data: { type: "column", status: id },
+    });
+
+  const accessibleLabelParts = [title];
+  if (assistiveText) {
+    accessibleLabelParts.push(assistiveText);
+  }
+  if (collapsed) {
+    accessibleLabelParts.push("Column collapsed");
+  }
+  const ariaLabel = accessibleLabelParts.join(". ");
+  const toggleLabel = collapsed ? `Expand ${title}` : `Collapse ${title}`;
+
   return (
     <Paper
       ref={setNodeRef}
       role="list"
-      aria-label={assistiveText ? `${title}. ${assistiveText}` : title}
+      aria-label={ariaLabel}
+      aria-expanded={!collapsed}
+      data-status={id}
       elevation={highlight ? 6 : 1}
       sx={{
         p: 2,
         width: { xs: "100%", sm: 280, lg: 300 },
-        minHeight: 400,
+        minHeight: collapsed ? "auto" : 400,
         bgcolor: (theme) =>
           highlight
             ? alpha(theme.palette.error.main, 0.08)
             : theme.palette.background.paper,
         flexShrink: 0,
+        opacity: isDragging ? 0.8 : 1,
         ...(highlight
           ? {
               outline: "2px solid",
@@ -243,10 +296,53 @@ function Column({
           : {}),
       }}
     >
-      <Typography variant="h6" gutterBottom>
-        {title}
-      </Typography>
-      <Stack spacing={1}>{children}</Stack>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={1}
+        sx={{ mb: 1 }}
+      >
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ flexGrow: 1 }}>
+          <Tooltip title="Drag to reorder column">
+            <IconButton
+              ref={setHandleRef}
+              {...listeners}
+              {...attributes}
+              size="small"
+              aria-label={`Reorder ${title} column`}
+              sx={{ cursor: "grab" }}
+            >
+              <DragIndicator fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Typography variant="h6" component="h3">
+            {title}
+          </Typography>
+          <Chip label={count} size="small" variant="outlined" sx={{ ml: 1 }} />
+        </Stack>
+        <Tooltip title={toggleLabel}>
+          <IconButton
+            size="small"
+            onClick={onToggleCollapse}
+            aria-label={toggleLabel}
+            aria-pressed={collapsed}
+          >
+            {collapsed ? (
+              <UnfoldMore fontSize="small" />
+            ) : (
+              <UnfoldLess fontSize="small" />
+            )}
+          </IconButton>
+        </Tooltip>
+      </Stack>
+      {collapsed ? (
+        <Typography variant="body2" color="text.secondary">
+          Column collapsed. Expand to view applications.
+        </Typography>
+      ) : (
+        <Stack spacing={1}>{children}</Stack>
+      )}
     </Paper>
   );
 }
@@ -285,7 +381,7 @@ function Card({
   selected: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: app.id });
+    useDraggable({ id: app.id, data: { type: "card", status: app.status } });
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const style = {
     transform: transform ? CSS.Translate.toString(transform) : undefined,
@@ -634,6 +730,8 @@ export default function ApplicationBoard() {
   const [applications, setApplications] = useState<JobApplication[]>(
     initialApplications,
   );
+  const [pipelineLayout, setPipelineLayout] =
+    useState<PipelineLayoutPreferences>(() => getPipelineLayoutPreferences());
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ApplicationFilters["status"]>(
     "all",
@@ -851,6 +949,12 @@ export default function ApplicationBoard() {
     [filteredApplications],
   );
 
+  const statusOrder = pipelineLayout.order;
+  const collapsedStatuses = useMemo(
+    () => new Set(pipelineLayout.collapsed),
+    [pipelineLayout.collapsed],
+  );
+
   const selectedApplications = useMemo(() => {
     if (selectedIds.length === 0) return [];
     const idSet = new Set(selectedIds);
@@ -941,7 +1045,7 @@ export default function ApplicationBoard() {
           spacing={2}
           sx={{ width: "100%" }}
         >
-          {STATUSES.map((status) => (
+          {statusOrder.map((status) => (
             <Paper
               key={status}
               sx={{
@@ -1097,22 +1201,87 @@ export default function ApplicationBoard() {
     setBulkRejectReason("");
   };
 
+  const getNextStatusFromOrder = useCallback(
+    (current: ApplicationStatus, key: string): ApplicationStatus => {
+      const index = statusOrder.indexOf(current);
+      if (index === -1) {
+        return current;
+      }
+      let nextIndex = index;
+      if (key === "ArrowRight" || key === "ArrowDown") nextIndex += 1;
+      if (key === "ArrowLeft" || key === "ArrowUp") nextIndex -= 1;
+      nextIndex = Math.min(Math.max(nextIndex, 0), statusOrder.length - 1);
+      return statusOrder[nextIndex] ?? current;
+    },
+    [statusOrder],
+  );
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
-    const newStatus = over.id as ApplicationStatus;
-    const updated = updateJobApplicationStatus(active.id as string, newStatus);
+
+    const activeType = active.data.current?.type as string | undefined;
+    const overStatus =
+      (over.data?.current?.status as ApplicationStatus | undefined) ||
+      (typeof over.id === "string" ? (over.id as ApplicationStatus) : undefined);
+
+    if (activeType === "column") {
+      const activeStatus = active.data.current?.status as
+        | ApplicationStatus
+        | undefined;
+      if (!activeStatus || !overStatus || activeStatus === overStatus) {
+        return;
+      }
+      let announcement: string | null = null;
+      setPipelineLayout((prev) => {
+        const activeIndex = prev.order.indexOf(activeStatus);
+        const overIndex = prev.order.indexOf(overStatus);
+        if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) {
+          return prev;
+        }
+        const nextOrder = arrayMove(prev.order, activeIndex, overIndex);
+        const collapsed = nextOrder.filter((status) =>
+          prev.collapsed.includes(status),
+        );
+        announcement =
+          activeIndex > overIndex
+            ? `${formatStatusLabel(activeStatus)} column moved before ${formatStatusLabel(overStatus)}`
+            : `${formatStatusLabel(activeStatus)} column moved after ${formatStatusLabel(overStatus)}`;
+        return savePipelineLayoutPreferences({
+          ...prev,
+          order: nextOrder,
+          collapsed,
+        });
+      });
+      if (announcement) {
+        setLiveMessage(announcement);
+      }
+      return;
+    }
+
+    const targetStatus = overStatus;
+    if (!targetStatus) return;
+
+    const activeApp = applications.find((app) => app.id === active.id);
+    if (activeApp?.status === targetStatus) {
+      return;
+    }
+
+    const updated = updateJobApplicationStatus(
+      active.id as string,
+      targetStatus,
+    );
     setApplications(updated);
     const movedApp = updated.find((a) => a.id === active.id);
     if (movedApp) {
-      setLiveMessage(`${movedApp.role.title} moved to ${newStatus}`);
+      setLiveMessage(`${movedApp.role.title} moved to ${targetStatus}`);
     }
   };
 
   const handleKeyboardMove = (appId: string, key: string) => {
     const app = applications.find((a) => a.id === appId);
     if (!app) return;
-    const newStatus = getNextStatus(app.status, key);
+    const newStatus = getNextStatusFromOrder(app.status, key);
     if (newStatus !== app.status) {
       const updated = updateJobApplicationStatus(appId, newStatus);
       setApplications(updated);
@@ -1120,6 +1289,28 @@ export default function ApplicationBoard() {
       if (movedApp) {
         setLiveMessage(`${movedApp.role.title} moved to ${newStatus}`);
       }
+    }
+  };
+
+  const handleToggleColumnCollapse = (status: ApplicationStatus) => {
+    let announcement: string | null = null;
+    setPipelineLayout((prev) => {
+      const collapsedSet = new Set(prev.collapsed);
+      if (collapsedSet.has(status)) {
+        collapsedSet.delete(status);
+        announcement = `${formatStatusLabel(status)} column expanded`;
+      } else {
+        collapsedSet.add(status);
+        announcement = `${formatStatusLabel(status)} column collapsed`;
+      }
+      const collapsed = prev.order.filter((entry) => collapsedSet.has(entry));
+      return savePipelineLayoutPreferences({
+        ...prev,
+        collapsed,
+      });
+    });
+    if (announcement) {
+      setLiveMessage(announcement);
     }
   };
 
@@ -2051,7 +2242,7 @@ export default function ApplicationBoard() {
             }}
           >
             <MenuItem value="all">All statuses</MenuItem>
-            {STATUSES.map((status) => (
+            {statusOrder.map((status) => (
               <MenuItem key={status} value={status}>
                 {formatStatusLabel(status)}
               </MenuItem>
@@ -2173,7 +2364,11 @@ export default function ApplicationBoard() {
                 useFlexGap
                 sx={{ flexWrap: "wrap" }}
               >
-                {stageMetrics.map((metric) => {
+                {statusOrder.map((status) => {
+                  const metric = metricsByStatus[status];
+                  if (!metric) {
+                    return null;
+                  }
                   const {
                     averageLabel,
                     thresholdLabel,
@@ -2183,7 +2378,7 @@ export default function ApplicationBoard() {
                   } = getMetricDisplay(metric);
                   return (
                     <Box
-                      key={metric.status}
+                      key={status}
                       role="group"
                       aria-label={assistiveText}
                       sx={{
@@ -2229,9 +2424,13 @@ export default function ApplicationBoard() {
                 overflowX: { xs: "visible", md: "auto" },
               }}
             >
-              {STATUSES.map((status) => {
+              {statusOrder.map((status) => {
                 const metric = metricsByStatus[status];
                 const metricDisplay = metric ? getMetricDisplay(metric) : null;
+                const columnApplications = filteredApplications.filter(
+                  (app) => app.status === status,
+                );
+                const isCollapsed = collapsedStatuses.has(status);
                 return (
                   <Column
                     key={status}
@@ -2239,10 +2438,12 @@ export default function ApplicationBoard() {
                     title={formatStatusLabel(status)}
                     highlight={metric?.slaBreached ?? false}
                     assistiveText={metricDisplay?.assistiveText}
+                    collapsed={isCollapsed}
+                    onToggleCollapse={() => handleToggleColumnCollapse(status)}
+                    count={columnApplications.length}
                   >
-                    {filteredApplications
-                      .filter((app) => app.status === status)
-                      .map((app) => (
+                    {!isCollapsed &&
+                      columnApplications.map((app) => (
                         <Card
                           key={app.id}
                           app={app}
@@ -2318,7 +2519,7 @@ export default function ApplicationBoard() {
               <MenuItem value="" disabled>
                 Change status
               </MenuItem>
-              {STATUSES.map((status) => (
+              {statusOrder.map((status) => (
                 <MenuItem key={status} value={status}>
                   {formatStatusLabel(status)}
                 </MenuItem>

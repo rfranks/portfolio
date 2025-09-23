@@ -34,6 +34,7 @@ import {
 } from "@/types";
 import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply/templates";
 import type { TalentForgeGoalTag } from "./promptRegistry";
+import { STATUSES } from "./keyboard";
 
 export type UserProfile = User;
 
@@ -43,6 +44,11 @@ export interface CurrentCompensation {
   salary: string;
   benefits: string;
   stock: string;
+}
+
+export interface PipelineLayoutPreferences {
+  order: ApplicationStatus[];
+  collapsed: ApplicationStatus[];
 }
 
 interface StoreSchema {
@@ -60,6 +66,7 @@ interface StoreSchema {
   autoReplyTemplates: Record<string, string>;
   currentCompensation: CurrentCompensation;
   goals: TalentForgeGoalTag[];
+  pipelineLayout: PipelineLayoutPreferences;
 }
 
 // Storage keys for each entity
@@ -78,6 +85,7 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   autoReplyTemplates: "autoReplyTemplates",
   currentCompensation: "currentCompensation",
   goals: "talentforge-goals",
+  pipelineLayout: "pipelineLayout",
 } as const;
 
 const LEGACY_GOALS_KEY = "talentforge-goal-selections";
@@ -103,6 +111,7 @@ export const LINKEDIN_PROFILE_SNAPSHOT_VERSION = 1;
 export const AUTO_REPLY_TEMPLATES_VERSION = 1;
 export const CURRENT_COMP_VERSION = 1;
 export const GOALS_VERSION = 1;
+export const PIPELINE_LAYOUT_VERSION = 1;
 
 const VERSION: { [K in keyof StoreSchema]: number } = {
   user: USER_VERSION,
@@ -119,9 +128,10 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   autoReplyTemplates: AUTO_REPLY_TEMPLATES_VERSION,
   currentCompensation: CURRENT_COMP_VERSION,
   goals: GOALS_VERSION,
+  pipelineLayout: PIPELINE_LAYOUT_VERSION,
 } as const;
 
-export const SNAPSHOT_VERSION = 7;
+export const SNAPSHOT_VERSION = 8;
 
 // Generic migration helper which applies migrations sequentially until the
 // data reaches `targetVersion`.
@@ -640,6 +650,74 @@ function migrateGoals(data: unknown, version: number): TalentForgeGoalTag[] {
   return normalizeGoalTags(migrated);
 }
 
+function createDefaultPipelineLayoutPreferences(): PipelineLayoutPreferences {
+  return {
+    order: [...STATUSES],
+    collapsed: [],
+  };
+}
+
+function normalizePipelineLayoutPreferences(
+  value?: Partial<PipelineLayoutPreferences> | null,
+): PipelineLayoutPreferences {
+  const order: ApplicationStatus[] = [];
+  const seen = new Set<ApplicationStatus>();
+  const inputOrder = Array.isArray(value?.order) ? value?.order : [];
+  for (const entry of inputOrder) {
+    if (typeof entry !== "string") continue;
+    const status = entry as ApplicationStatus;
+    if (STATUSES.includes(status) && !seen.has(status)) {
+      seen.add(status);
+      order.push(status);
+    }
+  }
+  STATUSES.forEach((status) => {
+    if (!seen.has(status)) {
+      seen.add(status);
+      order.push(status);
+    }
+  });
+
+  const collapsedCandidates = Array.isArray(value?.collapsed)
+    ? value?.collapsed
+    : [];
+  const collapsedSet = new Set<ApplicationStatus>();
+  for (const entry of collapsedCandidates) {
+    if (typeof entry !== "string") continue;
+    const status = entry as ApplicationStatus;
+    if (STATUSES.includes(status)) {
+      collapsedSet.add(status);
+    }
+  }
+
+  const collapsed = order.filter((status) => collapsedSet.has(status));
+
+  return {
+    order,
+    collapsed,
+  };
+}
+
+function migratePipelineLayout(
+  data: unknown,
+  version: number,
+): PipelineLayoutPreferences {
+  const migrated = migrate<PipelineLayoutPreferences>(
+    data,
+    version,
+    PIPELINE_LAYOUT_VERSION,
+    {
+      0: (value) =>
+        normalizePipelineLayoutPreferences(
+          value && typeof value === "object"
+            ? (value as Partial<PipelineLayoutPreferences>)
+            : undefined,
+        ),
+    },
+  );
+  return normalizePipelineLayoutPreferences(migrated);
+}
+
 const MIGRATORS: {
   [K in keyof StoreSchema]: (
     data: unknown,
@@ -660,6 +738,7 @@ const MIGRATORS: {
   autoReplyTemplates: migrateAutoReplyTemplates,
   currentCompensation: migrateCurrentCompensation,
   goals: migrateGoals,
+  pipelineLayout: migratePipelineLayout,
 };
 
 const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
@@ -677,6 +756,7 @@ const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
   autoReplyTemplates: AUTO_REPLY_TEMPLATES as Record<string, string>,
   currentCompensation: { salary: "", benefits: "", stock: "" },
   goals: [],
+  pipelineLayout: createDefaultPipelineLayoutPreferences(),
 } as const;
 
 function load<K extends keyof StoreSchema>(
@@ -788,6 +868,22 @@ export function getCurrentCompensation(): CurrentCompensation {
 }
 export function saveCurrentCompensation(comp: CurrentCompensation): void {
   save("currentCompensation", comp);
+}
+
+export function getPipelineLayoutPreferences(): PipelineLayoutPreferences {
+  const stored = load(
+    "pipelineLayout",
+    createDefaultPipelineLayoutPreferences(),
+  );
+  return normalizePipelineLayoutPreferences(stored);
+}
+
+export function savePipelineLayoutPreferences(
+  preferences: PipelineLayoutPreferences,
+): PipelineLayoutPreferences {
+  const normalized = normalizePipelineLayoutPreferences(preferences);
+  save("pipelineLayout", normalized);
+  return normalized;
 }
 
 export function getGoals(): TalentForgeGoalTag[] {
@@ -1581,6 +1677,14 @@ function migrateSnapshot(
       };
     }
   }
+  if (fromVersion < 8) {
+    if (!(KEYS.pipelineLayout in migrated)) {
+      migrated[KEYS.pipelineLayout] = {
+        version: PIPELINE_LAYOUT_VERSION,
+        data: createDefaultPipelineLayoutPreferences(),
+      };
+    }
+  }
   if (fromVersion < 5) {
     const legacyGoalsEntry = migrated[LEGACY_GOALS_KEY];
     if (legacyGoalsEntry !== undefined) {
@@ -1696,6 +1800,8 @@ const dataStore = {
   saveUserProfile,
   getCurrentCompensation,
   saveCurrentCompensation,
+  getPipelineLayoutPreferences,
+  savePipelineLayoutPreferences,
   getGoals,
   setGoals,
   getSelectedGoals,
