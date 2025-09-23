@@ -76,6 +76,7 @@ export const mockApplications: ApplicationRecord[] = [
     resumeVariant: mockResumes[0],
     status: "applied",
     history: [{ status: "applied", changedAt: new Date().toISOString() }],
+    decision: { status: "undecided" },
   },
   {
     id: "app-2",
@@ -84,6 +85,7 @@ export const mockApplications: ApplicationRecord[] = [
     resumeVariant: mockResumes[1],
     status: "interview",
     history: [{ status: "interview", changedAt: new Date().toISOString() }],
+    decision: { status: "undecided" },
   },
 ];
 
@@ -93,12 +95,14 @@ export const mockOffers: Offer[] = [
     application: mockApplications[0],
     compensation: [{ type: "base", amount: 120000 } as OfferComp],
     summary: ["Offer details for job application app-1"],
+    decision: { status: "undecided" },
   },
   {
     id: "offer-2",
     application: mockApplications[1],
     compensation: [{ type: "base", amount: 135000 } as OfferComp],
     summary: ["Offer details for job application app-2"],
+    decision: { status: "undecided" },
   },
 ];
 

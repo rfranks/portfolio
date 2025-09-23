@@ -1,6 +1,31 @@
 import type { ApplicationStatus, StatusChange } from "./job";
 import type { ParsedResume } from "./resume";
 
+export const OFFER_DECISION_STATUSES = [
+  "undecided",
+  "accepted",
+  "declined",
+] as const;
+
+export type OfferDecisionStatus = (typeof OFFER_DECISION_STATUSES)[number];
+
+export const OFFER_DECISION_STATUS_LABELS: Record<OfferDecisionStatus, string> = {
+  undecided: "Pending",
+  accepted: "Accepted",
+  declined: "Declined",
+} as const;
+
+export const OFFER_DECISION_DEFAULT_STATUS: OfferDecisionStatus = "undecided";
+
+export interface OfferDecision {
+  /** Current decision for the offer. */
+  status: OfferDecisionStatus;
+  /** When the decision was recorded, stored as an ISO string. */
+  decidedAt?: string;
+  /** Additional notes explaining the decision. */
+  notes?: string;
+}
+
 export interface OfferHistoryEntry {
   /** Unique identifier for this offer history entry. */
   id: string;
@@ -107,6 +132,8 @@ export interface ApplicationRecord {
   threads?: Thread[];
   /** Offer details if an offer has been made. */
   offer?: Offer;
+  /** Candidate's decision for the associated offer. */
+  decision?: OfferDecision;
   /** Generated offer negotiations attached to this application. */
   offerHistory?: OfferHistoryEntry[];
 }
@@ -189,6 +216,8 @@ export interface Offer {
   compensation: OfferComp[];
   /** Optional summary or notes about the offer. */
   summary?: string[];
+  /** Decision captured for this offer. */
+  decision?: OfferDecision;
 }
 
 export interface OfferComp {

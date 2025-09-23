@@ -23,7 +23,16 @@ import { Close } from "@mui/icons-material";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 
-import type { ApplicationStatus, JobApplication } from "@/types";
+import type {
+  ApplicationStatus,
+  JobApplication,
+  OfferDecisionStatus,
+} from "@/types";
+import {
+  OFFER_DECISION_DEFAULT_STATUS,
+  OFFER_DECISION_STATUS_LABELS,
+  OFFER_DECISION_STATUSES,
+} from "@/types";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import PromptTileGrid from "./promptTiles/PromptTileGrid";
 import {
@@ -45,6 +54,14 @@ interface ApplicationDetailDrawerProps {
   onSaveAction: (
     id: string,
     updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">>,
+  ) => void;
+  onSaveDecision: (
+    id: string,
+    updates: {
+      status: OfferDecisionStatus;
+      decidedAt?: string;
+      notes?: string;
+    },
   ) => void;
 }
 
@@ -111,12 +128,16 @@ const formatTimelineDate = (value: string): string => {
 const formatStatusLabel = (status: ApplicationStatus): string =>
   status.charAt(0).toUpperCase() + status.slice(1);
 
+const formatDecisionStatus = (status: OfferDecisionStatus): string =>
+  OFFER_DECISION_STATUS_LABELS[status] ?? status;
+
 export default function ApplicationDetailDrawer({
   open,
   application,
   onClose,
   onUpdateStatus,
   onSaveAction,
+  onSaveDecision,
   promptDrawerOpen = false,
 }: ApplicationDetailDrawerProps) {
   const data = useTalentForgeData();
@@ -219,6 +240,28 @@ export default function ApplicationDetailDrawer({
   const [reasonDraft, setReasonDraft] = useState<string>("");
   const [nextActionDraft, setNextActionDraft] = useState<string>("");
   const [dueDraft, setDueDraft] = useState<string>("");
+  const [decisionStatusDraft, setDecisionStatusDraft] =
+    useState<OfferDecisionStatus>(OFFER_DECISION_DEFAULT_STATUS);
+  const [decisionDateDraft, setDecisionDateDraft] = useState<string>("");
+  const [decisionNotesDraft, setDecisionNotesDraft] = useState<string>("");
+
+  const decisionInitial = useMemo(() => {
+    if (!application) {
+      return {
+        status: OFFER_DECISION_DEFAULT_STATUS,
+        decidedAt: "",
+        notes: "",
+      };
+    }
+    const decision = application.decision ?? application.offer?.decision;
+    return {
+      status: decision?.status ?? OFFER_DECISION_DEFAULT_STATUS,
+      decidedAt: decision?.decidedAt
+        ? toDateTimeLocalValue(decision.decidedAt)
+        : "",
+      notes: decision?.notes ?? "",
+    };
+  }, [application]);
 
   useEffect(() => {
     if (!application) {
@@ -227,6 +270,9 @@ export default function ApplicationDetailDrawer({
       setReasonDraft("");
       setNextActionDraft("");
       setDueDraft("");
+      setDecisionStatusDraft(OFFER_DECISION_DEFAULT_STATUS);
+      setDecisionDateDraft("");
+      setDecisionNotesDraft("");
       return;
     }
     const latest = history[history.length - 1];
@@ -236,7 +282,16 @@ export default function ApplicationDetailDrawer({
     setReasonDraft(latest?.reason ?? "");
     setNextActionDraft(application.nextAction ?? "");
     setDueDraft(application.dueAt ? toDateTimeLocalValue(application.dueAt) : "");
-  }, [application, history]);
+    setDecisionStatusDraft(decisionInitial.status);
+    setDecisionDateDraft(decisionInitial.decidedAt);
+    setDecisionNotesDraft(decisionInitial.notes);
+  }, [
+    application,
+    decisionInitial.decidedAt,
+    decisionInitial.notes,
+    decisionInitial.status,
+    history,
+  ]);
 
   const initialNextAction = application?.nextAction ?? "";
   const initialDueDraft = application?.dueAt
@@ -287,6 +342,17 @@ export default function ApplicationDetailDrawer({
     setDueDraft(event.target.value);
   };
 
+  const trimmedDecisionNotesDraft = decisionNotesDraft.trim();
+  const trimmedDecisionInitialNotes = decisionInitial.notes.trim();
+  const decisionDateIso = toIsoOrUndefined(decisionDateDraft);
+  const decisionDateHasError = Boolean(decisionDateDraft) && !decisionDateIso;
+  const decisionHasChanges =
+    decisionStatusDraft !== decisionInitial.status ||
+    decisionDateDraft !== decisionInitial.decidedAt ||
+    trimmedDecisionNotesDraft !== trimmedDecisionInitialNotes;
+  const canSaveDecision =
+    Boolean(application) && decisionHasChanges && !decisionDateHasError;
+
   const handleReminderSave = () => {
     if (!application || !hasReminderChanges || dueHasError) {
       return;
@@ -306,6 +372,41 @@ export default function ApplicationDetailDrawer({
   const handleReminderReset = () => {
     setNextActionDraft(initialNextAction);
     setDueDraft(initialDueDraft);
+  };
+
+  const handleDecisionStatusDraftChange = (
+    event: SelectChangeEvent<unknown>,
+  ) => {
+    setDecisionStatusDraft(event.target.value as OfferDecisionStatus);
+  };
+
+  const handleDecisionDateDraftChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    setDecisionDateDraft(event.target.value);
+  };
+
+  const handleDecisionNotesDraftChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    setDecisionNotesDraft(event.target.value);
+  };
+
+  const handleDecisionReset = () => {
+    setDecisionStatusDraft(decisionInitial.status);
+    setDecisionDateDraft(decisionInitial.decidedAt);
+    setDecisionNotesDraft(decisionInitial.notes);
+  };
+
+  const handleDecisionSave = () => {
+    if (!application || !decisionHasChanges || decisionDateHasError) {
+      return;
+    }
+    onSaveDecision(application.id, {
+      status: decisionStatusDraft,
+      decidedAt: decisionDateIso,
+      notes: trimmedDecisionNotesDraft ? trimmedDecisionNotesDraft : undefined,
+    });
   };
 
   const handleStatusSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -516,6 +617,74 @@ export default function ApplicationDetailDrawer({
                       variant="text"
                       onClick={handleReminderReset}
                       disabled={!hasReminderChanges}
+                    >
+                      Reset
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Box>
+            )}
+            {application && (
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  Offer decision
+                </Typography>
+                <Stack spacing={2}>
+                  <TextField
+                    label="Decision status"
+                    select
+                    size="small"
+                    value={decisionStatusDraft}
+                    SelectProps={{ onChange: handleDecisionStatusDraftChange }}
+                    fullWidth
+                  >
+                    {OFFER_DECISION_STATUSES.map((status) => (
+                      <MenuItem key={status} value={status}>
+                        {formatDecisionStatus(status)}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField
+                    label="Decision date"
+                    type="datetime-local"
+                    size="small"
+                    value={decisionDateDraft}
+                    onChange={handleDecisionDateDraftChange}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    error={decisionDateHasError}
+                    helperText={
+                      decisionDateHasError
+                        ? "Enter a valid date and time"
+                        : undefined
+                    }
+                  />
+                  <TextField
+                    label="Decision notes"
+                    value={decisionNotesDraft}
+                    onChange={handleDecisionNotesDraftChange}
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    placeholder="Add optional notes about this decision"
+                  />
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ flexWrap: "wrap", rowGap: 1 }}
+                  >
+                    <Button
+                      variant="contained"
+                      onClick={handleDecisionSave}
+                      disabled={!canSaveDecision}
+                      sx={{ alignSelf: "flex-start" }}
+                    >
+                      Save decision
+                    </Button>
+                    <Button
+                      variant="text"
+                      onClick={handleDecisionReset}
+                      disabled={!decisionHasChanges}
                     >
                       Reset
                     </Button>
