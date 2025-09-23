@@ -18,6 +18,7 @@ import type {
   OfferHistoryEntry,
   RecruiterEntry,
   ResumeEntry,
+  ScreenRoleAnalysis,
   StatusChange,
   User,
 } from "@/types";
@@ -366,6 +367,16 @@ const applicationActivitySchema = objectSchema<ApplicationActivity>({
   error: stringSchema().optional(),
 });
 
+const screenRoleIssueSchema = objectSchema<ScreenRoleAnalysis["issues"][number]>({
+  severity: enumSchema(["red", "yellow"] as const),
+  message: stringSchema(),
+});
+
+const screenRoleAnalysisSchema = objectSchema<ScreenRoleAnalysis>({
+  summary: stringSchema().optional(),
+  issues: arraySchema(screenRoleIssueSchema),
+});
+
 const recruiterEntrySchema = objectSchema<RecruiterEntry>({
   id: stringSchema(),
   name: stringSchema(),
@@ -668,6 +679,16 @@ const jobApplicationSchema: Schema<ApplicationRecord> = createSchema((input, pat
     errors.push(...activitiesResult.errors);
   }
 
+  const screenRoleAnalysisResult = screenRoleAnalysisSchema
+    .optional()
+    .safeParse(
+      (source as { screenRoleAnalysis?: unknown }).screenRoleAnalysis,
+      appendKey(path, "screenRoleAnalysis"),
+    );
+  if (!screenRoleAnalysisResult.success) {
+    errors.push(...screenRoleAnalysisResult.errors);
+  }
+
   if (errors.length > 0) {
     return failure(errors);
   }
@@ -773,6 +794,14 @@ const jobApplicationSchema: Schema<ApplicationRecord> = createSchema((input, pat
       delete (result as { activities?: ApplicationActivity[] }).activities;
     } else {
       result.activities = activitiesResult.data;
+    }
+  }
+
+  if (screenRoleAnalysisResult.success) {
+    if (screenRoleAnalysisResult.data === undefined) {
+      delete (result as { screenRoleAnalysis?: ScreenRoleAnalysis }).screenRoleAnalysis;
+    } else {
+      result.screenRoleAnalysis = screenRoleAnalysisResult.data;
     }
   }
 

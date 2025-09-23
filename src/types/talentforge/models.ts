@@ -151,6 +151,20 @@ export interface RolePosting {
   applications?: ApplicationRecord[];
 }
 
+export interface ScreenRoleIssue {
+  /** Severity of the identified issue. */
+  severity: "red" | "yellow";
+  /** Description of the potential problem. */
+  message: string;
+}
+
+export interface ScreenRoleAnalysis {
+  /** Brief overview of the role based on the description. */
+  summary?: string;
+  /** Specific concerns surfaced during analysis. */
+  issues: ScreenRoleIssue[];
+}
+
 export interface ApplicationRecord {
   /** Unique identifier for the application. */
   id: string;
@@ -186,6 +200,8 @@ export interface ApplicationRecord {
   attachments?: ApplicationAttachment[];
   /** Activity log capturing AI tile executions tied to this application. */
   activities?: ApplicationActivity[];
+  /** Stored results from the screen role analysis tile. */
+  screenRoleAnalysis?: ScreenRoleAnalysis;
 }
 
 export interface Recruiter {
