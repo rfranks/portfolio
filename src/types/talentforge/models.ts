@@ -37,6 +37,28 @@ export interface OfferHistoryEntry {
   content: string;
 }
 
+export const APPLICATION_ACTIVITY_OUTCOMES = ["success", "error"] as const;
+
+export type ApplicationActivityOutcome =
+  (typeof APPLICATION_ACTIVITY_OUTCOMES)[number];
+
+export interface ApplicationActivity {
+  /** Unique identifier for this activity entry. */
+  id: string;
+  /** Identifier of the prompt tile that generated this activity. */
+  tileId: string;
+  /** ISO timestamp for when the activity occurred. */
+  createdAt: string;
+  /** Short, human readable summary describing what happened. */
+  summary: string;
+  /** Outcome of the tile run that produced this entry. */
+  outcome: ApplicationActivityOutcome;
+  /** Optional identifier referencing generated content stored elsewhere. */
+  generatedContentId?: string;
+  /** Optional error message captured when the outcome indicates failure. */
+  error?: string;
+}
+
 export interface ApplicationAttachment {
   /** Unique identifier for this attachment. */
   id: string;
@@ -149,6 +171,8 @@ export interface ApplicationRecord {
   offerHistory?: OfferHistoryEntry[];
   /** Files associated with this application such as offer letters or notes. */
   attachments?: ApplicationAttachment[];
+  /** Activity log capturing AI tile executions tied to this application. */
+  activities?: ApplicationActivity[];
 }
 
 export interface Recruiter {

@@ -4,6 +4,7 @@ import type {
   Recruiter,
   OfferDecision,
   OfferDecisionStatus,
+  ApplicationActivityOutcome,
 } from "@/types";
 import {
   OFFER_DECISION_STATUS_LABELS,
@@ -70,6 +71,15 @@ export interface ApplicationExportRecord extends ApplicationExportRow {
   };
   resumeVariant?: { id: string; title: string };
   jobDescription?: string;
+  activities?: {
+    id: string;
+    tileId: string;
+    createdAt: string;
+    summary: string;
+    outcome: ApplicationActivityOutcome;
+    generatedContentId?: string;
+    error?: string;
+  }[];
 }
 
 const toIsoString = (value?: string): string => {
@@ -275,6 +285,33 @@ export const mapApplicationToRecord = (
 
   if (application.role.description) {
     record.jobDescription = application.role.description;
+  }
+
+  if (application.activities && application.activities.length > 0) {
+    record.activities = application.activities.map((activity) => {
+      const entry: {
+        id: string;
+        tileId: string;
+        createdAt: string;
+        summary: string;
+        outcome: ApplicationActivityOutcome;
+        generatedContentId?: string;
+        error?: string;
+      } = {
+        id: activity.id,
+        tileId: activity.tileId,
+        createdAt: toIsoString(activity.createdAt),
+        summary: activity.summary,
+        outcome: activity.outcome,
+      };
+      if (activity.generatedContentId) {
+        entry.generatedContentId = activity.generatedContentId;
+      }
+      if (activity.error && activity.error.trim().length > 0) {
+        entry.error = activity.error.trim();
+      }
+      return entry;
+    });
   }
 
   return record;
