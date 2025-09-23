@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -11,12 +11,32 @@ import {
   Tooltip,
   Tabs,
   Tab,
+  MenuItem,
 } from "@mui/material";
 import { ContentCopy } from "@mui/icons-material";
 import Markdown from "react-markdown";
 
 import { askOpenAI } from "@/utils/talentforge/utils";
-import { getResumes, addResume, addOffer } from "@/utils/talentforge/dataStore";
+import {
+  getResumes,
+  addResume,
+  addOffer,
+  getCustomPromptTileById,
+  getJobApplications,
+  getOffers,
+  getCurrentCompensation,
+  getGoals,
+  getUserProfile,
+  type CustomPromptPlaceholder,
+} from "@/utils/talentforge/dataStore";
+import {
+  formatCurrentCompensationForPrompt,
+  formatGoalsForPrompt,
+  formatJobApplicationForPrompt,
+  formatOfferForPrompt,
+  formatResumeForPrompt,
+  formatUserProfileForPrompt,
+} from "@/utils/talentforge/customPromptFormatting";
 import { tagResume } from "@/utils/talentforge/tagging";
 import { parseResumeText } from "@/utils/talentforge/resumeIngest";
 import { v4 as uuid } from "uuid";
@@ -68,8 +88,285 @@ export default function Tile({
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
+  const resumesList = getResumes();
+  const jobApplications = getJobApplications();
+  const offersList = getOffers();
+  const currentCompensation = getCurrentCompensation();
+  const goals = getGoals();
+  const userProfile = getUserProfile();
+
+  const inputsKey = useMemo(() => inputs.join("|"), [inputs]);
+  const customTile = useMemo(
+    () => getCustomPromptTileById(id),
+    [id, fullPrompt, inputsKey],
+  );
+
   const loadSelectedResume = () =>
-    getResumes().find((r) => r.id === values["resumeVariantId"]);
+    resumesList.find((r) => r.id === values["resumeVariantId"]);
+
+  const resolveCustomPlaceholderValue = (
+    placeholder: CustomPromptPlaceholder,
+  ): { value: string; ok: boolean; error?: string } => {
+    const stored = values[placeholder.id] || "";
+    switch (placeholder.type) {
+      case "shortText":
+      case "longText": {
+        const ok = placeholder.required === false || stored.trim().length > 0;
+        return {
+          value: stored,
+          ok,
+          error: ok ? undefined : `Enter a value for ${placeholder.label}.`,
+        };
+      }
+      case "resume": {
+        const resume = resumesList.find((entry) => entry.id === stored);
+        if (!resume) {
+          const ok = placeholder.required === false;
+          return {
+            value: "",
+            ok,
+            error: ok
+              ? undefined
+              : `Select a resume for ${placeholder.label}.`,
+          };
+        }
+        return { value: formatResumeForPrompt(resume), ok: true };
+      }
+      case "jobApplication": {
+        const application = jobApplications.find((entry) => entry.id === stored);
+        if (!application) {
+          const ok = placeholder.required === false;
+          return {
+            value: "",
+            ok,
+            error: ok
+              ? undefined
+              : `Choose a job application for ${placeholder.label}.`,
+          };
+        }
+        return { value: formatJobApplicationForPrompt(application), ok: true };
+      }
+      case "offer": {
+        const offer = offersList.find((entry) => entry.id === stored);
+        if (!offer) {
+          const ok = placeholder.required === false;
+          return {
+            value: "",
+            ok,
+            error: ok
+              ? undefined
+              : `Select an offer for ${placeholder.label}.`,
+          };
+        }
+        return { value: formatOfferForPrompt(offer), ok: true };
+      }
+      case "currentCompensation": {
+        const value = formatCurrentCompensationForPrompt(currentCompensation);
+        const ok = placeholder.required === false || value.trim().length > 0;
+        return {
+          value,
+          ok,
+          error: ok
+            ? undefined
+            : "Add your current compensation in Settings to use this placeholder.",
+        };
+      }
+      case "userProfile": {
+        const value = formatUserProfileForPrompt(userProfile);
+        const ok = placeholder.required === false || value.trim().length > 0;
+        return {
+          value,
+          ok,
+          error: ok
+            ? undefined
+            : "Update your profile details to use this placeholder.",
+        };
+      }
+      case "goals": {
+        const value = formatGoalsForPrompt(goals);
+        const ok = placeholder.required === false || goals.length > 0;
+        return {
+          value,
+          ok,
+          error: ok
+            ? undefined
+            : "Select at least one goal to use this placeholder.",
+        };
+      }
+      default:
+        return { value: stored, ok: true };
+    }
+  };
+
+  const renderCustomPlaceholderInput = (
+    placeholder: CustomPromptPlaceholder,
+  ) => {
+    const stored = values[placeholder.id] || "";
+    const helperText = placeholder.helperText || undefined;
+    switch (placeholder.type) {
+      case "shortText":
+        return (
+          <TextField
+            key={placeholder.id}
+            label={placeholder.label}
+            value={stored}
+            onChange={(event) =>
+              handleChange(placeholder.id, event.target.value)
+            }
+            fullWidth
+            size="small"
+            helperText={helperText}
+          />
+        );
+      case "longText":
+        return (
+          <TextField
+            key={placeholder.id}
+            label={placeholder.label}
+            value={stored}
+            onChange={(event) =>
+              handleChange(placeholder.id, event.target.value)
+            }
+            fullWidth
+            multiline
+            minRows={3}
+            maxRows={8}
+            helperText={helperText}
+          />
+        );
+      case "resume":
+        if (resumesList.length === 0) {
+          return (
+            <Typography key={placeholder.id} color="text.secondary">
+              Upload a resume to use {placeholder.label}.
+            </Typography>
+          );
+        }
+        return (
+          <TextField
+            key={placeholder.id}
+            label={placeholder.label}
+            value={stored}
+            onChange={(event) =>
+              handleChange(placeholder.id, event.target.value)
+            }
+            select
+            fullWidth
+            size="small"
+            helperText={helperText}
+          >
+            {resumesList.map((resume) => (
+              <MenuItem key={resume.id} value={resume.id}>
+                {resume.title}
+              </MenuItem>
+            ))}
+          </TextField>
+        );
+      case "jobApplication":
+        if (jobApplications.length === 0) {
+          return (
+            <Typography key={placeholder.id} color="text.secondary">
+              Track a job application to use {placeholder.label}.
+            </Typography>
+          );
+        }
+        return (
+          <TextField
+            key={placeholder.id}
+            label={placeholder.label}
+            value={stored}
+            onChange={(event) =>
+              handleChange(placeholder.id, event.target.value)
+            }
+            select
+            fullWidth
+            size="small"
+            helperText={helperText}
+          >
+            {jobApplications.map((application) => (
+              <MenuItem key={application.id} value={application.id}>
+                {`${application.role.title} – ${application.role.company}`}
+              </MenuItem>
+            ))}
+          </TextField>
+        );
+      case "offer":
+        if (offersList.length === 0) {
+          return (
+            <Typography key={placeholder.id} color="text.secondary">
+              Add an offer to use {placeholder.label}.
+            </Typography>
+          );
+        }
+        return (
+          <TextField
+            key={placeholder.id}
+            label={placeholder.label}
+            value={stored}
+            onChange={(event) =>
+              handleChange(placeholder.id, event.target.value)
+            }
+            select
+            fullWidth
+            size="small"
+            helperText={helperText}
+          >
+            {offersList.map((offer) => (
+              <MenuItem key={offer.id} value={offer.id}>
+                {offer.application.role.title} – {offer.application.role.company}
+              </MenuItem>
+            ))}
+          </TextField>
+        );
+      case "currentCompensation": {
+        const value = formatCurrentCompensationForPrompt(currentCompensation);
+        return (
+          <TextField
+            key={placeholder.id}
+            label={placeholder.label}
+            value={value || "No compensation details saved."}
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={6}
+            InputProps={{ readOnly: true }}
+            helperText={helperText}
+          />
+        );
+      }
+      case "userProfile": {
+        const value = formatUserProfileForPrompt(userProfile);
+        return (
+          <TextField
+            key={placeholder.id}
+            label={placeholder.label}
+            value={value || "Add profile details to use this placeholder."}
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={6}
+            InputProps={{ readOnly: true }}
+            helperText={helperText}
+          />
+        );
+      }
+      case "goals": {
+        const value = formatGoalsForPrompt(goals);
+        return (
+          <TextField
+            key={placeholder.id}
+            label={placeholder.label}
+            value={value || "Select goals during onboarding to use this placeholder."}
+            fullWidth
+            InputProps={{ readOnly: true }}
+            helperText={helperText}
+          />
+        );
+      }
+      default:
+        return null;
+    }
+  };
 
   const handleRun = async () => {
     setLoading(true);
@@ -77,6 +374,37 @@ export default function Tile({
       setResponse("");
       setOfferDrafts(null);
       setNudgeDrafts(null);
+
+      if (customTile) {
+        const resolved = customTile.placeholders.map((placeholder) =>
+          resolveCustomPlaceholderValue(placeholder),
+        );
+        const missing = resolved.find((entry) => !entry.ok);
+        if (missing) {
+          setResponse(missing.error || "Fill in all required placeholders.");
+          return;
+        }
+        let prompt = fullPrompt;
+        customTile.placeholders.forEach((placeholder, index) => {
+          prompt = prompt.replaceAll(
+            `{{${placeholder.id}}}`,
+            resolved[index].value,
+          );
+        });
+        const res = await askOpenAI({
+          context: "",
+          user: prompt,
+          system: "You are a helpful assistant.",
+          returnFirstResponse: true,
+          chatHistory: [],
+        });
+        const message = res?.message || "";
+        setResponse(message);
+        onResponse?.(message);
+        onInsert?.(message);
+        return;
+      }
+
       let prompt = fullPrompt;
       for (const key of inputs) {
         prompt = prompt.replaceAll(`{{${key}}}`, values[key] || "");
@@ -97,9 +425,9 @@ export default function Tile({
       }
 
       if (id === "compareOffers") {
-        const context = `Offer A:\n${values["offerA"] || ""}\n\nOffer B:\n${values["offerB"] || ""}`;
+        const comparisonContext = `Offer A:\n${values["offerA"] || ""}\n\nOffer B:\n${values["offerB"] || ""}`;
         const res = await askOpenAI({
-          context,
+          context: comparisonContext,
           user: prompt,
           system: "You compare job offers and highlight key differences.",
           returnFirstResponse: true,
@@ -128,9 +456,9 @@ export default function Tile({
         setOfferDrafts(null);
         setNudgeDrafts(null);
         setActiveTab(0);
-        const context = `Offer Letter:\n${values["offerLetter"] || ""}\n\nCurrent Compensation:\n${values["currentComp"] || ""}`;
+        const negotiateContext = `Offer Letter:\n${values["offerLetter"] || ""}\n\nCurrent Compensation:\n${values["currentComp"] || ""}`;
         const res = await askOpenAI({
-          context,
+          context: negotiateContext,
           user: prompt,
           system:
             "You analyze offers and produce structured negotiation drafts.",
@@ -221,14 +549,14 @@ export default function Tile({
     setSaving(true);
     try {
       if (id === "resumeRewrite") {
-        const resume = getResumes().find(
-          (r) => r.id === values["resumeVariantId"],
+        const sourceResume = resumesList.find(
+          (entry) => entry.id === values["resumeVariantId"],
         );
-        if (!resume) return;
+        if (!sourceResume) return;
         const tags = await tagResume(response);
         const parsed = parseResumeText(response);
         const newResume: ResumeEntry = {
-          ...resume,
+          ...sourceResume,
           id: uuid(),
           content: response,
           parsed,
@@ -259,26 +587,39 @@ export default function Tile({
     <Box>
       <Stack spacing={1}>
         <Typography variant="subtitle1">{display}</Typography>
-        {inputs.map((name) =>
-          name === "jobDescription" ? (
-            <TextField
-              key={name}
-              label={name}
-              value={values[name] || ""}
-              onChange={(e) => handleChange(name, e.target.value)}
-              multiline
-              minRows={4}
-              fullWidth
-            />
+        {customTile ? (
+          customTile.placeholders.length === 0 ? (
+            <Typography color="text.secondary">
+              No inputs required. Run the prompt to generate a response.
+            </Typography>
           ) : (
-            <TextField
-              key={name}
-              label={name}
-              value={values[name] || ""}
-              onChange={(e) => handleChange(name, e.target.value)}
-              size="small"
-            />
-          ),
+            customTile.placeholders.map((placeholder) =>
+              renderCustomPlaceholderInput(placeholder),
+            )
+          )
+        ) : (
+          inputs.map((name) =>
+            name === "jobDescription" ? (
+              <TextField
+                key={name}
+                label={name}
+                value={values[name] || ""}
+                onChange={(e) => handleChange(name, e.target.value)}
+                multiline
+                minRows={4}
+                maxRows={10}
+                fullWidth
+              />
+            ) : (
+              <TextField
+                key={name}
+                label={name}
+                value={values[name] || ""}
+                onChange={(e) => handleChange(name, e.target.value)}
+                size="small"
+              />
+            ),
+          )
         )}
         <Button variant="contained" onClick={handleRun} disabled={loading}>
           {loading ? "Running..." : "Run"}

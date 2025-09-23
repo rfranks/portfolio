@@ -1,18 +1,14 @@
 import { PROMPT_TILES, type PromptTileDefinition } from "@/consts/promptTiles";
-
-export type PromptContext = "resume" | "offers" | "messaging" | "jobSearch";
-export type TalentForgeGoalTag = "resume" | "networking" | "search";
-
-export interface PromptTileWithMetadata extends PromptTileDefinition {
-  contexts: PromptContext[];
-  recommendedGoalTags: TalentForgeGoalTag[];
-}
-
-export interface PromptTileFilters {
-  contexts?: PromptContext | PromptContext[];
-  goalTags?: TalentForgeGoalTag | TalentForgeGoalTag[];
-  ids?: string[];
-}
+import {
+  getCustomPromptTiles as loadCustomPromptTiles,
+  type CustomPromptTile,
+} from "./dataStore";
+import type {
+  PromptContext,
+  PromptTileFilters,
+  PromptTileWithMetadata,
+  TalentForgeGoalTag,
+} from "./promptTypes";
 
 const TILE_METADATA: Record<keyof typeof PROMPT_TILES, {
   contexts: PromptContext[];
@@ -193,6 +189,13 @@ export const PROMPT_CONTEXT_ORDER: PromptContext[] = [
   "jobSearch",
 ];
 
+const CONTEXT_GOAL_TAG_MAP: Record<PromptContext, TalentForgeGoalTag> = {
+  resume: "resume",
+  offers: "search",
+  messaging: "networking",
+  jobSearch: "search",
+};
+
 const toArray = <T,>(value?: T | T[]): T[] => {
   if (value === undefined) {
     return [];
@@ -212,15 +215,45 @@ const matchesGoalTags = (
 ) =>
   goalTags.length === 0 || goalTags.some((tag) => tile.recommendedGoalTags.includes(tag));
 
+const deriveGoalTags = (contexts: PromptContext[]): TalentForgeGoalTag[] => {
+  const tags = new Set<TalentForgeGoalTag>();
+  contexts.forEach((context) => {
+    const tag = CONTEXT_GOAL_TAG_MAP[context];
+    if (tag) {
+      tags.add(tag);
+    }
+  });
+  return Array.from(tags);
+};
+
+const mapCustomTile = (tile: CustomPromptTile): PromptTileWithMetadata => ({
+  id: tile.id,
+  display: tile.displayName,
+  fullPrompt: tile.fullText ?? "",
+  inputs: tile.placeholders.map((placeholder) => placeholder.id),
+  contexts: tile.contexts,
+  recommendedGoalTags: deriveGoalTags(tile.contexts),
+});
+
+const getCustomTileMetadata = (): PromptTileWithMetadata[] =>
+  loadCustomPromptTiles().map(mapCustomTile);
+
 export function getPromptTile(
   id: string,
   filters: PromptTileFilters = {},
 ): PromptTileWithMetadata | undefined {
-  const tile = PROMPT_TILE_REGISTRY[id];
-  if (!tile) return undefined;
-
   const contexts = toArray(filters.contexts);
   const goalTags = toArray(filters.goalTags);
+
+  const customTile = getCustomTileMetadata().find((tile) => tile.id === id);
+  if (customTile) {
+    if (!matchesContexts(customTile, contexts)) return undefined;
+    if (!matchesGoalTags(customTile, goalTags)) return undefined;
+    return customTile;
+  }
+
+  const tile = PROMPT_TILE_REGISTRY[id];
+  if (!tile) return undefined;
 
   if (!matchesContexts(tile, contexts)) return undefined;
   if (!matchesGoalTags(tile, goalTags)) return undefined;
@@ -234,13 +267,34 @@ export function getPromptTiles(
   const contexts = toArray(filters.contexts);
   const goalTags = toArray(filters.goalTags);
 
+  const defaultTiles = Object.values(PROMPT_TILE_REGISTRY);
+  const customTiles = getCustomTileMetadata();
+
   if (filters.ids && filters.ids.length > 0) {
+    const lookup = new Map<string, PromptTileWithMetadata>();
+    defaultTiles.forEach((tile) => lookup.set(tile.id, tile));
+    customTiles.forEach((tile) => lookup.set(tile.id, tile));
     return filters.ids
-      .map((id) => getPromptTile(id, { contexts, goalTags }))
-      .filter((tile): tile is PromptTileWithMetadata => Boolean(tile));
+      .map((id) => lookup.get(id))
+      .filter((tile): tile is PromptTileWithMetadata => Boolean(tile))
+      .filter(
+        (tile) =>
+          matchesContexts(tile, contexts) && matchesGoalTags(tile, goalTags),
+      );
   }
 
-  return Object.values(PROMPT_TILE_REGISTRY).filter(
+  const combined = new Map<string, PromptTileWithMetadata>();
+  defaultTiles.forEach((tile) => combined.set(tile.id, tile));
+  customTiles.forEach((tile) => combined.set(tile.id, tile));
+
+  return Array.from(combined.values()).filter(
     (tile) => matchesContexts(tile, contexts) && matchesGoalTags(tile, goalTags),
   );
 }
+
+export type {
+  PromptContext,
+  PromptTileFilters,
+  PromptTileWithMetadata,
+  TalentForgeGoalTag,
+} from "./promptTypes";

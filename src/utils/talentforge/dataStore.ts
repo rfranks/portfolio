@@ -34,8 +34,9 @@ import {
   OFFER_DECISION_STATUSES,
 } from "@/types";
 import { AUTO_REPLY_TEMPLATES } from "@/utils/autoReply/templates";
-import type { TalentForgeGoalTag } from "./promptRegistry";
+import type { PromptContext, TalentForgeGoalTag } from "./promptTypes";
 import { STATUSES } from "./keyboard";
+import { PROMPT_TILES } from "@/consts/promptTiles";
 
 export type UserProfile = User;
 
@@ -50,6 +51,39 @@ export interface CurrentCompensation {
 export interface PipelineLayoutPreferences {
   order: ApplicationStatus[];
   collapsed: ApplicationStatus[];
+}
+
+export type CustomPromptPlaceholderType =
+  | "shortText"
+  | "longText"
+  | "resume"
+  | "jobApplication"
+  | "offer"
+  | "currentCompensation"
+  | "userProfile"
+  | "goals";
+
+export interface CustomPromptPlaceholder {
+  id: string;
+  label: string;
+  type: CustomPromptPlaceholderType;
+  helperText?: string;
+  required?: boolean;
+}
+
+export interface CustomPromptTile {
+  id: string;
+  displayName: string;
+  fullText: string;
+  contexts: PromptContext[];
+  placeholders: CustomPromptPlaceholder[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CustomPromptTileInput
+  extends Omit<CustomPromptTile, "id" | "createdAt" | "updatedAt"> {
+  id?: string;
 }
 
 interface StoreSchema {
@@ -68,6 +102,7 @@ interface StoreSchema {
   currentCompensation: CurrentCompensation;
   goals: TalentForgeGoalTag[];
   pipelineLayout: PipelineLayoutPreferences;
+  customPromptTiles: CustomPromptTile[];
 }
 
 // Storage keys for each entity
@@ -87,6 +122,7 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   currentCompensation: "currentCompensation",
   goals: "talentforge-goals",
   pipelineLayout: "pipelineLayout",
+  customPromptTiles: "customPromptTiles",
 } as const;
 
 const LEGACY_GOALS_KEY = "talentforge-goal-selections";
@@ -96,6 +132,28 @@ const KNOWN_GOAL_TAGS: readonly TalentForgeGoalTag[] = [
   "search",
 ];
 const LEGACY_GOAL_SELECTIONS_VERSION = 1;
+
+const KNOWN_PROMPT_CONTEXTS: readonly PromptContext[] = [
+  "resume",
+  "offers",
+  "messaging",
+  "jobSearch",
+];
+
+const CUSTOM_PLACEHOLDER_TYPES: readonly CustomPromptPlaceholderType[] = [
+  "shortText",
+  "longText",
+  "resume",
+  "jobApplication",
+  "offer",
+  "currentCompensation",
+  "userProfile",
+  "goals",
+];
+
+const DEFAULT_PROMPT_TILE_IDS = new Set(
+  Object.keys(PROMPT_TILES).map((id) => id.toLowerCase()),
+);
 
 // Version constants per entity so tests and other modules can reference them.
 export const USER_VERSION = 1;
@@ -113,6 +171,7 @@ export const AUTO_REPLY_TEMPLATES_VERSION = 1;
 export const CURRENT_COMP_VERSION = 1;
 export const GOALS_VERSION = 1;
 export const PIPELINE_LAYOUT_VERSION = 1;
+export const CUSTOM_PROMPT_TILES_VERSION = 1;
 
 const VERSION: { [K in keyof StoreSchema]: number } = {
   user: USER_VERSION,
@@ -130,10 +189,163 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   currentCompensation: CURRENT_COMP_VERSION,
   goals: GOALS_VERSION,
   pipelineLayout: PIPELINE_LAYOUT_VERSION,
+  customPromptTiles: CUSTOM_PROMPT_TILES_VERSION,
 } as const;
 
-export const SNAPSHOT_VERSION = 9;
+export const SNAPSHOT_VERSION = 10;
 
+const CONTEXT_SET = new Set<PromptContext>(KNOWN_PROMPT_CONTEXTS);
+const PLACEHOLDER_TYPE_SET = new Set<CustomPromptPlaceholderType>(
+  CUSTOM_PLACEHOLDER_TYPES as CustomPromptPlaceholderType[],
+);
+
+type CustomPromptTileLike = Partial<CustomPromptTileInput> & {
+  placeholders?: unknown[];
+  display?: string;
+  fullPrompt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+function sanitizePlaceholder(value: unknown): CustomPromptPlaceholder | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as Partial<CustomPromptPlaceholder> & {
+    id?: string | number;
+  };
+  const type = candidate.type;
+  if (!type || !PLACEHOLDER_TYPE_SET.has(type as CustomPromptPlaceholderType)) {
+    return null;
+  }
+  const idValue =
+    typeof candidate.id === "string"
+      ? candidate.id
+      : typeof candidate.id === "number"
+        ? String(candidate.id)
+        : "";
+  const labelValue =
+    typeof candidate.label === "string"
+      ? candidate.label
+      : typeof candidate.label === "number"
+        ? String(candidate.label)
+        : "";
+  const id = idValue.trim().replace(/\s+/g, "_");
+  const label = labelValue.trim();
+  if (!id || !label) {
+    return null;
+  }
+  const helperText =
+    typeof candidate.helperText === "string"
+      ? candidate.helperText.trim() || undefined
+      : undefined;
+  const required = candidate.required === false ? false : true;
+  return {
+    id,
+    label,
+    type: type as CustomPromptPlaceholderType,
+    helperText,
+    required,
+  };
+}
+
+function sanitizeCustomPromptTileInput(
+  tile: CustomPromptTileLike,
+  id: string,
+  previous?: CustomPromptTile,
+): CustomPromptTile | null {
+  const displaySource =
+    typeof tile.displayName === "string"
+      ? tile.displayName
+      : typeof tile.display === "string"
+        ? tile.display
+        : "";
+  const displayName = displaySource.trim();
+  if (!displayName) return null;
+
+  const contextsInput = Array.isArray(tile.contexts) ? tile.contexts : [];
+  const contexts = Array.from(
+    new Set(
+      contextsInput
+        .map((ctx) => ctx as PromptContext)
+        .filter((ctx): ctx is PromptContext => CONTEXT_SET.has(ctx)),
+    ),
+  );
+  if (contexts.length === 0) {
+    contexts.push("resume");
+  }
+
+  const rawPlaceholders = Array.isArray(tile.placeholders)
+    ? tile.placeholders
+    : [];
+  const placeholders: CustomPromptPlaceholder[] = [];
+  const seen = new Set<string>();
+  for (const raw of rawPlaceholders) {
+    const sanitized = sanitizePlaceholder(raw);
+    if (!sanitized) continue;
+    if (seen.has(sanitized.id)) continue;
+    placeholders.push(sanitized);
+    seen.add(sanitized.id);
+  }
+  if (placeholders.length === 0) {
+    return null;
+  }
+
+  const fullTextSource =
+    typeof tile.fullText === "string"
+      ? tile.fullText
+      : typeof tile.fullPrompt === "string"
+        ? tile.fullPrompt
+        : tile.fullText !== undefined && tile.fullText !== null
+          ? String(tile.fullText)
+          : "";
+
+  const now = new Date().toISOString();
+  const createdAt =
+    typeof tile.createdAt === "string"
+      ? tile.createdAt
+      : previous?.createdAt ?? now;
+
+  const updatedAt =
+    typeof tile.updatedAt === "string" ? tile.updatedAt : now;
+
+  return {
+    id,
+    displayName,
+    fullText: fullTextSource,
+    contexts,
+    placeholders,
+    createdAt,
+    updatedAt,
+  };
+}
+
+function ensureCustomPromptId(
+  candidate: string,
+  current: CustomPromptTile[],
+  previousId?: string,
+): string {
+  const trimmed = candidate.trim();
+  const base = trimmed || uuid();
+  const previousLower = previousId ? previousId.toLowerCase() : undefined;
+
+  const isConflict = (value: string) => {
+    const lower = value.toLowerCase();
+    if (previousLower && lower === previousLower) {
+      return false;
+    }
+    if (DEFAULT_PROMPT_TILE_IDS.has(lower)) {
+      return true;
+    }
+    return current.some((tile) => tile.id.toLowerCase() === lower);
+  };
+
+  let candidateId = base;
+  let suffix = 1;
+  while (isConflict(candidateId)) {
+    candidateId = `${base}_${suffix}`;
+    suffix += 1;
+  }
+  return candidateId;
+}
 // Generic migration helper which applies migrations sequentially until the
 // data reaches `targetVersion`.
 function migrate<T>(
@@ -720,6 +932,39 @@ function migratePipelineLayout(
   return normalizePipelineLayoutPreferences(migrated);
 }
 
+function migrateCustomPromptTiles(
+  data: unknown,
+  version: number,
+): CustomPromptTile[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  const migrated: CustomPromptTile[] = [];
+  for (const entry of data as unknown[]) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+    const candidate = entry as CustomPromptTileLike & { id?: unknown };
+    const rawId =
+      typeof candidate.id === "string"
+        ? candidate.id.trim()
+        : typeof candidate.id === "number"
+          ? String(candidate.id)
+          : "";
+    const baseId = rawId || uuid();
+    const ensuredId = ensureCustomPromptId(baseId, migrated);
+    const sanitized = sanitizeCustomPromptTileInput(
+      candidate,
+      ensuredId,
+      candidate as CustomPromptTile,
+    );
+    if (sanitized) {
+      migrated.push(sanitized);
+    }
+  }
+  return migrated;
+}
+
 const MIGRATORS: {
   [K in keyof StoreSchema]: (
     data: unknown,
@@ -741,6 +986,7 @@ const MIGRATORS: {
   currentCompensation: migrateCurrentCompensation,
   goals: migrateGoals,
   pipelineLayout: migratePipelineLayout,
+  customPromptTiles: migrateCustomPromptTiles,
 };
 
 const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
@@ -759,6 +1005,7 @@ const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
   currentCompensation: { salary: "", benefits: "", stock: "" },
   goals: [],
   pipelineLayout: createDefaultPipelineLayoutPreferences(),
+  customPromptTiles: [],
 } as const;
 
 function load<K extends keyof StoreSchema>(
@@ -990,6 +1237,69 @@ export function cloneResume(resume: ResumeEntry): ResumeEntry[] {
   const clone = { ...resume, id: uuid(), title };
   const updated = [...current, clone];
   saveResumes(updated);
+  return updated;
+}
+
+// Custom prompt tiles
+export function getCustomPromptTiles(): CustomPromptTile[] {
+  return load("customPromptTiles", []);
+}
+
+function saveCustomPromptTiles(tiles: CustomPromptTile[]): void {
+  save("customPromptTiles", tiles);
+}
+
+export function getCustomPromptTileById(
+  id: string,
+): CustomPromptTile | undefined {
+  return getCustomPromptTiles().find((tile) => tile.id === id);
+}
+
+export function addCustomPromptTile(
+  tile: CustomPromptTileInput,
+): CustomPromptTile[] {
+  const current = getCustomPromptTiles();
+  const rawId =
+    typeof tile.id === "string" && tile.id.trim() ? tile.id.trim() : "";
+  const previous = rawId ? current.find((entry) => entry.id === rawId) : undefined;
+  const baseId = rawId || uuid();
+  const normalizedId = ensureCustomPromptId(baseId, current, previous?.id);
+  const sanitized = sanitizeCustomPromptTileInput(tile, normalizedId, previous);
+  if (!sanitized) {
+    return current;
+  }
+  const others = current.filter((entry) => entry.id !== sanitized.id);
+  const updated = [...others, sanitized];
+  saveCustomPromptTiles(updated);
+  return updated;
+}
+
+export function updateCustomPromptTile(
+  tile: CustomPromptTileInput,
+): CustomPromptTile[] {
+  const current = getCustomPromptTiles();
+  if (!tile.id) {
+    return current;
+  }
+  const previous = current.find((entry) => entry.id === tile.id);
+  if (!previous) {
+    return current;
+  }
+  const sanitized = sanitizeCustomPromptTileInput(tile, tile.id, previous);
+  if (!sanitized) {
+    return current;
+  }
+  const updated = current.map((entry) =>
+    entry.id === sanitized.id ? sanitized : entry,
+  );
+  saveCustomPromptTiles(updated);
+  return updated;
+}
+
+export function deleteCustomPromptTile(id: string): CustomPromptTile[] {
+  const current = getCustomPromptTiles();
+  const updated = current.filter((entry) => entry.id !== id);
+  saveCustomPromptTiles(updated);
   return updated;
 }
 
@@ -1873,6 +2183,14 @@ function migrateSnapshot(
       };
     }
   }
+  if (fromVersion < 10) {
+    if (!(KEYS.customPromptTiles in migrated)) {
+      migrated[KEYS.customPromptTiles] = {
+        version: CUSTOM_PROMPT_TILES_VERSION,
+        data: [],
+      };
+    }
+  }
   if (fromVersion < 5) {
     const legacyGoalsEntry = migrated[LEGACY_GOALS_KEY];
     if (legacyGoalsEntry !== undefined) {
@@ -2038,6 +2356,11 @@ const dataStore = {
   saveConnectorSyncSnapshot,
   getLinkedInProfileSnapshot,
   saveLinkedInProfileSnapshot,
+  getCustomPromptTiles,
+  getCustomPromptTileById,
+  addCustomPromptTile,
+  updateCustomPromptTile,
+  deleteCustomPromptTile,
   exportToJson,
   importFromJson,
 };
