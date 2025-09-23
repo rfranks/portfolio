@@ -27,6 +27,14 @@ const layoutPreferencesMock: { order: Status[]; collapsed: Status[] } = {
 };
 
 let jobApplicationsMock: JobApplication[] = [];
+type NegotiationEntry = {
+  id: string;
+  label: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+};
+let negotiationLibraryMock: NegotiationEntry[] = [];
 
 const normalizeLayout = (prefs: { order?: string[]; collapsed?: string[] }) => {
   const order: Status[] = [];
@@ -95,12 +103,31 @@ jest.mock('@/utils/talentforge/dataStore', () => ({
       return { ...normalized };
     },
   ),
+  getNegotiationLibrary: jest.fn(() => negotiationLibraryMock),
+  addNegotiationLibraryEntry: jest.fn((entry: NegotiationEntry) => {
+    negotiationLibraryMock = [
+      ...negotiationLibraryMock.filter((item) => item.id !== entry.id),
+      entry,
+    ];
+    return negotiationLibraryMock;
+  }),
+  updateNegotiationLibraryEntry: jest.fn((id: string, updates: Partial<NegotiationEntry>) => {
+    negotiationLibraryMock = negotiationLibraryMock.map((entry) =>
+      entry.id === id ? { ...entry, ...updates } : entry,
+    );
+    return negotiationLibraryMock;
+  }),
+  deleteNegotiationLibraryEntry: jest.fn((id: string) => {
+    negotiationLibraryMock = negotiationLibraryMock.filter((entry) => entry.id !== id);
+    return negotiationLibraryMock;
+  }),
 }));
 
 beforeEach(() => {
   layoutPreferencesMock.order = [...STATUSES];
   layoutPreferencesMock.collapsed = [];
   jobApplicationsMock = [];
+  negotiationLibraryMock = [];
 });
 
 jest.mock('@/contexts/TalentForgeDataContext', () => ({
@@ -113,6 +140,10 @@ jest.mock('@/contexts/TalentForgeDataContext', () => ({
     addThreadReply: jest.fn(),
     linkThreadToRecruiter: jest.fn(),
     saveAutoReplyTemplates: jest.fn(),
+    getNegotiationLibrary: () => negotiationLibraryMock,
+    addNegotiationLibraryEntry: jest.fn(),
+    updateNegotiationLibraryEntry: jest.fn(),
+    deleteNegotiationLibraryEntry: jest.fn(),
   }),
 }));
 

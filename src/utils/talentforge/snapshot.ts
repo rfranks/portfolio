@@ -13,6 +13,7 @@ import {
   getConnectorSyncSnapshot,
   getLinkedInProfileSnapshot,
   getPipelineLayoutPreferences,
+  getNegotiationLibrary,
 } from "./dataStore";
 
 export function exportSnapshot(): string {
@@ -33,5 +34,6 @@ export function importSnapshot(json: string): void {
   getConnectorSyncSnapshot();
   getLinkedInProfileSnapshot();
   getPipelineLayoutPreferences();
+  getNegotiationLibrary();
 }
 

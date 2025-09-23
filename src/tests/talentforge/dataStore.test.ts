@@ -23,6 +23,11 @@ import {
   getPipelineLayoutPreferences,
   savePipelineLayoutPreferences,
   PIPELINE_LAYOUT_VERSION,
+  NEGOTIATION_LIBRARY_VERSION,
+  getNegotiationLibrary,
+  addNegotiationLibraryEntry,
+  updateNegotiationLibraryEntry,
+  deleteNegotiationLibraryEntry,
 } from "../../utils/talentforge/dataStore";
 import type { PipelineLayoutPreferences } from "../../utils/talentforge/dataStore";
 import { loadItem, saveItem } from "../../utils/storage";
@@ -32,6 +37,7 @@ import type {
   LinkedInProfileSnapshot,
   JobApplication,
   Offer,
+  NegotiationLibraryEntry,
 } from "../../types";
 import { exportSnapshot, importSnapshot } from "../../utils/talentforge/snapshot";
 import { STATUSES } from "../../utils/talentforge/keyboard";
@@ -700,5 +706,147 @@ describe("dataStore migrations", () => {
     const restored = getJobApplications();
     expect(restored).toHaveLength(1);
     expect(restored[0].attachments).toEqual(attachments);
+  });
+
+  describe("negotiation library helpers", () => {
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    test("addNegotiationLibraryEntry persists entries", () => {
+      const now = new Date().toISOString();
+      const entry: NegotiationLibraryEntry = {
+        id: "lib-1",
+        label: "Counter offer",
+        content: "Draft content",
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      const saved = addNegotiationLibraryEntry(entry);
+      expect(saved).toEqual([entry]);
+      expect(getNegotiationLibrary()).toEqual([entry]);
+
+      const stored = loadItem<NegotiationLibraryEntry[]>(
+        "negotiationLibrary",
+        NEGOTIATION_LIBRARY_VERSION,
+      )!;
+      expect(stored).toEqual([entry]);
+    });
+
+    test("updateNegotiationLibraryEntry merges updates", () => {
+      const now = new Date().toISOString();
+      const entry: NegotiationLibraryEntry = {
+        id: "lib-1",
+        label: "Initial draft",
+        content: "Draft content",
+        createdAt: now,
+        updatedAt: now,
+      };
+      addNegotiationLibraryEntry(entry);
+
+      const updatedAt = new Date(Date.now() + 5_000).toISOString();
+      const updated = updateNegotiationLibraryEntry(entry.id, {
+        label: "Updated draft",
+        updatedAt,
+      });
+
+      expect(updated).toHaveLength(1);
+      expect(updated[0].label).toBe("Updated draft");
+      expect(updated[0].content).toBe(entry.content);
+      expect(getNegotiationLibrary()[0].updatedAt).toBe(updatedAt);
+    });
+
+    test("addNegotiationLibraryEntry replaces entries with matching ids", () => {
+      const now = new Date().toISOString();
+      const first: NegotiationLibraryEntry = {
+        id: "lib-duplicate",
+        label: "Original draft",
+        content: "Original content",
+        createdAt: now,
+        updatedAt: now,
+      };
+      const replacement: NegotiationLibraryEntry = {
+        ...first,
+        label: "Replacement draft",
+        content: "Replacement content",
+        updatedAt: new Date(Date.now() + 1_000).toISOString(),
+      };
+
+      addNegotiationLibraryEntry(first);
+      const saved = addNegotiationLibraryEntry(replacement);
+
+      expect(saved).toHaveLength(1);
+      expect(saved[0]).toEqual(replacement);
+      expect(getNegotiationLibrary()).toEqual([replacement]);
+    });
+
+    test("updateNegotiationLibraryEntry ignores undefined fields", () => {
+      const now = new Date().toISOString();
+      const entry: NegotiationLibraryEntry = {
+        id: "lib-undefined",
+        label: "Keep label",
+        content: "Keep content",
+        createdAt: now,
+        updatedAt: now,
+      };
+      addNegotiationLibraryEntry(entry);
+
+      const newerContent = "Revised content";
+      const newerUpdatedAt = new Date(Date.now() + 10_000).toISOString();
+      const updated = updateNegotiationLibraryEntry(entry.id, {
+        label: undefined,
+        content: newerContent,
+        updatedAt: newerUpdatedAt,
+      });
+
+      expect(updated).toHaveLength(1);
+      expect(updated[0].label).toBe(entry.label);
+      expect(updated[0].content).toBe(newerContent);
+      expect(updated[0].updatedAt).toBe(newerUpdatedAt);
+    });
+
+    test("negotiation library persists through snapshot export and import", () => {
+      const now = new Date().toISOString();
+      const entry: NegotiationLibraryEntry = {
+        id: "lib-snapshot",
+        label: "Snapshot draft",
+        content: "Snapshot content",
+        createdAt: now,
+        updatedAt: now,
+      };
+      addNegotiationLibraryEntry(entry);
+
+      const snapshot = exportSnapshot();
+
+      localStorage.clear();
+      importSnapshot(snapshot);
+
+      expect(getNegotiationLibrary()).toEqual([entry]);
+    });
+
+    test("deleteNegotiationLibraryEntry removes entries", () => {
+      const now = new Date().toISOString();
+      const first: NegotiationLibraryEntry = {
+        id: "lib-1",
+        label: "First",
+        content: "First draft",
+        createdAt: now,
+        updatedAt: now,
+      };
+      const second: NegotiationLibraryEntry = {
+        id: "lib-2",
+        label: "Second",
+        content: "Second draft",
+        createdAt: now,
+        updatedAt: now,
+      };
+      addNegotiationLibraryEntry(first);
+      addNegotiationLibraryEntry(second);
+
+      const remaining = deleteNegotiationLibraryEntry(first.id);
+      expect(remaining).toEqual([second]);
+      expect(getNegotiationLibrary()).toEqual([second]);
+    });
   });
 });

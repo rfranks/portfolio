@@ -19,6 +19,7 @@ import type {
   ApplicationRecord,
   ApplicationAttachment,
   OfferHistoryEntry,
+  NegotiationLibraryEntry,
   OfferComp,
   OfferDecision,
   OfferDecisionStatus,
@@ -103,6 +104,7 @@ interface StoreSchema {
   currentCompensation: CurrentCompensation;
   goals: TalentForgeGoalTag[];
   pipelineLayout: PipelineLayoutPreferences;
+  negotiationLibrary: NegotiationLibraryEntry[];
   customPromptTiles: CustomPromptTile[];
 }
 
@@ -123,6 +125,7 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   currentCompensation: "currentCompensation",
   goals: "talentforge-goals",
   pipelineLayout: "pipelineLayout",
+  negotiationLibrary: "negotiationLibrary",
   customPromptTiles: "customPromptTiles",
 } as const;
 
@@ -172,6 +175,7 @@ export const AUTO_REPLY_TEMPLATES_VERSION = 1;
 export const CURRENT_COMP_VERSION = 1;
 export const GOALS_VERSION = 1;
 export const PIPELINE_LAYOUT_VERSION = 1;
+export const NEGOTIATION_LIBRARY_VERSION = 1;
 export const CUSTOM_PROMPT_TILES_VERSION = 1;
 
 const VERSION: { [K in keyof StoreSchema]: number } = {
@@ -190,10 +194,11 @@ const VERSION: { [K in keyof StoreSchema]: number } = {
   currentCompensation: CURRENT_COMP_VERSION,
   goals: GOALS_VERSION,
   pipelineLayout: PIPELINE_LAYOUT_VERSION,
+  negotiationLibrary: NEGOTIATION_LIBRARY_VERSION,
   customPromptTiles: CUSTOM_PROMPT_TILES_VERSION,
 } as const;
 
-export const SNAPSHOT_VERSION = 10;
+export const SNAPSHOT_VERSION = 11;
 
 const CONTEXT_SET = new Set<PromptContext>(KNOWN_PROMPT_CONTEXTS);
 const PLACEHOLDER_TYPE_SET = new Set<CustomPromptPlaceholderType>(
@@ -967,6 +972,87 @@ function migrateCustomPromptTiles(
   return migrated;
 }
 
+function sanitizeNegotiationLibraryEntry(
+  entry: unknown,
+  existing: NegotiationLibraryEntry[],
+): NegotiationLibraryEntry | null {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+  const candidate = entry as Partial<NegotiationLibraryEntry> & {
+    name?: unknown;
+    body?: unknown;
+  };
+  const rawContent =
+    typeof candidate.content === "string"
+      ? candidate.content
+      : typeof candidate.body === "string"
+        ? candidate.body
+        : "";
+  if (rawContent.trim().length === 0) {
+    return null;
+  }
+  const rawLabel =
+    typeof candidate.label === "string" && candidate.label.trim().length > 0
+      ? candidate.label.trim()
+      : typeof candidate.name === "string" && candidate.name.trim().length > 0
+        ? candidate.name.trim()
+        : "";
+  const label = rawLabel || "Negotiation draft";
+  const now = new Date().toISOString();
+  const providedId =
+    typeof candidate.id === "string" && candidate.id.trim().length > 0
+      ? candidate.id.trim()
+      : undefined;
+  const hasConflict = providedId
+    ? existing.some((entry) => entry.id === providedId)
+    : false;
+  const id = hasConflict || !providedId ? uuid() : providedId;
+  const createdAt =
+    typeof candidate.createdAt === "string" &&
+    !Number.isNaN(Date.parse(candidate.createdAt))
+      ? candidate.createdAt
+      : now;
+  const updatedAt =
+    typeof candidate.updatedAt === "string" &&
+    !Number.isNaN(Date.parse(candidate.updatedAt))
+      ? candidate.updatedAt
+      : createdAt;
+  return {
+    id,
+    label,
+    content: rawContent,
+    createdAt,
+    updatedAt,
+  };
+}
+
+function migrateNegotiationLibrary(
+  data: unknown,
+  version: number,
+): NegotiationLibraryEntry[] {
+  return migrate<NegotiationLibraryEntry[]>(
+    data,
+    version,
+    NEGOTIATION_LIBRARY_VERSION,
+    {
+      0: (value) => {
+        if (!Array.isArray(value)) {
+          return [];
+        }
+        const migrated: NegotiationLibraryEntry[] = [];
+        for (const entry of value) {
+          const sanitized = sanitizeNegotiationLibraryEntry(entry, migrated);
+          if (sanitized) {
+            migrated.push(sanitized);
+          }
+        }
+        return migrated;
+      },
+    },
+  );
+}
+
 const MIGRATORS: {
   [K in keyof StoreSchema]: (
     data: unknown,
@@ -988,6 +1074,7 @@ const MIGRATORS: {
   currentCompensation: migrateCurrentCompensation,
   goals: migrateGoals,
   pipelineLayout: migratePipelineLayout,
+  negotiationLibrary: migrateNegotiationLibrary,
   customPromptTiles: migrateCustomPromptTiles,
 };
 
@@ -1007,6 +1094,7 @@ const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
   currentCompensation: { salary: "", benefits: "", stock: "" },
   goals: [],
   pipelineLayout: createDefaultPipelineLayoutPreferences(),
+  negotiationLibrary: [],
   customPromptTiles: [],
 } as const;
 
@@ -1240,6 +1328,60 @@ export function cloneResume(resume: ResumeEntry): ResumeEntry[] {
   const updated = [...current, clone];
   saveResumes(updated);
   return updated;
+}
+
+// Negotiation library
+export function getNegotiationLibrary(): NegotiationLibraryEntry[] {
+  return load("negotiationLibrary", []);
+}
+
+function saveNegotiationLibrary(entries: NegotiationLibraryEntry[]): void {
+  save("negotiationLibrary", entries);
+}
+
+export function addNegotiationLibraryEntry(
+  entry: NegotiationLibraryEntry,
+): NegotiationLibraryEntry[] {
+  const current = getNegotiationLibrary();
+  const filtered = current.filter((existing) => existing.id !== entry.id);
+  const updated = [...filtered, entry];
+  saveNegotiationLibrary(updated);
+  return updated;
+}
+
+export function updateNegotiationLibraryEntry(
+  id: string,
+  updates: Partial<NegotiationLibraryEntry>,
+): NegotiationLibraryEntry[] {
+  const current = getNegotiationLibrary();
+  let changed = false;
+  const sanitizedUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([, value]) => value !== undefined),
+  ) as Partial<NegotiationLibraryEntry>;
+  const updated = current.map((entry) => {
+    if (entry.id !== id) {
+      return entry;
+    }
+    changed = true;
+    return { ...entry, ...sanitizedUpdates };
+  });
+  if (changed) {
+    saveNegotiationLibrary(updated);
+    return updated;
+  }
+  return current;
+}
+
+export function deleteNegotiationLibraryEntry(
+  id: string,
+): NegotiationLibraryEntry[] {
+  const current = getNegotiationLibrary();
+  const updated = current.filter((entry) => entry.id !== id);
+  if (updated.length !== current.length) {
+    saveNegotiationLibrary(updated);
+    return updated;
+  }
+  return current;
 }
 
 // Custom prompt tiles
@@ -2389,6 +2531,14 @@ function migrateSnapshot(
       };
     }
   }
+  if (fromVersion < 11) {
+    if (!(KEYS.negotiationLibrary in migrated)) {
+      migrated[KEYS.negotiationLibrary] = {
+        version: NEGOTIATION_LIBRARY_VERSION,
+        data: [],
+      };
+    }
+  }
   if (fromVersion < 5) {
     const legacyGoalsEntry = migrated[LEGACY_GOALS_KEY];
     if (legacyGoalsEntry !== undefined) {
@@ -2559,6 +2709,10 @@ const dataStore = {
   addCustomPromptTile,
   updateCustomPromptTile,
   deleteCustomPromptTile,
+  getNegotiationLibrary,
+  addNegotiationLibraryEntry,
+  updateNegotiationLibraryEntry,
+  deleteNegotiationLibraryEntry,
   exportToJson,
   importFromJson,
 };
