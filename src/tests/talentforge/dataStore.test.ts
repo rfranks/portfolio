@@ -30,6 +30,7 @@ import {
   updateNegotiationLibraryEntry,
   deleteNegotiationLibraryEntry,
   SNAPSHOT_VERSION,
+  APP_VERSION,
 } from "../../utils/talentforge/dataStore";
 import type { PipelineLayoutPreferences } from "../../utils/talentforge/dataStore";
 import { loadItem, saveItem } from "../../utils/storage";
@@ -199,6 +200,9 @@ describe("dataStore migrations", () => {
     const snapshot = {
       version: 5,
       data: {},
+      exportedAt: "2024-01-01T00:00:00.000Z",
+      appVersion: "0.0.1",
+      notes: "legacy export",
     };
 
     importFromJson(JSON.stringify(snapshot));
@@ -244,6 +248,8 @@ describe("dataStore migrations", () => {
             ],
           },
         },
+        exportedAt: "2024-02-01T00:00:00.000Z",
+        appVersion: "0.0.1",
       };
 
       importFromJson(JSON.stringify(snapshot));
@@ -539,6 +545,8 @@ describe("dataStore migrations", () => {
           ],
         },
       },
+      exportedAt: "2024-03-01T00:00:00.000Z",
+      appVersion: "0.0.1",
     };
 
     importFromJson(JSON.stringify(snapshot));
@@ -734,6 +742,31 @@ describe("dataStore migrations", () => {
     expect(appOne?.resumeVariant).toBeUndefined();
     expect(appTwo?.resumeVariant?.id).toBe("resume-1");
     expect(getJobApplications()).toEqual(cleared);
+  });
+
+  test("exportSnapshot includes metadata", () => {
+    jest.useFakeTimers();
+    try {
+      const now = new Date("2024-04-05T06:07:08.000Z");
+      jest.setSystemTime(now);
+
+      const snapshotJson = exportSnapshot({ notes: "  Export check  " });
+      const parsed = JSON.parse(snapshotJson) as {
+        version?: number;
+        exportedAt?: string;
+        appVersion?: string;
+        notes?: string;
+        data?: unknown;
+      };
+
+      expect(parsed.version).toBe(SNAPSHOT_VERSION);
+      expect(parsed.exportedAt).toBe(now.toISOString());
+      expect(parsed.appVersion).toBe(APP_VERSION);
+      expect(parsed.notes).toBe("Export check");
+      expect(parsed.data).toBeDefined();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test("attachments persist through snapshot export and import", () => {

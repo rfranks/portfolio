@@ -24,8 +24,46 @@ import OpenAIKeyModal from "@/components/talentforge/OpenAIKeyModal";
 import { loadDemoData, clearDemoData } from "@/utils/talentforge/demoData";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import { exportSnapshot, importSnapshot } from "@/utils/talentforge/snapshot";
-import { SNAPSHOT_VERSION } from "@/utils/talentforge/dataStore";
+import type { SnapshotMetadata } from "@/utils/talentforge/snapshot";
+import { SNAPSHOT_VERSION, APP_VERSION } from "@/utils/talentforge/dataStore";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
+
+type SnapshotPreviewMetadata = Partial<SnapshotMetadata> & { version?: number };
+
+interface PendingSnapshotImport {
+  json: string;
+  fileName: string;
+  metadata: SnapshotPreviewMetadata;
+}
+
+const extractSnapshotMetadata = (value: unknown): SnapshotPreviewMetadata => {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+  const record = value as Record<string, unknown>;
+  const metadata: SnapshotPreviewMetadata = {};
+  if (typeof record.version === "number") {
+    metadata.version = record.version;
+  }
+  if (typeof record.exportedAt === "string") {
+    metadata.exportedAt = record.exportedAt;
+  }
+  if (typeof record.appVersion === "string") {
+    metadata.appVersion = record.appVersion;
+  }
+  if (typeof record.notes === "string") {
+    metadata.notes = record.notes;
+  }
+  return metadata;
+};
+
+const formatMetadataDate = (value: string): string => {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return parsed.toLocaleString();
+};
 
 export default function Settings() {
   const dataStore = useTalentForgeData();
@@ -38,6 +76,10 @@ export default function Settings() {
   const [toastOpen, setToastOpen] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState("");
   const [compareOpen, setCompareOpen] = React.useState(false);
+  const [exportNotes, setExportNotes] = React.useState("");
+  const [pendingImport, setPendingImport] = React.useState<PendingSnapshotImport | null>(
+    null,
+  );
   const { hasKey, clearKey, reloadFromStorage } = useOpenAIKey();
 
   const offers = dataStore.getOffers();
@@ -59,7 +101,7 @@ export default function Settings() {
 
   const handleExport = () => {
     try {
-      const data = exportSnapshot();
+      const data = exportSnapshot({ notes: exportNotes });
       const blob = new Blob([data], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -77,23 +119,45 @@ export default function Settings() {
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       const text = reader.result;
       if (typeof text === "string") {
         try {
-          importSnapshot(text);
-          reloadFromStorage();
-          setToastMessage("Snapshot imported");
+          const parsed = JSON.parse(text);
+          const metadata = extractSnapshotMetadata(parsed);
+          setPendingImport({
+            json: text,
+            fileName: file.name,
+            metadata,
+          });
         } catch {
-          setToastMessage("Import failed");
-        } finally {
+          setToastMessage("Unable to parse snapshot file");
           setToastOpen(true);
         }
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleConfirmImport = () => {
+    if (!pendingImport) return;
+    try {
+      importSnapshot(pendingImport.json);
+      reloadFromStorage();
+      setToastMessage("Snapshot imported");
+    } catch {
+      setToastMessage("Import failed");
+    } finally {
+      setToastOpen(true);
+      setPendingImport(null);
+    }
+  };
+
+  const handleCancelImport = () => {
+    setPendingImport(null);
   };
 
   const handleCloseModal = () => {
@@ -222,6 +286,33 @@ export default function Settings() {
             <Typography variant="body2" color="text.secondary">
               Export or import a snapshot of your stored TalentForge data.
             </Typography>
+            <Stack spacing={2} sx={{ mt: 2 }}>
+              <div>
+                <Typography variant="subtitle2" gutterBottom>
+                  Export metadata
+                </Typography>
+                <List dense disablePadding>
+                  <ListItem disablePadding>
+                    <ListItemText primary="App Version" secondary={APP_VERSION} />
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemText
+                      primary="Snapshot Version"
+                      secondary={SNAPSHOT_VERSION.toString()}
+                    />
+                  </ListItem>
+                </List>
+              </div>
+              <TextField
+                label="Export Notes (optional)"
+                value={exportNotes}
+                onChange={(event) => setExportNotes(event.target.value)}
+                placeholder="Add context about this snapshot"
+                multiline
+                minRows={2}
+                inputProps={{ "aria-label": "Export notes" }}
+              />
+            </Stack>
           </CardContent>
           <CardActions>
             <Button onClick={handleExport} variant="contained">
@@ -252,6 +343,83 @@ export default function Settings() {
         </Card>
 
         <OpenAIKeyModal open={openKeyModal} onClose={handleCloseModal} />
+        <Dialog
+          open={Boolean(pendingImport)}
+          onClose={handleCancelImport}
+          fullWidth
+          maxWidth="sm"
+        >
+          <DialogTitle>Import Snapshot</DialogTitle>
+          <DialogContent dividers>
+            {pendingImport ? (
+              <Stack spacing={2}>
+                <Typography variant="body2" color="text.secondary">
+                  Review the snapshot metadata before importing.
+                </Typography>
+                <Typography variant="subtitle2">Selected file</Typography>
+                <Typography>{pendingImport.fileName}</Typography>
+                {(() => {
+                  const metadata = pendingImport.metadata;
+                  const details = [
+                    {
+                      label: "App Version",
+                      value: metadata.appVersion,
+                    },
+                    {
+                      label: "Snapshot Version",
+                      value:
+                        typeof metadata.version === "number"
+                          ? metadata.version.toString()
+                          : undefined,
+                    },
+                    {
+                      label: "Exported At",
+                      value: metadata.exportedAt
+                        ? formatMetadataDate(metadata.exportedAt)
+                        : undefined,
+                    },
+                  ];
+                  const hasDetails =
+                    details.some((item) => Boolean(item.value)) ||
+                    Boolean(metadata.notes && metadata.notes.trim().length > 0);
+                  if (!hasDetails) {
+                    return (
+                      <Typography variant="body2">
+                        This snapshot does not include metadata.
+                      </Typography>
+                    );
+                  }
+                  return (
+                    <List dense>
+                      {details.map((item) =>
+                        item.value ? (
+                          <ListItem key={item.label} disablePadding>
+                            <ListItemText primary={item.label} secondary={item.value} />
+                          </ListItem>
+                        ) : null,
+                      )}
+                      {metadata.notes ? (
+                        <ListItem disablePadding>
+                          <ListItemText primary="Notes" secondary={metadata.notes} />
+                        </ListItem>
+                      ) : null}
+                    </List>
+                  );
+                })()}
+              </Stack>
+            ) : null}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancelImport}>Cancel</Button>
+            <Button
+              onClick={handleConfirmImport}
+              variant="contained"
+              disabled={!pendingImport}
+            >
+              Import Snapshot
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Dialog
           open={compareOpen}
           onClose={() => setCompareOpen(false)}
