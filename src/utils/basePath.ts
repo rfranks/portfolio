@@ -22,7 +22,18 @@ export function withBasePath(path: string): string {
   }
 
   const base = BASE_PATH.endsWith("/") ? BASE_PATH.slice(0, -1) : BASE_PATH;
-  if (BASE_PATH && path.startsWith(BASE_PATH)) return path;
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (!base) {
+    return normalizedPath;
+  }
+
+  if (
+    path.startsWith("/") &&
+    (normalizedPath === base || normalizedPath.startsWith(`${base}/`))
+  ) {
+    return normalizedPath;
+  }
+
   return `${base}${normalizedPath}`;
 }
