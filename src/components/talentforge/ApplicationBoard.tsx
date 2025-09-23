@@ -16,6 +16,7 @@ import {
   Drawer,
   CircularProgress,
   IconButton,
+  Menu,
   MenuItem,
   Accordion,
   AccordionSummary,
@@ -77,6 +78,10 @@ import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import ApplicationDetailDrawer from "./ApplicationDetailDrawer";
 import CompareOffers from "./offers/CompareOffers";
 import useOfferExports from "@/hooks/talentforge/useOfferExports";
+import {
+  createApplicationsCsv,
+  prepareApplicationsForJson,
+} from "@/utils/talentforge/applicationExport";
 import {
   filterApplications,
   hasActiveFilters,
@@ -579,6 +584,7 @@ export default function ApplicationBoard() {
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const [manageResumesOpen, setManageResumesOpen] = useState(false);
   const [compareOffersOpen, setCompareOffersOpen] = useState(false);
+  const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   const [editingHistoryId, setEditingHistoryId] = useState<string | null>(null);
   const [editingHistoryLabel, setEditingHistoryLabel] = useState("");
   const [reminderEditorApp, setReminderEditorApp] =
@@ -595,6 +601,7 @@ export default function ApplicationBoard() {
     baseFileName: "renegotiation",
   });
   const data = useTalentForgeData();
+  const exportMenuOpen = Boolean(exportAnchorEl);
   const selectedApplication = useMemo(() => {
     if (!selectedApplicationId) {
       return null;
@@ -1612,6 +1619,60 @@ export default function ApplicationBoard() {
     handleResumesUpdated(getResumes());
   };
 
+  const handleOpenExportMenu = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    setExportAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseExportMenu = () => {
+    setExportAnchorEl(null);
+  };
+
+  const createExportFileName = (extension: string) => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const base = filtersApplied
+      ? "job-applications-filtered"
+      : "job-applications";
+    return `${base}-${timestamp}.${extension}`;
+  };
+
+  const triggerExportDownload = (
+    content: string,
+    options: { mimeType: string; extension: string; successMessage: string },
+  ) => {
+    const filename = createExportFileName(options.extension);
+    const blob = new Blob([content], { type: options.mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+    setLiveMessage(options.successMessage);
+  };
+
+  const handleExportCsv = () => {
+    const csv = createApplicationsCsv(filteredApplications);
+    triggerExportDownload(csv, {
+      mimeType: "text/csv",
+      extension: "csv",
+      successMessage: "Applications exported as CSV",
+    });
+    handleCloseExportMenu();
+  };
+
+  const handleExportJson = () => {
+    const records = prepareApplicationsForJson(filteredApplications);
+    const json = JSON.stringify(records, null, 2);
+    triggerExportDownload(json, {
+      mimeType: "application/json",
+      extension: "json",
+      successMessage: "Applications exported as JSON",
+    });
+    handleCloseExportMenu();
+  };
+
   const handleClearFilters = () => {
     setSearchQuery("");
     setStatusFilter("all");
@@ -1660,7 +1721,26 @@ export default function ApplicationBoard() {
             Compare Offers
           </Button>
         )}
+        <Button
+          variant="outlined"
+          onClick={handleOpenExportMenu}
+          aria-controls={exportMenuOpen ? "application-export-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={exportMenuOpen ? "true" : undefined}
+        >
+          Export
+        </Button>
       </Stack>
+      <Menu
+        id="application-export-menu"
+        anchorEl={exportAnchorEl}
+        open={exportMenuOpen}
+        onClose={handleCloseExportMenu}
+        MenuListProps={{ "aria-label": "Export applications" }}
+      >
+        <MenuItem onClick={handleExportCsv}>Export CSV</MenuItem>
+        <MenuItem onClick={handleExportJson}>Export JSON</MenuItem>
+      </Menu>
       <Paper
         component="section"
         aria-label="Filter applications"
