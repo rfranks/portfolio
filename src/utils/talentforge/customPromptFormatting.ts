@@ -1,11 +1,6 @@
-import type {
-  ResumeEntry,
-  JobApplication,
-  Offer,
-  UserProfile,
-} from "@/types";
+import type { ResumeEntry, JobApplication, Offer } from "@/types";
 import type { TalentForgeGoalTag } from "./promptTypes";
-import type { CurrentCompensation } from "./dataStore";
+import type { CurrentCompensation, UserProfile } from "./dataStore";
 
 const GOAL_LABELS: Record<TalentForgeGoalTag, string> = {
   resume: "Resume",
