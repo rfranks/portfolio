@@ -11,17 +11,33 @@ import { IndeedConnector } from "./connectors/indeed";
  * aggregator normalizes these responses into a single array.
  */
 export async function fetchAllListings(query: string = ""): Promise<JobListing[]> {
-  const linkedin = new LinkedInConnector();
-  const indeed = new IndeedConnector();
+  const connectors = [
+    { name: "LinkedIn", instance: new LinkedInConnector() },
+    { name: "Indeed", instance: new IndeedConnector() },
+  ] as const;
 
-  // Fetch job listings from both connectors in parallel using a job search query.
-  const [linkedinListings, indeedListings] = await Promise.all([
-    linkedin.searchJobs(query),
-    indeed.searchJobs(query),
-  ]);
+  const results = await Promise.allSettled(
+    connectors.map(({ instance }) => instance.searchJobs(query)),
+  );
 
-  // Both connectors return arrays of listings; combine and return them.
-  return [...linkedinListings, ...indeedListings];
+  const listings: JobListing[] = [];
+
+  results.forEach((result, index) => {
+    if (result.status === "fulfilled") {
+      listings.push(...result.value);
+      return;
+    }
+
+    const { name } = connectors[index];
+    if (typeof console !== "undefined" && typeof console.warn === "function") {
+      console.warn(
+        `[TalentForge] Failed to fetch listings from ${name}:`,
+        result.reason,
+      );
+    }
+  });
+
+  return listings;
 }
 
 const jobAggregator = {
