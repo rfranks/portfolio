@@ -215,6 +215,15 @@ export const projects: {
   interestsMeWhy?: string;
 }[] = [
   {
+    name: "Rickbert Studio",
+    description:
+      "Client-side comic strip production studio with parser, validation preflight, react-konva rendering, and PNG export.",
+    href: "/rickbert",
+    type: "personal",
+    interestsMeWhy:
+      "This project separates domain parsing, checklist validation, and vector rendering so the comic engine can be reused as a shared module across a broader product portfolio.",
+  },
+  {
     name: "Warbirds",
     description: "Dogfight through the skies in this arcade shooter.",
     href: "/warbirds",

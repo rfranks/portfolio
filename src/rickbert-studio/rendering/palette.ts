@@ -1,0 +1,18 @@
+export const palette = {
+  stripBackground: "#f6f0e7",
+  panelFill: "#fffdf8",
+  panelStroke: "#111111",
+  officeWall: "#e6e1d8",
+  desk: "#cfbea4",
+  monitor: "#b4c8c7",
+  speechFill: "#ffffff",
+  speechStroke: "#111111",
+  hairDark: "#4d3f35",
+  hairLight: "#d8c08b",
+  shirtWhite: "#f5f5f0",
+  blazer: "#b7c4d1",
+  zip: "#5a6a75",
+  executive: "#adb8a2",
+  skin: "#f1c9a6",
+  label: "#fff4a8",
+};

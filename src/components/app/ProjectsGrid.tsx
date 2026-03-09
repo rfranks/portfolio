@@ -24,20 +24,14 @@ export default function ProjectsGrid() {
           container
           spacing={2}
           alignItems="stretch"
-          sx={{
-            display: "flex",
-            flexWrap: "nowrap",
-            maxWidth: "100%",
-            overflowX: "auto",
-          }}
         >
           {resumeData.projects.map((project, index) => (
             <Grid
               item
               xs={12}
               sm={6}
-              md={4}
-              lg={3}
+              md={6}
+              lg={6}
               key={project.href}
               sx={{ display: "flex" }}
             >
@@ -49,7 +43,7 @@ export default function ProjectsGrid() {
                   display: "flex",
                   flexDirection: "column",
                   flexGrow: 1,
-                  width: "calc(20% - 16px)",
+                  width: "100%",
                 }}
               >
                 <CardHeader

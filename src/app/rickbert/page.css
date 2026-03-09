@@ -1,0 +1,21 @@
+main {
+  background: #f6f0e6;
+}
+
+@keyframes rickbert-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, #111 20%, #7f7f7f 50%, #111 80%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rickbert-shimmer 1.8s linear infinite;
+}

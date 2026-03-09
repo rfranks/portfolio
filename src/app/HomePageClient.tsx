@@ -24,6 +24,7 @@ import {
   Flight,
   BugReport,
   Build,
+  AutoStories,
 } from "@mui/icons-material";
 import AppBar from "@/components/app/AppBar";
 import Drawer from "@/components/app/Drawer";
@@ -153,6 +154,12 @@ export default function HomePageClient() {
                 <Build />
               </ListItemIcon>
               <ListItemText primary="TalentForge" />
+            </ListItemButton>
+            <ListItemButton component="a" href={withBasePath("/rickbert")}>
+              <ListItemIcon>
+                <AutoStories />
+              </ListItemIcon>
+              <ListItemText primary="Rickbert Studio" />
             </ListItemButton>
             <ListItemButton component="a" href={withBasePath("/blackjack")}>
               <ListItemIcon>
