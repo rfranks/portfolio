@@ -179,7 +179,7 @@ jest.mock('@/components/talentforge/EmptyState', () => () => null);
 jest.mock('@/components/talentforge/OpenAIKeyModal', () => () => null);
 jest.mock('@/components/talentforge/FileUploader', () => () => null);
 jest.mock('@/components/talentforge/ResumeVariants/List', () => () => null);
-jest.mock('@/components/talentforge/Offers/CompareOffers', () => () => null);
+jest.mock('@/components/talentforge/offers/CompareOffers', () => () => null);
 jest.mock('react-markdown', () => ({ __esModule: true, default: () => null }));
 jest.mock('@/hooks/talentforge/useAIErrorHandler', () => ({
   __esModule: true,

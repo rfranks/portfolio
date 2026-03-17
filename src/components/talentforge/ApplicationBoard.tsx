@@ -104,9 +104,9 @@ import {
 import { getPromptTile, type PromptContext } from "@/utils/talentforge/promptRegistry";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import ApplicationDetailDrawer from "./ApplicationDetailDrawer";
-import CompareOffers from "./Offers/CompareOffers";
-import ManageNegotiationLibraryModal from "./Offers/ManageNegotiationLibraryModal";
-import NegotiationLibraryControls from "./Offers/NegotiationLibraryControls";
+import CompareOffers from "./offers/CompareOffers";
+import ManageNegotiationLibraryModal from "./offers/ManageNegotiationLibraryModal";
+import NegotiationLibraryControls from "./offers/NegotiationLibraryControls";
 import useOfferExports from "@/hooks/talentforge/useOfferExports";
 import useAIErrorHandler from "@/hooks/talentforge/useAIErrorHandler";
 import {
