@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import { PaletteMode } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import Container from "@mui/material/Container";
@@ -39,32 +39,11 @@ import ContactCTA from "@/components/app/ContactCTA";
 import Grid from "@mui/material/Grid";
 import { withBasePath } from "@/utils/basePath";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import getFabricTheme from "@/themes/fabricTheme";
 
 export default function HomePageClient() {
   const [mode, setMode] = useState<PaletteMode>("light");
-  const defaultTheme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode,
-          primary: { main: "#0A66C2" },
-          secondary: { main: "#56687A" },
-          ...(mode === "light"
-            ? {
-                background: { default: "#ffffff", paper: "#ffffff" },
-                text: { primary: "#1f1f1f", secondary: "#5e5e5e" },
-              }
-            : {
-                background: { default: "#0d1117", paper: "#161b22" },
-                text: { primary: "#c9d1d9", secondary: "#8b949e" },
-              }),
-        },
-        typography: {
-          fontFamily: '"Roboto", sans-serif',
-        },
-      }),
-    [mode]
-  );
+  const defaultTheme = useMemo(() => getFabricTheme(mode), [mode]);
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
 
@@ -181,9 +160,12 @@ export default function HomePageClient() {
             </ListItemButton>
           </List>
         </Drawer>
-        <Box component="main" sx={{ flexGrow: 1, minHeight: "100vh" }}>
+        <Box
+          component="main"
+          sx={{ flex: "1 1 0", minWidth: 0, minHeight: "100vh" }}
+        >
           <Toolbar />
-          <Container>
+          <Container sx={{ py: 3 }}>
             <ResumeHero />
             <Grid container spacing={2}>
               <Grid item xs={12} sm={12} md={6} lg={6}>

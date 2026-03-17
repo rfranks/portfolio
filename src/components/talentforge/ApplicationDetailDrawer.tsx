@@ -6,7 +6,6 @@ import {
   Autocomplete,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -57,6 +56,7 @@ import {
   type PromptContext,
 } from "@/utils/talentforge/promptRegistry";
 import { STATUSES } from "@/utils/talentforge/keyboard";
+import Chip from "@/components/fabric/Chip";
 
 interface ApplicationDetailDrawerProps {
   open: boolean;

@@ -18,6 +18,7 @@ import {
 import { Close } from "@mui/icons-material";
 
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
+import { validateOpenAIKey } from "@/utils/talentforge/utils";
 
 export interface OpenAIKeyModalProps
   extends Omit<DialogProps, "open" | "onClose"> {
@@ -69,25 +70,14 @@ export default function OpenAIKeyModal({
     if (isCurrentKey) {
       setValidity("checking");
     }
-    try {
-      const res = await fetch("/api/test-openai-key", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: trimmed }),
-      });
-      if (res.ok) {
-        alert("Key is valid!");
-        if (isCurrentKey) {
-          setValidity("valid");
-        }
-      } else {
-        alert("Key test failed.");
-        if (isCurrentKey) {
-          setValidity("invalid");
-        }
+    const result = await validateOpenAIKey(trimmed);
+    if (result.ok) {
+      alert("Key is valid!");
+      if (isCurrentKey) {
+        setValidity("valid");
       }
-    } catch {
-      alert("Key test failed.");
+    } else {
+      alert(`Key test failed. ${result.error ?? ""}`.trim());
       if (isCurrentKey) {
         setValidity("invalid");
       }
@@ -152,4 +142,3 @@ export default function OpenAIKeyModal({
     </Dialog>
   );
 }
-

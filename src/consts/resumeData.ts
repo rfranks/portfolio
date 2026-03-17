@@ -129,6 +129,30 @@ export const coreCompetencies = competencies.skills;
 
 export const experience = [
   {
+    company: "Carebrain",
+    position: "Distinguished Engineer",
+    location: "Derry, New Hampshire, United States (Remote)",
+    start: "September 2025",
+    end: "March 2026",
+    image: "/carebrain.jpeg",
+    details: [
+      "6-month contract to deliver a medical scribe platform.",
+      "Shipped independently with minimal guidance and support within 5 months.",
+      "Onboarded rapidly from a Java/Python background into a full TypeScript/Next.js/NestJS monorepo.",
+      "Built a robust LangChain pipeline with intelligent model selection and answer evaluation in TypeScript, reducing cost and improving answer quality versus single-model one-shot prompting.",
+      "Implemented HIPAA audit logging for 100% of PHI transfer paths: monorepo services, internal APIs, third-party APIs, and database-level transactions.",
+      "Implemented an in-person scribe with multi-model council orchestration using Deepgram, AssemblyAI, ElevenLabs, and AWS Transcribe + Comprehend Medical.",
+      "Updated the Telehealth GetStream.io platform to use the new transcription pipeline.",
+      "Added consultation group chat by clinical care team (not only patient-centric chat groups).",
+      "Added a patient list with extensible indicators that support calculated, generated, pre-computed, and on-the-fly metadata from data services or LLMs.",
+      "Skills: Large Language Models (LLM), LangChain, TypeScript, React Native, Expo, Next.js, NestJS.",
+    ],
+    achievements: [
+      "Achieved 95%+ transcription/data extraction accuracy across multiple extraction modes (topics, keywords, insights).",
+      "Shipped approximately 5x more features than peers on comparable scope.",
+    ],
+  },
+  {
     company: "Commure",
     position: "Senior Software Architect / Principal Full Stack Engineer",
     location: "Waltham, MA",

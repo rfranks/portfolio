@@ -1,12 +1,10 @@
-import Paper from "@mui/material/Paper";
 import { styled } from "@mui/material/styles";
+import Panel from "@/components/fabric/Panel";
 
-const TronPaper = styled(Paper)(({ theme }) => ({
+const TronPaper = styled(Panel)(({ theme }) => ({
   padding: theme.spacing(2),
   marginBottom: theme.spacing(4),
-  backgroundColor: theme.palette.background.paper,
-  border: `1px solid ${theme.palette.divider}`,
-  boxShadow: "none",
+  borderRadius: "var(--fabric-radius-xl)",
 }));
 
 export default TronPaper;

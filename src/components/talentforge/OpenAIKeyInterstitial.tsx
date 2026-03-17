@@ -4,10 +4,13 @@ import * as React from "react";
 
 import OpenAIKeyInterstitialContent from "@/components/OpenAIKeyInterstitialContent";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
+import { validateOpenAIKey } from "@/utils/talentforge/utils";
 
 export default function OpenAIKeyInterstitial() {
   const { key, setKey } = useOpenAIKey();
   const [value, setValue] = React.useState(key);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [errorText, setErrorText] = React.useState<string | undefined>(undefined);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const previousFocusRef = React.useRef<Element | null>(null);
 
@@ -35,12 +38,26 @@ export default function OpenAIKeyInterstitial() {
     };
   }, []);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmed = value.trim();
     if (!trimmed) return;
-    setKey(trimmed);
-    setValue(trimmed);
+    setIsSubmitting(true);
+    setErrorText(undefined);
+    try {
+      const result = await validateOpenAIKey(trimmed);
+      if (!result.ok) {
+        setErrorText(
+          result.error ??
+            "Unable to verify this key with OpenAI. Check the key and try again.",
+        );
+        return;
+      }
+      setKey(trimmed, { validity: "valid" });
+      setValue(trimmed);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -51,6 +68,8 @@ export default function OpenAIKeyInterstitial() {
       onChange={setValue}
       onSubmit={handleSubmit}
       inputRef={inputRef}
+      isSubmitting={isSubmitting}
+      errorText={errorText}
     />
   );
 }

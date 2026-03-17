@@ -52,6 +52,7 @@ import Tile from "./promptTiles/Tile";
 import { getPromptTile } from "@/utils/talentforge/promptRegistry";
 import EmptyState from "./EmptyState";
 import { STATUSES } from "@/utils/talentforge/keyboard";
+import { Hero, Surface } from "@/components/fabric";
 
 const NO_COMPANY_FILTER = "__no_company__";
 type StatusFilterValue = ApplicationStatus | "all" | "unlinked";
@@ -623,10 +624,16 @@ export default function Inbox() {
 
   return (
     <Box aria-busy={loading} aria-label={loading ? "Loading inbox" : undefined}>
-      <Stack direction="row" spacing={2} sx={{ height: "100%" }}>
-        <Box sx={{ width: 300 }}>
-          <Stack spacing={2}>
-            <Typography variant="h5">Inbox</Typography>
+      <Stack direction="column" spacing={2} sx={{ height: "100%" }}>
+        <Hero sx={{ py: 3 }}>
+          <Typography variant="h5">Inbox</Typography>
+          <Typography color="text.secondary">
+            Review recruiter threads, link them to applications, and draft responses.
+          </Typography>
+        </Hero>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ height: "100%" }}>
+          <Surface layer={2} sx={{ width: { xs: "100%", md: 320 }, p: 2 }}>
+            <Stack spacing={2}>
             <Select
               value={filter}
               onChange={handleFilterChange}
@@ -692,22 +699,14 @@ export default function Inbox() {
                 </ListItem>
               ))}
             </List>
-          </Stack>
-        </Box>
-        <Box sx={{ flexGrow: 1 }}>
+            </Stack>
+          </Surface>
+          <Surface layer={1} sx={{ flexGrow: 1, p: 2 }}>
           {selected ? (
             <Stack spacing={2}>
               <Typography variant="h6">{selected.connector}</Typography>
               <Stack spacing={1}>
-                <Box
-                  sx={{
-                    p: 2,
-                    borderRadius: 1,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    bgcolor: "background.paper",
-                  }}
-                >
+                <Surface layer={2} sx={{ p: 2, borderRadius: "var(--fabric-radius-md)" }}>
                   <Stack spacing={0.5}>
                     <Typography variant="subtitle2" color="text.secondary">
                       Linked application
@@ -732,16 +731,11 @@ export default function Inbox() {
                       </Typography>
                     )}
                   </Stack>
-                </Box>
+                </Surface>
                 {selectedRecruiter && (
-                  <Box
-                    sx={{
-                      p: 2,
-                      borderRadius: 1,
-                      border: "1px solid",
-                      borderColor: "divider",
-                      bgcolor: "background.paper",
-                    }}
+                  <Surface
+                    layer={2}
+                    sx={{ p: 2, borderRadius: "var(--fabric-radius-md)" }}
                   >
                     <Stack spacing={0.5}>
                       <Typography variant="subtitle2" color="text.secondary">
@@ -755,7 +749,7 @@ export default function Inbox() {
                         {recruiterNotes || "No notes saved yet."}
                       </Typography>
                     </Stack>
-                  </Box>
+                  </Surface>
                 )}
               </Stack>
               <Typography>{selected.body}</Typography>
@@ -870,14 +864,9 @@ export default function Inbox() {
                   </Typography>
                 )}
                 {quickReplyContent && (
-                  <Box
-                    sx={{
-                      border: "1px solid",
-                      borderColor: "divider",
-                      borderRadius: 1,
-                      p: 2,
-                      bgcolor: "background.paper",
-                    }}
+                  <Surface
+                    layer={2}
+                    sx={{ p: 2, borderRadius: "var(--fabric-radius-md)" }}
                   >
                     <Tabs
                       value={quickReplyChannel}
@@ -918,7 +907,7 @@ export default function Inbox() {
                     >
                       {currentQuickReplyText}
                     </Typography>
-                  </Box>
+                  </Surface>
                 )}
               </Stack>
               <TextField
@@ -970,7 +959,8 @@ export default function Inbox() {
           ) : (
             <Typography>Select a thread to view messages</Typography>
           )}
-        </Box>
+          </Surface>
+        </Stack>
       </Stack>
       <Dialog open={aiThread !== null} onClose={() => setAiThread(null)} fullWidth maxWidth="sm">
         <DialogTitle>Draft with AI</DialogTitle>
@@ -1053,4 +1043,3 @@ export default function Inbox() {
     </Box>
   );
 }
-

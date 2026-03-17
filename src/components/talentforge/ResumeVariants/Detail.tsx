@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import {
   Button,
-  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -24,6 +23,7 @@ import {
   tagsEqual,
   validateTag as validateTagValue,
 } from "@/utils/talentforge/tagUtils";
+import Chip from "@/components/fabric/Chip";
 
 const importDateFormatter =
   typeof Intl !== "undefined" && typeof Intl.DateTimeFormat === "function"

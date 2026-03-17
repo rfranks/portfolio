@@ -3,6 +3,7 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -18,6 +19,8 @@ export interface OpenAIKeyInterstitialContentProps {
   logoSrc?: string;
   logoAlt?: string;
   textFieldName?: string;
+  isSubmitting?: boolean;
+  errorText?: string;
 }
 
 export default function OpenAIKeyInterstitialContent({
@@ -30,6 +33,8 @@ export default function OpenAIKeyInterstitialContent({
   logoSrc = "/logo192.png",
   logoAlt,
   textFieldName = "apiKey",
+  isSubmitting = false,
+  errorText,
 }: OpenAIKeyInterstitialContentProps) {
   const resolvedLogoAlt = logoAlt ?? `${appName} logo`;
   const description = `${appName} needs an OpenAI API key to talk with OpenAI. The key you type here goes straight from your browser to OpenAI and stays between you and OpenAI. ${appName} does not store your key anywhere and does not send it anywhere else. If you do not fully trust ${appName}, do not enter your key.`;
@@ -60,8 +65,13 @@ export default function OpenAIKeyInterstitialContent({
           onChange={(event) => onChange(event.target.value)}
           inputRef={inputRef}
         />
-        <Button type="submit" variant="contained" sx={{ mt: 2 }}>
-          {buttonLabel}
+        {errorText ? (
+          <Typography color="error" sx={{ mt: 1 }} role="alert">
+            {errorText}
+          </Typography>
+        ) : null}
+        <Button type="submit" variant="contained" sx={{ mt: 2 }} disabled={isSubmitting}>
+          {isSubmitting ? <CircularProgress size={18} color="inherit" /> : buttonLabel}
         </Button>
       </Box>
     </Container>

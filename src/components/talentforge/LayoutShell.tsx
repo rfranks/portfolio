@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   AppBar,
   Box,
-  CssBaseline,
   Drawer,
   IconButton,
   List,
@@ -20,6 +19,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { useTheme } from "@mui/material/styles";
 import ToggleColorMode from "./ToggleColorMode";
+import Surface from "@/components/fabric/Surface";
 
 interface LayoutShellProps {
   navItems: { label: string; href: string }[];
@@ -45,7 +45,11 @@ export default function LayoutShell({
   };
 
   const drawer = (
-    <Box sx={{ textAlign: "center", mt: 8 }} onClick={isDesktop ? undefined : handleDrawerToggle}>
+    <Surface
+      layer={2}
+      sx={{ textAlign: "center", mt: 8, mx: 2, p: 1.5 }}
+      onClick={isDesktop ? undefined : handleDrawerToggle}
+    >
       <List>
         {navItems.map(({ label, href }) => (
           <ListItem key={label} disablePadding>
@@ -55,34 +59,48 @@ export default function LayoutShell({
           </ListItem>
         ))}
       </List>
-    </Box>
+    </Surface>
   );
 
   return (
     <Box sx={{ display: "flex" }}>
-      <CssBaseline />
       <AppBar
         position="fixed"
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
+          border: "none",
+          boxShadow: "none",
+          bgcolor: "transparent",
         }}
       >
         <Toolbar>
-          {!isDesktop && (
-            <IconButton
-              color="inherit"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            TalentForge
-          </Typography>
-          <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
+          <Surface
+            layer={2}
+            sx={{
+              width: "100%",
+              px: 2,
+              py: 1,
+              borderRadius: "var(--fabric-radius-xl)",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            {!isDesktop && (
+              <IconButton
+                color="inherit"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: 2 }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+            <Typography variant="h6" sx={{ flexGrow: 1 }}>
+              TalentForge
+            </Typography>
+            <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
+          </Surface>
         </Toolbar>
       </AppBar>
       <Box
@@ -109,7 +127,7 @@ export default function LayoutShell({
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 2, md: 3 },
           width: { md: `calc(100% - ${drawerWidth}px)` },
         }}
       >

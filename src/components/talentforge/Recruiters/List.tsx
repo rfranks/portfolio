@@ -5,12 +5,12 @@ import {
   Box,
   Stack,
   Typography,
-  Chip,
   TextField,
   Button,
 } from "@mui/material";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import type { RecruiterEntry, Message } from "@/types";
+import Chip from "@/components/fabric/Chip";
 
 export default function RecruiterList() {
   const data = useTalentForgeData();
@@ -109,4 +109,3 @@ export default function RecruiterList() {
     </Box>
   );
 }
-

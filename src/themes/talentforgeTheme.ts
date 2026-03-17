@@ -1,10 +1,8 @@
-import { PaletteMode, createTheme } from "@mui/material";
+import { PaletteMode } from "@mui/material";
+import getFabricTheme from "@/themes/fabricTheme";
 
-// Create a theme for TalentForge with custom breakpoints
-// and dynamic light/dark palette mode.
 const talentforgeTheme = (mode: PaletteMode) =>
-  createTheme({
-    palette: { mode },
+  getFabricTheme(mode, {
     breakpoints: {
       values: {
         xs: 0,

@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -54,6 +53,7 @@ import useAIErrorHandler from "@/hooks/talentforge/useAIErrorHandler";
 
 import RequireAIKey from "./RequireAIKey";
 import AddPromptDrawer from "./customPrompts/AddPromptDrawer";
+import Chip from "@/components/fabric/Chip";
 
 interface ChatWorkspaceProps {
   onInsertIntoInbox?: (text: string) => void;

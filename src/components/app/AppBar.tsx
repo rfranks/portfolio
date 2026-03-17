@@ -19,10 +19,12 @@ const StyledAppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open" && prop !== "drawerWidth",
 })<StyledAppBarProps>(({ theme, open, drawerWidth = 240 }) => ({
   zIndex: theme.zIndex.drawer + 1,
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: "var(--fabric-surface-2)",
   color: theme.palette.text.primary,
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  boxShadow: "none",
+  border: "1px solid var(--fabric-surface-border)",
+  borderRadius: "var(--fabric-radius-xl)",
+  boxShadow: "var(--fabric-shadow-tight)",
+  backdropFilter: "blur(var(--fabric-blur-md))",
   transition: theme.transitions.create(["width", "margin"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,

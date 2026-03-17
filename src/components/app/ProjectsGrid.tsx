@@ -9,9 +9,10 @@ import Typography from "@mui/material/Typography";
 import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
 import { withBasePath } from "@/utils/basePath";
-import { CardHeader, Chip } from "@mui/material";
+import { CardHeader } from "@mui/material";
 import AccoladesCarousel from "@/components/app/AccoladesCarousel";
 import Box from "@mui/material/Box";
+import Chip from "@/components/fabric/Chip";
 
 export default function ProjectsGrid() {
   return (
@@ -38,8 +39,6 @@ export default function ProjectsGrid() {
               <Card
                 variant="outlined"
                 sx={{
-                  backgroundColor: "background.default",
-                  borderColor: "divider",
                   display: "flex",
                   flexDirection: "column",
                   flexGrow: 1,
@@ -51,7 +50,9 @@ export default function ProjectsGrid() {
                     <Chip
                       label={project.type === "work" ? "Work" : "Personal"}
                       size="small"
+                      variant="outlined"
                       color={project.type === "work" ? "primary" : "secondary"}
+                      sx={{ fontWeight: 600 }}
                     />
                   }
                   title={project.name}

@@ -27,10 +27,31 @@ const buildPreview = (resume: ResumeEntry) => {
   return lines.slice(0, 12).join("\n");
 };
 
+const selectPreviewResume = (resumes: ResumeEntry[]): ResumeEntry | undefined => {
+  if (resumes.length === 0) {
+    return undefined;
+  }
+
+  let selected = resumes[resumes.length - 1];
+  let selectedTimestamp = Date.parse(selected.importedAt ?? "");
+
+  for (const resume of resumes) {
+    const timestamp = Date.parse(resume.importedAt ?? "");
+    if (!Number.isNaN(timestamp)) {
+      if (Number.isNaN(selectedTimestamp) || timestamp > selectedTimestamp) {
+        selected = resume;
+        selectedTimestamp = timestamp;
+      }
+    }
+  }
+
+  return selected;
+};
+
 export default function ResumePreviewStep({ onNext, onBack }: StepProps) {
   const resumes = useMemo(() => getResumes(), []);
   const hasResume = resumes.length > 0;
-  const primaryResume = resumes[0];
+  const primaryResume = useMemo(() => selectPreviewResume(resumes), [resumes]);
 
   return (
     <Stack spacing={2} aria-label="Review uploaded resume">
@@ -47,13 +68,13 @@ export default function ResumePreviewStep({ onNext, onBack }: StepProps) {
         <Paper variant="outlined" sx={{ p: 2 }} aria-live="polite">
           <Stack spacing={1}>
             <Typography variant="h6" component="h3">
-              {primaryResume.title || primaryResume.label || "Imported Resume"}
+              {primaryResume?.title || primaryResume?.label || "Imported Resume"}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Source file: {primaryResume.sourceFilename || "Unknown"}
+              Source file: {primaryResume?.sourceFilename || "Unknown"}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Imported: {formatTimestamp(primaryResume.importedAt)}
+              Imported: {formatTimestamp(primaryResume?.importedAt)}
             </Typography>
             <Box
               component="pre"
@@ -67,7 +88,7 @@ export default function ResumePreviewStep({ onNext, onBack }: StepProps) {
               }}
               aria-label="Resume text preview"
             >
-              {buildPreview(primaryResume)}
+              {primaryResume ? buildPreview(primaryResume) : "No extracted text available."}
             </Box>
           </Stack>
         </Paper>

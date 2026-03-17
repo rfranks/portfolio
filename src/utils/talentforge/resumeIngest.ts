@@ -106,9 +106,6 @@ export function cleanPdfText(pageLines: string[][]): string {
  */
 export async function pdfToText(file: File): Promise<string> {
   const reader = new FileReader();
-  const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
-
-  pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
   const fileReadPromise = new Promise<ArrayBuffer>((resolve, reject) => {
     reader.onload = () => {
@@ -122,35 +119,65 @@ export async function pdfToText(file: File): Promise<string> {
   const buffer = await fileReadPromise;
   const pdfData = new Uint8Array(buffer);
 
-  const doc = await pdfjs.getDocument({ data: pdfData }).promise;
-  const numPages = doc.numPages;
+  const readPages = async (
+    options: { disableWorker: boolean },
+  ): Promise<string[][]> => {
+    const doc = await pdfjs
+      .getDocument({
+        data: pdfData,
+        disableWorker: options.disableWorker,
+      } as unknown as Parameters<typeof pdfjs.getDocument>[0])
+      .promise;
+    const numPages = doc.numPages;
+    const pages: string[][] = [];
 
-  const pages: string[][] = [];
+    for (let i = 1; i <= numPages; i++) {
+      const page = await doc.getPage(i);
+      const content = await page.getTextContent();
 
-  for (let i = 1; i <= numPages; i++) {
-    const page = await doc.getPage(i);
-    const content = await page.getTextContent();
+      const lines: string[] = [];
+      let currentY: number | null = null;
+      let line = "";
 
-    const lines: string[] = [];
-    let currentY: number | null = null;
-    let line = "";
-
-    for (const item of content.items as unknown as { str: string; transform: number[] }[]) {
-      const str = item.str.trim();
-      const y = item.transform[5];
-      if (currentY !== null && Math.abs(y - currentY) > 5) {
-        if (line) lines.push(line.trim());
-        line = str;
-      } else {
-        line += (line ? " " : "") + str;
+      for (const item of content.items as unknown as { str: string; transform: number[] }[]) {
+        const str = item.str.trim();
+        const y = item.transform[5];
+        if (currentY !== null && Math.abs(y - currentY) > 5) {
+          if (line) lines.push(line.trim());
+          line = str;
+        } else {
+          line += (line ? " " : "") + str;
+        }
+        currentY = y;
       }
-      currentY = y;
+      if (line) lines.push(line.trim());
+      pages.push(lines);
     }
-    if (line) lines.push(line.trim());
-    pages.push(lines);
-  }
 
-  return cleanPdfText(pages);
+    return pages;
+  };
+
+  try {
+    const pages = await readPages({ disableWorker: true });
+    return cleanPdfText(pages);
+  } catch (primaryError) {
+    try {
+      const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+      pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+      const pages = await readPages({ disableWorker: false });
+      return cleanPdfText(pages);
+    } catch (fallbackError) {
+      const fallbackMessage =
+        fallbackError instanceof Error ? fallbackError.message : "";
+      const primaryMessage =
+        primaryError instanceof Error ? primaryError.message : "";
+      throw new Error(
+        fallbackMessage ||
+          primaryMessage ||
+          "Unable to parse PDF resume in this browser.",
+      );
+    }
+  }
 }
 
 const DOCX_DOCUMENT_PATH = "word/document.xml";
@@ -421,4 +448,3 @@ export async function parseResumeFile(
   const { text, metadata } = await fileToText(file);
   return { text, metadata, parsed: parseResumeText(text) };
 }
-

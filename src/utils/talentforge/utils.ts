@@ -24,14 +24,66 @@ export const ensureOpenAIKey = () => ensureStoredOpenAIKey();
 
 export const hasOpenAIKey = () => hasStoredOpenAIKey();
 
+export interface OpenAIKeyValidationResult {
+  ok: boolean;
+  status?: number;
+  error?: string;
+}
+
+export const validateOpenAIKey = async (
+  key: string,
+): Promise<OpenAIKeyValidationResult> => {
+  const trimmed = key.trim();
+  if (!trimmed) {
+    return { ok: false, error: "OpenAI API key is empty." };
+  }
+
+  try {
+    // Use the same endpoint/model family as app requests so validation
+    // behavior matches real runtime behavior.
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${trimmed}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: "ping" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (res.ok) {
+      return { ok: true, status: res.status };
+    }
+
+    let errorMessage = `OpenAI returned ${res.status}.`;
+    try {
+      const data = await res.json();
+      const apiMessage = data?.error?.message;
+      if (typeof apiMessage === "string" && apiMessage.trim()) {
+        errorMessage = apiMessage;
+      }
+    } catch {
+      // ignore parse failures and keep fallback error message
+    }
+
+    return { ok: false, status: res.status, error: errorMessage };
+  } catch {
+    return {
+      ok: false,
+      error: "Network error while contacting OpenAI.",
+    };
+  }
+};
+
 export const hasValidOpenAIKey = async () => {
   if (!hasStoredOpenAIKey()) return false;
   try {
     const apiKey = ensureStoredOpenAIKey();
-    const res = await fetch("https://api.openai.com/v1/models", {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
-    return res.ok;
+    const result = await validateOpenAIKey(apiKey);
+    return result.ok;
   } catch {
     return false;
   }

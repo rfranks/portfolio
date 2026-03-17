@@ -34,6 +34,11 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
     setError(null);
     try {
       const { text, metadata } = await fileToText(file);
+      if (!text.trim()) {
+        throw new Error(
+          "No readable text was found in this file. If this is a scanned PDF, run OCR first or upload a text-based file.",
+        );
+      }
       const tags = await tagResume(text);
       let parsed;
       try {
@@ -88,6 +93,11 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
             onChange={handleFileChange}
           />
       </Button>
+      {file ? (
+        <Alert severity="info" variant="outlined">
+          Selected file: {file.name}
+        </Alert>
+      ) : null}
       <Stack direction="row" spacing={1}>
         {onBack && (
           <Button onClick={onBack} aria-label="Back" disabled={loading}>
@@ -106,4 +116,3 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
     </Stack>
   );
 }
-

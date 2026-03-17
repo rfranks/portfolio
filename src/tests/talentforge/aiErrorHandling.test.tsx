@@ -2,7 +2,7 @@ import React from "react";
 import { act } from "react-dom/test-utils";
 import { createRoot, type Root } from "react-dom/client";
 
-import CompareOffers from "@/components/talentforge/offers/CompareOffers";
+import CompareOffers from "@/components/talentforge/Offers/CompareOffers";
 import OfferCompare from "@/components/talentforge/OfferCompare";
 import ToastProvider from "@/components/talentforge/ToastProvider";
 import { OpenAIKeyProvider } from "@/contexts/OpenAIKeyContext";

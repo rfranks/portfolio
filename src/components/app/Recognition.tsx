@@ -19,13 +19,7 @@ export default function Recognition() {
       <Grid container spacing={2} sx={{ mb: 2 }}>
         {resumeData.recognition.snippets.map((snippet, idx) => (
           <Grid item xs={12} sm={4} key={idx}>
-            <Card
-              variant="outlined"
-              sx={{
-                backgroundColor: "background.default",
-                borderColor: "divider",
-              }}
-            >
+            <Card variant="outlined">
               <CardContent>
                 <Typography
                   variant="body2"
@@ -45,13 +39,7 @@ export default function Recognition() {
       <Grid container spacing={2}>
         {resumeData.recognition.recommendations.map((rec) => (
           <Grid item xs={12} key={`${rec.name}-${rec.date}`}>
-            <Card
-              variant="outlined"
-              sx={{
-                backgroundColor: "background.default",
-                borderColor: "divider",
-              }}
-            >
+            <Card variant="outlined">
               <CardContent>
                 <ListItem alignItems="flex-start" disableGutters>
                   {rec.imageSrcUrl && (

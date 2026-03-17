@@ -10,10 +10,13 @@ interface FadeInSectionProps {
 }
 
 export default function FadeInSection({ children }: FadeInSectionProps) {
-  const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.1 });
+  const { ref, inView } = useInView<HTMLDivElement>({
+    threshold: 0,
+    rootMargin: "0px 0px 20% 0px",
+  });
 
   return (
-    <Fade in={inView} timeout={1000}>
+    <Fade in={inView} timeout={600}>
       <Box ref={ref}>{children}</Box>
     </Fade>
   );

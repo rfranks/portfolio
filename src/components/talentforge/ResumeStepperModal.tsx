@@ -6,7 +6,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -43,6 +42,7 @@ import {
   tagsEqual,
   validateTag,
 } from "@/utils/talentforge/tagUtils";
+import Chip from "@/components/fabric/Chip";
 
 interface ResumeStepperModalProps {
   open: boolean;

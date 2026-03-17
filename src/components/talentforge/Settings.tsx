@@ -3,7 +3,6 @@
 import * as React from "react";
 import {
   Button,
-  Card,
   CardActions,
   CardContent,
   Dialog,
@@ -19,7 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
-import CompareOffers from "./offers/CompareOffers";
+import CompareOffers from "./Offers/CompareOffers";
 import OpenAIKeyModal from "@/components/talentforge/OpenAIKeyModal";
 import { loadDemoData, clearDemoData } from "@/utils/talentforge/demoData";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
@@ -27,6 +26,7 @@ import { exportSnapshot, importSnapshot } from "@/utils/talentforge/snapshot";
 import type { SnapshotMetadata } from "@/utils/talentforge/snapshot";
 import { SNAPSHOT_VERSION, APP_VERSION } from "@/utils/talentforge/dataStore";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
+import { Hero, Panel } from "@/components/fabric";
 
 type SnapshotPreviewMetadata = Partial<SnapshotMetadata> & { version?: number };
 
@@ -184,7 +184,16 @@ export default function Settings() {
   return (
     <ErrorBoundary>
       <Stack spacing={4}>
-        <Card>
+        <Hero>
+          <Typography variant="h4" gutterBottom>
+            Settings
+          </Typography>
+          <Typography color="text.secondary">
+            Configure AI access, compare offers, and manage your local TalentForge data.
+          </Typography>
+        </Hero>
+
+        <Panel>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               OpenAI API Key
@@ -199,9 +208,9 @@ export default function Settings() {
             </Button>
             {hasKey && <Button onClick={handleRemoveKey}>Remove Key</Button>}
           </CardActions>
-        </Card>
+        </Panel>
 
-        <Card>
+        <Panel>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Current Compensation
@@ -234,39 +243,39 @@ export default function Settings() {
             <Button variant="contained" onClick={handleSaveComp} disabled={!compHasValue}>
               Save
             </Button>
-        </CardActions>
-      </Card>
+          </CardActions>
+        </Panel>
 
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Compare Offers
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Select two saved offers to review them side by side and generate an AI analysis.
-          </Typography>
-        </CardContent>
-        <CardActions sx={{ gap: 1, flexWrap: "wrap" }}>
-          <Button
-            variant="outlined"
-            onClick={() => setCompareOpen(true)}
-            disabled={!hasMultipleOffers}
-          >
-            Compare Offers
-          </Button>
-          {!hasMultipleOffers && (
-            <Typography variant="caption" color="text.secondary">
-              Save at least two offers to enable comparison.
+        <Panel>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Compare Offers
             </Typography>
-          )}
-        </CardActions>
-      </Card>
+            <Typography variant="body2" color="text.secondary">
+              Select two saved offers to review them side by side and generate an AI analysis.
+            </Typography>
+          </CardContent>
+          <CardActions sx={{ gap: 1, flexWrap: "wrap" }}>
+            <Button
+              variant="outlined"
+              onClick={() => setCompareOpen(true)}
+              disabled={!hasMultipleOffers}
+            >
+              Compare Offers
+            </Button>
+            {!hasMultipleOffers && (
+              <Typography variant="caption" color="text.secondary">
+                Save at least two offers to enable comparison.
+              </Typography>
+            )}
+          </CardActions>
+        </Panel>
 
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Connectors
-          </Typography>
+        <Panel>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Connectors
+            </Typography>
             <List>
               <ListItem>
                 <ListItemText primary="LinkedIn" secondary="Configuration coming soon" />
@@ -276,9 +285,9 @@ export default function Settings() {
               </ListItem>
             </List>
           </CardContent>
-        </Card>
+        </Panel>
 
-        <Card>
+        <Panel>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Data
@@ -323,9 +332,9 @@ export default function Settings() {
               <input type="file" accept="application/json" hidden onChange={handleImport} />
             </Button>
           </CardActions>
-        </Card>
+        </Panel>
 
-        <Card>
+        <Panel>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Demo Data
@@ -340,7 +349,7 @@ export default function Settings() {
             </Button>
             <Button onClick={handleClearDemo}>Clear Demo Data</Button>
           </CardActions>
-        </Card>
+        </Panel>
 
         <OpenAIKeyModal open={openKeyModal} onClose={handleCloseModal} />
         <Dialog
@@ -444,4 +453,3 @@ export default function Settings() {
     </ErrorBoundary>
   );
 }
-

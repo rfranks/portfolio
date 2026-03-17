@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   Box,
   Stack,
-  Chip,
   IconButton,
   Dialog,
   DialogTitle,
@@ -31,6 +30,7 @@ import {
 import Detail from "./Detail";
 import EmptyState from "../EmptyState";
 import Diff from "./Diff";
+import Chip from "@/components/fabric/Chip";
 
 interface Props {
   resumes: ResumeEntry[];
@@ -263,4 +263,3 @@ export default function List({ resumes, setResumes }: Props) {
     </Box>
   );
 }
-

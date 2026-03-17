@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import {
   Box,
-  Paper,
   Stack,
   Typography,
   Button,
@@ -25,7 +24,6 @@ import {
   ListItem,
   ListItemText,
   Checkbox,
-  Chip,
   Tooltip,
   Alert,
   Skeleton,
@@ -106,9 +104,9 @@ import {
 import { getPromptTile, type PromptContext } from "@/utils/talentforge/promptRegistry";
 import { useTalentForgeData } from "@/contexts/TalentForgeDataContext";
 import ApplicationDetailDrawer from "./ApplicationDetailDrawer";
-import CompareOffers from "./offers/CompareOffers";
-import ManageNegotiationLibraryModal from "./offers/ManageNegotiationLibraryModal";
-import NegotiationLibraryControls from "./offers/NegotiationLibraryControls";
+import CompareOffers from "./Offers/CompareOffers";
+import ManageNegotiationLibraryModal from "./Offers/ManageNegotiationLibraryModal";
+import NegotiationLibraryControls from "./Offers/NegotiationLibraryControls";
 import useOfferExports from "@/hooks/talentforge/useOfferExports";
 import useAIErrorHandler from "@/hooks/talentforge/useAIErrorHandler";
 import {
@@ -123,6 +121,8 @@ import {
 import { interviewToICS } from "@/utils/talentforge/interviewToICS";
 import { visuallyHidden } from "@mui/utils";
 import { createApplicationTileActivityRecorder } from "@/utils/talentforge/applicationActivities";
+import Chip from "@/components/fabric/Chip";
+import Surface from "@/components/fabric/Surface";
 
 function formatOfferHistoryTimestamp(value: string): string {
   const date = new Date(value);
@@ -316,12 +316,12 @@ function Column({
   const toggleLabel = collapsed ? `Expand ${title}` : `Collapse ${title}`;
 
   return (
-    <Paper
+    <Surface
       ref={setNodeRef}
       role="list"
       aria-label={ariaLabel}
       data-status={id}
-      elevation={highlight ? 6 : 1}
+      layer={highlight ? 3 : 2}
       sx={{
         p: 2,
         width: { xs: "100%", sm: 280, lg: 300 },
@@ -387,7 +387,7 @@ function Column({
       ) : (
         <Stack spacing={1}>{children}</Stack>
       )}
-    </Paper>
+    </Surface>
   );
 }
 
@@ -1263,8 +1263,9 @@ export default function ApplicationBoard() {
           sx={{ width: "100%" }}
         >
           {statusOrder.map((status) => (
-            <Paper
+            <Surface
               key={status}
+              layer={2}
               sx={{
                 flex: "1 1 0",
                 minWidth: { xs: "100%", md: 260 },
@@ -1282,7 +1283,7 @@ export default function ApplicationBoard() {
                   />
                 ))}
               </Stack>
-            </Paper>
+            </Surface>
           ))}
         </Stack>
       </Stack>
@@ -2716,9 +2717,10 @@ export default function ApplicationBoard() {
         <MenuItem onClick={handleExportCsv}>Export CSV</MenuItem>
         <MenuItem onClick={handleExportJson}>Export JSON</MenuItem>
       </Menu>
-      <Paper
+      <Surface
         component="section"
         aria-label="Filter applications"
+        layer={2}
         sx={{ p: 2, mb: 2 }}
       >
         <Stack
@@ -2826,7 +2828,7 @@ export default function ApplicationBoard() {
             Clear filters
           </Button>
         </Stack>
-      </Paper>
+      </Surface>
       <ResumeStepperModal
         open={resumeModalOpen}
         onClose={handleResumeModalClose}
@@ -2871,9 +2873,10 @@ export default function ApplicationBoard() {
           />
         ) : (
           <Stack spacing={2} sx={{ pb: 2 }}>
-            <Paper
+            <Surface
               component="section"
               aria-label="Application pipeline summary"
+              layer={2}
               sx={{ p: 2 }}
             >
               <Stack
@@ -2932,7 +2935,7 @@ export default function ApplicationBoard() {
                   );
                 })}
               </Stack>
-            </Paper>
+            </Surface>
             <Box
               sx={{
                 display: "flex",
@@ -2989,9 +2992,10 @@ export default function ApplicationBoard() {
         )}
       </DndContext>
       {selectedCount > 0 && (
-        <Paper
+        <Surface
           component="section"
           aria-label="Bulk application actions"
+          layer={3}
           sx={{
             position: "sticky",
             bottom: 16,
@@ -3094,7 +3098,7 @@ export default function ApplicationBoard() {
               </Button>
             </Stack>
           </Stack>
-        </Paper>
+        </Surface>
       )}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <DialogTitle>New Application</DialogTitle>

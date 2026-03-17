@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutline from "@mui/icons-material/ErrorOutline";
-import { askOpenAI } from "@/utils/talentforge/utils";
+import { validateOpenAIKey } from "@/utils/talentforge/utils";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 
 interface StepProps {
@@ -19,33 +19,35 @@ interface StepProps {
 }
 
 export default function KeyEntryStep({ onNext }: StepProps) {
-  const [key, setKey] = useState("");
+  const { key: storedKey, setKey: setStoredKey, setValidity } = useOpenAIKey();
+  const [key, setKey] = useState(storedKey);
   const [status, setStatus] = useState<
     "idle" | "checking" | "success" | "error"
   >("idle");
-  const { setKey: setStoredKey, setValidity } = useOpenAIKey();
+
+  useEffect(() => {
+    setKey(storedKey);
+  }, [storedKey]);
 
   const validateKey = useCallback(
     async (keyToCheck: string) => {
       setStatus("checking");
       setStoredKey(keyToCheck, { validity: "checking" });
       try {
-        await askOpenAI({
-          context: "",
-          user: "ping",
-          system: "{{context}}",
-          logMessagesToChatHistory: false,
-          returnFirstResponse: true,
-          chatHistory: [],
-        });
+        const result = await validateOpenAIKey(keyToCheck);
         if (keyToCheck === key.trim()) {
-          setStatus("success");
-          setValidity("valid");
+          if (result.ok) {
+            setStatus("success");
+            setValidity("valid");
+          } else {
+            setStatus("error");
+            setStoredKey(keyToCheck, { validity: "invalid" });
+          }
         }
       } catch {
         if (keyToCheck === key.trim()) {
           setStatus("error");
-          setStoredKey("", { validity: "invalid" });
+          setStoredKey(keyToCheck, { validity: "invalid" });
         }
       }
     },
@@ -105,4 +107,3 @@ export default function KeyEntryStep({ onNext }: StepProps) {
     </Stack>
   );
 }
-

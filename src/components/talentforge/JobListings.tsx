@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  Chip,
   Link,
   Paper,
   Table,
@@ -19,6 +18,7 @@ import { v4 as uuid } from "uuid";
 import type { JobListing } from "@/types";
 import jobAggregator from "@/utils/talentforge/jobAggregator";
 import { addJobApplication } from "@/utils/talentforge/dataStore";
+import Chip from "@/components/fabric/Chip";
 
 export default function JobListings() {
   const [listings, setListings] = useState<JobListing[]>([]);
@@ -95,4 +95,3 @@ export default function JobListings() {
     </Box>
   );
 }
-

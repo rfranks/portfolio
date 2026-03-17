@@ -1,5 +1,4 @@
 import * as React from "react";
-import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
@@ -9,11 +8,12 @@ import { withBasePath } from "@/utils/basePath";
 import IconButton from "@mui/material/IconButton";
 import { AlternateEmail, GitHub, LinkedIn } from "@mui/icons-material";
 import Tooltip from "@mui/material/Tooltip";
+import Hero from "@/components/fabric/Hero";
 
 export default function ResumeHero() {
   return (
     <FadeInSection>
-      <Box sx={{ textAlign: "center", py: 8 }}>
+      <Hero sx={{ textAlign: "center", py: 8, mb: 4 }}>
         <Typography component="h1" variant="h3" gutterBottom>
           {summary.name}
         </Typography>
@@ -29,7 +29,7 @@ export default function ResumeHero() {
           {summary.location}
         </Typography>
         <Typography sx={{ mb: 4 }}>{summary.blurb}</Typography>
-        <Stack direction="row" spacing={2} justifyContent="center">
+        <Stack direction="row" spacing={2} justifyContent="center" useFlexGap flexWrap="wrap">
           <IconButton color="primary" href={`mailto:${summary.contact.email}`}>
             <AlternateEmail />
           </IconButton>
@@ -62,7 +62,7 @@ export default function ResumeHero() {
             Resume
           </Button>
         </Stack>
-      </Box>
+      </Hero>
     </FadeInSection>
   );
 }
