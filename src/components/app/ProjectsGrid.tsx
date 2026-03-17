@@ -16,6 +16,10 @@ import Box from "@mui/material/Box";
 import Chip from "@/components/fabric/Chip";
 
 export default function ProjectsGrid() {
+  const sortedProjects = [...resumeData.projects].sort((left, right) =>
+    left.name.localeCompare(right.name)
+  );
+
   return (
     <FadeInSection>
       <TronPaper>
@@ -27,7 +31,7 @@ export default function ProjectsGrid() {
           spacing={2}
           alignItems="stretch"
         >
-          {resumeData.projects.map((project, index) => (
+          {sortedProjects.map((project, index) => (
             <Grid
               item
               xs={12}
