@@ -1,4 +1,4 @@
-import { ReactElement, useRef, useState } from "react";
+import { ReactElement, useEffect, useRef, useState } from "react";
 
 import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
@@ -45,24 +45,49 @@ export default function SequenceDisplay({
   // this may need to evolve to be the shortest maximum?
   maxBasePair = maxBasePair || sequences?.[0]?.sequence.length;
 
-  const ref = useRef<HTMLDivElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
 
-  const basePairHeight = 35;
-  const basePairWidth = showBinary ? 19.953 : 9.977;
-  const basePairsPerRow = ref?.current?.offsetWidth
-    ? Math.floor(ref?.current?.offsetWidth / basePairWidth)
-    : showBinary
-    ? 54
-    : 111;
-  // const totalBPs = (maxBasePair || 1) - minBasePair + 1;
-  // const totalRows = Math.floor(totalBPs / (1.0 * basePairsPerRow)) + 1;
-  // const totalRowHeight = totalRows * basePairHeight;
+  const basePairHeight = showProteins ? 56 : 35;
+  const basePairHorizontalPadding = 8;
+  const basePairWidth =
+    (showBinary ? 19.953 : 9.977) + basePairHorizontalPadding;
   const maxHeight = 350;
+  const [viewportWidth, setViewportWidth] = useState<number>(0);
+  const [hoveredProtein, setHoveredProtein] = useState<{
+    sequenceDescription: string;
+    codonEndIndex: number;
+  } | null>(null);
 
-  // const [scrollTop, setScrollTop] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
 
-  // const handleScroll = (e: any) => setScrollTop(e?.target?.scrollTop || 0);
+  useEffect(() => {
+    const node = viewportRef.current;
+    if (!node) {
+      return;
+    }
+
+    const updateWidth = () => {
+      setViewportWidth(node.clientWidth);
+    };
+
+    updateWidth();
+
+    const observer = new ResizeObserver(() => {
+      updateWidth();
+    });
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
+
+  const basePairsPerRow = Math.max(
+    1,
+    Math.floor(
+      (viewportWidth || (showBinary ? 54 * basePairWidth : 111 * basePairWidth)) /
+        basePairWidth
+    )
+  );
 
   const bull = (
     <Box
@@ -73,14 +98,35 @@ export default function SequenceDisplay({
     </Box>
   );
 
-  const renderBase = (base: string, index: number, protein: Protein) => {
+  const renderBase = (
+    base: string,
+    index: number,
+    protein: Protein,
+    sequenceDescription: string,
+    sequenceValue: string
+  ) => {
+    const isHoveredProteinBase =
+      hoveredProtein?.sequenceDescription === sequenceDescription &&
+      index >= hoveredProtein.codonEndIndex - 2 &&
+      index <= hoveredProtein.codonEndIndex;
+    const isHoveredProteinStart =
+      isHoveredProteinBase && index === hoveredProtein.codonEndIndex - 2;
+    const isHoveredProteinEnd =
+      isHoveredProteinBase && index === hoveredProtein.codonEndIndex;
+    const currentCodon =
+      showProteins && (index + 1) % 3 === 0
+        ? sequenceValue.substring(index - 2, index + 1).toUpperCase()
+        : "";
+
     return (
       <Box
         data-proteinCode={`${protein?.charCode}`}
         data-index={index}
         key={index}
         sx={{
-          backgroundColor: showColors
+          backgroundColor: isHoveredProteinBase
+            ? "#ffb74d"
+            : showColors
             ? !showColorsMaxBasePairs &&
               isMaxBase(
                 sequences!.map((sequence) => sequence.sequence[index]).join(""),
@@ -101,16 +147,31 @@ export default function SequenceDisplay({
               : showColors
               ? "#151515"
               : "#fff",
-          display: "inline-block",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
           fontFamily: "Anonymous Pro",
           fontSize: "18px",
+          fontWeight: isHoveredProteinBase ? 700 : 400,
           height: showText ? "auto" : "27px",
           mb: showText ? 1 : 0,
+          px: "4px",
           width: `${basePairWidth}px`,
-          border: validBase(base) ? "none" : "1px solid red",
+          boxSizing: "border-box",
+          textAlign: "center",
+          border: "2px solid transparent",
+          borderTopColor: isHoveredProteinBase ? "#ef6c00" : "transparent",
+          borderBottomColor: isHoveredProteinBase ? "#ef6c00" : "transparent",
+          borderLeftColor: isHoveredProteinStart ? "#ef6c00" : "transparent",
+          borderRightColor: isHoveredProteinEnd ? "#ef6c00" : "transparent",
+          outline:
+            !isHoveredProteinBase && !validBase(base)
+              ? "1px solid red"
+              : "none",
+          outlineOffset: "-2px",
           overflow: "visible",
           position: "relative",
-          zIndex: 1,
+          zIndex: isHoveredProteinBase ? 2 : 1,
         }}
       >
         {showText
@@ -126,17 +187,24 @@ export default function SequenceDisplay({
               color: "#151515",
               position: "absolute",
               top: 0,
-              left: "-20px",
-              fontSize: "10px",
-              width: "301%", //wtf?
-              textAlign: "right",
-              mt: "24px",
+              left: `-${basePairWidth * 2}px`,
+              fontSize: "12.5px",
+              width: `${basePairWidth * 3}px`,
+              textAlign: "center",
+              mt: "28px",
               zIndex: 0,
               "&:hover": {
-                fontSize: "12px",
+                fontSize: "15px",
                 fontWeight: "600",
               },
             }}
+            onMouseEnter={() =>
+              setHoveredProtein({
+                sequenceDescription,
+                codonEndIndex: index,
+              })
+            }
+            onMouseLeave={() => setHoveredProtein(null)}
           >
             {showTooltip ? (
               wrapWithTooltip(
@@ -156,7 +224,27 @@ export default function SequenceDisplay({
                       {protein?.charCode}
                     </Typography>
                     <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                      {protein?.codons?.join(",")}
+                      {protein?.codons?.map((codon, codonIndex) => (
+                        <Box
+                          component="span"
+                          key={`${protein?.charCode}-${codon}`}
+                          sx={{
+                            textDecoration:
+                              protein.codons.length === 1 ||
+                              codon.toUpperCase() === currentCodon
+                                ? "underline"
+                                : "none",
+                            fontWeight:
+                              protein.codons.length === 1 ||
+                              codon.toUpperCase() === currentCodon
+                                ? 700
+                                : 400,
+                          }}
+                        >
+                          {codon}
+                          {codonIndex < protein.codons.length - 1 ? ", " : ""}
+                        </Box>
+                      ))}
                     </Typography>
                     <Typography variant="body2">
                       {protein?.description}
@@ -190,25 +278,18 @@ export default function SequenceDisplay({
     </Tooltip>
   );
 
-  // const pagesBeforeAndAfter = 3;
   const visibleRows = maxHeight / basePairHeight;
-  // const totalRowsBefore = Math.ceil(scrollTop / basePairHeight);
-  // const visibleRowsBefore = Math.min(totalRowsBefore, visibleRows);
-  // const invisibleRowsBefore = totalRowsBefore - visibleRowsBefore;
+  const pageCount = Math.max(
+    1,
+    Math.ceil(
+      ((maxBasePair || 1) - minBasePair + 1) /
+        (1.0 * basePairsPerRow * visibleRows)
+    )
+  );
 
-  // const startingBP = Math.min(
-  //   maxBasePair || 1,
-  //   minBasePair + invisibleRowsBefore * basePairsPerRow
-  // );
-
-  // const endingBP = Math.min(
-  //   startingBP + 3 * visibleRows * basePairsPerRow,
-  //   (maxBasePair || 1) - startingBP
-  // );
-
-  // const visibleBPs = endingBP - startingBP + 1;
-
-  // const paddingTop = invisibleRowsBefore * basePairHeight;
+  useEffect(() => {
+    setPage((currentPage) => Math.min(currentPage, pageCount));
+  }, [pageCount]);
 
   const startingBP = Math.max(
     (page - 1) * visibleRows * basePairsPerRow,
@@ -231,41 +312,55 @@ export default function SequenceDisplay({
               .map((proteinCode) => PROTEINS[proteinCode as ProteinCode])
           : [];
 
-        debugger;
-
         return (
           <Grid item flexGrow={1} key={`${sequence?.description}-${index}`}>
-            {sequence?.sequence
-              .substring(i, Math.min(i + basePairsPerRow, endingBP))
-              .split("")
-              .map((base, index) =>
-                showTooltip
-                  ? wrapWithTooltip(
-                      renderBase(
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "nowrap",
+                width: "100%",
+                overflow: "hidden",
+                minHeight: `${basePairHeight}px`,
+                paddingBottom: showProteins ? 1 : 0,
+                alignItems: "flex-start",
+              }}
+            >
+              {sequence?.sequence
+                .substring(i, Math.min(i + basePairsPerRow, endingBP))
+                .split("")
+                .map((base, index) =>
+                  showTooltip
+                    ? wrapWithTooltip(
+                        renderBase(
+                          base,
+                          i + index,
+                          proteinChain[Math.floor((index + i) / 3)],
+                          sequence.description,
+                          sequence.sequence
+                        ),
+                        <>
+                          <Typography>
+                            {`bp # ${startingBP + i + index + 1} / ${
+                              sequence?.sequence.length
+                            } => ${base} ${
+                              showBinary ? "(" + baseTo2bit(base) + ")" : ""
+                            }`}
+                          </Typography>
+                          <Typography sx={{ fontWeight: 600 }}>
+                            {sequence.description}
+                          </Typography>
+                        </>,
+                        index
+                      )
+                    : renderBase(
                         base,
-                        i + index,
-                        proteinChain[Math.floor((index + i) / 3)]
-                      ),
-                      <>
-                        <Typography>
-                          {`bp # ${startingBP + i + index + 1} / ${
-                            sequence?.sequence.length
-                          } => ${base} ${
-                            showBinary ? "(" + baseTo2bit(base) + ")" : ""
-                          }`}
-                        </Typography>
-                        <Typography sx={{ fontWeight: 600 }}>
-                          {sequence.description}
-                        </Typography>
-                      </>,
-                      index
-                    )
-                  : renderBase(
-                      base,
-                      index + i,
-                      proteinChain[Math.floor((index + i) / 3)]
-                    )
-              )}
+                        index + i,
+                        proteinChain[Math.floor((index + i) / 3)],
+                        sequence.description,
+                        sequence.sequence
+                      )
+                )}
+            </Box>
             {index === sequences.length - 1 ? <Divider sx={{ my: 1 }} /> : null}
           </Grid>
         );
@@ -276,25 +371,15 @@ export default function SequenceDisplay({
   return (
     <Box>
       <Box
+        ref={viewportRef}
         sx={{
-          textWrap: "wrap",
-          wordBreak: "break-word",
           fontFamily: "Anonymous Pro",
           fontSize: "16px",
           height: `${maxHeight}px`,
           overflow: "auto",
         }}
-        // onScroll={handleScroll}
       >
-        <Box
-          ref={ref}
-          sx={
-            {
-              // pt: `${paddingTop}px`,
-              // height: `${totalRowHeight}px`,
-            }
-          }
-        >
+        <Box>
           <Grid container direction="column">
             {renderedSequences?.map((renderedSequence) => renderedSequence)}
           </Grid>
@@ -304,10 +389,7 @@ export default function SequenceDisplay({
         <Pagination
           size="large"
           color="primary"
-          count={Math.ceil(
-            ((maxBasePair || 1) - minBasePair + 1) /
-              (1.0 * basePairsPerRow * visibleRows)
-          )}
+          count={pageCount}
           page={page}
           showFirstButton
           showLastButton

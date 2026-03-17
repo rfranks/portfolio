@@ -4,6 +4,7 @@ import CardContent from "@mui/material/CardContent";
 import Button from "@mui/material/Button";
 import { Grid, Menu, MenuItem, styled, TextareaAutosize } from "@mui/material";
 import AddCircle from "@mui/icons-material/AddCircle";
+import Close from "@mui/icons-material/Close";
 import Delete from "@mui/icons-material/Delete";
 import { useRef, useState } from "react";
 import { Sequence } from "@/types/dna/types";
@@ -51,10 +52,12 @@ const Textarea = styled(TextareaAutosize)(
 
 export type AddSequenceCardProps = {
   onAddSequence?: (sequence: Sequence) => void;
+  onClose?: () => void;
 };
 
 export default function AddSequenceCard({
   onAddSequence,
+  onClose,
 }: AddSequenceCardProps) {
   const [rawSequenceContent, setRawSequenceContent] = useState<string>("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -178,6 +181,16 @@ export default function AddSequenceCard({
         >
           Clear
         </Button>
+        {onClose && (
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<Close />}
+            onClick={onClose}
+          >
+            Close
+          </Button>
+        )}
         <Button
           size="small"
           variant="contained"

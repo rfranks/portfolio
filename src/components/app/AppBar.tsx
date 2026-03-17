@@ -22,7 +22,7 @@ const StyledAppBar = styled(MuiAppBar, {
   backgroundColor: "var(--fabric-surface-2)",
   color: theme.palette.text.primary,
   border: "1px solid var(--fabric-surface-border)",
-  borderRadius: "var(--fabric-radius-xl)",
+  borderRadius: 0,
   boxShadow: "var(--fabric-shadow-tight)",
   backdropFilter: "blur(var(--fabric-blur-md))",
   transition: theme.transitions.create(["width", "margin"], {

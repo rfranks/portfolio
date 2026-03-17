@@ -10,6 +10,7 @@ import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
 import { withBasePath } from "@/utils/basePath";
 import { CardHeader } from "@mui/material";
+import OpenInNew from "@mui/icons-material/OpenInNew";
 import AccoladesCarousel from "@/components/app/AccoladesCarousel";
 import Box from "@mui/material/Box";
 import Chip from "@/components/fabric/Chip";
@@ -97,11 +98,14 @@ export default function ProjectsGrid() {
                     </Box>
                   )}
                 </CardContent>
-                <CardActions>
+                <CardActions sx={{ justifyContent: "flex-end" }}>
                   <Button
                     size="small"
                     href={withBasePath(project.href)}
                     color="secondary"
+                    variant="outlined"
+                    sx={{ borderRadius: "999px" }}
+                    endIcon={<OpenInNew fontSize="small" />}
                     target={
                       project.href === "/blasteroids" ? "_blank" : undefined
                     }

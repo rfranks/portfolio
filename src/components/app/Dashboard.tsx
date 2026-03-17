@@ -3,8 +3,10 @@ import { useRef, useState } from "react";
 import Autocomplete from "@mui/material/Autocomplete";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Divider from "@mui/material/Divider";
+import Dialog from "@mui/material/Dialog";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
@@ -14,19 +16,19 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ListItem from "@mui/material/ListItem";
 import Paper from "@mui/material/Paper";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
 import {
-  BarChart,
+  AddCircleOutline,
   Menu,
   ChevronLeft,
   DashboardRounded,
   PauseCircle,
   PlayCircleOutline,
-  Queue,
-  TableChart,
 } from "@mui/icons-material";
 
 import SequenceVisualizations from "@/components/dna/SequenceVisualizations";
@@ -47,11 +49,11 @@ export default function Dashboard() {
   const [bpRange, setBpRange] = useState<number[] | null>(null);
   const [chartMethod, setChartMethod] = useState<ChartMethod>("sequence");
   const [open, setOpen] = useState<boolean>(true);
-  const [openCards, setOpenCards] = useState({
-    addSequence: 1,
-    table: 1,
-    visualizations: 1,
-  });
+  const [activeTab, setActiveTab] = useState<"table" | "visualization">(
+    "table"
+  );
+  const [isAddSequenceModalOpen, setIsAddSequenceModalOpen] =
+    useState<boolean>(false);
   const [playInterval, setPlayInterval] = useState<ReturnType<
     typeof setInterval
   > | null>(null);
@@ -61,11 +63,26 @@ export default function Dashboard() {
 
   const firstActiveSequence = activeSequences?.[0];
   const maxBasePair = bpRange?.[1] || firstActiveSequence?.sequence.length || 1;
+  const activeSequenceTitle = activeSequences
+    .map((seq) => seq?.description)
+    .join(", ");
+  const truncatedActiveSequenceTitle =
+    activeSequenceTitle.length > 50
+      ? `${activeSequenceTitle.slice(0, 47)}...`
+      : activeSequenceTitle;
 
   const sequenceKeys = Object.keys(sequences || {});
 
   function toggleDrawer() {
     setOpen(!open);
+  }
+
+  function handleAddSequence(sequence: Sequence) {
+    setSequences((currentSequences) => ({
+      [sequence.description]: sequence,
+      ...currentSequences,
+    }));
+    setIsAddSequenceModalOpen(false);
   }
 
   return (
@@ -98,16 +115,12 @@ export default function Dashboard() {
             variant="h6"
             color="inherit"
             noWrap
-            sx={{ flexGrow: 1 }}
+            sx={{ flexGrow: 1, color: "primary.contrastText" }}
           >
             GeneBoard{" "}
-            {`${
-              activeSequences.map((seq) => seq?.description).join(", ").length >
-              0
-                ? " for " +
-                  activeSequences.map((seq) => seq?.description).join(", ")
-                : ""
-            }`}
+            {truncatedActiveSequenceTitle.length > 0
+              ? `for ${truncatedActiveSequenceTitle}`
+              : ""}
           </Typography>
           {firstActiveSequence && (
             <>
@@ -240,78 +253,11 @@ export default function Dashboard() {
         </Toolbar>
         <Divider />
         <List component="nav">
-          <ListItemButton
-            onClick={() =>
-              setOpenCards({
-                addSequence: 1,
-                table: 1,
-                visualizations: 1,
-              })
-            }
-          >
+          <ListItemButton selected>
             <ListItemIcon>
               <DashboardRounded />
             </ListItemIcon>
             <ListItemText primary="Dashboard" />
-          </ListItemButton>
-          <ListItemButton
-            onClick={() =>
-              setOpenCards({
-                ...openCards,
-                addSequence: !openCards.addSequence ? 1 : 0,
-              })
-            }
-            sx={{
-              backgroundColor:
-                sequenceKeys.length && openCards.addSequence
-                  ? "rgba(255, 255, 255, 0.08)"
-                  : undefined,
-            }}
-          >
-            <ListItemIcon>
-              <Queue />
-            </ListItemIcon>
-            <ListItemText primary="Add sequences" />
-          </ListItemButton>
-          <ListItemButton
-            disabled={activeSequences?.length === 0}
-            onClick={() =>
-              setOpenCards({
-                ...openCards,
-                visualizations: !openCards.visualizations ? 1 : 0,
-              })
-            }
-            sx={{
-              backgroundColor:
-                sequenceKeys.length && openCards.visualizations
-                  ? "rgba(255, 255, 255, 0.08)"
-                  : undefined,
-            }}
-          >
-            <ListItemIcon>
-              <BarChart />
-            </ListItemIcon>
-            <ListItemText primary="Visualizations" />
-          </ListItemButton>
-          <ListItemButton
-            disabled={!sequenceKeys.length}
-            onClick={() =>
-              setOpenCards({
-                ...openCards,
-                table: !openCards.table ? 1 : 0,
-              })
-            }
-            sx={{
-              backgroundColor:
-                sequenceKeys.length && openCards.table
-                  ? "rgba(255, 255, 255, 0.08)"
-                  : undefined,
-            }}
-          >
-            <ListItemIcon>
-              <TableChart />
-            </ListItemIcon>
-            <ListItemText primary="Table" />
           </ListItemButton>
           {open && (
             <>
@@ -331,12 +277,7 @@ export default function Dashboard() {
                     sequences={sequences}
                     activeSequence={firstActiveSequence}
                     onViewSequenceClick={() => {
-                      setOpenCards({
-                        addSequence: 0,
-                        table: 0,
-                        visualizations: 1,
-                      });
-
+                      setActiveTab("visualization");
                       setChartMethod("sequence");
                     }}
                   />
@@ -394,63 +335,111 @@ export default function Dashboard() {
         }}
       >
         <Toolbar />
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Container maxWidth="lg" sx={{ px: 2, my: 2, }}>
+          <Paper
+            sx={{
+              mb: 3,
+              px: 2,
+              py: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              flexWrap: "wrap",
+            }}
+          >
+            <Tabs
+              value={activeTab}
+              onChange={(_, value: "table" | "visualization") =>
+                setActiveTab(value)
+              }
+              aria-label="gene dashboard tabs"
+            >
+              <Tab label="Table" value="table" />
+              <Tab label="Visualization" value="visualization" />
+            </Tabs>
+            <Button
+              variant="contained"
+              startIcon={<AddCircleOutline />}
+              onClick={() => setIsAddSequenceModalOpen(true)}
+            >
+              Add
+            </Button>
+          </Paper>
           <Grid container spacing={3} maxWidth={"calc(100% - 12px)"}>
-            {openCards.addSequence === 1 && (
-              <Grid item xs={12} sx={{ height: "384px" }}>
-                <AddSequenceCard
-                  onAddSequence={(seq) => {
-                    sequences[seq.description] = seq;
-
-                    setSequences({ [seq.description]: seq, ...sequences });
-                  }}
-                />
-              </Grid>
-            )}
-            {openCards.table === 1 && sequenceKeys.length > 0 && (
+            {activeTab === "table" && (
               <Grid item xs={12}>
-                <SequencesTable
-                  activeSequences={activeSequences}
-                  sequences={sequences}
-                  onSequenceClick={(seq) => {
-                    debugger;
-                    setBpRange([1, seq.sequence.length]);
+                {sequenceKeys.length > 0 ? (
+                  <SequencesTable
+                    activeSequences={activeSequences}
+                    sequences={sequences}
+                    onSequenceClick={(seq) => {
+                      setBpRange([1, seq.sequence.length]);
 
-                    setActiveSequences([...activeSequences, seq]);
+                      setActiveSequences([...activeSequences, seq]);
 
-                    if (
-                      activeSequences
-                        .map((seq) => seq.description)
-                        .includes(seq.description)
-                    ) {
-                      setActiveSequences([
-                        ...activeSequences.filter(
-                          (seq) => !sequenceKeys.includes(seq.description)
-                        ),
-                      ]);
-                    }
-                  }}
-                />
+                      if (
+                        activeSequences
+                          .map((seq) => seq.description)
+                          .includes(seq.description)
+                      ) {
+                        setActiveSequences([
+                          ...activeSequences.filter(
+                            (activeSequence) =>
+                              activeSequence.description !== seq.description
+                          ),
+                        ]);
+                      }
+                    }}
+                  />
+                ) : (
+                  <Paper sx={{ p: 4 }}>
+                    <Typography color="text.secondary">
+                      No sequences added yet. Use Add (+) to open the add
+                      sequence modal.
+                    </Typography>
+                  </Paper>
+                )}
               </Grid>
             )}
-            {openCards.visualizations === 1 && activeSequences?.length > 0 && (
+            {activeTab === "visualization" && (
               <Grid item xs={12} sx={{ mt: 1, mb: 0 }}>
-                <SequenceVisualizations
-                  activeSequences={activeSequences}
-                  bpRange={bpRange}
-                  onBpRangeUpdate={(bpRange) => setBpRange(bpRange)}
-                  chartMethod={chartMethod}
-                  onChartMethodUpdate={function (chartMethod) {
-                    setChartMethod(chartMethod);
-                    setBpRange([1, firstActiveSequence?.sequence?.length]);
-                  }}
-                />
+                {activeSequences?.length > 0 ? (
+                  <SequenceVisualizations
+                    activeSequences={activeSequences}
+                    bpRange={bpRange}
+                    onBpRangeUpdate={(bpRange) => setBpRange(bpRange)}
+                    chartMethod={chartMethod}
+                    onChartMethodUpdate={function (chartMethod) {
+                      setChartMethod(chartMethod);
+                      setBpRange([1, firstActiveSequence?.sequence?.length]);
+                    }}
+                  />
+                ) : (
+                  <Paper sx={{ p: 4 }}>
+                    <Typography color="text.secondary">
+                      Select one or more sequences from the table to view
+                      visualizations.
+                    </Typography>
+                  </Paper>
+                )}
               </Grid>
             )}
           </Grid>
           <Copyright sx={{ pt: 4 }} />
         </Container>
       </Box>
+      <Dialog
+        open={isAddSequenceModalOpen}
+        onClose={() => setIsAddSequenceModalOpen(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <AddSequenceCard
+          onAddSequence={handleAddSequence}
+          onClose={() => setIsAddSequenceModalOpen(false)}
+        />
+      </Dialog>
     </>
   );
 }

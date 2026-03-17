@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -22,6 +22,7 @@ import {
   getBasepairCounts,
   getSequenceColor,
 } from "@/utils/dna/sequenceUtils";
+import { dnaChartTooltipProps } from "./tooltipStyles";
 
 export type BasepairHistogramProps = {
   sequences?: Sequence[] | null;
@@ -32,6 +33,28 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
   const { sequences = [], bpRange = [] } = props || {};
 
   const ref = useRef<HTMLDivElement | null>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) {
+      return;
+    }
+
+    const updateWidth = () => {
+      setContainerWidth(node.clientWidth);
+    };
+
+    updateWidth();
+
+    const observer = new ResizeObserver(() => {
+      updateWidth();
+    });
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
 
   if (!sequences) {
     return null;
@@ -69,12 +92,13 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
   const firstBar = bpCounts?.slice(0, 1);
 
   const sequence = sequences?.[0];
+  const chartWidth = containerWidth || 960;
 
   return (
     <Grid container ref={ref}>
       <Grid item>
         <BarChart
-          width={(ref.current?.offsetWidth || 0) * 0.75}
+          width={chartWidth * 0.75}
           height={300}
           data={bpCounts}
           margin={{
@@ -90,6 +114,7 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
           <Tooltip
             cursor={{ fill: "transparent" }}
             formatter={(value) => `${value} bps`}
+            {...dnaChartTooltipProps}
           />
           <Legend align="center" />
           <CartesianGrid strokeDasharray="3 3" />
@@ -105,7 +130,7 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
       </Grid>
       <Grid item>
         <BarChart
-          width={(ref.current?.offsetWidth || 0) * 0.25}
+          width={chartWidth * 0.25}
           height={300}
           data={firstBar}
           margin={{
@@ -121,6 +146,7 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
           <Tooltip
             cursor={{ fill: "transparent" }}
             formatter={(value) => `${value} bps`}
+            {...dnaChartTooltipProps}
           />
           <Legend align="center" />
           <CartesianGrid strokeDasharray="3 3" />
@@ -138,10 +164,10 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
       <Grid item>
         <RadarChart
           data={bpCounts}
-          height={(ref.current?.offsetWidth || 0) * 0.5}
-          width={(ref.current?.offsetWidth || 0) * 0.5}
+          height={chartWidth * 0.5}
+          width={chartWidth * 0.5}
         >
-          <Tooltip cursor={{ fill: "transparent" }} />
+          <Tooltip cursor={{ fill: "transparent" }} {...dnaChartTooltipProps} />
           <PolarGrid />
           <PolarAngleAxis dataKey="name" />
           <PolarRadiusAxis />
@@ -158,8 +184,8 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
       </Grid>
       <Grid item>
         <BarChart
-          width={(ref.current?.offsetWidth || 0) * 0.5}
-          height={(ref.current?.offsetWidth || 0) * 0.5}
+          width={chartWidth * 0.5}
+          height={chartWidth * 0.5}
           data={firstBar}
           margin={{
             top: 5,
@@ -176,6 +202,7 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
             formatter={function (value) {
               return `${value}%`;
             }}
+            {...dnaChartTooltipProps}
           />
           <Legend align="center" />
           <CartesianGrid strokeDasharray="3 3" />

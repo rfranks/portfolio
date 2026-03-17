@@ -14,6 +14,7 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Slider from "@mui/material/Slider";
+import { blue } from "@mui/material/colors";
 
 import {
   Brush,
@@ -97,7 +98,7 @@ export default function SequenceVisualizations({
       <Grid container>
         <Grid item>
           <Box sx={{ maxWidth: "800px", pt: 1 }}>
-            <Title>
+            <Title sx={{ color: blue[800] }}>
               {getChartMethodTitle(chartMethod)}
               {`${
                 activeSequences

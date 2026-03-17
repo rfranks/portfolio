@@ -1,7 +1,7 @@
 export const summary = {
   name: "Richard Franks",
   title: "Principal Full Stack Engineer | AI-Driven Systems Architect",
-  location: "Boston, MA",
+  location: "Boston, MA / Derry, NH",
   contact: {
     linkedin: "https://www.linkedin.com/in/richardfranksjr",
     email: "richardfranksjr@hotmail.com",
@@ -16,54 +16,206 @@ export const competencies = {
     {
       title: "AI/LLM & RAG Systems",
       items: [
-        "Retrieval-augmented generation",
-        "LangChain integration",
-        "Clinical NLP with ICD-10/SNOMED/LOINC/RxNorm",
+        {
+          label: "Retrieval-augmented generation",
+          description:
+            "Designing systems that ground model output in retrieved documents, records, and structured data.",
+        },
+        {
+          label: "Large Language Models (LLM)",
+          description:
+            "Applying production LLM workflows for summarization, extraction, reasoning, and assistant experiences.",
+        },
+        {
+          label: "LangChain",
+          description:
+            "Building TypeScript and Python orchestration pipelines for prompts, tools, retrieval, and evaluation.",
+        },
+        {
+          label: "AI Orchestration",
+          description:
+            "Coordinating multi-step model, tool, and service workflows to deliver reliable end-to-end AI behavior.",
+        },
+        {
+          label: "AI Evaluation",
+          description:
+            "Measuring answer quality, extraction accuracy, and model performance to improve AI system reliability.",
+        },
+        {
+          label: "Clinical NLP with ICD-10/SNOMED/LOINC/RxNorm",
+          description:
+            "Mapping unstructured clinical language into medically relevant vocabularies and concepts.",
+        },
+        {
+          label: "Deepgram",
+          description:
+            "Using streaming and batch speech-to-text APIs in multi-model transcription pipelines.",
+        },
+        {
+          label: "AssemblyAI",
+          description:
+            "Integrating speech intelligence services for transcription, insights, and downstream extraction.",
+        },
+        {
+          label: "AWS Transcribe",
+          description:
+            "Using managed AWS speech recognition for healthcare and general transcription workflows.",
+        },
+        {
+          label: "AWS Comprehend Medical",
+          description:
+            "Extracting clinical entities, medications, conditions, and relationships from medical text.",
+        },
+        {
+          label: "ElevenLabs",
+          description:
+            "Integrating voice synthesis and conversational audio capabilities into product workflows.",
+        },
       ],
     },
     {
       title: "Frontend",
       items: [
-        "React",
-        "Next.js",
-        "TypeScript",
-        "Design systems",
-        "Monorepos (single-spa)",
+        {
+          label: "React",
+          description:
+            "Building complex interactive UIs with reusable component systems and state-driven rendering.",
+        },
+        {
+          label: "Next.js",
+          description:
+            "Shipping production React applications with App Router, SSR, SSG, and API integrations.",
+        },
+        {
+          label: "TypeScript",
+          description:
+            "Using static typing to improve correctness, maintainability, and shared contracts across stacks.",
+        },
+        {
+          label: "React Native",
+          description:
+            "Delivering mobile application experiences with shared React patterns and native device access.",
+        },
+        {
+          label: "Expo",
+          description:
+            "Accelerating React Native development, builds, and device feature integration with Expo tooling.",
+        },
+        {
+          label: "Design systems",
+          description:
+            "Creating reusable UI primitives, tokens, and patterns for consistent product experiences.",
+        },
+        {
+          label: "Monorepos (single-spa)",
+          description:
+            "Organizing large frontend codebases with shared packages and microfrontend-friendly architecture.",
+        },
       ],
     },
     {
       title: "Backend",
       items: [
-        "Python (Django, Flask, FastAPI)",
-        "Java (Spring Boot/Hibernate)",
-        "TypeScript APIs",
+        {
+          label: "Python (Django, Flask, FastAPI)",
+          description:
+            "Building APIs, services, and data-processing backends across multiple Python frameworks.",
+        },
+        {
+          label: "Java (Spring Boot/Hibernate)",
+          description:
+            "Designing enterprise service layers, domain models, and persistence-backed applications in Java.",
+        },
+        {
+          label: "TypeScript APIs",
+          description:
+            "Implementing strongly typed backend services and internal APIs in the TypeScript ecosystem.",
+        },
+        {
+          label: "NestJS",
+          description:
+            "Structuring scalable Node.js services with dependency injection, modules, and testable architecture.",
+        },
       ],
     },
     {
       title: "Cloud & DevOps",
       items: [
-        "Azure Functions",
-        "CosmosDB",
-        "GitHub Actions CI/CD",
-        "Containerized deployments",
+        {
+          label: "Azure Functions",
+          description:
+            "Deploying event-driven and HTTP-triggered serverless backends on Azure infrastructure.",
+        },
+        {
+          label: "AWS",
+          description:
+            "Using managed AWS services for application hosting, AI integrations, and operational workflows.",
+        },
+        {
+          label: "CosmosDB",
+          description:
+            "Designing globally distributed document persistence for cloud-native application workloads.",
+        },
+        {
+          label: "GitHub Actions CI/CD",
+          description:
+            "Automating builds, tests, releases, and deployment workflows directly in GitHub.",
+        },
+        {
+          label: "Containerized deployments",
+          description:
+            "Packaging and shipping services consistently with container-based runtime environments.",
+        },
       ],
     },
     {
       title: "Data & Integration",
       items: [
-        "REST APIs",
-        "Event-driven microservices",
-        "PostgreSQL",
-        "MongoDB",
-        "MySQL",
+        {
+          label: "REST APIs",
+          description:
+            "Designing and consuming HTTP APIs with stable contracts, authentication, and versioning.",
+        },
+        {
+          label: "Event-driven microservices",
+          description:
+            "Building distributed systems that coordinate through asynchronous events and service boundaries.",
+        },
+        {
+          label: "PostgreSQL",
+          description:
+            "Modeling relational data and tuning queries for reliable transactional application workloads.",
+        },
+        {
+          label: "MongoDB",
+          description:
+            "Working with flexible document models for operational and product-facing application data.",
+        },
+        {
+          label: "MySQL",
+          description:
+            "Supporting production relational data stores and integrations in enterprise environments.",
+        },
       ],
     },
     {
       title: "Leadership",
       items: [
-        "Architecture board member",
-        "Engineering mentor",
-        "Cross-functional collaboration with product, UX, QA, and DevOps",
+        {
+          label: "Architecture board member",
+          description:
+            "Guiding platform direction, technical standards, and cross-team architectural decisions.",
+        },
+        {
+          label: "Engineering mentor",
+          description:
+            "Coaching engineers through design reviews, implementation strategy, and technical growth.",
+        },
+        {
+          label: "Cross-functional collaboration with product, UX, QA, and DevOps",
+          description:
+            "Translating business goals into shippable technical plans with strong delivery alignment.",
+        },
       ],
     },
   ],
@@ -71,6 +223,9 @@ export const competencies = {
     "React.js",
     "TypeScript",
     "Software Architecture",
+    "Large Language Models (LLM)",
+    "Retrieval-Augmented Generation (RAG)",
+    "LangChain",
     "Python (Programming Language)",
     "Team Leadership",
     "Web Services",
@@ -82,6 +237,7 @@ export const competencies = {
     "JSP",
     "Python",
     "Django",
+    "FastAPI",
     "MySQL",
     "REST",
     "Backbone.js",
@@ -89,6 +245,10 @@ export const competencies = {
     "AJAX",
     "HTML",
     "CSS",
+    "Next.js",
+    "NestJS",
+    "React Native",
+    "Expo",
     "J2EE",
     "Swagger",
     "Hibernate",
@@ -106,15 +266,24 @@ export const competencies = {
     "Eclipse",
     "Maven",
     "GitHub",
+    "GitHub Actions",
     "UML",
     "Windows",
     "Mac OS X",
     "PostgreSQL",
+    "MongoDB",
     "Oracle SQL",
     "Cascading Style Sheets (CSS)",
     "Jenkins",
     "JPA",
     "SQL",
+    "Azure Functions",
+    "CosmosDB",
+    "Deepgram",
+    "AssemblyAI",
+    "AWS Transcribe",
+    "AWS Comprehend Medical",
+    "ElevenLabs",
     "Leadership",
     "Handlebars.js",
     "Liferay",

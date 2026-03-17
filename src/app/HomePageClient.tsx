@@ -14,6 +14,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
+import Tooltip from "@mui/material/Tooltip";
 import {
   Menu,
   ChevronLeft,
@@ -60,6 +61,17 @@ export default function HomePageClient() {
     setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
   };
 
+  const navItems = [
+    { label: "Home", href: "/", icon: <HomeIcon /> },
+    { label: "GeneBoard", href: "/dna", icon: <Science /> },
+    { label: "Bookworm", href: "/bookworm", icon: <MenuBook /> },
+    { label: "TalentForge", href: "/talentforge", icon: <Build /> },
+    { label: "Rickbert Studio", href: "/rickbert", icon: <AutoStories /> },
+    { label: "Blackjack", href: "/blackjack", icon: <Casino /> },
+    { label: "Warbirds", href: "/warbirds", icon: <Flight /> },
+    { label: "ZombieFish", href: "/zombiefish", icon: <BugReport /> },
+  ];
+
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />
@@ -95,7 +107,19 @@ export default function HomePageClient() {
             Portfolio
           </Typography>
         </AppBar>
-        <Drawer variant="permanent" open={open} drawerWidth={drawerWidth}>
+        <Drawer
+          variant="permanent"
+          open={open}
+          drawerWidth={drawerWidth}
+          sx={{
+            flexShrink: 0,
+            "& .MuiDrawer-paper": {
+              position: "fixed",
+              top: 0,
+              height: "100vh",
+            },
+          }}
+        >
           <Toolbar
             sx={{
               display: "flex",
@@ -110,59 +134,30 @@ export default function HomePageClient() {
           </Toolbar>
           <Divider />
           <List component="nav">
-            <ListItemButton component="a" href={withBasePath("/")}>
-              <ListItemIcon>
-                <HomeIcon />
-              </ListItemIcon>
-              <ListItemText primary="Home" />
-            </ListItemButton>
-            <ListItemButton component="a" href={withBasePath("/dna")}>
-              <ListItemIcon>
-                <Science />
-              </ListItemIcon>
-              <ListItemText primary="GeneBoard" />
-            </ListItemButton>
-            <ListItemButton component="a" href={withBasePath("/bookworm")}>
-              <ListItemIcon>
-                <MenuBook />
-              </ListItemIcon>
-              <ListItemText primary="Bookworm" />
-            </ListItemButton>
-            <ListItemButton component="a" href={withBasePath("/talentforge")}>
-              <ListItemIcon>
-                <Build />
-              </ListItemIcon>
-              <ListItemText primary="TalentForge" />
-            </ListItemButton>
-            <ListItemButton component="a" href={withBasePath("/rickbert")}>
-              <ListItemIcon>
-                <AutoStories />
-              </ListItemIcon>
-              <ListItemText primary="Rickbert Studio" />
-            </ListItemButton>
-            <ListItemButton component="a" href={withBasePath("/blackjack")}>
-              <ListItemIcon>
-                <Casino />
-              </ListItemIcon>
-              <ListItemText primary="Blackjack" />
-            </ListItemButton>
-            <ListItemButton component="a" href={withBasePath("/warbirds")}>
-              <ListItemIcon>
-                <Flight />
-              </ListItemIcon>
-              <ListItemText primary="Warbirds" />
-            </ListItemButton>
-            <ListItemButton component="a" href={withBasePath("/zombiefish")}>
-              <ListItemIcon>
-                <BugReport />
-              </ListItemIcon>
-              <ListItemText primary="ZombieFish" />
-            </ListItemButton>
+            {navItems.map((item) => (
+              <Tooltip
+                key={item.href}
+                title={item.label}
+                placement="right"
+                arrow
+                disableHoverListener={open}
+              >
+                <ListItemButton component="a" href={withBasePath(item.href)}>
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText primary={item.label} />
+                </ListItemButton>
+              </Tooltip>
+            ))}
           </List>
         </Drawer>
         <Box
           component="main"
-          sx={{ flex: "1 1 0", minWidth: 0, minHeight: "100vh" }}
+          sx={{
+            flex: "1 1 0",
+            minWidth: 0,
+            minHeight: "100vh",
+            ml: open ? `${drawerWidth}px` : { xs: 7, sm: 9 },
+          }}
         >
           <Toolbar />
           <Container sx={{ py: 3 }}>
@@ -175,10 +170,12 @@ export default function HomePageClient() {
                 <CoreCompetencies />
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={12}>
+                <ExperienceTimeline />
+              </Grid>
+              <Grid item xs={12} sm={12} md={12} lg={12}>
                 <ProjectsGrid />
               </Grid>
             </Grid>
-            <ExperienceTimeline />
             <Education />
             <Recognition />
             <ContactCTA />

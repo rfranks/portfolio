@@ -12,7 +12,8 @@ import {
 import { squiggle } from "dnaviz";
 
 import { Sequence } from "@/types/dna/types";
-import { getSequenceColor } from "@/utils/dna/sequenceUtils";
+import { getSequenceStrokeStyle } from "@/utils/dna/sequenceUtils";
+import { dnaChartTooltipProps } from "./tooltipStyles";
 
 export type SquiggleChartProps = {
   sequences?: Sequence[] | null;
@@ -100,16 +101,25 @@ export function SquiggleChart({ sequences = [], bpRange }: SquiggleChartProps) {
             }  (${value})`;
           }}
           labelFormatter={(label) => `base pair #${Math.ceil(label) + 1}`}
+          {...dnaChartTooltipProps}
         />
         {sequences?.map((sequence, index) => (
+          (() => {
+            const strokeStyle = getSequenceStrokeStyle(index);
+
+            return (
           <Line
             key={`${sequence?.description}-${index}`}
             yAxisId="left"
             isAnimationActive={true}
             dataKey={sequence?.description}
-            stroke={getSequenceColor(index)}
+            stroke={strokeStyle.stroke}
+            strokeWidth={strokeStyle.strokeWidth}
             dot={false}
+            activeDot={{ r: 4 }}
           />
+            );
+          })()
         ))}
       </LineChart>
     </ResponsiveContainer>

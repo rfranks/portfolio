@@ -164,6 +164,30 @@ export function getSequenceColor(index: number) {
   ];
 }
 
+export function getSequenceStrokeColor(index: number) {
+  const strokePalette = [
+    blue[900],
+    blue[700],
+    blue[500],
+    blue[300],
+    blue.A700,
+    blue.A400,
+    blue[800],
+    blue[600],
+  ];
+
+  return strokePalette[index % strokePalette.length];
+}
+
+export function getSequenceStrokeStyle(index: number) {
+  const strokeWidths = [3.5, 3, 2.75, 3.25, 2.5, 3, 2.75, 2.5];
+
+  return {
+    stroke: getSequenceStrokeColor(index),
+    strokeWidth: strokeWidths[index % strokeWidths.length],
+  };
+}
+
 export async function parseSequence(
   unparsed: string,
   filename: string,
