@@ -40,6 +40,7 @@
     "tailwindcss": "^4.2.1",
     "uuid": "^11.1.0",
     "ve-range-utils": "^2.6.6",
+    "ve-sequence-utils": "^5.2.16",
     "web-vitals": "^2.1.4",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
