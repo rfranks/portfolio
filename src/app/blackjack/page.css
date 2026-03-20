@@ -12,8 +12,47 @@
   margin-right: 1rem;
 }
 
+#game-card,
+#demo-video {
+  margin: 3rem auto 2rem;
+  max-width: 1040px;
+  padding: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+#game-card h2,
+#demo-video h2 {
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+#game-card {
+  text-align: center;
+}
+
+#game {
+  text-align: left;
+}
+
+#demo-video p {
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+#demo-video video {
+  width: 100%;
+  max-width: 960px;
+  border-radius: 8px;
+  display: block;
+  margin: 0 auto;
+}
+
 #controls {
   margin-top: 1rem;
+  text-align: center;
 }
 
 button {
