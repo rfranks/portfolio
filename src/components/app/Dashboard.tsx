@@ -404,7 +404,7 @@ export default function Dashboard({
               Add
             </Button>
           </Paper>
-          <Grid container spacing={3} maxWidth={"calc(100% - 12px)"}>
+          <Grid container spacing={3}>
             {activeTab === "table" && (
               <Grid item xs={12}>
                 {sequenceKeys.length > 0 ? (
