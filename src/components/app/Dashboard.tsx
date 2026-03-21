@@ -38,6 +38,7 @@ import SequencesTable from "@/components/dna/SequencesTable";
 import AddSequenceCard from "@/components/dna/AddSequenceCard";
 import SequenceAI from "@/components/dna/SequenceAI";
 import { ChartMethod, Sequence } from "@/types/dna/types";
+import { withBasePath } from "@/utils/basePath";
 
 import AppBar from "./AppBar";
 import Copyright from "./Copyright";
@@ -149,18 +150,49 @@ export default function Dashboard({
           >
             <Menu />
           </IconButton>
-          <Typography
-            component="h1"
-            variant="h6"
-            color="inherit"
-            noWrap
-            sx={{ flexGrow: 1, color: "primary.contrastText" }}
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              minWidth: 0,
+            }}
           >
-            GeneBoard{" "}
-            {truncatedActiveSequenceTitle.length > 0
-              ? `for ${truncatedActiveSequenceTitle}`
-              : ""}
-          </Typography>
+            <Paper
+              elevation={0}
+              sx={{
+                backgroundColor: "#fff",
+                px: 1.5,
+                py: 0.75,
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              <Box
+                component="img"
+                src={withBasePath("/dna/images/geneboard_banner.png")}
+                alt="GeneBoard"
+                sx={{
+                  display: "block",
+                  height: { xs: 28, sm: 32 },
+                  width: "auto",
+                  maxWidth: "100%",
+                }}
+              />
+            </Paper>
+            {truncatedActiveSequenceTitle.length > 0 ? (
+              <Typography
+                component="h1"
+                variant="h6"
+                color="inherit"
+                noWrap
+                sx={{ color: "primary.contrastText", minWidth: 0 }}
+              >
+                {`for ${truncatedActiveSequenceTitle}`}
+              </Typography>
+            ) : null}
+          </Box>
           {firstActiveSequence && (
             <>
               <IconButton

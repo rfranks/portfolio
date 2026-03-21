@@ -15,6 +15,7 @@ import {
   setOpenAIKey,
 } from "@/contexts/OpenAIKeyContext";
 import type { Sequence } from "@/types/dna/types";
+import { withBasePath } from "@/utils/basePath";
 import {
   explainHowToAnswerSequencePromptWithAI,
   explainSequencesWithAI,
@@ -336,6 +337,7 @@ export default function SequenceAI({
         <OpenAIKeyInterstitialContent
           appName="GeneBoard AI"
           logoAlt="GeneBoard AI logo"
+          logoSrc={withBasePath("/dna/images/geneboard_banner.png")}
           value={draftKey}
           onChange={setDraftKey}
           onSubmit={handleKeySubmit}
