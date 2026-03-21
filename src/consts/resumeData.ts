@@ -424,14 +424,14 @@ export const projects: {
     interestsMeWhy:
       "Building an aerial combat game pushed my understanding of canvas rendering and simple AI. It's a fun showcase of real-time physics entirely in the browser.",
   },
-  {
-    name: "ZombieFish",
-    description: "Hook undead fish before they bite.",
-    href: "/zombiefish",
-    type: "personal",
-    interestsMeWhy:
-      "I enjoyed blending playful art with responsive collision mechanics. It was a chance to experiment with physics and humor in a casual game.",
-  },
+  // {
+  //   name: "ZombieFish",
+  //   description: "Hook undead fish before they bite.",
+  //   href: "/zombiefish",
+  //   type: "personal",
+  //   interestsMeWhy:
+  //     "I enjoyed blending playful art with responsive collision mechanics. It was a chance to experiment with physics and humor in a casual game.",
+  // },
   {
     name: "Blackjack",
     description: "Classic twenty-one card game against the dealer.",
