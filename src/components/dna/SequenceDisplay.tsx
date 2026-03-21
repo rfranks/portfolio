@@ -25,6 +25,7 @@ export type SequenceDisplayProps = {
   showBinary?: boolean;
   showColors?: boolean;
   showColorsMaxBasePairs?: boolean;
+  fillHeight?: boolean;
   showProteins?: boolean;
   showText?: boolean;
   showTooltip?: boolean;
@@ -40,6 +41,7 @@ export default function SequenceDisplay({
   showText = true,
   showTooltip = true,
   showColorsMaxBasePairs = false,
+  fillHeight = false,
   minBasePair = 1,
   maxBasePair,
 }: SequenceDisplayProps) {
@@ -52,8 +54,9 @@ export default function SequenceDisplay({
   const basePairHorizontalPadding = 8;
   const basePairWidth =
     (showBinary ? 19.953 : 9.977) + basePairHorizontalPadding;
-  const maxHeight = 350;
+  const defaultViewportHeight = 350;
   const [viewportWidth, setViewportWidth] = useState<number>(0);
+  const [viewportHeight, setViewportHeight] = useState<number>(0);
   const [hoveredProtein, setHoveredProtein] = useState<{
     sequenceDescription: string;
     codonEndIndex: number;
@@ -73,6 +76,7 @@ export default function SequenceDisplay({
 
     const updateWidth = () => {
       setViewportWidth(node.clientWidth);
+      setViewportHeight(node.clientHeight);
     };
 
     updateWidth();
@@ -115,6 +119,7 @@ export default function SequenceDisplay({
       index >= hoveredProtein.codonEndIndex - 2 &&
       index <= hoveredProtein.codonEndIndex;
     const isHoveredBase =
+      !hoveredProtein &&
       hoveredBase?.sequenceDescription === sequenceDescription &&
       hoveredBase.baseIndex === index;
     const isHoveredProteinStart =
@@ -250,23 +255,40 @@ export default function SequenceDisplay({
                     </Typography>
                     <Typography sx={{ mb: 1.5 }} color="text.secondary">
                       {protein?.codons?.map((codon, codonIndex) => (
-                        <Box
-                          component="span"
-                          key={`${protein?.charCode}-${codon}`}
-                          sx={{
-                            textDecoration:
-                              protein.codons.length === 1 ||
-                              codon.toUpperCase() === currentCodon
-                                ? "underline"
-                                : "none",
-                            fontWeight:
-                              protein.codons.length === 1 ||
-                              codon.toUpperCase() === currentCodon
-                                ? 700
-                                : 400,
-                          }}
-                        >
-                          {codon}
+                        <Box component="span" key={`${protein?.charCode}-${codon}`}>
+                          <Box
+                            component="span"
+                            sx={{
+                              display: "inline-block",
+                              fontWeight:
+                                protein.codons.length === 1 ||
+                                codon.toUpperCase() === currentCodon
+                                  ? 700
+                                  : 400,
+                              border:
+                                protein.codons.length === 1 ||
+                                codon.toUpperCase() === currentCodon
+                                  ? "1px solid #ef6c00"
+                                  : "1px solid transparent",
+                              borderRadius:
+                                protein.codons.length === 1 ||
+                                codon.toUpperCase() === currentCodon
+                                  ? "999px"
+                                  : 0,
+                              px:
+                                protein.codons.length === 1 ||
+                                codon.toUpperCase() === currentCodon
+                                  ? 0.75
+                                  : 0,
+                              py:
+                                protein.codons.length === 1 ||
+                                codon.toUpperCase() === currentCodon
+                                  ? 0.125
+                                  : 0,
+                            }}
+                          >
+                            {codon}
+                          </Box>
                           {codonIndex < protein.codons.length - 1 ? ", " : ""}
                         </Box>
                       ))}
@@ -334,12 +356,18 @@ export default function SequenceDisplay({
     </Tooltip>
   );
 
-  const visibleRows = maxHeight / basePairHeight;
+  const availableViewportHeight =
+    fillHeight && viewportHeight > 0 ? viewportHeight : defaultViewportHeight;
+  const sequenceCount = Math.max(1, sequences?.length || 1);
+  const visibleSequenceSets = Math.max(
+    1,
+    Math.floor(availableViewportHeight / (basePairHeight * sequenceCount))
+  );
   const pageCount = Math.max(
     1,
     Math.ceil(
       ((maxBasePair || 1) - minBasePair + 1) /
-        (1.0 * basePairsPerRow * visibleRows)
+        (1.0 * basePairsPerRow * visibleSequenceSets)
     )
   );
 
@@ -348,11 +376,11 @@ export default function SequenceDisplay({
   }, [pageCount]);
 
   const startingBP = Math.max(
-    (page - 1) * visibleRows * basePairsPerRow,
+    (page - 1) * visibleSequenceSets * basePairsPerRow,
     minBasePair - 1
   );
   const endingBP = Math.min(
-    startingBP + visibleRows * basePairsPerRow,
+    startingBP + visibleSequenceSets * basePairsPerRow,
     maxBasePair || 1
   );
 
@@ -425,15 +453,28 @@ export default function SequenceDisplay({
   }
 
   return (
-    <Box>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        flex: fillHeight ? 1 : "0 0 auto",
+        minHeight: 0,
+        minWidth: 0,
+        width: "100%",
+      }}
+    >
       <Box
         ref={viewportRef}
         sx={{
           fontFamily: "Anonymous Pro",
           fontSize: "16px",
-          height: `${maxHeight}px`,
+          height: fillHeight ? "100%" : `${defaultViewportHeight}px`,
           overflow: "auto",
           paddingBottom: showProteins ? 3 : 0,
+          flex: 1,
+          minHeight: fillHeight ? 0 : `${defaultViewportHeight}px`,
+          minWidth: 0,
+          width: "100%",
         }}
       >
         <Box>

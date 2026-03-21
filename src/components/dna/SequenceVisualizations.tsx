@@ -93,6 +93,12 @@ export default function SequenceVisualizations({
         display: "flex",
         flexDirection: "column",
         minHeight: 480,
+        height: "100%",
+        flex: 1,
+        minWidth: 0,
+        width: "100%",
+        minHeight: 0,
+        overflow: "hidden",
       }}
     >
       <Grid container>
@@ -186,7 +192,10 @@ export default function SequenceVisualizations({
         <RandicChart sequences={activeSequences} bpRange={bpRange} />
       )}
       {chartMethod === "sequence" && (
-        <Grid container>
+        <Grid
+          container
+          sx={{ flex: 1, minHeight: 0, alignContent: "flex-start" }}
+        >
           <Grid item>
             <Typography sx={{ px: 2, display: "inline-block" }}>
               {activeSequence?.sequence.trim().length || 0} bps
@@ -313,12 +322,13 @@ export default function SequenceVisualizations({
               {activeSequence?.type}
             </Typography>
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ minHeight: 0, display: "flex", flexDirection: "column" }}>
             <Divider />
             <SequenceDisplay
               sequences={activeSequences}
               showBinary={displayBinary}
               showColors={colorizeSequence}
+              fillHeight={activeSequences.length === 1}
               showProteins={showProteins}
               showText={displaySequenceText}
               showTooltip={displayTooltip}

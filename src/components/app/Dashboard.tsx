@@ -36,6 +36,7 @@ import SequenceVisualizations from "@/components/dna/SequenceVisualizations";
 import SequenceTallies from "@/components/dna/SequenceTallies";
 import SequencesTable from "@/components/dna/SequencesTable";
 import AddSequenceCard from "@/components/dna/AddSequenceCard";
+import SequenceAI from "@/components/dna/SequenceAI";
 import { ChartMethod, Sequence } from "@/types/dna/types";
 
 import AppBar from "./AppBar";
@@ -57,9 +58,9 @@ export default function Dashboard({
   const [bpRange, setBpRange] = useState<number[] | null>(null);
   const [chartMethod, setChartMethod] = useState<ChartMethod>("sequence");
   const [open, setOpen] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<"table" | "visualization">(
-    "table",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "table" | "visualization" | "ai"
+  >("table");
   const [isAddSequenceModalOpen, setIsAddSequenceModalOpen] =
     useState<boolean>(false);
   const [playInterval, setPlayInterval] = useState<ReturnType<
@@ -369,32 +370,48 @@ export default function Dashboard({
           backgroundColor: "rgba(25, 118, 210, 0.08)",
           flexGrow: 1,
           height: "100vh",
-          overflow: "auto",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <Toolbar />
-        <Container maxWidth="lg" sx={{ px: 2, my: 2 }}>
+        <Container
+          maxWidth="lg"
+          sx={{
+            px: 2,
+            my: 2,
+            flex: 1,
+            display: "grid",
+            gridTemplateRows: "auto minmax(0, 1fr) auto",
+            rowGap: 3,
+            minHeight: 0,
+            overflow: "hidden",
+          }}
+        >
           <Paper
             sx={{
-              mb: 3,
               px: 2,
               py: 1,
+              backgroundColor: "background.paper",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 2,
               flexWrap: "wrap",
+              flexShrink: 0,
             }}
           >
             <Tabs
               value={activeTab}
-              onChange={(_, value: "table" | "visualization") =>
+              onChange={(_, value: "table" | "visualization" | "ai") =>
                 setActiveTab(value)
               }
               aria-label="gene dashboard tabs"
             >
               <Tab label="Table" value="table" />
               <Tab label="Visualization" value="visualization" />
+              <Tab label="AI" value="ai" />
             </Tabs>
             <Button
               variant="contained"
@@ -404,68 +421,114 @@ export default function Dashboard({
               Add
             </Button>
           </Paper>
-          <Grid container spacing={3}>
-            {activeTab === "table" && (
-              <Grid item xs={12}>
-                {sequenceKeys.length > 0 ? (
-                  <SequencesTable
+          <Box
+            sx={{
+              minHeight: 0,
+              overflowY: activeTab === "visualization" ? "hidden" : "auto",
+              overflowX: "hidden",
+            }}
+          >
+            <Grid
+              container
+              spacing={3}
+              sx={{
+                minHeight: activeTab === "visualization" ? "100%" : "auto",
+                overflow: activeTab === "visualization" ? "hidden" : "visible",
+              }}
+            >
+              {activeTab === "table" && (
+                <Grid item xs={12}>
+                  {sequenceKeys.length > 0 ? (
+                    <SequencesTable
+                      activeSequences={activeSequences}
+                      sequences={sequences}
+                      onSequenceClick={(seq) => {
+                        setBpRange([1, seq.sequence.length]);
+
+                        setActiveSequences([...activeSequences, seq]);
+
+                        if (
+                          activeSequences
+                            .map((seq) => seq.description)
+                            .includes(seq.description)
+                        ) {
+                          setActiveSequences([
+                            ...activeSequences.filter(
+                              (activeSequence) =>
+                                activeSequence.description !== seq.description,
+                            ),
+                          ]);
+                        }
+                      }}
+                      onSequenceDelete={handleDeleteSequence}
+                    />
+                  ) : (
+                    <Paper sx={{ p: 4 }}>
+                      <Typography color="text.secondary">
+                        No sequences added yet. Use Add to open the add sequence
+                        modal.
+                      </Typography>
+                    </Paper>
+                  )}
+                </Grid>
+              )}
+              {activeTab === "visualization" && (
+                <Grid
+                  item
+                  xs={12}
+                  sx={{
+                    mt: 1,
+                    mb: 0,
+                    display: "flex",
+                    minHeight: 0,
+                    minWidth: 0,
+                    flex: 1,
+                    overflow: "hidden",
+                  }}
+                >
+                  {activeSequences?.length > 0 ? (
+                    <SequenceVisualizations
+                      activeSequences={activeSequences}
+                      bpRange={bpRange}
+                      onBpRangeUpdate={(bpRange) => setBpRange(bpRange)}
+                      chartMethod={chartMethod}
+                      onChartMethodUpdate={function (chartMethod) {
+                        setChartMethod(chartMethod);
+                        setBpRange([1, firstActiveSequence?.sequence?.length]);
+                      }}
+                    />
+                  ) : (
+                    <Paper sx={{ p: 4 }}>
+                      <Typography color="text.secondary">
+                        Select one or more sequences from the table to view
+                        visualizations.
+                      </Typography>
+                    </Paper>
+                  )}
+                </Grid>
+              )}
+              {activeTab === "ai" && (
+                <Grid
+                  item
+                  xs={12}
+                  sx={{
+                    mt: 1,
+                    mb: 0,
+                    display: "flex",
+                    minWidth: 0,
+                    overflow: "visible",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <SequenceAI
                     activeSequences={activeSequences}
                     sequences={sequences}
-                    onSequenceClick={(seq) => {
-                      setBpRange([1, seq.sequence.length]);
-
-                      setActiveSequences([...activeSequences, seq]);
-
-                      if (
-                        activeSequences
-                          .map((seq) => seq.description)
-                          .includes(seq.description)
-                      ) {
-                        setActiveSequences([
-                          ...activeSequences.filter(
-                            (activeSequence) =>
-                              activeSequence.description !== seq.description,
-                          ),
-                        ]);
-                      }
-                    }}
-                    onSequenceDelete={handleDeleteSequence}
                   />
-                ) : (
-                  <Paper sx={{ p: 4 }}>
-                    <Typography color="text.secondary">
-                      No sequences added yet. Use Add (+) to open the add
-                      sequence modal.
-                    </Typography>
-                  </Paper>
-                )}
-              </Grid>
-            )}
-            {activeTab === "visualization" && (
-              <Grid item xs={12} sx={{ mt: 1, mb: 0 }}>
-                {activeSequences?.length > 0 ? (
-                  <SequenceVisualizations
-                    activeSequences={activeSequences}
-                    bpRange={bpRange}
-                    onBpRangeUpdate={(bpRange) => setBpRange(bpRange)}
-                    chartMethod={chartMethod}
-                    onChartMethodUpdate={function (chartMethod) {
-                      setChartMethod(chartMethod);
-                      setBpRange([1, firstActiveSequence?.sequence?.length]);
-                    }}
-                  />
-                ) : (
-                  <Paper sx={{ p: 4 }}>
-                    <Typography color="text.secondary">
-                      Select one or more sequences from the table to view
-                      visualizations.
-                    </Typography>
-                  </Paper>
-                )}
-              </Grid>
-            )}
-          </Grid>
-          <Copyright sx={{ pt: 4 }} />
+                </Grid>
+              )}
+            </Grid>
+          </Box>
+          <Copyright sx={{ pt: 4, mt: "auto" }} />
         </Container>
       </Box>
       <Dialog

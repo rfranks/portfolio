@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export type Base = "A" | "C" | "G" | "T" | "U";
 
 export type CodingCodon =
@@ -163,6 +165,18 @@ export type Sequence = {
   visualization: Record<string, unknown>;
   overview: Record<string, unknown>;
 };
+
+export const sequenceSchema = z.object({
+  description: z.string().trim().min(1),
+  sequence: z.string().trim().min(1),
+  type: z.enum(["DNA", "RNA"]),
+  filename: z.string().trim().min(1),
+  hasAmbiguous: z.boolean(),
+  visualization: z.record(z.string(), z.unknown()),
+  overview: z.record(z.string(), z.unknown()),
+});
+
+export const sequenceListSchema = z.array(sequenceSchema).min(1);
 
 export type ParsedSequenceResult = {
   messages?: string[];
