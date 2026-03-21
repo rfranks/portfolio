@@ -50,11 +50,11 @@ export default function SequenceDisplay({
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
 
-  const basePairHeight = showProteins ? 56 : 35;
+  const basePairHeight = showProteins ? 48 : 30;
   const basePairHorizontalPadding = 8;
   const basePairWidth =
     (showBinary ? 19.953 : 9.977) + basePairHorizontalPadding;
-  const defaultViewportHeight = 350;
+  const defaultViewportHeight = 280;
   const [viewportWidth, setViewportWidth] = useState<number>(0);
   const [viewportHeight, setViewportHeight] = useState<number>(0);
   const [hoveredProtein, setHoveredProtein] = useState<{
@@ -166,7 +166,7 @@ export default function SequenceDisplay({
           alignItems: "center",
           justifyContent: "center",
           fontFamily: "Anonymous Pro",
-          fontSize: "18px",
+          fontSize: "16px",
           fontWeight: isHoveredProteinBase || isHoveredBase ? 700 : 400,
           height: showText ? "auto" : "27px",
           mb: showText ? 1 : 0,
@@ -218,13 +218,13 @@ export default function SequenceDisplay({
               position: "absolute",
               top: 0,
               left: `-${basePairWidth * 2}px`,
-              fontSize: "12.5px",
+              fontSize: "11px",
               width: `${basePairWidth * 3}px`,
               textAlign: "center",
-              mt: "28px",
+              mt: "24px",
               zIndex: 0,
               "&:hover": {
-                fontSize: "15px",
+                fontSize: "13px",
                 fontWeight: "600",
               },
             }}

@@ -99,8 +99,8 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
     <Grid container ref={ref}>
       <Grid item>
         <BarChart
-          width={chartWidth * 0.75}
-          height={300}
+          width={chartWidth * 0.7}
+          height={260}
           data={bpCounts}
           margin={{
             top: 5,
@@ -138,8 +138,8 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
       </Grid>
       <Grid item>
         <BarChart
-          width={chartWidth * 0.25}
-          height={300}
+          width={chartWidth * 0.225}
+          height={260}
           data={firstBar}
           margin={{
             top: 5,
@@ -172,8 +172,8 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
       <Grid item>
         <RadarChart
           data={bpCounts}
-          height={chartWidth * 0.5}
-          width={chartWidth * 0.5}
+          height={chartWidth * 0.4}
+          width={chartWidth * 0.4}
         >
           <Tooltip cursor={{ fill: "transparent" }} {...dnaChartTooltipProps} />
           <PolarGrid />
@@ -192,8 +192,8 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
       </Grid>
       <Grid item>
         <BarChart
-          width={chartWidth * 0.5}
-          height={chartWidth * 0.5}
+          width={chartWidth * 0.4}
+          height={chartWidth * 0.4}
           data={firstBar}
           margin={{
             top: 5,

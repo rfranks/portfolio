@@ -455,20 +455,15 @@ export default function Dashboard({
           </Paper>
           <Box
             sx={{
+              height: "100%",
               minHeight: 0,
-              overflowY: activeTab === "visualization" ? "hidden" : "auto",
+              maxHeight: "100%",
+              overflowY: activeTab === "ai" ? "auto" : "hidden",
               overflowX: "hidden",
             }}
           >
-            <Grid
-              container
-              spacing={3}
-              sx={{
-                minHeight: activeTab === "visualization" ? "100%" : "auto",
-                overflow: activeTab === "visualization" ? "hidden" : "visible",
-              }}
-            >
-              {activeTab === "table" && (
+            {activeTab === "table" && (
+              <Grid container spacing={3}>
                 <Grid item xs={12}>
                   {sequenceKeys.length > 0 ? (
                     <SequencesTable
@@ -503,62 +498,55 @@ export default function Dashboard({
                     </Paper>
                   )}
                 </Grid>
-              )}
-              {activeTab === "visualization" && (
-                <Grid
-                  item
-                  xs={12}
-                  sx={{
-                    mt: 1,
-                    mb: 0,
-                    display: "flex",
-                    minHeight: 0,
-                    minWidth: 0,
-                    flex: 1,
-                    overflow: "hidden",
-                  }}
-                >
-                  {activeSequences?.length > 0 ? (
-                    <SequenceVisualizations
-                      activeSequences={activeSequences}
-                      bpRange={bpRange}
-                      onBpRangeUpdate={(bpRange) => setBpRange(bpRange)}
-                      chartMethod={chartMethod}
-                      onChartMethodUpdate={function (chartMethod) {
-                        setChartMethod(chartMethod);
-                        setBpRange([1, firstActiveSequence?.sequence?.length]);
-                      }}
-                    />
-                ) : (
-                    <Paper sx={{ p: 4, width: "100%" }}>
-                      <Typography color="text.secondary">
-                        Select one or more sequences from the table to view
-                        visualizations.
-                      </Typography>
-                    </Paper>
-                  )}
-                </Grid>
-              )}
-              {activeTab === "ai" && (
-                <Grid
-                  item
-                  xs={12}
-                  sx={{
-                    mt: 1,
-                    mb: 0,
-                    display: "flex",
-                    minWidth: 0,
-                    overflow: "visible",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <SequenceAI
+              </Grid>
+            )}
+            {activeTab === "visualization" && (
+              <Box
+                sx={{
+                  display: "flex",
+                  height: "100%",
+                  minHeight: "100%",
+                  maxHeight: "100%",
+                  minWidth: 0,
+                  overflow: "hidden",
+                }}
+              >
+                {activeSequences?.length > 0 ? (
+                  <SequenceVisualizations
                     activeSequences={activeSequences}
-                    sequences={sequences}
+                    bpRange={bpRange}
+                    onBpRangeUpdate={(bpRange) => setBpRange(bpRange)}
+                    chartMethod={chartMethod}
+                    onChartMethodUpdate={function (chartMethod) {
+                      setChartMethod(chartMethod);
+                      setBpRange([1, firstActiveSequence?.sequence?.length]);
+                    }}
                   />
-                </Grid>
-              )}
-            </Grid>
+                ) : (
+                  <Paper sx={{ p: 4, width: "100%" }}>
+                    <Typography color="text.secondary">
+                      Select one or more sequences from the table to view
+                      visualizations.
+                    </Typography>
+                  </Paper>
+                )}
+              </Box>
+            )}
+            {activeTab === "ai" && (
+              <Box
+                sx={{
+                  display: "flex",
+                  minWidth: 0,
+                  overflow: "visible",
+                  alignItems: "flex-start",
+                }}
+              >
+                <SequenceAI
+                  activeSequences={activeSequences}
+                  sequences={sequences}
+                />
+              </Box>
+            )}
           </Box>
           <Copyright sx={{ pt: 4, mt: "auto" }} />
         </Container>

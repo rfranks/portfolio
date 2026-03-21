@@ -45,7 +45,7 @@ export function GatesChart({ sequences = [], bpRange }: GatesChartProps) {
   }
 
   return (
-    <ResponsiveContainer minHeight={600}>
+    <ResponsiveContainer width="95%" minHeight={420}>
       <LineChart
         data={data}
         margin={{
@@ -54,7 +54,7 @@ export function GatesChart({ sequences = [], bpRange }: GatesChartProps) {
           bottom: 24,
           left: 24,
         }}
-        height={500}
+        height={360}
         width={500}
       >
         <Legend align="center" verticalAlign="top" />

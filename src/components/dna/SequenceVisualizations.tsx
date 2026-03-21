@@ -62,6 +62,7 @@ export default function SequenceVisualizations({
   const [showProteins, setShowProteins] = useState<boolean>(false);
 
   const activeSequence = activeSequences?.[0];
+  const isSequenceChart = chartMethod === "sequence";
 
   const getChartMethodTitle = (chartMethod?: ChartMethod | null): string => {
     switch (chartMethod) {
@@ -100,243 +101,289 @@ export default function SequenceVisualizations({
         overflow: "hidden",
       }}
     >
-      <Grid container>
-        <Grid item>
-          <Box sx={{ maxWidth: "800px", pt: 1 }}>
-            <Title sx={{ color: blue[800] }}>
-              {getChartMethodTitle(chartMethod)}
-              {`${
-                activeSequences
-                  ?.map((sequence) => sequence.description)
-                  .join(", ").length
-                  ? (chartMethod !== "" ? " for " : "") +
-                    activeSequences
-                      ?.map((sequence) => sequence.description)
-                      ?.sort()
-                      .join(", ")
-                  : ""
-              }`}
-            </Title>
-          </Box>
+      <Box
+        sx={{
+          position: "sticky",
+          top: 0,
+          zIndex: 1,
+          backgroundColor: "background.paper",
+          flexShrink: 0,
+          pb: 1,
+        }}
+      >
+        <Grid container>
+          <Grid item>
+            <Box sx={{ maxWidth: "800px", pt: 1 }}>
+              <Title sx={{ color: blue[800] }}>
+                {getChartMethodTitle(chartMethod)}
+                {`${
+                  activeSequences
+                    ?.map((sequence) => sequence.description)
+                    .join(", ").length
+                    ? (chartMethod !== "" ? " for " : "") +
+                      activeSequences
+                        ?.map((sequence) => sequence.description)
+                        ?.sort()
+                        .join(", ")
+                    : ""
+                }`}
+              </Title>
+            </Box>
+          </Grid>
+          <Grid item sx={{ flexGrow: 1, textAlign: "right" }}>
+            <FormControl
+              sx={{
+                m: 1,
+                minWidth: 120,
+                maxWidth: 360,
+              }}
+              size="small"
+            >
+              <InputLabel id="chart-select-label">Visualization</InputLabel>
+              <Select
+                labelId="chart-select-label"
+                id="chart-select"
+                value={chartMethod || ""}
+                label="Chart Method"
+                onChange={function (e: SelectChangeEvent) {
+                  onChartMethodUpdate?.(e.target.value as ChartMethod);
+                }}
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                <MenuItem value={"bpcontent"}>basepair content</MenuItem>
+                <MenuItem value={"sequence"}>sequence</MenuItem>
+                <MenuItem value={"squiggle"}>squiggle</MenuItem>
+                <MenuItem value={"gates"}>gates</MenuItem>
+                <MenuItem value={"qi"}>qi</MenuItem>
+                <MenuItem value={"randic"}>randic</MenuItem>
+                <MenuItem value={"yau"}>yau</MenuItem>
+                <MenuItem value={"yau_bp"}>yau_bp</MenuItem>
+                <MenuItem value={"yau_int"}>yau_int</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
+            <Box sx={{ p: 2, pl: 1, width: "100%" }}>
+              <Slider
+                min={1}
+                max={activeSequence?.sequence.length || 1}
+                step={3}
+                getAriaLabel={() => "basepair(bp) range"}
+                value={bpRange || []}
+                onChange={(_, newValue: number | number[]) =>
+                  onBpRangeUpdate?.(newValue as number[])
+                }
+                valueLabelDisplay="auto"
+                valueLabelFormat={(value: number) =>
+                  `bp# ${value}/${activeSequence?.sequence.length}`
+                }
+                getAriaValueText={(value: number) =>
+                  `bp# ${value}/${activeSequence?.sequence.length}`
+                }
+              />
+            </Box>
+          </Grid>
         </Grid>
-        <Grid item sx={{ flexGrow: 1, textAlign: "right" }}>
-          <FormControl
+      </Box>
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: isSequenceChart ? "hidden" : "auto",
+          overflowX: "hidden",
+        }}
+      >
+        {chartMethod === "bpcontent" && (
+          <BasepairHistogram sequences={activeSequences} bpRange={bpRange} />
+        )}
+        {chartMethod === "squiggle" && (
+          <SquiggleChart sequences={activeSequences} bpRange={bpRange} />
+        )}
+        {chartMethod === "gates" && (
+          <GatesChart sequences={activeSequences} bpRange={bpRange} />
+        )}
+        {chartMethod === "qi" && (
+          <QiChart sequences={activeSequences} bpRange={bpRange} />
+        )}
+        {chartMethod === "randic" && (
+          <RandicChart sequences={activeSequences} bpRange={bpRange} />
+        )}
+        {chartMethod === "sequence" && (
+          <Box
             sx={{
-              m: 1,
-              minWidth: 120,
-              maxWidth: 360,
+              display: "flex",
+              flexDirection: "column",
+              minHeight: "100%",
+              minWidth: 0,
             }}
-            size="small"
           >
-            <InputLabel id="chart-select-label">Visualization</InputLabel>
-            <Select
-              labelId="chart-select-label"
-              id="chart-select"
-              value={chartMethod || ""}
-              label="Chart Method"
-              onChange={function (e: SelectChangeEvent) {
-                onChartMethodUpdate?.(e.target.value as ChartMethod);
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                flexWrap: "wrap",
+                flexShrink: 0,
               }}
             >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              <MenuItem value={"bpcontent"}>basepair content</MenuItem>
-              <MenuItem value={"sequence"}>sequence</MenuItem>
-              <MenuItem value={"squiggle"}>squiggle</MenuItem>
-              <MenuItem value={"gates"}>gates</MenuItem>
-              <MenuItem value={"qi"}>qi</MenuItem>
-              <MenuItem value={"randic"}>randic</MenuItem>
-              <MenuItem value={"yau"}>yau</MenuItem>
-              <MenuItem value={"yau_bp"}>yau_bp</MenuItem>
-              <MenuItem value={"yau_int"}>yau_int</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12}>
-          <Box sx={{ p: 2, pl: 1, width: "100%" }}>
-            <Slider
-              min={1}
-              max={activeSequence?.sequence.length || 1}
-              step={3}
-              getAriaLabel={() => "basepair(bp) range"}
-              value={bpRange || []}
-              onChange={(_, newValue: number | number[]) =>
-                onBpRangeUpdate?.(newValue as number[])
-              }
-              valueLabelDisplay="auto"
-              valueLabelFormat={(value: number) =>
-                `bp# ${value}/${activeSequence?.sequence.length}`
-              }
-              getAriaValueText={(value: number) =>
-                `bp# ${value}/${activeSequence?.sequence.length}`
-              }
-            />
-          </Box>
-        </Grid>
-      </Grid>
-      {chartMethod === "bpcontent" && (
-        <BasepairHistogram sequences={activeSequences} bpRange={bpRange} />
-      )}
-      {chartMethod === "squiggle" && (
-        <SquiggleChart sequences={activeSequences} bpRange={bpRange} />
-      )}
-      {chartMethod === "gates" && (
-        <GatesChart sequences={activeSequences} bpRange={bpRange} />
-      )}
-      {chartMethod === "qi" && (
-        <QiChart sequences={activeSequences} bpRange={bpRange} />
-      )}
-      {chartMethod === "randic" && (
-        <RandicChart sequences={activeSequences} bpRange={bpRange} />
-      )}
-      {chartMethod === "sequence" && (
-        <Grid
-          container
-          sx={{ flex: 1, minHeight: 0, alignContent: "flex-start" }}
-        >
-          <Grid item>
-            <Typography sx={{ px: 2, display: "inline-block" }}>
-              {activeSequence?.sequence.trim().length || 0} bps
-            </Typography>
-            {(bpRange?.[0] || 1) !== 1 ||
-            bpRange?.[1] !== activeSequence?.sequence.trim().length ? (
+              <Box>
+                <Typography sx={{ px: 2, display: "inline-block" }}>
+                  {activeSequence?.sequence.trim().length || 0} bps
+                </Typography>
+                {(bpRange?.[0] || 1) !== 1 ||
+                bpRange?.[1] !== activeSequence?.sequence.trim().length ? (
+                  <Typography
+                    sx={{
+                      display: "inline-block",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      px: 2,
+                    }}
+                  >
+                    {`showing only ${bpRange![1] - bpRange![0] + 1} basepairs`}
+                  </Typography>
+                ) : null}
+              </Box>
+              <Box sx={{ flexGrow: 1, textAlign: "right" }}>
+                <Tooltip title="display the protein chain" arrow>
+                  <IconButton
+                    aria-label="display the protein chain"
+                    color={showProteins ? "primary" : "default"}
+                    sx={{ ml: 2 }}
+                    onClick={() => setShowProteins(!showProteins)}
+                  >
+                    <Share />
+                  </IconButton>
+                </Tooltip>
+                <ButtonGroup
+                  variant="outlined"
+                  size="large"
+                  aria-label="display options"
+                  sx={{
+                    border: "1px solid #fff",
+                    position: "relative",
+                    top: "8px",
+                    "& .MuiButtonBase-root": {
+                      border: "1px solid #fff",
+                      borderRadius: 0,
+                      ml: 0,
+                    },
+                  }}
+                >
+                  <Tooltip title="display the sequence as binary" arrow>
+                    <IconButton
+                      aria-label="display the sequence as binary"
+                      color={displayBinary ? "primary" : "default"}
+                      sx={{ ml: 2 }}
+                      onClick={() => setDisplayBinary(!displayBinary)}
+                    >
+                      <Numbers />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="display the info tooltip" arrow>
+                    <IconButton
+                      aria-label="display the info tooltip"
+                      color={displayTooltip ? "primary" : "default"}
+                      sx={{ ml: 2 }}
+                      onClick={() => setDisplayTooltip(!displayTooltip)}
+                    >
+                      <ChatBubble />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="display the sequence" arrow>
+                    <IconButton
+                      aria-label="display the sequence"
+                      color={displaySequenceText ? "primary" : "default"}
+                      sx={{ ml: 2 }}
+                      onClick={() => {
+                        const nextDisplaySequenceText = !displaySequenceText;
+
+                        if (!nextDisplaySequenceText && !colorizeSequence) {
+                          setColorizeSequence(true);
+                        }
+
+                        setDisplaySequenceText(nextDisplaySequenceText);
+                      }}
+                    >
+                      {displaySequenceText ? (
+                        <FontDownload />
+                      ) : (
+                        <FontDownloadOff />
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                </ButtonGroup>
+                <Tooltip title="colorize the sequence" arrow>
+                  <IconButton
+                    aria-label="colorize the sequence"
+                    color={colorizeSequence ? "primary" : "default"}
+                    sx={{ ml: 2 }}
+                    onClick={() => setColorizeSequence(!colorizeSequence)}
+                  >
+                    <Brush />
+                  </IconButton>
+                </Tooltip>
+                {navigator.clipboard && (
+                  <Tooltip title="copy to clipboard" arrow>
+                    <IconButton
+                      aria-label="copy sequence to clipboard"
+                      onClick={() =>
+                        navigator.clipboard.writeText(
+                          activeSequence?.sequence.substring(
+                            (bpRange?.[0] || 1) - 1,
+                            (bpRange?.[1] || activeSequence?.sequence.length) +
+                              1,
+                          ) || "",
+                        )
+                      }
+                      sx={{ ml: 2 }}
+                    >
+                      <ContentCopy />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+            </Box>
+            <Box sx={{ flexShrink: 0 }}>
               <Typography
                 sx={{
                   display: "inline-block",
-                  fontSize: "12px",
+                  p: 2,
                   fontWeight: 600,
-                  px: 2,
                 }}
               >
-                {`showing only ${bpRange![1] - bpRange![0] + 1} basepairs`}
+                Type:
               </Typography>
-            ) : null}
-          </Grid>
-          <Grid item sx={{ flexGrow: 1, textAlign: "right" }}>
-            <Tooltip title="display the protein chain" arrow>
-              <IconButton
-                aria-label="display the protein chain"
-                color={showProteins ? "primary" : "default"}
-                sx={{ ml: 2 }}
-                onClick={() => setShowProteins(!showProteins)}
-              >
-                <Share />
-              </IconButton>
-            </Tooltip>
-            <ButtonGroup
-              variant="outlined"
-              size="large"
-              aria-label="display options"
+              <Typography sx={{ display: "inline-block", p: 2 }}>
+                {activeSequence?.type}
+              </Typography>
+            </Box>
+            <Box
               sx={{
-                border: "1px solid #fff",
-                position: "relative",
-                top: "8px",
-                "& .MuiButtonBase-root": {
-                  border: "1px solid #fff",
-                  borderRadius: 0,
-                  ml: 0,
-                },
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                minWidth: 0,
               }}
             >
-              <Tooltip title="display the sequence as binary" arrow>
-                <IconButton
-                  aria-label="display the sequence as binary"
-                  color={displayBinary ? "primary" : "default"}
-                  sx={{ ml: 2 }}
-                  onClick={() => setDisplayBinary(!displayBinary)}
-                >
-                  <Numbers />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="display the info tooltip" arrow>
-                <IconButton
-                  aria-label="display the info tooltip"
-                  color={displayTooltip ? "primary" : "default"}
-                  sx={{ ml: 2 }}
-                  onClick={() => setDisplayTooltip(!displayTooltip)}
-                >
-                  <ChatBubble />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="display the sequence" arrow>
-                <IconButton
-                  aria-label="display the sequence"
-                  color={displaySequenceText ? "primary" : "default"}
-                  sx={{ ml: 2 }}
-                  onClick={() => {
-                    const nextDisplaySequenceText = !displaySequenceText;
-
-                    if (!nextDisplaySequenceText && !colorizeSequence) {
-                      setColorizeSequence(true);
-                    }
-
-                    setDisplaySequenceText(nextDisplaySequenceText);
-                  }}
-                >
-                  {displaySequenceText ? <FontDownload /> : <FontDownloadOff />}
-                </IconButton>
-              </Tooltip>
-            </ButtonGroup>
-            <Tooltip title="colorize the sequence" arrow>
-              <IconButton
-                aria-label="colorize the sequence"
-                color={colorizeSequence ? "primary" : "default"}
-                sx={{ ml: 2 }}
-                onClick={() => setColorizeSequence(!colorizeSequence)}
-              >
-                <Brush />
-              </IconButton>
-            </Tooltip>
-            {navigator.clipboard && (
-              <Tooltip title="copy to clipboard" arrow>
-                <IconButton
-                  aria-label="copy sequence to clipboard"
-                  onClick={() =>
-                    navigator.clipboard.writeText(
-                      activeSequence?.sequence.substring(
-                        (bpRange?.[0] || 1) - 1,
-                        (bpRange?.[1] || activeSequence?.sequence.length) + 1
-                      ) || ""
-                    )
-                  }
-                  sx={{ ml: 2 }}
-                >
-                  <ContentCopy />
-                </IconButton>
-              </Tooltip>
-            )}
-          </Grid>
-          <Grid item xs={12}>
-            <Typography
-              sx={{
-                display: "inline-block",
-                p: 2,
-                fontWeight: 600,
-              }}
-            >
-              Type:
-            </Typography>
-            <Typography sx={{ display: "inline-block", p: 2 }}>
-              {activeSequence?.type}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sx={{ minHeight: 0, display: "flex", flexDirection: "column" }}>
-            <Divider />
-            <SequenceDisplay
-              sequences={activeSequences}
-              showBinary={displayBinary}
-              showColors={colorizeSequence}
-              fillHeight={activeSequences?.length === 1}
-              showProteins={showProteins}
-              showText={displaySequenceText}
-              showTooltip={displayTooltip}
-              minBasePair={minBasePair}
-              maxBasePair={maxBasePair}
-            />
-          </Grid>
-        </Grid>
-      )}
+              <Divider />
+              <SequenceDisplay
+                sequences={activeSequences}
+                showBinary={displayBinary}
+                showColors={colorizeSequence}
+                fillHeight={activeSequences?.length === 1}
+                showProteins={showProteins}
+                showText={displaySequenceText}
+                showTooltip={displayTooltip}
+                minBasePair={minBasePair}
+                maxBasePair={maxBasePair}
+              />
+            </Box>
+          </Box>
+        )}
+      </Box>
     </Paper>
   );
 }
