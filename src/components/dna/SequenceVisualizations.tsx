@@ -92,12 +92,11 @@ export default function SequenceVisualizations({
         p: 2,
         display: "flex",
         flexDirection: "column",
-        minHeight: 480,
+        minHeight: 0,
         height: "100%",
         flex: 1,
         minWidth: 0,
         width: "100%",
-        minHeight: 0,
         overflow: "hidden",
       }}
     >
@@ -328,7 +327,7 @@ export default function SequenceVisualizations({
               sequences={activeSequences}
               showBinary={displayBinary}
               showColors={colorizeSequence}
-              fillHeight={activeSequences.length === 1}
+              fillHeight={activeSequences?.length === 1}
               showProteins={showProteins}
               showText={displaySequenceText}
               showTooltip={displayTooltip}
