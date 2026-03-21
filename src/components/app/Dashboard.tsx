@@ -497,8 +497,8 @@ export default function Dashboard({
                         setBpRange([1, firstActiveSequence?.sequence?.length]);
                       }}
                     />
-                  ) : (
-                    <Paper sx={{ p: 4 }}>
+                ) : (
+                    <Paper sx={{ p: 4, width: "100%" }}>
                       <Typography color="text.secondary">
                         Select one or more sequences from the table to view
                         visualizations.

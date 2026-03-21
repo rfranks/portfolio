@@ -23,7 +23,6 @@ import {
   MenuBook,
   Casino,
   Flight,
-  BugReport,
   Build,
   AutoStories,
 } from "@mui/icons-material";
@@ -69,7 +68,6 @@ export default function HomePageClient() {
     { label: "Rickbert Studio", href: "/rickbert", icon: <AutoStories /> },
     { label: "Blackjack", href: "/blackjack", icon: <Casino /> },
     { label: "Warbirds", href: "/warbirds", icon: <Flight /> },
-    { label: "ZombieFish", href: "/zombiefish", icon: <BugReport /> },
   ];
 
   return (
@@ -117,6 +115,7 @@ export default function HomePageClient() {
               position: "fixed",
               top: 0,
               height: "100vh",
+              borderRadius: 0,
             },
           }}
         >
@@ -141,8 +140,21 @@ export default function HomePageClient() {
                 placement="right"
                 arrow
                 disableHoverListener={open}
+                slotProps={{
+                  arrow: {
+                    sx: {
+                      "&::before": {
+                        borderRadius: 0,
+                      },
+                    },
+                  },
+                }}
               >
-                <ListItemButton component="a" href={withBasePath(item.href)}>
+                <ListItemButton
+                  component="a"
+                  href={withBasePath(item.href)}
+                  sx={{ borderRadius: 0 }}
+                >
                   <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText primary={item.label} />
                 </ListItemButton>
