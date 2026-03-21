@@ -2,6 +2,7 @@ import { ReactElement, useEffect, useRef, useState } from "react";
 
 import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
+import type { TooltipProps } from "@mui/material/Tooltip";
 import Pagination from "@mui/material/Pagination";
 
 import { Base, Protein, ProteinCode, Sequence } from "@/types/dna/types";
@@ -57,6 +58,10 @@ export default function SequenceDisplay({
     sequenceDescription: string;
     codonEndIndex: number;
   } | null>(null);
+  const [hoveredBase, setHoveredBase] = useState<{
+    sequenceDescription: string;
+    baseIndex: number;
+  } | null>(null);
 
   const [page, setPage] = useState<number>(1);
 
@@ -109,6 +114,9 @@ export default function SequenceDisplay({
       hoveredProtein?.sequenceDescription === sequenceDescription &&
       index >= hoveredProtein.codonEndIndex - 2 &&
       index <= hoveredProtein.codonEndIndex;
+    const isHoveredBase =
+      hoveredBase?.sequenceDescription === sequenceDescription &&
+      hoveredBase.baseIndex === index;
     const isHoveredProteinStart =
       isHoveredProteinBase && index === hoveredProtein.codonEndIndex - 2;
     const isHoveredProteinEnd =
@@ -126,6 +134,8 @@ export default function SequenceDisplay({
         sx={{
           backgroundColor: isHoveredProteinBase
             ? "#ffb74d"
+            : isHoveredBase
+            ? "#ffd699"
             : showColors
             ? !showColorsMaxBasePairs &&
               isMaxBase(
@@ -146,13 +156,13 @@ export default function SequenceDisplay({
               ? "#151515"
               : showColors
               ? "#151515"
-              : "#fff",
+              : "#000",
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
           fontFamily: "Anonymous Pro",
           fontSize: "18px",
-          fontWeight: isHoveredProteinBase ? 700 : 400,
+          fontWeight: isHoveredProteinBase || isHoveredBase ? 700 : 400,
           height: showText ? "auto" : "27px",
           mb: showText ? 1 : 0,
           px: "4px",
@@ -160,10 +170,18 @@ export default function SequenceDisplay({
           boxSizing: "border-box",
           textAlign: "center",
           border: "2px solid transparent",
-          borderTopColor: isHoveredProteinBase ? "#ef6c00" : "transparent",
-          borderBottomColor: isHoveredProteinBase ? "#ef6c00" : "transparent",
-          borderLeftColor: isHoveredProteinStart ? "#ef6c00" : "transparent",
-          borderRightColor: isHoveredProteinEnd ? "#ef6c00" : "transparent",
+          borderTopColor:
+            isHoveredProteinBase ? "#ef6c00" : "transparent",
+          borderBottomColor:
+            isHoveredProteinBase ? "#ef6c00" : "transparent",
+          borderLeftColor:
+            isHoveredProteinStart ? "#ef6c00" : "transparent",
+          borderRightColor:
+            isHoveredProteinEnd ? "#ef6c00" : "transparent",
+          boxShadow: isHoveredBase
+            ? "inset 0 0 0 2px #ef6c00"
+            : "none",
+          borderRadius: isHoveredBase ? "4px" : 0,
           outline:
             !isHoveredProteinBase && !validBase(base)
               ? "1px solid red"
@@ -171,8 +189,15 @@ export default function SequenceDisplay({
           outlineOffset: "-2px",
           overflow: "visible",
           position: "relative",
-          zIndex: isHoveredProteinBase ? 2 : 1,
+          zIndex: isHoveredProteinBase || isHoveredBase ? 2 : 1,
         }}
+        onMouseEnter={() =>
+          setHoveredBase({
+            sequenceDescription,
+            baseIndex: index,
+          })
+        }
+        onMouseLeave={() => setHoveredBase(null)}
       >
         {showText
           ? showBinary
@@ -257,7 +282,8 @@ export default function SequenceDisplay({
                       <Button size="small">Learn More</Button>
                     </CardActions> */}
                 </Card>,
-                index
+                index,
+                "bottom"
               )
             ) : (
               <Box>{protein?.abbrevName || "Oops"}</Box>
@@ -271,9 +297,39 @@ export default function SequenceDisplay({
   const wrapWithTooltip = (
     content: ReactElement,
     title: ReactElement,
-    index: number
+    index: number,
+    placement: TooltipProps["placement"] = "top"
   ) => (
-    <Tooltip key={index} title={title} placement="top" arrow followCursor>
+    <Tooltip
+      key={index}
+      title={title}
+      placement={placement}
+      arrow
+      followCursor={placement === "top"}
+      slotProps={{
+        popper: {
+          modifiers: [
+            {
+              name: "offset",
+              options: {
+                offset:
+                  placement === "bottom"
+                    ? [0, 2]
+                    : [0, 12],
+              },
+            },
+          ],
+        },
+      }}
+      sx={{
+        "& [data-popper-placement=\"bottom\"]": {
+          mt: "4px !important",
+        },
+        "& [data-popper-placement=\"top\"]": {
+          mb: "24px !important",
+        }
+      }}
+    >
       {content}
     </Tooltip>
   );
@@ -329,7 +385,7 @@ export default function SequenceDisplay({
                 .substring(i, Math.min(i + basePairsPerRow, endingBP))
                 .split("")
                 .map((base, index) =>
-                  showTooltip
+                  showTooltip && !hoveredProtein
                     ? wrapWithTooltip(
                         renderBase(
                           base,
@@ -377,6 +433,7 @@ export default function SequenceDisplay({
           fontSize: "16px",
           height: `${maxHeight}px`,
           overflow: "auto",
+          paddingBottom: showProteins ? 3 : 0,
         }}
       >
         <Box>

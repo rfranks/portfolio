@@ -19,7 +19,7 @@ import { blue } from "@mui/material/colors";
 import {
   Brush,
   ChatBubble,
-  ContentPaste,
+  ContentCopy,
   FontDownload,
   FontDownloadOff,
   Numbers,
@@ -256,7 +256,15 @@ export default function SequenceVisualizations({
                   aria-label="display the sequence"
                   color={displaySequenceText ? "primary" : "default"}
                   sx={{ ml: 2 }}
-                  onClick={() => setDisplaySequenceText(!displaySequenceText)}
+                  onClick={() => {
+                    const nextDisplaySequenceText = !displaySequenceText;
+
+                    if (!nextDisplaySequenceText && !colorizeSequence) {
+                      setColorizeSequence(true);
+                    }
+
+                    setDisplaySequenceText(nextDisplaySequenceText);
+                  }}
                 >
                   {displaySequenceText ? <FontDownload /> : <FontDownloadOff />}
                 </IconButton>
@@ -286,7 +294,7 @@ export default function SequenceVisualizations({
                   }
                   sx={{ ml: 2 }}
                 >
-                  <ContentPaste />
+                  <ContentCopy />
                 </IconButton>
               </Tooltip>
             )}

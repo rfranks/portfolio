@@ -15,7 +15,7 @@ export function baseToColor(base: string): string {
     case "A":
       return "lightblue";
     case "T":
-      return "lightyellow";
+      return "#facc15";
     case "G":
       return "lightgreen";
     case "C":

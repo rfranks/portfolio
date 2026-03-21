@@ -12,8 +12,15 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import Tooltip from "@mui/material/Tooltip";
 
-import { Clear, Error, Search, TableRows } from "@mui/icons-material";
+import {
+  Clear,
+  DeleteOutline,
+  Error,
+  Search,
+  TableRows,
+} from "@mui/icons-material";
 
 import { blue } from "./colors";
 import { Sequence } from "@/types/dna/types";
@@ -24,12 +31,14 @@ export type SequencesTableProps = {
   activeSequences?: Sequence[] | null;
   sequences?: Record<string, Sequence>;
   onSequenceClick?: (sequence: Sequence) => void;
+  onSequenceDelete?: (sequence: Sequence) => void;
 };
 
 export default function SequencesTable({
   activeSequences = [],
   sequences = {},
   onSequenceClick,
+  onSequenceDelete,
 }: SequencesTableProps) {
   const [sequenceFilter, setSequenceFilter] = useState<string>("");
   const [filteredSequences, setFilteredSequences] = useState<Sequence[]>(
@@ -125,8 +134,9 @@ export default function SequencesTable({
             <TableCell sx={{ width: "10%" }}>Type</TableCell>
             <TableCell sx={{ width: "10%" }}>Filename</TableCell>
             <TableCell sx={{ width: "10%" }}>Total bps</TableCell>
-            <TableCell sx={{ width: "50%" }}>Sequence (first 50 bps)</TableCell>
+            <TableCell sx={{ width: "42.5%" }}>Sequence (first 50 bps)</TableCell>
             <TableCell sx={{ width: "7.5%" }}>In Error</TableCell>
+            <TableCell sx={{ width: "7.5%" }}>Delete</TableCell>
           </TableRow>
         </TableHead>
         <TableBody sx={{ display: "block", height: "600px", overflow: "auto" }}>
@@ -173,7 +183,7 @@ export default function SequencesTable({
               <TableCell sx={{ width: "10%" }}>{seq.type}</TableCell>
               <TableCell sx={{ width: "10%" }}>{seq.filename}</TableCell>
               <TableCell sx={{ width: "10%" }}>{seq.sequence.length}</TableCell>
-              <TableCell sx={{ width: "50%" }}>
+              <TableCell sx={{ width: "42.5%" }}>
                 <Link color="primary" href="#" sx={{ mt: 3 }}>
                   <Typography
                     sx={{
@@ -192,6 +202,20 @@ export default function SequencesTable({
               </TableCell>
               <TableCell sx={{ width: "7.5%" }}>
                 {seq.hasAmbiguous && <Error color="error" />}
+              </TableCell>
+              <TableCell sx={{ width: "7.5%" }}>
+                <Tooltip title={`Delete ${seq.description}`} arrow>
+                  <IconButton
+                    aria-label={`Delete ${seq.description}`}
+                    color="error"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSequenceDelete?.(seq);
+                    }}
+                  >
+                    <DeleteOutline />
+                  </IconButton>
+                </Tooltip>
               </TableCell>
             </TableRow>
           ))}

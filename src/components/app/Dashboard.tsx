@@ -21,6 +21,7 @@ import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import type { PaletteMode } from "@mui/material";
 
 import {
   AddCircleOutline,
@@ -40,17 +41,24 @@ import { ChartMethod, Sequence } from "@/types/dna/types";
 import AppBar from "./AppBar";
 import Copyright from "./Copyright";
 import Drawer from "./Drawer";
-import { blue } from "@mui/material/colors";
 
 const drawerWidth: number = 240;
 
-export default function Dashboard() {
+export interface DashboardProps {
+  mode?: PaletteMode;
+  toggleColorMode?: () => void;
+}
+
+export default function Dashboard({
+  mode = "light",
+  toggleColorMode,
+}: DashboardProps) {
   const [activeSequences, setActiveSequences] = useState<Sequence[]>([]);
   const [bpRange, setBpRange] = useState<number[] | null>(null);
   const [chartMethod, setChartMethod] = useState<ChartMethod>("sequence");
   const [open, setOpen] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<"table" | "visualization">(
-    "table"
+    "table",
   );
   const [isAddSequenceModalOpen, setIsAddSequenceModalOpen] =
     useState<boolean>(false);
@@ -85,16 +93,46 @@ export default function Dashboard() {
     setIsAddSequenceModalOpen(false);
   }
 
+  function handleDeleteSequence(sequenceToDelete: Sequence) {
+    if (playInterval) {
+      clearInterval(playInterval);
+      setPlayInterval(null);
+    }
+
+    setSequences((currentSequences) => {
+      const nextSequences = { ...currentSequences };
+      delete nextSequences[sequenceToDelete.description];
+      return nextSequences;
+    });
+
+    setActiveSequences((currentActiveSequences) => {
+      const nextActiveSequences = currentActiveSequences.filter(
+        (sequence) => sequence.description !== sequenceToDelete.description,
+      );
+
+      setBpRange(
+        nextActiveSequences.length > 0
+          ? [1, nextActiveSequences[0].sequence.length]
+          : null,
+      );
+
+      return nextActiveSequences;
+    });
+  }
+
   return (
     <>
       <AppBar
         drawerWidth={drawerWidth}
         position="absolute"
         open={open}
+        mode={mode}
+        toggleColorMode={toggleColorMode}
         sx={{ backgroundColor: "#1565c0" }}
       >
         <Toolbar
           sx={{
+            flex: 1,
             pr: "24px", // keep right padding when drawer closed
           }}
         >
@@ -161,7 +199,7 @@ export default function Dashboard() {
                       1,
                       Math.min(
                         maxBasePair + 10,
-                        firstActiveSequence.sequence.length
+                        firstActiveSequence.sequence.length,
                       ),
                     ]);
                   } else {
@@ -173,7 +211,7 @@ export default function Dashboard() {
                     setPlayInterval(
                       setInterval(() => {
                         playRef?.current?.click();
-                      }, 0)
+                      }, 0),
                     );
                   }
                 }}
@@ -219,7 +257,7 @@ export default function Dashboard() {
               })}
               onChange={(
                 _,
-                newValue: { label: string; id: string }[] | null
+                newValue: { label: string; id: string }[] | null,
               ) => {
                 if (newValue) {
                   const ids = newValue?.map((value) => value.id);
@@ -227,7 +265,7 @@ export default function Dashboard() {
                   setBpRange([1, sequences?.[ids[0]]?.sequence.length]);
                   setActiveSequences([
                     ...Object.values(sequences).filter((seq) =>
-                      ids.includes(seq.description)
+                      ids.includes(seq.description),
                     ),
                   ]);
                 } else {
@@ -328,14 +366,14 @@ export default function Dashboard() {
       <Box
         component="main"
         sx={{
-          backgroundColor: blue[50],
+          backgroundColor: "rgba(25, 118, 210, 0.08)",
           flexGrow: 1,
           height: "100vh",
           overflow: "auto",
         }}
       >
         <Toolbar />
-        <Container maxWidth="lg" sx={{ px: 2, my: 2, }}>
+        <Container maxWidth="lg" sx={{ px: 2, my: 2 }}>
           <Paper
             sx={{
               mb: 3,
@@ -386,11 +424,12 @@ export default function Dashboard() {
                         setActiveSequences([
                           ...activeSequences.filter(
                             (activeSequence) =>
-                              activeSequence.description !== seq.description
+                              activeSequence.description !== seq.description,
                           ),
                         ]);
                       }
                     }}
+                    onSequenceDelete={handleDeleteSequence}
                   />
                 ) : (
                   <Paper sx={{ p: 4 }}>
