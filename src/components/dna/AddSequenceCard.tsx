@@ -2,7 +2,15 @@ import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import Button from "@mui/material/Button";
-import { Grid, Menu, MenuItem, styled, TextareaAutosize } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import {
+  Alert,
+  Grid,
+  Menu,
+  MenuItem,
+  styled,
+  TextareaAutosize,
+} from "@mui/material";
 import AddCircle from "@mui/icons-material/AddCircle";
 import Close from "@mui/icons-material/Close";
 import Delete from "@mui/icons-material/Delete";
@@ -18,6 +26,8 @@ const Textarea = styled(TextareaAutosize)(
   ({ theme }) => `
     resize: none;
     width: 100%;
+    max-height: min(45dvh, 420px);
+    overflow: auto;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.875rem;
     font-weight: 400;
@@ -60,6 +70,7 @@ export default function AddSequenceCard({
   onClose,
 }: AddSequenceCardProps) {
   const [rawSequenceContent, setRawSequenceContent] = useState<string>("");
+  const [confirmClear, setConfirmClear] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [loadSampleMenuEl, setLoadSampleMenuEl] = useState<null | HTMLElement>(
     null
@@ -72,6 +83,7 @@ export default function AddSequenceCard({
     ).text();
 
     setRawSequenceContent(sampleContent);
+    setConfirmClear(false);
 
     parseSequence(sampleContent, sample, (parsedSequence) => {
       parsedSequence.sequence = parsedSequence.sequence.trim();
@@ -81,8 +93,29 @@ export default function AddSequenceCard({
   };
 
   return (
-    <Card>
-      <CardContent>
+    <Card
+      sx={{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: "calc(100dvh - 32px)",
+      }}
+    >
+      {onClose && (
+        <IconButton
+          aria-label="close add sequence dialog"
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            zIndex: 1,
+          }}
+        >
+          <Close />
+        </IconButton>
+      )}
+      <CardContent sx={{ overflowY: "auto" }}>
         <Grid container direction="row">
           <Grid item sx={{ p: 0.5 }}>
             <Science />
@@ -103,14 +136,53 @@ export default function AddSequenceCard({
         </Typography> */}
         <Textarea
           ref={textareaRef}
-          minRows={10}
-          maxRows={10}
+          minRows={6}
+          maxRows={18}
           aria-label="FASTA sequence or other supported format"
           placeholder="Paste your sequence here, or drag and drop a file here..."
           value={rawSequenceContent}
-          onChange={(e) => setRawSequenceContent(e?.target?.value || "")}
+          onChange={(e) => {
+            setRawSequenceContent(e?.target?.value || "");
+            setConfirmClear(false);
+          }}
         />
       </CardContent>
+      {confirmClear && (
+        <CardContent sx={{ pt: 0 }}>
+          <Alert
+            severity="warning"
+            action={
+              <Grid container spacing={1} wrap="nowrap">
+                <Grid item>
+                  <Button
+                    size="small"
+                    color="inherit"
+                    onClick={() => setConfirmClear(false)}
+                  >
+                    No
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button
+                    size="small"
+                    color="error"
+                    variant="contained"
+                    onClick={() => {
+                      setRawSequenceContent("");
+                      setConfirmClear(false);
+                      textareaRef.current?.focus();
+                    }}
+                  >
+                    Yes, clear
+                  </Button>
+                </Grid>
+              </Grid>
+            }
+          >
+            Clear the current sequence input?
+          </Alert>
+        </CardContent>
+      )}
       <CardActions sx={{ justifyContent: "flex-end" }}>
         <Button
           id="load-sample-button"
@@ -118,7 +190,7 @@ export default function AddSequenceCard({
           aria-haspopup="true"
           aria-expanded={loadSampleMenuOpen ? "true" : undefined}
           onClick={(e) => setLoadSampleMenuEl(e?.currentTarget)}
-          sx={{ justifySelf: "flex-start" }}
+          sx={{ mr: "auto" }}
         >
           Load Sample
         </Button>
@@ -173,24 +245,19 @@ export default function AddSequenceCard({
         <Button
           size="small"
           variant="outlined"
+          color="error"
           startIcon={<Delete />}
           onClick={() => {
-            setRawSequenceContent("");
-            textareaRef?.current?.focus();
+            if (!rawSequenceContent.length) {
+              return;
+            }
+
+            setConfirmClear(true);
           }}
+          disabled={confirmClear}
         >
           Clear
         </Button>
-        {onClose && (
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<Close />}
-            onClick={onClose}
-          >
-            Close
-          </Button>
-        )}
         <Button
           size="small"
           variant="contained"
@@ -204,6 +271,7 @@ export default function AddSequenceCard({
 
                 onAddSequence?.(parsedSequence);
                 setRawSequenceContent("");
+                setConfirmClear(false);
                 textareaRef.current?.focus();
               }
             )
