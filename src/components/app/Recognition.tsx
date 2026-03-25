@@ -13,18 +13,18 @@ import { withBasePath } from "@/utils/basePath";
 export default function Recognition() {
   return (
     <TronPaper>
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" gutterBottom className="mb-4">
         Recognition
       </Typography>
       <Grid container spacing={2} sx={{ mb: 2 }}>
         {resumeData.recognition.snippets.map((snippet, idx) => (
           <Grid item xs={12} sm={4} key={idx}>
-            <Card variant="outlined">
-              <CardContent>
+            <Card variant="outlined" className="h-full">
+              <CardContent className="h-full">
                 <Typography
                   variant="body2"
                   color="text.secondary"
-                  sx={{ fontStyle: "italic" }}
+                  className="leading-6 italic"
                 >
                   {snippet}
                 </Typography>
@@ -33,14 +33,14 @@ export default function Recognition() {
           </Grid>
         ))}
       </Grid>
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" gutterBottom className="mb-4 mt-6">
         Recommendations
       </Typography>
       <Grid container spacing={2}>
         {resumeData.recognition.recommendations.map((rec) => (
           <Grid item xs={12} key={`${rec.name}-${rec.date}`}>
             <Card variant="outlined">
-              <CardContent>
+              <CardContent className="space-y-3">
                 <ListItem alignItems="flex-start" disableGutters>
                   {rec.imageSrcUrl && (
                     <ListItemAvatar>
@@ -73,7 +73,7 @@ export default function Recognition() {
                     }
                   />
                 </ListItem>
-                <Typography variant="body1" sx={{ mt: 1, fontStyle: "italic" }}>
+                <Typography variant="body1" className="leading-7 italic">
                   {rec.text}
                 </Typography>
               </CardContent>

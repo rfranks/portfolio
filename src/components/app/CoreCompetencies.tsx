@@ -10,17 +10,20 @@ import Chip from "@/components/fabric/Chip";
 export default function CoreCompetencies() {
   return (
     <FadeInSection>
-      <TronPaper>
-        <Typography variant="h6" gutterBottom>
+      <TronPaper className="h-full">
+        <Typography variant="h6" gutterBottom className="mb-4">
           Core Competencies
         </Typography>
-        <Stack spacing={2.5}>
+        <Stack spacing={3}>
           {competencies.categories.map((category) => (
-            <Box key={category.title}>
+            <Box
+              key={category.title}
+              className="rounded-2xl border border-white/10 bg-white/5 p-3 transition-colors duration-200 dark:bg-white/[0.03] hover:bg-white/10 dark:hover:bg-white/[0.06]"
+            >
               <Typography
                 variant="subtitle2"
                 color="text.secondary"
-                sx={{ mb: 1, fontWeight: 700, letterSpacing: "0.04em" }}
+                className="mb-2 font-bold uppercase tracking-[0.14em]"
               >
                 {category.title}
               </Typography>
@@ -35,7 +38,7 @@ export default function CoreCompetencies() {
                       label={competency.label}
                       variant="outlined"
                       color="primary"
-                      sx={{ mb: 1 }}
+                      className="mb-1"
                     />
                   </Tooltip>
                 ))}

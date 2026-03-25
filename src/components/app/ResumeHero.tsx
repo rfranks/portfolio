@@ -13,8 +13,17 @@ import Hero from "@/components/fabric/Hero";
 export default function ResumeHero() {
   return (
     <FadeInSection>
-      <Hero sx={{ textAlign: "center", py: 8, mb: 4 }}>
-        <Typography component="h1" variant="h3" gutterBottom>
+      <Hero className="mb-6 overflow-hidden text-center transition-transform duration-300 md:mb-8 hover:-translate-y-0.5" sx={{ py: 8 }}>
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-4">
+          <Typography
+            component="p"
+            variant="overline"
+            color="primary"
+            className="rounded-full border border-current/20 px-4 py-1 tracking-[0.24em]"
+          >
+            Principal Full Stack Engineer
+          </Typography>
+        <Typography component="h1" variant="h3" gutterBottom className="max-w-3xl text-balance">
           {summary.name}
         </Typography>
         <Typography
@@ -22,15 +31,29 @@ export default function ResumeHero() {
           variant="h5"
           gutterBottom
           color="text.secondary"
+          className="max-w-3xl text-balance"
         >
           {summary.title}
         </Typography>
-        <Typography color="text.secondary" gutterBottom>
+        <Typography color="text.secondary" gutterBottom className="rounded-full bg-white/10 px-4 py-1 dark:bg-white/5">
           {summary.location}
         </Typography>
-        <Typography sx={{ mb: 4 }}>{summary.blurb}</Typography>
-        <Stack direction="row" spacing={2} justifyContent="center" useFlexGap flexWrap="wrap">
-          <IconButton color="primary" href={`mailto:${summary.contact.email}`}>
+        <Typography className="max-w-3xl text-base leading-7 md:text-lg" sx={{ mb: 4 }}>
+          {summary.blurb}
+        </Typography>
+        <Stack
+          direction="row"
+          spacing={2}
+          justifyContent="center"
+          useFlexGap
+          flexWrap="wrap"
+          className="w-full"
+        >
+          <IconButton
+            color="primary"
+            href={`mailto:${summary.contact.email}`}
+            className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+          >
             <AlternateEmail />
           </IconButton>
           <IconButton
@@ -38,6 +61,7 @@ export default function ResumeHero() {
             href={summary.contact.linkedin}
             target="_blank"
             rel="noopener"
+            className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
           >
             <LinkedIn />
           </IconButton>
@@ -53,15 +77,22 @@ export default function ResumeHero() {
                 href={url}
                 target="_blank"
                 rel="noopener"
+                className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
               >
                 <GitHub />
               </IconButton>
             </Tooltip>
           ))}
-          <Button variant="text" href={withBasePath("/resume.pdf")} download>
+          <Button
+            variant="text"
+            href={withBasePath("/resume.pdf")}
+            download
+            className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+          >
             Resume
           </Button>
         </Stack>
+        </div>
       </Hero>
     </FadeInSection>
   );

@@ -91,14 +91,14 @@ export default function ExperienceTimeline() {
                   {exp.location ? `, ${exp.location}` : ""}
                 </Typography>
                 {exp.details && (
-                  <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
+                  <ul className="m-0 list-disc pl-5">
                     {exp.details.map((detail) => (
                       <li key={detail}>{detail}</li>
                     ))}
                   </ul>
                 )}
                 {exp.achievements && (
-                  <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
+                  <ul className="m-0 list-disc pl-5">
                     {exp.achievements.map((ach) => (
                       <li key={ach}>{ach}</li>
                     ))}
