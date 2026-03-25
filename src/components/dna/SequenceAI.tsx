@@ -401,14 +401,7 @@ export default function SequenceAI({
       </Box>
       {error ? <Alert severity="error">{error}</Alert> : null}
       {!response && explainResponse ? (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            pr: 1,
-          }}
-        >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pr: 1 }}>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
               {typedExplainTitle}
@@ -433,14 +426,7 @@ export default function SequenceAI({
         </Box>
       ) : null}
       {response ? (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            pr: 1,
-          }}
-        >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pr: 1 }}>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
               Comparison of Nucleotide Sequences

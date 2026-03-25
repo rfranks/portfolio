@@ -59,9 +59,9 @@ export default function Dashboard({
   const [bpRange, setBpRange] = useState<number[] | null>(null);
   const [chartMethod, setChartMethod] = useState<ChartMethod>("sequence");
   const [open, setOpen] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<
-    "table" | "visualization" | "ai"
-  >("table");
+  const [activeTab, setActiveTab] = useState<"table" | "visualization" | "ai">(
+    "table",
+  );
   const [isAddSequenceModalOpen, setIsAddSequenceModalOpen] =
     useState<boolean>(false);
   const [playInterval, setPlayInterval] = useState<ReturnType<
@@ -93,6 +93,48 @@ export default function Dashboard({
       ...currentSequences,
     }));
     setIsAddSequenceModalOpen(false);
+  }
+
+  function getUniqueSequenceLabel(
+    existingLabels: string[],
+    baseLabel: string,
+  ): string {
+    if (!existingLabels.includes(baseLabel)) {
+      return baseLabel;
+    }
+
+    let copyIndex = 2;
+    let nextLabel = `${baseLabel} (${copyIndex})`;
+
+    while (existingLabels.includes(nextLabel)) {
+      copyIndex += 1;
+      nextLabel = `${baseLabel} (${copyIndex})`;
+    }
+
+    return nextLabel;
+  }
+
+  function handleCopySequence(sequenceToCopy: Sequence) {
+    setSequences((currentSequences) => {
+      const existingDescriptions = Object.keys(currentSequences);
+      const copiedDescription = getUniqueSequenceLabel(
+        existingDescriptions,
+        `${sequenceToCopy.description} (copy)`,
+      );
+      const copiedFilename = getUniqueSequenceLabel(
+        Object.values(currentSequences).map((sequence) => sequence.filename),
+        `${sequenceToCopy.filename} (copy)`,
+      );
+
+      return {
+        [copiedDescription]: {
+          ...sequenceToCopy,
+          description: copiedDescription,
+          filename: copiedFilename,
+        },
+        ...currentSequences,
+      };
+    });
   }
 
   function handleDeleteSequence(sequenceToDelete: Sequence) {
@@ -130,35 +172,22 @@ export default function Dashboard({
         open={open}
         mode={mode}
         toggleColorMode={toggleColorMode}
-        sx={{ backgroundColor: "#1565c0" }}
+        sx={{
+          backgroundColor: "#1565c0",
+          color: "primary.contrastText",
+        }}
       >
-        <Toolbar
-          sx={{
-            flex: 1,
-            pr: "24px", // keep right padding when drawer closed
-          }}
-        >
+        <Toolbar className="flex-1 pr-6">
           <IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
             onClick={toggleDrawer}
-            sx={{
-              marginRight: "36px",
-              ...(open && { display: "none" }),
-            }}
+            className={open ? "hidden" : "mr-9"}
           >
             <Menu />
           </IconButton>
-          <Box
-            sx={{
-              flexGrow: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              minWidth: 0,
-            }}
-          >
+          <Box className="flex min-w-0 flex-1 items-center gap-4">
             <Paper
               elevation={0}
               sx={{
@@ -187,7 +216,7 @@ export default function Dashboard({
                 variant="h6"
                 color="inherit"
                 noWrap
-                sx={{ color: "primary.contrastText", minWidth: 0 }}
+                sx={{ minWidth: 0 }}
               >
                 {`for ${truncatedActiveSequenceTitle}`}
               </Typography>
@@ -269,8 +298,8 @@ export default function Dashboard({
                   id: seq.description,
                 };
               })}
+              className="w-full max-w-[600px]"
               sx={{
-                width: 600,
                 "& .MuiChip-root": {
                   maxWidth: "calc(20% - 6px)",
                 },
@@ -310,14 +339,7 @@ export default function Dashboard({
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" drawerWidth={drawerWidth} open={open}>
-        <Toolbar
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            px: [1],
-          }}
-        >
+        <Toolbar className="flex items-center justify-end px-1">
           <IconButton onClick={toggleDrawer}>
             <ChevronLeft />
           </IconButton>
@@ -334,16 +356,7 @@ export default function Dashboard({
             <>
               <Divider sx={{ my: 1 }} />
               <ListItem>
-                <Paper
-                  sx={{
-                    m: 1,
-                    p: 2,
-                    display: "flex",
-                    flexDirection: "column",
-                    height: "384px",
-                    overflow: "auto",
-                  }}
-                >
+                <Paper className="mx-2 flex h-96 flex-col overflow-auto p-4 flex-grow">
                   <SequenceTallies
                     sequences={sequences}
                     activeSequence={firstActiveSequence}
@@ -352,7 +365,7 @@ export default function Dashboard({
                       setChartMethod("sequence");
                     }}
                   />
-                  <Grid container flexDirection="column">
+                  <Grid container flexDirection="column" className="mt-3">
                     <Grid item>
                       <Link
                         color="primary"
@@ -362,7 +375,6 @@ export default function Dashboard({
 
                           setActiveSequences([]);
                         }}
-                        sx={{ mt: 3 }}
                       >
                         Remove all
                       </Link>
@@ -384,7 +396,6 @@ export default function Dashboard({
 
                           setActiveSequences([]);
                         }}
-                        sx={{ mt: 3 }}
                       >
                         Clear errors
                       </Link>
@@ -398,48 +409,28 @@ export default function Dashboard({
       </Drawer>
       <Box
         component="main"
-        sx={{
-          backgroundColor: "rgba(25, 118, 210, 0.08)",
-          flexGrow: 1,
-          height: "100vh",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
+        className="flex h-screen flex-1 flex-col overflow-hidden"
+        sx={{ backgroundColor: "rgba(25, 118, 210, 0.08)" }}
       >
         <Toolbar />
         <Container
           maxWidth="lg"
-          sx={{
-            px: 2,
-            my: 2,
-            flex: 1,
-            display: "grid",
-            gridTemplateRows: "auto minmax(0, 1fr) auto",
-            rowGap: 3,
-            minHeight: 0,
-            overflow: "hidden",
-          }}
+          className="my-2 flex min-h-0 flex-1 flex-col gap-6 overflow-hidden px-2"
         >
-          <Paper
-            sx={{
-              px: 2,
-              py: 1,
-              backgroundColor: "background.paper",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 2,
-              flexWrap: "wrap",
-              flexShrink: 0,
-            }}
-          >
+          <Container className="flex shrink-0 flex-wrap items-center justify-between gap-4 px-4 py-1">
             <Tabs
               value={activeTab}
               onChange={(_, value: "table" | "visualization" | "ai") =>
                 setActiveTab(value)
               }
               aria-label="gene dashboard tabs"
+              sx={{
+                minHeight: 40,
+                "& .MuiTab-root": {
+                  minHeight: 40,
+                  py: 0.5,
+                },
+              }}
             >
               <Tab label="Table" value="table" />
               <Tab label="Visualization" value="visualization" />
@@ -452,18 +443,13 @@ export default function Dashboard({
             >
               Add
             </Button>
-          </Paper>
+          </Container>
           <Box
-            sx={{
-              height: "100%",
-              minHeight: 0,
-              maxHeight: "100%",
-              overflowY: activeTab === "ai" ? "auto" : "hidden",
-              overflowX: "hidden",
-            }}
+            className="min-h-0 flex-1 overflow-x-hidden"
+            sx={{ overflowY: activeTab === "ai" ? "auto" : "hidden" }}
           >
             {activeTab === "table" && (
-              <Grid container spacing={3}>
+              <Grid container spacing={3} className="h-full">
                 <Grid item xs={12}>
                   {sequenceKeys.length > 0 ? (
                     <SequencesTable
@@ -487,10 +473,11 @@ export default function Dashboard({
                           ]);
                         }
                       }}
+                      onSequenceCopy={handleCopySequence}
                       onSequenceDelete={handleDeleteSequence}
                     />
                   ) : (
-                    <Paper sx={{ p: 4 }}>
+                    <Paper className="p-4 sm:p-6">
                       <Typography color="text.secondary">
                         No sequences added yet. Use Add to open the add sequence
                         modal.
@@ -501,16 +488,7 @@ export default function Dashboard({
               </Grid>
             )}
             {activeTab === "visualization" && (
-              <Box
-                sx={{
-                  display: "flex",
-                  height: "100%",
-                  minHeight: "100%",
-                  maxHeight: "100%",
-                  minWidth: 0,
-                  overflow: "hidden",
-                }}
-              >
+              <Box className="flex h-full min-h-full max-h-full min-w-0 overflow-hidden">
                 {activeSequences?.length > 0 ? (
                   <SequenceVisualizations
                     activeSequences={activeSequences}
@@ -523,7 +501,7 @@ export default function Dashboard({
                     }}
                   />
                 ) : (
-                  <Paper sx={{ p: 4, width: "100%" }}>
+                  <Paper className="w-full p-4 sm:p-6">
                     <Typography color="text.secondary">
                       Select one or more sequences from the table to view
                       visualizations.
@@ -533,14 +511,7 @@ export default function Dashboard({
               </Box>
             )}
             {activeTab === "ai" && (
-              <Box
-                sx={{
-                  display: "flex",
-                  minWidth: 0,
-                  overflow: "visible",
-                  alignItems: "flex-start",
-                }}
-              >
+              <Box className="flex min-w-0 items-start overflow-visible">
                 <SequenceAI
                   activeSequences={activeSequences}
                   sequences={sequences}

@@ -34,24 +34,24 @@ export default function SequenceTallies({
       <Typography component="p" variant="h4">
         {Object.keys(sequences).length}
       </Typography>
-      <Typography color="text.secondary" sx={{mb: 0.25 }}>
+      <Typography color="text.secondary" sx={{ mb: 0.25 }}>
         Total basepairs:
       </Typography>
-      <Typography component="p" variant="h6" sx={{ flex: 1, mb: 0.75 }}>
+      <Typography component="p" variant="h6" sx={{ mb: 0.75 }}>
         {totalBPs} bps
       </Typography>
       {sequencesInError > 0 && (
-        <Typography color="text.secondary" sx={{ flex: 1 }}>
+        <Typography color="text.secondary">
           Sequences in error: {sequencesInError}
         </Typography>
       )}
       {activeSequence && (
         <div>
           <Title>Active Sequence</Title>
-          <Typography color="text.secondary" sx={{ flex: 1 }}>
+          <Typography color="text.secondary">
             {activeSequence?.description}
           </Typography>
-          <Typography color="text.secondary" sx={{ flex: 1 }}>
+          <Typography color="text.secondary">
             {activeSequence?.sequence.length} bps
           </Typography>
           <Link

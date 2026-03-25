@@ -12,19 +12,14 @@ import {
   CssBaseline,
   PaletteMode,
   ThemeProvider,
-  createTheme,
 } from "@mui/material";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import getDnaTheme from "@/themes/dnaTheme";
 
 export default function DnaPage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");
   const theme = React.useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode,
-        },
-      }),
+    () => getDnaTheme(mode),
     [mode],
   );
   const { setDocumentTitle } = useDocumentTitle();

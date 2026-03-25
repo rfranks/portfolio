@@ -13,9 +13,10 @@ interface ToggleColorModeProps {
 
 function ToggleColorMode({ mode, toggleColorMode }: ToggleColorModeProps) {
   return (
-    <Box sx={{ maxWidth: "32px" }}>
+    <Box sx={{ maxWidth: "32px", flexShrink: 0 }}>
       <Button
         variant="text"
+        color="inherit"
         onClick={toggleColorMode}
         size="small"
         aria-label="button to toggle theme"

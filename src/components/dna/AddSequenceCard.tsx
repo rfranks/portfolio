@@ -11,13 +11,13 @@ import {
   styled,
   TextareaAutosize,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import AddCircle from "@mui/icons-material/AddCircle";
 import Close from "@mui/icons-material/Close";
 import Delete from "@mui/icons-material/Delete";
 import { useRef, useState } from "react";
 import { Sequence } from "@/types/dna/types";
 import { parseSequence } from "@/utils/dna/sequenceUtils";
-import { blue, grey } from "./colors";
 import Title from "../app/Title";
 import { Science } from "@mui/icons-material";
 import { withBasePath } from "@/utils/basePath";
@@ -34,23 +34,19 @@ const Textarea = styled(TextareaAutosize)(
     line-height: 1.5;
     padding: 12px;
     border-radius: 12px 12px 0 12px;
-    color: ${theme.palette.mode === "dark" ? grey[300] : grey[900]};
-    background: ${theme.palette.mode === "dark" ? grey[900] : "#fff"};
-    border: 1px solid ${theme.palette.mode === "dark" ? grey[700] : grey[200]};
-    box-shadow: 0px 2px 2px ${
-      theme.palette.mode === "dark" ? grey[900] : grey[50]
-    };
+    color: ${theme.palette.text.primary};
+    background: var(--dna-surface-2);
+    border: 1px solid var(--dna-surface-border);
+    box-shadow: inset 0 1px 0 var(--dna-inner-glow);
 
     &:hover {
-      border-color: ${blue[400]};
+      border-color: var(--dna-surface-border-strong);
     }
 
     &:focus {
       outline: 0;
-      border-color: ${blue[400]};
-      box-shadow: 0 0 0 3px ${
-        theme.palette.mode === "dark" ? blue[600] : blue[200]
-      };
+      border-color: ${alpha(theme.palette.primary.main, 0.7)};
+      box-shadow: 0 0 0 3px ${alpha(theme.palette.primary.main, 0.18)};
     }
 
     // firefox

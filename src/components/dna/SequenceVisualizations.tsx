@@ -14,7 +14,6 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Slider from "@mui/material/Slider";
-import { blue } from "@mui/material/colors";
 
 import {
   Brush,
@@ -114,7 +113,7 @@ export default function SequenceVisualizations({
         <Grid container>
           <Grid item>
             <Box sx={{ maxWidth: "800px", pt: 1 }}>
-              <Title sx={{ color: blue[800] }}>
+              <Title sx={{ color: "primary.main" }}>
                 {getChartMethodTitle(chartMethod)}
                 {`${
                   activeSequences
@@ -131,14 +130,7 @@ export default function SequenceVisualizations({
             </Box>
           </Grid>
           <Grid item sx={{ flexGrow: 1, textAlign: "right" }}>
-            <FormControl
-              sx={{
-                m: 1,
-                minWidth: 120,
-                maxWidth: 360,
-              }}
-              size="small"
-            >
+            <FormControl sx={{ m: 1, minWidth: 120, maxWidth: 360 }} size="small">
               <InputLabel id="chart-select-label">Visualization</InputLabel>
               <Select
                 labelId="chart-select-label"
@@ -188,12 +180,8 @@ export default function SequenceVisualizations({
         </Grid>
       </Box>
       <Box
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          overflowY: isSequenceChart ? "hidden" : "auto",
-          overflowX: "hidden",
-        }}
+        className="flex-1 min-h-0 overflow-x-hidden"
+        sx={{ overflowY: isSequenceChart ? "hidden" : "auto" }}
       >
         {chartMethod === "bpcontent" && (
           <BasepairHistogram sequences={activeSequences} bpRange={bpRange} />
@@ -211,46 +199,27 @@ export default function SequenceVisualizations({
           <RandicChart sequences={activeSequences} bpRange={bpRange} />
         )}
         {chartMethod === "sequence" && (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              minHeight: "100%",
-              minWidth: 0,
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "flex-start",
-                flexWrap: "wrap",
-                flexShrink: 0,
-              }}
-            >
+          <Box className="flex min-h-full min-w-0 flex-col">
+            <Box className="flex shrink-0 flex-wrap items-start">
               <Box>
-                <Typography sx={{ px: 2, display: "inline-block" }}>
+                <Typography className="inline-block px-2">
                   {activeSequence?.sequence.trim().length || 0} bps
                 </Typography>
                 {(bpRange?.[0] || 1) !== 1 ||
                 bpRange?.[1] !== activeSequence?.sequence.trim().length ? (
                   <Typography
-                    sx={{
-                      display: "inline-block",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      px: 2,
-                    }}
+                    className="inline-block px-2 text-xs font-semibold"
                   >
                     {`showing only ${bpRange![1] - bpRange![0] + 1} basepairs`}
                   </Typography>
                 ) : null}
               </Box>
-              <Box sx={{ flexGrow: 1, textAlign: "right" }}>
+              <Box className="grow text-right">
                 <Tooltip title="display the protein chain" arrow>
                   <IconButton
                     aria-label="display the protein chain"
                     color={showProteins ? "primary" : "default"}
-                    sx={{ ml: 2 }}
+                    className="ml-2"
                     onClick={() => setShowProteins(!showProteins)}
                   >
                     <Share />
@@ -261,11 +230,13 @@ export default function SequenceVisualizations({
                   size="large"
                   aria-label="display options"
                   sx={{
-                    border: "1px solid #fff",
+                    border: "1px solid",
+                    borderColor: "divider",
                     position: "relative",
                     top: "8px",
                     "& .MuiButtonBase-root": {
-                      border: "1px solid #fff",
+                      border: "1px solid",
+                      borderColor: "divider",
                       borderRadius: 0,
                       ml: 0,
                     },
@@ -275,7 +246,7 @@ export default function SequenceVisualizations({
                     <IconButton
                       aria-label="display the sequence as binary"
                       color={displayBinary ? "primary" : "default"}
-                      sx={{ ml: 2 }}
+                      className="ml-2"
                       onClick={() => setDisplayBinary(!displayBinary)}
                     >
                       <Numbers />
@@ -285,7 +256,7 @@ export default function SequenceVisualizations({
                     <IconButton
                       aria-label="display the info tooltip"
                       color={displayTooltip ? "primary" : "default"}
-                      sx={{ ml: 2 }}
+                      className="ml-2"
                       onClick={() => setDisplayTooltip(!displayTooltip)}
                     >
                       <ChatBubble />
@@ -295,7 +266,7 @@ export default function SequenceVisualizations({
                     <IconButton
                       aria-label="display the sequence"
                       color={displaySequenceText ? "primary" : "default"}
-                      sx={{ ml: 2 }}
+                      className="ml-2"
                       onClick={() => {
                         const nextDisplaySequenceText = !displaySequenceText;
 
@@ -318,7 +289,7 @@ export default function SequenceVisualizations({
                   <IconButton
                     aria-label="colorize the sequence"
                     color={colorizeSequence ? "primary" : "default"}
-                    sx={{ ml: 2 }}
+                    className="ml-2"
                     onClick={() => setColorizeSequence(!colorizeSequence)}
                   >
                     <Brush />
@@ -337,7 +308,7 @@ export default function SequenceVisualizations({
                           ) || "",
                         )
                       }
-                      sx={{ ml: 2 }}
+                      className="ml-2"
                     >
                       <ContentCopy />
                     </IconButton>
@@ -345,29 +316,17 @@ export default function SequenceVisualizations({
                 )}
               </Box>
             </Box>
-            <Box sx={{ flexShrink: 0 }}>
+            <Box className="shrink-0">
               <Typography
-                sx={{
-                  display: "inline-block",
-                  p: 2,
-                  fontWeight: 600,
-                }}
+                className="inline-block p-2 font-semibold"
               >
                 Type:
               </Typography>
-              <Typography sx={{ display: "inline-block", p: 2 }}>
+              <Typography className="inline-block p-2">
                 {activeSequence?.type}
               </Typography>
             </Box>
-            <Box
-              sx={{
-                minHeight: 0,
-                display: "flex",
-                flexDirection: "column",
-                flex: 1,
-                minWidth: 0,
-              }}
-            >
+            <Box className="flex min-h-0 min-w-0 flex-1 flex-col">
               <Divider />
               <SequenceDisplay
                 sequences={activeSequences}

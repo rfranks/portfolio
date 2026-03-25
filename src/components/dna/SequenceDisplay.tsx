@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
 import type { TooltipProps } from "@mui/material/Tooltip";
 import Pagination from "@mui/material/Pagination";
+import { alpha, useTheme } from "@mui/material/styles";
 
 import { Base, Protein, ProteinCode, Sequence } from "@/types/dna/types";
 import {
@@ -45,6 +46,7 @@ export default function SequenceDisplay({
   minBasePair = 1,
   maxBasePair,
 }: SequenceDisplayProps) {
+  const theme = useTheme();
   // this may need to evolve to be the shortest maximum?
   maxBasePair = maxBasePair || sequences?.[0]?.sequence.length;
 
@@ -138,9 +140,9 @@ export default function SequenceDisplay({
         key={index}
         sx={{
           backgroundColor: isHoveredProteinBase
-            ? "#ffb74d"
+            ? alpha(theme.palette.warning.main, theme.palette.mode === "dark" ? 0.36 : 0.4)
             : isHoveredBase
-            ? "#ffd699"
+            ? alpha(theme.palette.warning.main, theme.palette.mode === "dark" ? 0.24 : 0.18)
             : showColors
             ? !showColorsMaxBasePairs &&
               isMaxBase(
@@ -158,10 +160,10 @@ export default function SequenceDisplay({
               base as Base
             ) &&
             (sequences?.length || 0) > 1
-              ? "#151515"
+              ? theme.palette.text.primary
               : showColors
-              ? "#151515"
-              : "#000",
+              ? theme.palette.text.primary
+              : theme.palette.text.primary,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
@@ -176,20 +178,20 @@ export default function SequenceDisplay({
           textAlign: "center",
           border: "2px solid transparent",
           borderTopColor:
-            isHoveredProteinBase ? "#ef6c00" : "transparent",
+            isHoveredProteinBase ? theme.palette.warning.dark : "transparent",
           borderBottomColor:
-            isHoveredProteinBase ? "#ef6c00" : "transparent",
+            isHoveredProteinBase ? theme.palette.warning.dark : "transparent",
           borderLeftColor:
-            isHoveredProteinStart ? "#ef6c00" : "transparent",
+            isHoveredProteinStart ? theme.palette.warning.dark : "transparent",
           borderRightColor:
-            isHoveredProteinEnd ? "#ef6c00" : "transparent",
+            isHoveredProteinEnd ? theme.palette.warning.dark : "transparent",
           boxShadow: isHoveredBase
-            ? "inset 0 0 0 2px #ef6c00"
+            ? `inset 0 0 0 2px ${theme.palette.warning.dark}`
             : "none",
           borderRadius: isHoveredBase ? "4px" : 0,
           outline:
             !isHoveredProteinBase && !validBase(base)
-              ? "1px solid red"
+              ? `1px solid ${theme.palette.error.main}`
               : "none",
           outlineOffset: "-2px",
           overflow: "visible",
@@ -214,7 +216,7 @@ export default function SequenceDisplay({
         {showProteins && (index + 1) % 3 === 0 && (
           <Box
             sx={{
-              color: "#151515",
+              color: theme.palette.text.primary,
               position: "absolute",
               top: 0,
               left: `-${basePairWidth * 2}px`,
@@ -268,7 +270,7 @@ export default function SequenceDisplay({
                               border:
                                 protein.codons.length === 1 ||
                                 codon.toUpperCase() === currentCodon
-                                  ? "1px solid #ef6c00"
+                                  ? `1px solid ${theme.palette.warning.dark}`
                                   : "1px solid transparent",
                               borderRadius:
                                 protein.codons.length === 1 ||

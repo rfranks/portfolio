@@ -13,16 +13,17 @@ import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
+import { alpha } from "@mui/material/styles";
 
 import {
   Clear,
+  ContentCopy,
   DeleteOutline,
   Error,
   Search,
   TableRows,
 } from "@mui/icons-material";
 
-import { blue } from "./colors";
 import { Sequence } from "@/types/dna/types";
 
 import Title from "../app/Title";
@@ -31,6 +32,7 @@ export type SequencesTableProps = {
   activeSequences?: Sequence[] | null;
   sequences?: Record<string, Sequence>;
   onSequenceClick?: (sequence: Sequence) => void;
+  onSequenceCopy?: (sequence: Sequence) => void;
   onSequenceDelete?: (sequence: Sequence) => void;
 };
 
@@ -38,6 +40,7 @@ export default function SequencesTable({
   activeSequences = [],
   sequences = {},
   onSequenceClick,
+  onSequenceCopy,
   onSequenceDelete,
 }: SequencesTableProps) {
   const [sequenceFilter, setSequenceFilter] = useState<string>("");
@@ -124,7 +127,8 @@ export default function SequencesTable({
         <TableHead>
           <TableRow
             sx={{
-              borderBottom: "1px solid rgba(224, 224, 224, 1)",
+              borderBottom: "1px solid",
+              borderColor: "divider",
               display: "table",
               tableLayout: "fixed",
               width: "-webkit-fill-available",
@@ -134,8 +138,9 @@ export default function SequencesTable({
             <TableCell sx={{ width: "10%" }}>Type</TableCell>
             <TableCell sx={{ width: "10%" }}>Filename</TableCell>
             <TableCell sx={{ width: "10%" }}>Total bps</TableCell>
-            <TableCell sx={{ width: "42.5%" }}>Sequence (first 50 bps)</TableCell>
+            <TableCell sx={{ width: "35%" }}>Sequence (first 50 bps)</TableCell>
             <TableCell sx={{ width: "7.5%" }}>In Error</TableCell>
+            <TableCell sx={{ width: "7.5%" }}>Copy</TableCell>
             <TableCell sx={{ width: "7.5%" }}>Delete</TableCell>
           </TableRow>
         </TableHead>
@@ -154,28 +159,35 @@ export default function SequencesTable({
                 onSequenceClick?.(seq);
               }}
               sx={{
-                borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                borderBottom: "1px solid",
+                borderColor: "divider",
                 display: "table",
                 tableLayout: "fixed",
                 textAlign: "left",
                 width: "-webkit-fill-available",
-                "&.active": {
-                  backgroundColor: blue[200],
-                  color: "grey.900",
+                "&.active": (theme) => ({
+                  backgroundColor: alpha(
+                    theme.palette.primary.main,
+                    theme.palette.mode === "dark" ? 0.28 : 0.16
+                  ),
+                  color: theme.palette.text.primary,
+                }),
+                "&.active .MuiLink-root": {
+                  color: "primary.main",
                 },
                 "&.active:hover": {
-                  backgroundColor: blue[200],
+                  backgroundColor: "unset",
                 },
-                "&.active .MuiLink-root": {
-                  color: "blue",
-                },
-                "&:hover": {
-                  backgroundColor: blue[100],
-                  color: "grey.900",
+                "&:hover": (theme) => ({
+                  backgroundColor: alpha(
+                    theme.palette.primary.main,
+                    theme.palette.mode === "dark" ? 0.18 : 0.08
+                  ),
+                  color: theme.palette.text.primary,
                   cursor: "pointer",
-                },
+                }),
                 "&:hover .MuiLink-root": {
-                  color: "blue",
+                  color: "primary.main",
                 },
               }}
             >
@@ -183,7 +195,7 @@ export default function SequencesTable({
               <TableCell sx={{ width: "10%" }}>{seq.type}</TableCell>
               <TableCell sx={{ width: "10%" }}>{seq.filename}</TableCell>
               <TableCell sx={{ width: "10%" }}>{seq.sequence.length}</TableCell>
-              <TableCell sx={{ width: "42.5%" }}>
+              <TableCell sx={{ width: "35%" }}>
                 <Link color="primary" href="#" sx={{ mt: 3 }}>
                   <Typography
                     sx={{
@@ -202,6 +214,19 @@ export default function SequencesTable({
               </TableCell>
               <TableCell sx={{ width: "7.5%" }}>
                 {seq.hasAmbiguous && <Error color="error" />}
+              </TableCell>
+              <TableCell sx={{ width: "7.5%" }}>
+                <Tooltip title={`Copy ${seq.description}`} arrow>
+                  <IconButton
+                    aria-label={`Copy ${seq.description}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSequenceCopy?.(seq);
+                    }}
+                  >
+                    <ContentCopy />
+                  </IconButton>
+                </Tooltip>
               </TableCell>
               <TableCell sx={{ width: "7.5%" }}>
                 <Tooltip title={`Delete ${seq.description}`} arrow>
