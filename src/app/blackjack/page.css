@@ -174,8 +174,16 @@
   height: 4rem;
   pointer-events: none;
   background:
-    radial-gradient(circle at 15% 50%, rgba(250, 204, 21, 0.14), transparent 18%),
-    radial-gradient(circle at 85% 50%, rgba(59, 130, 246, 0.14), transparent 18%);
+    radial-gradient(
+      circle at 15% 50%,
+      rgba(250, 204, 21, 0.14),
+      transparent 18%
+    ),
+    radial-gradient(
+      circle at 85% 50%,
+      rgba(59, 130, 246, 0.14),
+      transparent 18%
+    );
 }
 
 .blackjack-info-row {
@@ -232,7 +240,12 @@
 }
 
 .blackjack-status-panel {
+  display: flex;
   font-weight: 700;
+}
+
+.blackjack-status-panel #status {
+  margin-top: 1.5rem;
 }
 
 .blackjack-hint-panel {
@@ -241,11 +254,17 @@
 }
 
 .blackjack-controls {
+  align-self: flex-end;
   display: flex;
+  flex-grow: 1;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.75rem;
   margin-top: 1.25rem;
+}
+
+:not(.blackjack-status-panel #status:empty) + .blackjack-controls {
+  justify-content: flex-end;
 }
 
 .blackjack-status-panel:empty,
@@ -332,8 +351,7 @@
 
 @media (max-width: 768px) {
   .blackjack-page {
-    padding-inline: 0.75rem;
-    padding-top: 1.5rem;
+    padding: 0;
   }
 
   .blackjack-page::before,
@@ -355,17 +373,74 @@
 
   .blackjack-panel {
     padding: 1rem;
+    border: none;
     border-radius: 20px;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .blackjack-game-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+
+  .blackjack-progressives,
+  .blackjack-hint-panel {
+    display: none;
   }
 
   .blackjack-table-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
     padding: 1rem;
     border-radius: 22px;
   }
 
   .blackjack-seat {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    flex: 1 1 0;
+    min-height: 0;
     padding: 0.75rem;
     border-radius: 18px;
+  }
+
+  .cards {
+    gap: 0.6rem;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 0.25rem;
+  }
+
+  .card {
+    width: auto;
+    height: min(14dvh, 96px);
+  }
+
+  #dealer-total,
+  #player-total {
+    margin-top: 0.5rem;
+  }
+
+  .blackjack-status-panel {
+    margin-top: 0.75rem;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .blackjack-controls {
+    flex-shrink: 0;
+    gap: 0.5rem;
+    margin-top: 0.875rem;
+  }
+
+  .blackjack-button {
+    padding: 0.6rem 1rem;
   }
 
   .blackjack-progressives span {

@@ -13,7 +13,7 @@ export default function BlackjackPage() {
   return (
     <main className="blackjack-page">
       <section id="game-card" className="blackjack-panel blackjack-game-panel">
-        <h2 className="blackjack-panel-title">Blackjack Web Client using Wasm</h2>
+        <h2 className="blackjack-panel-title">Web Client (Wasm)</h2>
         <div id="progressives" className="blackjack-progressives">
           <span id="prog0"></span>
           <span id="prog1"></span>
@@ -22,7 +22,8 @@ export default function BlackjackPage() {
         </div>
         <div id="game" className="blackjack-table-shell">
           <div id="dealer-info" className="blackjack-info-row">
-            Dealer: House: <span id="house"></span> Count: <span id="count"></span>
+            Dealer: House: <span id="house"></span> Count:{" "}
+            <span id="count"></span>
           </div>
           <div id="dealer" className="blackjack-seat">
             <div id="dealer-cards" className="cards"></div>
@@ -41,21 +42,44 @@ export default function BlackjackPage() {
             <div id="player-total"></div>
           </div>
           <div id="result" className="blackjack-status-panel"></div>
-          <div id="status" className="blackjack-status-panel"></div>
+          <div className="blackjack-status-panel">
+            <div id="status"></div>
+            <div id="controls" className="blackjack-controls">
+              <button
+                id="deal"
+                className="blackjack-button blackjack-button-primary"
+              >
+                Deal
+              </button>
+              <button id="hit" className="blackjack-button">
+                Hit
+              </button>
+              <button id="stand" className="blackjack-button">
+                Stand
+              </button>
+              <button id="double" className="blackjack-button">
+                Double
+              </button>
+              <button id="split" className="blackjack-button">
+                Split
+              </button>
+              <button
+                id="insure"
+                className="blackjack-button"
+                style={{ display: "none" }}
+              >
+                Insure
+              </button>
+              <button
+                id="decline"
+                className="blackjack-button blackjack-button-subtle"
+                style={{ display: "none" }}
+              >
+                Decline
+              </button>
+            </div>
+          </div>
           <div id="hint" className="blackjack-hint-panel"></div>
-        </div>
-        <div id="controls" className="blackjack-controls">
-          <button id="deal" className="blackjack-button blackjack-button-primary">Deal</button>
-          <button id="hit" className="blackjack-button">Hit</button>
-          <button id="stand" className="blackjack-button">Stand</button>
-          <button id="double" className="blackjack-button">Double</button>
-          <button id="split" className="blackjack-button">Split</button>
-          <button id="insure" className="blackjack-button" style={{ display: "none" }}>
-            Insure
-          </button>
-          <button id="decline" className="blackjack-button blackjack-button-subtle" style={{ display: "none" }}>
-            Decline
-          </button>
         </div>
       </section>
       <section id="demo-video" className="blackjack-panel blackjack-demo-panel">
