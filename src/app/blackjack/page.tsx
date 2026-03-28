@@ -2,15 +2,70 @@
 
 import * as React from "react";
 import { projects } from "@/consts/resumeData";
+import { useAudio } from "@/hooks/lightgun-web/useAudio";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { rewindAndPlayAudio } from "@/utils/lightgun-web/audio";
 import { withBasePath } from "@/utils/basePath";
 import "./page.css";
 
+declare global {
+  interface Window {
+    blackjackPlaySound?: (key: string) => void;
+  }
+}
+
+type BlackJackSoundType = "bust" | "deal" | "hit" | "lose" | "win";
+
 export default function BlackjackPage() {
   const { setDocumentTitle } = useDocumentTitle();
+  const bustSfx = useAudio("/audio/lowDown.ogg");
+  const dealSfx = useAudio("/audio/cards-pack-take-out-2.ogg");
+  const hitSfx = useAudio("/audio/card-slide-8.ogg");
+  const loseSfx = useAudio("/audio/error_008.ogg");
+  const winSfx = useAudio("/audio/jingles_HIT03.mp3");
+
   React.useEffect(() => {
     setDocumentTitle("Blackjack");
   }, [setDocumentTitle]);
+
+  const audioRefs = React.useMemo(
+    () => ({
+      bust: bustSfx,
+      deal: dealSfx,
+      hit: hitSfx,
+      lose: loseSfx,
+      win: winSfx,
+    }),
+    [bustSfx, dealSfx, hitSfx, loseSfx, winSfx],
+  );
+
+  React.useEffect(() => {
+    window.blackjackPlaySound = (key: string) => {
+      const audioRef = audioRefs[key as BlackJackSoundType];
+      if (!audioRef) return;
+      rewindAndPlayAudio(audioRef);
+    };
+
+    return () => {
+      delete window.blackjackPlaySound;
+    };
+  }, [audioRefs]);
+
+  React.useEffect(() => {
+    const dealButton = document.getElementById("deal");
+    if (!dealButton) return;
+
+    const handleDealClick = () => {
+      rewindAndPlayAudio(dealSfx);
+    };
+
+    dealButton.addEventListener("click", handleDealClick);
+
+    return () => {
+      dealButton.removeEventListener("click", handleDealClick);
+    };
+  }, [dealSfx]);
+
   return (
     <main className="blackjack-page">
       <section id="game-card" className="blackjack-panel blackjack-game-panel">
@@ -34,13 +89,8 @@ export default function BlackjackPage() {
             Player 1: Stack: <span id="player-stack"></span>
             <span id="player-winnings"></span>
           </div>
-          <div id="hand-info" className="blackjack-info-row">
-            Hand 1: Wager: <span id="hand-wager"></span>
-            <span id="hand-trifecta"></span>
-          </div>
-          <div id="player" className="blackjack-seat">
-            <div id="player-cards" className="cards"></div>
-            <div id="player-total"></div>
+          <div className="blackjack-hands-scroll">
+            <div id="player-hands" className="blackjack-hands"></div>
           </div>
           <div id="result" className="blackjack-status-panel"></div>
           <div className="blackjack-status-panel">

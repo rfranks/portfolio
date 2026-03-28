@@ -491,17 +491,8 @@ func PayWinners(payBlackjacks bool, payAllOthers bool, updateStats bool) {
 							game.State.PlayerBlackjacks += 1
 							currPlayer.WinStreak += 1
 						}
-					} else if dealerValue < playerValue {
-						if playerValue <= 21 {
-							// you win original bet + original bet (or 2 * hand.Wager)
-							currPlayer.Stack += 2 * hand.Wager
-							game.State.House -= hand.Wager
-							game.State.Wins += 1
-							currPlayer.LastHandWon = true
-							currPlayer.LastHandPushed = false
-							currPlayer.Winnings += hand.Wager
-							currPlayer.WinStreak += 1
-						} else {
+					} else if playerValue > 21 {
+						if payAllOthers {
 							// player busted
 							currPlayer.Stack += 0
 							game.State.House += hand.Wager
@@ -511,6 +502,15 @@ func PayWinners(payBlackjacks bool, payAllOthers bool, updateStats bool) {
 							currPlayer.WinStreak = 0
 							currPlayer.Winnings -= hand.Wager
 						}
+					} else if dealerValue < playerValue {
+						// you win original bet + original bet (or 2 * hand.Wager)
+						currPlayer.Stack += 2 * hand.Wager
+						game.State.House -= hand.Wager
+						game.State.Wins += 1
+						currPlayer.LastHandWon = true
+						currPlayer.LastHandPushed = false
+						currPlayer.Winnings += hand.Wager
+						currPlayer.WinStreak += 1
 					} else if dealerValue > 21 {
 						if payAllOthers {
 							// you win original bet + original bet (or 2 * hand.Wager)

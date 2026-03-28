@@ -21,6 +21,10 @@ type WebUI struct {
 	actionCh            chan rune
 	handlers            []handler
 	cfg                 flags.Config
+	hasRendered         bool
+	lastAskingToDeal    bool
+	lastHandBusts       []bool
+	lastTotalCardCount  int
 	lastWinnings        int
 	lastSidebetWinnings int
 	lastSidebetLosses   int
@@ -74,6 +78,8 @@ func (w *WebUI) ReadAction() (rune, error) {
 func (w *WebUI) Render(state ui.GameState) {
 	doc := js.Global().Get("document")
 
+	w.playSoundsForRender(state)
+
 	// toggle insurance buttons
 	insureDisplay := "none"
 	if state.AskingForInsurance {
@@ -100,20 +106,20 @@ func (w *WebUI) Render(state ui.GameState) {
 	standDisplay := "none"
 	doubleDisplay := "none"
 	splitDisplay := "none"
-	if len(game.State.Players) > 0 && len(game.State.Players[0].Hands) > 0 {
-		p := game.State.Players[0]
-		hand := p.Hands[0]
-		if rules.CanPlay(p, w.cfg.MinWager) && !state.AskingForInsurance && !state.AskingToDeal {
-			if rules.CanHit(&hand) {
+	if len(game.State.Players) > 0 {
+		p := &game.State.Players[0]
+		activeHand := player.ActiveHand(p)
+		if activeHand != nil && rules.CanPlay(*p, w.cfg.MinWager) && !state.AskingForInsurance && !state.AskingToDeal {
+			if rules.CanHit(activeHand) {
 				hitDisplay = "inline"
 			}
-			if rules.CanStand(hand) {
+			if rules.CanStand(*activeHand) {
 				standDisplay = "inline"
 			}
-			if rules.CanDoubleDown(&hand) {
+			if rules.CanDoubleDown(activeHand) {
 				doubleDisplay = "inline"
 			}
-			if rules.CanSplit(hand) {
+			if rules.CanSplit(*activeHand) {
 				splitDisplay = "inline"
 			}
 		}
@@ -152,46 +158,32 @@ func (w *WebUI) Render(state ui.GameState) {
 		el.Set("innerText", fmt.Sprintf("Total: %d", total))
 	}
 
-	// update player cards (first player, first hand)
-	if el := doc.Call("getElementById", "player-cards"); el.Truthy() {
-		html := ""
-		if len(game.State.Players) > 0 && len(game.State.Players[0].Hands) > 0 {
-			for _, c := range game.State.Players[0].Hands[0].Cards {
-				src := cardToImage(c)
-				html += "<img class=\"card\" src=\"" + src + "\" style=\"display:none\" onload=\"this.style.display='block'\" onerror=\"this.style.display='none'\"/>"
-				html += "<img class=\"card\" src=\"/portfolio" + src + "\" style=\"display:none\" onload=\"this.style.display='block'\" onerror=\"this.style.display='none'\"/>"
-			}
-		}
-		el.Set("innerHTML", html)
-	}
-	if len(game.State.Players) > 0 && len(game.State.Players[0].Hands) > 0 {
-		p := game.State.Players[0]
-		hand := p.Hands[0]
+	if len(game.State.Players) > 0 {
+		p := &game.State.Players[0]
 		if el := doc.Call("getElementById", "player-stack"); el.Truthy() {
 			el.Set("innerText", fmt.Sprintf("$%d", p.Stack))
 		}
 		if el := doc.Call("getElementById", "player-winnings"); el.Truthy() {
-			el.Set("innerText", fmt.Sprintf(" +%s", PrintCurrency(p.Winnings*100)))
-		}
-		if el := doc.Call("getElementById", "hand-wager"); el.Truthy() {
-			el.Set("innerText", fmt.Sprintf("$%d", hand.Wager))
-		}
-		if el := doc.Call("getElementById", "hand-trifecta"); el.Truthy() {
-			if hand.TrifectaWager > 0 {
-				el.Set("innerText", fmt.Sprintf("Trifecta Wager: $%d", hand.TrifectaWager))
-			} else {
-				el.Set("innerText", "")
+			el.Set("innerText", fmt.Sprintf(" %s", PrintCurrency(p.Winnings*100)))
+			switch {
+			case p.Winnings > 0:
+				el.Set("className", "positive")
+			case p.Winnings < 0:
+				el.Set("className", "negative")
+			default:
+				el.Set("className", "")
 			}
 		}
-		if el := doc.Call("getElementById", "player-total"); el.Truthy() {
-			soft := player.HandValue(&hand, true)
-			hard := player.HandValue(&hand, false)
-			totalStr := fmt.Sprintf("Total: %d", hard)
-			if soft != hard && rules.CanHit(&hand) {
-				totalStr = fmt.Sprintf("Total: %d/%d", soft, hard)
+		if el := doc.Call("getElementById", "player-hands"); el.Truthy() {
+			el.Set("innerHTML", "")
+			html := ""
+			for i := 0; i < len(p.Hands); i++ {
+				html += renderPlayerHandHTML(i, p.Hands[i])
 			}
-			el.Set("innerText", totalStr)
+			el.Set("innerHTML", html)
 		}
+	} else if el := doc.Call("getElementById", "player-hands"); el.Truthy() {
+		el.Set("innerHTML", "")
 	}
 
 	// round result
@@ -205,6 +197,13 @@ func (w *WebUI) Render(state ui.GameState) {
 				bonusLossDiff := game.State.SidebetLosses - w.lastSidebetLosses
 				bonusDiff := bonusWinDiff - bonusLossDiff
 				netDiff := baseDiff + bonusDiff
+				dealerHasBlackjack := len(game.State.Dealer.Hands) > 0 && rules.IsBlackjack(game.State.Dealer.Hands[0])
+				playerBlackjackCount := 0
+				for i := 0; i < len(p.Hands); i++ {
+					if rules.IsBlackjack(p.Hands[i]) {
+						playerBlackjackCount++
+					}
+				}
 
 				bonusReasonText := ""
 				if bonusDiff > 0 && len(p.Hands) > 0 {
@@ -226,8 +225,28 @@ func (w *WebUI) Render(state ui.GameState) {
 				}
 
 				switch {
+				case dealerHasBlackjack && playerBlackjackCount > 0:
+					message = "<span class=\"text-neutral\">Blackjack on both sides.</span> " + renderResultBadgeHTML("Push")
+				case dealerHasBlackjack:
+					message = "<span class=\"text-loss\">Dealer blackjack.</span> " + renderResultBadgeHTML("Lost!")
+					if baseDiff < 0 {
+						message += fmt.Sprintf(" <span class=\"text-loss\">You lost %s on the hand!</span>", PrintCurrency(-baseDiff*100))
+					}
+				case playerBlackjackCount > 0:
+					message = "<span class=\"text-win\">Blackjack!</span> " + renderResultBadgeHTML("Won!")
+					if baseDiff > 0 {
+						message += fmt.Sprintf(" <span class=\"text-win\">You won %s on the hand!</span>", PrintCurrency(baseDiff*100))
+					} else if len(p.Hands) > 0 {
+						for i := 0; i < len(p.Hands); i++ {
+							if rules.IsBlackjack(p.Hands[i]) {
+								winnings := p.Hands[i].Wager + (p.Hands[i].Wager / 2.0) + p.Hands[i].Wager
+								message += fmt.Sprintf(" <span class=\"text-win\">You won %s on the hand!</span>", PrintCurrency(winnings*100))
+								break
+							}
+						}
+					}
 				case baseDiff > 0:
-					message = fmt.Sprintf("Winner! <span class=\"text-win\">You won %s for the hand.</span>", PrintCurrency(baseDiff*100))
+					message = fmt.Sprintf("<span class=\"text-win\">You won %s for the hand!</span> %s", PrintCurrency(baseDiff*100), renderResultBadgeHTML("Won!"))
 					switch {
 					case bonusDiff > 0:
 						message += fmt.Sprintf(" You also won a <span class=\"text-bonus\">bonus of %s</span>!%s", PrintCurrency(bonusDiff*100), bonusReasonText)
@@ -236,7 +255,7 @@ func (w *WebUI) Render(state ui.GameState) {
 						message += fmt.Sprintf(" For a net of <span class=\"%s\">%s</span>.", netClass(netDiff), PrintCurrency(netDiff*100))
 					}
 				case baseDiff < 0:
-					message = fmt.Sprintf("<span class=\"text-loss\">You lost %s on the hand</span>", PrintCurrency(-baseDiff*100))
+					message = fmt.Sprintf("<span class=\"text-loss\">You lost %s on the hand!</span> %s", PrintCurrency(-baseDiff*100), renderResultBadgeHTML("Lost!"))
 					switch {
 					case bonusDiff > 0:
 						message += fmt.Sprintf(", but <span class=\"text-bonus\">won a bonus of %s</span>%s,", PrintCurrency(bonusDiff*100), bonusReasonText)
@@ -244,11 +263,9 @@ func (w *WebUI) Render(state ui.GameState) {
 					case bonusDiff < 0:
 						message += fmt.Sprintf(" and <span class=\"text-loss\">lost %s on bonus wagers</span>.", PrintCurrency(-bonusDiff*100))
 						message += fmt.Sprintf(" For a net of <span class=\"%s\">%s</span>.", netClass(netDiff), PrintCurrency(netDiff*100))
-					default:
-						message += "."
 					}
 				default:
-					message = "Push."
+					message = "<span class=\"text-neutral\">Push.</span> " + renderResultBadgeHTML("Push")
 					switch {
 					case bonusDiff > 0:
 						message += fmt.Sprintf(" You also won a <span class=\"text-bonus\">bonus of %s</span>!%s", PrintCurrency(bonusDiff*100), bonusReasonText)
@@ -298,26 +315,26 @@ func (w *WebUI) Render(state ui.GameState) {
 	// hint text
 	if el := doc.Call("getElementById", "hint"); el.Truthy() {
 		hint := ""
-		if len(game.State.Players) > 0 && len(game.State.Players[0].Hands) > 0 {
-			p := game.State.Players[0]
-			hand := p.Hands[0]
-			if rules.CanPlay(p, w.cfg.MinWager) {
-				chr, err := rules.GetAutoPlayPlayerAction(&hand, cards.CardToValue(game.State.Dealer.Hands[0].Cards[0], true))
+		if len(game.State.Players) > 0 && len(game.State.Dealer.Hands) > 0 && len(game.State.Dealer.Hands[0].Cards) > 0 {
+			p := &game.State.Players[0]
+			activeHand := player.ActiveHand(p)
+			if activeHand != nil && rules.CanPlay(*p, w.cfg.MinWager) {
+				chr, err := rules.GetAutoPlayPlayerAction(activeHand, cards.CardToValue(game.State.Dealer.Hands[0].Cards[0], true))
 				if err == nil {
 					advice := ""
 					switch chr {
 					case 'h':
 						advice = "Your hand is somewhat weak. You should hit to try and improve your position."
-						if hand.Cards[0].Value == hand.Cards[1].Value {
+						if len(activeHand.Cards) > 1 && activeHand.Cards[0].Value == activeHand.Cards[1].Value {
 							advice += " You have a pair but splitting it here could be risky."
 						}
 					case 's':
-						if player.HandValue(&hand, false) >= 17 {
+						if player.HandValue(activeHand, false) >= 17 {
 							advice = "Your hand is strong. You should stand."
 						} else {
 							advice = "The dealer is weak and may bust. You should stand."
 						}
-						if hand.Cards[0].Value == hand.Cards[1].Value {
+						if len(activeHand.Cards) > 1 && activeHand.Cards[0].Value == activeHand.Cards[1].Value {
 							advice += " You have a pair but splitting it here could be risky and weaken your hand."
 						}
 					case 'd':
@@ -359,6 +376,237 @@ func cardToImage(c cards.Card) string {
 	}
 	val := cards.CardValueToString[c.Value]
 	return fmt.Sprintf("/assets/boardgame/PNG/Cards/card%s%s.png", suit, val)
+}
+
+func renderCardImages(hand player.Hand) string {
+	html := ""
+	for _, c := range hand.Cards {
+		src := cardToImage(c)
+		html += "<img class=\"card\" src=\"" + src + "\" style=\"display:none\" onload=\"this.style.display='block'\" onerror=\"this.style.display='none'\"/>"
+		html += "<img class=\"card\" src=\"/portfolio" + src + "\" style=\"display:none\" onload=\"this.style.display='block'\" onerror=\"this.style.display='none'\"/>"
+	}
+	return html
+}
+
+func playerTotalString(hand *player.Hand) string {
+	soft := player.HandValue(hand, true)
+	hard := player.HandValue(hand, false)
+	totalStr := fmt.Sprintf("Total: %d", hard)
+	if soft != hard && rules.CanHit(hand) {
+		totalStr = fmt.Sprintf("Total: %d/%d", soft, hard)
+	}
+	return totalStr
+}
+
+func renderPlayerHandHTML(index int, hand player.Hand) string {
+	classes := "blackjack-seat blackjack-hand"
+	if hand.Active {
+		classes += " blackjack-hand--active"
+	}
+
+	handNote := ""
+	if hand.TrifectaWager > 0 {
+		handNote = fmt.Sprintf("<span class=\"blackjack-hand-note\">Trifecta Wager: $%d</span>", hand.TrifectaWager)
+	} else if hand.Split {
+		handNote = "<span class=\"blackjack-hand-note\">Split Hand</span>"
+	}
+
+	bustedBadge := ""
+	if handIsBusted(hand) {
+		bustedBadge = "<span class=\"blackjack-busted-badge\">Busted!</span>"
+	}
+
+	stampHTML := renderHandStampHTML(index, &hand)
+
+	return fmt.Sprintf(
+		"<div class=\"%s\">"+
+			"<div class=\"blackjack-hand-header\">"+
+			"<span class=\"blackjack-hand-label\">Hand %d</span>"+
+			"<span class=\"blackjack-hand-meta\">Wager: $%d</span>%s"+
+			"</div>"+
+			"<div class=\"blackjack-hand-cards-wrap\">"+
+			"<div class=\"blackjack-hand-cards-stack\">"+
+			"<div class=\"cards\">%s</div>%s"+
+			"</div>"+
+			"</div>"+
+			"<div class=\"blackjack-hand-total\">%s%s</div>"+
+			"</div>",
+		classes,
+		index+1,
+		hand.Wager,
+		handNote,
+		renderCardImages(hand),
+		stampHTML,
+		html.EscapeString(playerTotalString(&hand)),
+		bustedBadge,
+	)
+}
+
+func handIsBusted(hand player.Hand) bool {
+	if hand.Busted {
+		return true
+	}
+	hard := player.HandValue(&hand, false)
+	return hard > 21
+}
+
+func totalCardCount() int {
+	total := 0
+	if len(game.State.Dealer.Hands) > 0 {
+		total += len(game.State.Dealer.Hands[0].Cards)
+	}
+	for i := 0; i < len(game.State.Players); i++ {
+		for j := 0; j < len(game.State.Players[i].Hands); j++ {
+			total += len(game.State.Players[i].Hands[j].Cards)
+		}
+	}
+	return total
+}
+
+func currentHandBusts() []bool {
+	if len(game.State.Players) == 0 {
+		return nil
+	}
+	busts := make([]bool, 0, len(game.State.Players[0].Hands))
+	for i := 0; i < len(game.State.Players[0].Hands); i++ {
+		busts = append(busts, handIsBusted(game.State.Players[0].Hands[i]))
+	}
+	return busts
+}
+
+func handOutcomeLabel(hand *player.Hand) string {
+	if len(game.State.Dealer.Hands) == 0 {
+		if handIsBusted(*hand) {
+			return "Busted!"
+		}
+		return ""
+	}
+
+	dealerHand := &game.State.Dealer.Hands[0]
+	if handIsBusted(*hand) {
+		return "Busted!"
+	}
+
+	if rules.CanHit(dealerHand) || (rules.IsBlackjack(*dealerHand) && !hand.Insured) {
+		return ""
+	}
+
+	playerValue := player.HandValue(hand, false)
+	dealerValue := player.HandValue(dealerHand, false)
+
+	switch {
+	case rules.IsBlackjack(*hand):
+		return "Winner!"
+	case playerValue < dealerValue:
+		if dealerHand.Busted {
+			return "Winner!"
+		}
+		return "Loser!"
+	case playerValue == dealerValue:
+		if dealerHand.Busted {
+			return "Winner!"
+		}
+		return ""
+	default:
+		return "Winner!"
+	}
+}
+
+func handStampClass(label string) string {
+	switch label {
+	case "Winner!":
+		return " blackjack-hand-stamp--winner"
+	case "Loser!", "Busted!":
+		return " blackjack-hand-stamp--loser"
+	default:
+		return ""
+	}
+}
+
+func handStampAngle(index int, hand *player.Hand, label string) int {
+	seed := (index + 1) * 7
+	seed += len(hand.Cards) * 5
+	seed += player.HandValue(hand, false)
+	seed += len(label) * 3
+	return (seed % 21) - 10
+}
+
+func renderHandStampHTML(index int, hand *player.Hand) string {
+	label := handOutcomeLabel(hand)
+	if label == "" {
+		return ""
+	}
+
+	return fmt.Sprintf(
+		"<div class=\"blackjack-hand-stamp%s\" style=\"transform: translate(-50%%, -50%%) rotate(%ddeg);\">%s</div>",
+		handStampClass(label),
+		handStampAngle(index, hand, label),
+		html.EscapeString(label),
+	)
+}
+
+func renderResultBadgeHTML(label string) string {
+	if label == "" {
+		return ""
+	}
+
+	className := "blackjack-result-badge"
+	switch label {
+	case "Won!":
+		className += " blackjack-result-badge--winner"
+	case "Lost!":
+		className += " blackjack-result-badge--loser"
+	case "Push":
+		className += " blackjack-result-badge--push"
+	}
+
+	return fmt.Sprintf("<span class=\"%s\">%s</span>", className, html.EscapeString(label))
+}
+
+func (w *WebUI) playSound(key string) {
+	player := js.Global().Get("blackjackPlaySound")
+	if player.Truthy() {
+		player.Invoke(key)
+	}
+}
+
+func (w *WebUI) playSoundsForRender(state ui.GameState) {
+	currentTotalCards := totalCardCount()
+	currentBusts := currentHandBusts()
+
+	if w.hasRendered {
+		for i := 0; i < len(currentBusts); i++ {
+			if currentBusts[i] && (i >= len(w.lastHandBusts) || !w.lastHandBusts[i]) {
+				w.playSound("bust")
+				break
+			}
+		}
+
+		if !state.AskingToDeal && currentTotalCards > w.lastTotalCardCount {
+			if !(w.lastAskingToDeal || w.lastTotalCardCount == 0) {
+				w.playSound("hit")
+			}
+		}
+
+		if state.AskingToDeal && !w.lastAskingToDeal && len(game.State.Players) > 0 {
+			p := game.State.Players[0]
+			baseDiff := p.Winnings - w.lastWinnings
+			bonusWinDiff := game.State.SidebetWinnings - w.lastSidebetWinnings
+			bonusLossDiff := game.State.SidebetLosses - w.lastSidebetLosses
+			netDiff := baseDiff + bonusWinDiff - bonusLossDiff
+			switch {
+			case netDiff > 0:
+				w.playSound("win")
+			case netDiff < 0:
+				w.playSound("lose")
+			}
+		}
+	}
+
+	w.hasRendered = true
+	w.lastAskingToDeal = state.AskingToDeal
+	w.lastHandBusts = currentBusts
+	w.lastTotalCardCount = currentTotalCards
 }
 
 func PrintCurrency(value int) string {

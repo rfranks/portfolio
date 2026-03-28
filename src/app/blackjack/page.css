@@ -196,11 +196,18 @@
   font-weight: 600;
 }
 
-#player-winnings,
-#hand-trifecta {
+#player-winnings {
   margin-left: auto;
   text-align: right;
   color: #facc15;
+}
+
+#player-winnings.positive {
+  color: green;
+}
+
+#player-winnings.negative {
+  color: #f87171;
 }
 
 .blackjack-seat {
@@ -211,10 +218,181 @@
   background: rgba(15, 23, 42, 0.28);
 }
 
-.cards {
+.blackjack-hands {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.blackjack-hands-scroll {
+  min-height: 0;
+  max-height: min(22rem, 31vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.blackjack-hand {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  margin-bottom: 0;
+  min-height: 13.5rem;
+}
+
+.blackjack-hand--active {
+  border-color: rgba(96, 165, 250, 0.54);
+  box-shadow:
+    inset 0 0 0 1px rgba(96, 165, 250, 0.18),
+    0 0 0 1px rgba(96, 165, 250, 0.14);
+}
+
+.blackjack-hand-header {
   display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.blackjack-hand-label {
+  letter-spacing: 0.01em;
+}
+
+.blackjack-hand-meta {
+  color: rgba(226, 232, 240, 0.88);
+}
+
+.blackjack-hand-note {
+  margin-left: auto;
+  color: #facc15;
+  text-align: right;
+}
+
+.blackjack-hand-total {
+  margin-top: 0.75rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.blackjack-hand-cards-wrap {
+  display: flex;
+  justify-content: flex-start;
+  min-height: 0;
+}
+
+.blackjack-hand-cards-stack {
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.blackjack-hand-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  pointer-events: none;
+  padding: 0.35rem 1rem;
+  border: 4px solid rgba(15, 23, 42, 0.22);
+  border-radius: 0.75rem;
+  background: rgba(248, 250, 252, 0.9);
+  box-shadow:
+    0 10px 28px rgba(15, 23, 42, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  color: rgba(15, 23, 42, 0.88);
+  font-size: clamp(1.25rem, 2.2vw, 1.9rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow:
+    -1px -1px 0 rgba(255, 255, 255, 0.7),
+    1px -1px 0 rgba(255, 255, 255, 0.7),
+    -1px 1px 0 rgba(255, 255, 255, 0.7),
+    1px 1px 0 rgba(255, 255, 255, 0.7);
+  -webkit-text-stroke: 1px rgba(15, 23, 42, 0.16);
+  opacity: 0.96;
+}
+
+.blackjack-hand-stamp--winner {
+  border-color: rgba(22, 163, 74, 0.85);
+  background: rgba(236, 253, 245, 0.92);
+  color: rgba(22, 101, 52, 0.94);
+}
+
+.blackjack-hand-stamp--loser {
+  border-color: rgba(185, 28, 28, 0.88);
+  background: rgba(255, 241, 242, 0.94);
+  color: rgba(153, 27, 27, 0.96);
+}
+
+.blackjack-busted-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.65rem;
+  padding: 0.18rem 0.6rem;
+  border: 1px solid rgba(248, 113, 113, 0.38);
+  border-radius: 999px;
+  background: rgba(127, 29, 29, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: #fecaca;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.blackjack-result-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.55rem;
+  padding: 0.18rem 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.blackjack-result-badge--winner {
+  border-color: rgba(74, 222, 128, 0.46);
+  background: rgba(20, 83, 45, 0.42);
+  color: #bbf7d0;
+}
+
+.blackjack-result-badge--loser {
+  border-color: rgba(248, 113, 113, 0.46);
+  background: rgba(127, 29, 29, 0.42);
+  color: #fecaca;
+}
+
+.blackjack-result-badge--push {
+  border-color: rgba(96, 165, 250, 0.44);
+  background: rgba(30, 64, 175, 0.34);
+  color: #bfdbfe;
+}
+
+.cards {
+  display: inline-flex;
+  flex-wrap: wrap;
   gap: 1rem;
+  max-width: 100%;
+}
+
+.blackjack-hand .cards {
+  min-height: 0;
+  max-height: 7.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.25rem;
 }
 
 .card {
@@ -224,7 +402,7 @@
 }
 
 #dealer-total,
-#player-total {
+.blackjack-hand-total {
   margin-top: 0.75rem;
   font-weight: 700;
   color: #f8fafc;
@@ -410,12 +588,55 @@
     border-radius: 18px;
   }
 
+  .blackjack-hands {
+    gap: 0.75rem;
+  }
+
+  .blackjack-hands-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: min(17rem, 21dvh);
+    padding-right: 0.25rem;
+  }
+
+  .blackjack-hand {
+    min-height: 11rem;
+  }
+
+  .blackjack-hand-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .blackjack-busted-badge {
+    margin-left: 0.5rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .blackjack-result-badge {
+    margin-left: 0.45rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .blackjack-hand-stamp {
+    padding: 0.28rem 0.75rem;
+    border-width: 3px;
+    font-size: clamp(1rem, 4.8vw, 1.4rem);
+  }
+
   .cards {
     gap: 0.6rem;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding-right: 0.25rem;
+  }
+
+  .blackjack-hand .cards {
+    max-height: 6rem;
+  }
+
+  .blackjack-hand .cards {
+    min-height: auto;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .card {
@@ -424,7 +645,7 @@
   }
 
   #dealer-total,
-  #player-total {
+  .blackjack-hand-total {
     margin-top: 0.5rem;
   }
 
