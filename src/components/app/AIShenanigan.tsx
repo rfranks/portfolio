@@ -82,6 +82,16 @@ export default function AIShenanigan({
   const mediaMaxWidth = isPortrait ? 420 : "100%";
   const stillMaxWidth = isPortrait ? 520 : undefined;
   const formattedRank = `#${String(rank).padStart(2, "0")}`;
+  const panelChromeSx = {
+    borderRadius: "24px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    backgroundColor: "rgba(255,255,255,0.03)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+  } as const;
+  const mediaPanelSx = {
+    ...panelChromeSx,
+    p: 2.5,
+  } as const;
 
   const revealLabels = useMemo(
     () => [
@@ -230,6 +240,141 @@ export default function AIShenanigan({
     );
   };
 
+  const renderNextAction = () => {
+    if (stage === "intro") {
+      return (
+        <Button
+          variant="contained"
+          onClick={handleRevealRealistic}
+          disabled={transitioningTo !== null}
+        >
+          Reveal Inspiration! 💡
+        </Button>
+      );
+    }
+
+    if (stage === "realistic" && hasStylized) {
+      return (
+        <Button
+          variant="contained"
+          onClick={handleRevealStylized}
+          disabled={transitioningTo !== null}
+        >
+          Reveal Stylized 🎨
+        </Button>
+      );
+    }
+
+    if ((stage === "realistic" && !hasStylized && hasMovie) || (stage === "stylized" && hasMovie)) {
+      return (
+        <Button
+          variant="contained"
+          onClick={handleRevealMovie}
+          disabled={transitioningTo !== null}
+        >
+          Reveal Motion 🎬
+        </Button>
+      );
+    }
+
+    return null;
+  };
+
+  const renderMobilePanelFooter = () => {
+    const nextAction = renderNextAction();
+
+    return (
+      <Box
+        sx={{
+          display: { xs: "block", lg: "none" },
+          mt: 2,
+          pt: 2,
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        <Typography variant="overline" color="primary">
+          Reveal chronology
+        </Typography>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          flexWrap="wrap"
+          sx={{ mt: 1, alignItems: "center" }}
+        >
+          {revealLabels.map((item, index) => (
+            <Box
+              key={`panel-${item.key}`}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <Chip
+                label={item.label}
+                color={item.active ? "primary" : "default"}
+                variant={item.active ? "filled" : "outlined"}
+                size="small"
+              />
+              {index < revealLabels.length - 1 && (
+                <Typography
+                  aria-hidden="true"
+                  sx={{
+                    fontSize: "1rem",
+                    fontWeight: 800,
+                    lineHeight: 1,
+                    color: item.active ? "primary.main" : "text.disabled",
+                    transform: "translateY(-1px)",
+                    transition: "color 180ms ease",
+                    userSelect: "none",
+                  }}
+                >
+                  →
+                </Typography>
+              )}
+            </Box>
+          ))}
+        </Stack>
+        <Box
+          sx={{
+            mt: 1.75,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1.5,
+            flexWrap: "wrap",
+          }}
+        >
+          <Box>
+            {stage !== "intro" && (
+              <Button variant="text" onClick={resetReveal}>
+                Reset
+              </Button>
+            )}
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 1.5,
+              flexWrap: "wrap",
+            }}
+          >
+            {nextAction ?? (
+              <Chip
+                label="Sequence complete"
+                color="primary"
+                variant="outlined"
+                size="small"
+              />
+            )}
+          </Box>
+        </Box>
+      </Box>
+    );
+  };
+
   useEffect(() => {
     if (stage !== "movie") {
       return;
@@ -362,7 +507,14 @@ export default function AIShenanigan({
                   transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
                 }}
               >
-                <Box className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-lg">
+                <Box
+                  className="relative overflow-hidden"
+                  sx={{
+                    ...panelChromeSx,
+                    p: { xs: 3, md: 3.5 },
+                    boxShadow: "none",
+                  }}
+                >
                   <Box
                     aria-hidden="true"
                     sx={{
@@ -384,30 +536,6 @@ export default function AIShenanigan({
                   </Box>
                   <Typography variant="overline" color="primary">
                     AI Shenanigan
-                  </Typography>
-                  <Typography
-                    sx={{
-                      mt: 0.5,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 999,
-                      border: "1px solid",
-                      borderColor: "rgba(96,165,250,0.45)",
-                      bgcolor: "rgba(15,23,42,0.42)",
-                      color: "rgb(191,219,254)",
-                      fontSize: hasVisibleMedia ? "0.95rem" : "1.05rem",
-                      fontWeight: 900,
-                      letterSpacing: "0.08em",
-                      lineHeight: 1,
-                      textTransform: "uppercase",
-                      boxShadow: "0 0 18px rgba(37,99,235,0.16)",
-                      transition:
-                        "font-size 360ms cubic-bezier(.2,.8,.2,1), transform 360ms cubic-bezier(.2,.8,.2,1), opacity 240ms ease",
-                    }}
-                  >
-                    {formattedRank}
                   </Typography>
                   <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
                     {title}
@@ -483,42 +611,7 @@ export default function AIShenanigan({
                         flexWrap: "wrap",
                       }}
                     >
-                      {stage === "intro" && (
-                        <Button
-                          variant="contained"
-                          onClick={handleRevealRealistic}
-                          disabled={transitioningTo !== null}
-                        >
-                          Reveal Inspiration! 💡
-                        </Button>
-                      )}
-                      {stage === "realistic" && hasStylized && (
-                        <Button
-                          variant="contained"
-                          onClick={handleRevealStylized}
-                          disabled={transitioningTo !== null}
-                        >
-                          Reveal Stylized 🎨
-                        </Button>
-                      )}
-                      {stage === "realistic" && !hasStylized && hasMovie && (
-                        <Button
-                          variant="contained"
-                          onClick={handleRevealMovie}
-                          disabled={transitioningTo !== null}
-                        >
-                          Reveal Motion 🎬
-                        </Button>
-                      )}
-                      {stage === "stylized" && hasMovie && (
-                        <Button
-                          variant="contained"
-                          onClick={handleRevealMovie}
-                          disabled={transitioningTo !== null}
-                        >
-                          Reveal Motion 🎬
-                        </Button>
-                      )}
+                      {renderNextAction()}
                     </Box>
                   </Box>
                 </Box>
@@ -550,8 +643,8 @@ export default function AIShenanigan({
                 {realisticVisible && (
                   <>
                     <Box
-                      className="rounded-[28px] border border-white/10 bg-white/5 p-3 shadow-lg"
                       sx={{
+                        ...mediaPanelSx,
                         minWidth: 0,
                         flexBasis: { xl: stylizedVisible ? "50%" : "100%" },
                         maxWidth: { xl: stylizedVisible ? "50%" : "100%" },
@@ -593,6 +686,7 @@ export default function AIShenanigan({
                           {realisticCaption}
                         </Typography>
                       )}
+                      {renderMobilePanelFooter()}
                     </Box>
                     {hasStylized && (
                       <Box
@@ -616,8 +710,8 @@ export default function AIShenanigan({
                     )}
                     {stylizedVisible && stylizedRendering && (
                       <Box
-                        className="rounded-[28px] border border-white/10 bg-white/5 p-3 shadow-lg"
                         sx={{
+                          ...mediaPanelSx,
                           minWidth: 0,
                           flexBasis: { xl: "50%" },
                           maxWidth: { xl: "50%" },
@@ -659,6 +753,7 @@ export default function AIShenanigan({
                             {stylizedCaption}
                           </Typography>
                         )}
+                        {renderMobilePanelFooter()}
                       </Box>
                     )}
                   </>
@@ -676,7 +771,7 @@ export default function AIShenanigan({
                   {movieVisible && (
                     <Box
                       ref={motionSectionRef}
-                      className="rounded-[28px] border border-white/10 bg-white/5 p-3 shadow-lg"
+                      sx={mediaPanelSx}
                     >
                       <Typography variant="subtitle2" sx={{ mb: 1 }}>
                         Motion rendering
@@ -712,6 +807,7 @@ export default function AIShenanigan({
                           {movieCaption}
                         </Typography>
                       )}
+                      {renderMobilePanelFooter()}
                     </Box>
                   )}
                 </>

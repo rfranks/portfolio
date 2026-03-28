@@ -512,6 +512,18 @@
         "movieSource": "Sora video generation",
         "movieCaption": "The still moment turns into a small cinematic beat, leaning into the feeling that this was absolutely Millie's best day ever.",
         "blurb": "Brave little Millie meets her biggest best friend in Graham, a giant black horse who somehow manages to feel both enormous and gentle at the same time. The whole shenanigan leans into that instant connection, where Millie looks like she knows she just stumbled into the best day ever."
+      },
+      {
+        "slug": "universal-monster",
+        "title": "Universal Monster!",
+        "orientation": "landscape",
+        "realisticImage": "/personal/images/ai-shenanigans/universal-monster/realistic.jpeg",
+        "realisticSource": "Photo (Richard Franks Jr)",
+        "realisticCaption": "A selfie becomes the launch point for a monster-movie riff before the whole thing starts moving like a studio trailer fragment.",
+        "movieRendering": "/personal/images/ai-shenanigans/universal-monster/movie.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "Universal energy comes alive in motion as the monsters close in and the whole scene tips into playful terror.",
+        "blurb": "Universal comes alive and the monsters terrorize. This shenanigan takes a simple Richard Franks Jr. selfie and pushes it straight into a motion-heavy creature-feature beat, like a personal snapshot accidentally wandered onto a classic monster backlot."
       }
     ]
   },
