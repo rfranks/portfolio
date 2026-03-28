@@ -6,7 +6,7 @@ export type DrawerProps = MuiDrawerProps & {
 };
 
 export default styled(MuiDrawer, {
-  shouldForwardProp: (prop) => prop !== "open",
+  shouldForwardProp: (prop) => prop !== "open" && prop !== "drawerWidth",
 })<DrawerProps>(({ theme, open, drawerWidth = 240 }) => ({
   "& .MuiDrawer-paper": {
     position: "relative",

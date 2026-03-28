@@ -26,6 +26,7 @@ import {
   Flight,
   Build,
   AutoStories,
+  AutoFixHigh,
 } from "@mui/icons-material";
 import AppBar from "@/components/app/AppBar";
 import Drawer from "@/components/app/Drawer";
@@ -39,8 +40,7 @@ import Education from "@/components/app/Education";
 import Recognition from "@/components/app/Recognition";
 import ContactCTA from "@/components/app/ContactCTA";
 import Grid from "@mui/material/Grid";
-import Stack from "@mui/material/Stack";
-import { summary } from "@/consts/resumeData";
+import { summary } from "@/personal/data/resumeData";
 import { withBasePath } from "@/utils/basePath";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import getFabricTheme from "@/themes/fabricTheme";
@@ -50,6 +50,17 @@ export default function HomePageClient() {
   const defaultTheme = useMemo(() => getFabricTheme(mode), [mode]);
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
+  const tocSections = [
+    { id: "hero", label: "Hero" },
+    { id: "summary", label: "Summary" },
+    { id: "education", label: "Education" },
+    { id: "experience", label: "Experience" },
+    { id: "competencies", label: "Core Competencies" },
+    { id: "projects", label: "Projects" },
+    { id: "recognition", label: "Recognition" },
+    { id: "hobbies", label: "Hobbies" },
+    { id: "contact", label: "Contact" },
+  ];
 
   const { setDocumentTitle } = useDocumentTitle();
   useEffect(() => {
@@ -69,6 +80,7 @@ export default function HomePageClient() {
     { label: "GeneBoard", href: "/dna", icon: <Science /> },
     { label: "Bookworm", href: "/bookworm", icon: <MenuBook /> },
     { label: "TalentForge", href: "/talentforge", icon: <Build /> },
+    { label: "AI Shenanigans", href: "/ai-shenanigans", icon: <AutoFixHigh /> },
     { label: "Rickbert Studio", href: "/rickbert", icon: <AutoStories /> },
     { label: "Blackjack", href: "/blackjack", icon: <Casino /> },
     { label: "Warbirds", href: "/warbirds", icon: <Flight /> },
@@ -113,7 +125,7 @@ export default function HomePageClient() {
             }}
           >
             <Avatar
-              src={withBasePath("/images/me.jpeg")}
+              src={withBasePath("/personal/images/personal/me.jpeg")}
               alt={summary.name}
               sx={{
                 width: 38,
@@ -216,28 +228,149 @@ export default function HomePageClient() {
           </Box>
           <Toolbar />
           <Container className="py-6 md:py-8">
-            <ResumeHero />
-            <Grid container spacing={3} className="items-stretch">
-              <Grid item xs={12} sm={12} md={6} lg={6}>
-                <Stack spacing={3} className="h-full">
-                  <ResumeSummary />
-                  <HobbiesCard />
-                </Stack>
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={6}>
-                <CoreCompetencies />
-              </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={12}>
-                <ExperienceTimeline />
-              </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={12}>
-                <ProjectsGrid />
-              </Grid>
-            </Grid>
-            <Box className="space-y-8 pt-2 md:space-y-10">
-              <Education />
-              <Recognition />
-              <ContactCTA />
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "stretch",
+                gap: { xs: 0, lg: 4, xl: 6 },
+              }}
+            >
+              <Box
+                component="aside"
+                sx={{
+                  display: { xs: "none", lg: "block" },
+                  width: { lg: 180, xl: 200 },
+                  flexShrink: 0,
+                  alignSelf: "stretch",
+                }}
+              >
+                <Box
+                  sx={{
+                    position: "sticky",
+                    top: { lg: 96, xl: 104 },
+                    borderLeft: "1px solid",
+                    borderColor: "divider",
+                    pl: 2,
+                  }}
+                >
+                  <Typography
+                    variant="overline"
+                    color="text.secondary"
+                    sx={{ letterSpacing: "0.18em" }}
+                  >
+                    On this page
+                  </Typography>
+                  <Box
+                    component="nav"
+                    sx={{
+                      mt: 1.5,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                    }}
+                  >
+                    {tocSections.map((section) => (
+                      <Box
+                        key={section.id}
+                        component="a"
+                        href={`#${section.id}`}
+                        sx={{
+                          color: "text.secondary",
+                          fontSize: "0.925rem",
+                          lineHeight: 1.4,
+                          textDecoration: "none",
+                          transition: "color 160ms ease, transform 160ms ease",
+                          "&:hover": {
+                            color: "text.primary",
+                            transform: "translateX(2px)",
+                          },
+                        }}
+                      >
+                        {section.label}
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </Box>
+              <Box sx={{ minWidth: 0, flex: "1 1 auto" }}>
+                <Box
+                  component="section"
+                  id="hero"
+                  sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
+                >
+                  <ResumeHero />
+                </Box>
+                <Grid container spacing={3} className="items-stretch">
+                  <Grid item xs={12} sm={12} md={12} lg={12}>
+                    <Box
+                      component="section"
+                      id="summary"
+                      sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
+                    >
+                      <ResumeSummary />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={12} lg={12}>
+                    <Box
+                      component="section"
+                      id="education"
+                      sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
+                    >
+                      <Education />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={12} lg={12}>
+                    <Box
+                      component="section"
+                      id="experience"
+                      sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
+                    >
+                      <ExperienceTimeline />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={12} lg={12}>
+                    <Box
+                      component="section"
+                      id="competencies"
+                      sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
+                    >
+                      <CoreCompetencies />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={12} lg={12}>
+                    <Box
+                      component="section"
+                      id="projects"
+                      sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
+                    >
+                      <ProjectsGrid />
+                    </Box>
+                  </Grid>
+                </Grid>
+                <Box className="space-y-8 pt-2 md:space-y-10">
+                  <Box
+                    component="section"
+                    id="recognition"
+                    sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
+                  >
+                    <Recognition />
+                  </Box>
+                  <Box
+                    component="section"
+                    id="hobbies"
+                    sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
+                  >
+                    <HobbiesCard />
+                  </Box>
+                  <Box
+                    component="section"
+                    id="contact"
+                    sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
+                  >
+                    <ContactCTA />
+                  </Box>
+                </Box>
+              </Box>
             </Box>
           </Container>
         </Box>

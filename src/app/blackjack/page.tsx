@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { projects } from "@/consts/resumeData";
+import { projects } from "@/personal/data/resumeData";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { useAmbience } from "@/hooks/audio/useAmbience";
 import { useBGM } from "@/hooks/audio/useBGM";

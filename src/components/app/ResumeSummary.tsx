@@ -2,7 +2,7 @@ import Image from "next/image";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
-import { summary } from "@/consts/resumeData";
+import { summary } from "@/personal/data/resumeData";
 import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
 import { withBasePath } from "@/utils/basePath";
@@ -24,14 +24,15 @@ export default function ResumeSummary() {
             }}
           >
             <Stack spacing={2} sx={{ minWidth: 0, flex: "1 1 auto" }}>
-              <Typography className="text-base leading-7">
-                {summary.blurb}
-              </Typography>
-              <Typography color="text.secondary" className="leading-7">
-                Focused on building production systems where product complexity,
-                domain complexity, and technical complexity all intersect,
-                especially in healthcare and AI-assisted workflows.
-              </Typography>
+              {summary.gutter.map((paragraph, index) => (
+                <Typography
+                  key={paragraph}
+                  color={index === 0 ? undefined : "text.secondary"}
+                  className="leading-7"
+                >
+                  {paragraph}
+                </Typography>
+              ))}
             </Stack>
             <Box
               className="mx-auto w-full max-w-[220px] overflow-hidden rounded-[28px] border border-white/10 bg-white/5 p-2 shadow-lg md:mx-0"
@@ -42,25 +43,13 @@ export default function ResumeSummary() {
               }}
             >
               <Image
-                src={withBasePath("/images/me-headshot.jpeg")}
+                src={withBasePath("/personal/images/personal/me-headshot.jpeg")}
                 alt={`${summary.name} headshot`}
                 width={480}
                 height={640}
                 className="h-auto w-full rounded-[22px] object-cover"
               />
             </Box>
-          </Stack>
-          <Stack spacing={2}>
-            <Typography color="text.secondary" className="leading-7">
-              Strong across the full stack: modern React and Next.js frontends,
-              TypeScript and Python service layers, Java enterprise systems, and
-              cloud-native delivery on Azure and AWS.
-            </Typography>
-            <Typography color="text.secondary" className="leading-7">
-              Operates comfortably at both architecture and execution depth,
-              turning ambiguous requirements into shipped software while improving
-              reliability, developer velocity, and long-term maintainability.
-            </Typography>
           </Stack>
         </Stack>
       </TronPaper>

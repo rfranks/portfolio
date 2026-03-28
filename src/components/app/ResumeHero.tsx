@@ -3,7 +3,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import FadeInSection from "@/components/app/FadeInSection";
-import { summary } from "@/consts/resumeData";
+import { summary } from "@/personal/data/resumeData";
 import { withBasePath } from "@/utils/basePath";
 import IconButton from "@mui/material/IconButton";
 import { AlternateEmail, GitHub, LinkedIn } from "@mui/icons-material";
@@ -21,7 +21,7 @@ export default function ResumeHero() {
             color="primary"
             className="rounded-full border border-current/20 px-4 py-1 tracking-[0.24em]"
           >
-            Principal Full Stack Engineer
+            {summary.heroOverline}
           </Typography>
         <Typography component="h1" variant="h3" gutterBottom className="max-w-3xl text-balance">
           {summary.name}
@@ -39,7 +39,7 @@ export default function ResumeHero() {
           {summary.location}
         </Typography>
         <Typography className="max-w-3xl text-base leading-7 md:text-lg" sx={{ mb: 4 }}>
-          {summary.blurb}
+          {summary.gutter[0]}
         </Typography>
         <Stack
           direction="row"

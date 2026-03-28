@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import Chip from "@/components/fabric/Chip";
 import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
-import { hobbies } from "@/consts/resumeData";
+import { hobbies } from "@/personal/data/resumeData";
 import { withBasePath } from "@/utils/basePath";
 
 export default function HobbiesCard() {
@@ -28,8 +28,7 @@ export default function HobbiesCard() {
           >
             <Stack spacing={2} sx={{ minWidth: 0, flex: "1 1 auto" }}>
               <Typography color="text.secondary" className="leading-7">
-                Things I keep coming back to outside of work when I want speed, flow,
-                competition, and a little nostalgia.
+                {hobbies.introText}
               </Typography>
               <Box className="flex flex-wrap gap-2">
                 {hobbies.items.map((hobby) => (
