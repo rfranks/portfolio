@@ -14,7 +14,7 @@ export default function BlackjackPage() {
   return (
     <main className="blackjack-page">
       <section id="game-card" className="blackjack-panel blackjack-game-panel">
-        <h2 className="blackjack-panel-title">Web Client (Wasm)</h2>
+        <h2 className="blackjack-panel-title">Go Blackjack! (Wasm)</h2>
         <div id="progressives" className="blackjack-progressives">
           <span id="prog0"></span>
           <span id="prog1"></span>
@@ -94,8 +94,10 @@ export default function BlackjackPage() {
         </p>
       </section>
       <section id="demo-video" className="blackjack-panel blackjack-demo-panel">
-        <h2 className="blackjack-panel-title">Terminal Demo</h2>
-        <p className="blackjack-panel-subtitle">Via Go in the Terminal</p>
+        <h2 className="blackjack-panel-title">Go Blackjack!</h2>
+        <p className="blackjack-panel-subtitle">
+          Via Go in the terminal in VS Code Debugger
+        </p>
         <video
           src={withBasePath("/demovideos/blackjack_terminal.mov")}
           controls
