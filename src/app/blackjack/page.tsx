@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { projects } from "@/consts/resumeData";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { withBasePath } from "@/utils/basePath";
 import "./page.css";
@@ -81,6 +82,16 @@ export default function BlackjackPage() {
           </div>
           <div id="hint" className="blackjack-hint-panel"></div>
         </div>
+      </section>
+      <section id="demo-video" className="blackjack-panel blackjack-demo-panel">
+        <h2 className="blackjack-panel-title">Why This Project Interests Me</h2>
+        <p className="blackjack-panel-subtitle">One Go, Multiple Clients</p>
+        <p>
+          {
+            projects?.find((proj) => "/blackjack" === proj?.href)
+              ?.interestsMeWhy
+          }
+        </p>
       </section>
       <section id="demo-video" className="blackjack-panel blackjack-demo-panel">
         <h2 className="blackjack-panel-title">Terminal Demo</h2>
