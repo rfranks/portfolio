@@ -6,6 +6,7 @@ import { PaletteMode } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
+import Avatar from "@mui/material/Avatar";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
@@ -37,6 +38,7 @@ import Education from "@/components/app/Education";
 import Recognition from "@/components/app/Recognition";
 import ContactCTA from "@/components/app/ContactCTA";
 import Grid from "@mui/material/Grid";
+import { summary } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import getFabricTheme from "@/themes/fabricTheme";
@@ -70,6 +72,10 @@ export default function HomePageClient() {
     { label: "Warbirds", href: "/warbirds", icon: <Flight /> },
   ];
 
+  const appBarTitle = `${summary.name} • ${summary.title
+    .split("|")[0]
+    .trim()}`;
+
   return (
     <ThemeProvider theme={defaultTheme}>
       <CssBaseline />
@@ -95,15 +101,47 @@ export default function HomePageClient() {
           >
             <Menu />
           </IconButton>
-          <Typography
-            component="h1"
-            variant="h6"
-            color="inherit"
-            noWrap
-            sx={{ flexGrow: 1 }}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              flexGrow: 1,
+              minWidth: 0,
+            }}
           >
-            Portfolio
-          </Typography>
+            <Avatar
+              src={withBasePath("/images/me.jpeg")}
+              alt={summary.name}
+              sx={{
+                width: 38,
+                height: 38,
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: 1,
+              }}
+            />
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                component="h1"
+                variant="h6"
+                color="inherit"
+                noWrap
+                sx={{ display: { xs: "block", sm: "none" } }}
+              >
+                {summary.name}
+              </Typography>
+              <Typography
+                component="h1"
+                variant="h6"
+                color="inherit"
+                noWrap
+                sx={{ display: { xs: "none", sm: "block" } }}
+              >
+                {appBarTitle}
+              </Typography>
+            </Box>
+          </Box>
         </AppBar>
         <Drawer
           variant="permanent"

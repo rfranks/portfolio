@@ -44,13 +44,15 @@ export default function AccoladesCarousel({
           sx={{ maxWidth: "100%", flex: "0 0 auto", scrollSnapAlign: "start" }}
         >
           {acc.imageSrcUrl && (
-            <Image
-              src={withBasePath(acc.imageSrcUrl)}
-              alt={acc.name}
-              width={64}
-              height={64}
-              style={{ width: "64px", height: "64px" }}
-            />
+            <Box sx={{ px: 2, pt: 2, display: "flex", justifyContent: "center" }}>
+              <Image
+                src={withBasePath(acc.imageSrcUrl)}
+                alt={acc.name}
+                width={64}
+                height={64}
+                style={{ width: "64px", height: "64px" }}
+              />
+            </Box>
           )}
           <CardContent>
             <Typography variant="h6" gutterBottom>

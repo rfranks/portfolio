@@ -19,8 +19,7 @@ const projectSectionMarks = [
   {
     src: "/dna/images/geneboard_banner.png",
     alt: "GeneBoard banner",
-    className:
-      "-left-6 top-2 w-36 rotate-[-10deg] lg:-left-4 lg:top-4 lg:w-40",
+    className: "-left-6 top-2 w-36 rotate-[-10deg] lg:-left-4 lg:top-4 lg:w-40",
     imageClassName: "h-auto w-full object-contain",
     width: 260,
     height: 78,
@@ -37,8 +36,7 @@ const projectSectionMarks = [
   {
     src: "/assets/titles/warbirds_title.png",
     alt: "Warbirds title",
-    className:
-      "right-0 top-12 w-40 rotate-[-5deg] lg:w-48",
+    className: "right-0 top-12 w-40 rotate-[-5deg] lg:w-48",
     imageClassName: "h-auto w-full object-contain",
     width: 220,
     height: 80,
@@ -48,7 +46,7 @@ const projectSectionMarks = [
 function renderProjectAccent(href: string, projectName: string) {
   if (href === "/dna") {
     return (
-      <Box className="pointer-events-none absolute bottom-5 right-4 opacity-[0.1] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.18]">
+      <Box className="pointer-events-none absolute bottom-8 right-4 opacity-[0.1] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.18]">
         <Image
           src={withBasePath("/dna/images/geneboard_banner.png")}
           alt={`${projectName} watermark`}
@@ -74,6 +72,20 @@ function renderProjectAccent(href: string, projectName: string) {
     );
   }
 
+  if (href === "/rickbert") {
+    return (
+      <Box className="pointer-events-none absolute bottom-4 right-4 opacity-[0.1] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.18]">
+        <Image
+          src={withBasePath("/images/projects/rickbert-studio.png")}
+          alt={`${projectName} watermark`}
+          width={300}
+          height={200}
+          className="h-auto w-56 object-contain"
+        />
+      </Box>
+    );
+  }
+
   if (href === "/blackjack") {
     return (
       <Box className="pointer-events-none absolute bottom-3 right-3 h-36 w-40 opacity-[0.16] transition-all duration-500 group-hover:scale-[1.03] group-hover:opacity-[0.24]">
@@ -85,18 +97,36 @@ function renderProjectAccent(href: string, projectName: string) {
           className="absolute left-0 top-5 h-28 w-auto rounded-lg object-contain drop-shadow-lg"
         />
         <Image
-          src={withBasePath("/assets/cards/PNG/Cards (medium)/card_spades_J.png")}
+          src={withBasePath(
+            "/assets/cards/PNG/Cards (medium)/card_spades_J.png",
+          )}
           alt="Jack of spades"
           width={128}
           height={179}
           className="absolute left-7 top-2 h-28 w-auto rounded-lg object-contain drop-shadow-lg"
         />
         <Image
-          src={withBasePath("/assets/cards/PNG/Cards (medium)/card_spades_A.png")}
+          src={withBasePath(
+            "/assets/cards/PNG/Cards (medium)/card_spades_A.png",
+          )}
           alt="Ace of spades"
           width={128}
           height={179}
           className="absolute left-14 top-0 h-28 w-auto rounded-lg object-contain drop-shadow-lg"
+        />
+      </Box>
+    );
+  }
+
+  if (href === "/blasteroids") {
+    return (
+      <Box className="pointer-events-none absolute bottom-4 right-4 opacity-[0.1] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.18]">
+        <Image
+          src={withBasePath("/images/projects/blasteroids.jpeg")}
+          alt={`${projectName} watermark`}
+          width={320}
+          height={220}
+          className="h-auto w-56 rounded-2xl object-contain"
         />
       </Box>
     );
@@ -149,7 +179,7 @@ function renderProjectAccent(href: string, projectName: string) {
 
 export default function ProjectsGrid() {
   const sortedProjects = [...resumeData.projects].sort((left, right) =>
-    left.name.localeCompare(right.name)
+    left.name.localeCompare(right.name),
   );
 
   return (
@@ -172,21 +202,27 @@ export default function ProjectsGrid() {
           ))}
           <div className="absolute right-28 top-2 h-28 w-28 rotate-[10deg] opacity-35 transition-transform duration-500">
             <Image
-              src={withBasePath("/assets/cards/PNG/Cards (medium)/card_back.png")}
+              src={withBasePath(
+                "/assets/cards/PNG/Cards (medium)/card_back.png",
+              )}
               alt="Playing card back"
               width={110}
               height={154}
               className="absolute left-0 top-3 h-24 w-auto rounded-lg object-contain drop-shadow-xl"
             />
             <Image
-              src={withBasePath("/assets/cards/PNG/Cards (medium)/card_spades_J.png")}
+              src={withBasePath(
+                "/assets/cards/PNG/Cards (medium)/card_spades_J.png",
+              )}
               alt="Jack of spades"
               width={110}
               height={154}
               className="absolute left-6 top-1 h-24 w-auto rounded-lg object-contain drop-shadow-xl"
             />
             <Image
-              src={withBasePath("/assets/cards/PNG/Cards (medium)/card_spades_A.png")}
+              src={withBasePath(
+                "/assets/cards/PNG/Cards (medium)/card_spades_A.png",
+              )}
               alt="Ace of spades"
               width={110}
               height={154}
@@ -199,17 +235,25 @@ export default function ProjectsGrid() {
             <Typography variant="h6" gutterBottom>
               Projects
             </Typography>
-            <Typography variant="body2" color="text.secondary" className="max-w-2xl">
-              Selected work across AI-assisted systems, full-stack product engineering,
-              and experimental applications.
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              className="max-w-2xl"
+            >
+              Selected work across AI-assisted systems, full-stack product
+              engineering, and experimental applications.
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              className="max-w-2xl"
+            >
+              Contact me if you&apos;d like a demo of AI functionality or a
+              temporary OpenAI API key to try AI functionality out.
             </Typography>
           </div>
         </div>
-        <Grid
-          container
-          spacing={2}
-          alignItems="stretch"
-        >
+        <Grid container spacing={2} alignItems="stretch">
           {sortedProjects.map((project, index) => (
             <Grid
               item
@@ -266,7 +310,11 @@ export default function ProjectsGrid() {
                       />
                     </div>
                   )}
-                  <Typography variant="body2" color="text.secondary" className="leading-6">
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    className="leading-6"
+                  >
                     {project.description}
                   </Typography>
                   {project.interestsMeWhy && (
@@ -274,7 +322,11 @@ export default function ProjectsGrid() {
                       <Typography variant="subtitle1" gutterBottom>
                         Why this interests me...
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" className="leading-6">
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        className="leading-6"
+                      >
                         {project.interestsMeWhy}
                       </Typography>
                     </Box>

@@ -343,18 +343,6 @@
     opacity 180ms ease;
 }
 
-.blackjack-game-mode-chip::before {
-  content: "";
-  inline-size: 1rem;
-  block-size: 1rem;
-  flex: 0 0 auto;
-  background-image: url("/assets/boardgame/PNG/Chips/chipBlackWhite.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  filter: drop-shadow(0 2px 3px rgba(15, 23, 42, 0.28));
-}
-
 .blackjack-game-mode-chip:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow:
@@ -379,30 +367,6 @@
   font-size: 0.88rem;
   font-weight: 800;
   letter-spacing: 0.03em;
-}
-
-.blackjack-game-mode-chip--blackjack::before {
-  background-image: url("/assets/boardgame/PNG/Chips/chipWhiteBlue.png");
-}
-
-.blackjack-game-mode-chip--jack-attack::before {
-  background-image: url("/assets/boardgame/PNG/Chips/chipRedWhite.png");
-}
-
-.blackjack-game-mode-chip--trifecta::before {
-  background-image: url("/assets/boardgame/PNG/Chips/chipGreenWhite.png");
-}
-
-.blackjack-game-mode-chip--trifecta3::before {
-  background-image: url("/assets/boardgame/PNG/Chips/chipBlueWhite.png");
-}
-
-.blackjack-game-mode-chip--trifecta-staxx::before {
-  background-image: url("/assets/boardgame/PNG/Chips/chipBlackWhite.png");
-}
-
-.blackjack-game-mode-chip--spanish21::before {
-  background-image: url("/assets/boardgame/PNG/Chips/chipRedWhite.png");
 }
 
 .blackjack-panel-subtitle {
@@ -488,7 +452,6 @@
 }
 
 .blackjack-money-chip {
-  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -501,54 +464,25 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 8px 18px rgba(2, 8, 23, 0.14);
   vertical-align: middle;
-  --blackjack-chip-image: url("/assets/boardgame/PNG/Chips/chipBlueWhite.png");
 }
 
-.blackjack-money-chip::before {
-  content: "";
+.blackjack-chip-adornment {
   inline-size: 1.05rem;
   block-size: 1.05rem;
   flex: 0 0 auto;
   opacity: 0.95;
-  background-image: var(--blackjack-chip-image);
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
   filter: drop-shadow(0 2px 3px rgba(15, 23, 42, 0.26));
 }
 
 .blackjack-progressives .blackjack-money-chip {
   justify-content: center;
   width: auto;
-  --blackjack-chip-image: url("/assets/boardgame/PNG/Chips/chipRedWhite.png");
 }
 
-#player-stack.blackjack-money-chip {
-  --blackjack-chip-image: url("/assets/boardgame/PNG/Chips/chipBlueWhite.png");
-}
-
-#player-winnings.blackjack-money-chip {
-  --blackjack-chip-image: url("/assets/boardgame/PNG/Chips/chipWhiteBlue.png");
-}
-
-#player-winnings.blackjack-money-chip.positive {
-  --blackjack-chip-image: url("/assets/boardgame/PNG/Chips/chipGreenWhite.png");
-}
-
-#player-winnings.blackjack-money-chip.negative {
-  --blackjack-chip-image: url("/assets/boardgame/PNG/Chips/chipRedWhite.png");
-}
-
-.blackjack-hand-meta.blackjack-money-chip {
-  --blackjack-chip-image: url("/assets/boardgame/PNG/Chips/chipBlackWhite.png");
-}
-
-.blackjack-hand-note.blackjack-money-chip {
-  --blackjack-chip-image: url("/assets/boardgame/PNG/Chips/chipGreenWhite.png");
-}
-
-#result .blackjack-money-chip {
-  --blackjack-chip-image: url("/assets/boardgame/PNG/Chips/chipWhiteBlue.png");
+.blackjack-money-chip-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .blackjack-table-shell {

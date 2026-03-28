@@ -30,6 +30,11 @@ const BLACKJACK_BGM_PROGRESSION = [
 ] as const;
 
 const CARD_BACK_SRC = "/assets/boardgame/PNG/Cards/cardBack_blue1.png";
+const CHIP_BLUE_WHITE_SRC = "/assets/boardgame/PNG/Chips/chipBlueWhite.png";
+const CHIP_WHITE_BLUE_SRC = "/assets/boardgame/PNG/Chips/chipWhiteBlue.png";
+const CHIP_RED_WHITE_SRC = "/assets/boardgame/PNG/Chips/chipRedWhite.png";
+const CHIP_GREEN_WHITE_SRC = "/assets/boardgame/PNG/Chips/chipGreenWhite.png";
+const CHIP_BLACK_WHITE_SRC = "/assets/boardgame/PNG/Chips/chipBlackWhite.png";
 
 function getControlDisplay(visible: boolean | undefined) {
   return visible ? undefined : "none";
@@ -89,6 +94,25 @@ function getGameModeChipClass(gameMode: BlackjackGameMode) {
   }
 }
 
+function getGameModeChipSrc(gameMode: BlackjackGameMode) {
+  switch (gameMode) {
+    case "blackjack":
+      return CHIP_WHITE_BLUE_SRC;
+    case "jack-attack":
+      return CHIP_RED_WHITE_SRC;
+    case "trifecta":
+      return CHIP_GREEN_WHITE_SRC;
+    case "trifecta3":
+      return CHIP_BLUE_WHITE_SRC;
+    case "trifecta-staxx":
+      return CHIP_BLACK_WHITE_SRC;
+    case "spanish21":
+      return CHIP_RED_WHITE_SRC;
+    default:
+      return CHIP_WHITE_BLUE_SRC;
+  }
+}
+
 function getHandStampClass(label: BlackjackPlayerHandView["outcomeLabel"]) {
   switch (label) {
     case "Won!":
@@ -120,6 +144,34 @@ function getCardImageSrc(card: BlackjackCardView) {
   }
 
   return `/assets/boardgame/PNG/Cards/card${card.suit}${card.value}.png`;
+}
+
+type ChipDecoratedValueProps = {
+  chipSrc: string;
+  children: React.ReactNode;
+  className?: string;
+  id?: string;
+};
+
+function ChipDecoratedValue({
+  chipSrc,
+  children,
+  className,
+  id,
+}: ChipDecoratedValueProps) {
+  return (
+    <span id={id} className={className}>
+      <Image
+        className="blackjack-chip-adornment"
+        src={withBasePath(chipSrc)}
+        alt=""
+        aria-hidden="true"
+        width={20}
+        height={20}
+      />
+      <span>{children}</span>
+    </span>
+  );
 }
 
 type AnimatedBlackjackCardProps = {
@@ -592,7 +644,7 @@ export default function BlackjackPage() {
                 height={261}
               />
             </div>
-            <div className="blackjack-game-banner-stamp">Go Blackjack!</div>
+            <div className="blackjack-game-banner-stamp">Go! Blackjack!</div>
             <div className="blackjack-game-banner-subtitle">
               Wasm Web Client
             </div>
@@ -608,6 +660,14 @@ export default function BlackjackPage() {
                     : "Finish the current round before changing mode"
                 }
               >
+                <Image
+                  className="blackjack-chip-adornment"
+                  src={withBasePath(getGameModeChipSrc(engineState.gameMode))}
+                  alt=""
+                  aria-hidden="true"
+                  width={20}
+                  height={20}
+                />
                 <span className="blackjack-game-mode-chip-label">Mode</span>
                 <span className="blackjack-game-mode-chip-value">
                   {engineState.gameModeLabel}
@@ -618,12 +678,16 @@ export default function BlackjackPage() {
           {!engineState?.progressives?.length ? (
             <div id="progressives" className="blackjack-progressives">
               {engineState?.progressives.map((progressive, index) => (
-                <span key={index} className="blackjack-money-chip">
+                <ChipDecoratedValue
+                  key={index}
+                  className="blackjack-money-chip"
+                  chipSrc={CHIP_RED_WHITE_SRC}
+                >
                   {progressive.toLocaleString("en-US", {
                     style: "currency",
                     currency: "USD",
                   })}
-                </span>
+                </ChipDecoratedValue>
               ))}
             </div>
           ) : null}
@@ -670,12 +734,28 @@ export default function BlackjackPage() {
                     key={index}
                     className={`${engineState.result ? getResultToneClass(engineState.result.tone) : ""}${hasCurrencyValue(line) ? " blackjack-money-chip" : ""}`}
                   >
-                    {engineState.result &&
+                    {hasCurrencyValue(line) ? (
+                      <ChipDecoratedValue
+                        chipSrc={CHIP_WHITE_BLUE_SRC}
+                        className="blackjack-money-chip-inline"
+                      >
+                        {engineState &&
+                          engineState.result &&
+                          decorateResultDetailLine(
+                            line,
+                            engineState.result.tone,
+                            engineState.result.badge,
+                          )}
+                      </ChipDecoratedValue>
+                    ) : (
+                      engineState &&
+                      engineState.result &&
                       decorateResultDetailLine(
                         line,
                         engineState.result.tone,
                         engineState.result.badge,
-                      )}
+                      )
+                    )}
                   </div>
                 ))}
               </div>
@@ -683,23 +763,34 @@ export default function BlackjackPage() {
             <div className="blackjack-player">
               <div id="player-info" className="blackjack-info-row">
                 Player:{" "}
-                <span id="player-stack" className="blackjack-money-chip">
+                <ChipDecoratedValue
+                  id="player-stack"
+                  className="blackjack-money-chip"
+                  chipSrc={CHIP_BLUE_WHITE_SRC}
+                >
                   {engineState?.player
                     ? `${engineState.player.stack >= 0 ? "+" : "-"}$${engineState.player.stack}`
                     : "$0"}
-                </span>
-                <span
+                </ChipDecoratedValue>
+                <ChipDecoratedValue
                   id="player-winnings"
                   className={`blackjack-money-chip ${
                     getWinningsClass(
                       engineState?.player?.winningsTone ?? "neutral",
                     ) ?? ""
                   }`.trim()}
+                  chipSrc={
+                    engineState?.player?.winningsTone === "positive"
+                      ? CHIP_GREEN_WHITE_SRC
+                      : engineState?.player?.winningsTone === "negative"
+                        ? CHIP_RED_WHITE_SRC
+                        : CHIP_WHITE_BLUE_SRC
+                  }
                 >
                   {engineState?.player?.winningsDisplay
                     ? ` ${engineState.player.winningsDisplay}`
                     : ""}
-                </span>
+                </ChipDecoratedValue>
               </div>
               <div className="blackjack-hands-scroll">
                 <div id="player-hands" className="blackjack-hands">
@@ -715,15 +806,25 @@ export default function BlackjackPage() {
                         <span className="blackjack-hand-label">
                           Hand {hand.index + 1}
                         </span>
-                        <span className="blackjack-hand-meta blackjack-money-chip">
+                        <ChipDecoratedValue
+                          className="blackjack-hand-meta blackjack-money-chip"
+                          chipSrc={CHIP_BLACK_WHITE_SRC}
+                        >
                           Wager: ${hand.wager}
-                        </span>
+                        </ChipDecoratedValue>
                         {hand.note ? (
-                          <span
-                            className={`blackjack-hand-note${hasCurrencyValue(hand.note) ? " blackjack-money-chip" : ""}`}
-                          >
-                            {hand.note}
-                          </span>
+                          hasCurrencyValue(hand.note) ? (
+                            <ChipDecoratedValue
+                              className="blackjack-hand-note blackjack-money-chip"
+                              chipSrc={CHIP_GREEN_WHITE_SRC}
+                            >
+                              {hand.note}
+                            </ChipDecoratedValue>
+                          ) : (
+                            <span className="blackjack-hand-note">
+                              {hand.note}
+                            </span>
+                          )
                         ) : null}
                       </div>
                       <div className="blackjack-hand-cards-wrap">
@@ -927,7 +1028,7 @@ export default function BlackjackPage() {
         </p>
       </section>
       <section id="demo-video" className="blackjack-panel blackjack-demo-panel">
-        <h2 className="blackjack-panel-title">Go Blackjack!</h2>
+        <h2 className="blackjack-panel-title">Go! Blackjack!</h2>
         <p className="blackjack-panel-subtitle">
           Via Go in the terminal in VS Code Debugger
         </p>
