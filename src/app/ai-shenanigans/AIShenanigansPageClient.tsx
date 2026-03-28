@@ -12,7 +12,9 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { ArrowBack } from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material/styles";
-import AIShenanigan from "@/components/app/AIShenanigan";
+import AIShenanigan, {
+  AIShenaniganMovieOrientation,
+} from "@/components/app/AIShenanigan";
 import AppBar from "@/components/app/AppBar";
 import { aiShenanigans, summary } from "@/personal/data/resumeData";
 import getFabricTheme from "@/themes/fabricTheme";
@@ -31,10 +33,18 @@ export default function AIShenanigansPageClient() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ minHeight: "100vh", bgcolor: "background.default", color: "text.primary" }}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "background.default",
+          color: "text.primary",
+        }}
+      >
         <AppBar
           mode={mode}
-          toggleColorMode={() => setMode((prev) => (prev === "light" ? "dark" : "light"))}
+          toggleColorMode={() =>
+            setMode((prev) => (prev === "light" ? "dark" : "light"))
+          }
         >
           <IconButton
             edge="start"
@@ -48,7 +58,13 @@ export default function AIShenanigansPageClient() {
           <Avatar
             src={withBasePath("/personal/images/personal/me.jpeg")}
             alt={summary.name}
-            sx={{ width: 38, height: 38, mr: 1.5, border: "1px solid", borderColor: "divider" }}
+            sx={{
+              width: 38,
+              height: 38,
+              mr: 1.5,
+              border: "1px solid",
+              borderColor: "divider",
+            }}
           />
           <Box sx={{ minWidth: 0, flexGrow: 1 }}>
             <Typography variant="h6" noWrap>
@@ -66,10 +82,20 @@ export default function AIShenanigansPageClient() {
               <Typography variant="overline" color="primary">
                 Portfolio experiment
               </Typography>
-              <Typography variant="h2" sx={{ mt: 1.25, mb: 1.5, fontSize: { xs: "2.25rem", md: "3.25rem" } }}>
+              <Typography
+                variant="h2"
+                sx={{
+                  mt: 1.25,
+                  mb: 1.5,
+                  fontSize: { xs: "2.25rem", md: "3.25rem" },
+                }}
+              >
                 {aiShenanigans.title}
               </Typography>
-              <Typography color="text.secondary" className="max-w-3xl leading-7">
+              <Typography
+                color="text.secondary"
+                className="max-w-3xl leading-7"
+              >
                 {aiShenanigans.description}
               </Typography>
             </Box>
@@ -79,7 +105,7 @@ export default function AIShenanigansPageClient() {
                 rank={index + 1}
                 title={item.title}
                 blurb={item.blurb}
-                orientation={item.orientation}
+                orientation={item.orientation as AIShenaniganMovieOrientation}
                 realisticImage={item.realisticImage}
                 realisticSource={item.realisticSource}
                 stylizedRendering={item.stylizedRendering}

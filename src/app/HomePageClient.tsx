@@ -230,18 +230,21 @@ export default function HomePageClient() {
           <Container className="py-6 md:py-8">
             <Box
               sx={{
-                display: "flex",
-                alignItems: "stretch",
-                gap: { xs: 0, lg: 4, xl: 6 },
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "minmax(0, 1fr)",
+                  lg: "180px minmax(0, 1fr)",
+                  xl: "200px minmax(0, 1fr)",
+                },
+                alignItems: "start",
+                columnGap: { lg: 4, xl: 6 },
               }}
             >
               <Box
                 component="aside"
                 sx={{
                   display: { xs: "none", lg: "block" },
-                  width: { lg: 180, xl: 200 },
-                  flexShrink: 0,
-                  alignSelf: "stretch",
+                  minWidth: 0,
                 }}
               >
                 <Box
@@ -251,6 +254,7 @@ export default function HomePageClient() {
                     borderLeft: "1px solid",
                     borderColor: "divider",
                     pl: 2,
+                    alignSelf: "start",
                   }}
                 >
                   <Typography
@@ -292,7 +296,7 @@ export default function HomePageClient() {
                   </Box>
                 </Box>
               </Box>
-              <Box sx={{ minWidth: 0, flex: "1 1 auto" }}>
+              <Box sx={{ minWidth: 0 }}>
                 <Box
                   component="section"
                   id="hero"

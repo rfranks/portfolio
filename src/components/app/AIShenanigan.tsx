@@ -11,11 +11,13 @@ import FadeInSection from "@/components/app/FadeInSection";
 import TronPaper from "@/components/app/TronPaper";
 import { withBasePath } from "@/utils/basePath";
 
+export type AIShenaniganMovieOrientation = "landscape" | "portrait" | undefined;
+
 type AIShenaniganProps = {
   rank: number;
   title: string;
   blurb: string;
-  orientation?: "portrait" | "landscape";
+  orientation?: AIShenaniganMovieOrientation;
   realisticImage: string;
   realisticSource?: string;
   stylizedRendering: string;
@@ -45,7 +47,9 @@ export default function AIShenanigan({
   const [showMovieArrow, setShowMovieArrow] = useState(false);
   const [stylizedVisible, setStylizedVisible] = useState(false);
   const [movieVisible, setMovieVisible] = useState(false);
-  const [transitioningTo, setTransitioningTo] = useState<RevealStage | null>(null);
+  const [transitioningTo, setTransitioningTo] = useState<RevealStage | null>(
+    null,
+  );
   const motionSectionRef = useRef<HTMLDivElement | null>(null);
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
   const stylizedTimeoutRef = useRef<number | null>(null);
@@ -80,7 +84,13 @@ export default function AIShenanigan({
           ]
         : []),
     ],
-    [hasMovie, movieVisible, showMovieArrow, showStylizedArrow, stylizedVisible],
+    [
+      hasMovie,
+      movieVisible,
+      showMovieArrow,
+      showStylizedArrow,
+      stylizedVisible,
+    ],
   );
 
   const renderArrow = (direction: ArrowDirection, active: boolean) => (
@@ -96,7 +106,8 @@ export default function AIShenanigan({
           : direction === "right"
             ? "translate3d(-8px, 0, 0) scale(0.92)"
             : "translate3d(0, -8px, 0) scale(0.92)",
-        transition: "opacity 260ms ease, transform 320ms cubic-bezier(.2,.8,.2,1)",
+        transition:
+          "opacity 260ms ease, transform 320ms cubic-bezier(.2,.8,.2,1)",
       }}
     >
       <Box
@@ -351,7 +362,14 @@ export default function AIShenanigan({
                         </Button>
                       )}
                     </Box>
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, flexWrap: "wrap" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: 1.5,
+                        flexWrap: "wrap",
+                      }}
+                    >
                       {stage === "realistic" && (
                         <Button
                           variant="contained"
@@ -394,7 +412,11 @@ export default function AIShenanigan({
                   <Typography variant="subtitle2" sx={{ mb: 1 }}>
                     Realistic source
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
                     The grounded starting point.
                   </Typography>
                   <Image
@@ -419,10 +441,20 @@ export default function AIShenanigan({
                     </Typography>
                   )}
                 </Box>
-                <Box sx={{ display: { xs: "flex", xl: "none" }, justifyContent: "center" }}>
+                <Box
+                  sx={{
+                    display: { xs: "flex", xl: "none" },
+                    justifyContent: "center",
+                  }}
+                >
                   {renderArrow("down", showStylizedArrow)}
                 </Box>
-                <Box sx={{ display: { xs: "none", xl: "flex" }, justifyContent: "center" }}>
+                <Box
+                  sx={{
+                    display: { xs: "none", xl: "flex" },
+                    justifyContent: "center",
+                  }}
+                >
                   {renderArrow("right", showStylizedArrow)}
                 </Box>
                 {stylizedVisible && (
@@ -441,7 +473,11 @@ export default function AIShenanigan({
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
                       Stylized rendering
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 2 }}
+                    >
                       Push the portrait into caricature.
                     </Typography>
                     <Image
@@ -470,7 +506,9 @@ export default function AIShenanigan({
               </Stack>
               {hasMovie && (showMovieArrow || movieVisible) && (
                 <>
-                  <Box sx={{ display: "flex", justifyContent: "center", py: 0.5 }}>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center", py: 0.5 }}
+                  >
                     {renderArrow("down", showMovieArrow)}
                   </Box>
                   {movieVisible && (
@@ -481,7 +519,11 @@ export default function AIShenanigan({
                       <Typography variant="subtitle2" sx={{ mb: 1 }}>
                         Motion rendering
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                      >
                         Let the caricature move.
                       </Typography>
                       <Box
