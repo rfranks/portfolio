@@ -497,6 +497,21 @@
         "movieSource": "Sora video generation",
         "movieCaption": "The card fantasy comes alive in motion, pushing the baseball-daydream energy a step past the still frame.",
         "blurb": "Ricky Franks dreams of having his own Topps card and lining up at second base for the Red Sox. This shenanigan turns that baseball-kid fantasy into a trading-card moment, then lets it come to life in motion like a highlight reel from an alternate timeline."
+      },
+      {
+        "slug": "millie-and-graham",
+        "title": "Best Day Ever!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/millie-and-graham/realistic.jpg",
+        "realisticSource": "Photo (Richard Franks Jr)",
+        "realisticCaption": "The real moment: brave little Millie meeting the biggest friend she could imagine in Graham, the giant black horse.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/millie-and-graham/stylized.png",
+        "stylizedSource": "ChatGPT DALL-E image generation",
+        "stylizedCaption": "The meeting gets softened into a storybook-style rendering, keeping Millie's courage and Graham's calm size at the center.",
+        "movieRendering": "/personal/images/ai-shenanigans/millie-and-graham/movie.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "The still moment turns into a small cinematic beat, leaning into the feeling that this was absolutely Millie's best day ever.",
+        "blurb": "Brave little Millie meets her biggest best friend in Graham, a giant black horse who somehow manages to feel both enormous and gentle at the same time. The whole shenanigan leans into that instant connection, where Millie looks like she knows she just stumbled into the best day ever."
       }
     ]
   },

@@ -109,6 +109,17 @@ export default function AIShenanigansPageClient() {
                 stylizedSourceHref?: string;
                 movieSourceHref?: string;
               };
+              const linkProps = {
+                ...(itemWithLinks.realisticSourceHref
+                  ? { realisticSourceHref: itemWithLinks.realisticSourceHref }
+                  : {}),
+                ...(itemWithLinks.stylizedSourceHref
+                  ? { stylizedSourceHref: itemWithLinks.stylizedSourceHref }
+                  : {}),
+                ...(itemWithLinks.movieSourceHref
+                  ? { movieSourceHref: itemWithLinks.movieSourceHref }
+                  : {}),
+              };
 
               return (
                 <AIShenanigan
@@ -119,16 +130,14 @@ export default function AIShenanigansPageClient() {
                   orientation={item.orientation as AIShenaniganMovieOrientation}
                   realisticImage={item.realisticImage}
                   realisticSource={item.realisticSource}
-                  realisticSourceHref={itemWithLinks.realisticSourceHref}
                   realisticCaption={item.realisticCaption}
                   stylizedRendering={item.stylizedRendering}
                   stylizedSource={item.stylizedSource}
-                  stylizedSourceHref={itemWithLinks.stylizedSourceHref}
                   stylizedCaption={item.stylizedCaption}
                   movieRendering={item.movieRendering}
                   movieSource={item.movieSource}
-                  movieSourceHref={itemWithLinks.movieSourceHref}
                   movieCaption={item.movieCaption}
+                  {...linkProps}
                 />
               );
             })}
