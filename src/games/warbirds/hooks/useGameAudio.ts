@@ -1,6 +1,6 @@
 // hooks/useGameAudio.ts
 import { useCallback, useMemo, RefObject, useRef } from "react";
-import { useAudio } from "@/hooks/lightgun-web/useAudio";
+import { useAudio } from "@/hooks/audio/useAudio";
 import { AudioMgr } from "@/types/lightgun-web/audio";
 import { rewindAndPlayAudio, pauseAudio } from "@/utils/lightgun-web/audio";
 

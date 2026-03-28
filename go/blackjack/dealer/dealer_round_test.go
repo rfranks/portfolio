@@ -50,6 +50,7 @@ func TestDealRoundUsesIO(t *testing.T) {
 	p := player.CreatePlayer(cfg.PlayerStartStack, cfg.MinWager)
 	p.PlaceWager = func() int { return cfg.MinWager }
 	p.DoAction = func() (rune, error) { return 's', nil }
+	p.WillPlayTrifecta = func(stack int) bool { return false }
 	game.State.Players = append(game.State.Players, p)
 
 	game.CreateShoe(cfg.NumOfDecks)
@@ -62,5 +63,57 @@ func TestDealRoundUsesIO(t *testing.T) {
 	}
 	if len(io.renders) == 0 {
 		t.Fatalf("expected DealRound to render game state")
+	}
+}
+
+func TestDealRoundSpanish21PaysPlayerBlackjackWhenNotPrepaid(t *testing.T) {
+	previousMode := game.GameMode
+	game.GameMode = game.Spanish21
+	defer func() {
+		game.GameMode = previousMode
+	}()
+
+	cfg := flags.Config{
+		NumOfDecks:       1,
+		NumOfPlayers:     1,
+		MinWager:         10,
+		PlayerStartStack: 100,
+		Autoplay:         false,
+		DrawCards:        false,
+		Clean:            true,
+	}
+
+	game.State = game.BlackjackState{
+		BustCounts: make(map[cards.CardValue]int),
+		Dealer:     player.Player{Dealer: true},
+		Players:    make([]player.Player, 0),
+		House:      1000,
+		Shoe: game.Shoe{
+			Cards: []cards.Card{
+				cards.ToCard("♠A"),
+				cards.ToCard("♥9"),
+				cards.ToCard("♦K"),
+				cards.ToCard("♣8"),
+			},
+			Cut:   52,
+			Index: 0,
+		},
+	}
+	for _, v := range cards.CardValues {
+		game.State.BustCounts[v] = 0
+	}
+
+	p := player.CreatePlayer(cfg.PlayerStartStack, cfg.MinWager)
+	p.PlaceWager = func() int { return cfg.MinWager }
+	p.DoAction = func() (rune, error) { return 's', nil }
+	game.State.Players = append(game.State.Players, p)
+
+	io := &stubIO{actions: []rune{'d'}}
+	if _, err := DealRound(io, cfg); err != nil {
+		t.Fatalf("DealRound returned error: %v", err)
+	}
+
+	if got := game.State.Players[0].Winnings; got != 25 {
+		t.Fatalf("expected player blackjack winnings to be 25, got %d", got)
 	}
 }

@@ -71,5 +71,16 @@ export const rewindAndPlayAudio = (
   // Rewind to start
   audioRef.current.currentTime = 0;
   // Play the audio
-  audioRef.current.play();
+  const playPromise = audioRef.current.play();
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch((error: unknown) => {
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+      console.warn("Audio playback failed:", error);
+    });
+  }
 };

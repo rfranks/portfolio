@@ -123,6 +123,7 @@ func DealPlayers(u ui.IO, cfg flags.Config) {
 func DealRound(u ui.IO, cfg flags.Config) (rune, error) {
 	var err error
 	var char rune
+	blackjacksAlreadyPaid := false
 
 	game.State.Rounds += 1
 
@@ -168,6 +169,7 @@ func DealRound(u ui.IO, cfg flags.Config) (rune, error) {
 		case game.Spanish21:
 			// in Spanish21 Blackjacks are paid out first
 			PayWinners(true, true, false)
+			blackjacksAlreadyPaid = true
 		default:
 			// no pre-conditions
 		}
@@ -188,8 +190,7 @@ func DealRound(u ui.IO, cfg flags.Config) (rune, error) {
 	if !rules.CanHit(&game.State.Dealer.Hands[0]) {
 		switch game.GameMode {
 		case game.Spanish21:
-			// payBlackjack is false, because we already paid them in Spanish21
-			PayWinners(false, true, true)
+			PayWinners(!blackjacksAlreadyPaid, true, true)
 		default:
 			PayWinners(true, true, true)
 		}
