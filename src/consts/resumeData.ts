@@ -790,11 +790,13 @@ export const education = [
     degree: "B.S. Biomedical Engineering",
     year: "2003",
     image: "/bu.jpeg",
+    awards: ["Order of the Engineer • Engineering • 1998"],
   },
   {
     school: "University of Southern Maine",
     degree: "M.S. Computer Science",
     year: "2008",
     image: "/usm.jpeg",
+    awards: ["Graduate Student of the Year • Computer Science • 2008"],
   },
 ];

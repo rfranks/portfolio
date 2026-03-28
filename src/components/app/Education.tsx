@@ -2,6 +2,7 @@ import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
+import Box from "@mui/material/Box";
 import { education } from "@/consts/resumeData";
 import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
@@ -32,7 +33,23 @@ export default function Education() {
               </ListItemAvatar>
               <ListItemText
                 primary={edu.school}
-                secondary={`${edu.degree} • ${edu.year}`}
+                secondary={
+                  <Box component="span" sx={{ display: "block" }}>
+                    <Typography component="span" variant="body2" color="text.secondary">
+                      {edu.degree} • {edu.year}
+                    </Typography>
+                    {edu.awards && edu.awards.length > 0 && (
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ display: "block", mt: 0.5, fontStyle: "italic" }}
+                      >
+                        Awards: {edu.awards.join(", ")}
+                      </Typography>
+                    )}
+                  </Box>
+                }
               />
             </ListItem>
           ))}
