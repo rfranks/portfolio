@@ -349,14 +349,8 @@ export default function ProjectsGrid() {
                     className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
                     sx={{ borderRadius: "999px" }}
                     endIcon={<OpenInNew fontSize="small" />}
-                    target={
-                      project.href === "/blasteroids" ? "_blank" : undefined
-                    }
-                    rel={
-                      project.href === "/blasteroids"
-                        ? "noopener noreferrer"
-                        : undefined
-                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     Launch
                   </Button>

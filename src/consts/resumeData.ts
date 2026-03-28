@@ -1,14 +1,14 @@
 export const summary = {
   name: "Richard Franks",
-  title: "Principal Full Stack Engineer | AI-Driven Systems Architect",
-  location: "Boston, MA",
+  title: "Principal / Distinguished-level Full-stack Engineer",
+  location: "Derry, New Hampshire",
   contact: {
     linkedin: "https://www.linkedin.com/in/richardfranksjr",
     email: "richardfranksjr@hotmail.com",
     github: ["https://github.com/rfranks", "https://github.com/rfrankspk"],
   },
   blurb:
-    "Innovative Principal Full Stack Engineer with 15+ years of experience designing, building, and scaling enterprise-grade software across healthcare, fintech, and cloud platforms. Recognized as a \u201c10x developer\u201d and trusted problem-solver by colleagues, consistently delivering high-impact solutions under tight deadlines.",
+    "Principal / Distinguished-level full-stack engineer with 15 years of experience building production web applications, APIs, and domain-specific software across healthcare, fintech, and scientific-adjacent environments. Strong hands-on background in Python, Java, TypeScript, React, RESTful services, SQL/NoSQL-backed systems, and AI-enabled workflows.",
 };
 
 export const competencies = {
@@ -101,6 +101,11 @@ export const competencies = {
           description:
             "Organizing large frontend codebases with shared packages and microfrontend-friendly architecture.",
         },
+        {
+          label: "Turborepo",
+          description:
+            "Managing monorepos with cached builds, shared packages, and coordinated multi-application development workflows.",
+        },
       ],
     },
     {
@@ -142,14 +147,29 @@ export const competencies = {
             "Using managed AWS services for application hosting, AI integrations, and operational workflows.",
         },
         {
+          label: "Amazon S3",
+          description:
+            "Using object storage for application assets, document pipelines, exports, and cloud-native data workflows.",
+        },
+        {
           label: "CosmosDB",
           description:
             "Designing globally distributed document persistence for cloud-native application workloads.",
         },
         {
+          label: "Google Cloud Storage",
+          description:
+            "Managing object storage for files, data exchange, and cloud-hosted application workflows in Google Cloud environments.",
+        },
+        {
           label: "GitHub Actions CI/CD",
           description:
             "Automating builds, tests, releases, and deployment workflows directly in GitHub.",
+        },
+        {
+          label: "Model deployment",
+          description:
+            "Deploying machine learning and AI models into production workflows with attention to reliability, versioning, and operational monitoring.",
         },
         {
           label: "Containerized deployments",
@@ -202,7 +222,8 @@ export const competencies = {
             "Coaching engineers through design reviews, implementation strategy, and technical growth.",
         },
         {
-          label: "Cross-functional collaboration with product, UX, QA, and DevOps",
+          label:
+            "Cross-functional collaboration with product, UX, QA, and DevOps",
           description:
             "Translating business goals into shippable technical plans with strong delivery alignment.",
         },
@@ -286,25 +307,36 @@ export const competencies = {
 
 export const coreCompetencies = competencies.skills;
 
+export const hobbies = {
+  title: "Hobbies",
+  heroImageUrl: "/images/hobbies-hero.png",
+  heroVideoUrl: undefined as string | undefined,
+  items: [
+    "Sea-dooing",
+    "Pinball",
+    "Retro arcades and gaming in general",
+    "Lego Star Wars everything",
+    "AI Shennanigans",
+    "Boston sports teams",
+  ],
+};
+
 export const experience = [
   {
     company: "Carebrain",
     position: "Distinguished Engineer",
-    location: "Derry, New Hampshire, United States (Remote)",
+    location: "Remote",
     start: "September 2025",
     end: "March 2026",
     image: "/carebrain.jpeg",
     details: [
-      "6-month contract to deliver a medical scribe platform.",
-      "Shipped independently with minimal guidance and support within 5 months.",
       "Onboarded rapidly from a Java/Python background into a full TypeScript/Next.js/NestJS monorepo.",
-      "Built a robust LangChain pipeline with intelligent model selection and answer evaluation in TypeScript, reducing cost and improving answer quality versus single-model one-shot prompting.",
+      "Built a LangChain-based pipeline with intelligent model selection and answer evaluation, improving answer quality and model choice instead of relying on fixed one-shot prompting to a single vendor, preventing vendor lock-in and increasing uptime.",
+      "Implemented an in-person scribe workflow using Deepgram, AssemblyAI, ElevenLabs, AWS Transcribe Medical, and AWS Comprehend Medical, with extraction of topics, keywords, insights, and tasks at 95%+ accuracy.",
       "Implemented HIPAA audit logging for 100% of PHI transfer paths: monorepo services, internal APIs, third-party APIs, and database-level transactions.",
-      "Implemented an in-person scribe with multi-model council orchestration using Deepgram, AssemblyAI, ElevenLabs, and AWS Transcribe + Comprehend Medical.",
-      "Updated the Telehealth GetStream.io platform to use the new transcription pipeline.",
-      "Added consultation group chat by clinical care team (not only patient-centric chat groups).",
-      "Added a patient list with extensible indicators that support calculated, generated, pre-computed, and on-the-fly metadata from data services or LLMs.",
-      "Skills: Large Language Models (LLM), LangChain, TypeScript, React Native, Expo, Next.js, NestJS.",
+      "Built a patient list browser allowing a user to browse relevant EHR medical data and view clinical indicators, either pre-computed or computed on-the-fly from static analysis or LLM queries.",
+      "Improved Telehealth transcription workflows to 95%+ accuracy.",
+      "Implemented a Slack-like clinician-to-clinician group chat client built on top of GetStream.io.",
     ],
     achievements: [
       "Achieved 95%+ transcription/data extraction accuracy across multiple extraction modes (topics, keywords, insights).",
@@ -313,16 +345,16 @@ export const experience = [
   },
   {
     company: "Commure",
-    position: "Senior Software Architect / Principal Full Stack Engineer",
-    location: "Waltham, MA",
+    position: "Senior Software Architect / Principal Software Engineer",
+    location: "Remote",
     start: "June 2022",
-    end: "July 2025",
+    end: "September 2025",
     image: "/commure.jpeg",
     details: [
-      "Architected and delivered a GenAI Copilot for physicians, integrating LLMs + RAG pipelines to summarize EHRs, extract problems/risk factors, and recommend labs/medications.",
-      "Built scalable Python and TypeScript Azure Functions APIs with CosmosDB persistence.",
-      "Developed Next.js/React dashboards for real-time clinical insights, seamlessly integrated into physician workflows.",
-      "Mentored engineers across UI and backend teams, shaping cloud-native deployment strategies.",
+      "Architected and built an AI copilot using RAG and multiple LLMs over clinical EHR data, including summary generation and direct question answering.",
+      "Built a Python service calling CosmosDB and MongoDB stores, creating embeddings, querying documents, utilizing LangChain to call multiple LLM vendors, and performing answer analysis, evaluation, and validation.",
+      "Extended the AI copilot system to analyze progress notes, extract complications and risk factors, and support downstream recommendations tied to clinical coding systems like ICD-10 and CPT codes.",
+      "Brought applied AI capabilities into production workflows in a highly specialized domain, working across software, data, and end-user needs.",
     ],
     achievements: [
       "Delivered multiple AI-powered clinical tools now in production use.",
@@ -333,13 +365,15 @@ export const experience = [
     company: "PatientKeeper",
     position: "Principal Software Engineer / Architect",
     location: "Waltham, MA",
-    start: "2013",
-    end: "2022",
+    start: "December 2013",
+    end: "September 2021",
     details: [
-      "Re-architected a legacy physician portal into a customizable dashboard framework with 200+ gadgets, modernizing UX and performance.",
-      "Built enterprise-wide React/TypeScript monorepo libraries for reusable components.",
-      "Designed and implemented REST APIs using Spring and Hibernate, powering core EHR features.",
-      "Served on the Architecture Board, influencing technology direction and engineering best practices.",
+      "Rebuilt the portal application framework to support loosely coupled product screens across multiple suites using a Backbone.js/Handlebars MVC architecture with a RESTful Java Spring backend.",
+      "Helped reimagine the EHR with a dashboard framework supporting 200+ robust gadget implementations.",
+      "Created reusable custom components used across the engineering organization, including Patient List and Patient Assignment workflows.",
+      "Led design sessions, code reviews, created diagrams and documentation, mentored engineers, and integrated automated tests into CI/CD pipelines.",
+      "Served as an active member of the Architecture Board.",
+      "Led teams of up to 3-5 members.",
     ],
     achievements: [
       "Recognized with STAR Award (2020).",
@@ -348,22 +382,40 @@ export const experience = [
     image: "/patientkeeper.png",
   },
   {
+    company: "DressageMarket.com, LLC",
+    position: "Chief Engineer / Entrepreneur",
+    location: "Remote",
+    start: "August 2009",
+    end: "March 2021",
+    image: "/dressagemarket.jpg",
+    details: [
+      "Cofounded and served as sole engineer for a web-based classified marketplace, owning product architecture, implementation, and ongoing evolution end to end.",
+      "Worked closely with other cofounders to shape the product roadmap and help materialize the business vision.",
+      "Built the platform using Python and Django.",
+    ],
+  },
+  {
     company: "CashStar",
     position: "Engineer",
     location: "Portland, ME",
-    start: "2009",
-    end: "2010",
+    start: "June 2009",
+    end: "October 2010",
     details: [
-      "Designed and implemented a Java REST service layer integrating with 36+ gift card/payment processors.",
-      "Achieved 99.88% uptime, praised by partners for record-fast certification turnaround.",
+      "Led engineering on a Java REST service layer connecting a customer-facing application to external gift-card processors.",
+      "Built and certified integrations with major credit card processors and supported launches across 36 national and regional brands.",
+      "Maintained 99.88% uptime while supporting the service in production and strengthening automated testing and CI workflows.",
     ],
     image: "/cashstar.png",
   },
   {
     company: "REZ-1",
-    position: "Engineer",
+    position: "Software Engineering Consultant",
+    location: "Wellesley, MA",
+    start: "October 2010",
+    end: "June 2012",
     details: [
-      "Enterprise UI + backend engineering with Spring, Hibernate, Vaadin.",
+      "Contributed across the full stack on a large-scale enterprise rewrite for freight marketplace software, spanning UI, middle-tier services, backend entities, testing, deployment, and maintenance.",
+      "Worked with Vaadin, Liferay, Tomcat, Spring, Hibernate, JPA, JAX-WS, and jUnit, including contribution to an annotation-driven framework for faster development.",
     ],
   },
   {
@@ -374,7 +426,9 @@ export const experience = [
   {
     company: "Fetch Enterprises",
     position: "Full-stack Developer",
-    details: ["Full-stack developer (Java, Django)."],
+    details: [
+      "Full-stack developer focused on Java-based web application development.",
+    ],
   },
 ];
 
@@ -414,14 +468,14 @@ export const projects: {
     interestsMeWhy:
       "Building an aerial combat game pushed my understanding of canvas rendering and simple AI. It's a fun showcase of real-time physics entirely in the browser.",
   },
-  {
-    name: "ZombieFish",
-    description: "Hook undead fish before they bite.",
-    href: "/zombiefish",
-    type: "personal",
-    interestsMeWhy:
-      "I enjoyed blending playful art with responsive collision mechanics. It was a chance to experiment with physics and humor in a casual game.",
-  },
+  // {
+  //   name: "ZombieFish",
+  //   description: "Hook undead fish before they bite.",
+  //   href: "/zombiefish",
+  //   type: "personal",
+  //   interestsMeWhy:
+  //     "I enjoyed blending playful art with responsive collision mechanics. It was a chance to experiment with physics and humor in a casual game.",
+  // },
   {
     name: "Blackjack",
     description: "Classic twenty-one card game against the dealer.",
@@ -470,6 +524,15 @@ export const projects: {
     type: "personal",
     interestsMeWhy:
       "Integrating LLMs with PDF parsing shows how AI can unlock static documents. It was exciting to craft a conversational interface over complex texts.",
+  },
+  {
+    name: "TalentForge",
+    description:
+      "AI-assisted career and offer strategy workspace for tracking applications, comparing offers, and managing negotiation playbooks.",
+    href: "/talentforge",
+    type: "personal",
+    interestsMeWhy:
+      "It brings together structured workflow design, AI assistance, and practical decision support in a way that feels like a real product rather than just a demo.",
   },
   {
     name: "Patient List Project",
@@ -723,13 +786,13 @@ I highly recommend Richard.`,
 
 export const education = [
   {
-    school: "University of Southern Maine",
-    degree: "M.S. Computer Science",
-    image: "/usm.jpeg",
-  },
-  {
     school: "Boston University",
     degree: "B.S. Biomedical Engineering",
     image: "/bu.jpeg",
+  },
+  {
+    school: "University of Southern Maine",
+    degree: "M.S. Computer Science",
+    image: "/usm.jpeg",
   },
 ];

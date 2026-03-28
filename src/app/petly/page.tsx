@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Container, Typography } from "@mui/material";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { withBasePath } from "@/utils/basePath";
 
 export default function PetlyPage() {
   const { setDocumentTitle } = useDocumentTitle();
@@ -16,16 +17,15 @@ export default function PetlyPage() {
         Petly
       </Typography>
       <video
-        src="/demovideos/petly.mov"
+        src={withBasePath("/demovideos/petly.mov")}
         controls
         style={{ width: "100%", maxWidth: 800 }}
       />
       <Typography variant="body1" sx={{ mt: 2 }}>
-        Petly blended a Facebook-style experience for pet owners with
-        full veterinary health records—vaccinations, x-rays, visits, and
-        invoices. Built at IDEXX, the portal transformed boxy Liferay
-        widgets into a playful notebook of sticky notes, lists, and
-        photos.
+        Petly blended a Facebook-style experience for pet owners with full
+        veterinary health records—vaccinations, x-rays, visits, and invoices.
+        Built at IDEXX, the portal transformed boxy Liferay widgets into a
+        playful notebook of sticky notes, lists, and photos.
       </Typography>
     </Container>
   );

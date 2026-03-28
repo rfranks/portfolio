@@ -31,6 +31,7 @@ import AppBar from "@/components/app/AppBar";
 import Drawer from "@/components/app/Drawer";
 import ResumeHero from "@/components/app/ResumeHero";
 import ResumeSummary from "@/components/app/ResumeSummary";
+import HobbiesCard from "@/components/app/HobbiesCard";
 import CoreCompetencies from "@/components/app/CoreCompetencies";
 import ExperienceTimeline from "@/components/app/ExperienceTimeline";
 import ProjectsGrid from "@/components/app/ProjectsGrid";
@@ -38,6 +39,7 @@ import Education from "@/components/app/Education";
 import Recognition from "@/components/app/Recognition";
 import ContactCTA from "@/components/app/ContactCTA";
 import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
 import { summary } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -217,7 +219,10 @@ export default function HomePageClient() {
             <ResumeHero />
             <Grid container spacing={3} className="items-stretch">
               <Grid item xs={12} sm={12} md={6} lg={6}>
-                <ResumeSummary />
+                <Stack spacing={3} className="h-full">
+                  <ResumeSummary />
+                  <HobbiesCard />
+                </Stack>
               </Grid>
               <Grid item xs={12} sm={12} md={6} lg={6}>
                 <CoreCompetencies />

@@ -28,6 +28,7 @@ export default function ExperienceTimeline() {
           Experience
         </Typography>
         <Timeline
+          position={isMobile ? "right" : "alternate"}
           sx={{
             m: 0,
             p: 0,
@@ -42,7 +43,16 @@ export default function ExperienceTimeline() {
           {experience.map((exp, index) => (
             <TimelineItem key={`${exp.company}-${index}`}>
               {!isMobile && (
-                <TimelineOppositeContent color="text.secondary">
+                <TimelineOppositeContent
+                  color="text.secondary"
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: index % 2 === 0 ? "flex-end" : "flex-start",
+                    textAlign: index % 2 === 0 ? "right" : "left",
+                    gap: 1,
+                  }}
+                >
                   <Typography variant="body2">
                     {exp.start}
                     {exp.end ? ` - ${exp.end}` : ""}
