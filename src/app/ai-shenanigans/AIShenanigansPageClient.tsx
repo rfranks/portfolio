@@ -16,7 +16,11 @@ import AIShenanigan, {
   AIShenaniganMovieOrientation,
 } from "@/components/app/AIShenanigan";
 import AppBar from "@/components/app/AppBar";
-import { aiShenanigans, portfolioApps, summary } from "@/personal/data/resumeData";
+import {
+  aiShenanigans,
+  portfolioApps,
+  summary,
+} from "@/personal/data/resumeData";
 import getFabricTheme from "@/themes/fabricTheme";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { withBasePath } from "@/utils/basePath";
@@ -99,27 +103,35 @@ export default function AIShenanigansPageClient() {
                 {aiShenanigans.description}
               </Typography>
             </Box>
-            {aiShenanigans.items.map((item, index) => (
-              <AIShenanigan
-                key={item.slug}
-                rank={index + 1}
-                title={item.title}
-                blurb={item.blurb}
-                orientation={item.orientation as AIShenaniganMovieOrientation}
-                realisticImage={item.realisticImage}
-                realisticSource={item.realisticSource}
-                realisticSourceHref={item.realisticSourceHref}
-                realisticCaption={item.realisticCaption}
-                stylizedRendering={item.stylizedRendering}
-                stylizedSource={item.stylizedSource}
-                stylizedSourceHref={item.stylizedSourceHref}
-                stylizedCaption={item.stylizedCaption}
-                movieRendering={item.movieRendering}
-                movieSource={item.movieSource}
-                movieSourceHref={item.movieSourceHref}
-                movieCaption={item.movieCaption}
-              />
-            ))}
+            {aiShenanigans.items.map((item, index) => {
+              const itemWithLinks = item as typeof item & {
+                realisticSourceHref?: string;
+                stylizedSourceHref?: string;
+                movieSourceHref?: string;
+              };
+
+              return (
+                <AIShenanigan
+                  key={item.slug}
+                  rank={index + 1}
+                  title={item.title}
+                  blurb={item.blurb}
+                  orientation={item.orientation as AIShenaniganMovieOrientation}
+                  realisticImage={item.realisticImage}
+                  realisticSource={item.realisticSource}
+                  realisticSourceHref={itemWithLinks.realisticSourceHref}
+                  realisticCaption={item.realisticCaption}
+                  stylizedRendering={item.stylizedRendering}
+                  stylizedSource={item.stylizedSource}
+                  stylizedSourceHref={itemWithLinks.stylizedSourceHref}
+                  stylizedCaption={item.stylizedCaption}
+                  movieRendering={item.movieRendering}
+                  movieSource={item.movieSource}
+                  movieSourceHref={itemWithLinks.movieSourceHref}
+                  movieCaption={item.movieCaption}
+                />
+              );
+            })}
           </Stack>
         </Container>
       </Box>
