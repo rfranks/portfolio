@@ -788,11 +788,13 @@ export const education = [
   {
     school: "Boston University",
     degree: "B.S. Biomedical Engineering",
+    year: "2003",
     image: "/bu.jpeg",
   },
   {
     school: "University of Southern Maine",
     degree: "M.S. Computer Science",
+    year: "2008",
     image: "/usm.jpeg",
   },
 ];

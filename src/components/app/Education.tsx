@@ -30,7 +30,10 @@ export default function Education() {
                   width={48}
                 />
               </ListItemAvatar>
-              <ListItemText primary={edu.school} secondary={edu.degree} />
+              <ListItemText
+                primary={edu.school}
+                secondary={`${edu.degree} • ${edu.year}`}
+              />
             </ListItem>
           ))}
         </List>
