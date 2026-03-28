@@ -5,6 +5,7 @@ import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import FadeInSection from "@/components/app/FadeInSection";
@@ -22,12 +23,15 @@ type AIShenaniganProps = {
   orientation?: AIShenaniganMovieOrientation;
   realisticImage: string;
   realisticSource?: string;
+  realisticSourceHref?: string;
   realisticCaption?: string;
-  stylizedRendering: string;
+  stylizedRendering?: string;
   stylizedSource?: string;
+  stylizedSourceHref?: string;
   stylizedCaption?: string;
   movieRendering?: string | null;
   movieSource?: string;
+  movieSourceHref?: string;
   movieCaption?: string;
 };
 
@@ -42,12 +46,15 @@ export default function AIShenanigan({
   orientation = "landscape",
   realisticImage,
   realisticSource,
+  realisticSourceHref,
   realisticCaption,
   stylizedRendering,
   stylizedSource,
+  stylizedSourceHref,
   stylizedCaption,
   movieRendering,
   movieSource,
+  movieSourceHref,
   movieCaption,
 }: AIShenaniganProps) {
   const [stage, setStage] = useState<RevealStage>("intro");
@@ -66,6 +73,7 @@ export default function AIShenanigan({
   const inspirationSfx = useAudio("/audio/highUp.ogg");
   const stylizedSfx = useAudio("/audio/powerUp3.ogg");
   const motionSfx = useAudio("/audio/whoosh.ogg");
+  const hasStylized = Boolean(stylizedRendering);
   const hasMovie = Boolean(movieRendering);
   const isPortrait = orientation === "portrait";
   const hasVisibleMedia = realisticVisible;
@@ -82,22 +90,27 @@ export default function AIShenanigan({
         label: "Realistic source",
         active: realisticVisible,
       },
-      {
-        key: "stylized" as const,
-        label: "Stylized rendering",
-        active: stylizedVisible || showStylizedArrow,
-      },
+      ...(hasStylized
+        ? [
+            {
+              key: "stylized" as const,
+              label: "Stylized rendering",
+              active: stylizedVisible || showStylizedArrow,
+            },
+          ]
+        : []),
       ...(hasMovie
         ? [
             {
               key: "movie" as const,
               label: "Motion rendering",
-              active: movieVisible || showMovieArrow,
+              active: movieVisible || (hasStylized && showMovieArrow),
             },
           ]
         : []),
     ],
     [
+      hasStylized,
       hasMovie,
       movieVisible,
       realisticVisible,
@@ -187,6 +200,35 @@ export default function AIShenanigan({
       </Box>
     </Box>
   );
+
+  const renderSource = (label?: string, href?: string) => {
+    if (!label) {
+      return null;
+    }
+
+    return (
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ mt: 1.5, display: "block" }}
+      >
+        Source:{" "}
+        {href ? (
+          <Link
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            underline="hover"
+            color="primary.main"
+          >
+            {label}
+          </Link>
+        ) : (
+          label
+        )}
+      </Typography>
+    );
+  };
 
   useEffect(() => {
     if (stage !== "movie") {
@@ -279,7 +321,9 @@ export default function AIShenanigan({
     }
     setTransitioningTo("movie");
     rewindAndPlayAudio(motionSfx, { volume: 0.3 });
-    setShowMovieArrow(true);
+    if (hasStylized) {
+      setShowMovieArrow(true);
+    }
     movieTimeoutRef.current = window.setTimeout(() => {
       setMovieVisible(true);
       setStage("movie");
@@ -340,6 +384,30 @@ export default function AIShenanigan({
                   </Box>
                   <Typography variant="overline" color="primary">
                     AI Shenanigan
+                  </Typography>
+                  <Typography
+                    sx={{
+                      mt: 0.5,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      px: 1.5,
+                      py: 0.5,
+                      borderRadius: 999,
+                      border: "1px solid",
+                      borderColor: "rgba(96,165,250,0.45)",
+                      bgcolor: "rgba(15,23,42,0.42)",
+                      color: "rgb(191,219,254)",
+                      fontSize: hasVisibleMedia ? "0.95rem" : "1.05rem",
+                      fontWeight: 900,
+                      letterSpacing: "0.08em",
+                      lineHeight: 1,
+                      textTransform: "uppercase",
+                      boxShadow: "0 0 18px rgba(37,99,235,0.16)",
+                      transition:
+                        "font-size 360ms cubic-bezier(.2,.8,.2,1), transform 360ms cubic-bezier(.2,.8,.2,1), opacity 240ms ease",
+                    }}
+                  >
+                    {formattedRank}
                   </Typography>
                   <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
                     {title}
@@ -424,13 +492,22 @@ export default function AIShenanigan({
                           Reveal Inspiration! 💡
                         </Button>
                       )}
-                      {stage === "realistic" && (
+                      {stage === "realistic" && hasStylized && (
                         <Button
                           variant="contained"
                           onClick={handleRevealStylized}
                           disabled={transitioningTo !== null}
                         >
                           Reveal Stylized 🎨
+                        </Button>
+                      )}
+                      {stage === "realistic" && !hasStylized && hasMovie && (
+                        <Button
+                          variant="contained"
+                          onClick={handleRevealMovie}
+                          disabled={transitioningTo !== null}
+                        >
+                          Reveal Motion 🎬
                         </Button>
                       )}
                       {stage === "stylized" && hasMovie && (
@@ -506,15 +583,7 @@ export default function AIShenanigan({
                           marginInline: "auto",
                         }}
                       />
-                      {realisticSource && (
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ mt: 1.5, display: "block" }}
-                        >
-                          Source: {realisticSource}
-                        </Typography>
-                      )}
+                      {renderSource(realisticSource, realisticSourceHref)}
                       {realisticCaption && (
                         <Typography
                           variant="body2"
@@ -525,23 +594,27 @@ export default function AIShenanigan({
                         </Typography>
                       )}
                     </Box>
-                    <Box
-                      sx={{
-                        display: { xs: "flex", xl: "none" },
-                        justifyContent: "center",
-                      }}
-                    >
-                      {renderArrow("down", showStylizedArrow)}
-                    </Box>
-                    <Box
-                      sx={{
-                        display: { xs: "none", xl: "flex" },
-                        justifyContent: "center",
-                      }}
-                    >
-                      {renderArrow("right", showStylizedArrow)}
-                    </Box>
-                    {stylizedVisible && (
+                    {hasStylized && (
+                      <Box
+                        sx={{
+                          display: { xs: "flex", xl: "none" },
+                          justifyContent: "center",
+                        }}
+                      >
+                        {renderArrow("down", showStylizedArrow)}
+                      </Box>
+                    )}
+                    {hasStylized && (
+                      <Box
+                        sx={{
+                          display: { xs: "none", xl: "flex" },
+                          justifyContent: "center",
+                        }}
+                      >
+                        {renderArrow("right", showStylizedArrow)}
+                      </Box>
+                    )}
+                    {stylizedVisible && stylizedRendering && (
                       <Box
                         className="rounded-[28px] border border-white/10 bg-white/5 p-3 shadow-lg"
                         sx={{
@@ -576,15 +649,7 @@ export default function AIShenanigan({
                             marginInline: "auto",
                           }}
                         />
-                        {stylizedSource && (
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ mt: 1.5, display: "block" }}
-                          >
-                            Source: {stylizedSource}
-                          </Typography>
-                        )}
+                        {renderSource(stylizedSource, stylizedSourceHref)}
                         {stylizedCaption && (
                           <Typography
                             variant="body2"
@@ -599,13 +664,15 @@ export default function AIShenanigan({
                   </>
                 )}
               </Stack>
-              {hasMovie && (showMovieArrow || movieVisible) && (
+              {hasMovie && (movieVisible || (hasStylized ? showMovieArrow : realisticVisible)) && (
                 <>
-                  <Box
-                    sx={{ display: "flex", justifyContent: "center", py: 0.5 }}
-                  >
-                    {renderArrow("down", showMovieArrow)}
-                  </Box>
+                  {hasStylized && (
+                    <Box
+                      sx={{ display: "flex", justifyContent: "center", py: 0.5 }}
+                    >
+                      {renderArrow("down", showMovieArrow)}
+                    </Box>
+                  )}
                   {movieVisible && (
                     <Box
                       ref={motionSectionRef}
@@ -635,15 +702,7 @@ export default function AIShenanigan({
                           mx: isPortrait ? "auto" : undefined,
                         }}
                       />
-                      {movieSource && (
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ mt: 1.5, display: "block" }}
-                        >
-                          Source: {movieSource}
-                        </Typography>
-                      )}
+                      {renderSource(movieSource, movieSourceHref)}
                       {movieCaption && (
                         <Typography
                           variant="body2"

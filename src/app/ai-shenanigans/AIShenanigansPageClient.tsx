@@ -108,12 +108,15 @@ export default function AIShenanigansPageClient() {
                 orientation={item.orientation as AIShenaniganMovieOrientation}
                 realisticImage={item.realisticImage}
                 realisticSource={item.realisticSource}
+                realisticSourceHref={item.realisticSourceHref}
                 realisticCaption={item.realisticCaption}
                 stylizedRendering={item.stylizedRendering}
                 stylizedSource={item.stylizedSource}
+                stylizedSourceHref={item.stylizedSourceHref}
                 stylizedCaption={item.stylizedCaption}
                 movieRendering={item.movieRendering}
                 movieSource={item.movieSource}
+                movieSourceHref={item.movieSourceHref}
                 movieCaption={item.movieCaption}
               />
             ))}

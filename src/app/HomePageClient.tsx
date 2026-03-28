@@ -95,6 +95,9 @@ export default function HomePageClient() {
     casino: <Casino />,
     flight: <Flight />,
   } as const;
+  type NavIconKey = keyof typeof navIcons;
+
+  const hasNavIcon = (icon: string): icon is NavIconKey => icon in navIcons;
 
   const appBarTitle = `${summary.name} • ${summary.title
     .split("|")[0]
@@ -255,7 +258,9 @@ export default function HomePageClient() {
                   className="transition-transform duration-200 ease-out hover:translate-x-1"
                   sx={{ borderRadius: 0 }}
                 >
-                  <ListItemIcon>{navIcons[item.icon]}</ListItemIcon>
+                  <ListItemIcon>
+                    {hasNavIcon(item.icon) ? navIcons[item.icon] : <HomeIcon />}
+                  </ListItemIcon>
                   <ListItemText primary={item.label} />
                 </ListItemButton>
               </Tooltip>

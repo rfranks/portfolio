@@ -469,6 +469,34 @@
         "movieSource": "Sora video generation",
         "movieCaption": "The caricature turns into a short motion beat, leaning into Momma Helen's delighted reaction to her first taste of deep-fried frog legs.  The frogs are not impressed.",
         "blurb": "Momma Helen, reimagined as a full cartoon caricature, tries deep-fried frog legs for the first time and immediately loves them. The whole piece leans into that exact moment of delighted surprise, where one crispy bite turns into a kitchen-table legend and Momma Helen decides this absolutely belongs in the regular rotation."
+      },
+      {
+        "slug": "budweiser-pacman",
+        "title": "Budweiser Pac-Man",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/budweiser-pacman/realistic.jpeg",
+        "realisticSource": "Photo (Richard Franks Jr)",
+        "realisticCaption": "A real-world Pac-Man-meets-Budweiser scene that already feels a little surreal before any AI motion gets involved.",
+        "movieRendering": "/personal/images/ai-shenanigans/budweiser-pacman/movie.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "The still gets pushed straight into motion, letting the arcade-meets-beer-sign energy do the work without an intermediate stylized frame.",
+        "blurb": "A Budweiser-and-Pac-Man visual mashup that skips the caricature pass and goes straight from the photographed source into motion. This one plays more like a retro ad fragment: bright, weird, nostalgic, and just a little overcaffeinated."
+      },
+      {
+        "slug": "ricky-franks-jr-2b",
+        "title": "Ricky Franks Jr - Topps Trader 2B",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/ricky-franks-jr-2b/realistic.jpeg",
+        "realisticSource": "Unknown",
+        "realisticCaption": "The original image that kicks off the baseball-card fantasy before the stylized trader pass turns it into something collectible.  Start with my headshot!",
+        "stylizedRendering": "/personal/images/ai-shenanigans/ricky-franks-jr-2b/stylistic.png",
+        "stylizedSource": "Richard's Topps Trader GPT",
+        "stylizedSourceHref": "https://chatgpt.com/g/g-69aa197ad56c8191bfd45be339970b4b-topps-trader",
+        "stylizedCaption": "The image gets reframed like a dream Topps pull, leaning into the fantasy of Ricky Franks Jr. landing on a card as the Red Sox second baseman.",
+        "movieRendering": "/personal/images/ai-shenanigans/ricky-franks-jr-2b/movie.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "The card fantasy comes alive in motion, pushing the baseball-daydream energy a step past the still frame.",
+        "blurb": "Ricky Franks dreams of having his own Topps card and lining up at second base for the Red Sox. This shenanigan turns that baseball-kid fantasy into a trading-card moment, then lets it come to life in motion like a highlight reel from an alternate timeline."
       }
     ]
   },
