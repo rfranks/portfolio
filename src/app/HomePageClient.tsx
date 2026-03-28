@@ -30,8 +30,7 @@ import {
 } from "@mui/icons-material";
 import AppBar from "@/components/app/AppBar";
 import Drawer from "@/components/app/Drawer";
-import ResumeHero from "@/components/app/ResumeHero";
-import ResumeSummary from "@/components/app/ResumeSummary";
+import ResumeOverview from "@/components/app/ResumeOverview";
 import HobbiesCard from "@/components/app/HobbiesCard";
 import CoreCompetencies from "@/components/app/CoreCompetencies";
 import ExperienceTimeline from "@/components/app/ExperienceTimeline";
@@ -40,7 +39,7 @@ import Education from "@/components/app/Education";
 import Recognition from "@/components/app/Recognition";
 import ContactCTA from "@/components/app/ContactCTA";
 import Grid from "@mui/material/Grid";
-import { summary } from "@/personal/data/resumeData";
+import { navigation, summary } from "@/personal/data/resumeData";
 import { withBasePath } from "@/utils/basePath";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import getFabricTheme from "@/themes/fabricTheme";
@@ -51,8 +50,7 @@ export default function HomePageClient() {
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
   const tocSections = [
-    { id: "hero", label: "Hero" },
-    { id: "summary", label: "Summary" },
+    { id: "hero", label: "Summary" },
     { id: "education", label: "Education" },
     { id: "experience", label: "Experience" },
     { id: "competencies", label: "Core Competencies" },
@@ -64,7 +62,7 @@ export default function HomePageClient() {
 
   const { setDocumentTitle } = useDocumentTitle();
   useEffect(() => {
-    setDocumentTitle("Richard Franks | Résumé");
+    setDocumentTitle(summary.documentTitle);
   }, [setDocumentTitle]);
 
   const toggleDrawer = () => {
@@ -75,16 +73,28 @@ export default function HomePageClient() {
     setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
   };
 
-  const navItems = [
-    { label: "Home", href: "/", icon: <HomeIcon /> },
-    { label: "GeneBoard", href: "/dna", icon: <Science /> },
-    { label: "Bookworm", href: "/bookworm", icon: <MenuBook /> },
-    { label: "TalentForge", href: "/talentforge", icon: <Build /> },
-    { label: "AI Shenanigans", href: "/ai-shenanigans", icon: <AutoFixHigh /> },
-    { label: "Rickbert Studio", href: "/rickbert", icon: <AutoStories /> },
-    { label: "Blackjack", href: "/blackjack", icon: <Casino /> },
-    { label: "Warbirds", href: "/warbirds", icon: <Flight /> },
-  ];
+  const handleTocClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string,
+  ) => {
+    event.preventDefault();
+    const target = document.getElementById(sectionId);
+    if (!target) {
+      return;
+    }
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const navIcons = {
+    home: <HomeIcon />,
+    science: <Science />,
+    menuBook: <MenuBook />,
+    build: <Build />,
+    autoFixHigh: <AutoFixHigh />,
+    autoStories: <AutoStories />,
+    casino: <Casino />,
+    flight: <Flight />,
+  } as const;
 
   const appBarTitle = `${summary.name} • ${summary.title
     .split("|")[0]
@@ -100,6 +110,43 @@ export default function HomePageClient() {
           color: "text.primary",
         }}
       >
+        <Box
+          component="a"
+          href={navigation.forkRibbon.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            position: "fixed",
+            top: 54,
+            right: -54,
+            zIndex: (theme) => theme.zIndex.tooltip + 1,
+            display: { xs: "none", md: "block" },
+            width: 220,
+            py: 1,
+            textAlign: "center",
+            textDecoration: "none",
+            textTransform: "uppercase",
+            letterSpacing: "0.16em",
+            fontSize: "0.72rem",
+            fontWeight: 800,
+            color: "#fff",
+            background:
+              "linear-gradient(90deg, rgba(17,24,39,0.96) 0%, rgba(31,41,55,0.98) 100%)",
+            boxShadow: "0 10px 24px rgba(0,0,0,0.28)",
+            borderTop: "1px solid rgba(255,255,255,0.16)",
+            borderBottom: "1px solid rgba(255,255,255,0.16)",
+            transform: "rotate(45deg)",
+            transformOrigin: "center",
+            transition: "background 180ms ease, box-shadow 180ms ease",
+            "&:hover": {
+              background:
+                "linear-gradient(90deg, rgba(30,41,59,0.98) 0%, rgba(15,23,42,1) 100%)",
+              boxShadow: "0 14px 28px rgba(0,0,0,0.34)",
+            },
+          }}
+        >
+          {navigation.forkRibbon.label}
+        </Box>
         <AppBar
           open={open}
           drawerWidth={drawerWidth}
@@ -125,7 +172,7 @@ export default function HomePageClient() {
             }}
           >
             <Avatar
-              src={withBasePath("/personal/images/personal/me.jpeg")}
+              src={withBasePath(summary.avatarImage)}
               alt={summary.name}
               sx={{
                 width: 38,
@@ -185,7 +232,7 @@ export default function HomePageClient() {
           </Toolbar>
           <Divider />
           <List component="nav">
-            {navItems.map((item) => (
+            {navigation.drawerItems.map((item) => (
               <Tooltip
                 key={item.href}
                 title={item.label}
@@ -208,7 +255,7 @@ export default function HomePageClient() {
                   className="transition-transform duration-200 ease-out hover:translate-x-1"
                   sx={{ borderRadius: 0 }}
                 >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemIcon>{navIcons[item.icon]}</ListItemIcon>
                   <ListItemText primary={item.label} />
                 </ListItemButton>
               </Tooltip>
@@ -227,34 +274,36 @@ export default function HomePageClient() {
             <Box className="absolute right-0 top-24 h-80 w-80 rounded-full bg-blue-400/10 blur-3xl" />
           </Box>
           <Toolbar />
-          <Container className="py-6 md:py-8">
+          <Container
+            className="py-6 md:py-8"
+            sx={{
+              height: { xs: "auto", lg: "calc(100vh - 64px)" },
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <Box
               sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "minmax(0, 1fr)",
-                  lg: "180px minmax(0, 1fr)",
-                  xl: "200px minmax(0, 1fr)",
-                },
-                alignItems: "start",
-                columnGap: { lg: 4, xl: 6 },
+                display: { xs: "block", lg: "flex" },
+                alignItems: "stretch",
+                gap: { xs: 0, lg: 4, xl: 6 },
+                minHeight: 0,
+                height: { xs: "auto", lg: "100%" },
               }}
             >
               <Box
                 component="aside"
                 sx={{
                   display: { xs: "none", lg: "block" },
-                  minWidth: 0,
+                  width: { lg: 180, xl: 200 },
+                  flexShrink: 0,
                 }}
               >
                 <Box
                   sx={{
-                    position: "sticky",
-                    top: { lg: 96, xl: 104 },
                     borderLeft: "1px solid",
                     borderColor: "divider",
                     pl: 2,
-                    alignSelf: "start",
                   }}
                 >
                   <Typography
@@ -278,6 +327,9 @@ export default function HomePageClient() {
                         key={section.id}
                         component="a"
                         href={`#${section.id}`}
+                        onClick={(event: React.MouseEvent<HTMLAnchorElement>) =>
+                          handleTocClick(event, section.id)
+                        }
                         sx={{
                           color: "text.secondary",
                           fontSize: "0.925rem",
@@ -296,24 +348,23 @@ export default function HomePageClient() {
                   </Box>
                 </Box>
               </Box>
-              <Box sx={{ minWidth: 0 }}>
+              <Box
+                sx={{
+                  minWidth: 0,
+                  flex: "1 1 auto",
+                  minHeight: 0,
+                  overflowY: { xs: "visible", lg: "auto" },
+                  pr: { lg: 1 },
+                }}
+              >
                 <Box
                   component="section"
                   id="hero"
                   sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
                 >
-                  <ResumeHero />
+                  <ResumeOverview />
                 </Box>
                 <Grid container spacing={3} className="items-stretch">
-                  <Grid item xs={12} sm={12} md={12} lg={12}>
-                    <Box
-                      component="section"
-                      id="summary"
-                      sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
-                    >
-                      <ResumeSummary />
-                    </Box>
-                  </Grid>
                   <Grid item xs={12} sm={12} md={12} lg={12}>
                     <Box
                       component="section"

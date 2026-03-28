@@ -1,26 +1,17 @@
 import type { Metadata } from "next";
 import HomePageClient from "./HomePageClient";
-import Link from "next/link";
-import { withBasePath } from "@/utils/basePath";
+import { summary } from "@/personal/data/resumeData";
 
 export const metadata: Metadata = {
-  title: "Richard Franks | Résumé",
-  description:
-    "Résumé of Richard Franks, Principal Full Stack Engineer and AI-driven systems architect.",
+  title: summary.metadataTitle,
+  description: summary.metadataDescription,
   openGraph: {
-    title: "Richard Franks | Résumé",
-    description:
-      "Résumé of Richard Franks, Principal Full Stack Engineer and AI-driven systems architect.",
+    title: summary.metadataTitle,
+    description: summary.metadataDescription,
     type: "website",
   },
 };
 
 export default function Home() {
-  return (
-    <>
-      <HomePageClient />
-      <Link href={withBasePath("/talentforge")}>TalentForge</Link>
-    </>
-  );
+  return <HomePageClient />;
 }
-

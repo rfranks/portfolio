@@ -25,6 +25,7 @@ import "./page.css"; // Ensure global styles are applied
 import { hasOpenAIKey, setOpenAIKey } from "@/utils/bookworm/utils";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import OpenAIKeyInterstitialContent from "@/components/OpenAIKeyInterstitialContent";
+import { portfolioApps } from "@/personal/data/resumeData";
 
 export default function BookwormPage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");
@@ -34,7 +35,7 @@ export default function BookwormPage() {
   const { setDocumentTitle } = useDocumentTitle();
 
   React.useEffect(() => {
-    setDocumentTitle("Bookworm");
+    setDocumentTitle(portfolioApps.bookworm.documentTitle);
   }, [setDocumentTitle]);
 
   const toggleColorMode = () => {
@@ -56,8 +57,8 @@ export default function BookwormPage() {
       <ThemeProvider theme={defaultTheme}>
         <CssBaseline />
         <OpenAIKeyInterstitialContent
-          appName="Bookworm"
-          logoAlt="Bookworm logo"
+          appName={portfolioApps.bookworm.interstitialAppName}
+          logoAlt={portfolioApps.bookworm.interstitialLogoAlt}
           value={draftKey}
           onChange={setDraftKey}
           onSubmit={handleSubmit}

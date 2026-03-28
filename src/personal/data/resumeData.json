@@ -3,7 +3,13 @@
     "name": "Richard Franks",
     "title": "Principal / Distinguished-level Full-stack Engineer",
     "heroOverline": "Principal Full Stack Engineer",
-    "location": "Derry, New Hampshire",
+    "documentTitle": "Richard Franks | Résumé",
+    "metadataTitle": "Richard Franks | Résumé",
+    "metadataDescription": "Résumé of Richard Franks, Principal Full Stack Engineer and AI-driven systems architect.",
+    "location": "Boston, MA / Derry, NH",
+    "avatarImage": "/personal/images/personal/me.jpeg",
+    "headshotImage": "/personal/images/personal/me-headshot.jpeg",
+    "resumeUrl": "/resume.pdf",
     "contact": {
       "linkedin": "https://www.linkedin.com/in/richardfranksjr",
       "email": "richardfranksjr@hotmail.com",
@@ -17,6 +23,90 @@
       "Focused on building production systems where product complexity, domain complexity, and technical complexity all intersect, especially in healthcare and AI-assisted workflows.",
       "Strong across the full stack: modern React and Next.js frontends, TypeScript and Python service layers, Java enterprise systems, and cloud-native delivery on Azure and AWS.",
       "Operates comfortably at both architecture and execution depth, turning ambiguous requirements into shipped software while improving reliability, developer velocity, and long-term maintainability."
+    ]
+  },
+  "contactCTA": {
+    "title": "Contact",
+    "body": "Open to principal-level full stack, AI platform, and product engineering opportunities where architecture and delivery both matter.",
+    "primaryLabel": "Email",
+    "secondaryLabel": "LinkedIn"
+  },
+  "portfolioApps": {
+    "site": {
+      "description": "Résumé of Richard Franks, Principal Full Stack Engineer and AI-driven systems architect."
+    },
+    "aiShenanigans": {
+      "documentTitle": "AI Shenanigans",
+      "metadataTitle": "AI Shenanigans",
+      "metadataDescription": "Stylized AI experiments blending source photos, caricature renders, and optional motion passes.",
+      "appBarSubtitle": "Stylization, caricature, and optional motion",
+      "heroEyebrow": "Portfolio experiment"
+    },
+    "dna": {
+      "documentTitle": "GeneBoard"
+    },
+    "bookworm": {
+      "documentTitle": "Bookworm",
+      "interstitialAppName": "Bookworm",
+      "interstitialLogoAlt": "Bookworm logo"
+    },
+    "talentforge": {
+      "documentTitle": "TalentForge"
+    },
+    "rickbert": {
+      "documentTitle": "Rickbert Studio",
+      "metadataTitle": "Rickbert Studio",
+      "metadataDescription": "Structured comic strip generation studio for the RICKBERT series.",
+      "interstitialAppName": "Rickbert Studio",
+      "interstitialLogoAlt": "Rickbert Studio logo"
+    }
+  },
+  "navigation": {
+    "forkRibbon": {
+      "label": "Make my own",
+      "href": "https://github.com/rfranks/portfolio/fork"
+    },
+    "drawerItems": [
+      {
+        "label": "Home",
+        "href": "/",
+        "icon": "home"
+      },
+      {
+        "label": "GeneBoard",
+        "href": "/dna",
+        "icon": "science"
+      },
+      {
+        "label": "Bookworm",
+        "href": "/bookworm",
+        "icon": "menuBook"
+      },
+      {
+        "label": "TalentForge",
+        "href": "/talentforge",
+        "icon": "build"
+      },
+      {
+        "label": "AI Shenanigans",
+        "href": "/ai-shenanigans",
+        "icon": "autoFixHigh"
+      },
+      {
+        "label": "Rickbert Studio",
+        "href": "/rickbert",
+        "icon": "autoStories"
+      },
+      {
+        "label": "Blackjack",
+        "href": "/blackjack",
+        "icon": "casino"
+      },
+      {
+        "label": "Warbirds",
+        "href": "/warbirds",
+        "icon": "flight"
+      }
     ]
   },
   "competencies": {
@@ -371,10 +461,13 @@
         "orientation": "portrait",
         "realisticImage": "/personal/images/ai-shenanigans/momma-helen/realistic.jpeg",
         "realisticSource": "Photo (Richard Franks Jr)",
+        "realisticCaption": "The grounded portrait that anchors the whole transformation before the caricature and motion take over.  That's not chicken!   It's the rump of a frog!",
         "stylizedRendering": "/personal/images/ai-shenanigans/momma-helen/stylistic.png",
         "stylizedSource": "ChatGPT DALL-E image generation",
+        "stylizedCaption": "The likeness gets pushed into a warmer, more playful cartoon rendering with the expression exaggerated for comic effect.",
         "movieRendering": "/personal/images/ai-shenanigans/momma-helen/movie.mp4",
         "movieSource": "Sora video generation",
+        "movieCaption": "The caricature turns into a short motion beat, leaning into Momma Helen's delighted reaction to her first taste of deep-fried frog legs.  The frogs are not impressed.",
         "blurb": "Momma Helen, reimagined as a full cartoon caricature, tries deep-fried frog legs for the first time and immediately loves them. The whole piece leans into that exact moment of delighted surprise, where one crispy bite turns into a kitchen-table legend and Momma Helen decides this absolutely belongs in the regular rotation."
       }
     ]

@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import getDnaTheme from "@/themes/dnaTheme";
+import { portfolioApps } from "@/personal/data/resumeData";
 
 export default function DnaPage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");
@@ -24,7 +25,7 @@ export default function DnaPage() {
   );
   const { setDocumentTitle } = useDocumentTitle();
   React.useEffect(() => {
-    setDocumentTitle("GeneBoard");
+    setDocumentTitle(portfolioApps.dna.documentTitle);
   }, [setDocumentTitle]);
 
   const toggleColorMode = React.useCallback(() => {

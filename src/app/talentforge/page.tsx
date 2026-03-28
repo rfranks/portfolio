@@ -11,6 +11,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 import insertMockData from "@/utils/mockData";
 import { getOnboardingStep } from "@/utils/talentforge/dataStore";
+import { portfolioApps } from "@/personal/data/resumeData";
 
 export default function TalentForgePage() {
   const { setDocumentTitle } = useDocumentTitle();
@@ -19,7 +20,7 @@ export default function TalentForgePage() {
 
   React.useEffect(() => {
     insertMockData();
-    setDocumentTitle("TalentForge");
+    setDocumentTitle(portfolioApps.talentforge.documentTitle);
   }, [setDocumentTitle]);
 
   if (!hasKey) {
@@ -36,4 +37,3 @@ export default function TalentForgePage() {
     </ErrorBoundary>
   );
 }
-

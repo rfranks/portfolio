@@ -1,7 +1,7 @@
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import { summary } from "@/personal/data/resumeData";
+import { contactCTA, summary } from "@/personal/data/resumeData";
 import TronPaper from "@/components/app/TronPaper";
 import FadeInSection from "@/components/app/FadeInSection";
 
@@ -11,11 +11,10 @@ export default function ContactCTA() {
       <TronPaper className="text-center">
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-4">
           <Typography variant="h6" gutterBottom>
-            Contact
+            {contactCTA.title}
           </Typography>
           <Typography color="text.secondary" className="leading-7">
-            Open to principal-level full stack, AI platform, and product engineering
-            opportunities where architecture and delivery both matter.
+            {contactCTA.body}
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="center" useFlexGap flexWrap="wrap">
             <Button
@@ -24,7 +23,7 @@ export default function ContactCTA() {
               href={`mailto:${summary.contact.email}`}
               className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
             >
-              Email
+              {contactCTA.primaryLabel}
             </Button>
             <Button
               variant="outlined"
@@ -34,7 +33,7 @@ export default function ContactCTA() {
               color="secondary"
               className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
             >
-              LinkedIn
+              {contactCTA.secondaryLabel}
             </Button>
           </Stack>
         </div>

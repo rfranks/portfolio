@@ -16,7 +16,7 @@ import AIShenanigan, {
   AIShenaniganMovieOrientation,
 } from "@/components/app/AIShenanigan";
 import AppBar from "@/components/app/AppBar";
-import { aiShenanigans, summary } from "@/personal/data/resumeData";
+import { aiShenanigans, portfolioApps, summary } from "@/personal/data/resumeData";
 import getFabricTheme from "@/themes/fabricTheme";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { withBasePath } from "@/utils/basePath";
@@ -27,7 +27,7 @@ export default function AIShenanigansPageClient() {
   const { setDocumentTitle } = useDocumentTitle();
 
   useEffect(() => {
-    setDocumentTitle(aiShenanigans.title);
+    setDocumentTitle(portfolioApps.aiShenanigans.documentTitle);
   }, [setDocumentTitle]);
 
   return (
@@ -56,7 +56,7 @@ export default function AIShenanigansPageClient() {
             <ArrowBack />
           </IconButton>
           <Avatar
-            src={withBasePath("/personal/images/personal/me.jpeg")}
+            src={withBasePath(summary.avatarImage)}
             alt={summary.name}
             sx={{
               width: 38,
@@ -71,7 +71,7 @@ export default function AIShenanigansPageClient() {
               {aiShenanigans.title}
             </Typography>
             <Typography variant="body2" color="text.secondary" noWrap>
-              Stylization, caricature, and optional motion
+              {portfolioApps.aiShenanigans.appBarSubtitle}
             </Typography>
           </Box>
         </AppBar>
@@ -80,7 +80,7 @@ export default function AIShenanigansPageClient() {
           <Stack spacing={3}>
             <Box className="rounded-[32px] border border-white/10 bg-white/5 px-6 py-7 shadow-lg">
               <Typography variant="overline" color="primary">
-                Portfolio experiment
+                {portfolioApps.aiShenanigans.heroEyebrow}
               </Typography>
               <Typography
                 variant="h2"
@@ -108,10 +108,13 @@ export default function AIShenanigansPageClient() {
                 orientation={item.orientation as AIShenaniganMovieOrientation}
                 realisticImage={item.realisticImage}
                 realisticSource={item.realisticSource}
+                realisticCaption={item.realisticCaption}
                 stylizedRendering={item.stylizedRendering}
                 stylizedSource={item.stylizedSource}
+                stylizedCaption={item.stylizedCaption}
                 movieRendering={item.movieRendering}
                 movieSource={item.movieSource}
+                movieCaption={item.movieCaption}
               />
             ))}
           </Stack>

@@ -3,6 +3,9 @@ import resumeData from "./resumeData.json";
 export default resumeData;
 
 export const summary = resumeData.summary;
+export const contactCTA = resumeData.contactCTA;
+export const portfolioApps = resumeData.portfolioApps;
+export const navigation = resumeData.navigation;
 export const competencies = resumeData.competencies;
 export const coreCompetencies = resumeData.coreCompetencies;
 export const hobbies = resumeData.hobbies;

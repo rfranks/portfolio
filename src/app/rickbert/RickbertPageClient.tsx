@@ -10,6 +10,7 @@ import {
   getRickbertOpenAIKey,
   setRickbertOpenAIKey,
 } from "@/rickbert-studio/utils/openAIKey";
+import { portfolioApps } from "@/personal/data/resumeData";
 
 const defaultTheme = createTheme();
 
@@ -27,6 +28,10 @@ export default function RickbertPageClient() {
     setApiKeyReady(key.length > 0);
     setReady(true);
   }, [setOpenAIKey]);
+
+  React.useEffect(() => {
+    document.title = portfolioApps.rickbert.documentTitle;
+  }, []);
 
   React.useEffect(() => {
     if (ready && !apiKeyReady) {
@@ -56,8 +61,8 @@ export default function RickbertPageClient() {
       <ThemeProvider theme={defaultTheme}>
         <CssBaseline />
         <OpenAIKeyInterstitialContent
-          appName="Rickbert Studio"
-          logoAlt="Rickbert Studio logo"
+          appName={portfolioApps.rickbert.interstitialAppName}
+          logoAlt={portfolioApps.rickbert.interstitialLogoAlt}
           value={draftKey}
           onChange={setDraftKey}
           onSubmit={handleSubmit}

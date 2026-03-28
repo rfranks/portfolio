@@ -9,7 +9,9 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import FadeInSection from "@/components/app/FadeInSection";
 import TronPaper from "@/components/app/TronPaper";
+import { useAudio } from "@/hooks/audio/useAudio";
 import { withBasePath } from "@/utils/basePath";
+import { rewindAndPlayAudio } from "@/utils/lightgun-web/audio";
 
 export type AIShenaniganMovieOrientation = "landscape" | "portrait" | undefined;
 
@@ -20,13 +22,16 @@ type AIShenaniganProps = {
   orientation?: AIShenaniganMovieOrientation;
   realisticImage: string;
   realisticSource?: string;
+  realisticCaption?: string;
   stylizedRendering: string;
   stylizedSource?: string;
+  stylizedCaption?: string;
   movieRendering?: string | null;
   movieSource?: string;
+  movieCaption?: string;
 };
 
-type RevealStage = "realistic" | "stylized" | "movie";
+type RevealStage = "intro" | "realistic" | "stylized" | "movie";
 type ArrowDirection = "right" | "down";
 const ARROW_REVEAL_MS = 280;
 
@@ -37,12 +42,16 @@ export default function AIShenanigan({
   orientation = "landscape",
   realisticImage,
   realisticSource,
+  realisticCaption,
   stylizedRendering,
   stylizedSource,
+  stylizedCaption,
   movieRendering,
   movieSource,
+  movieCaption,
 }: AIShenaniganProps) {
-  const [stage, setStage] = useState<RevealStage>("realistic");
+  const [stage, setStage] = useState<RevealStage>("intro");
+  const [realisticVisible, setRealisticVisible] = useState(false);
   const [showStylizedArrow, setShowStylizedArrow] = useState(false);
   const [showMovieArrow, setShowMovieArrow] = useState(false);
   const [stylizedVisible, setStylizedVisible] = useState(false);
@@ -54,8 +63,12 @@ export default function AIShenanigan({
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
   const stylizedTimeoutRef = useRef<number | null>(null);
   const movieTimeoutRef = useRef<number | null>(null);
+  const inspirationSfx = useAudio("/audio/highUp.ogg");
+  const stylizedSfx = useAudio("/audio/powerUp3.ogg");
+  const motionSfx = useAudio("/audio/whoosh.ogg");
   const hasMovie = Boolean(movieRendering);
   const isPortrait = orientation === "portrait";
+  const hasVisibleMedia = realisticVisible;
   const mediaAspectRatio = isPortrait ? "9 / 16" : "16 / 9";
   const stillAspectRatio = isPortrait ? "3 / 4" : "4 / 3";
   const mediaMaxWidth = isPortrait ? 420 : "100%";
@@ -67,7 +80,7 @@ export default function AIShenanigan({
       {
         key: "realistic" as const,
         label: "Realistic source",
-        active: true,
+        active: realisticVisible,
       },
       {
         key: "stylized" as const,
@@ -87,6 +100,7 @@ export default function AIShenanigan({
     [
       hasMovie,
       movieVisible,
+      realisticVisible,
       showMovieArrow,
       showStylizedArrow,
       stylizedVisible,
@@ -190,6 +204,7 @@ export default function AIShenanigan({
       return;
     }
 
+    video.muted = false;
     video.currentTime = 0;
     void video.play().catch(() => {
       // Ignore autoplay failures; controls remain available.
@@ -217,15 +232,30 @@ export default function AIShenanigan({
       movieTimeoutRef.current = null;
     }
     setTransitioningTo(null);
-    setStage("realistic");
+    setStage("intro");
+    setRealisticVisible(false);
     setShowStylizedArrow(false);
     setShowMovieArrow(false);
     setStylizedVisible(false);
     setMovieVisible(false);
     if (motionVideoRef.current) {
       motionVideoRef.current.pause();
+      motionVideoRef.current.muted = false;
       motionVideoRef.current.currentTime = 0;
     }
+  };
+
+  const handleRevealRealistic = () => {
+    if (transitioningTo) {
+      return;
+    }
+    setTransitioningTo("realistic");
+    rewindAndPlayAudio(inspirationSfx, { volume: 0.32 });
+    window.requestAnimationFrame(() => {
+      setRealisticVisible(true);
+      setStage("realistic");
+      setTransitioningTo(null);
+    });
   };
 
   const handleRevealStylized = () => {
@@ -233,6 +263,7 @@ export default function AIShenanigan({
       return;
     }
     setTransitioningTo("stylized");
+    rewindAndPlayAudio(stylizedSfx, { volume: 0.34 });
     setShowStylizedArrow(true);
     stylizedTimeoutRef.current = window.setTimeout(() => {
       setStylizedVisible(true);
@@ -247,6 +278,7 @@ export default function AIShenanigan({
       return;
     }
     setTransitioningTo("movie");
+    rewindAndPlayAudio(motionSfx, { volume: 0.3 });
     setShowMovieArrow(true);
     movieTimeoutRef.current = window.setTimeout(() => {
       setMovieVisible(true);
@@ -263,16 +295,29 @@ export default function AIShenanigan({
           <Stack
             spacing={2.5}
             direction={{ xs: "column", lg: "row" }}
-            sx={{ alignItems: { xs: "stretch", lg: "flex-start" } }}
+            sx={{
+              alignItems: { xs: "stretch", lg: "flex-start" },
+              overflow: "hidden",
+            }}
           >
             <Box
               sx={{
-                width: { xs: "100%", lg: 340 },
-                minWidth: { xs: 0, lg: 340 },
+                width: "100%",
+                minWidth: { xs: 0, lg: hasVisibleMedia ? 340 : 0 },
+                maxWidth: { xs: "100%", lg: hasVisibleMedia ? 340 : "100%" },
+                flexBasis: { xs: "100%", lg: hasVisibleMedia ? "340px" : "100%" },
                 flexShrink: 0,
+                transition:
+                  "flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1), min-width 560ms cubic-bezier(.2,.8,.2,1), transform 560ms cubic-bezier(.2,.8,.2,1)",
               }}
             >
-              <Box sx={{ position: { xs: "static", lg: "sticky" }, top: 104 }}>
+              <Box
+                sx={{
+                  position: { xs: "static", lg: hasVisibleMedia ? "sticky" : "static" },
+                  top: 104,
+                  transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
+                }}
+              >
                 <Box className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-lg">
                   <Box
                     aria-hidden="true"
@@ -356,7 +401,7 @@ export default function AIShenanigan({
                     }}
                   >
                     <Box>
-                      {stage !== "realistic" && (
+                      {stage !== "intro" && (
                         <Button variant="text" onClick={resetReveal}>
                           Reset
                         </Button>
@@ -370,6 +415,15 @@ export default function AIShenanigan({
                         flexWrap: "wrap",
                       }}
                     >
+                      {stage === "intro" && (
+                        <Button
+                          variant="contained"
+                          onClick={handleRevealRealistic}
+                          disabled={transitioningTo !== null}
+                        >
+                          Reveal Inspiration! 💡
+                        </Button>
+                      )}
                       {stage === "realistic" && (
                         <Button
                           variant="contained"
@@ -393,115 +447,156 @@ export default function AIShenanigan({
                 </Box>
               </Box>
             </Box>
-            <Stack spacing={2} sx={{ minWidth: 0, flex: "1 1 auto" }}>
+            <Stack
+              spacing={2}
+              sx={{
+                minWidth: 0,
+                flex: "1 1 auto",
+                width: "100%",
+                maxWidth: { xs: "100%", lg: hasVisibleMedia ? "calc(100% - 340px)" : 0 },
+                flexBasis: { xs: "100%", lg: hasVisibleMedia ? "calc(100% - 340px)" : "0px" },
+                opacity: hasVisibleMedia ? 1 : 0,
+                transform: hasVisibleMedia
+                  ? "translate3d(0, 0, 0)"
+                  : "translate3d(28px, 0, 0)",
+                overflow: "hidden",
+                pointerEvents: hasVisibleMedia ? "auto" : "none",
+                transition:
+                  "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
+              }}
+            >
               <Stack
                 spacing={2}
                 direction={{ xs: "column", xl: "row" }}
                 sx={{ alignItems: { xs: "stretch", xl: "center" } }}
               >
-                <Box
-                  className="rounded-[28px] border border-white/10 bg-white/5 p-3 shadow-lg"
-                  sx={{
-                    minWidth: 0,
-                    flexBasis: { xl: stylizedVisible ? "50%" : "100%" },
-                    maxWidth: { xl: stylizedVisible ? "50%" : "100%" },
-                    transition:
-                      "flex-basis 360ms cubic-bezier(.2,.8,.2,1), max-width 360ms cubic-bezier(.2,.8,.2,1), transform 360ms cubic-bezier(.2,.8,.2,1)",
-                  }}
-                >
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Realistic source
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                  >
-                    The grounded starting point.
-                  </Typography>
-                  <Image
-                    src={withBasePath(realisticImage)}
-                    alt={`${title} realistic source`}
-                    width={1200}
-                    height={900}
-                    className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                    style={{
-                      aspectRatio: stillAspectRatio,
-                      maxWidth: stillMaxWidth,
-                      marginInline: "auto",
-                    }}
-                  />
-                  {realisticSource && (
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ mt: 1.5, display: "block" }}
-                    >
-                      Source: {realisticSource}
-                    </Typography>
-                  )}
-                </Box>
-                <Box
-                  sx={{
-                    display: { xs: "flex", xl: "none" },
-                    justifyContent: "center",
-                  }}
-                >
-                  {renderArrow("down", showStylizedArrow)}
-                </Box>
-                <Box
-                  sx={{
-                    display: { xs: "none", xl: "flex" },
-                    justifyContent: "center",
-                  }}
-                >
-                  {renderArrow("right", showStylizedArrow)}
-                </Box>
-                {stylizedVisible && (
-                  <Box
-                    className="rounded-[28px] border border-white/10 bg-white/5 p-3 shadow-lg"
-                    sx={{
-                      minWidth: 0,
-                      flexBasis: { xl: "50%" },
-                      maxWidth: { xl: "50%" },
-                      opacity: 1,
-                      transform: "translate3d(0, 0, 0)",
-                      transition:
-                        "opacity 320ms ease, transform 360ms cubic-bezier(.2,.8,.2,1), flex-basis 360ms cubic-bezier(.2,.8,.2,1), max-width 360ms cubic-bezier(.2,.8,.2,1)",
-                    }}
-                  >
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Stylized rendering
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 2 }}
-                    >
-                      Push the portrait into caricature.
-                    </Typography>
-                    <Image
-                      src={withBasePath(stylizedRendering)}
-                      alt={`${title} stylized rendering`}
-                      width={1200}
-                      height={900}
-                      className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                      style={{
-                        aspectRatio: stillAspectRatio,
-                        maxWidth: stillMaxWidth,
-                        marginInline: "auto",
+                {realisticVisible && (
+                  <>
+                    <Box
+                      className="rounded-[28px] border border-white/10 bg-white/5 p-3 shadow-lg"
+                      sx={{
+                        minWidth: 0,
+                        flexBasis: { xl: stylizedVisible ? "50%" : "100%" },
+                        maxWidth: { xl: stylizedVisible ? "50%" : "100%" },
+                        opacity: 1,
+                        transform: "translate3d(0, 0, 0)",
+                        transition:
+                          "opacity 320ms ease, transform 360ms cubic-bezier(.2,.8,.2,1), flex-basis 360ms cubic-bezier(.2,.8,.2,1), max-width 360ms cubic-bezier(.2,.8,.2,1)",
                       }}
-                    />
-                    {stylizedSource && (
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ mt: 1.5, display: "block" }}
-                      >
-                        Source: {stylizedSource}
+                    >
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Realistic source
                       </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                      >
+                        The grounded starting point.
+                      </Typography>
+                      <Image
+                        src={withBasePath(realisticImage)}
+                        alt={`${title} realistic source`}
+                        width={1200}
+                        height={900}
+                        className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                        style={{
+                          aspectRatio: stillAspectRatio,
+                          maxWidth: stillMaxWidth,
+                          marginInline: "auto",
+                        }}
+                      />
+                      {realisticSource && (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ mt: 1.5, display: "block" }}
+                        >
+                          Source: {realisticSource}
+                        </Typography>
+                      )}
+                      {realisticCaption && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mt: realisticSource ? 0.75 : 1.5 }}
+                        >
+                          {realisticCaption}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box
+                      sx={{
+                        display: { xs: "flex", xl: "none" },
+                        justifyContent: "center",
+                      }}
+                    >
+                      {renderArrow("down", showStylizedArrow)}
+                    </Box>
+                    <Box
+                      sx={{
+                        display: { xs: "none", xl: "flex" },
+                        justifyContent: "center",
+                      }}
+                    >
+                      {renderArrow("right", showStylizedArrow)}
+                    </Box>
+                    {stylizedVisible && (
+                      <Box
+                        className="rounded-[28px] border border-white/10 bg-white/5 p-3 shadow-lg"
+                        sx={{
+                          minWidth: 0,
+                          flexBasis: { xl: "50%" },
+                          maxWidth: { xl: "50%" },
+                          opacity: 1,
+                          transform: "translate3d(0, 0, 0)",
+                          transition:
+                            "opacity 320ms ease, transform 360ms cubic-bezier(.2,.8,.2,1), flex-basis 360ms cubic-bezier(.2,.8,.2,1), max-width 360ms cubic-bezier(.2,.8,.2,1)",
+                        }}
+                      >
+                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                          Stylized rendering
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 2 }}
+                        >
+                          Push the portrait into caricature.
+                        </Typography>
+                        <Image
+                          src={withBasePath(stylizedRendering)}
+                          alt={`${title} stylized rendering`}
+                          width={1200}
+                          height={900}
+                          className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                          style={{
+                            aspectRatio: stillAspectRatio,
+                            maxWidth: stillMaxWidth,
+                            marginInline: "auto",
+                          }}
+                        />
+                        {stylizedSource && (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ mt: 1.5, display: "block" }}
+                          >
+                            Source: {stylizedSource}
+                          </Typography>
+                        )}
+                        {stylizedCaption && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mt: stylizedSource ? 0.75 : 1.5 }}
+                          >
+                            {stylizedCaption}
+                          </Typography>
+                        )}
+                      </Box>
                     )}
-                  </Box>
+                  </>
                 )}
               </Stack>
               {hasMovie && (showMovieArrow || movieVisible) && (
@@ -533,7 +628,6 @@ export default function AIShenanigan({
                         controls
                         autoPlay
                         playsInline
-                        muted
                         className="block w-full rounded-[22px] bg-black/10 object-contain"
                         sx={{
                           aspectRatio: mediaAspectRatio,
@@ -548,6 +642,15 @@ export default function AIShenanigan({
                           sx={{ mt: 1.5, display: "block" }}
                         >
                           Source: {movieSource}
+                        </Typography>
+                      )}
+                      {movieCaption && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mt: movieSource ? 0.75 : 1.5 }}
+                        >
+                          {movieCaption}
                         </Typography>
                       )}
                     </Box>
