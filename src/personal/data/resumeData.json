@@ -524,6 +524,36 @@
         "movieSource": "Sora video generation",
         "movieCaption": "Universal energy comes alive in motion as the monsters close in and the whole scene tips into playful terror.",
         "blurb": "Universal comes alive and the monsters terrorize. This shenanigan takes a simple Richard Franks Jr. selfie and pushes it straight into a motion-heavy creature-feature beat, like a personal snapshot accidentally wandered onto a classic monster backlot."
+      },
+      {
+        "slug": "luck-o-the-irish",
+        "title": "Luck o' the Irish!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/luck-o-the-irish/realistic.jpeg",
+        "realisticSource": "Photo (Richard Franks Jr)",
+        "realisticCaption": "Start with the headshot, then lean hard into the St. Patty's Day fantasy version of me as a leprechaun.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/luck-o-the-irish/stylistic.png",
+        "stylizedSource": "ChatGPT DALL-E image generation",
+        "stylizedCaption": "The portrait gets pushed into a shamrock-soaked caricature, turning me into the kind of leprechaun who should probably not be trusted with your gold.",
+        "movieRendering": "/personal/images/ai-shenanigans/luck-o-the-irish/movie.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "The whole bit tips into motion like a festive little fever dream, proving that if I have the luck of the Irish, it is definitely not always working.",
+        "blurb": "Me as a St. Patty's Day leprechaun, because apparently I am a lot more Irish than expected according to 23andMe. The joke, of course, is that if I really do have the luck of the Irish, it sure does not show up on command."
+      },
+      {
+        "slug": "rick-pinball-in-yarn",
+        "title": "Pinball Yarnster!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/rick-pinball-in-yarn/realistic.jpeg",
+        "realisticSource": "Photo (Anne Barbarick)",
+        "realisticCaption": "A real portrait drops Rick into the machine before the whole thing gets pushed into a playful pinball-fantasy world.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/rick-pinball-in-yarn/stylistic.png",
+        "stylizedSource": "ChatGPT DALL-E image generation",
+        "stylizedCaption": "The portrait turns into a yarny, pinball-infused caricature with just enough chaos to feel like multiball is about to start.",
+        "movieRendering": "/personal/images/ai-shenanigans/rick-pinball-in-yarn/movie.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "The whole scene springs to life in motion, like the machine woke up and decided Rick gets to have his pinball moment after all.",
+        "blurb": "Rick gets his pinball on. This shenanigan takes a portrait and pushes it into a bizarre pinball-meets-yarn fever dream, where the lights are hot, the action is chaotic, and the whole thing feels like a bonus round built specifically for Rick."
       }
     ]
   },

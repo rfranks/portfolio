@@ -292,15 +292,12 @@ export default function AIShenanigan({
           borderTop: "1px solid rgba(255,255,255,0.08)",
         }}
       >
-        <Typography variant="overline" color="primary">
-          Reveal chronology
-        </Typography>
         <Stack
           direction="row"
           spacing={1}
           useFlexGap
           flexWrap="wrap"
-          sx={{ mt: 1, alignItems: "center" }}
+          sx={{ alignItems: "center" }}
         >
           {revealLabels.map((item, index) => (
             <Box
