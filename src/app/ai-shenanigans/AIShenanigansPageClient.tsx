@@ -14,6 +14,7 @@ import { ArrowBack } from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material/styles";
 import AIShenanigan, {
   AIShenaniganMovieOrientation,
+  AIShenaniganType,
 } from "@/components/app/AIShenanigan";
 import AppBar from "@/components/app/AppBar";
 import {
@@ -105,11 +106,34 @@ export default function AIShenanigansPageClient() {
             </Box>
             {aiShenanigans.items.map((item, index) => {
               const itemWithLinks = item as typeof item & {
+                type?: AIShenaniganType;
                 realisticSourceHref?: string;
                 stylizedSourceHref?: string;
                 movieSourceHref?: string;
+                intentToCopyright?: boolean;
+                rightsNotice?: string;
+                bookCoverImage?: string;
+                bookSource?: string;
+                bookSourceHref?: string;
+                bookCaption?: string;
+                manuscriptPdf?: string;
+                manuscriptSource?: string;
+                manuscriptSourceHref?: string;
+                manuscriptCaption?: string;
+                episodesPdf?: string;
+                episodesSource?: string;
+                episodesSourceHref?: string;
+                episodesCaption?: string;
+                episodeMedia?: Array<{
+                  title: string;
+                  src: string;
+                  source?: string;
+                  sourceHref?: string;
+                  caption?: string;
+                }>;
               };
               const linkProps = {
+                ...(itemWithLinks.type ? { type: itemWithLinks.type } : {}),
                 ...(itemWithLinks.realisticSourceHref
                   ? { realisticSourceHref: itemWithLinks.realisticSourceHref }
                   : {}),
@@ -118,6 +142,51 @@ export default function AIShenanigansPageClient() {
                   : {}),
                 ...(itemWithLinks.movieSourceHref
                   ? { movieSourceHref: itemWithLinks.movieSourceHref }
+                  : {}),
+                ...(itemWithLinks.intentToCopyright
+                  ? { intentToCopyright: itemWithLinks.intentToCopyright }
+                  : {}),
+                ...(itemWithLinks.rightsNotice
+                  ? { rightsNotice: itemWithLinks.rightsNotice }
+                  : {}),
+                ...(itemWithLinks.bookSourceHref
+                  ? { bookSourceHref: itemWithLinks.bookSourceHref }
+                  : {}),
+                ...(itemWithLinks.manuscriptSourceHref
+                  ? { manuscriptSourceHref: itemWithLinks.manuscriptSourceHref }
+                  : {}),
+                ...(itemWithLinks.episodesSourceHref
+                  ? { episodesSourceHref: itemWithLinks.episodesSourceHref }
+                  : {}),
+                ...(itemWithLinks.bookCoverImage
+                  ? { bookCoverImage: itemWithLinks.bookCoverImage }
+                  : {}),
+                ...(itemWithLinks.bookSource
+                  ? { bookSource: itemWithLinks.bookSource }
+                  : {}),
+                ...(itemWithLinks.bookCaption
+                  ? { bookCaption: itemWithLinks.bookCaption }
+                  : {}),
+                ...(itemWithLinks.manuscriptPdf
+                  ? { manuscriptPdf: itemWithLinks.manuscriptPdf }
+                  : {}),
+                ...(itemWithLinks.manuscriptSource
+                  ? { manuscriptSource: itemWithLinks.manuscriptSource }
+                  : {}),
+                ...(itemWithLinks.manuscriptCaption
+                  ? { manuscriptCaption: itemWithLinks.manuscriptCaption }
+                  : {}),
+                ...(itemWithLinks.episodesPdf
+                  ? { episodesPdf: itemWithLinks.episodesPdf }
+                  : {}),
+                ...(itemWithLinks.episodesSource
+                  ? { episodesSource: itemWithLinks.episodesSource }
+                  : {}),
+                ...(itemWithLinks.episodesCaption
+                  ? { episodesCaption: itemWithLinks.episodesCaption }
+                  : {}),
+                ...(itemWithLinks.episodeMedia
+                  ? { episodeMedia: itemWithLinks.episodeMedia }
                   : {}),
               };
 
@@ -128,7 +197,7 @@ export default function AIShenanigansPageClient() {
                   title={item.title}
                   blurb={item.blurb}
                   orientation={item.orientation as AIShenaniganMovieOrientation}
-                  realisticImage={item.realisticImage}
+                  realisticImage={item.realisticImage as string}
                   realisticSource={item.realisticSource}
                   realisticCaption={item.realisticCaption}
                   stylizedRendering={item.stylizedRendering}

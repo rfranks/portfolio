@@ -554,6 +554,44 @@
         "movieSource": "Sora video generation",
         "movieCaption": "The whole scene springs to life in motion, like the machine woke up and decided Rick gets to have his pinball moment after all.",
         "blurb": "Rick gets his pinball on. This shenanigan takes a portrait and pushes it into a bizarre pinball-meets-yarn fever dream, where the lights are hot, the action is chaotic, and the whole thing feels like a bonus round built specifically for Rick."
+      },
+      {
+        "slug": "the-rock",
+        "type": "book-to-limited-series",
+        "title": "The Rock By Frank Richards",
+        "orientation": "landscape",
+        "intentToCopyright": true,
+        "rightsNotice": "Intent to Copyright",
+        "bookCoverImage": "/personal/images/ai-shenanigans/the-rock/book-cover.png",
+        "bookSource": "Book cover / manuscript concept",
+        "bookCaption": "The cover frames The Rock as a desert science-thriller built around Uluru, secrecy, and the sense that something engineered and ancient is buried inside the stone.",
+        "manuscriptPdf": "/personal/images/ai-shenanigans/the-rock/manuscript.pdf",
+        "manuscriptSource": "Manuscript draft",
+        "manuscriptCaption": "The manuscript opens with Mara Vance's survey team at Uluru uncovering an impossible void: smooth planes, machined seams, metallic dust, a failed probe contact, and the first hint that the rock may actually be a vessel.",
+        "episodesPdf": "/personal/images/ai-shenanigans/the-rock/episodes.pdf",
+        "episodesSource": "Episode plan / limited series notes",
+        "episodesCaption": "The episodes draft maps the story into a prestige limited-series arc: first the team finds the door, then they recognize the geometry as a vessel, and finally the mystery widens into a planetary-scale emergency.",
+        "episodeMedia": [
+          {
+            "title": "Episode 1",
+            "src": "/personal/images/ai-shenanigans/the-rock/episode1.mp4",
+            "source": "Sora video generation",
+            "caption": "Episode 1 stages the Uluru discovery as a slow-burn field thriller: predawn convoy, anomaly scans, drill validation, first contact with the hidden surface, then blackout, tremor, and storm as Mara realizes they did not find a chamber, but a door."
+          },
+          {
+            "title": "Episode 2",
+            "src": "/personal/images/ai-shenanigans/the-rock/episode2.mp4",
+            "source": "Sora video generation",
+            "caption": "Episode 2 picks up in the aftermath of contact: corrupted readings, Uncle Jarra's warning, geometric grooves on the outer skin of Uluru, and tomography that reveals decks, seams, and the first unmistakable evidence that the monolith is hiding a vessel."
+          },
+          {
+            "title": "Episode 3",
+            "src": "/personal/images/ai-shenanigans/the-rock/episode3.mp4",
+            "source": "Sora video generation",
+            "caption": "Episode 3 widens the scope from site mystery to global crisis: drifting compasses, failing systems, emergency briefings, and opening internal corridors that suggest the buried craft is waking because the world itself is entering failure."
+          }
+        ],
+        "blurb": "The Rock starts as a tightly grounded survey-thriller at Uluru and opens into a prestige science-fiction mystery about an engineered structure hidden inside the monolith. The manuscript's first movement follows Mara Vance from anomaly scan to first contact; the episodes draft then scales that discovery into a serialized arc about a buried vessel, a waking storm, and a world sliding toward systems failure."
       }
     ]
   },

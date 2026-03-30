@@ -9,18 +9,23 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import FadeInSection from "@/components/app/FadeInSection";
+import AIShenaniganAdaptation from "@/components/app/AIShenaniganAdaptation";
 import TronPaper from "@/components/app/TronPaper";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { withBasePath } from "@/utils/basePath";
 import { rewindAndPlayAudio } from "@/utils/lightgun-web/audio";
 
 export type AIShenaniganMovieOrientation = "landscape" | "portrait" | undefined;
+export type AIShenaniganType = "default" | "book-to-limited-series";
 
 type AIShenaniganProps = {
+  type?: AIShenaniganType;
   rank: number;
   title: string;
   blurb: string;
   orientation?: AIShenaniganMovieOrientation;
+  intentToCopyright?: boolean;
+  rightsNotice?: string;
   realisticImage: string;
   realisticSource?: string;
   realisticSourceHref?: string;
@@ -33,17 +38,67 @@ type AIShenaniganProps = {
   movieSource?: string;
   movieSourceHref?: string;
   movieCaption?: string;
+  bookCoverImage?: string;
+  bookSource?: string;
+  bookSourceHref?: string;
+  bookCaption?: string;
+  manuscriptPdf?: string;
+  manuscriptSource?: string;
+  manuscriptSourceHref?: string;
+  manuscriptCaption?: string;
+  episodesPdf?: string;
+  episodesSource?: string;
+  episodesSourceHref?: string;
+  episodesCaption?: string;
+  episodeMedia?: Array<{
+    title: string;
+    src: string;
+    source?: string;
+    sourceHref?: string;
+    caption?: string;
+  }>;
 };
 
 type RevealStage = "intro" | "realistic" | "stylized" | "movie";
 type ArrowDirection = "right" | "down";
 const ARROW_REVEAL_MS = 280;
 
-export default function AIShenanigan({
+export default function AIShenanigan(props: AIShenaniganProps) {
+  if (props.type === "book-to-limited-series") {
+    return (
+      <AIShenaniganAdaptation
+        rank={props.rank}
+        title={props.title}
+        blurb={props.blurb}
+        intentToCopyright={props.intentToCopyright}
+        rightsNotice={props.rightsNotice}
+        bookCoverImage={props.bookCoverImage || props.realisticImage}
+        bookSource={props.bookSource || props.realisticSource}
+        bookSourceHref={props.bookSourceHref || props.realisticSourceHref}
+        bookCaption={props.bookCaption || props.realisticCaption}
+        manuscriptPdf={props.manuscriptPdf || ""}
+        manuscriptSource={props.manuscriptSource}
+        manuscriptSourceHref={props.manuscriptSourceHref}
+        manuscriptCaption={props.manuscriptCaption}
+        episodesPdf={props.episodesPdf || ""}
+        episodesSource={props.episodesSource}
+        episodesSourceHref={props.episodesSourceHref}
+        episodesCaption={props.episodesCaption}
+        episodeMedia={props.episodeMedia}
+      />
+    );
+  }
+
+  return <DefaultAIShenanigan {...props} />;
+}
+
+function DefaultAIShenanigan({
   rank,
   title,
   blurb,
   orientation = "landscape",
+  intentToCopyright = false,
+  rightsNotice,
   realisticImage,
   realisticSource,
   realisticSourceHref,
@@ -57,6 +112,7 @@ export default function AIShenanigan({
   movieSourceHref,
   movieCaption,
 }: AIShenaniganProps) {
+
   const [stage, setStage] = useState<RevealStage>("intro");
   const [realisticVisible, setRealisticVisible] = useState(false);
   const [showStylizedArrow, setShowStylizedArrow] = useState(false);
@@ -66,6 +122,8 @@ export default function AIShenanigan({
   const [transitioningTo, setTransitioningTo] = useState<RevealStage | null>(
     null,
   );
+  const realisticSectionRef = useRef<HTMLDivElement | null>(null);
+  const stylizedSectionRef = useRef<HTMLDivElement | null>(null);
   const motionSectionRef = useRef<HTMLDivElement | null>(null);
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
   const stylizedTimeoutRef = useRef<number | null>(null);
@@ -82,6 +140,8 @@ export default function AIShenanigan({
   const mediaMaxWidth = isPortrait ? 420 : "100%";
   const stillMaxWidth = isPortrait ? 520 : undefined;
   const formattedRank = `#${String(rank).padStart(2, "0")}`;
+  const rightsLabel = rightsNotice || "Intent to Copyright";
+  const rightsStampAngle = ((rank * 7) % 17) - 8;
   const panelChromeSx = {
     borderRadius: "24px",
     border: "1px solid rgba(255,255,255,0.08)",
@@ -92,6 +152,17 @@ export default function AIShenanigan({
     ...panelChromeSx,
     p: 2.5,
   } as const;
+
+  const scrollPanelIntoView = (panel: HTMLDivElement | null) => {
+    if (!panel) {
+      return;
+    }
+
+    panel.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  };
 
   const revealLabels = useMemo(
     () => [
@@ -240,6 +311,42 @@ export default function AIShenanigan({
     );
   };
 
+  const renderRightsStamp = () => {
+    if (!intentToCopyright) {
+      return null;
+    }
+
+    return (
+      <Box
+        aria-hidden="true"
+        sx={{
+          position: "absolute",
+          top: { xs: 52, md: 60 },
+          right: { xs: 14, md: 22 },
+          zIndex: 2,
+          pointerEvents: "none",
+          px: 1.4,
+          py: 0.7,
+          borderRadius: "10px",
+          border: "3px solid rgba(185,28,28,0.85)",
+          color: "rgba(127,29,29,0.96)",
+          bgcolor: "rgba(255,244,244,0.82)",
+          fontSize: { xs: "0.7rem", md: "0.82rem" },
+          fontWeight: 900,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          transform: `rotate(${rightsStampAngle}deg)`,
+          boxShadow:
+            "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
+          textShadow: "0 1px 0 rgba(255,255,255,0.3)",
+          opacity: 0.92,
+        }}
+      >
+        {rightsLabel}
+      </Box>
+    );
+  };
+
   const renderNextAction = () => {
     if (stage === "intro") {
       return (
@@ -377,11 +484,6 @@ export default function AIShenanigan({
       return;
     }
 
-    motionSectionRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
-
     const video = motionVideoRef.current;
 
     if (!video) {
@@ -439,6 +541,9 @@ export default function AIShenanigan({
       setRealisticVisible(true);
       setStage("realistic");
       setTransitioningTo(null);
+      window.requestAnimationFrame(() => {
+        scrollPanelIntoView(realisticSectionRef.current);
+      });
     });
   };
 
@@ -454,6 +559,9 @@ export default function AIShenanigan({
       setStage("stylized");
       setTransitioningTo(null);
       stylizedTimeoutRef.current = null;
+      window.requestAnimationFrame(() => {
+        scrollPanelIntoView(stylizedSectionRef.current);
+      });
     }, ARROW_REVEAL_MS);
   };
 
@@ -471,6 +579,9 @@ export default function AIShenanigan({
       setStage("movie");
       setTransitioningTo(null);
       movieTimeoutRef.current = null;
+      window.requestAnimationFrame(() => {
+        scrollPanelIntoView(motionSectionRef.current);
+      });
     }, ARROW_REVEAL_MS);
   };
 
@@ -534,6 +645,7 @@ export default function AIShenanigan({
                   <Typography variant="overline" color="primary">
                     AI Shenanigan
                   </Typography>
+                  {renderRightsStamp()}
                   <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
                     {title}
                   </Typography>
@@ -640,6 +752,7 @@ export default function AIShenanigan({
                 {realisticVisible && (
                   <>
                     <Box
+                      ref={realisticSectionRef}
                       sx={{
                         ...mediaPanelSx,
                         minWidth: 0,
@@ -707,6 +820,7 @@ export default function AIShenanigan({
                     )}
                     {stylizedVisible && stylizedRendering && (
                       <Box
+                        ref={stylizedSectionRef}
                         sx={{
                           ...mediaPanelSx,
                           minWidth: 0,
