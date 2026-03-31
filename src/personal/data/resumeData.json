@@ -603,11 +603,46 @@
         "orientation": "portrait",
         "intentToCopyright": true,
         "rightsNotice": "Intent to Copyright",
-        "workPdf": "/personal/images/ai-shenanigans/creepy-cryptids/creepy-cryptids.pdf",
-        "workSource": "Richard Franks (writing as Frank Richards) with the help of ChatGPT",
-        "workCaption": "P.T. Barnum's Creepy Cryptids is a vintage horror art-book concept that imagines the world's strangest folkloric creatures as the star attractions of a forgotten nineteenth-century sideshow, blending antique encyclopedia scholarship with lurid circus-poster spectacle.",
-        "seriesMovie": "/personal/images/ai-shenanigans/creepy-cryptids/creepy-cryptids.mov",
-        "seriesCaption": "The series adaptation reveal pushes the art-book concept into motion, leaning into a serialized cabinet of international nightmares where folklore, showmanship, and Victorian dread start to feel like an actual prestige horror anthology.",
+        "workParts": [
+          {
+            "src": "/personal/images/ai-shenanigans/creepy-cryptids/creepy-cryptids-part-1.pdf",
+            "title": "Work Part 1",
+            "source": "Richard Franks (writing as Frank Richards) with the help of ChatGPT",
+            "caption": "The opening section establishes the Victorian broadside premise, framing Creepy Cryptids as a forgotten Barnum-era exhibition where scholarship and sensationalism are fused into one traveling cabinet of horrors."
+          },
+          {
+            "src": "/personal/images/ai-shenanigans/creepy-cryptids/creepy-cryptids-part-2.pdf",
+            "title": "Work Part 2",
+            "source": "Richard Franks (writing as Frank Richards) with the help of ChatGPT",
+            "caption": "Part two deepens the faux encyclopedia rhythm, treating each creature like both a documented regional terror and a ticket-selling sideshow attraction in equal measure."
+          },
+          {
+            "src": "/personal/images/ai-shenanigans/creepy-cryptids/creepy-cryptids-part-3.pdf",
+            "title": "Work Part 3",
+            "source": "Richard Franks (writing as Frank Richards) with the help of ChatGPT",
+            "caption": "The middle-late spreads widen the geography and mythology, reinforcing the project's global cryptid sweep while keeping the vintage horror-art-book tone intact."
+          },
+          {
+            "src": "/personal/images/ai-shenanigans/creepy-cryptids/creepy-cryptids-part-4.pdf",
+            "title": "Work Part 4",
+            "source": "Richard Franks (writing as Frank Richards) with the help of ChatGPT",
+            "caption": "The closing section completes the cabinet-of-nightmares effect, leaving the work feeling like a fully realized Barnum-style archive of monstrosities, warnings, and theatrical dread."
+          }
+        ],
+        "seriesParts": [
+          {
+            "src": "/personal/images/ai-shenanigans/creepy-cryptids/creepy-cryptids-part-1.mp4",
+            "title": "Series Part 1",
+            "source": "Sora video generation",
+            "caption": "Part one of the series adaptation leans into the anthology-show opening energy, where each creature feels poised to step out of folklore and into staged Victorian spectacle."
+          },
+          {
+            "src": "/personal/images/ai-shenanigans/creepy-cryptids/creepy-cryptids-part-2.mp4",
+            "title": "Series Part 2",
+            "source": "Sora video generation",
+            "caption": "Part two carries the anthology mood forward, pushing the concept toward a serialized cabinet of regional terrors, traveling menace, and showman-horror pageantry."
+          }
+        ],
         "blurb": "P.T. Barnum's Creepy Cryptids is a vintage horror art-book concept that reimagines obscure folkloric creatures as the headline attractions of a lost nineteenth-century traveling sideshow. Each creature is treated as both scholarship and spectacle: one page reads like an antique encyclopedia entry full of lore, maps, warnings, and taxonomy, while the facing page explodes into a sensational Barnum-style broadside. The result is a cabinet of international nightmares where eerie research meets carnival showmanship, and every spread asks what dreadful thing Barnum has dragged back this time."
       }
     ]

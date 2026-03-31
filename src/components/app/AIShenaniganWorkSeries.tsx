@@ -14,10 +14,29 @@ import { rewindAndPlayAudio } from "@/utils/lightgun-web/audio";
 import { withBasePath } from "@/utils/basePath";
 import type { AIShenaniganMovieOrientation } from "@/components/app/AIShenanigan";
 
-type RevealStage = "intro" | "work" | "series";
 type ArrowDirection = "right" | "down";
 
 const ARROW_REVEAL_MS = 280;
+
+type WorkDocumentPart = {
+  src: string;
+  title?: string;
+  source?: string;
+  sourceHref?: string;
+  caption?: string;
+};
+
+type SeriesMediaPart = {
+  src: string;
+  title?: string;
+  source?: string;
+  sourceHref?: string;
+  caption?: string;
+};
+
+type RevealStep =
+  | { kind: "work"; index: number }
+  | { kind: "series"; index: number };
 
 type AIShenaniganWorkSeriesProps = {
   rank: number;
@@ -26,14 +45,16 @@ type AIShenaniganWorkSeriesProps = {
   orientation?: AIShenaniganMovieOrientation;
   intentToCopyright?: boolean;
   rightsNotice?: string;
-  workPdf: string;
+  workPdf?: string;
   workSource?: string;
   workSourceHref?: string;
   workCaption?: string;
-  seriesMovie: string;
+  workParts?: WorkDocumentPart[];
+  seriesMovie?: string;
   seriesSource?: string;
   seriesSourceHref?: string;
   seriesCaption?: string;
+  seriesParts?: SeriesMediaPart[];
 };
 
 export default function AIShenaniganWorkSeries({
@@ -47,32 +68,59 @@ export default function AIShenaniganWorkSeries({
   workSource,
   workSourceHref,
   workCaption,
+  workParts = [],
   seriesMovie,
   seriesSource,
   seriesSourceHref,
   seriesCaption,
+  seriesParts = [],
 }: AIShenaniganWorkSeriesProps) {
-  const [stage, setStage] = useState<RevealStage>("intro");
-  const [workVisible, setWorkVisible] = useState(false);
-  const [seriesVisible, setSeriesVisible] = useState(false);
+  const [revealedWorkCount, setRevealedWorkCount] = useState(0);
+  const [revealedSeriesCount, setRevealedSeriesCount] = useState(0);
   const [showSeriesArrow, setShowSeriesArrow] = useState(false);
-  const [transitioningTo, setTransitioningTo] = useState<RevealStage | null>(
-    null,
-  );
-  const seriesTimeoutRef = useRef<number | null>(null);
+  const [transitioning, setTransitioning] = useState<RevealStep | null>(null);
+  const seriesArrowTimeoutRef = useRef<number | null>(null);
   const workSectionRef = useRef<HTMLDivElement | null>(null);
   const seriesSectionRef = useRef<HTMLDivElement | null>(null);
-  const workFooterRef = useRef<HTMLDivElement | null>(null);
-  const seriesFooterRef = useRef<HTMLDivElement | null>(null);
-  const seriesVideoRef = useRef<HTMLVideoElement | null>(null);
+  const workCardRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const seriesCardRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const workFooterRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const seriesFooterRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const seriesVideoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const scrollStabilizersRef = useRef<Array<() => void>>([]);
   const workSfx = useAudio("/audio/open_003.ogg");
   const seriesSfx = useAudio("/audio/whoosh.ogg");
   const rewindSfx = useAudio("/audio/phaserDown2.ogg");
   const isPortrait = orientation === "portrait";
-  const hasVisibleMedia = workVisible;
   const mediaAspectRatio = isPortrait ? "9 / 16" : "16 / 9";
   const mediaMaxWidth = isPortrait ? 420 : "100%";
+  const normalizedWorkParts =
+    workParts.length > 0
+      ? workParts
+      : workPdf
+        ? [
+            {
+              src: workPdf,
+              source: workSource,
+              sourceHref: workSourceHref,
+              caption: workCaption,
+            },
+          ]
+        : [];
+  const normalizedSeriesParts =
+    seriesParts.length > 0
+      ? seriesParts
+      : seriesMovie
+        ? [
+            {
+              src: seriesMovie,
+              source: seriesSource,
+              sourceHref: seriesSourceHref,
+              caption: seriesCaption,
+            },
+          ]
+        : [];
+  const hasVisibleMedia = revealedWorkCount > 0 || revealedSeriesCount > 0;
   const formattedRank = `#${String(rank).padStart(2, "0")}`;
   const rightsLabel = rightsNotice || "Intent to Copyright";
   const rightsStampAngle = ((rank * 7) % 17) - 8;
@@ -86,21 +134,25 @@ export default function AIShenaniganWorkSeries({
     ...panelChromeSx,
     p: 2.5,
   } as const;
+  const totalWorkParts = normalizedWorkParts.length;
+  const totalSeriesParts = normalizedSeriesParts.length;
 
   const clearPendingTransitions = useCallback(() => {
-    if (seriesTimeoutRef.current) {
-      window.clearTimeout(seriesTimeoutRef.current);
-      seriesTimeoutRef.current = null;
+    if (seriesArrowTimeoutRef.current) {
+      window.clearTimeout(seriesArrowTimeoutRef.current);
+      seriesArrowTimeoutRef.current = null;
     }
   }, []);
 
-  const stopSeriesVideo = () => {
-    if (!seriesVideoRef.current) {
-      return;
-    }
-    seriesVideoRef.current.pause();
-    seriesVideoRef.current.muted = false;
-    seriesVideoRef.current.currentTime = 0;
+  const stopSeriesVideos = () => {
+    seriesVideoRefs.current.forEach((video) => {
+      if (!video) {
+        return;
+      }
+      video.pause();
+      video.muted = false;
+      video.currentTime = 0;
+    });
   };
 
   const clearScrollStabilizers = useCallback(() => {
@@ -209,19 +261,31 @@ export default function AIShenaniganWorkSeries({
     scrollStabilizersRef.current = cleanups;
   }, [clearScrollStabilizers, scrollPanelIntoView]);
 
-  const revealLabels = [
-    {
-      key: "work" as const,
-      label: "Work",
-      active: workVisible,
-      reached: workVisible,
-    },
-    {
-      key: "series" as const,
-      label: "Series Adaptation",
-      active: seriesVisible || showSeriesArrow,
-      reached: seriesVisible,
-    },
+  const getWorkLabel = (index: number) => `${title} - Part ${index + 1} of ${totalWorkParts}`;
+  const getSeriesLabel = (index: number) =>
+    `${title} - Series - Part ${index + 1} of ${totalSeriesParts}`;
+
+  const chronologySteps: Array<{
+    key: string;
+    label: string;
+    active: boolean;
+    reached: boolean;
+    step: RevealStep;
+  }> = [
+    ...normalizedWorkParts.map((_, index) => ({
+      key: `work-${index}`,
+      label: getWorkLabel(index),
+      active: revealedWorkCount === index + 1 && revealedSeriesCount === 0,
+      reached: revealedWorkCount > index,
+      step: { kind: "work" as const, index },
+    })),
+    ...normalizedSeriesParts.map((_, index) => ({
+      key: `series-${index}`,
+      label: getSeriesLabel(index),
+      active: revealedSeriesCount === index + 1,
+      reached: revealedSeriesCount > index,
+      step: { kind: "series" as const, index },
+    })),
   ];
 
   const renderArrow = (direction: ArrowDirection, active: boolean) => (
@@ -367,6 +431,7 @@ export default function AIShenaniganWorkSeries({
   const renderPdfFrame = (
     src: string,
     titleText: string,
+    linkLabel: string,
     onLoad?: () => void,
   ) => {
     const pdfSrc = `${withBasePath(src)}#view=FitH`;
@@ -422,7 +487,7 @@ export default function AIShenaniganWorkSeries({
             color="primary.main"
             sx={{ display: "inline-flex" }}
           >
-            Open document
+            {linkLabel}
           </Link>
           <Typography variant="caption" color="text.secondary">
             Read inline or open the PDF in a separate tab.
@@ -432,62 +497,91 @@ export default function AIShenaniganWorkSeries({
     );
   };
 
-  const renderNextAction = () => {
-    if (stage === "intro") {
-      return (
-        <Button
-          variant="contained"
-          onClick={handleRevealWork}
-          disabled={transitioningTo !== null}
-        >
-          Reveal Work 📖
-        </Button>
-      );
+  const currentStep = (): RevealStep | null => {
+    if (revealedSeriesCount > 0) {
+      return { kind: "series", index: revealedSeriesCount - 1 };
     }
-
-    if (stage === "work") {
-      return (
-        <Button
-          variant="contained"
-          onClick={handleRevealSeries}
-          disabled={transitioningTo !== null}
-        >
-          Reveal Series Adaptation 🎬
-        </Button>
-      );
+    if (revealedWorkCount > 0) {
+      return { kind: "work", index: revealedWorkCount - 1 };
     }
-
     return null;
   };
 
-  const handleChronologySelect = (target: "work" | "series") => {
-    if (transitioningTo !== null) {
+  const nextStep = (): RevealStep | null => {
+    if (revealedWorkCount < totalWorkParts) {
+      return { kind: "work", index: revealedWorkCount };
+    }
+    if (revealedSeriesCount < totalSeriesParts) {
+      return { kind: "series", index: revealedSeriesCount };
+    }
+    return null;
+  };
+
+  const renderNextAction = () => {
+    const step = nextStep();
+    if (!step) {
+      return null;
+    }
+
+    if (step.kind === "work") {
+      return (
+        <Button
+          variant="contained"
+          onClick={handleRevealNextStep}
+          disabled={transitioning !== null}
+        >
+          {`Reveal ${getWorkLabel(step.index)} 📖`}
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        variant="contained"
+        onClick={handleRevealNextStep}
+        disabled={transitioning !== null}
+      >
+        {`Reveal ${getSeriesLabel(step.index)} 🎬`}
+      </Button>
+    );
+  };
+
+  const rewindToStep = (target: RevealStep) => {
+    if (transitioning !== null) {
       return;
     }
 
     rewindAndPlayAudio(rewindSfx, { volume: 0.24 });
     clearPendingTransitions();
-    setTransitioningTo(null);
-    setWorkVisible(true);
-    setShowSeriesArrow(target === "series");
-    setSeriesVisible(target === "series");
-    setStage(target);
+    setTransitioning(null);
+    stopSeriesVideos();
 
-    if (target !== "series") {
-      stopSeriesVideo();
+    if (target.kind === "work") {
+      setRevealedWorkCount(target.index + 1);
+      setRevealedSeriesCount(0);
+      setShowSeriesArrow(false);
+      window.requestAnimationFrame(() => {
+        scrollRevealIntoView(
+          workCardRefs.current[target.index] || workSectionRef.current,
+          workFooterRefs.current[target.index],
+        );
+      });
+      return;
     }
 
+    setRevealedWorkCount(totalWorkParts);
+    setRevealedSeriesCount(target.index + 1);
+    setShowSeriesArrow(true);
     window.requestAnimationFrame(() => {
-      if (target === "work") {
-        scrollRevealIntoView(workSectionRef.current, workFooterRef.current);
-        return;
-      }
-      scrollRevealIntoView(seriesSectionRef.current, seriesFooterRef.current);
+      scrollRevealIntoView(
+        seriesCardRefs.current[target.index] || seriesSectionRef.current,
+        seriesFooterRefs.current[target.index],
+      );
     });
   };
 
   const renderChronologyChips = (scope: "main" | "panel") =>
-    revealLabels.map((item, index) => (
+    chronologySteps.map((item, index) => (
       <Box
         key={`${scope}-${item.key}`}
         sx={{ display: "flex", alignItems: "center", gap: 1 }}
@@ -498,7 +592,7 @@ export default function AIShenaniganWorkSeries({
           variant={item.active ? "filled" : "outlined"}
           size="small"
           clickable={item.reached}
-          onClick={item.reached ? () => handleChronologySelect(item.key) : undefined}
+          onClick={item.reached ? () => rewindToStep(item.step) : undefined}
           sx={
             item.reached
               ? undefined
@@ -513,7 +607,7 @@ export default function AIShenaniganWorkSeries({
                 }
           }
         />
-        {index < revealLabels.length - 1 && (
+        {index < chronologySteps.length - 1 && (
           <Typography
             aria-hidden="true"
             sx={{
@@ -541,7 +635,7 @@ export default function AIShenaniganWorkSeries({
     }
 
     const nextAction = renderNextAction();
-    const sequenceFinished = stage !== "intro" && !nextAction;
+    const sequenceFinished = !nextAction;
 
     return (
       <Box
@@ -573,7 +667,7 @@ export default function AIShenaniganWorkSeries({
           }}
         >
           <Box>
-            {stage !== "intro" && !sequenceFinished && (
+            {!sequenceFinished && currentStep() && (
               <Button variant="text" onClick={resetReveal}>
                 Start Over
               </Button>
@@ -604,12 +698,11 @@ export default function AIShenaniganWorkSeries({
   };
 
   useEffect(() => {
-    if (stage !== "series") {
+    if (revealedSeriesCount === 0) {
       return;
     }
 
-    const video = seriesVideoRef.current;
-
+    const video = seriesVideoRefs.current[revealedSeriesCount - 1];
     if (!video) {
       return;
     }
@@ -617,9 +710,9 @@ export default function AIShenaniganWorkSeries({
     video.muted = false;
     video.currentTime = 0;
     void video.play().catch(() => {
-      // Controls remain available if autoplay failures occur.
+      // Controls remain available if autoplay fails.
     });
-  }, [stage]);
+  }, [revealedSeriesCount]);
 
   useEffect(() => {
     return () => {
@@ -632,47 +725,182 @@ export default function AIShenaniganWorkSeries({
     rewindAndPlayAudio(rewindSfx, { volume: 0.24 });
     clearPendingTransitions();
     clearScrollStabilizers();
-    setTransitioningTo(null);
-    setStage("intro");
-    setWorkVisible(false);
+    setTransitioning(null);
+    setRevealedWorkCount(0);
+    setRevealedSeriesCount(0);
     setShowSeriesArrow(false);
-    setSeriesVisible(false);
-    stopSeriesVideo();
+    stopSeriesVideos();
+    seriesVideoRefs.current = [];
   };
 
-  const handleRevealWork = () => {
-    if (transitioningTo) {
+  const handleRevealNextStep = () => {
+    const step = nextStep();
+    if (!step || transitioning) {
       return;
     }
-    setTransitioningTo("work");
-    rewindAndPlayAudio(workSfx, { volume: 0.34 });
-    window.requestAnimationFrame(() => {
-      setWorkVisible(true);
-      setStage("work");
-      setTransitioningTo(null);
+
+    setTransitioning(step);
+    rewindAndPlayAudio(
+      step.kind === "work" ? workSfx : seriesSfx,
+      { volume: step.kind === "work" ? 0.34 : 0.3 },
+    );
+
+    if (step.kind === "work") {
       window.requestAnimationFrame(() => {
-        scrollRevealIntoView(workSectionRef.current, workFooterRef.current);
+        setRevealedWorkCount((current) => Math.max(current, step.index + 1));
+        setTransitioning(null);
+        window.requestAnimationFrame(() => {
+          scrollRevealIntoView(
+            workCardRefs.current[step.index] || workSectionRef.current,
+            workFooterRefs.current[step.index],
+          );
+        });
+      });
+      return;
+    }
+
+    if (revealedSeriesCount === 0) {
+      setShowSeriesArrow(true);
+      seriesArrowTimeoutRef.current = window.setTimeout(() => {
+        setRevealedWorkCount(totalWorkParts);
+        setRevealedSeriesCount(1);
+        setTransitioning(null);
+        seriesArrowTimeoutRef.current = null;
+        window.requestAnimationFrame(() => {
+          scrollRevealIntoView(
+            seriesCardRefs.current[0] || seriesSectionRef.current,
+            seriesFooterRefs.current[0],
+          );
+        });
+      }, ARROW_REVEAL_MS);
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      setRevealedSeriesCount((current) => Math.max(current, step.index + 1));
+      setTransitioning(null);
+      window.requestAnimationFrame(() => {
+        scrollRevealIntoView(
+          seriesCardRefs.current[step.index] || seriesSectionRef.current,
+          seriesFooterRefs.current[step.index],
+        );
       });
     });
   };
 
-  const handleRevealSeries = () => {
-    if (transitioningTo) {
-      return;
-    }
-    setTransitioningTo("series");
-    rewindAndPlayAudio(seriesSfx, { volume: 0.3 });
-    setShowSeriesArrow(true);
-    seriesTimeoutRef.current = window.setTimeout(() => {
-      setSeriesVisible(true);
-      setStage("series");
-      setTransitioningTo(null);
-      seriesTimeoutRef.current = null;
-      window.requestAnimationFrame(() => {
-        scrollRevealIntoView(seriesSectionRef.current, seriesFooterRef.current);
-      });
-    }, ARROW_REVEAL_MS);
-  };
+  const renderWorkPart = (
+    part: WorkDocumentPart,
+    index: number,
+  ) => (
+    <Box
+      key={`${part.src}-${index}`}
+      ref={(node: HTMLDivElement | null) => {
+        workCardRefs.current[index] = node;
+      }}
+      sx={mediaPanelSx}
+    >
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        {getWorkLabel(index)}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Reveal the source document segment that anchors the concept.
+      </Typography>
+      {renderPdfFrame(
+        part.src,
+        `${title} ${getWorkLabel(index)}`,
+        `Open ${getWorkLabel(index)}`,
+        () => {
+          scrollRevealIntoView(workCardRefs.current[index], workFooterRefs.current[index]);
+        },
+      )}
+      {renderSource(part.source, part.sourceHref)}
+      {part.caption && (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mt: part.source ? 0.75 : 1.5 }}
+        >
+          {part.caption}
+        </Typography>
+      )}
+      {renderMobilePanelFooter(
+        revealedSeriesCount === 0 && revealedWorkCount === index + 1,
+        {
+          get current() {
+            return workFooterRefs.current[index];
+          },
+          set current(value: HTMLDivElement | null) {
+            workFooterRefs.current[index] = value;
+          },
+        },
+      )}
+    </Box>
+  );
+
+  const renderSeriesPart = (
+    part: SeriesMediaPart,
+    index: number,
+  ) => (
+    <Box
+      key={`${part.src}-${index}`}
+      ref={(node: HTMLDivElement | null) => {
+        seriesCardRefs.current[index] = node;
+      }}
+      sx={mediaPanelSx}
+    >
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        {getSeriesLabel(index)}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Push the written concept into motion as a series adaptation beat.
+      </Typography>
+      <Box
+        component="video"
+        ref={(node: HTMLVideoElement | null) => {
+          seriesVideoRefs.current[index] = node;
+        }}
+        src={withBasePath(part.src)}
+        controls
+        autoPlay={index === revealedSeriesCount - 1}
+        playsInline
+        onLoadedData={() => {
+          scrollRevealIntoView(
+            seriesCardRefs.current[index],
+            seriesFooterRefs.current[index],
+          );
+        }}
+        className="block w-full rounded-[22px] bg-black/10 object-contain"
+        sx={{
+          aspectRatio: mediaAspectRatio,
+          maxWidth: mediaMaxWidth,
+          mx: isPortrait ? "auto" : undefined,
+        }}
+      />
+      {renderSource(part.source, part.sourceHref)}
+      {part.caption && (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mt: part.source ? 0.75 : 1.5 }}
+        >
+          {part.caption}
+        </Typography>
+      )}
+      {renderMobilePanelFooter(
+        revealedSeriesCount === index + 1,
+        {
+          get current() {
+            return seriesFooterRefs.current[index];
+          },
+          set current(value: HTMLDivElement | null) {
+            seriesFooterRefs.current[index] = value;
+          },
+        },
+      )}
+    </Box>
+  );
+
+  const current = currentStep();
 
   return (
     <FadeInSection>
@@ -739,7 +967,7 @@ export default function AIShenaniganWorkSeries({
                     sx={{
                       mt: 2.5,
                       alignItems: "center",
-                      display: { xs: stage === "intro" ? "flex" : "none", lg: "flex" },
+                      display: { xs: current ? "none" : "flex", lg: "flex" },
                     }}
                   >
                     {renderChronologyChips("main")}
@@ -755,7 +983,7 @@ export default function AIShenaniganWorkSeries({
                     }}
                   >
                     <Box>
-                      {stage !== "intro" && renderNextAction() && (
+                      {current && renderNextAction() && (
                         <Button variant="text" onClick={resetReveal}>
                           Start Over
                         </Button>
@@ -763,7 +991,7 @@ export default function AIShenaniganWorkSeries({
                     </Box>
                     <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, flexWrap: "wrap" }}>
                       {renderNextAction() ?? (
-                        stage !== "intro" && (
+                        current && (
                           <Chip
                             label="Sequence Finished: Start Over 🔁"
                             color="primary"
@@ -794,28 +1022,15 @@ export default function AIShenaniganWorkSeries({
                   "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
               }}
             >
-              {workVisible && (
-                <Box ref={workSectionRef} sx={mediaPanelSx}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Work
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Reveal the source document that anchors the concept before the adaptation step.
-                  </Typography>
-                  {renderPdfFrame(workPdf, `${title} work`, () => {
-                    scrollRevealIntoView(workSectionRef.current, workFooterRef.current);
-                  })}
-                  {renderSource(workSource, workSourceHref)}
-                  {workCaption && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: workSource ? 0.75 : 1.5 }}>
-                      {workCaption}
-                    </Typography>
-                  )}
-                  {renderMobilePanelFooter(stage === "work", workFooterRef)}
-                </Box>
+              {revealedWorkCount > 0 && (
+                <Stack ref={workSectionRef} spacing={2}>
+                  {normalizedWorkParts
+                    .slice(0, revealedWorkCount)
+                    .map((part, index) => renderWorkPart(part, index))}
+                </Stack>
               )}
 
-              {workVisible && (
+              {revealedWorkCount === totalWorkParts && totalSeriesParts > 0 && (
                 <>
                   <Box sx={{ display: { xs: "flex", xl: "none" }, justifyContent: "center" }}>
                     {renderArrow("down", showSeriesArrow)}
@@ -826,42 +1041,12 @@ export default function AIShenaniganWorkSeries({
                 </>
               )}
 
-              {seriesVisible && (
-                <Box ref={seriesSectionRef} sx={mediaPanelSx}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Series Adaptation
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Push the written concept into motion as a series-style adaptation beat.
-                  </Typography>
-                  <Box
-                    component="video"
-                    ref={seriesVideoRef}
-                    src={withBasePath(seriesMovie)}
-                    controls
-                    autoPlay
-                    playsInline
-                    onLoadedData={() => {
-                      scrollRevealIntoView(
-                        seriesSectionRef.current,
-                        seriesFooterRef.current,
-                      );
-                    }}
-                    className="block w-full rounded-[22px] bg-black/10 object-contain"
-                    sx={{
-                      aspectRatio: mediaAspectRatio,
-                      maxWidth: mediaMaxWidth,
-                      mx: isPortrait ? "auto" : undefined,
-                    }}
-                  />
-                  {renderSource(seriesSource, seriesSourceHref)}
-                  {seriesCaption && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: seriesSource ? 0.75 : 1.5 }}>
-                      {seriesCaption}
-                    </Typography>
-                  )}
-                  {renderMobilePanelFooter(stage === "series", seriesFooterRef)}
-                </Box>
+              {revealedSeriesCount > 0 && (
+                <Stack ref={seriesSectionRef} spacing={2}>
+                  {normalizedSeriesParts
+                    .slice(0, revealedSeriesCount)
+                    .map((part, index) => renderSeriesPart(part, index))}
+                </Stack>
               )}
             </Stack>
           </Stack>

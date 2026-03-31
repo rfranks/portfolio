@@ -128,10 +128,24 @@ export default function AIShenanigansPageClient() {
                 workSource?: string;
                 workSourceHref?: string;
                 workCaption?: string;
+                workParts?: Array<{
+                  src: string;
+                  title?: string;
+                  source?: string;
+                  sourceHref?: string;
+                  caption?: string;
+                }>;
                 seriesMovie?: string;
                 seriesSource?: string;
                 seriesSourceHref?: string;
                 seriesCaption?: string;
+                seriesParts?: Array<{
+                  src: string;
+                  title?: string;
+                  source?: string;
+                  sourceHref?: string;
+                  caption?: string;
+                }>;
                 episodeMedia?: Array<{
                   title: string;
                   episodeNumber?: number;
@@ -207,6 +221,9 @@ export default function AIShenanigansPageClient() {
                 ...(itemWithLinks.workCaption
                   ? { workCaption: itemWithLinks.workCaption }
                   : {}),
+                ...(itemWithLinks.workParts
+                  ? { workParts: itemWithLinks.workParts }
+                  : {}),
                 ...(itemWithLinks.seriesMovie
                   ? { seriesMovie: itemWithLinks.seriesMovie }
                   : {}),
@@ -218,6 +235,9 @@ export default function AIShenanigansPageClient() {
                   : {}),
                 ...(itemWithLinks.seriesCaption
                   ? { seriesCaption: itemWithLinks.seriesCaption }
+                  : {}),
+                ...(itemWithLinks.seriesParts
+                  ? { seriesParts: itemWithLinks.seriesParts }
                   : {}),
                 ...(itemWithLinks.episodeMedia
                   ? { episodeMedia: itemWithLinks.episodeMedia }

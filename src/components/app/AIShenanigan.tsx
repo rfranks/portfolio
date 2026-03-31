@@ -67,10 +67,24 @@ type AIShenaniganProps = {
   workSource?: string;
   workSourceHref?: string;
   workCaption?: string;
+  workParts?: Array<{
+    src: string;
+    title?: string;
+    source?: string;
+    sourceHref?: string;
+    caption?: string;
+  }>;
   seriesMovie?: string;
   seriesSource?: string;
   seriesSourceHref?: string;
   seriesCaption?: string;
+  seriesParts?: Array<{
+    src: string;
+    title?: string;
+    source?: string;
+    sourceHref?: string;
+    caption?: string;
+  }>;
 };
 
 type RevealStage = "intro" | "realistic" | "stylized" | "movie";
@@ -116,10 +130,12 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         workSource={props.workSource || props.realisticSource}
         workSourceHref={props.workSourceHref || props.realisticSourceHref}
         workCaption={props.workCaption || props.realisticCaption}
+        workParts={props.workParts}
         seriesMovie={props.seriesMovie || props.movieRendering || ""}
         seriesSource={props.seriesSource || props.movieSource}
         seriesSourceHref={props.seriesSourceHref || props.movieSourceHref}
         seriesCaption={props.seriesCaption || props.movieCaption}
+        seriesParts={props.seriesParts}
       />
     );
   }
