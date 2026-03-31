@@ -124,6 +124,14 @@ export default function AIShenanigansPageClient() {
                 episodesSource?: string;
                 episodesSourceHref?: string;
                 episodesCaption?: string;
+                workPdf?: string;
+                workSource?: string;
+                workSourceHref?: string;
+                workCaption?: string;
+                seriesMovie?: string;
+                seriesSource?: string;
+                seriesSourceHref?: string;
+                seriesCaption?: string;
                 episodeMedia?: Array<{
                   title: string;
                   episodeNumber?: number;
@@ -186,6 +194,30 @@ export default function AIShenanigansPageClient() {
                   : {}),
                 ...(itemWithLinks.episodesCaption
                   ? { episodesCaption: itemWithLinks.episodesCaption }
+                  : {}),
+                ...(itemWithLinks.workPdf
+                  ? { workPdf: itemWithLinks.workPdf }
+                  : {}),
+                ...(itemWithLinks.workSource
+                  ? { workSource: itemWithLinks.workSource }
+                  : {}),
+                ...(itemWithLinks.workSourceHref
+                  ? { workSourceHref: itemWithLinks.workSourceHref }
+                  : {}),
+                ...(itemWithLinks.workCaption
+                  ? { workCaption: itemWithLinks.workCaption }
+                  : {}),
+                ...(itemWithLinks.seriesMovie
+                  ? { seriesMovie: itemWithLinks.seriesMovie }
+                  : {}),
+                ...(itemWithLinks.seriesSource
+                  ? { seriesSource: itemWithLinks.seriesSource }
+                  : {}),
+                ...(itemWithLinks.seriesSourceHref
+                  ? { seriesSourceHref: itemWithLinks.seriesSourceHref }
+                  : {}),
+                ...(itemWithLinks.seriesCaption
+                  ? { seriesCaption: itemWithLinks.seriesCaption }
                   : {}),
                 ...(itemWithLinks.episodeMedia
                   ? { episodeMedia: itemWithLinks.episodeMedia }

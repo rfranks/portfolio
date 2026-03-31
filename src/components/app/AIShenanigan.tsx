@@ -10,13 +10,17 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import FadeInSection from "@/components/app/FadeInSection";
 import AIShenaniganAdaptation from "@/components/app/AIShenaniganAdaptation";
+import AIShenaniganWorkSeries from "@/components/app/AIShenaniganWorkSeries";
 import TronPaper from "@/components/app/TronPaper";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { withBasePath } from "@/utils/basePath";
 import { rewindAndPlayAudio } from "@/utils/lightgun-web/audio";
 
 export type AIShenaniganMovieOrientation = "landscape" | "portrait" | undefined;
-export type AIShenaniganType = "default" | "book-to-limited-series";
+export type AIShenaniganType =
+  | "default"
+  | "book-to-limited-series"
+  | "work-to-series-adaptation";
 
 type AIShenaniganProps = {
   type?: AIShenaniganType;
@@ -59,6 +63,14 @@ type AIShenaniganProps = {
     sourceHref?: string;
     caption?: string;
   }>;
+  workPdf?: string;
+  workSource?: string;
+  workSourceHref?: string;
+  workCaption?: string;
+  seriesMovie?: string;
+  seriesSource?: string;
+  seriesSourceHref?: string;
+  seriesCaption?: string;
 };
 
 type RevealStage = "intro" | "realistic" | "stylized" | "movie";
@@ -87,6 +99,27 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         episodesSourceHref={props.episodesSourceHref}
         episodesCaption={props.episodesCaption}
         episodeMedia={props.episodeMedia}
+      />
+    );
+  }
+
+  if (props.type === "work-to-series-adaptation") {
+    return (
+      <AIShenaniganWorkSeries
+        rank={props.rank}
+        title={props.title}
+        blurb={props.blurb}
+        orientation={props.orientation}
+        intentToCopyright={props.intentToCopyright}
+        rightsNotice={props.rightsNotice}
+        workPdf={props.workPdf || ""}
+        workSource={props.workSource || props.realisticSource}
+        workSourceHref={props.workSourceHref || props.realisticSourceHref}
+        workCaption={props.workCaption || props.realisticCaption}
+        seriesMovie={props.seriesMovie || props.movieRendering || ""}
+        seriesSource={props.seriesSource || props.movieSource}
+        seriesSourceHref={props.seriesSourceHref || props.movieSourceHref}
+        seriesCaption={props.seriesCaption || props.movieCaption}
       />
     );
   }
@@ -480,7 +513,7 @@ function DefaultAIShenanigan({
           onClick={handleRevealRealistic}
           disabled={transitioningTo !== null}
         >
-          Reveal Inspiration! 💡
+          Reveal Inspiration 💡
         </Button>
       );
     }
