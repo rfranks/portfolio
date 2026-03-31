@@ -693,7 +693,7 @@ function DefaultAIShenanigan({
           >
             {nextAction ?? (
               <Chip
-                label="Sequence Finished: Start Over"
+                label="Sequence Finished: Start Over 🔁"
                 color="primary"
                 variant="outlined"
                 size="small"
@@ -733,6 +733,7 @@ function DefaultAIShenanigan({
   }, []);
 
   const resetReveal = () => {
+    rewindAndPlayAudio(rewindSfx, { volume: 0.24 });
     clearPendingTransitions();
     setTransitioningTo(null);
     setStage("intro");
@@ -913,7 +914,7 @@ function DefaultAIShenanigan({
                       {renderNextAction() ?? (
                         stage !== "intro" && (
                           <Chip
-                            label="Sequence Finished: Start Over"
+                            label="Sequence Finished: Start Over 🔁"
                             color="primary"
                             variant="outlined"
                             clickable

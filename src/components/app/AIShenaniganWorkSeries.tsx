@@ -589,7 +589,7 @@ export default function AIShenaniganWorkSeries({
           >
             {nextAction ?? (
               <Chip
-                label="Sequence Finished: Start Over"
+                label="Sequence Finished: Start Over 🔁"
                 color="primary"
                 variant="outlined"
                 size="small"
@@ -629,6 +629,7 @@ export default function AIShenaniganWorkSeries({
   }, [clearPendingTransitions, clearScrollStabilizers]);
 
   const resetReveal = () => {
+    rewindAndPlayAudio(rewindSfx, { volume: 0.24 });
     clearPendingTransitions();
     clearScrollStabilizers();
     setTransitioningTo(null);
@@ -764,7 +765,7 @@ export default function AIShenaniganWorkSeries({
                       {renderNextAction() ?? (
                         stage !== "intro" && (
                           <Chip
-                            label="Sequence Finished: Start Over"
+                            label="Sequence Finished: Start Over 🔁"
                             color="primary"
                             variant="outlined"
                             clickable

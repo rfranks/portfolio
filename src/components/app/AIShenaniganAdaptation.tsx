@@ -723,7 +723,7 @@ export default function AIShenaniganAdaptation({
           >
             {nextAction ?? (
               <Chip
-                label="Sequence Finished: Start Over"
+                label="Sequence Finished: Start Over 🔁"
                 color="primary"
                 variant="outlined"
                 size="small"
@@ -762,6 +762,7 @@ export default function AIShenaniganAdaptation({
   }, [clearPendingTransitions, clearScrollStabilizers]);
 
   const resetReveal = () => {
+    rewindAndPlayAudio(rewindSfx, { volume: 0.24 });
     clearPendingTransitions();
     clearScrollStabilizers();
     setTransitioningTo(null);
@@ -959,7 +960,7 @@ export default function AIShenaniganAdaptation({
                       {renderNextAction() ?? (
                         stage !== "intro" && (
                           <Chip
-                            label="Sequence Finished: Start Over"
+                            label="Sequence Finished: Start Over 🔁"
                             color="primary"
                             variant="outlined"
                             clickable
