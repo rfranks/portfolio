@@ -52,6 +52,8 @@ type AIShenaniganProps = {
   episodesCaption?: string;
   episodeMedia?: Array<{
     title: string;
+    episodeNumber?: number;
+    seasonNumber?: number;
     src: string;
     source?: string;
     sourceHref?: string;
@@ -131,6 +133,7 @@ function DefaultAIShenanigan({
   const inspirationSfx = useAudio("/audio/highUp.ogg");
   const stylizedSfx = useAudio("/audio/powerUp3.ogg");
   const motionSfx = useAudio("/audio/whoosh.ogg");
+  const rewindSfx = useAudio("/audio/phaserDown2.ogg");
   const hasStylized = Boolean(stylizedRendering);
   const hasMovie = Boolean(movieRendering);
   const isPortrait = orientation === "portrait";
@@ -153,6 +156,26 @@ function DefaultAIShenanigan({
     p: 2.5,
   } as const;
 
+  const clearPendingTransitions = () => {
+    if (stylizedTimeoutRef.current) {
+      window.clearTimeout(stylizedTimeoutRef.current);
+      stylizedTimeoutRef.current = null;
+    }
+    if (movieTimeoutRef.current) {
+      window.clearTimeout(movieTimeoutRef.current);
+      movieTimeoutRef.current = null;
+    }
+  };
+
+  const stopMotionVideo = () => {
+    if (!motionVideoRef.current) {
+      return;
+    }
+    motionVideoRef.current.pause();
+    motionVideoRef.current.muted = false;
+    motionVideoRef.current.currentTime = 0;
+  };
+
   const scrollPanelIntoView = (panel: HTMLDivElement | null) => {
     if (!panel) {
       return;
@@ -170,6 +193,7 @@ function DefaultAIShenanigan({
         key: "realistic" as const,
         label: "Realistic source",
         active: realisticVisible,
+        reached: realisticVisible,
       },
       ...(hasStylized
         ? [
@@ -177,6 +201,7 @@ function DefaultAIShenanigan({
               key: "stylized" as const,
               label: "Stylized rendering",
               active: stylizedVisible || showStylizedArrow,
+              reached: stylizedVisible,
             },
           ]
         : []),
@@ -186,6 +211,7 @@ function DefaultAIShenanigan({
               key: "movie" as const,
               label: "Motion rendering",
               active: movieVisible || (hasStylized && showMovieArrow),
+              reached: movieVisible,
             },
           ]
         : []),
@@ -387,6 +413,78 @@ function DefaultAIShenanigan({
     return null;
   };
 
+  const handleChronologySelect = (target: "realistic" | "stylized" | "movie") => {
+    if (transitioningTo !== null) {
+      return;
+    }
+
+    rewindAndPlayAudio(rewindSfx, { volume: 0.24 });
+    clearPendingTransitions();
+    setTransitioningTo(null);
+    setRealisticVisible(true);
+    setShowStylizedArrow(hasStylized && target !== "realistic");
+    setShowMovieArrow(target === "movie");
+    setStylizedVisible(hasStylized && target !== "realistic");
+    setMovieVisible(target === "movie");
+    setStage(target);
+
+    if (target !== "movie") {
+      stopMotionVideo();
+    }
+
+    window.requestAnimationFrame(() => {
+      if (target === "realistic") {
+        scrollPanelIntoView(realisticSectionRef.current);
+        return;
+      }
+      if (target === "stylized") {
+        scrollPanelIntoView(stylizedSectionRef.current);
+        return;
+      }
+      scrollPanelIntoView(motionSectionRef.current);
+    });
+  };
+
+  const renderChronologyChips = (scope: "main" | "panel") => {
+    const visibleLabels = revealLabels.filter((item) => item.reached);
+
+    return visibleLabels.map((item, index) => (
+      <Box
+        key={`${scope}-${item.key}`}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <Chip
+          label={item.label}
+          color={item.active ? "primary" : "default"}
+          variant={item.active ? "filled" : "outlined"}
+          size="small"
+          clickable={item.reached}
+          onClick={item.reached ? () => handleChronologySelect(item.key) : undefined}
+        />
+        {index < visibleLabels.length - 1 && (
+          <Typography
+            aria-hidden="true"
+            sx={{
+              fontSize: "1rem",
+              fontWeight: 800,
+              lineHeight: 1,
+              color: item.active ? "primary.main" : "text.disabled",
+              transform: "translateY(-1px)",
+              transition: "color 180ms ease",
+              userSelect: "none",
+            }}
+          >
+            →
+          </Typography>
+        )}
+      </Box>
+    ));
+  };
+
   const renderMobilePanelFooter = () => {
     const nextAction = renderNextAction();
 
@@ -406,39 +504,7 @@ function DefaultAIShenanigan({
           flexWrap="wrap"
           sx={{ alignItems: "center" }}
         >
-          {revealLabels.map((item, index) => (
-            <Box
-              key={`panel-${item.key}`}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <Chip
-                label={item.label}
-                color={item.active ? "primary" : "default"}
-                variant={item.active ? "filled" : "outlined"}
-                size="small"
-              />
-              {index < revealLabels.length - 1 && (
-                <Typography
-                  aria-hidden="true"
-                  sx={{
-                    fontSize: "1rem",
-                    fontWeight: 800,
-                    lineHeight: 1,
-                    color: item.active ? "primary.main" : "text.disabled",
-                    transform: "translateY(-1px)",
-                    transition: "color 180ms ease",
-                    userSelect: "none",
-                  }}
-                >
-                  →
-                </Typography>
-              )}
-            </Box>
-          ))}
+          {renderChronologyChips("panel")}
         </Stack>
         <Box
           sx={{
@@ -499,24 +565,12 @@ function DefaultAIShenanigan({
 
   useEffect(() => {
     return () => {
-      if (stylizedTimeoutRef.current) {
-        window.clearTimeout(stylizedTimeoutRef.current);
-      }
-      if (movieTimeoutRef.current) {
-        window.clearTimeout(movieTimeoutRef.current);
-      }
+      clearPendingTransitions();
     };
   }, []);
 
   const resetReveal = () => {
-    if (stylizedTimeoutRef.current) {
-      window.clearTimeout(stylizedTimeoutRef.current);
-      stylizedTimeoutRef.current = null;
-    }
-    if (movieTimeoutRef.current) {
-      window.clearTimeout(movieTimeoutRef.current);
-      movieTimeoutRef.current = null;
-    }
+    clearPendingTransitions();
     setTransitioningTo(null);
     setStage("intro");
     setRealisticVisible(false);
@@ -524,11 +578,7 @@ function DefaultAIShenanigan({
     setShowMovieArrow(false);
     setStylizedVisible(false);
     setMovieVisible(false);
-    if (motionVideoRef.current) {
-      motionVideoRef.current.pause();
-      motionVideoRef.current.muted = false;
-      motionVideoRef.current.currentTime = 0;
-    }
+    stopMotionVideo();
   };
 
   const handleRevealRealistic = () => {
@@ -659,41 +709,7 @@ function DefaultAIShenanigan({
                     flexWrap="wrap"
                     sx={{ mt: 2.5, alignItems: "center" }}
                   >
-                    {revealLabels.map((item, index) => (
-                      <Box
-                        key={item.key}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        <Chip
-                          label={item.label}
-                          color={item.active ? "primary" : "default"}
-                          variant={item.active ? "filled" : "outlined"}
-                          size="small"
-                        />
-                        {index < revealLabels.length - 1 && (
-                          <Typography
-                            aria-hidden="true"
-                            sx={{
-                              fontSize: "1rem",
-                              fontWeight: 800,
-                              lineHeight: 1,
-                              color: item.active
-                                ? "primary.main"
-                                : "text.disabled",
-                              transform: "translateY(-1px)",
-                              transition: "color 180ms ease",
-                              userSelect: "none",
-                            }}
-                          >
-                            →
-                          </Typography>
-                        )}
-                      </Box>
-                    ))}
+                    {renderChronologyChips("main")}
                   </Stack>
                   <Box
                     sx={{

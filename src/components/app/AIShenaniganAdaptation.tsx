@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -39,6 +39,8 @@ type AIShenaniganAdaptationProps = {
   episodesCaption?: string;
   episodeMedia?: Array<{
     title: string;
+    episodeNumber?: number;
+    seasonNumber?: number;
     src: string;
     source?: string;
     sourceHref?: string;
@@ -89,6 +91,7 @@ export default function AIShenaniganAdaptation({
   const manuscriptSfx = useAudio("/audio/open_003.ogg");
   const episodesSfx = useAudio("/audio/select_004.ogg");
   const nextEpisodeSfx = useAudio("/audio/whoosh.ogg");
+  const rewindSfx = useAudio("/audio/phaserDown2.ogg");
   const formattedRank = `#${String(rank).padStart(2, "0")}`;
   const rightsLabel = rightsNotice || "Intent to Copyright";
   const rightsStampAngle = ((rank * 7) % 17) - 8;
@@ -106,6 +109,28 @@ export default function AIShenaniganAdaptation({
   const hasEpisodesPdf = Boolean(episodesPdf);
   const hasEpisodeMedia = episodeMedia.length > 0;
 
+  const clearPendingTransitions = () => {
+    if (manuscriptTimeoutRef.current) {
+      window.clearTimeout(manuscriptTimeoutRef.current);
+      manuscriptTimeoutRef.current = null;
+    }
+    if (episodesTimeoutRef.current) {
+      window.clearTimeout(episodesTimeoutRef.current);
+      episodesTimeoutRef.current = null;
+    }
+  };
+
+  const stopEpisodeVideos = () => {
+    episodeVideoRefs.current.forEach((video) => {
+      if (!video) {
+        return;
+      }
+      video.pause();
+      video.muted = false;
+      video.currentTime = 0;
+    });
+  };
+
   const scrollPanelIntoView = (
     panel: HTMLDivElement | null,
     block: ScrollLogicalPosition = "nearest",
@@ -120,35 +145,48 @@ export default function AIShenaniganAdaptation({
     });
   };
 
-  const revealLabels = useMemo(
-    () => [
-      { key: "book" as const, label: "Book cover", active: bookVisible },
-      {
-        key: "manuscript" as const,
-        label: "Manuscript",
-        active: manuscriptVisible || showManuscriptArrow,
-      },
-      {
-        key: "episodes" as const,
-        label: "Episodes Draft",
-        active: episodesVisible || showEpisodesArrow,
-      },
-      ...episodeMedia.map((episode, index) => ({
-        key: `episode-${index}` as const,
-        label: episode.title,
-        active: revealedEpisodeCount > index,
-      })),
-    ],
-    [
-      bookVisible,
-      episodeMedia,
-      episodesVisible,
-      manuscriptVisible,
-      revealedEpisodeCount,
-      showEpisodesArrow,
-      showManuscriptArrow,
-    ],
-  );
+  const getEpisodeSeasonNumber = (seasonNumber?: number) => seasonNumber ?? 1;
+
+  const getEpisodeChronologyLabel = (episode: {
+    title: string;
+    episodeNumber?: number;
+    seasonNumber?: number;
+  }) => {
+    if (!episode.episodeNumber) {
+      return episode.title;
+    }
+
+    return `Season ${getEpisodeSeasonNumber(
+      episode.seasonNumber,
+    )}: Episode ${episode.episodeNumber}`;
+  };
+
+  const revealLabels = [
+    {
+      key: "book" as const,
+      label: "Book cover",
+      active: bookVisible,
+      reached: bookVisible,
+    },
+    {
+      key: "manuscript" as const,
+      label: "Manuscript",
+      active: manuscriptVisible || showManuscriptArrow,
+      reached: manuscriptVisible,
+    },
+    {
+      key: "episodes" as const,
+      label: "Episodes Draft",
+      active: episodesVisible || showEpisodesArrow,
+      reached: episodesVisible,
+    },
+    ...episodeMedia.map((episode, index) => ({
+      key: `episode-${index}` as const,
+      label: getEpisodeChronologyLabel(episode),
+      active: revealedEpisodeCount > index,
+      reached: revealedEpisodeCount > index,
+    })),
+  ];
 
   const renderArrow = (direction: ArrowDirection, active: boolean) => (
     <Box
@@ -405,6 +443,102 @@ export default function AIShenaniganAdaptation({
     return null;
   };
 
+  const handleChronologySelect = (
+    target:
+      | "book"
+      | "manuscript"
+      | "episodes"
+      | `episode-${number}`,
+  ) => {
+    if (transitioningTo !== null) {
+      return;
+    }
+
+    rewindAndPlayAudio(rewindSfx, { volume: 0.24 });
+    clearPendingTransitions();
+    setTransitioningTo(null);
+    setBookVisible(true);
+    setBookCoverLoaded(true);
+    setShowManuscriptArrow(target !== "book");
+    setManuscriptVisible(target !== "book");
+    setShowEpisodesArrow(target === "episodes" || target.startsWith("episode-"));
+    setEpisodesVisible(target === "episodes" || target.startsWith("episode-"));
+
+    if (target === "book") {
+      setStage("book");
+      setRevealedEpisodeCount(0);
+      stopEpisodeVideos();
+      window.requestAnimationFrame(() => {
+        scrollPanelIntoView(bookCoverRef.current || bookSectionRef.current, "center");
+      });
+      return;
+    }
+
+    if (target === "manuscript") {
+      setStage("manuscript");
+      setRevealedEpisodeCount(0);
+      stopEpisodeVideos();
+      window.requestAnimationFrame(() => {
+        scrollPanelIntoView(manuscriptSectionRef.current);
+      });
+      return;
+    }
+
+    if (target === "episodes") {
+      setStage("episodes");
+      setRevealedEpisodeCount(0);
+      stopEpisodeVideos();
+      window.requestAnimationFrame(() => {
+        scrollPanelIntoView(episodesSectionRef.current);
+      });
+      return;
+    }
+
+    const episodeIndex = Number(target.replace("episode-", ""));
+    setStage("episodes");
+    setRevealedEpisodeCount(episodeIndex + 1);
+    stopEpisodeVideos();
+    window.requestAnimationFrame(() => {
+      scrollPanelIntoView(episodeCardRefs.current[episodeIndex], "center");
+    });
+  };
+
+  const renderChronologyChips = (scope: "main" | "panel") => {
+    const visibleLabels = revealLabels.filter((item) => item.reached);
+
+    return visibleLabels.map((item, index) => (
+      <Box
+        key={`${scope}-${item.key}`}
+        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+      >
+        <Chip
+          label={item.label}
+          color={item.active ? "primary" : "default"}
+          variant={item.active ? "filled" : "outlined"}
+          size="small"
+          clickable={item.reached}
+          onClick={item.reached ? () => handleChronologySelect(item.key) : undefined}
+        />
+        {index < visibleLabels.length - 1 && (
+          <Typography
+            aria-hidden="true"
+            sx={{
+              fontSize: "1rem",
+              fontWeight: 800,
+              lineHeight: 1,
+              color: item.active ? "primary.main" : "text.disabled",
+              transform: "translateY(-1px)",
+              transition: "color 180ms ease",
+              userSelect: "none",
+            }}
+          >
+            →
+          </Typography>
+        )}
+      </Box>
+    ));
+  };
+
   const renderMobilePanelFooter = () => {
     const nextAction = renderNextAction();
 
@@ -424,35 +558,7 @@ export default function AIShenaniganAdaptation({
           flexWrap="wrap"
           sx={{ alignItems: "center" }}
         >
-          {revealLabels.map((item, index) => (
-            <Box
-              key={`panel-${item.key}`}
-              sx={{ display: "flex", alignItems: "center", gap: 1 }}
-            >
-              <Chip
-                label={item.label}
-                color={item.active ? "primary" : "default"}
-                variant={item.active ? "filled" : "outlined"}
-                size="small"
-              />
-              {index < revealLabels.length - 1 && (
-                <Typography
-                  aria-hidden="true"
-                  sx={{
-                    fontSize: "1rem",
-                    fontWeight: 800,
-                    lineHeight: 1,
-                    color: item.active ? "primary.main" : "text.disabled",
-                    transform: "translateY(-1px)",
-                    transition: "color 180ms ease",
-                    userSelect: "none",
-                  }}
-                >
-                  →
-                </Typography>
-              )}
-            </Box>
-          ))}
+          {renderChronologyChips("panel")}
         </Stack>
         <Box
           sx={{
@@ -509,24 +615,12 @@ export default function AIShenaniganAdaptation({
 
   useEffect(() => {
     return () => {
-      if (manuscriptTimeoutRef.current) {
-        window.clearTimeout(manuscriptTimeoutRef.current);
-      }
-      if (episodesTimeoutRef.current) {
-        window.clearTimeout(episodesTimeoutRef.current);
-      }
+      clearPendingTransitions();
     };
   }, []);
 
   const resetReveal = () => {
-    if (manuscriptTimeoutRef.current) {
-      window.clearTimeout(manuscriptTimeoutRef.current);
-      manuscriptTimeoutRef.current = null;
-    }
-    if (episodesTimeoutRef.current) {
-      window.clearTimeout(episodesTimeoutRef.current);
-      episodesTimeoutRef.current = null;
-    }
+    clearPendingTransitions();
     setTransitioningTo(null);
     setStage("intro");
     setBookVisible(false);
@@ -536,6 +630,7 @@ export default function AIShenaniganAdaptation({
     setRevealedEpisodeCount(0);
     setShowManuscriptArrow(false);
     setShowEpisodesArrow(false);
+    stopEpisodeVideos();
     episodeCardRefs.current = [];
     episodeVideoRefs.current = [];
   };
@@ -678,32 +773,7 @@ export default function AIShenaniganAdaptation({
                     {blurb}
                   </Typography>
                   <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2.5, alignItems: "center" }}>
-                    {revealLabels.map((item, index) => (
-                      <Box key={item.key} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Chip
-                          label={item.label}
-                          color={item.active ? "primary" : "default"}
-                          variant={item.active ? "filled" : "outlined"}
-                          size="small"
-                        />
-                        {index < revealLabels.length - 1 && (
-                          <Typography
-                            aria-hidden="true"
-                            sx={{
-                              fontSize: "1rem",
-                              fontWeight: 800,
-                              lineHeight: 1,
-                              color: item.active ? "primary.main" : "text.disabled",
-                              transform: "translateY(-1px)",
-                              transition: "color 180ms ease",
-                              userSelect: "none",
-                            }}
-                          >
-                            →
-                          </Typography>
-                        )}
-                      </Box>
-                    ))}
+                    {renderChronologyChips("main")}
                   </Stack>
                   <Box
                     sx={{
@@ -847,7 +917,13 @@ export default function AIShenaniganAdaptation({
                             p: 2,
                           }}
                         >
-                          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                          <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                            {getEpisodeChronologyLabel(episode)}
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            sx={{ mb: 1, fontWeight: 700 }}
+                          >
                             {episode.title}
                           </Typography>
                           <Box

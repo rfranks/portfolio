@@ -573,19 +573,22 @@
         "episodesCaption": "The episodes draft maps the story into a prestige limited-series arc: first the team finds the door, then they recognize the geometry as a vessel, and finally the mystery widens into a planetary-scale emergency.",
         "episodeMedia": [
           {
-            "title": "Episode 1",
+            "title": "The Dust Chamber",
+            "episodeNumber": 1,
             "src": "/personal/images/ai-shenanigans/the-rock/episode1.mp4",
             "source": "Sora video generation",
             "caption": "Episode 1 stages the Uluru discovery as a slow-burn field thriller: predawn convoy, anomaly scans, drill validation, first contact with the hidden surface, then blackout, tremor, and storm as Mara realizes they did not find a chamber, but a door."
           },
           {
-            "title": "Episode 2",
+            "title": "The Silent Geometry",
+            "episodeNumber": 2,
             "src": "/personal/images/ai-shenanigans/the-rock/episode2.mp4",
             "source": "Sora video generation",
             "caption": "Episode 2 picks up in the aftermath of contact: corrupted readings, Uncle Jarra's warning, geometric grooves on the outer skin of Uluru, and tomography that reveals decks, seams, and the first unmistakable evidence that the monolith is hiding a vessel."
           },
           {
-            "title": "Episode 3",
+            "title": "A Failing World",
+            "episodeNumber": 3,
             "src": "/personal/images/ai-shenanigans/the-rock/episode3.mp4",
             "source": "Sora video generation",
             "caption": "Episode 3 widens the scope from site mystery to global crisis: drifting compasses, failing systems, emergency briefings, and opening internal corridors that suggest the buried craft is waking because the world itself is entering failure."

@@ -126,6 +126,8 @@ export default function AIShenanigansPageClient() {
                 episodesCaption?: string;
                 episodeMedia?: Array<{
                   title: string;
+                  episodeNumber?: number;
+                  seasonNumber?: number;
                   src: string;
                   source?: string;
                   sourceHref?: string;
