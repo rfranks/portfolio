@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -85,8 +85,13 @@ export default function AIShenaniganAdaptation({
   const bookCoverRef = useRef<HTMLDivElement | null>(null);
   const manuscriptSectionRef = useRef<HTMLDivElement | null>(null);
   const episodesSectionRef = useRef<HTMLDivElement | null>(null);
+  const bookFooterRef = useRef<HTMLDivElement | null>(null);
+  const manuscriptFooterRef = useRef<HTMLDivElement | null>(null);
+  const episodesFooterRef = useRef<HTMLDivElement | null>(null);
   const episodeCardRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const episodeFooterRefs = useRef<Array<HTMLDivElement | null>>([]);
   const episodeVideoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+  const scrollStabilizersRef = useRef<Array<() => void>>([]);
   const bookSfx = useAudio("/audio/highUp.ogg");
   const manuscriptSfx = useAudio("/audio/open_003.ogg");
   const episodesSfx = useAudio("/audio/select_004.ogg");
@@ -109,7 +114,7 @@ export default function AIShenaniganAdaptation({
   const hasEpisodesPdf = Boolean(episodesPdf);
   const hasEpisodeMedia = episodeMedia.length > 0;
 
-  const clearPendingTransitions = () => {
+  const clearPendingTransitions = useCallback(() => {
     if (manuscriptTimeoutRef.current) {
       window.clearTimeout(manuscriptTimeoutRef.current);
       manuscriptTimeoutRef.current = null;
@@ -118,7 +123,7 @@ export default function AIShenaniganAdaptation({
       window.clearTimeout(episodesTimeoutRef.current);
       episodesTimeoutRef.current = null;
     }
-  };
+  }, []);
 
   const stopEpisodeVideos = () => {
     episodeVideoRefs.current.forEach((video) => {
@@ -131,19 +136,111 @@ export default function AIShenaniganAdaptation({
     });
   };
 
-  const scrollPanelIntoView = (
-    panel: HTMLDivElement | null,
+  const clearScrollStabilizers = useCallback(() => {
+    scrollStabilizersRef.current.forEach((cleanup) => cleanup());
+    scrollStabilizersRef.current = [];
+  }, []);
+
+  const scrollPanelIntoView = useCallback((
+    panel: HTMLElement | null,
     block: ScrollLogicalPosition = "nearest",
   ) => {
     if (!panel) {
       return;
     }
 
-    panel.scrollIntoView({
-      behavior: "smooth",
-      block,
+    clearScrollStabilizers();
+
+    const scroll = () => {
+      panel.scrollIntoView({
+        behavior: "smooth",
+        block,
+      });
+    };
+
+    scroll();
+
+    const cleanups: Array<() => void> = [];
+    [180, 480, 1080].forEach((delay) => {
+      const timeoutId = window.setTimeout(scroll, delay);
+      cleanups.push(() => window.clearTimeout(timeoutId));
     });
-  };
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        scroll();
+      });
+      observer.observe(panel);
+      cleanups.push(() => observer.disconnect());
+
+      const observerTimeoutId = window.setTimeout(() => {
+        observer.disconnect();
+      }, 1600);
+      cleanups.push(() => window.clearTimeout(observerTimeoutId));
+    }
+
+    scrollStabilizersRef.current = cleanups;
+  }, [clearScrollStabilizers]);
+
+  const scrollRevealIntoView = useCallback((
+    panel: HTMLElement | null,
+    footer: HTMLElement | null,
+    block: ScrollLogicalPosition = "center",
+  ) => {
+    if (!panel) {
+      return;
+    }
+
+    const shouldFavorFooter =
+      Boolean(footer) &&
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width:1199.95px)").matches;
+
+    if (!shouldFavorFooter || !footer) {
+      scrollPanelIntoView(panel, block);
+      return;
+    }
+
+    clearScrollStabilizers();
+
+    const scrollPanel = () => {
+      panel.scrollIntoView({
+        behavior: "smooth",
+        block,
+      });
+    };
+
+    const scrollFooter = () => {
+      footer.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    };
+
+    scrollPanel();
+
+    const cleanups: Array<() => void> = [];
+    [220, 520, 1080].forEach((delay) => {
+      const timeoutId = window.setTimeout(scrollFooter, delay);
+      cleanups.push(() => window.clearTimeout(timeoutId));
+    });
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        scrollFooter();
+      });
+      observer.observe(panel);
+      observer.observe(footer);
+      cleanups.push(() => observer.disconnect());
+
+      const observerTimeoutId = window.setTimeout(() => {
+        observer.disconnect();
+      }, 1600);
+      cleanups.push(() => window.clearTimeout(observerTimeoutId));
+    }
+
+    scrollStabilizersRef.current = cleanups;
+  }, [clearScrollStabilizers, scrollPanelIntoView]);
 
   const getEpisodeSeasonNumber = (seasonNumber?: number) => seasonNumber ?? 1;
 
@@ -328,7 +425,11 @@ export default function AIShenaniganAdaptation({
     );
   };
 
-  const renderPdfFrame = (src: string, titleText: string) => {
+  const renderPdfFrame = (
+    src: string,
+    titleText: string,
+    onLoad?: () => void,
+  ) => {
     const pdfSrc = `${withBasePath(src)}#view=FitH`;
 
     return (
@@ -356,6 +457,7 @@ export default function AIShenaniganAdaptation({
               component="iframe"
               src={pdfSrc}
               title={titleText}
+              onLoad={onLoad}
               sx={{
                 width: "100%",
                 height: { xs: 520, md: 680, lg: 760 },
@@ -469,7 +571,10 @@ export default function AIShenaniganAdaptation({
       setRevealedEpisodeCount(0);
       stopEpisodeVideos();
       window.requestAnimationFrame(() => {
-        scrollPanelIntoView(bookCoverRef.current || bookSectionRef.current, "center");
+        scrollRevealIntoView(
+          bookCoverRef.current || bookSectionRef.current,
+          bookFooterRef.current,
+        );
       });
       return;
     }
@@ -479,7 +584,10 @@ export default function AIShenaniganAdaptation({
       setRevealedEpisodeCount(0);
       stopEpisodeVideos();
       window.requestAnimationFrame(() => {
-        scrollPanelIntoView(manuscriptSectionRef.current);
+        scrollRevealIntoView(
+          manuscriptSectionRef.current,
+          manuscriptFooterRef.current,
+        );
       });
       return;
     }
@@ -489,7 +597,10 @@ export default function AIShenaniganAdaptation({
       setRevealedEpisodeCount(0);
       stopEpisodeVideos();
       window.requestAnimationFrame(() => {
-        scrollPanelIntoView(episodesSectionRef.current);
+        scrollRevealIntoView(
+          episodesSectionRef.current,
+          episodesFooterRef.current,
+        );
       });
       return;
     }
@@ -499,12 +610,15 @@ export default function AIShenaniganAdaptation({
     setRevealedEpisodeCount(episodeIndex + 1);
     stopEpisodeVideos();
     window.requestAnimationFrame(() => {
-      scrollPanelIntoView(episodeCardRefs.current[episodeIndex], "center");
+      scrollRevealIntoView(
+        episodeCardRefs.current[episodeIndex],
+        episodeFooterRefs.current[episodeIndex],
+      );
     });
   };
 
   const renderChronologyChips = (scope: "main" | "panel") => {
-    const visibleLabels = revealLabels.filter((item) => item.reached);
+    const visibleLabels = revealLabels;
 
     return visibleLabels.map((item, index) => (
       <Box
@@ -518,6 +632,19 @@ export default function AIShenaniganAdaptation({
           size="small"
           clickable={item.reached}
           onClick={item.reached ? () => handleChronologySelect(item.key) : undefined}
+          sx={
+            item.reached
+              ? undefined
+              : {
+                  borderStyle: "dashed",
+                  borderColor: "rgba(148,163,184,0.55)",
+                  color: "rgba(148,163,184,0.88)",
+                  backgroundColor: "rgba(148,163,184,0.06)",
+                  "& .MuiChip-label": {
+                    fontStyle: "italic",
+                  },
+                }
+          }
         />
         {index < visibleLabels.length - 1 && (
           <Typography
@@ -539,11 +666,20 @@ export default function AIShenaniganAdaptation({
     ));
   };
 
-  const renderMobilePanelFooter = () => {
+  const renderMobilePanelFooter = (
+    showFooter: boolean,
+    footerRef: { current: HTMLDivElement | null },
+  ) => {
+    if (!showFooter) {
+      return null;
+    }
+
     const nextAction = renderNextAction();
+    const sequenceFinished = stage !== "intro" && !nextAction;
 
     return (
       <Box
+        ref={footerRef}
         sx={{
           display: { xs: "block", lg: "none" },
           mt: 2,
@@ -571,9 +707,9 @@ export default function AIShenaniganAdaptation({
           }}
         >
           <Box>
-            {stage !== "intro" && (
+            {stage !== "intro" && !sequenceFinished && (
               <Button variant="text" onClick={resetReveal}>
-                Reset
+                Start Over
               </Button>
             )}
           </Box>
@@ -587,10 +723,12 @@ export default function AIShenaniganAdaptation({
           >
             {nextAction ?? (
               <Chip
-                label="Sequence complete"
+                label="Sequence Finished: Start Over"
                 color="primary"
                 variant="outlined"
                 size="small"
+                clickable
+                onClick={resetReveal}
               />
             )}
           </Box>
@@ -605,22 +743,27 @@ export default function AIShenaniganAdaptation({
     }
 
     const rafId = window.requestAnimationFrame(() => {
-      scrollPanelIntoView(bookCoverRef.current || bookSectionRef.current, "center");
+      scrollRevealIntoView(
+        bookCoverRef.current || bookSectionRef.current,
+        bookFooterRef.current,
+      );
     });
 
     return () => {
       window.cancelAnimationFrame(rafId);
     };
-  }, [bookCoverLoaded, bookVisible]);
+  }, [bookCoverLoaded, bookVisible, scrollRevealIntoView]);
 
   useEffect(() => {
     return () => {
       clearPendingTransitions();
+      clearScrollStabilizers();
     };
-  }, []);
+  }, [clearPendingTransitions, clearScrollStabilizers]);
 
   const resetReveal = () => {
     clearPendingTransitions();
+    clearScrollStabilizers();
     setTransitioningTo(null);
     setStage("intro");
     setBookVisible(false);
@@ -631,7 +774,8 @@ export default function AIShenaniganAdaptation({
     setShowManuscriptArrow(false);
     setShowEpisodesArrow(false);
     stopEpisodeVideos();
-    episodeCardRefs.current = [];
+      episodeCardRefs.current = [];
+    episodeFooterRefs.current = [];
     episodeVideoRefs.current = [];
   };
 
@@ -662,7 +806,10 @@ export default function AIShenaniganAdaptation({
       setTransitioningTo(null);
       manuscriptTimeoutRef.current = null;
       window.requestAnimationFrame(() => {
-        scrollPanelIntoView(manuscriptSectionRef.current);
+        scrollRevealIntoView(
+          manuscriptSectionRef.current,
+          manuscriptFooterRef.current,
+        );
       });
     }, ARROW_REVEAL_MS);
   };
@@ -681,7 +828,10 @@ export default function AIShenaniganAdaptation({
       setTransitioningTo(null);
       episodesTimeoutRef.current = null;
       window.requestAnimationFrame(() => {
-        scrollPanelIntoView(episodesSectionRef.current);
+        scrollRevealIntoView(
+          episodesSectionRef.current,
+          episodesFooterRef.current,
+        );
       });
     }, ARROW_REVEAL_MS);
   };
@@ -698,7 +848,10 @@ export default function AIShenaniganAdaptation({
       setRevealedEpisodeCount((current) => current + 1);
       setTransitioningTo(null);
       window.requestAnimationFrame(() => {
-        scrollPanelIntoView(episodeCardRefs.current[nextIndex], "center");
+        scrollRevealIntoView(
+          episodeCardRefs.current[nextIndex],
+          episodeFooterRefs.current[nextIndex],
+        );
         window.setTimeout(() => {
           const video = episodeVideoRefs.current[nextIndex];
           if (!video) {
@@ -772,7 +925,17 @@ export default function AIShenaniganAdaptation({
                   <Typography color="text.secondary" className="leading-7">
                     {blurb}
                   </Typography>
-                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2.5, alignItems: "center" }}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    useFlexGap
+                    flexWrap="wrap"
+                    sx={{
+                      mt: 2.5,
+                      alignItems: "center",
+                      display: { xs: stage === "intro" ? "flex" : "none", lg: "flex" },
+                    }}
+                  >
                     {renderChronologyChips("main")}
                   </Stack>
                   <Box
@@ -786,14 +949,24 @@ export default function AIShenaniganAdaptation({
                     }}
                   >
                     <Box>
-                      {stage !== "intro" && (
+                      {stage !== "intro" && renderNextAction() && (
                         <Button variant="text" onClick={resetReveal}>
-                          Reset
+                          Start Over
                         </Button>
                       )}
                     </Box>
                     <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, flexWrap: "wrap" }}>
-                      {renderNextAction()}
+                      {renderNextAction() ?? (
+                        stage !== "intro" && (
+                          <Chip
+                            label="Sequence Finished: Start Over"
+                            color="primary"
+                            variant="outlined"
+                            clickable
+                            onClick={resetReveal}
+                          />
+                        )
+                      )}
                     </Box>
                   </Box>
                 </Box>
@@ -845,7 +1018,7 @@ export default function AIShenaniganAdaptation({
                       {bookCaption}
                     </Typography>
                   )}
-                  {renderMobilePanelFooter()}
+                  {renderMobilePanelFooter(stage === "book", bookFooterRef)}
                 </Box>
               )}
 
@@ -868,14 +1041,26 @@ export default function AIShenaniganAdaptation({
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     The book-side narrative source before adaptation.
                   </Typography>
-                  {renderPdfFrame(manuscriptPdf, `${title} manuscript`)}
+                  {renderPdfFrame(
+                    manuscriptPdf,
+                    `${title} manuscript`,
+                    () => {
+                      scrollRevealIntoView(
+                        manuscriptSectionRef.current,
+                        manuscriptFooterRef.current,
+                      );
+                    },
+                  )}
                   {renderSource(manuscriptSource, manuscriptSourceHref)}
                   {manuscriptCaption && (
                     <Typography variant="body2" color="text.secondary" sx={{ mt: manuscriptSource ? 0.75 : 1.5 }}>
                       {manuscriptCaption}
                     </Typography>
                   )}
-                  {renderMobilePanelFooter()}
+                  {renderMobilePanelFooter(
+                    stage === "manuscript",
+                    manuscriptFooterRef,
+                  )}
                 </Box>
               )}
 
@@ -895,7 +1080,12 @@ export default function AIShenaniganAdaptation({
                     through each episode concept one at a time.
                   </Typography>
                   {hasEpisodesPdf &&
-                    renderPdfFrame(episodesPdf, `${title} episodes`)}
+                    renderPdfFrame(episodesPdf, `${title} episodes`, () => {
+                      scrollRevealIntoView(
+                        episodesSectionRef.current,
+                        episodesFooterRef.current,
+                      );
+                    })}
                   {renderSource(episodesSource, episodesSourceHref)}
                   {episodesCaption && (
                     <Typography variant="body2" color="text.secondary" sx={{ mt: episodesSource ? 0.75 : 1.5 }}>
@@ -932,6 +1122,12 @@ export default function AIShenaniganAdaptation({
                               episodeVideoRefs.current[index] = node;
                             }}
                             src={withBasePath(episode.src)}
+                            onLoadedData={() => {
+                              scrollRevealIntoView(
+                                episodeCardRefs.current[index],
+                                episodeFooterRefs.current[index],
+                              );
+                            }}
                             controls
                             playsInline
                             className="block w-full rounded-[18px] bg-black/10 object-contain"
@@ -947,11 +1143,26 @@ export default function AIShenaniganAdaptation({
                               {episode.caption}
                             </Typography>
                           )}
+                          {renderMobilePanelFooter(
+                            stage === "episodes" &&
+                              revealedEpisodeCount === index + 1,
+                            {
+                              get current() {
+                                return episodeFooterRefs.current[index];
+                              },
+                              set current(value: HTMLDivElement | null) {
+                                episodeFooterRefs.current[index] = value;
+                              },
+                            },
+                          )}
                         </Box>
                       ))}
                     </Stack>
                   )}
-                  {renderMobilePanelFooter()}
+                  {renderMobilePanelFooter(
+                    stage === "episodes" && revealedEpisodeCount === 0,
+                    episodesFooterRef,
+                  )}
                 </Box>
               )}
             </Stack>

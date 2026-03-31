@@ -127,7 +127,11 @@ function DefaultAIShenanigan({
   const realisticSectionRef = useRef<HTMLDivElement | null>(null);
   const stylizedSectionRef = useRef<HTMLDivElement | null>(null);
   const motionSectionRef = useRef<HTMLDivElement | null>(null);
+  const realisticFooterRef = useRef<HTMLDivElement | null>(null);
+  const stylizedFooterRef = useRef<HTMLDivElement | null>(null);
+  const movieFooterRef = useRef<HTMLDivElement | null>(null);
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
+  const scrollStabilizersRef = useRef<Array<() => void>>([]);
   const stylizedTimeoutRef = useRef<number | null>(null);
   const movieTimeoutRef = useRef<number | null>(null);
   const inspirationSfx = useAudio("/audio/highUp.ogg");
@@ -176,15 +180,110 @@ function DefaultAIShenanigan({
     motionVideoRef.current.currentTime = 0;
   };
 
-  const scrollPanelIntoView = (panel: HTMLDivElement | null) => {
+  const clearScrollStabilizers = () => {
+    scrollStabilizersRef.current.forEach((cleanup) => cleanup());
+    scrollStabilizersRef.current = [];
+  };
+
+  const scrollPanelIntoView = (
+    panel: HTMLElement | null,
+    block: ScrollLogicalPosition = "nearest",
+  ) => {
     if (!panel) {
       return;
     }
 
-    panel.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
+    clearScrollStabilizers();
+
+    const scroll = () => {
+      panel.scrollIntoView({
+        behavior: "smooth",
+        block,
+      });
+    };
+
+    scroll();
+
+    const cleanups: Array<() => void> = [];
+    [180, 480, 1080].forEach((delay) => {
+      const timeoutId = window.setTimeout(scroll, delay);
+      cleanups.push(() => window.clearTimeout(timeoutId));
     });
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        scroll();
+      });
+      observer.observe(panel);
+      cleanups.push(() => observer.disconnect());
+
+      const observerTimeoutId = window.setTimeout(() => {
+        observer.disconnect();
+      }, 1600);
+      cleanups.push(() => window.clearTimeout(observerTimeoutId));
+    }
+
+    scrollStabilizersRef.current = cleanups;
+  };
+
+  const scrollRevealIntoView = (
+    panel: HTMLElement | null,
+    footer: HTMLElement | null,
+    block: ScrollLogicalPosition = "center",
+  ) => {
+    if (!panel) {
+      return;
+    }
+
+    const shouldFavorFooter =
+      Boolean(footer) &&
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width:1199.95px)").matches;
+
+    if (!shouldFavorFooter || !footer) {
+      scrollPanelIntoView(panel, block);
+      return;
+    }
+
+    clearScrollStabilizers();
+
+    const scrollPanel = () => {
+      panel.scrollIntoView({
+        behavior: "smooth",
+        block,
+      });
+    };
+
+    const scrollFooter = () => {
+      footer.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    };
+
+    scrollPanel();
+
+    const cleanups: Array<() => void> = [];
+    [220, 520, 1080].forEach((delay) => {
+      const timeoutId = window.setTimeout(scrollFooter, delay);
+      cleanups.push(() => window.clearTimeout(timeoutId));
+    });
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        scrollFooter();
+      });
+      observer.observe(panel);
+      observer.observe(footer);
+      cleanups.push(() => observer.disconnect());
+
+      const observerTimeoutId = window.setTimeout(() => {
+        observer.disconnect();
+      }, 1600);
+      cleanups.push(() => window.clearTimeout(observerTimeoutId));
+    }
+
+    scrollStabilizersRef.current = cleanups;
   };
 
   const revealLabels = useMemo(
@@ -434,19 +533,25 @@ function DefaultAIShenanigan({
 
     window.requestAnimationFrame(() => {
       if (target === "realistic") {
-        scrollPanelIntoView(realisticSectionRef.current);
+        scrollRevealIntoView(
+          realisticSectionRef.current,
+          realisticFooterRef.current,
+        );
         return;
       }
       if (target === "stylized") {
-        scrollPanelIntoView(stylizedSectionRef.current);
+        scrollRevealIntoView(
+          stylizedSectionRef.current,
+          stylizedFooterRef.current,
+        );
         return;
       }
-      scrollPanelIntoView(motionSectionRef.current);
+      scrollRevealIntoView(motionSectionRef.current, movieFooterRef.current);
     });
   };
 
   const renderChronologyChips = (scope: "main" | "panel") => {
-    const visibleLabels = revealLabels.filter((item) => item.reached);
+    const visibleLabels = revealLabels;
 
     return visibleLabels.map((item, index) => (
       <Box
@@ -464,6 +569,19 @@ function DefaultAIShenanigan({
           size="small"
           clickable={item.reached}
           onClick={item.reached ? () => handleChronologySelect(item.key) : undefined}
+          sx={
+            item.reached
+              ? undefined
+              : {
+                  borderStyle: "dashed",
+                  borderColor: "rgba(148,163,184,0.55)",
+                  color: "rgba(148,163,184,0.88)",
+                  backgroundColor: "rgba(148,163,184,0.06)",
+                  "& .MuiChip-label": {
+                    fontStyle: "italic",
+                  },
+                }
+          }
         />
         {index < visibleLabels.length - 1 && (
           <Typography
@@ -485,11 +603,20 @@ function DefaultAIShenanigan({
     ));
   };
 
-  const renderMobilePanelFooter = () => {
+  const renderMobilePanelFooter = (
+    showFooter: boolean,
+    footerRef: { current: HTMLDivElement | null },
+  ) => {
+    if (!showFooter) {
+      return null;
+    }
+
     const nextAction = renderNextAction();
+    const sequenceFinished = stage !== "intro" && !nextAction;
 
     return (
       <Box
+        ref={footerRef}
         sx={{
           display: { xs: "block", lg: "none" },
           mt: 2,
@@ -517,9 +644,9 @@ function DefaultAIShenanigan({
           }}
         >
           <Box>
-            {stage !== "intro" && (
+            {stage !== "intro" && !sequenceFinished && (
               <Button variant="text" onClick={resetReveal}>
-                Reset
+                Start Over
               </Button>
             )}
           </Box>
@@ -533,10 +660,12 @@ function DefaultAIShenanigan({
           >
             {nextAction ?? (
               <Chip
-                label="Sequence complete"
+                label="Sequence Finished: Start Over"
                 color="primary"
                 variant="outlined"
                 size="small"
+                clickable
+                onClick={resetReveal}
               />
             )}
           </Box>
@@ -566,6 +695,7 @@ function DefaultAIShenanigan({
   useEffect(() => {
     return () => {
       clearPendingTransitions();
+      clearScrollStabilizers();
     };
   }, []);
 
@@ -579,6 +709,7 @@ function DefaultAIShenanigan({
     setStylizedVisible(false);
     setMovieVisible(false);
     stopMotionVideo();
+    clearScrollStabilizers();
   };
 
   const handleRevealRealistic = () => {
@@ -592,7 +723,10 @@ function DefaultAIShenanigan({
       setStage("realistic");
       setTransitioningTo(null);
       window.requestAnimationFrame(() => {
-        scrollPanelIntoView(realisticSectionRef.current);
+        scrollRevealIntoView(
+          realisticSectionRef.current,
+          realisticFooterRef.current,
+        );
       });
     });
   };
@@ -610,7 +744,10 @@ function DefaultAIShenanigan({
       setTransitioningTo(null);
       stylizedTimeoutRef.current = null;
       window.requestAnimationFrame(() => {
-        scrollPanelIntoView(stylizedSectionRef.current);
+        scrollRevealIntoView(
+          stylizedSectionRef.current,
+          stylizedFooterRef.current,
+        );
       });
     }, ARROW_REVEAL_MS);
   };
@@ -630,7 +767,7 @@ function DefaultAIShenanigan({
       setTransitioningTo(null);
       movieTimeoutRef.current = null;
       window.requestAnimationFrame(() => {
-        scrollPanelIntoView(motionSectionRef.current);
+        scrollRevealIntoView(motionSectionRef.current, movieFooterRef.current);
       });
     }, ARROW_REVEAL_MS);
   };
@@ -707,7 +844,11 @@ function DefaultAIShenanigan({
                     spacing={1}
                     useFlexGap
                     flexWrap="wrap"
-                    sx={{ mt: 2.5, alignItems: "center" }}
+                    sx={{
+                      mt: 2.5,
+                      alignItems: "center",
+                      display: { xs: stage === "intro" ? "flex" : "none", lg: "flex" },
+                    }}
                   >
                     {renderChronologyChips("main")}
                   </Stack>
@@ -722,9 +863,9 @@ function DefaultAIShenanigan({
                     }}
                   >
                     <Box>
-                      {stage !== "intro" && (
+                      {stage !== "intro" && renderNextAction() && (
                         <Button variant="text" onClick={resetReveal}>
-                          Reset
+                          Start Over
                         </Button>
                       )}
                     </Box>
@@ -736,7 +877,17 @@ function DefaultAIShenanigan({
                         flexWrap: "wrap",
                       }}
                     >
-                      {renderNextAction()}
+                      {renderNextAction() ?? (
+                        stage !== "intro" && (
+                          <Chip
+                            label="Sequence Finished: Start Over"
+                            color="primary"
+                            variant="outlined"
+                            clickable
+                            onClick={resetReveal}
+                          />
+                        )
+                      )}
                     </Box>
                   </Box>
                 </Box>
@@ -795,6 +946,14 @@ function DefaultAIShenanigan({
                         alt={`${title} realistic source`}
                         width={1200}
                         height={900}
+                        onLoad={() => {
+                          if (realisticVisible) {
+                            scrollRevealIntoView(
+                              realisticSectionRef.current,
+                              realisticFooterRef.current,
+                            );
+                          }
+                        }}
                         className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
                         style={{
                           aspectRatio: stillAspectRatio,
@@ -812,7 +971,10 @@ function DefaultAIShenanigan({
                           {realisticCaption}
                         </Typography>
                       )}
-                      {renderMobilePanelFooter()}
+                      {renderMobilePanelFooter(
+                        stage === "realistic",
+                        realisticFooterRef,
+                      )}
                     </Box>
                     {hasStylized && (
                       <Box
@@ -863,6 +1025,14 @@ function DefaultAIShenanigan({
                           alt={`${title} stylized rendering`}
                           width={1200}
                           height={900}
+                          onLoad={() => {
+                            if (stylizedVisible) {
+                              scrollRevealIntoView(
+                                stylizedSectionRef.current,
+                                stylizedFooterRef.current,
+                              );
+                            }
+                          }}
                           className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
                           style={{
                             aspectRatio: stillAspectRatio,
@@ -880,7 +1050,10 @@ function DefaultAIShenanigan({
                             {stylizedCaption}
                           </Typography>
                         )}
-                        {renderMobilePanelFooter()}
+                        {renderMobilePanelFooter(
+                          stage === "stylized",
+                          stylizedFooterRef,
+                        )}
                       </Box>
                     )}
                   </>
@@ -917,6 +1090,14 @@ function DefaultAIShenanigan({
                         controls
                         autoPlay
                         playsInline
+                        onLoadedData={() => {
+                          if (movieVisible) {
+                            scrollRevealIntoView(
+                              motionSectionRef.current,
+                              movieFooterRef.current,
+                            );
+                          }
+                        }}
                         className="block w-full rounded-[22px] bg-black/10 object-contain"
                         sx={{
                           aspectRatio: mediaAspectRatio,
@@ -934,7 +1115,7 @@ function DefaultAIShenanigan({
                           {movieCaption}
                         </Typography>
                       )}
-                      {renderMobilePanelFooter()}
+                      {renderMobilePanelFooter(stage === "movie", movieFooterRef)}
                     </Box>
                   )}
                 </>
