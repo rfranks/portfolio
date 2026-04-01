@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { projects } from "@/personal/data/resumeData";
+import { Diagram, type DiagramProps } from "@/components/showcase/Diagram";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { useAmbience } from "@/hooks/audio/useAmbience";
 import { useBGM } from "@/hooks/audio/useBGM";
@@ -13,7 +14,6 @@ import {
   postBlackjackToggleGameMode,
   type BlackjackCardView,
   type BlackjackGameMode,
-  type BlackjackPlayerHandView,
   type BlackjackRenderState,
   type BlackjackResultView,
 } from "@/types/blackjack/messages";
@@ -35,6 +35,11 @@ const CHIP_WHITE_BLUE_SRC = "/assets/boardgame/PNG/Chips/chipWhiteBlue.png";
 const CHIP_RED_WHITE_SRC = "/assets/boardgame/PNG/Chips/chipRedWhite.png";
 const CHIP_GREEN_WHITE_SRC = "/assets/boardgame/PNG/Chips/chipGreenWhite.png";
 const CHIP_BLACK_WHITE_SRC = "/assets/boardgame/PNG/Chips/chipBlackWhite.png";
+
+type BlackjackDiagramConfig = Pick<
+  DiagramProps,
+  "diagram" | "height" | "title" | "type"
+>;
 
 function getControlDisplay(visible: boolean | undefined) {
   return visible ? undefined : "none";
@@ -113,7 +118,7 @@ function getGameModeChipSrc(gameMode: BlackjackGameMode) {
   }
 }
 
-function getHandStampClass(label: BlackjackPlayerHandView["outcomeLabel"]) {
+function getOutcomeStampClass(label: string) {
   switch (label) {
     case "Won!":
       return "blackjack-hand-stamp blackjack-hand-stamp--winner";
@@ -129,12 +134,22 @@ function getHandStampClass(label: BlackjackPlayerHandView["outcomeLabel"]) {
   }
 }
 
-function getHandStampAngle(hand: BlackjackPlayerHandView) {
+function getOutcomeStampAngle({
+  index,
+  cardsLength,
+  totalLabel,
+  outcomeLabel,
+}: {
+  index: number;
+  cardsLength: number;
+  totalLabel: string;
+  outcomeLabel: string;
+}) {
   const seed =
-    (hand.index + 1) * 7 +
-    hand.cards.length * 5 +
-    hand.totalLabel.length * 3 +
-    hand.outcomeLabel.length * 3;
+    (index + 1) * 7 +
+    cardsLength * 5 +
+    totalLabel.length * 3 +
+    outcomeLabel.length * 3;
   return (seed % 21) - 10;
 }
 
@@ -558,6 +573,9 @@ export default function BlackjackPage() {
         engineState.result.tone,
       )
     : null;
+  const blackjackProject = projects?.find((proj) => proj?.href === "/blackjack");
+  const blackjackDiagrams =
+    (blackjackProject?.diagrams as BlackjackDiagramConfig[] | undefined) ?? [];
 
   return (
     <main
@@ -697,19 +715,40 @@ export default function BlackjackPage() {
               Count: <span id="count">{engineState?.count ?? 0}</span>
             </div>
             <div id="dealer" className="blackjack-seat">
-              <div id="dealer-cards" className="cards">
-                {(engineState?.dealer.cards ?? []).map((card, index) => (
-                  <AnimatedBlackjackCard
-                    key={`${card.suit}-${card.value}-${index}`}
-                    card={card}
-                    dealIndex={index}
-                    alt={
-                      card.masked
-                        ? "Hidden card"
-                        : `${card.value} of ${card.suit}`
-                    }
-                  />
-                ))}
+              <div className="blackjack-hand-cards-wrap">
+                <div className="blackjack-dealer-cards-stack">
+                  <div id="dealer-cards" className="cards">
+                    {(engineState?.dealer.cards ?? []).map((card, index) => (
+                      <AnimatedBlackjackCard
+                        key={`${card.suit}-${card.value}-${index}`}
+                        card={card}
+                        dealIndex={index}
+                        alt={
+                          card.masked
+                            ? "Hidden card"
+                            : `${card.value} of ${card.suit}`
+                        }
+                      />
+                    ))}
+                  </div>
+                  {engineState?.dealer.outcomeLabel ? (
+                    <div
+                      className={getOutcomeStampClass(
+                        engineState.dealer.outcomeLabel,
+                      )}
+                      style={{
+                        transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle({
+                          index: 0,
+                          cardsLength: engineState.dealer.cards.length,
+                          totalLabel: engineState.dealer.totalLabel,
+                          outcomeLabel: engineState.dealer.outcomeLabel,
+                        })}deg)`,
+                      }}
+                    >
+                      {engineState.dealer.outcomeLabel}
+                    </div>
+                  ) : null}
+                </div>
               </div>
               <div id="dealer-total">
                 {engineState?.dealer.totalLabel ?? "Total: 0"}
@@ -845,9 +884,14 @@ export default function BlackjackPage() {
                           </div>
                           {hand.outcomeLabel ? (
                             <div
-                              className={getHandStampClass(hand.outcomeLabel)}
+                              className={getOutcomeStampClass(hand.outcomeLabel)}
                               style={{
-                                transform: `translate(-50%, -50%) rotate(${getHandStampAngle(hand)}deg)`,
+                                transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle({
+                                  index: hand.index,
+                                  cardsLength: hand.cards.length,
+                                  totalLabel: hand.totalLabel,
+                                  outcomeLabel: hand.outcomeLabel,
+                                })}deg)`,
                               }}
                             >
                               {hand.outcomeLabel}
@@ -1020,12 +1064,7 @@ export default function BlackjackPage() {
       <section id="demo-video" className="blackjack-panel blackjack-demo-panel">
         <h2 className="blackjack-panel-title">Why This Project Interests Me</h2>
         <p className="blackjack-panel-subtitle">One Go, Multiple Clients</p>
-        <p>
-          {
-            projects?.find((proj) => "/blackjack" === proj?.href)
-              ?.interestsMeWhy
-          }
-        </p>
+        <p>{blackjackProject?.interestsMeWhy}</p>
       </section>
       <section id="demo-video" className="blackjack-panel blackjack-demo-panel">
         <h2 className="blackjack-panel-title">Go! Blackjack!</h2>
@@ -1039,6 +1078,38 @@ export default function BlackjackPage() {
           preload="metadata"
         />
       </section>
+      {blackjackDiagrams.length ? (
+        <section
+          id="architecture-diagrams"
+          className="blackjack-panel blackjack-demo-panel blackjack-diagrams-panel"
+        >
+          <h2 className="blackjack-panel-title">Architecture Diagrams</h2>
+          <p className="blackjack-panel-subtitle">
+            Go engine, WASM message bridge, render state, and UI flow
+          </p>
+          <div className="blackjack-diagrams-grid">
+            {blackjackDiagrams.map((diagram) => (
+              <article
+                key={diagram.title ?? diagram.diagram}
+                className="blackjack-diagram-card"
+              >
+                <h3 className="blackjack-diagram-title">{diagram.title}</h3>
+                <div className="blackjack-diagram-host">
+                  <Diagram
+                    title={diagram.title}
+                    type={diagram.type}
+                    diagram={diagram.diagram}
+                    height={diagram.height ?? 420}
+                    width="100%"
+                    showToolbar
+                    showDots={false}
+                  />
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <script src="wasm_exec.js" defer></script>
       <script id="wasm" src="main.wasm" type="application/wasm" defer></script>
       <script src="main.js" defer></script>

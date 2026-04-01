@@ -28,6 +28,7 @@ export interface BlackjackDealerView {
   blackjack: boolean;
   busted: boolean;
   cards: BlackjackCardView[];
+  outcomeLabel: string;
   total: number;
   totalLabel: string;
 }

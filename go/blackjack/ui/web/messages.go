@@ -53,11 +53,12 @@ type BlackjackControlsView struct {
 }
 
 type BlackjackDealerView struct {
-	Blackjack  bool                `json:"blackjack"`
-	Busted     bool                `json:"busted"`
-	Cards      []BlackjackCardView `json:"cards"`
-	Total      int                 `json:"total"`
-	TotalLabel string              `json:"totalLabel"`
+	Blackjack    bool                `json:"blackjack"`
+	Busted       bool                `json:"busted"`
+	Cards        []BlackjackCardView `json:"cards"`
+	OutcomeLabel string              `json:"outcomeLabel"`
+	Total        int                 `json:"total"`
+	TotalLabel   string              `json:"totalLabel"`
 }
 
 type BlackjackPlayerView struct {
@@ -261,8 +262,9 @@ func (w *WebUI) buildControlsView(state ui.GameState) BlackjackControlsView {
 
 func buildDealerView() BlackjackDealerView {
 	view := BlackjackDealerView{
-		Cards:      []BlackjackCardView{},
-		TotalLabel: "Total: 0",
+		Cards:        []BlackjackCardView{},
+		OutcomeLabel: "",
+		TotalLabel:   "Total: 0",
 	}
 	if len(game.State.Dealer.Hands) == 0 {
 		return view
@@ -272,9 +274,25 @@ func buildDealerView() BlackjackDealerView {
 	view.Blackjack = rules.IsBlackjack(hand)
 	view.Busted = handIsBusted(hand)
 	view.Cards = buildCardViews(hand.Cards)
+	view.OutcomeLabel = dealerOutcomeLabel(&hand)
 	view.Total = player.HandValue(&hand, false)
 	view.TotalLabel = playerTotalString(&hand)
 	return view
+}
+
+func dealerOutcomeLabel(hand *player.Hand) string {
+	if hand == nil {
+		return ""
+	}
+
+	switch {
+	case rules.IsBlackjack(*hand):
+		return "Blackjack!"
+	case handIsBusted(*hand):
+		return "Busted!"
+	default:
+		return ""
+	}
 }
 
 func buildPlayerView() *BlackjackPlayerView {

@@ -824,7 +824,39 @@
             "className": "absolute left-14 top-0 h-28 w-auto rounded-lg object-contain drop-shadow-lg"
           }
         ]
-      }
+      },
+      "diagrams": [
+        {
+          "title": "Blackjack Component Diagram",
+          "type": "flowchart",
+          "height": 420,
+          "diagram": "flowchart LR\n  User[\"Player\"] --> ReactUI[\"Next.js Blackjack Page\"]\n  ReactUI --> Audio[\"Audio Hooks\\nuseAudio / useBGM / useAmbience\"]\n  ReactUI --> Bus[\"window.postMessage Bus\"]\n  Bus --> WebUI[\"Go WASM WebUI\\nui/web/web.go\"]\n  WebUI --> Engine[\"Blackjack Engine\\ndealer / game / player / sidebets\"]\n  Engine --> StateBuilder[\"Render State Builder\\nui/web/messages.go\"]\n  StateBuilder --> WebUI\n  WebUI --> Bus\n  Bus --> ReactUI\n  ReactUI --> DOM[\"Rendered Cards / Controls / Status\"]\n  ReactUI --> Audio"
+        },
+        {
+          "title": "Blackjack Sequence Diagram",
+          "type": "sequenceDiagram",
+          "height": 460,
+          "diagram": "sequenceDiagram\n  actor User\n  participant React as React UI\n  participant Bus as postMessage Bus\n  participant WebUI as Go WASM WebUI\n  participant Engine as Blackjack Engine\n\n  User->>React: Click Go! Blackjack!\n  React->>Bus: blackjack/start\n  Bus->>WebUI: start message\n  WebUI->>Engine: deal opening round\n  Engine-->>WebUI: updated game state\n  WebUI->>Bus: blackjack/state\n  Bus->>React: render state\n  React-->>User: show dealer, hands, controls\n\n  User->>React: Hit / Stand / Double / Split\n  React->>Bus: blackjack/action\n  Bus->>WebUI: action message\n  WebUI->>Engine: advance round\n  Engine-->>WebUI: settled or in-progress state\n  WebUI->>Bus: blackjack/state\n  Bus->>React: next render state\n\n  User->>React: Toggle game mode\n  React->>Bus: blackjack/toggle-game-mode\n  Bus->>WebUI: mode toggle message\n  WebUI->>Engine: rebuild mode-specific round state\n  WebUI->>Bus: blackjack/state"
+        },
+        {
+          "title": "Blackjack Block Diagram",
+          "type": "flowchart",
+          "height": 460,
+          "diagram": "flowchart TB\n  subgraph Presentation[\"Presentation Layer\"]\n    ReactPage[\"Blackjack Page\"]\n    Controls[\"Buttons / Chips / Hand Views\"]\n    Media[\"Audio + Animations\"]\n  end\n\n  subgraph Messaging[\"Event Bus Boundary\"]\n    StartMsg[\"blackjack/start\"]\n    ActionMsg[\"blackjack/action\"]\n    ToggleMsg[\"blackjack/toggle-game-mode\"]\n    StateMsg[\"blackjack/state\"]\n  end\n\n  subgraph WasmAdapter[\"WASM Adapter Layer\"]\n    WebAdapter[\"WebUI Message Bridge\"]\n    RenderState[\"Render DTO Assembly\"]\n  end\n\n  subgraph Domain[\"Game Domain Layer\"]\n    Dealer[\"Dealer / Shoe / Payouts\"]\n    GameMode[\"Mode Rules\"]\n    PlayerState[\"Hands / Wagers / Outcomes\"]\n  end\n\n  ReactPage --> Controls\n  ReactPage --> Media\n  Controls --> StartMsg\n  Controls --> ActionMsg\n  Controls --> ToggleMsg\n  StartMsg --> WebAdapter\n  ActionMsg --> WebAdapter\n  ToggleMsg --> WebAdapter\n  WebAdapter --> Dealer\n  WebAdapter --> GameMode\n  WebAdapter --> PlayerState\n  Dealer --> RenderState\n  GameMode --> RenderState\n  PlayerState --> RenderState\n  RenderState --> StateMsg\n  StateMsg --> ReactPage"
+        },
+        {
+          "title": "Blackjack Render State Model",
+          "type": "classDiagram",
+          "height": 520,
+          "diagram": "classDiagram\n  class BlackjackRenderState {\n    +bool hasRendered\n    +bool askingToDeal\n    +bool askingForInsurance\n    +int house\n    +int count\n    +string gameMode\n    +string gameModeLabel\n    +string statusText\n    +string hintText\n  }\n\n  class BlackjackControlsView {\n    +bool deal\n    +bool hit\n    +bool stand\n    +bool double\n    +bool split\n    +bool insure\n    +bool decline\n  }\n\n  class BlackjackDealerView {\n    +string totalLabel\n    +BlackjackCardView[] cards\n  }\n\n  class BlackjackPlayerView {\n    +int stack\n    +int winnings\n    +string winningsDisplay\n    +string winningsTone\n    +BlackjackPlayerHandView[] hands\n  }\n\n  class BlackjackPlayerHandView {\n    +int index\n    +bool active\n    +int wager\n    +bool busted\n    +string totalLabel\n    +string note\n    +string outcomeLabel\n    +BlackjackCardView[] cards\n  }\n\n  class BlackjackCardView {\n    +bool masked\n    +string suit\n    +string value\n  }\n\n  class BlackjackResultView {\n    +string badge\n    +string tone\n    +string summary\n    +string[] detailLines\n  }\n\n  BlackjackRenderState --> BlackjackControlsView : controls\n  BlackjackRenderState --> BlackjackDealerView : dealer\n  BlackjackRenderState --> BlackjackPlayerView : player\n  BlackjackRenderState --> BlackjackResultView : result\n  BlackjackDealerView --> BlackjackCardView : cards\n  BlackjackPlayerView --> BlackjackPlayerHandView : hands\n  BlackjackPlayerHandView --> BlackjackCardView : cards"
+        },
+        {
+          "title": "Blackjack Round State Diagram",
+          "type": "stateDiagram-v2",
+          "height": 520,
+          "diagram": "stateDiagram-v2\n  [*] --> WaitingToDeal\n  WaitingToDeal --> DealingOpeningCards : Deal / Start\n  DealingOpeningCards --> OfferInsurance : Dealer ace showing\n  DealingOpeningCards --> CheckNaturals : Otherwise\n  OfferInsurance --> CheckNaturals : Insure / Decline\n  CheckNaturals --> RoundSettled : Dealer blackjack or player blackjack resolution\n  CheckNaturals --> PlayerTurn : No naturals\n\n  state PlayerTurn {\n    [*] --> EvaluateHand\n    EvaluateHand --> EvaluateHand : Hit\n    EvaluateHand --> AdvanceSplitHand : Stand\n    EvaluateHand --> AdvanceSplitHand : Double\n    EvaluateHand --> SplitHand : Split\n    SplitHand --> EvaluateHand\n    EvaluateHand --> AdvanceSplitHand : Bust\n    AdvanceSplitHand --> EvaluateHand : Next active split hand\n    AdvanceSplitHand --> [*] : No active hands remain\n  }\n\n  PlayerTurn --> DealerTurn : All player hands locked\n  DealerTurn --> DealerTurn : Draw to rule threshold\n  DealerTurn --> SettleHands : Stand / Bust threshold reached\n  SettleHands --> RoundSettled\n  RoundSettled --> WaitingToDeal : Deal Again"
+        }
+      ]
     },
     {
       "name": "Blasteroids",
