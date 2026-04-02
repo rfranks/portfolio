@@ -7,8 +7,7 @@ import { aiBufferSize } from "@/app/bookworm/_consts/consts";
 
 import { Buffer } from "buffer";
 
-let apiKey =
-  process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+let apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
 
 export const setOpenAIKey = (key: string) => {
   apiKey = key;
@@ -114,7 +113,7 @@ export const askOpenAI = async ({
       message:
         newChatHistory?.[newChatIndex]?.message.replaceAll(
           logMessagesToChatHistory ? "I'm thinking..." : "Processing PDF...",
-          ""
+          "",
         ) +
         (initialContext.length > aiBufferSize
           ? responseText
