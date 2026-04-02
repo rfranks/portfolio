@@ -1,23 +1,25 @@
 "use client";
 
 import * as React from "react";
-import { projects } from "@/personal/data/resumeData";
-import { Diagram, type DiagramProps } from "@/components/showcase/Diagram";
+import { projects } from "@/consts/resumeData";
+import { Diagram, type DiagramProps } from "@/components/shared/Diagram";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { useAmbience } from "@/hooks/audio/useAmbience";
 import { useBGM } from "@/hooks/audio/useBGM";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
-  isBlackjackStateMessage,
-  postBlackjackAction,
-  postBlackjackStart,
-  postBlackjackToggleGameMode,
   type BlackjackCardView,
   type BlackjackGameMode,
   type BlackjackRenderState,
   type BlackjackResultView,
-} from "@/types/blackjack/messages";
-import { rewindAndPlayAudio } from "@/utils/lightgun-web/audio";
+} from "./_types/messages";
+import {
+  isBlackjackStateMessage,
+  postBlackjackAction,
+  postBlackjackStart,
+  postBlackjackToggleGameMode,
+} from "./_utils/messages-utils";
+import { rewindAndPlayAudio } from "@/utils/audio";
 import { withBasePath } from "@/utils/basePath";
 import "./page.css";
 import Image from "next/image";
@@ -573,7 +575,9 @@ export default function BlackjackPage() {
         engineState.result.tone,
       )
     : null;
-  const blackjackProject = projects?.find((proj) => proj?.href === "/blackjack");
+  const blackjackProject = projects?.find(
+    (proj) => proj?.href === "/blackjack",
+  );
   const blackjackDiagrams =
     (blackjackProject?.diagrams as BlackjackDiagramConfig[] | undefined) ?? [];
 
@@ -737,12 +741,14 @@ export default function BlackjackPage() {
                         engineState.dealer.outcomeLabel,
                       )}
                       style={{
-                        transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle({
-                          index: 0,
-                          cardsLength: engineState.dealer.cards.length,
-                          totalLabel: engineState.dealer.totalLabel,
-                          outcomeLabel: engineState.dealer.outcomeLabel,
-                        })}deg)`,
+                        transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle(
+                          {
+                            index: 0,
+                            cardsLength: engineState.dealer.cards.length,
+                            totalLabel: engineState.dealer.totalLabel,
+                            outcomeLabel: engineState.dealer.outcomeLabel,
+                          },
+                        )}deg)`,
                       }}
                     >
                       {engineState.dealer.outcomeLabel}
@@ -884,14 +890,18 @@ export default function BlackjackPage() {
                           </div>
                           {hand.outcomeLabel ? (
                             <div
-                              className={getOutcomeStampClass(hand.outcomeLabel)}
+                              className={getOutcomeStampClass(
+                                hand.outcomeLabel,
+                              )}
                               style={{
-                                transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle({
-                                  index: hand.index,
-                                  cardsLength: hand.cards.length,
-                                  totalLabel: hand.totalLabel,
-                                  outcomeLabel: hand.outcomeLabel,
-                                })}deg)`,
+                                transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle(
+                                  {
+                                    index: hand.index,
+                                    cardsLength: hand.cards.length,
+                                    totalLabel: hand.totalLabel,
+                                    outcomeLabel: hand.outcomeLabel,
+                                  },
+                                )}deg)`,
                               }}
                             >
                               {hand.outcomeLabel}

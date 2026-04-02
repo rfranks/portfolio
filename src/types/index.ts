@@ -1,6 +1,10 @@
-export * from "./talentforge/models";
-export type { JobListing, ApplicationStatus, StatusChange } from "./talentforge/job";
-export * from "./talentforge/resume";
-export * from "./talentforge/types";
-export * from "./talentforge/connectors";
-export type { ApplicationRecord as JobApplication } from "./talentforge/models";
+export * from "@/app/talentforge/_types/models";
+export type {
+  JobListing,
+  ApplicationStatus,
+  StatusChange,
+} from "@/app/talentforge/_types/job";
+export * from "@/app/talentforge/_types/resume";
+export * from "@/app/talentforge/_types/types";
+export * from "@/app/talentforge/_types/connectors";
+export type { ApplicationRecord as JobApplication } from "@/app/talentforge/_types/models";

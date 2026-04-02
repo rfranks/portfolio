@@ -5,7 +5,7 @@ import {
   createPastedResumeMetadata,
   type ResumeImportMetadata,
   type ResumeTextResult,
-} from "@/utils/talentforge/resumeIngest";
+} from "@/app/talentforge/_utils/resumeIngest";
 
 export default function useResumeParser() {
   const [resume, setResume] = useState("");

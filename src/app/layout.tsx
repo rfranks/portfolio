@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import ThemeRegistry from "@/components/app/ThemeRegistry";
-import { portfolioApps } from "@/personal/data/resumeData";
+import ThemeRegistry from "../providers/ThemeRegistry";
+import { portfolioApps } from "@/consts/resumeData";
 
 export const metadata: Metadata = {
   description: portfolioApps.site.description,

@@ -1,4 +1,4 @@
-import { ProjectData } from "@/components/showcase/ProjectPresentation";
+import { ProjectData } from "@/components/portfolio/ProjectPresentation";
 
 export const projectData: ProjectData = {
   project: "patient-list-app",

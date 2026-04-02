@@ -15,13 +15,9 @@ import { ThemeProvider } from "@mui/material/styles";
 import AIShenanigan, {
   AIShenaniganMovieOrientation,
   AIShenaniganType,
-} from "@/components/app/AIShenanigan";
-import AppBar from "@/components/app/AppBar";
-import {
-  aiShenanigans,
-  portfolioApps,
-  summary,
-} from "@/personal/data/resumeData";
+} from "./_components/AIShenanigan";
+import AppBar from "@/components/portfolio/layout/AppBar";
+import { aiShenanigans, portfolioApps, summary } from "@/consts/resumeData";
 import getFabricTheme from "@/themes/fabricTheme";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { withBasePath } from "@/utils/basePath";

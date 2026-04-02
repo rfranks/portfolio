@@ -1,0 +1,254 @@
+import { toJSONSchema, z } from "zod";
+
+import { ensureOpenAIKey } from "@/contexts/OpenAIKeyContext";
+import type { AIPrompt } from "@/types/ai/prompt";
+import {
+  sequenceListSchema,
+  sequenceSchema,
+  type Sequence,
+} from "../_types/types";
+
+const fastaPayloadSchema = z.object({
+  filename: z.string().min(1),
+  content: z.string().min(1),
+});
+
+export const sequenceAnalysisInputSchema = z.object({
+  mode: z.enum(["single-sequence", "compare-sequences"]),
+  sequences: sequenceListSchema,
+  fastaFile: fastaPayloadSchema.optional(),
+});
+
+export const sequenceAnalysisOutputSchema = z.object({
+  comparisonOfNucleotideSequences: z.string().min(1),
+  summary: z.string().min(1),
+  characteristics: z.array(z.string().min(1)).min(2).max(8),
+  differentiators: z.array(z.string().min(1)).max(8).default([]),
+  sequenceAnalysisImplications: z.array(z.string().min(1)).min(1).max(8),
+  evolutionaryRelationships: z.array(z.string().min(1)).min(1).max(8),
+});
+
+export const sequenceAnalysisExplainOutputSchema = z.object({
+  title: z.string().min(1),
+  explanation: z.string().min(1),
+  steps: z.array(z.string().min(1)).min(2).max(6),
+});
+
+export type SequenceAnalysisInput = z.infer<typeof sequenceAnalysisInputSchema>;
+export type SequenceAnalysisOutput = z.infer<
+  typeof sequenceAnalysisOutputSchema
+>;
+export type SequenceAnalysisExplainOutput = z.infer<
+  typeof sequenceAnalysisExplainOutputSchema
+>;
+
+export const sequenceAnalysisPrompt: AIPrompt<
+  typeof sequenceAnalysisInputSchema,
+  typeof sequenceAnalysisOutputSchema
+> = {
+  id: "gene-sequence-analysis",
+  inputSchema: sequenceAnalysisInputSchema,
+  outputSchema: sequenceAnalysisOutputSchema,
+  promptText: (input) => {
+    if (input.mode === "single-sequence" && input.fastaFile) {
+      return [
+        "Explain the observable characteristics of this nucleotide sequence.",
+        "Use only evidence available from the sequence itself.",
+        "Do not pretend to know organism, phenotype, or lab-confirmed function unless it is directly inferable from the supplied sequence.",
+        "Focus on composition, structure hints, coding implications, ambiguity, and notable patterns.",
+        'For the "Comparison of Nucleotide Sequences" section, state that only one sequence was provided and summarize the sequence on its own merits.',
+        "",
+        `FASTA filename: ${input.fastaFile.filename}`,
+        input.fastaFile.content,
+      ].join("\n");
+    }
+
+    return [
+      "Compare these nucleotide sequences and explain what differentiates them.",
+      "Use only evidence available from the supplied sequences.",
+      "Highlight meaningful differences in composition, ambiguity, sequence length, and any obvious coding or structural contrasts.",
+      "Do not invent biological provenance or certainty beyond what the data supports.",
+      'The response must cover these sections: Comparison of Nucleotide Sequences, Characteristics, Differentiators, Sequence Analysis Implications, Evolutionary Relationships, Summary.',
+    ].join("\n");
+  },
+};
+
+export const sequenceAnalysisExplainPrompt: AIPrompt<
+  typeof sequenceAnalysisInputSchema,
+  typeof sequenceAnalysisExplainOutputSchema
+> = {
+  id: "gene-sequence-analysis-explain",
+  inputSchema: sequenceAnalysisInputSchema,
+  outputSchema: sequenceAnalysisExplainOutputSchema,
+  promptText: (input) => {
+    const scope =
+      input.mode === "single-sequence"
+        ? "a single nucleotide sequence"
+        : `${input.sequences.length} nucleotide sequences`;
+
+    return [
+      "Explain how you would answer the user's sequence-analysis question before actually answering it.",
+      "Do not answer the biological question itself.",
+      "Describe the reasoning approach, what evidence in the sequence data matters most, and how you would avoid overclaiming.",
+      `The analysis target is ${scope}.`,
+      'Return a concise explanation suitable to show while the full answer is still being generated.',
+    ].join("\n");
+  },
+};
+
+function chunkSequence(sequence: string, size = 80): string {
+  const chunks: string[] = [];
+
+  for (let index = 0; index < sequence.length; index += size) {
+    chunks.push(sequence.slice(index, index + size));
+  }
+
+  return chunks.join("\n");
+}
+
+function buildFasta(sequence: Sequence): z.infer<typeof fastaPayloadSchema> {
+  const parsed = sequenceSchema.parse(sequence);
+  const headerParts = [parsed.description];
+
+  if (parsed.filename) {
+    headerParts.push(parsed.filename);
+  }
+
+  return {
+    filename: parsed.filename,
+    content: `>${headerParts.join(" | ")}\n${chunkSequence(parsed.sequence)}`,
+  };
+}
+
+export function buildSequenceAnalysisInput(
+  sequences: Sequence[],
+): SequenceAnalysisInput {
+  const parsedSequences = sequenceListSchema.parse(sequences);
+
+  if (parsedSequences.length === 1) {
+    return sequenceAnalysisInputSchema.parse({
+      mode: "single-sequence",
+      sequences: parsedSequences,
+      fastaFile: buildFasta(parsedSequences[0]),
+    });
+  }
+
+  return sequenceAnalysisInputSchema.parse({
+    mode: "compare-sequences",
+    sequences: parsedSequences,
+  });
+}
+
+function extractTextContent(content: unknown): string {
+  if (typeof content === "string") {
+    return content.trim();
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((entry) => {
+        if (typeof entry === "string") {
+          return entry;
+        }
+
+        if (
+          typeof entry === "object" &&
+          entry !== null &&
+          "text" in entry &&
+          typeof entry.text === "string"
+        ) {
+          return entry.text;
+        }
+
+        return "";
+      })
+      .join("")
+      .trim();
+  }
+
+  return "";
+}
+
+export async function runAIPrompt<
+  TInputSchema extends z.ZodTypeAny,
+  TOutputSchema extends z.ZodTypeAny,
+>(
+  prompt: AIPrompt<TInputSchema, TOutputSchema>,
+  rawInput: z.input<TInputSchema>,
+): Promise<z.infer<TOutputSchema>> {
+  const apiKey = ensureOpenAIKey();
+  const input = prompt.inputSchema.parse(rawInput);
+  const outputJsonSchema = toJSONSchema(prompt.outputSchema);
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-5-2025-08-07",
+      messages: [
+        {
+          role: "system",
+          content: [
+            "You are a careful bioinformatics assistant.",
+            "Return only valid JSON.",
+            "The JSON must satisfy the provided output schema exactly.",
+          ].join(" "),
+        },
+        {
+          role: "user",
+          content: [
+            prompt.promptText(input),
+            "",
+            "Input payload:",
+            JSON.stringify(input, null, 2),
+            "",
+            "Output JSON schema:",
+            JSON.stringify(outputJsonSchema, null, 2),
+          ].join("\n"),
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(
+      `OpenAI request failed: ${response.status} ${errorText}`.trim(),
+    );
+  }
+
+  const data = (await response.json()) as {
+    choices?: Array<{ message?: { content?: unknown } }>;
+  };
+  const content = extractTextContent(data?.choices?.[0]?.message?.content);
+
+  if (!content) {
+    throw new Error("OpenAI returned an empty response.");
+  }
+
+  let parsedContent: unknown;
+
+  try {
+    parsedContent = JSON.parse(content);
+  } catch {
+    throw new Error("OpenAI returned invalid JSON.");
+  }
+
+  return prompt.outputSchema.parse(parsedContent);
+}
+
+export async function explainSequencesWithAI(
+  sequences: Sequence[],
+): Promise<SequenceAnalysisOutput> {
+  const input = buildSequenceAnalysisInput(sequences);
+  return runAIPrompt(sequenceAnalysisPrompt, input);
+}
+
+export async function explainHowToAnswerSequencePromptWithAI(
+  sequences: Sequence[],
+): Promise<SequenceAnalysisExplainOutput> {
+  const input = buildSequenceAnalysisInput(sequences);
+  return runAIPrompt(sequenceAnalysisExplainPrompt, input);
+}

@@ -5,7 +5,7 @@ import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import ProjectPresentation, {
   ProjectData,
-} from "@/components/showcase/ProjectPresentation";
+} from "@/components/portfolio/ProjectPresentation";
 import { Divider } from "@mui/material";
 import { useEffect } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";

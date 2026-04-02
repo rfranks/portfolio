@@ -5,7 +5,7 @@ import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import ProjectPresentation, {
   ProjectData,
-} from "@/components/showcase/ProjectPresentation";
+} from "@/components/portfolio/ProjectPresentation";
 import { Divider } from "@mui/material";
 import { useEffect } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -14,9 +14,7 @@ interface PageClientProps {
   project: ProjectData;
 }
 
-export default function PageClient({
-  project,
-}: PageClientProps) {
+export default function PageClient({ project }: PageClientProps) {
   const { setDocumentTitle } = useDocumentTitle();
   useEffect(() => {
     setDocumentTitle("Patient List Podcasts");

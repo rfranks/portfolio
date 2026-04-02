@@ -5,7 +5,7 @@ import {
   deleteOpenAIKey as removePersistedKey,
   getOpenAIKey as loadPersistedKey,
   setOpenAIKey as persistOpenAIKey,
-} from "@/utils/talentforge/dataStore";
+} from "@/app/talentforge/_utils/dataStore";
 
 const SESSION_STORAGE_KEY = "talentforge-openai-key";
 const PERSIST_STORAGE_KEY = "talentforge-openai-key-persist";

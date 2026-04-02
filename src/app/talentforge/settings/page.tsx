@@ -1,7 +1,7 @@
 "use client";
 
-import Settings from "@/components/talentforge/Settings";
-import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
+import Settings from "@/app/talentforge/_components/Settings";
+import ErrorBoundary from "@/app/talentforge/_components/ErrorBoundary";
 
 export default function TalentForgeSettingsPage() {
   return (

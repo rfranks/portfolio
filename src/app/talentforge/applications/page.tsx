@@ -1,7 +1,7 @@
 "use client";
 
-import ApplicationBoard from "@/components/talentforge/ApplicationBoard";
-import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
+import ApplicationBoard from "@/app/talentforge/_components/ApplicationBoard";
+import ErrorBoundary from "@/app/talentforge/_components/ErrorBoundary";
 
 export default function ApplicationsPage() {
   return (

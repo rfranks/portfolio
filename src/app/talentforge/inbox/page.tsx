@@ -2,8 +2,8 @@
 
 import { Suspense } from "react";
 
-import Inbox from "@/components/talentforge/Inbox";
-import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
+import Inbox from "@/app/talentforge/_components/Inbox";
+import ErrorBoundary from "@/app/talentforge/_components/ErrorBoundary";
 
 export default function InboxPage() {
   return (

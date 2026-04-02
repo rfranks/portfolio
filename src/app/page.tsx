@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import HomePageClient from "./HomePageClient";
-import { summary } from "@/personal/data/resumeData";
+import { summary } from "@/consts/resumeData";
 
 export const metadata: Metadata = {
   title: summary.metadataTitle,

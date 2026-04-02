@@ -1,4 +1,4 @@
-import { cleanPdfText, parseResumeText } from "@/utils/talentforge/resumeIngest";
+import { cleanPdfText, parseResumeText } from "@/app/talentforge/_utils/resumeIngest";
 
 // pdfjs-dist is only needed for pdf parsing, which these tests don't exercise.
 // Mock it to avoid issues loading the actual ESM bundle in Jest.

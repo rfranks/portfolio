@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useAudio } from "@/hooks/audio/useAudio";
-import { pauseAudio, rewindAndPlayAudio } from "@/utils/lightgun-web/audio";
+import { pauseAudio, rewindAndPlayAudio } from "@/utils/audio";
 
 type UseAmbienceOptions = {
   minDelayMs?: number;
@@ -46,7 +46,9 @@ export function useAmbience(
   const playRandomClip = React.useCallback(() => {
     if (audioRefsRef.current.length === 0) return;
     const audioRef =
-      audioRefsRef.current[Math.floor(Math.random() * audioRefsRef.current.length)];
+      audioRefsRef.current[
+        Math.floor(Math.random() * audioRefsRef.current.length)
+      ];
     rewindAndPlayAudio(audioRef, {
       volume: randomInRange(minVolume, maxVolume),
     });
@@ -55,11 +57,14 @@ export function useAmbience(
   const scheduleNext = React.useCallback(() => {
     if (!runningRef.current || !enabledRef.current) return;
     clearTimer();
-    timerRef.current = window.setTimeout(() => {
-      if (!runningRef.current || !enabledRef.current) return;
-      playRandomClip();
-      scheduleNext();
-    }, randomInRange(minDelayMs, maxDelayMs));
+    timerRef.current = window.setTimeout(
+      () => {
+        if (!runningRef.current || !enabledRef.current) return;
+        playRandomClip();
+        scheduleNext();
+      },
+      randomInRange(minDelayMs, maxDelayMs),
+    );
   }, [clearTimer, maxDelayMs, minDelayMs, playRandomClip]);
 
   const start = React.useCallback(() => {

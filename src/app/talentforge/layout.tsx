@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import { CssBaseline, PaletteMode, ThemeProvider, useMediaQuery } from "@mui/material";
-import LayoutShell from "@/components/talentforge/LayoutShell";
-import getTalentforgeTheme from "@/themes/talentforgeTheme";
-import { TalentForgeDataProvider } from "@/contexts/TalentForgeDataContext";
+import LayoutShell from "@/app/talentforge/_components/LayoutShell";
+import getTalentforgeTheme from "@/app/talentforge/_theme/getTalentforgeTheme";
+import { TalentForgeDataProvider } from "@/app/talentforge/_contexts/TalentForgeDataContext";
 import { OpenAIKeyProvider } from "@/contexts/OpenAIKeyContext";
-import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
-import ToastProvider from "@/components/talentforge/ToastProvider";
+import ErrorBoundary from "@/app/talentforge/_components/ErrorBoundary";
+import ToastProvider from "@/app/talentforge/_components/ToastProvider";
 
 export default function TalentForgeLayout({
   children,

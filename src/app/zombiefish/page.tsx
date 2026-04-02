@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { Container } from "@mui/material";
-import Game from "@/games/zombiefish";
+import Game from "./_Game";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import "./page.css";
 

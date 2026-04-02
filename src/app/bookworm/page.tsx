@@ -6,15 +6,15 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import AppAppBar from "@/components/bookworm/AppAppBar";
-import Hero from "@/components/bookworm/Hero";
-import Highlights from "@/components/bookworm/Highlights";
+import AppAppBar from "@/app/bookworm/_components/AppAppBar";
+import Hero from "@/app/bookworm/_components/Hero";
+import Highlights from "@/app/bookworm/_components/Highlights";
 // import LogoCollection from "./components/LogoCollection";
 // import Pricing from "./components/Pricing";
 // import Features from "./components/Features";
 // import Testimonials from "./components/Testimonials";
-import FAQ from "@/components/bookworm/FAQ";
-import Footer from "@/components/bookworm/Footer";
+import FAQ from "@/app/bookworm/_components/FAQ";
+import Footer from "@/app/bookworm/_components/Footer";
 
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
@@ -22,10 +22,10 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
 import "./page.css"; // Ensure global styles are applied
-import { hasOpenAIKey, setOpenAIKey } from "@/utils/bookworm/utils";
+import { hasOpenAIKey, setOpenAIKey } from "@/app/bookworm/_utils/utils";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import OpenAIKeyInterstitialContent from "@/components/OpenAIKeyInterstitialContent";
-import { portfolioApps } from "@/personal/data/resumeData";
+import OpenAIKeyInterstitialContent from "@/components/shared/OpenAIKeyInterstitialContent";
+import { portfolioApps } from "@/consts/resumeData";
 
 export default function BookwormPage() {
   const [mode, setMode] = React.useState<PaletteMode>("light");

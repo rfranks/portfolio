@@ -28,18 +28,18 @@ import {
   AutoStories,
   AutoFixHigh,
 } from "@mui/icons-material";
-import AppBar from "@/components/app/AppBar";
-import Drawer from "@/components/app/Drawer";
-import ResumeOverview from "@/components/app/ResumeOverview";
-import HobbiesCard from "@/components/app/HobbiesCard";
-import CoreCompetencies from "@/components/app/CoreCompetencies";
-import ExperienceTimeline from "@/components/app/ExperienceTimeline";
-import ProjectsGrid from "@/components/app/ProjectsGrid";
-import Education from "@/components/app/Education";
-import Recognition from "@/components/app/Recognition";
-import ContactCTA from "@/components/app/ContactCTA";
+import AppBar from "@/components/portfolio/layout/AppBar";
+import Drawer from "@/components/portfolio/layout/Drawer";
+import ResumeOverview from "@/components/portfolio/panels/ResumeOverview";
+import HobbiesCard from "@/components/portfolio/panels/HobbiesCard";
+import CoreCompetencies from "@/components/portfolio/panels/CoreCompetencies";
+import ExperienceTimeline from "@/components/portfolio/panels/ExperienceTimeline";
+import ProjectsGrid from "@/components/portfolio/panels/ProjectsGrid";
+import Education from "@/components/portfolio/panels/Education";
+import Recognition from "@/components/portfolio/panels/Recognition";
+import ContactCTA from "@/components/portfolio/panels/ContactCTA";
 import Grid from "@mui/material/Grid";
-import { navigation, summary } from "@/personal/data/resumeData";
+import { navigation, summary } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import getFabricTheme from "@/themes/fabricTheme";
@@ -99,9 +99,7 @@ export default function HomePageClient() {
 
   const hasNavIcon = (icon: string): icon is NavIconKey => icon in navIcons;
 
-  const appBarTitle = `${summary.name} • ${summary.title
-    .split("|")[0]
-    .trim()}`;
+  const appBarTitle = `${summary.name} • ${summary.title.split("|")[0].trim()}`;
 
   return (
     <ThemeProvider theme={defaultTheme}>

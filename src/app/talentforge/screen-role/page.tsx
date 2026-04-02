@@ -1,7 +1,7 @@
 "use client";
 
-import ScreenRole from "@/components/talentforge/ScreenRole";
-import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
+import ScreenRole from "@/app/talentforge/_components/ScreenRole";
+import ErrorBoundary from "@/app/talentforge/_components/ErrorBoundary";
 
 export default function ScreenRolePage() {
   return (

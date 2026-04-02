@@ -1,17 +1,17 @@
 "use client";
 
 import React from "react";
-import Dashboard from "@/components/talentforge/Dashboard";
-import ErrorBoundary from "@/components/talentforge/ErrorBoundary";
-import OpenAIKeyInterstitial from "@/components/talentforge/OpenAIKeyInterstitial";
+import Dashboard from "@/app/talentforge/_components/Dashboard";
+import ErrorBoundary from "@/app/talentforge/_components/ErrorBoundary";
+import OpenAIKeyInterstitial from "@/app/talentforge/_components/OpenAIKeyInterstitial";
 import OnboardingStepper, {
   TOTAL_ONBOARDING_STEPS,
-} from "@/components/talentforge/OnboardingStepper";
+} from "@/app/talentforge/_components/OnboardingStepper";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
-import insertMockData from "@/utils/mockData";
-import { getOnboardingStep } from "@/utils/talentforge/dataStore";
-import { portfolioApps } from "@/personal/data/resumeData";
+import insertMockData from "@/app/talentforge/_utils/mockData";
+import { getOnboardingStep } from "@/app/talentforge/_utils/dataStore";
+import { portfolioApps } from "@/consts/resumeData";
 
 export default function TalentForgePage() {
   const { setDocumentTitle } = useDocumentTitle();
@@ -28,7 +28,9 @@ export default function TalentForgePage() {
   }
 
   if (step < TOTAL_ONBOARDING_STEPS) {
-    return <OnboardingStepper onComplete={() => setStep(TOTAL_ONBOARDING_STEPS)} />;
+    return (
+      <OnboardingStepper onComplete={() => setStep(TOTAL_ONBOARDING_STEPS)} />
+    );
   }
 
   return (
