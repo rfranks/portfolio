@@ -37,6 +37,24 @@ const CHIP_WHITE_BLUE_SRC = "/assets/boardgame/PNG/Chips/chipWhiteBlue.png";
 const CHIP_RED_WHITE_SRC = "/assets/boardgame/PNG/Chips/chipRedWhite.png";
 const CHIP_GREEN_WHITE_SRC = "/assets/boardgame/PNG/Chips/chipGreenWhite.png";
 const CHIP_BLACK_WHITE_SRC = "/assets/boardgame/PNG/Chips/chipBlackWhite.png";
+const CHIP_WIN_LAUNCH_SOUNDS = [
+  "/audio/chips-handle-1.ogg",
+  "/audio/chips-handle-2.ogg",
+  "/audio/chips-handle-3.ogg",
+  "/audio/chips-handle-5.ogg",
+  "/audio/chip-lay-1.ogg",
+  "/audio/chip-lay-2.ogg",
+  "/audio/chip-lay-3.ogg",
+] as const;
+const CHIP_WIN_IMPACT_SOUNDS = [
+  "/audio/chips-collide-1.ogg",
+  "/audio/chips-collide-2.ogg",
+  "/audio/chips-collide-4.ogg",
+  "/audio/chips-stack-1.ogg",
+  "/audio/chips-stack-3.ogg",
+] as const;
+const BLACKJACK_CONFETTI_SOUND = "/audio/explosionCrunch_003.ogg";
+const BLACKJACK_SOUNDS_STORAGE_KEY = "blackjack-sounds-enabled";
 
 type BlackjackDiagramConfig = Pick<
   DiagramProps,
@@ -177,16 +195,65 @@ type ChipDecoratedValueProps = {
   children: React.ReactNode;
   className?: string;
   id?: string;
+  valueClassName?: string;
 };
 
-function ChipDecoratedValue({
-  chipSrc,
-  children,
-  className,
-  id,
-}: ChipDecoratedValueProps) {
+const WINNING_CHIP_SOURCES = [
+  CHIP_BLUE_WHITE_SRC,
+  CHIP_WHITE_BLUE_SRC,
+  CHIP_RED_WHITE_SRC,
+  CHIP_GREEN_WHITE_SRC,
+  CHIP_BLACK_WHITE_SRC,
+] as const;
+
+type WinningChipFx = {
+  id: string;
+  chipSrc: string;
+  startX: number;
+  startY: number;
+  deltaX: number;
+  deltaY: number;
+  arcY: number;
+  size: number;
+  delayMs: number;
+  durationMs: number;
+  startRotate: number;
+  endRotate: number;
+  startScale: number;
+};
+
+type BlackjackConfettiPiece = {
+  id: string;
+  left: number;
+  delayMs: number;
+  durationMs: number;
+  size: number;
+  driftX: number;
+  rotateStart: number;
+  rotateEnd: number;
+  color: string;
+  shape: "rect" | "circle";
+};
+
+const BLACKJACK_CONFETTI_COLORS = [
+  "#facc15",
+  "#fb7185",
+  "#60a5fa",
+  "#4ade80",
+  "#f59e0b",
+  "#e879f9",
+  "#f8fafc",
+] as const;
+
+const ChipDecoratedValue = React.forwardRef<
+  HTMLSpanElement,
+  ChipDecoratedValueProps
+>(function ChipDecoratedValue(
+  { chipSrc, children, className, id, valueClassName },
+  ref,
+) {
   return (
-    <span id={id} className={className}>
+    <span ref={ref} id={id} className={className}>
       <Image
         className="blackjack-chip-adornment"
         src={withBasePath(chipSrc)}
@@ -195,9 +262,77 @@ function ChipDecoratedValue({
         width={20}
         height={20}
       />
-      <span>{children}</span>
+      <span className={valueClassName}>{children}</span>
     </span>
   );
+});
+
+function formatPlayerStackValue(value: number) {
+  const roundedValue = Math.round(value);
+  const sign = roundedValue >= 0 ? "+" : "-";
+  return `${sign}$${Math.abs(roundedValue)}`;
+}
+
+function createWinningChipFx({
+  chipCount,
+  tableWidth,
+  tableHeight,
+  targetX,
+  targetY,
+}: {
+  chipCount: number;
+  tableWidth: number;
+  tableHeight: number;
+  targetX: number;
+  targetY: number;
+}): WinningChipFx[] {
+  return Array.from({ length: chipCount }, (_, index) => {
+    const startX = tableWidth * (0.12 + Math.random() * 0.62);
+    const startY = tableHeight * (0.16 + Math.random() * 0.42);
+    const size = 34 + Math.random() * 18;
+    const deltaX = targetX - startX + (Math.random() * 24 - 12);
+    const deltaY = targetY - startY + (Math.random() * 18 - 9);
+
+    return {
+      id: `winning-chip-${Date.now()}-${index}`,
+      chipSrc:
+        WINNING_CHIP_SOURCES[
+          Math.floor(Math.random() * WINNING_CHIP_SOURCES.length)
+        ],
+      startX,
+      startY,
+      deltaX,
+      deltaY,
+      arcY: -(18 + Math.random() * 34),
+      size,
+      delayMs: index * 45 + Math.random() * 50,
+      durationMs: 720 + Math.random() * 280,
+      startRotate: Math.random() * 120 - 60,
+      endRotate: Math.random() * 360 + 120,
+      startScale: 0.82 + Math.random() * 0.42,
+    };
+  });
+}
+
+function createBlackjackConfettiPieces(pieceCount: number) {
+  return Array.from({ length: pieceCount }, (_, index) => {
+    const size = 8 + Math.random() * 12;
+    return {
+      id: `blackjack-confetti-${Date.now()}-${index}`,
+      left: 2 + Math.random() * 96,
+      delayMs: Math.random() * 220,
+      durationMs: 2100 + Math.random() * 900,
+      size,
+      driftX: Math.random() * 180 - 90,
+      rotateStart: Math.random() * 180 - 90,
+      rotateEnd: Math.random() * 900 - 450,
+      color:
+        BLACKJACK_CONFETTI_COLORS[
+          Math.floor(Math.random() * BLACKJACK_CONFETTI_COLORS.length)
+        ],
+      shape: Math.random() > 0.72 ? "circle" : "rect",
+    } satisfies BlackjackConfettiPiece;
+  });
 }
 
 type AnimatedBlackjackCardProps = {
@@ -377,9 +512,19 @@ function getDealerOutcomeStampLabel(state: BlackjackRenderState | null) {
   }
 }
 
+function getResultTransitionKey(result: BlackjackResultView | null) {
+  if (!result) {
+    return "";
+  }
+
+  return [result.badge, result.summary, ...result.detailLines].join("|");
+}
+
 export default function BlackjackPage() {
   const { setDocumentTitle } = useDocumentTitle();
   const pageRef = React.useRef<HTMLElement | null>(null);
+  const tableShellRef = React.useRef<HTMLDivElement | null>(null);
+  const playerStackRef = React.useRef<HTMLSpanElement | null>(null);
   const slideRefs = React.useRef<Record<string, HTMLElement | null>>({});
   const [engineState, setEngineState] =
     React.useState<BlackjackRenderState | null>(null);
@@ -387,9 +532,33 @@ export default function BlackjackPage() {
   const [startRequested, setStartRequested] = React.useState(false);
   const [controlsArmed, setControlsArmed] = React.useState(false);
   const [activeSlideIndex, setActiveSlideIndex] = React.useState(0);
+  const [displayedPlayerStack, setDisplayedPlayerStack] = React.useState<
+    number | null
+  >(null);
+  const [stackTickerActive, setStackTickerActive] = React.useState(false);
+  const [winningChipFx, setWinningChipFx] = React.useState<WinningChipFx[]>([]);
+  const [blackjackConfettiPieces, setBlackjackConfettiPieces] = React.useState<
+    BlackjackConfettiPiece[]
+  >([]);
+  const [modeTransitionMessageVisible, setModeTransitionMessageVisible] =
+    React.useState(false);
+  const [soundsEnabled, setSoundsEnabled] = React.useState(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
+
+    return window.localStorage.getItem(BLACKJACK_SOUNDS_STORAGE_KEY) !== "false";
+  });
   const previousEngineStateRef = React.useRef<BlackjackRenderState | null>(
     null,
   );
+  const previousGameModeRef = React.useRef<BlackjackGameMode | null>(null);
+  const pendingModeChangeAutoDealRef = React.useRef(false);
+  const modeChangeObservedRef = React.useRef(false);
+  const stackTickerFrameRef = React.useRef<number | null>(null);
+  const winningChipClearTimeoutRef = React.useRef<number | null>(null);
+  const winningChipImpactTimeoutRef = React.useRef<number | null>(null);
+  const blackjackConfettiClearTimeoutRef = React.useRef<number | null>(null);
   const handRefs = React.useRef<Record<number, HTMLDivElement | null>>({});
   const previousActiveHandIndexRef = React.useRef<number | null>(null);
   const blackjackSfx = useAudio("/audio/jingles_STEEL16.ogg");
@@ -398,6 +567,9 @@ export default function BlackjackPage() {
   const hitSfx = useAudio("/audio/card-slide-8.ogg");
   const loseSfx = useAudio("/audio/error_008.ogg");
   const winSfx = useAudio("/audio/jingles_HIT03.mp3");
+  const chipWinLaunchSfx = useAudio(CHIP_WIN_LAUNCH_SOUNDS[0]);
+  const chipWinImpactSfx = useAudio(CHIP_WIN_IMPACT_SOUNDS[0]);
+  const blackjackConfettiSfx = useAudio(BLACKJACK_CONFETTI_SOUND);
   const musicStartedRef = React.useRef(false);
   const {
     enabled: bgmEnabled,
@@ -454,9 +626,171 @@ export default function BlackjackPage() {
   );
   const dealerOutcomeStampLabel = getDealerOutcomeStampLabel(engineState);
 
+  const playSfx = React.useCallback(
+    (...args: Parameters<typeof rewindAndPlayAudio>) => {
+      if (!soundsEnabled) {
+        return;
+      }
+
+      rewindAndPlayAudio(...args);
+    },
+    [soundsEnabled],
+  );
+
+  const stopStackTicker = React.useCallback(() => {
+    if (stackTickerFrameRef.current !== null) {
+      window.cancelAnimationFrame(stackTickerFrameRef.current);
+      stackTickerFrameRef.current = null;
+    }
+    setStackTickerActive(false);
+  }, []);
+
+  const syncDisplayedPlayerStack = React.useCallback(
+    (value: number) => {
+      stopStackTicker();
+      setDisplayedPlayerStack(value);
+    },
+    [stopStackTicker],
+  );
+
+  const animateDisplayedPlayerStack = React.useCallback(
+    (from: number, to: number) => {
+      stopStackTicker();
+      if (from === to) {
+        setDisplayedPlayerStack(to);
+        return;
+      }
+
+      const durationMs = Math.min(
+        1800,
+        Math.max(700, Math.abs(to - from) * 22),
+      );
+      const startTime = performance.now();
+      setStackTickerActive(true);
+      setDisplayedPlayerStack(from);
+
+      const tick = (now: number) => {
+        const progress = Math.min(1, (now - startTime) / durationMs);
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
+        const nextValue = Math.round(from + (to - from) * easedProgress);
+        setDisplayedPlayerStack(nextValue);
+
+        if (progress < 1) {
+          stackTickerFrameRef.current = window.requestAnimationFrame(tick);
+          return;
+        }
+
+        stackTickerFrameRef.current = null;
+        setDisplayedPlayerStack(to);
+        setStackTickerActive(false);
+      };
+
+      stackTickerFrameRef.current = window.requestAnimationFrame(tick);
+    },
+    [stopStackTicker],
+  );
+
+  const triggerWinningChipFx = React.useCallback((winAmount: number) => {
+    const tableRect = tableShellRef.current?.getBoundingClientRect();
+    const stackRect = playerStackRef.current?.getBoundingClientRect();
+    if (!tableRect || !stackRect) {
+      return;
+    }
+
+    const chipCount = Math.min(14, Math.max(6, Math.round(winAmount / 15)));
+    const targetX =
+      stackRect.left -
+      tableRect.left +
+      stackRect.width * 0.5 -
+      22;
+    const targetY =
+      stackRect.top -
+      tableRect.top +
+      stackRect.height * 0.5 -
+      22;
+
+    const nextFx = createWinningChipFx({
+      chipCount,
+      tableWidth: tableRect.width,
+      tableHeight: tableRect.height,
+      targetX,
+      targetY,
+    });
+
+    setWinningChipFx(nextFx);
+
+    const launchSound =
+      CHIP_WIN_LAUNCH_SOUNDS[
+        Math.floor(Math.random() * CHIP_WIN_LAUNCH_SOUNDS.length)
+      ];
+    playSfx(chipWinLaunchSfx, launchSound, { volume: 0.5 });
+
+    if (winningChipClearTimeoutRef.current !== null) {
+      window.clearTimeout(winningChipClearTimeoutRef.current);
+    }
+    if (winningChipImpactTimeoutRef.current !== null) {
+      window.clearTimeout(winningChipImpactTimeoutRef.current);
+    }
+
+    const maxLifetimeMs = nextFx.reduce(
+      (maxLifetime, chip) =>
+        Math.max(maxLifetime, chip.delayMs + chip.durationMs),
+      0,
+    );
+    const impactSound =
+      CHIP_WIN_IMPACT_SOUNDS[
+        Math.floor(Math.random() * CHIP_WIN_IMPACT_SOUNDS.length)
+      ];
+    const impactDelayMs = Math.max(140, maxLifetimeMs - 180);
+    winningChipImpactTimeoutRef.current = window.setTimeout(() => {
+      playSfx(chipWinImpactSfx, impactSound, { volume: 0.62 });
+      winningChipImpactTimeoutRef.current = null;
+    }, impactDelayMs);
+    winningChipClearTimeoutRef.current = window.setTimeout(() => {
+      setWinningChipFx([]);
+      winningChipClearTimeoutRef.current = null;
+    }, maxLifetimeMs + 140);
+  }, [chipWinImpactSfx, chipWinLaunchSfx, playSfx]);
+
+  const triggerBlackjackCelebration = React.useCallback(() => {
+    const nextPieces = createBlackjackConfettiPieces(42);
+    setBlackjackConfettiPieces(nextPieces);
+    playSfx(blackjackConfettiSfx, { volume: 0.68 });
+
+    if (blackjackConfettiClearTimeoutRef.current !== null) {
+      window.clearTimeout(blackjackConfettiClearTimeoutRef.current);
+    }
+
+    const maxLifetimeMs = nextPieces.reduce(
+      (maxLifetime, piece) =>
+        Math.max(maxLifetime, piece.delayMs + piece.durationMs),
+      0,
+    );
+
+    blackjackConfettiClearTimeoutRef.current = window.setTimeout(() => {
+      setBlackjackConfettiPieces([]);
+      blackjackConfettiClearTimeoutRef.current = null;
+    }, maxLifetimeMs + 180);
+  }, [blackjackConfettiSfx, playSfx]);
+
   React.useEffect(() => {
     setDocumentTitle("Blackjack");
   }, [setDocumentTitle]);
+
+  React.useEffect(() => {
+    return () => {
+      stopStackTicker();
+      if (winningChipClearTimeoutRef.current !== null) {
+        window.clearTimeout(winningChipClearTimeoutRef.current);
+      }
+      if (winningChipImpactTimeoutRef.current !== null) {
+        window.clearTimeout(winningChipImpactTimeoutRef.current);
+      }
+      if (blackjackConfettiClearTimeoutRef.current !== null) {
+        window.clearTimeout(blackjackConfettiClearTimeoutRef.current);
+      }
+    };
+  }, [stopStackTicker]);
 
   React.useEffect(() => {
     const root = pageRef.current;
@@ -532,8 +866,16 @@ export default function BlackjackPage() {
     }
 
     const previousState = previousEngineStateRef.current;
+    const currentPlayerStack = engineState.player?.stack ?? 0;
+    if (displayedPlayerStack === null) {
+      setDisplayedPlayerStack(currentPlayerStack);
+    }
+
+    let handledWinningStackAnimation = false;
 
     if (previousState) {
+      const previousResultKey = getResultTransitionKey(previousState.result);
+      const currentResultKey = getResultTransitionKey(engineState.result);
       const currentBusts =
         engineState.player?.hands.map((hand) => hand.busted) ?? [];
       const previousBusts =
@@ -541,7 +883,7 @@ export default function BlackjackPage() {
 
       for (let index = 0; index < currentBusts.length; index += 1) {
         if (currentBusts[index] && !previousBusts[index]) {
-          rewindAndPlayAudio(bustSfx);
+          playSfx(bustSfx);
           break;
         }
       }
@@ -554,26 +896,77 @@ export default function BlackjackPage() {
         !previousState.askingToDeal &&
         previousTotalCards > 0
       ) {
-        rewindAndPlayAudio(hitSfx);
+        playSfx(hitSfx);
       }
 
-      if (engineState.askingToDeal && !previousState.askingToDeal) {
+      if (currentResultKey && currentResultKey !== previousResultKey) {
         const previousWinnings = previousState.player?.winnings ?? 0;
         const currentWinnings = engineState.player?.winnings ?? 0;
         const netDiff = currentWinnings - previousWinnings;
+        const previousPlayerStack =
+          previousState.player?.stack ?? currentPlayerStack;
+        const stackDelta = currentPlayerStack - previousPlayerStack;
+        const isBlackjackWin =
+          engineState.result?.badge === "Won!" &&
+          (getPlayerHasBlackjack(engineState) ||
+            engineState.result.summary.includes("Blackjack"));
 
-        if (netDiff > 0 && getPlayerHasBlackjack(engineState)) {
-          rewindAndPlayAudio(blackjackSfx);
+        if (isBlackjackWin) {
+          playSfx(blackjackSfx);
         } else if (netDiff > 0) {
-          rewindAndPlayAudio(winSfx);
+          playSfx(winSfx);
         } else if (netDiff < 0) {
-          rewindAndPlayAudio(loseSfx);
+          playSfx(loseSfx);
+        }
+
+        if (engineState.result?.badge === "Won!") {
+          const visualWinAmount = Math.max(
+            stackDelta,
+            netDiff,
+            currentWinnings,
+            15,
+          );
+
+          if (stackDelta > 0) {
+            handledWinningStackAnimation = true;
+            animateDisplayedPlayerStack(previousPlayerStack, currentPlayerStack);
+          }
+
+          triggerWinningChipFx(visualWinAmount);
+
+          if (isBlackjackWin) {
+            triggerBlackjackCelebration();
+          }
+        } else if (stackDelta > 0) {
+          handledWinningStackAnimation = true;
+          syncDisplayedPlayerStack(currentPlayerStack);
         }
       }
     }
 
+    if (
+      displayedPlayerStack !== null &&
+      displayedPlayerStack !== currentPlayerStack &&
+      !handledWinningStackAnimation
+    ) {
+      syncDisplayedPlayerStack(currentPlayerStack);
+    }
+
     previousEngineStateRef.current = engineState;
-  }, [blackjackSfx, bustSfx, engineState, hitSfx, loseSfx, winSfx]);
+  }, [
+    animateDisplayedPlayerStack,
+    blackjackSfx,
+    bustSfx,
+    displayedPlayerStack,
+    engineState,
+    hitSfx,
+    loseSfx,
+    playSfx,
+    syncDisplayedPlayerStack,
+    triggerBlackjackCelebration,
+    triggerWinningChipFx,
+    winSfx,
+  ]);
 
   React.useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -596,6 +989,38 @@ export default function BlackjackPage() {
     setGameStarted(true);
     setControlsArmed(true);
   }, [engineState?.hasRendered, gameStarted, startRequested]);
+
+  React.useEffect(() => {
+    const currentGameMode = engineState?.gameMode;
+    if (!currentGameMode) {
+      return;
+    }
+
+    if (previousGameModeRef.current === null) {
+      previousGameModeRef.current = currentGameMode;
+      return;
+    }
+
+    if (previousGameModeRef.current !== currentGameMode) {
+      previousGameModeRef.current = currentGameMode;
+      if (pendingModeChangeAutoDealRef.current) {
+        modeChangeObservedRef.current = true;
+      }
+    }
+
+    if (
+      pendingModeChangeAutoDealRef.current &&
+      modeChangeObservedRef.current &&
+      engineState.askingToDeal &&
+      engineState.controls.deal
+    ) {
+      pendingModeChangeAutoDealRef.current = false;
+      modeChangeObservedRef.current = false;
+      setModeTransitionMessageVisible(false);
+      playSfx(dealSfx);
+      postBlackjackAction("deal");
+    }
+  }, [dealSfx, engineState, playSfx]);
 
   const startMusic = React.useCallback(() => {
     if (musicStartedRef.current) return;
@@ -628,11 +1053,30 @@ export default function BlackjackPage() {
       startMusic();
       setStartRequested(true);
       setControlsArmed(false);
-      rewindAndPlayAudio(dealSfx);
+      playSfx(dealSfx);
       postBlackjackStart();
     },
-    [dealSfx, startMusic],
+    [dealSfx, playSfx, startMusic],
   );
+
+  const handleToggleGameMode = React.useCallback(() => {
+    startMusic();
+    pendingModeChangeAutoDealRef.current = true;
+    modeChangeObservedRef.current = false;
+    setModeTransitionMessageVisible(true);
+    postBlackjackToggleGameMode();
+  }, [startMusic]);
+
+  const handleToggleSounds = React.useCallback(() => {
+    setSoundsEnabled((previous) => {
+      const next = !previous;
+      window.localStorage.setItem(
+        BLACKJACK_SOUNDS_STORAGE_KEY,
+        String(next),
+      );
+      return next;
+    });
+  }, []);
 
   const setSlideRef = React.useCallback(
     (id: string, node: HTMLElement | null) => {
@@ -668,6 +1112,8 @@ export default function BlackjackPage() {
         engineState.result.tone,
       )
     : null;
+  const activeVisualHandIndex =
+    engineState?.player?.hands.find((hand) => hand.active)?.index ?? null;
   const blackjackProject = projects?.find(
     (proj) => proj?.href === "/blackjack",
   );
@@ -680,6 +1126,32 @@ export default function BlackjackPage() {
       className="blackjack-page"
       data-engine-state-ready={engineState ? "true" : "false"}
     >
+      {blackjackConfettiPieces.length ? (
+        <div className="blackjack-confetti-layer" aria-hidden="true">
+          {blackjackConfettiPieces.map((piece) => (
+            <span
+              key={piece.id}
+              className={`blackjack-confetti-piece blackjack-confetti-piece--${piece.shape}`}
+              style={
+                {
+                  left: `${piece.left}%`,
+                  width: `${piece.size}px`,
+                  height:
+                    piece.shape === "circle"
+                      ? `${piece.size}px`
+                      : `${piece.size * 1.6}px`,
+                  backgroundColor: piece.color,
+                  animationDelay: `${piece.delayMs}ms`,
+                  animationDuration: `${piece.durationMs}ms`,
+                  "--confetti-drift-x": `${piece.driftX}px`,
+                  "--confetti-rotate-start": `${piece.rotateStart}deg`,
+                  "--confetti-rotate-end": `${piece.rotateEnd}deg`,
+                } as React.CSSProperties
+              }
+            />
+          ))}
+        </div>
+      ) : null}
       <section
         id="game-card"
         ref={(node) => setSlideRef("game-card", node)}
@@ -778,7 +1250,7 @@ export default function BlackjackPage() {
                 type="button"
                 className={getGameModeChipClass(engineState.gameMode)}
                 disabled={!engineState.canToggleGameMode}
-                onClick={postBlackjackToggleGameMode}
+                onClick={handleToggleGameMode}
                 title={
                   engineState.canToggleGameMode
                     ? "Cycle blackjack game mode"
@@ -799,6 +1271,12 @@ export default function BlackjackPage() {
                 </span>
               </button>
             ) : null}
+            {modeTransitionMessageVisible ? (
+              <div className="blackjack-mode-transition-indicator" role="status">
+                <span className="blackjack-mode-transition-spinner" aria-hidden="true" />
+                <span>Shuffling into new mode...</span>
+              </div>
+            ) : null}
           </div>
           {!engineState?.progressives?.length ? (
             <div id="progressives" className="blackjack-progressives">
@@ -816,7 +1294,37 @@ export default function BlackjackPage() {
               ))}
             </div>
           ) : null}
-          <div id="game" className="blackjack-table-shell">
+          <div id="game" ref={tableShellRef} className="blackjack-table-shell">
+            {winningChipFx.length ? (
+              <div className="blackjack-winning-chip-layer" aria-hidden="true">
+                {winningChipFx.map((chip) => (
+                  <Image
+                    key={chip.id}
+                    className="blackjack-winning-chip"
+                    src={withBasePath(chip.chipSrc)}
+                    alt=""
+                    width={Math.round(chip.size)}
+                    height={Math.round(chip.size)}
+                    style={
+                      {
+                        left: `${chip.startX}px`,
+                        top: `${chip.startY}px`,
+                        width: `${chip.size}px`,
+                        height: `${chip.size}px`,
+                        animationDelay: `${chip.delayMs}ms`,
+                        animationDuration: `${chip.durationMs}ms`,
+                        "--chip-dx": `${chip.deltaX}px`,
+                        "--chip-dy": `${chip.deltaY}px`,
+                        "--chip-arc-y": `${chip.arcY}px`,
+                        "--chip-rotate-start": `${chip.startRotate}deg`,
+                        "--chip-rotate-end": `${chip.endRotate}deg`,
+                        "--chip-scale-start": `${chip.startScale}`,
+                      } as React.CSSProperties
+                    }
+                  />
+                ))}
+              </div>
+            ) : null}
             <div id="dealer-info" className="blackjack-info-row">
               Dealer: House: <span id="house">{engineState?.house ?? 0}</span>{" "}
               Count: <span id="count">{engineState?.count ?? 0}</span>
@@ -914,13 +1422,15 @@ export default function BlackjackPage() {
               <div id="player-info" className="blackjack-info-row">
                 Player:{" "}
                 <ChipDecoratedValue
+                  ref={playerStackRef}
                   id="player-stack"
                   className="blackjack-money-chip"
                   chipSrc={CHIP_BLUE_WHITE_SRC}
+                  valueClassName={`blackjack-stack-ticker${stackTickerActive ? " blackjack-stack-ticker--active" : ""}`}
                 >
-                  {engineState?.player
-                    ? `${engineState.player.stack >= 0 ? "+" : "-"}$${engineState.player.stack}`
-                    : "$0"}
+                  {formatPlayerStackValue(
+                    displayedPlayerStack ?? engineState?.player?.stack ?? 0,
+                  )}
                 </ChipDecoratedValue>
                 <ChipDecoratedValue
                   id="player-winnings"
@@ -943,14 +1453,17 @@ export default function BlackjackPage() {
                 </ChipDecoratedValue>
               </div>
               <div className="blackjack-hands-scroll">
-                <div id="player-hands" className="blackjack-hands">
+                <div
+                  id="player-hands"
+                  className={`blackjack-hands${(engineState?.player?.hands?.length ?? 0) > 1 ? " blackjack-hands--split" : ""}`}
+                >
                   {(engineState?.player?.hands ?? []).map((hand) => (
                     <div
                       key={hand.index}
                       ref={(element) => {
                         handRefs.current[hand.index] = element;
                       }}
-                      className={`blackjack-seat blackjack-hand${hand.active ? " blackjack-hand--active" : ""}`}
+                      className={`blackjack-seat blackjack-hand${activeVisualHandIndex === hand.index ? " blackjack-hand--active" : ""}`}
                     >
                       <div className="blackjack-hand-header">
                         <span className="blackjack-hand-label">
@@ -1169,6 +1682,14 @@ export default function BlackjackPage() {
                   type="checkbox"
                   checked={ambienceEnabled}
                   onChange={toggleAmbience}
+                />
+                <span>Ambient</span>
+              </label>
+              <label className="blackjack-audio-toggle">
+                <input
+                  type="checkbox"
+                  checked={soundsEnabled}
+                  onChange={handleToggleSounds}
                 />
                 <span>Sounds</span>
               </label>

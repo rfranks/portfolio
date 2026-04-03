@@ -18,7 +18,8 @@ function ToggleColorMode({ mode, toggleColorMode }: ToggleColorModeProps) {
         variant="text"
         onClick={toggleColorMode}
         size="small"
-        aria-label="button to toggle theme"
+        aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         sx={{ minWidth: "32px", height: "32px", p: "4px" }}
       >
         {mode === "dark" ? (

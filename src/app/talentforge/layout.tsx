@@ -1,29 +1,29 @@
 "use client";
 
 import * as React from "react";
-import { CssBaseline, PaletteMode, ThemeProvider, useMediaQuery } from "@mui/material";
+import { CssBaseline, ThemeProvider } from "@mui/material";
 import LayoutShell from "@/app/talentforge/_components/LayoutShell";
 import getTalentforgeTheme from "@/app/talentforge/_theme/getTalentforgeTheme";
 import { TalentForgeDataProvider } from "@/app/talentforge/_contexts/TalentForgeDataContext";
 import { OpenAIKeyProvider } from "@/contexts/OpenAIKeyContext";
+import { useColorModePreference } from "@/hooks/useColorModePreference";
 import ErrorBoundary from "@/app/talentforge/_components/ErrorBoundary";
 import ToastProvider from "@/app/talentforge/_components/ToastProvider";
+
+const COLOR_MODE_STORAGE_KEY = "talentforge-color-mode";
 
 export default function TalentForgeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-  const [mode, setMode] = React.useState<PaletteMode>(
-    prefersDarkMode ? "dark" : "light"
+  const { mode, toggleColorMode, isReady } = useColorModePreference({
+    storageKey: COLOR_MODE_STORAGE_KEY,
+  });
+  const theme = React.useMemo(
+    () => getTalentforgeTheme(mode),
+    [mode],
   );
-
-  const theme = React.useMemo(() => getTalentforgeTheme(mode), [mode]);
-
-  const toggleColorMode = React.useCallback(() => {
-    setMode((prev) => (prev === "light" ? "dark" : "light"));
-  }, []);
 
   const navItems = [
     { label: "Dashboard", href: "/talentforge" },
@@ -32,11 +32,15 @@ export default function TalentForgeLayout({
     { label: "Settings", href: "/talentforge/settings" },
   ];
 
+  if (!isReady) {
+    return null;
+  }
+
   return (
     <OpenAIKeyProvider>
       <TalentForgeDataProvider>
         <ThemeProvider theme={theme}>
-          <CssBaseline />
+          <CssBaseline enableColorScheme />
           <ToastProvider>
             <ErrorBoundary>
               <LayoutShell

@@ -8,26 +8,23 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
 import "./page.css"; // Ensure global styles are applied
-import { CssBaseline, PaletteMode, ThemeProvider } from "@mui/material";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import { useColorModePreference } from "@/hooks/useColorModePreference";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import getDnaTheme from "./_theme/getDnaTheme";
 import { portfolioApps } from "@/consts/resumeData";
 
 export default function DnaPage() {
-  const [mode, setMode] = React.useState<PaletteMode>("light");
+  const { mode, toggleColorMode } = useColorModePreference();
   const theme = React.useMemo(() => getDnaTheme(mode), [mode]);
   const { setDocumentTitle } = useDocumentTitle();
   React.useEffect(() => {
     setDocumentTitle(portfolioApps.dna.documentTitle);
   }, [setDocumentTitle]);
 
-  const toggleColorMode = React.useCallback(() => {
-    setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
-  }, []);
-
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
+      <CssBaseline enableColorScheme />
       <Dashboard mode={mode} toggleColorMode={toggleColorMode} />
     </ThemeProvider>
   );

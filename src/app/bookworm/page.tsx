@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { PaletteMode } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -23,12 +22,13 @@ import "@fontsource/roboto/700.css";
 
 import "./page.css"; // Ensure global styles are applied
 import { hasOpenAIKey, setOpenAIKey } from "@/app/bookworm/_utils/utils";
+import { useColorModePreference } from "@/hooks/useColorModePreference";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import OpenAIKeyInterstitialContent from "@/components/shared/OpenAIKeyInterstitialContent";
 import { portfolioApps } from "@/consts/resumeData";
 
 export default function BookwormPage() {
-  const [mode, setMode] = React.useState<PaletteMode>("light");
+  const { mode, toggleColorMode } = useColorModePreference();
   const defaultTheme = createTheme({ palette: { mode } });
   const [apiKeyReady, setApiKeyReady] = React.useState(hasOpenAIKey());
   const [draftKey, setDraftKey] = React.useState("");
@@ -37,10 +37,6 @@ export default function BookwormPage() {
   React.useEffect(() => {
     setDocumentTitle(portfolioApps.bookworm.documentTitle);
   }, [setDocumentTitle]);
-
-  const toggleColorMode = () => {
-    setMode((prev) => (prev === "dark" ? "light" : "dark"));
-  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -55,7 +51,7 @@ export default function BookwormPage() {
   if (!apiKeyReady) {
     return (
       <ThemeProvider theme={defaultTheme}>
-        <CssBaseline />
+        <CssBaseline enableColorScheme />
         <OpenAIKeyInterstitialContent
           appName={portfolioApps.bookworm.interstitialAppName}
           logoAlt={portfolioApps.bookworm.interstitialLogoAlt}
@@ -69,7 +65,7 @@ export default function BookwormPage() {
 
   return (
     <ThemeProvider theme={defaultTheme}>
-      <CssBaseline />
+      <CssBaseline enableColorScheme />
       <AppAppBar mode={mode} toggleColorMode={toggleColorMode} />
       <Hero />
       <Box sx={{ bgcolor: "background.default" }}>

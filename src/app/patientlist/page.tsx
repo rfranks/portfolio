@@ -3,8 +3,8 @@ import PageClient from "./PageClient";
 import { projectData } from "./project";
 
 export const metadata: Metadata = {
-  title: "Patient List Project",
-  description: "PowerPoint-style presentation for the Patient List project",
+  title: `${projectData.project} Project`,
+  description: projectData.description,
 };
 
 export default function Page() {

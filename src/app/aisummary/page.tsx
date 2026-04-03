@@ -3,11 +3,10 @@ import AISummaryPageClient from "./AISummaryPageClient";
 import { projectData } from "./project";
 
 export const metadata: Metadata = {
-  title: "AISummary Project",
-  description: "PowerPoint-style presentation for the AISummary page",
+  title: `${projectData.project} Project`,
+  description: projectData.description,
 };
 
 export default function AISummaryPage() {
   return <AISummaryPageClient project={projectData} />;
 }
-

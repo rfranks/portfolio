@@ -9,8 +9,9 @@ import TimelineContent from "@mui/lab/TimelineContent";
 import TimelineDot from "@mui/lab/TimelineDot";
 import TimelineOppositeContent from "@mui/lab/TimelineOppositeContent";
 import { experience } from "@/consts/resumeData";
-import TronPaper from "@/components/shared/TronPaper";
+import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import FadeInSection from "@/components/shared/FadeInSection";
+import MarkdownContent from "@/components/shared/MarkdownContent";
 import Image from "next/image";
 import { withBasePath } from "@/utils/basePath";
 import Stack from "@mui/material/Stack";
@@ -23,7 +24,7 @@ export default function ExperienceTimeline() {
 
   return (
     <FadeInSection>
-      <TronPaper>
+      <PortfolioPanel>
         <Typography variant="h6" gutterBottom>
           Experience
         </Typography>
@@ -105,14 +106,24 @@ export default function ExperienceTimeline() {
                 {exp.details && (
                   <ul className="m-0 list-disc pl-5">
                     {exp.details.map((detail) => (
-                      <li key={detail}>{detail}</li>
+                      <li key={detail}>
+                        <MarkdownContent
+                          content={detail}
+                          sx={{ "& p": { mb: 0 } }}
+                        />
+                      </li>
                     ))}
                   </ul>
                 )}
                 {exp.achievements && (
                   <ul className="m-0 list-disc pl-5">
                     {exp.achievements.map((ach) => (
-                      <li key={ach}>{ach}</li>
+                      <li key={ach}>
+                        <MarkdownContent
+                          content={ach}
+                          sx={{ "& p": { mb: 0 } }}
+                        />
+                      </li>
                     ))}
                   </ul>
                 )}
@@ -120,7 +131,7 @@ export default function ExperienceTimeline() {
             </TimelineItem>
           ))}
         </Timeline>
-      </TronPaper>
+      </PortfolioPanel>
     </FadeInSection>
   );
 }

@@ -2,13 +2,13 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import { contactCTA, summary } from "@/consts/resumeData";
-import TronPaper from "@/components/shared/TronPaper";
+import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import FadeInSection from "@/components/shared/FadeInSection";
 
 export default function ContactCTA() {
   return (
     <FadeInSection>
-      <TronPaper className="text-center">
+      <PortfolioPanel className="text-center">
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-4">
           <Typography variant="h6" gutterBottom>
             {contactCTA.title}
@@ -43,7 +43,7 @@ export default function ContactCTA() {
             </Button>
           </Stack>
         </div>
-      </TronPaper>
+      </PortfolioPanel>
     </FadeInSection>
   );
 }

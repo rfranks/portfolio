@@ -7,12 +7,13 @@ import ListItem from "@mui/material/ListItem";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import Avatar from "@mui/material/Avatar";
-import TronPaper from "@/components/shared/TronPaper";
+import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
+import MarkdownContent from "@/components/shared/MarkdownContent";
 import { withBasePath } from "@/utils/basePath";
 
 export default function Recognition() {
   return (
-    <TronPaper>
+    <PortfolioPanel>
       <Typography variant="h6" gutterBottom className="mb-4">
         Recognition
       </Typography>
@@ -21,13 +22,10 @@ export default function Recognition() {
           <Grid item xs={12} sm={4} key={idx}>
             <Card variant="outlined" className="h-full">
               <CardContent className="h-full">
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
+                <MarkdownContent
+                  content={snippet}
                   className="leading-6 italic"
-                >
-                  {snippet}
-                </Typography>
+                />
               </CardContent>
             </Card>
           </Grid>
@@ -73,14 +71,16 @@ export default function Recognition() {
                     }
                   />
                 </ListItem>
-                <Typography variant="body1" className="leading-7 italic">
-                  {rec.text}
-                </Typography>
+                <MarkdownContent
+                  content={rec.text}
+                  variant="body1"
+                  className="leading-7 italic"
+                />
               </CardContent>
             </Card>
           </Grid>
         ))}
       </Grid>
-    </TronPaper>
+    </PortfolioPanel>
   );
 }

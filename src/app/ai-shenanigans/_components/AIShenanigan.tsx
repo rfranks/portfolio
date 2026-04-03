@@ -11,7 +11,7 @@ import Typography from "@mui/material/Typography";
 import FadeInSection from "@/components/shared/FadeInSection";
 import AIShenaniganAdaptation from "./AIShenaniganAdaptation";
 import AIShenaniganWorkSeries from "./AIShenaniganWorkSeries";
-import TronPaper from "@/components/shared/TronPaper";
+import ShenaniganPanel from "./ShenaniganPanel";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { withBasePath } from "@/utils/basePath";
 import { rewindAndPlayAudio } from "@/utils/audio";
@@ -830,7 +830,7 @@ function DefaultAIShenanigan({
 
   return (
     <FadeInSection>
-      <TronPaper className="overflow-hidden">
+      <ShenaniganPanel className="overflow-hidden">
         <Stack spacing={3}>
           <Stack
             spacing={2.5}
@@ -1199,7 +1199,7 @@ function DefaultAIShenanigan({
             </Stack>
           </Stack>
         </Stack>
-      </TronPaper>
+      </ShenaniganPanel>
     </FadeInSection>
   );
 }

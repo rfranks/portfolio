@@ -3,7 +3,7 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import Chip from "@/components/fabric/Chip";
-import TronPaper from "@/components/shared/TronPaper";
+import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import FadeInSection from "@/components/shared/FadeInSection";
 import { hobbies } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
@@ -13,7 +13,7 @@ export default function HobbiesCard() {
 
   return (
     <FadeInSection>
-      <TronPaper className="h-full">
+      <PortfolioPanel className="h-full">
         <Typography variant="h6" gutterBottom className="mb-4">
           {hobbies.title}
         </Typography>
@@ -74,7 +74,7 @@ export default function HobbiesCard() {
             )}
           </Stack>
         </Stack>
-      </TronPaper>
+      </PortfolioPanel>
     </FadeInSection>
   );
 }

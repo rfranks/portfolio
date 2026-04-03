@@ -1,9 +1,9 @@
 import { ProjectData } from "@/components/portfolio/ProjectPresentation";
+import { createProjectPageData } from "@/components/portfolio/projectPageData";
 
-export const projectData: ProjectData = {
-  project: "patient-list-app AssignmentListView",
-  description:
-    "The patient-list-app is the operations console for the Configurable Patient Visit List. It lets users kick off background jobs that affect lists (refresh, recompute membership, export), observe job status, and open the Visit List UI directly with a given list context. It is not the renderer itself; instead, it drives/coordinates the Backbone VisitList screen by sending users to the route with the correct listId and by emitting audit and metrics events.",
+export const projectData: ProjectData = createProjectPageData(
+  "/assignmentlist",
+  {
   demoGifUrl: "/demogifs/assignment_list_demo.gif",
   specifications: {
     facadeArchitecture: {
@@ -115,4 +115,5 @@ export const projectData: ProjectData = {
     "graph TD;\n  subgraph UI patient-list-war\n    AR[AssignmentRouter]\n    AS[AssignmentState]\n    ALV[AssignmentListView]\n    VCOL[VisitCollection]\n    VLV[VisitListView]\n    TBV[ToolbarView]\n    PGR[PaginationView]\n    WIZ[WizardView]\n    TLIST[assignment-list.hbs]\n    TROW[visit-row.hbs]\n  end\n  subgraph REST/API\n    EPV[/GET /api/v1/visits/]\n    EPA[/GET /api/v1/assignmentLists/id/summary/]\n    DTOv[VisitDto]\n    DTOa[AssignmentListDto]\n  end\n  subgraph Server\n    CtlV[VisitController]\n    CtlA[AssignmentController]\n    Fac[PatientListFacade]\n    Svc[Facade Impl]\n    Map[DTO Mappers]\n    RepoV[VisitRepository]\n    RepoA[AssignmentRepository]\n    DB[(DB)]\n  end\n  AR --> AS\n  AR --> ALV\n  ALV --> TBV\n  ALV --> PGR\n  ALV --> VCOL\n  ALV -->|subview| VLV\n  VCOL -->|reset/sync| VLV\n  ALV --> TLIST\n  VLV --> TROW\n  TBV -->|filter:changed| AS\n  PGR -->|page:changed| AS\n  AS -->|toQuery| VCOL\n  VCOL -->|fetch| EPV\n  EPV --> CtlV --> Fac --> Svc --> RepoV --> DB\n  RepoV --> Svc --> Map --> DTOv --> CtlV --> EPV --> VCOL\n  ALV -->|load summary| EPA --> CtlA --> Fac --> RepoA --> DB\n  WIZ -->|save list| CtlA",
   sequenceDiagram:
     "sequenceDiagram\n  participant U as User\n  participant R as AssignmentRouter\n  participant S as AssignmentState\n  participant A as AssignmentListView\n  participant VC as VisitCollection\n  participant V as VisitListView\n  participant T as ToolbarView\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as Facade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/assignments/42?assignee=RN1&page=1\n  R->>S: Initialize state (listId=42, assignee=RN1, page=1, sort, filters)\n  R->>A: new AssignmentListView({state:S})\n  A->>VC: fetch({ data: S.toQuery() })\n  VC->>REST: GET /api/v1/visits?listId=42&assignee=RN1&page=1&sort=...\n  REST->>CTR: Dispatch\n  CTR->>FAC: findVisitsForAssignment(listId,assignee,paging,filters)\n  FAC->>DAO: query(listId,assignee,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>VC: 200 {items:[], paging:{}}\n  VC-->>A: reset/sync events\n  A->>V: render subview with VC\n  V->>V: render rows using Handlebars (visit-row.hbs)\n  A-->>U: Assignment list with visits displayed\n  U->>T: Change filter/search/assignee\n  T-->>S: filter:changed / assignee:changed\n  S-->>A: change:*\n  A->>VC: fetch() (debounced) with new query\n  VC->>REST: GET /api/v1/visits?... (repeat)",
-};
+  },
+);

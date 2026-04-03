@@ -12,7 +12,11 @@ import {
 } from "@/app/rickbert-studio/_utils/openAIKey";
 import { portfolioApps } from "@/consts/resumeData";
 
-const defaultTheme = createTheme();
+const defaultTheme = createTheme({
+  palette: {
+    mode: "dark",
+  },
+});
 
 export default function RickbertPageClient() {
   const setOpenAIKey = useRickbertStudioStore((state) => state.setOpenAIKey);
@@ -59,7 +63,7 @@ export default function RickbertPageClient() {
   if (!apiKeyReady) {
     return (
       <ThemeProvider theme={defaultTheme}>
-        <CssBaseline />
+        <CssBaseline enableColorScheme />
         <OpenAIKeyInterstitialContent
           appName={portfolioApps.rickbert.interstitialAppName}
           logoAlt={portfolioApps.rickbert.interstitialLogoAlt}

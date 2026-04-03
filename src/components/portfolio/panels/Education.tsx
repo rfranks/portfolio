@@ -4,7 +4,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Box from "@mui/material/Box";
 import { education } from "@/consts/resumeData";
-import TronPaper from "@/components/shared/TronPaper";
+import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import FadeInSection from "@/components/shared/FadeInSection";
 import { ListItemAvatar } from "@mui/material";
 import Image from "next/image";
@@ -13,7 +13,7 @@ import { withBasePath } from "@/utils/basePath";
 export default function Education() {
   return (
     <FadeInSection>
-      <TronPaper>
+      <PortfolioPanel>
         <Typography variant="h6" gutterBottom className="mb-4">
           Education
         </Typography>
@@ -58,7 +58,7 @@ export default function Education() {
             </ListItem>
           ))}
         </List>
-      </TronPaper>
+      </PortfolioPanel>
     </FadeInSection>
   );
 }

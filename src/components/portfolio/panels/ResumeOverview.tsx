@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import FadeInSection from "@/components/shared/FadeInSection";
+import MarkdownContent from "@/components/shared/MarkdownContent";
 import { summary } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
 import IconButton from "@mui/material/IconButton";
@@ -56,13 +57,13 @@ export default function ResumeOverview() {
           >
             <Stack spacing={2} sx={{ minWidth: 0, flex: "1 1 auto" }}>
               {summary.gutter.map((paragraph, index) => (
-                <Typography
+                <MarkdownContent
                   key={paragraph}
-                  color={index === 0 ? undefined : "text.secondary"}
+                  content={paragraph}
+                  variant="body1"
+                  color={index === 0 ? "text.primary" : "text.secondary"}
                   className="leading-7"
-                >
-                  {paragraph}
-                </Typography>
+                />
               ))}
             </Stack>
             <Box

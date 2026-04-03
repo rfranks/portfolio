@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { ThemeProvider } from "@mui/material/styles";
-import { PaletteMode } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
@@ -41,12 +40,20 @@ import ContactCTA from "@/components/portfolio/panels/ContactCTA";
 import Grid from "@mui/material/Grid";
 import { navigation, summary } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
+import { useColorModePreference } from "@/hooks/useColorModePreference";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import getFabricTheme from "@/themes/fabricTheme";
 
+const COLOR_MODE_STORAGE_KEY = "portfolio-color-mode";
+
 export default function HomePageClient() {
-  const [mode, setMode] = useState<PaletteMode>("light");
-  const defaultTheme = useMemo(() => getFabricTheme(mode), [mode]);
+  const { mode, toggleColorMode, isReady } = useColorModePreference({
+    storageKey: COLOR_MODE_STORAGE_KEY,
+  });
+  const defaultTheme = useMemo(
+    () => getFabricTheme(mode),
+    [mode],
+  );
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
   const tocSections = [
@@ -67,10 +74,6 @@ export default function HomePageClient() {
 
   const toggleDrawer = () => {
     setOpen(!open);
-  };
-
-  const toggleColorMode = () => {
-    setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
   };
 
   const handleTocClick = (
@@ -101,9 +104,13 @@ export default function HomePageClient() {
 
   const appBarTitle = `${summary.name} • ${summary.title.split("|")[0].trim()}`;
 
+  if (!isReady) {
+    return null;
+  }
+
   return (
     <ThemeProvider theme={defaultTheme}>
-      <CssBaseline />
+      <CssBaseline enableColorScheme />
       <Box
         className="relative flex bg-transparent text-inherit"
         sx={{
@@ -118,11 +125,11 @@ export default function HomePageClient() {
           rel="noopener noreferrer"
           sx={{
             position: "fixed",
-            top: 54,
-            right: -54,
+            top: 48,
+            right: -78,
             zIndex: (theme) => theme.zIndex.tooltip + 1,
             display: { xs: "none", md: "block" },
-            width: 220,
+            width: 280,
             py: 1,
             textAlign: "center",
             textDecoration: "none",
@@ -131,6 +138,7 @@ export default function HomePageClient() {
             fontSize: "0.72rem",
             fontWeight: 800,
             color: "#fff",
+            borderRadius: "999px",
             background:
               "linear-gradient(90deg, rgba(17,24,39,0.96) 0%, rgba(31,41,55,0.98) 100%)",
             boxShadow: "0 10px 24px rgba(0,0,0,0.28)",
@@ -268,13 +276,49 @@ export default function HomePageClient() {
         <Box
           component="main"
           className="relative min-h-screen min-w-0 flex-[1_1_0]"
-          sx={{
+          sx={(theme) => ({
             ml: open ? `${drawerWidth}px` : { xs: 7, sm: 9 },
-          }}
+            ...(theme.palette.mode === "dark" && {
+              "& .MuiCard-root": {
+                backgroundColor: "rgba(13, 26, 42, 0.44)",
+                backgroundImage:
+                  "linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 30%)",
+                borderColor: "rgba(255, 255, 255, 0.1)",
+                boxShadow: "0 16px 34px rgba(3, 9, 18, 0.22)",
+              },
+            }),
+          })}
         >
-          <Box className="pointer-events-none absolute inset-x-0 top-0 -z-10 overflow-hidden">
-            <Box className="absolute -left-24 top-8 h-72 w-72 rounded-full bg-cyan-300/10 blur-3xl" />
-            <Box className="absolute right-0 top-24 h-80 w-80 rounded-full bg-blue-400/10 blur-3xl" />
+          <Box
+            className="pointer-events-none absolute inset-x-0 top-0 -z-10 overflow-hidden"
+            sx={{ opacity: mode === "dark" ? 1 : 0.92 }}
+          >
+            <Box
+              sx={{
+                position: "absolute",
+                left: "-6rem",
+                top: "2rem",
+                height: "18rem",
+                width: "18rem",
+                borderRadius: "999px",
+                background:
+                  "radial-gradient(circle, var(--fabric-bg-radial-secondary) 0%, transparent 72%)",
+                filter: "blur(28px)",
+              }}
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                right: 0,
+                top: "6rem",
+                height: "20rem",
+                width: "20rem",
+                borderRadius: "999px",
+                background:
+                  "radial-gradient(circle, var(--fabric-bg-radial-primary) 0%, transparent 72%)",
+                filter: "blur(32px)",
+              }}
+            />
           </Box>
           <Toolbar />
           <Container

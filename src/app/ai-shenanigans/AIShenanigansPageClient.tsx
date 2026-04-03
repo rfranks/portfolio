@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { PaletteMode } from "@mui/material";
+import { useEffect, useMemo } from "react";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
@@ -18,12 +17,13 @@ import AIShenanigan, {
 } from "./_components/AIShenanigan";
 import AppBar from "@/components/portfolio/layout/AppBar";
 import { aiShenanigans, portfolioApps, summary } from "@/consts/resumeData";
+import { useColorModePreference } from "@/hooks/useColorModePreference";
 import getFabricTheme from "@/themes/fabricTheme";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { withBasePath } from "@/utils/basePath";
 
 export default function AIShenanigansPageClient() {
-  const [mode, setMode] = useState<PaletteMode>("light");
+  const { mode, toggleColorMode } = useColorModePreference();
   const theme = useMemo(() => getFabricTheme(mode), [mode]);
   const { setDocumentTitle } = useDocumentTitle();
 
@@ -33,7 +33,7 @@ export default function AIShenanigansPageClient() {
 
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
+      <CssBaseline enableColorScheme />
       <Box
         sx={{
           minHeight: "100vh",
@@ -43,9 +43,7 @@ export default function AIShenanigansPageClient() {
       >
         <AppBar
           mode={mode}
-          toggleColorMode={() =>
-            setMode((prev) => (prev === "light" ? "dark" : "light"))
-          }
+          toggleColorMode={toggleColorMode}
         >
           <IconButton
             edge="start"

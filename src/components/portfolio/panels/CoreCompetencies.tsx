@@ -3,14 +3,14 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
 import { competencies } from "@/consts/resumeData";
-import TronPaper from "@/components/shared/TronPaper";
+import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import FadeInSection from "@/components/shared/FadeInSection";
 import Chip from "@/components/fabric/Chip";
 
 export default function CoreCompetencies() {
   return (
     <FadeInSection>
-      <TronPaper className="h-full">
+      <PortfolioPanel className="h-full">
         <Typography variant="h6" gutterBottom className="mb-4">
           Core Competencies
         </Typography>
@@ -46,7 +46,7 @@ export default function CoreCompetencies() {
             </Box>
           ))}
         </Stack>
-      </TronPaper>
+      </PortfolioPanel>
     </FadeInSection>
   );
 }

@@ -6,8 +6,9 @@ import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import TronPaper from "@/components/shared/TronPaper";
+import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import FadeInSection from "@/components/shared/FadeInSection";
+import MarkdownContent from "@/components/shared/MarkdownContent";
 import { withBasePath } from "@/utils/basePath";
 import { CardHeader } from "@mui/material";
 import OpenInNew from "@mui/icons-material/OpenInNew";
@@ -87,7 +88,7 @@ export default function ProjectsGrid() {
 
   return (
     <FadeInSection>
-      <TronPaper className="relative overflow-hidden">
+      <PortfolioPanel className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-36 overflow-hidden md:block">
           {projectsSection.marks.map((mark, index) =>
             mark.kind === "image" ? (
@@ -167,25 +168,19 @@ export default function ProjectsGrid() {
                   sx={{ flexGrow: 1, maxHeight: "400px", overflow: "auto" }}
                   className="space-y-4"
                 >
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
+                  <MarkdownContent
+                    content={project.description}
                     className="leading-6"
-                  >
-                    {project.description}
-                  </Typography>
+                  />
                   {project.interestsMeWhy && (
                     <Box className="rounded-2xl border border-white/10 bg-white/5 p-4 dark:bg-white/[0.03]">
                       <Typography variant="subtitle1" gutterBottom>
                         {projectsSection.interestHeading}
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
+                      <MarkdownContent
+                        content={project.interestsMeWhy}
                         className="leading-6"
-                      >
-                        {project.interestsMeWhy}
-                      </Typography>
+                      />
                     </Box>
                   )}
                   {project.accolades && project.accolades.length > 0 && (
@@ -216,7 +211,7 @@ export default function ProjectsGrid() {
             </Grid>
           ))}
         </Grid>
-      </TronPaper>
+      </PortfolioPanel>
     </FadeInSection>
   );
 }

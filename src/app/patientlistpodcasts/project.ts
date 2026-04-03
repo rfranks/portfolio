@@ -1,9 +1,9 @@
 import { ProjectData } from "@/components/portfolio/ProjectPresentation";
+import { createProjectPageData } from "@/components/portfolio/projectPageData";
 
-export const projectData: ProjectData = {
-  project: "Patient List Podcasts (Gemini TTS)",
-  description:
-    "The Next.js PromptJob page receives a chatUri prop that points to the Flask aichat route /v1/chat_patient. When a physician submits a question, the page kicks off an agentic PromptJob. The aichat service (via LangChain) calls Azure Functions to fetch each patient's last 12 hours of data from Cosmos DB, plans a podcast script per patient, then uses Gemini for text-to-speech to synthesize audio. The Functions layer stores podcast metadata in Cosmos DB and the audio in Blob Storage. The page renders a fully interactive list grouped by patient—showing status/progress, transcript excerpts, and an HTML5 audio player—refreshing as items complete until the job is done.",
+export const projectData: ProjectData = createProjectPageData(
+  "/patientlistpodcasts",
+  {
   demoVideoUrl: "/demovideos/physician_last12hours_podcast.mov",
   specifications: {
     "UI contract": [
@@ -80,4 +80,5 @@ export const projectData: ProjectData = {
     "flowchart LR\n  subgraph Page[PromptJobPage.tsx]\n    HOOK0[useInit chatUri, window=12h]\n    HOOK1[usePromptJob-chatUri]\n    HOOK2[usePromptJobStatus-jobId]\n    HOOK3[usePatientPodcasts-window=12h]\n    HOOK4[useAudioPlayer]\n    HOOK5[useFilters]\n    BAR[FiltersBar]\n    LIST[PodcastList]\n    CARD[PatientPodcastCard]\n    PLAYER[PodcastPlayer]\n    EMPTY[EmptyState]\n  end\n\n  HOOK0 --> HOOK1\n  HOOK1 --> HOOK2\n  HOOK2 --> HOOK3\n  HOOK5 --> HOOK3\n  HOOK3 --> LIST\n  LIST --> CARD\n  CARD --> PLAYER\n  PLAYER --> HOOK4\n  BAR --> HOOK5\n\n  subgraph DataLayer\n    API[apiClient using native fetch]\n    STATE[useState/useEffect]\n  end\n\n  HOOK1 -->|POST /v1/chat_patient| API\n  HOOK2 -->|GET /functions/promptjobs/:id| API\n  HOOK3 -->|GET /functions/podcastItems?since=12h| API\n  API --> STATE",
   sequenceDiagram:
     "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Page as Next.js PromptJobPage\n  participant AIC as Flask aichat (/v1/chat_patient)\n  participant AG as LangChain Agent\n  participant AF as Azure Functions (TS)\n  participant DB as Cosmos DB\n  participant BL as Blob Storage\n  participant GM as Gemini TTS\n\n  Physician->>Page: Type question & Submit\n  Note over Page: chatUri prop points to /v1/chat_patient\n  Page->>AIC: POST /v1/chat_patient { prompt, window: last12h }\n  AIC->>AF: POST /promptjobs (create)\n  AF->>DB: Insert PromptJob { jobId, status: queued }\n  AF-->>AIC: 201 { jobId }\n  AIC->>AG: Start agent(jobId, window=12h)\n\n  AG->>AF: GET /events?since=12h&groupBy=patient\n  AF->>DB: Query events (labs, vitals, notes)\n  DB-->>AF: Events by patient\n  AF-->>AG: Events payload\n  AG->>AG: Plan outline + draft script per patient\n  AG->>GM: Synthesize(script, voice)\n  GM-->>AG: Audio bytes\n  AG->>BL: PUT /blobs/podcasts/{jobId}/{patientId}.mp3\n  BL-->>AG: audioUrl (SAS)\n  AG->>AF: PUT /podcastItems { jobId, patientId, audioUrl, transcript, status: ready }\n  AF->>DB: Upsert PodcastItem\n  loop Progress updates\n    AG->>AF: PUT /promptjobs/{jobId}/progress { completed, total }\n    AF->>DB: Update PromptJob\n  end\n  AG-->>AIC: Completed\n  AIC->>AF: PUT /promptjobs/{jobId} { status: complete }\n  AF->>DB: Mark complete\n\n  par UI refresh cycle\n    Page->>AF: GET /promptjobs/{jobId}\n    AF-->>Page: { status, progress }\n    Page->>AF: GET /podcastItems?jobId&since=12h\n    AF->>DB: Query podcast items\n    DB-->>AF: Results (with audioUrl)\n    AF-->>Page: PodcastItems[]\n  end\n\n  Physician->>Page: Click play on a patient\n  Page->>BL: GET audioUrl (SAS)\n  BL-->>Page: MP3 stream\n  Page-->>Physician: Audio playback + transcript + controls",
-};
+  },
+);

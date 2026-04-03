@@ -42,7 +42,7 @@ const StyledAppBar = styled(MuiAppBar, {
 export default function AppBar({
   open,
   drawerWidth,
-  mode = "light",
+  mode = "dark",
   toggleColorMode,
   children,
   ...other

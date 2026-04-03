@@ -1,9 +1,7 @@
 import { ProjectData } from "@/components/portfolio/ProjectPresentation";
+import { createProjectPageData } from "@/components/portfolio/projectPageData";
 
-export const projectData: ProjectData = {
-  project: "patient-list-app",
-  description:
-    "The patient-list-app is the operations console for the Configurable Patient Visit List. It lets users kick off background jobs that affect lists (refresh, recompute membership, export), observe job status, and open the Visit List UI directly with a given list context. It is not the renderer itself; instead, it drives/coordinates the Backbone VisitList screen by sending users to the route with the correct listId and by emitting audit and metrics events.",
+export const projectData: ProjectData = createProjectPageData("/patientlist", {
   demoGifUrl: "/demogifs/patient_list_demo.gif",
   specifications: {
     facadeArchitecture: {
@@ -112,4 +110,4 @@ export const projectData: ProjectData = {
     "graph TD;\n  subgraph UI (patient-list-war)\n    Router[VisitRouter]\n    State[VisitListState]\n    Coll[VisitCollection]\n    ListView[VisitListView]\n    ItemView[VisitItemView]\n    Toolbar[ToolbarView]\n    Pager[PaginationView]\n    Wizard[WizardView]\n    TList[visit-list.hbs]\n    TRow[visit-row.hbs]\n  end\n  subgraph REST/API\n    EP[/GET /api/v1/visits/]\n    EPlist[/GET /api/v1/visitLists/{id}/visits/]\n    DTO[VisitDto]\n  end\n  subgraph Server\n    Ctl[VisitController]\n    Fac[VisitFacade]\n    Svc[VisitServiceImpl]\n    Map[VisitMapper]\n    Repo[VisitRepository]\n    DB[(DB)]\n  end\n  Router --> ListView\n  Router --> State\n  ListView --> Toolbar\n  ListView --> Pager\n  ListView --> Coll\n  Coll -->|reset/sync| ListView\n  ListView -->|each model| ItemView\n  ListView --> TList\n  ItemView --> TRow\n  Toolbar -->|filter:changed| State\n  Pager -->|page:changed| State\n  State -->|toQuery()| Coll\n  Coll -->|fetch| EP\n  EP --> Ctl --> Fac --> Svc --> Repo --> DB\n  Repo --> Svc --> Map --> DTO --> Ctl --> EP --> Coll\n  Wizard -->|save list| Ctl",
   sequenceDiagram:
     "sequenceDiagram\n  participant U as User\n  participant R as VisitRouter\n  participant V as VisitListView\n  participant S as VisitListState\n  participant C as VisitCollection\n  participant T as ToolbarView\n  participant H as Handlebars Templates\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as VisitFacade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/visits?listId=123&page=1\n  R->>S: create from query (listId,page,sort,filters)\n  R->>V: new VisitListView({state:S, collection:C})\n  V->>C: fetch({data: S.toQuery()})\n  C->>REST: GET /api/v1/visits?listId=123&page=1&sort=...\n  REST->>CTR: Dispatch controller\n  CTR->>FAC: findVisits(listId,paging,filters)\n  FAC->>DAO: query(listId,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>C: 200 JSON {items:[], paging:{}}\n  C-->>V: reset/sync events\n  V->>H: Render visit-list.hbs + visit-row.hbs\n  H-->>V: HTML table\n  V-->>U: Patient visit list displayed\n  U->>T: Change filter/search\n  T-->>S: event filter:changed\n  S-->>V: change:*\n  V->>C: fetch() (debounced) with new query\n  C->>REST: GET /api/v1/visits?... (repeat)",
-};
+});

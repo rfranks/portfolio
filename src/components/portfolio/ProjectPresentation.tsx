@@ -13,9 +13,10 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import type { ReactNode } from "react";
 
-import TronPaper from "@/components/shared/TronPaper";
+import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import FadeInSection from "@/components/shared/FadeInSection";
 import { Diagram } from "@/components/shared/Diagram";
+import MarkdownContent from "@/components/shared/MarkdownContent";
 import { withBasePath } from "@/utils/basePath";
 
 export interface Technology {
@@ -74,17 +75,13 @@ export default function ProjectPresentation({
       );
     }
 
-    return (
-      <Typography variant="body2" component="span">
-        {String(value)}
-      </Typography>
-    );
+    return <MarkdownContent content={String(value)} sx={{ "& p": { mb: 0 } }} />;
   };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <FadeInSection>
-        <TronPaper>
+        <PortfolioPanel>
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={6}>
               <Typography variant="h4" gutterBottom>
@@ -105,9 +102,11 @@ export default function ProjectPresentation({
                   {project.wowFactor}
                 </Typography>
               )}
-              <Typography variant="body1" color="text.secondary" paragraph>
-                {project.description}
-              </Typography>
+              <MarkdownContent
+                content={project.description}
+                variant="body1"
+                sx={{ "& p": { mb: 2 }, "& > :last-child": { mb: 0 } }}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
               <Box sx={{ textAlign: "center" }}>
@@ -130,13 +129,13 @@ export default function ProjectPresentation({
               </Box>
             </Grid>
           </Grid>
-        </TronPaper>
+        </PortfolioPanel>
       </FadeInSection>
 
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
           <FadeInSection>
-            <TronPaper>
+            <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
                 Technologies Used
               </Typography>
@@ -157,12 +156,12 @@ export default function ProjectPresentation({
                   </ListItem>
                 ))}
               </List>
-            </TronPaper>
+            </PortfolioPanel>
           </FadeInSection>
         </Grid>
         <Grid item xs={12} md={6}>
           <FadeInSection>
-            <TronPaper>
+            <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
                 Specifications
               </Typography>
@@ -176,7 +175,7 @@ export default function ProjectPresentation({
                   </AccordionDetails>
                 </Accordion>
               ))}
-            </TronPaper>
+            </PortfolioPanel>
           </FadeInSection>
         </Grid>
       </Grid>
@@ -184,32 +183,32 @@ export default function ProjectPresentation({
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <FadeInSection>
-            <TronPaper>
+            <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
                 Block Diagram
               </Typography>
               <Diagram diagram={project.blockDiagram} height="400px" />
-            </TronPaper>
+            </PortfolioPanel>
           </FadeInSection>
         </Grid>
         <Grid item xs={12}>
           <FadeInSection>
-            <TronPaper>
+            <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
                 Component Diagram
               </Typography>
               <Diagram diagram={project.componentDiagram} height="400px" />
-            </TronPaper>
+            </PortfolioPanel>
           </FadeInSection>
         </Grid>
         <Grid item xs={12}>
           <FadeInSection>
-            <TronPaper>
+            <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
                 Sequence Diagram
               </Typography>
               <Diagram diagram={project.sequenceDiagram} height="400px" />
-            </TronPaper>
+            </PortfolioPanel>
           </FadeInSection>
         </Grid>
       </Grid>

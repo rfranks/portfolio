@@ -1,9 +1,7 @@
 import { ProjectData } from "@/components/portfolio/ProjectPresentation";
+import { createProjectPageData } from "@/components/portfolio/projectPageData";
 
-export const projectData: ProjectData = {
-  project: "AISummary Copilot",
-  description:
-    "AISummary is implemented as the Next.js route /patientPromptEnum/page.tsx. It renders physician-facing patient summaries by: (1) resolving URL params (siteId, patientId, userId, promptEnum, chatUri, etc.), (2) fetching Prompt and Category metadata via Refine’s DataProvider (which calls Azure Functions → Cosmos DB), (3) rendering one or more PatientPrompt widgets, and (4) posting the physician’s typed question or selected prompt(s) to the Python Flask AI service at chatUri (/v1/chat_patient). The page accumulates and scores ChatAnswer parts (via chatAudits) and displays content with categories and citations.",
+export const projectData: ProjectData = createProjectPageData("/aisummary", {
   wowFactor:
     "Delivers concise, citation-backed patient insights in seconds so physicians can spend more time caring and less time scrolling charts.",
   demoGifUrl: "/demogifs/ai_summary.gif",
@@ -307,4 +305,4 @@ export const projectData: ProjectData = {
 
   Physician->>UI: Adjust model/categories/guardrails, then ask again
   UI->>PP: Re-run with updated settings`,
-};
+});

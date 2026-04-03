@@ -51,7 +51,7 @@ export interface DashboardProps {
 }
 
 export default function Dashboard({
-  mode = "light",
+  mode = "dark",
   toggleColorMode,
 }: DashboardProps) {
   const [activeSequences, setActiveSequences] = useState<Sequence[]>([]);
