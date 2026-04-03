@@ -147,6 +147,19 @@ func Start(this js.Value, args []js.Value) any {
 		if closer, ok := console.(interface{ Close() error }); ok {
 			defer closer.Close()
 		}
+
+		if !cfg.Autoplay {
+			console.Render(ui.GameState{AskingToDeal: true})
+			char, err := console.ReadAction()
+			if err != nil {
+				log.Printf("failed to read initial blackjack action: %v", err)
+				return
+			}
+			if char == 'q' {
+				return
+			}
+		}
+
 		var char rune
 		for ok := true; ok; ok = char != 'q' {
 			char, _ = dealer.DealRound(console, cfg)

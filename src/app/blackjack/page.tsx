@@ -43,6 +43,13 @@ type BlackjackDiagramConfig = Pick<
   "diagram" | "height" | "title" | "type"
 >;
 
+const BLACKJACK_CAROUSEL_SLIDES = [
+  { id: "game-card", label: "Game card" },
+  { id: "why-this-project", label: "Why this project interests me" },
+  { id: "terminal-demo", label: "Go Blackjack in terminal" },
+  { id: "architecture-diagrams", label: "Architecture diagrams" },
+] as const;
+
 function getControlDisplay(visible: boolean | undefined) {
   return visible ? undefined : "none";
 }
@@ -126,9 +133,11 @@ function getOutcomeStampClass(label: string) {
       return "blackjack-hand-stamp blackjack-hand-stamp--winner";
     case "Blackjack!":
       return "blackjack-hand-stamp blackjack-hand-stamp--blackjack";
+    case "Lost!":
     case "Loss!":
     case "Busted!":
       return "blackjack-hand-stamp blackjack-hand-stamp--loser";
+    case "Push":
     case "Push!":
       return "blackjack-hand-stamp blackjack-hand-stamp--push";
     default:
@@ -350,13 +359,34 @@ function getDisplayResultSummary(result: BlackjackResultView) {
   return result.summary;
 }
 
+function getDealerOutcomeStampLabel(state: BlackjackRenderState | null) {
+  const dealerLabel = state?.dealer.outcomeLabel;
+  if (dealerLabel) {
+    return dealerLabel;
+  }
+
+  switch (state?.result?.badge) {
+    case "Won!":
+      return "Lost!";
+    case "Lost!":
+      return "Won!";
+    case "Push":
+      return "Push";
+    default:
+      return "";
+  }
+}
+
 export default function BlackjackPage() {
   const { setDocumentTitle } = useDocumentTitle();
+  const pageRef = React.useRef<HTMLElement | null>(null);
+  const slideRefs = React.useRef<Record<string, HTMLElement | null>>({});
   const [engineState, setEngineState] =
     React.useState<BlackjackRenderState | null>(null);
   const [gameStarted, setGameStarted] = React.useState(false);
   const [startRequested, setStartRequested] = React.useState(false);
   const [controlsArmed, setControlsArmed] = React.useState(false);
+  const [activeSlideIndex, setActiveSlideIndex] = React.useState(0);
   const previousEngineStateRef = React.useRef<BlackjackRenderState | null>(
     null,
   );
@@ -422,10 +452,46 @@ export default function BlackjackPage() {
       maxVolume: 0.1,
     },
   );
+  const dealerOutcomeStampLabel = getDealerOutcomeStampLabel(engineState);
 
   React.useEffect(() => {
     setDocumentTitle("Blackjack");
   }, [setDocumentTitle]);
+
+  React.useEffect(() => {
+    const root = pageRef.current;
+    if (!root) return;
+
+    const observedSlides = BLACKJACK_CAROUSEL_SLIDES.map(
+      ({ id }) => slideRefs.current[id],
+    ).filter((slide): slide is HTMLElement => Boolean(slide));
+
+    if (observedSlides.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (!visibleEntry) return;
+
+        const nextIndex = BLACKJACK_CAROUSEL_SLIDES.findIndex(
+          (slide) => slide.id === visibleEntry.target.id,
+        );
+        if (nextIndex >= 0) {
+          setActiveSlideIndex(nextIndex);
+        }
+      },
+      {
+        root,
+        threshold: [0.35, 0.6, 0.85],
+      },
+    );
+
+    observedSlides.forEach((slide) => observer.observe(slide));
+    return () => observer.disconnect();
+  }, []);
 
   React.useEffect(() => {
     const hands = engineState?.player?.hands ?? [];
@@ -568,6 +634,33 @@ export default function BlackjackPage() {
     [dealSfx, startMusic],
   );
 
+  const setSlideRef = React.useCallback(
+    (id: string, node: HTMLElement | null) => {
+      slideRefs.current[id] = node;
+    },
+    [],
+  );
+
+  const scrollToSlide = React.useCallback((targetIndex: number) => {
+    const slideCount = BLACKJACK_CAROUSEL_SLIDES.length;
+    const normalizedIndex =
+      ((targetIndex % slideCount) + slideCount) % slideCount;
+    const targetId = BLACKJACK_CAROUSEL_SLIDES[normalizedIndex]?.id;
+    if (!targetId) return;
+    slideRefs.current[targetId]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "start",
+    });
+  }, []);
+
+  const handleCycleSlides = React.useCallback(
+    (direction: -1 | 1) => {
+      scrollToSlide(activeSlideIndex + direction);
+    },
+    [activeSlideIndex, scrollToSlide],
+  );
+
   const resultEmojis = engineState?.result
     ? pickStatusEmojis(
         getDisplayResultSummary(engineState.result),
@@ -583,10 +676,15 @@ export default function BlackjackPage() {
 
   return (
     <main
+      ref={pageRef}
       className="blackjack-page"
       data-engine-state-ready={engineState ? "true" : "false"}
     >
-      <section id="game-card">
+      <section
+        id="game-card"
+        ref={(node) => setSlideRef("game-card", node)}
+        className="blackjack-panel blackjack-game-panel blackjack-carousel-slide"
+      >
         {!gameStarted && (
           <div className="blackjack-start-screen">
             <div className="blackjack-start-backdrop" aria-hidden="true">
@@ -623,7 +721,12 @@ export default function BlackjackPage() {
               className="blackjack-start-button"
               onClick={handleStartGame}
             >
-              Go! Blackjack!
+              <span className="blackjack-start-button-title">
+                Go! Blackjack!
+              </span>
+              <span className="blackjack-start-button-caption">
+                Click to play!
+              </span>
             </button>
           </div>
         )}
@@ -735,23 +838,21 @@ export default function BlackjackPage() {
                       />
                     ))}
                   </div>
-                  {engineState?.dealer.outcomeLabel ? (
+                  {dealerOutcomeStampLabel ? (
                     <div
-                      className={getOutcomeStampClass(
-                        engineState.dealer.outcomeLabel,
-                      )}
+                      className={getOutcomeStampClass(dealerOutcomeStampLabel)}
                       style={{
                         transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle(
                           {
                             index: 0,
-                            cardsLength: engineState.dealer.cards.length,
-                            totalLabel: engineState.dealer.totalLabel,
-                            outcomeLabel: engineState.dealer.outcomeLabel,
+                            cardsLength: engineState?.dealer.cards.length ?? 0,
+                            totalLabel: engineState?.dealer.totalLabel ?? "0",
+                            outcomeLabel: dealerOutcomeStampLabel,
                           },
                         )}deg)`,
                       }}
                     >
-                      {engineState.dealer.outcomeLabel}
+                      {dealerOutcomeStampLabel}
                     </div>
                   ) : null}
                 </div>
@@ -762,18 +863,22 @@ export default function BlackjackPage() {
             </div>
             {engineState?.result ? (
               <div id="result" className="blackjack-status-panel">
-                <div className={getResultToneClass(engineState.result.tone)}>
+                <div
+                  className={`blackjack-result-summary ${getResultToneClass(engineState.result.tone)}`}
+                >
                   {resultEmojis ? `${resultEmojis[0]} ` : null}
                   {getDisplayResultSummary(engineState.result)}
-                  {engineState.result.badge ? (
+                  {resultEmojis ? ` ${resultEmojis[1]}` : null}
+                </div>
+                {engineState.result.badge ? (
+                  <div className="blackjack-result-badge-row">
                     <span
                       className={getResultBadgeClass(engineState.result.badge)}
                     >
                       {engineState.result.badge}
                     </span>
-                  ) : null}
-                  {resultEmojis ? ` ${resultEmojis[1]}` : null}
-                </div>
+                  </div>
+                ) : null}
                 {engineState.result.detailLines.map((line, index) => (
                   <div
                     key={index}
@@ -1071,12 +1176,20 @@ export default function BlackjackPage() {
           </div>
         </div>
       </section>
-      <section id="demo-video" className="blackjack-panel blackjack-demo-panel">
+      <section
+        id="why-this-project"
+        ref={(node) => setSlideRef("why-this-project", node)}
+        className="blackjack-panel blackjack-demo-panel blackjack-carousel-slide"
+      >
         <h2 className="blackjack-panel-title">Why This Project Interests Me</h2>
         <p className="blackjack-panel-subtitle">One Go, Multiple Clients</p>
         <p>{blackjackProject?.interestsMeWhy}</p>
       </section>
-      <section id="demo-video" className="blackjack-panel blackjack-demo-panel">
+      <section
+        id="terminal-demo"
+        ref={(node) => setSlideRef("terminal-demo", node)}
+        className="blackjack-panel blackjack-demo-panel blackjack-carousel-slide"
+      >
         <h2 className="blackjack-panel-title">Go! Blackjack!</h2>
         <p className="blackjack-panel-subtitle">
           Via Go in the terminal in VS Code Debugger
@@ -1091,7 +1204,8 @@ export default function BlackjackPage() {
       {blackjackDiagrams.length ? (
         <section
           id="architecture-diagrams"
-          className="blackjack-panel blackjack-demo-panel blackjack-diagrams-panel"
+          ref={(node) => setSlideRef("architecture-diagrams", node)}
+          className="blackjack-panel blackjack-demo-panel blackjack-diagrams-panel blackjack-carousel-slide"
         >
           <h2 className="blackjack-panel-title">Architecture Diagrams</h2>
           <p className="blackjack-panel-subtitle">
@@ -1120,6 +1234,44 @@ export default function BlackjackPage() {
           </div>
         </section>
       ) : null}
+      <nav
+        className="blackjack-carousel-nav"
+        aria-label="Blackjack page sections"
+      >
+        <button
+          type="button"
+          className="blackjack-carousel-arrow"
+          aria-label="Previous section"
+          onClick={() => handleCycleSlides(-1)}
+        >
+          ←
+        </button>
+        <div
+          className="blackjack-carousel-dots"
+          role="tablist"
+          aria-label="Slides"
+        >
+          {BLACKJACK_CAROUSEL_SLIDES.map((slide, index) => (
+            <button
+              key={slide.id}
+              type="button"
+              role="tab"
+              aria-selected={activeSlideIndex === index}
+              aria-label={`Go to ${slide.label} section`}
+              className={`blackjack-carousel-dot${activeSlideIndex === index ? " blackjack-carousel-dot--active" : ""}`}
+              onClick={() => scrollToSlide(index)}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          className="blackjack-carousel-arrow"
+          aria-label="Next section"
+          onClick={() => handleCycleSlides(1)}
+        >
+          →
+        </button>
+      </nav>
       <script src="wasm_exec.js" defer></script>
       <script id="wasm" src="main.wasm" type="application/wasm" defer></script>
       <script src="main.js" defer></script>

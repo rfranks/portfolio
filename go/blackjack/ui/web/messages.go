@@ -103,7 +103,7 @@ func (w *WebUI) buildRenderState(state ui.GameState) BlackjackRenderState {
 		CanToggleGameMode:   canToggleGameMode(state),
 		Controls:            w.buildControlsView(state),
 		Count:               game.State.Count,
-		Dealer:              buildDealerView(),
+		Dealer:              buildDealerView(state),
 		GameMode:            gameModeKey(game.GameMode),
 		GameModeDescription: gameModeDescription(game.GameMode),
 		GameModeLabel:       gameModeLabel(game.GameMode),
@@ -260,7 +260,7 @@ func (w *WebUI) buildControlsView(state ui.GameState) BlackjackControlsView {
 	return controls
 }
 
-func buildDealerView() BlackjackDealerView {
+func buildDealerView(state ui.GameState) BlackjackDealerView {
 	view := BlackjackDealerView{
 		Cards:        []BlackjackCardView{},
 		OutcomeLabel: "",
@@ -271,13 +271,29 @@ func buildDealerView() BlackjackDealerView {
 	}
 
 	hand := game.State.Dealer.Hands[0]
+	view.Cards = buildCardViews(hand.Cards)
+
+	if dealerHasHiddenCard(hand) && !state.AskingToDeal {
+		view.Total = 0
+		view.TotalLabel = "Total: ?"
+		return view
+	}
+
 	view.Blackjack = rules.IsBlackjack(hand)
 	view.Busted = handIsBusted(hand)
-	view.Cards = buildCardViews(hand.Cards)
 	view.OutcomeLabel = dealerOutcomeLabel(&hand)
 	view.Total = player.HandValue(&hand, false)
 	view.TotalLabel = playerTotalString(&hand)
 	return view
+}
+
+func dealerHasHiddenCard(hand player.Hand) bool {
+	for _, card := range hand.Cards {
+		if card.Masked {
+			return true
+		}
+	}
+	return false
 }
 
 func dealerOutcomeLabel(hand *player.Hand) string {
