@@ -8,19 +8,9 @@ import {
   Box,
   Link,
 } from "@mui/material";
+import type { Accolade } from "@/types/components/portfolio";
 import { withBasePath } from "@/utils/basePath";
-
-export interface Accolade {
-  name: string;
-  source: string;
-  sourceUrl: string;
-  description?: string;
-  comment?: string;
-  launchUrl?: string;
-  githubUrl?: string;
-  imageSrcUrl?: string;
-  date?: string;
-}
+export type { Accolade } from "@/types/components/portfolio";
 
 export default function AccoladesCarousel({
   accolades,

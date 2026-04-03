@@ -3,27 +3,9 @@ import "./index.css";
 import React from "react";
 
 // MUI components
-import CircularProgress, {
-  CircularProgressProps,
-} from "@mui/material/CircularProgress";
-
-export interface ThinkingProps {
-  /** The text to display in the thinking effect. Default is "Thinking..." */
-  text?: string;
-  /** Flag indicating whether or not to include a {@link CircularProgress} indicator. Default is false */
-  showIndicator?: boolean;
-  /** Props for the {@link CircularProgress} indicator.
-   * Default color is "primary".
-   * Default size is "16px".
-   * Default sx is { m: 1 }, which sets the margin to one theme spacing unit (≈8px by default), not 1px.
-   * Default variant is "indeterminate".
-   * Default thickness is 3.6.
-   * You can also pass other props to customize the {@link CircularProgress} component.
-   * @see {@link CircularProgressProps} for more details.
-   * @see {@link CircularProgress} for more details.
-   */
-  indicatorProps?: CircularProgressProps;
-}
+import CircularProgress from "@mui/material/CircularProgress";
+import type { ThinkingProps } from "@/types/components/shared";
+export type { ThinkingProps } from "@/types/components/shared";
 
 /**
  * Thinking effect component that displays a text with a CSS animation.

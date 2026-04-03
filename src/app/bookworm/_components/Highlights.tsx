@@ -5,6 +5,7 @@ import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
 import { AccessTime, Psychology } from "@mui/icons-material";
 
@@ -33,12 +34,18 @@ export default function Highlights() {
   return (
     <Box
       id="highlights"
-      sx={{
+      sx={(theme) => ({
         pt: { xs: 4, sm: 12 },
         pb: { xs: 8, sm: 16 },
-        color: "white",
-        bgcolor: "#06090a",
-      }}
+        color:
+          theme.palette.mode === "light"
+            ? "text.primary"
+            : "common.white",
+        bgcolor:
+          theme.palette.mode === "light"
+            ? alpha(theme.palette.primary.light, 0.08)
+            : "#06090a",
+      })}
     >
       <Container
         sx={{
@@ -58,7 +65,15 @@ export default function Highlights() {
           <Typography component="h2" variant="h4">
             Highlights
           </Typography>
-          <Typography variant="body1" sx={{ color: "grey.400" }}>
+          <Typography
+            variant="body1"
+            sx={(theme) => ({
+              color:
+                theme.palette.mode === "light"
+                  ? "text.secondary"
+                  : "grey.400",
+            })}
+          >
             <Typography
               variant="body1"
               component={"span"}
@@ -88,21 +103,35 @@ export default function Highlights() {
                 component={Card}
                 spacing={1}
                 useFlexGap
-                sx={{
+                sx={(theme) => ({
                   p: 3,
                   height: "100%",
                   border: "1px solid",
-                  borderColor: "grey.800",
+                  borderColor:
+                    theme.palette.mode === "light"
+                      ? alpha(theme.palette.divider, 0.85)
+                      : "grey.800",
                   background: "transparent",
-                  backgroundColor: "grey.900",
-                }}
+                  backgroundColor:
+                    theme.palette.mode === "light"
+                      ? alpha(theme.palette.background.paper, 0.9)
+                      : "grey.900",
+                })}
               >
                 <Box sx={{ opacity: "50%" }}>{item.icon}</Box>
                 <div>
                   <Typography fontWeight="medium" gutterBottom>
                     {item.title}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "grey.400" }}>
+                  <Typography
+                    variant="body2"
+                    sx={(theme) => ({
+                      color:
+                        theme.palette.mode === "light"
+                          ? "text.secondary"
+                          : "grey.400",
+                    })}
+                  >
                     {item.description}
                   </Typography>
                 </div>

@@ -22,6 +22,7 @@ import TextField from "@mui/material/TextField";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import type { PaletteMode } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 
 import {
   AddCircleOutline,
@@ -171,10 +172,29 @@ export default function Dashboard({
         open={open}
         mode={mode}
         toggleColorMode={toggleColorMode}
-        sx={{
-          backgroundColor: "#1565c0",
-          color: "primary.contrastText",
-        }}
+        sx={(theme) => ({
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? "var(--dna-surface-2)"
+              : alpha(theme.palette.common.white, 0.94),
+          backgroundImage:
+            theme.palette.mode === "dark"
+              ? `linear-gradient(180deg, ${alpha(
+                  theme.palette.primary.main,
+                  0.16,
+                )}, transparent 72%)`
+              : `linear-gradient(180deg, ${alpha(
+                  theme.palette.primary.light,
+                  0.14,
+                )}, transparent 72%)`,
+          color: "text.primary",
+          borderBottom: "1px solid var(--dna-surface-border)",
+          boxShadow:
+            theme.palette.mode === "dark"
+              ? "var(--dna-shadow-tight)"
+              : "0 10px 24px rgba(21, 101, 192, 0.08)",
+          backdropFilter: "blur(18px)",
+        })}
       >
         <Toolbar className="flex-1 pr-6">
           <IconButton
@@ -190,7 +210,9 @@ export default function Dashboard({
             <Paper
               elevation={0}
               sx={{
-                backgroundColor: "#fff",
+                backgroundColor: "#ffffff",
+                border: "1px solid var(--dna-surface-border)",
+                boxShadow: "none",
                 px: 1.5,
                 py: 0.75,
                 display: "inline-flex",
@@ -307,7 +329,6 @@ export default function Dashboard({
                 <TextField
                   {...params}
                   label="Active Sequence"
-                  sx={{ backgroundColor: (t) => t.palette.common.white }}
                 />
               )}
               value={activeSequences.map((seq) => {
@@ -337,7 +358,35 @@ export default function Dashboard({
           )}
         </Toolbar>
       </AppBar>
-      <Drawer variant="permanent" drawerWidth={drawerWidth} open={open}>
+      <Drawer
+        variant="permanent"
+        drawerWidth={drawerWidth}
+        open={open}
+        sx={{
+          "& .MuiDrawer-paper": {
+            backgroundColor: (theme) =>
+              theme.palette.mode === "dark"
+                ? "var(--dna-surface-2)"
+                : alpha(theme.palette.common.white, 0.95),
+            backgroundImage: (theme) =>
+              theme.palette.mode === "dark"
+                ? `linear-gradient(180deg, ${alpha(
+                    theme.palette.primary.main,
+                    0.12,
+                  )}, transparent 84%)`
+                : `linear-gradient(180deg, ${alpha(
+                    theme.palette.primary.light,
+                    0.12,
+                  )}, transparent 84%)`,
+            borderRight: "1px solid var(--dna-surface-border-strong)",
+            boxShadow: (theme) =>
+              theme.palette.mode === "dark"
+                ? "var(--dna-shadow-tight)"
+                : "0 12px 28px rgba(21, 101, 192, 0.09)",
+            color: "text.primary",
+          },
+        }}
+      >
         <Toolbar className="flex items-center justify-end px-1">
           <IconButton onClick={toggleDrawer}>
             <ChevronLeft />
@@ -409,7 +458,19 @@ export default function Dashboard({
       <Box
         component="main"
         className="flex h-screen flex-1 flex-col overflow-hidden"
-        sx={{ backgroundColor: "rgba(25, 118, 210, 0.08)" }}
+        sx={(theme) => ({
+          backgroundColor: theme.palette.background.default,
+          backgroundImage:
+            theme.palette.mode === "dark"
+              ? `radial-gradient(circle at top, ${alpha(
+                  theme.palette.primary.main,
+                  0.18,
+                )}, transparent 52%)`
+              : `radial-gradient(circle at top, ${alpha(
+                  theme.palette.primary.light,
+                  0.16,
+                )}, transparent 48%)`,
+        })}
       >
         <Toolbar />
         <Container

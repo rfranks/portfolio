@@ -1,12 +1,11 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { useWindowSize } from "@/hooks/useWindowSize";
+import { useWindowSize } from "@/hooks/window/useWindowSize";
 import useScaledClock, {
   clockRef,
   setScaledTimeout,
   clearScaledTimeout,
   advanceClock,
-  type ScaledTimeoutHandle,
-} from "@/hooks/useScaledClock";
+} from "@/hooks/time/useScaledClock";
 import { BASE_DIMS } from "@/consts/game/dimensions";
 import { useGameAssets } from "./useGameAssets";
 import { useGameAudio } from "./useGameAudio";
@@ -40,6 +39,7 @@ import type { AssetMgr } from "@/types/game/ui";
 import type { TextLabel } from "@/types/game/ui";
 import type { AudioMgr } from "@/types/audio/audio";
 import type { ClickEvent } from "@/types/game/events";
+import { ScaledTimeoutHandle } from "@/types/hooks/time";
 
 /* eslint-disable react-hooks/exhaustive-deps */
 

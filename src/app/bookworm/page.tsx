@@ -23,13 +23,20 @@ import "@fontsource/roboto/700.css";
 import "./page.css"; // Ensure global styles are applied
 import { hasOpenAIKey, setOpenAIKey } from "@/app/bookworm/_utils/utils";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import OpenAIKeyInterstitialContent from "@/components/shared/OpenAIKeyInterstitialContent";
+import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
 import { portfolioApps } from "@/consts/resumeData";
+import getBookwormLandingTheme from "@/app/bookworm/_theme/getBookwormLandingTheme";
 
 export default function BookwormPage() {
-  const { mode, toggleColorMode } = useColorModePreference();
-  const defaultTheme = createTheme({ palette: { mode } });
+  const { mode, toggleColorMode, isReady } = useColorModePreference({
+    storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
+  });
+  const defaultTheme = React.useMemo(
+    () => createTheme(getBookwormLandingTheme(mode)),
+    [mode],
+  );
   const [apiKeyReady, setApiKeyReady] = React.useState(hasOpenAIKey());
   const [draftKey, setDraftKey] = React.useState("");
   const { setDocumentTitle } = useDocumentTitle();
@@ -37,6 +44,10 @@ export default function BookwormPage() {
   React.useEffect(() => {
     setDocumentTitle(portfolioApps.bookworm.documentTitle);
   }, [setDocumentTitle]);
+
+  if (!isReady) {
+    return null;
+  }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

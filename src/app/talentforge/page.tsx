@@ -7,7 +7,7 @@ import OpenAIKeyInterstitial from "@/app/talentforge/_components/OpenAIKeyInters
 import OnboardingStepper, {
   TOTAL_ONBOARDING_STEPS,
 } from "@/app/talentforge/_components/OnboardingStepper";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 import insertMockData from "@/app/talentforge/_utils/mockData";
 import { getOnboardingStep } from "@/app/talentforge/_utils/dataStore";

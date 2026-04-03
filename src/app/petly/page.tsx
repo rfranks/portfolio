@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { Container, Typography } from "@mui/material";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import { withBasePath } from "@/utils/basePath";
 
 export default function PetlyPage() {

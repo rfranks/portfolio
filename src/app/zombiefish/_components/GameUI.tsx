@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import { withBasePath } from "@/utils/basePath";
 import type { ClickEvent } from "@/types/game/events";
 import type { GameUIState } from "../_types";
-import { useWindowSize } from "@/hooks/useWindowSize";
+import { useWindowSize } from "@/hooks/window/useWindowSize";
 import { BASE_DIMS } from "@/consts/game/dimensions";
 
 export interface GameUIProps {

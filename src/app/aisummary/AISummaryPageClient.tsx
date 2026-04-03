@@ -1,6 +1,6 @@
 "use client";
 
-import type { ProjectData } from "@/components/portfolio/ProjectPresentation";
+import type { ProjectData } from "@/types/components/portfolio";
 import ProjectShowcasePage from "@/components/portfolio/ProjectShowcasePage";
 
 interface AISummaryPageClientProps {

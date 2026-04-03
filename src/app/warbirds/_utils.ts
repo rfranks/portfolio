@@ -3,7 +3,7 @@ import { POWERUP_DURATION } from "@/consts/game/powerups";
 import { AudioMgr } from "@/types/audio/audio";
 import { PowerupType } from "@/types/game/objects";
 import { AssetMgr, Dims } from "@/types/game/ui";
-import { clockRef } from "@/hooks/useScaledClock";
+import { clockRef } from "@/hooks/time/useScaledClock";
 import {
   MAX_AMMO,
   INITIAL_ENEMY_DENSITY,

@@ -2,21 +2,15 @@
 
 import * as React from "react";
 import type { PaletteMode } from "@mui/material";
-
-interface UseColorModePreferenceOptions {
-  defaultMode?: PaletteMode;
-  storageKey?: string;
-}
-
-interface UseColorModePreferenceResult {
-  mode: PaletteMode;
-  toggleColorMode: () => void;
-  isReady: boolean;
-}
+import type {
+  UseColorModePreferenceOptions,
+  UseColorModePreferenceResult,
+} from "@/types/hooks/colorMode";
 
 export function useColorModePreference({
   defaultMode = "dark",
   storageKey,
+  legacyStorageKeys = [],
 }: UseColorModePreferenceOptions = {}): UseColorModePreferenceResult {
   const [mode, setMode] = React.useState<PaletteMode | null>(() =>
     storageKey ? null : defaultMode,
@@ -34,8 +28,18 @@ export function useColorModePreference({
       return;
     }
 
+    for (const legacyStorageKey of legacyStorageKeys) {
+      const legacyMode = window.localStorage.getItem(legacyStorageKey);
+
+      if (legacyMode === "light" || legacyMode === "dark") {
+        window.localStorage.setItem(storageKey, legacyMode);
+        setMode(legacyMode);
+        return;
+      }
+    }
+
     setMode(defaultMode);
-  }, [defaultMode, storageKey]);
+  }, [defaultMode, legacyStorageKeys, storageKey]);
 
   const toggleColorMode = React.useCallback(() => {
     setMode((prevMode) => {

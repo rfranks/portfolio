@@ -15,10 +15,11 @@ import {
 import { ThemeProvider } from "@mui/material/styles";
 
 import AppBar from "@/components/portfolio/layout/AppBar";
+import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
 import ProjectPresentation, { type ProjectData } from "./ProjectPresentation";
 import { summary } from "@/consts/resumeData";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import getFabricTheme from "@/themes/fabricTheme";
 import { withBasePath } from "@/utils/basePath";
 
@@ -35,13 +36,19 @@ export default function ProjectShowcasePage({
   project,
   subtitle = "Project Showcase",
 }: ProjectShowcasePageProps) {
-  const { mode, toggleColorMode } = useColorModePreference();
+  const { mode, toggleColorMode, isReady } = useColorModePreference({
+    storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
+  });
   const theme = useMemo(() => getFabricTheme(mode), [mode]);
   const { setDocumentTitle } = useDocumentTitle();
 
   useEffect(() => {
     setDocumentTitle(documentTitle);
   }, [documentTitle, setDocumentTitle]);
+
+  if (!isReady) {
+    return null;
+  }
 
   return (
     <ThemeProvider theme={theme}>

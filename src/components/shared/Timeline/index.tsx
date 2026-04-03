@@ -12,54 +12,8 @@ import TimelineContent from "@mui/lab/TimelineContent";
 import Box from "@mui/material/Box";
 import Skeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
-
-export interface TimelineEvent {
-  /** Text that appears on the opposite side (e.g. time) */
-  label: string;
-  /** The main heading of the event */
-  title: string;
-  /** Whether to render the dot in “pending” (grey) style */
-  isPending?: boolean;
-  /** Arbitrary JSX to show below the title (action, stats, notes, links, etc.) */
-  content: React.ReactNode;
-  /** Optional click handler */
-  onClick?: () => void;
-  /** Optional category for the event (e.g. "orders", "labs", "testResults", etc.) */
-  category?: string;
-  /** Optional ID for the corresponding item of the event (e.g. the id of the "testResults" object) */
-  itemId?: string;
-}
-
-export interface TimelineProps {
-  /**
-   * Optional events to render, in order.  Leaving both events and mermaid
-   * undefined renders an empty timeline, and tests cover that empty state to
-   * guard against regressions.
-   */
-  events?: TimelineEvent[];
-  /**
-   * Optional Mermaid‐format timeline.  Omitting both mermaid and events renders
-   * an empty timeline, which is covered by tests to catch regressions.
-   */
-  mermaid?: string;
-  /** Show a loading skeleton instead of real events */
-  loading?: boolean;
-  /**
-   * Where to position items:
-   * - `"left"`  will render all entries on the left
-   * - `"right"` will render all entries on the right (default)
-   * - `"alternate"` will zig-zag entries left/right
-   */
-  alignment?: "left" | "right" | "alternate";
-  /** If true, reverse the order of `events` */
-  reverseOrder?: boolean;
-  /** Extra className on the root UL */
-  className?: string;
-  /** Children nodes (e.g. fallback) */
-  children?: React.ReactNode;
-  /** Icon to show in the timeline dot */
-  icon?: (category: string, event: TimelineEvent) => React.ReactNode;
-}
+import type { TimelineEvent, TimelineProps } from "@/types/components/shared";
+export type { TimelineEvent, TimelineProps } from "@/types/components/shared";
 
 const Timeline: React.FC<TimelineProps> = ({
   events = [],

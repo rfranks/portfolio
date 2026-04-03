@@ -1,9 +1,6 @@
 import { styled } from "@mui/material/styles";
-import MuiDrawer, { DrawerProps as MuiDrawerProps } from "@mui/material/Drawer";
-
-export type DrawerProps = MuiDrawerProps & {
-  drawerWidth?: number | string;
-};
+import MuiDrawer from "@mui/material/Drawer";
+import type { DrawerProps } from "@/types/components/portfolio";
 
 export default styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open" && prop !== "drawerWidth",

@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
 import type { TooltipProps } from "@mui/material/Tooltip";
 import Pagination from "@mui/material/Pagination";
-import { alpha, useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 
 import { Base, Protein, ProteinCode, Sequence } from "../_types/types";
 import {
@@ -139,31 +139,20 @@ export default function SequenceDisplay({
         data-index={index}
         key={index}
         sx={{
-          backgroundColor: isHoveredProteinBase
-            ? alpha(theme.palette.warning.main, theme.palette.mode === "dark" ? 0.36 : 0.4)
-            : isHoveredBase
-            ? alpha(theme.palette.warning.main, theme.palette.mode === "dark" ? 0.24 : 0.18)
-            : showColors
-            ? !showColorsMaxBasePairs &&
-              isMaxBase(
-                sequences!.map((sequence) => sequence.sequence[index]).join(""),
-                base as Base
-              ) &&
-              (sequences?.length || 0) > 1
-              ? "transparent"
-              : baseToColor(base)
-            : "transparent",
-          color:
-            !showColorsMaxBasePairs &&
-            isMaxBase(
-              sequences!.map((sequence) => sequence.sequence[index]).join(""),
-              base as Base
-            ) &&
-            (sequences?.length || 0) > 1
-              ? theme.palette.text.primary
+          backgroundColor:
+            isHoveredProteinBase || isHoveredBase
+              ? "#ffffff"
               : showColors
-              ? theme.palette.text.primary
-              : theme.palette.text.primary,
+                ? !showColorsMaxBasePairs &&
+                  isMaxBase(
+                    sequences!.map((sequence) => sequence.sequence[index]).join(""),
+                    base as Base
+                  ) &&
+                  (sequences?.length || 0) > 1
+                  ? "transparent"
+                  : baseToColor(base)
+                : "transparent",
+          color: "#000000",
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",

@@ -38,17 +38,20 @@ import Education from "@/components/portfolio/panels/Education";
 import Recognition from "@/components/portfolio/panels/Recognition";
 import ContactCTA from "@/components/portfolio/panels/ContactCTA";
 import Grid from "@mui/material/Grid";
+import {
+  GLOBAL_COLOR_MODE_STORAGE_KEY,
+  LEGACY_COLOR_MODE_STORAGE_KEYS,
+} from "@/consts/colorMode";
 import { navigation, summary } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import getFabricTheme from "@/themes/fabricTheme";
-
-const COLOR_MODE_STORAGE_KEY = "portfolio-color-mode";
 
 export default function HomePageClient() {
   const { mode, toggleColorMode, isReady } = useColorModePreference({
-    storageKey: COLOR_MODE_STORAGE_KEY,
+    storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
+    legacyStorageKeys: LEGACY_COLOR_MODE_STORAGE_KEYS,
   });
   const defaultTheme = useMemo(
     () => getFabricTheme(mode),

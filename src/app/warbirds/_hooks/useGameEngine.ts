@@ -68,14 +68,13 @@ import {
   AIRSHIP_MIN_SPEED,
   AIRSHIP_MAX_SPEED,
 } from "@/consts/game/vehicles";
-import { useWindowSize } from "@/hooks/useWindowSize";
+import { useWindowSize } from "@/hooks/window/useWindowSize";
 import useScaledClock, {
   clockRef,
   setScaledTimeout,
   clearScaledTimeout,
-  advanceClock,
-  type ScaledTimeoutHandle,
-} from "@/hooks/useScaledClock";
+  advanceClock,  
+} from "@/hooks/time/useScaledClock";
 import { AudioMgr } from "@/types/audio/audio";
 import { Puff } from "@/types/game/effects";
 import { PowerupType, AntiPowerupType, Duck } from "@/types/game/objects";
@@ -133,6 +132,7 @@ import {
   randomWater,
 } from "@/utils/game/environment";
 import { drawTextLabels, newTextLabel } from "@/utils/game/ui";
+import { ScaledTimeoutHandle } from "@/types/hooks/time";
 
 export function useGameEngine() {
   // ─── REFS & STATE ─────────────────────────────────────────────────────────

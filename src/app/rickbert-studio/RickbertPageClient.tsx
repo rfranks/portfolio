@@ -11,6 +11,7 @@ import {
   setRickbertOpenAIKey,
 } from "@/app/rickbert-studio/_utils/openAIKey";
 import { portfolioApps } from "@/consts/resumeData";
+import { withBasePath } from "@/utils/basePath";
 
 const defaultTheme = createTheme({
   palette: {
@@ -67,6 +68,7 @@ export default function RickbertPageClient() {
         <OpenAIKeyInterstitialContent
           appName={portfolioApps.rickbert.interstitialAppName}
           logoAlt={portfolioApps.rickbert.interstitialLogoAlt}
+          logoSrc={withBasePath(portfolioApps.rickbert.interstitialLogoSrc)}
           value={draftKey}
           onChange={setDraftKey}
           onSubmit={handleSubmit}

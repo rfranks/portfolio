@@ -14,7 +14,7 @@ import type { Puff, SparkEffect } from "@/types/game/effects";
 import type { Tree, Mountain, Cloud, Water } from "@/types/game/environment";
 import type { Powerup, PowerupType, Medal, Duck } from "@/types/game/objects";
 import { AudioMgr } from "@/types/audio/audio";
-import type { ScaledTimeoutHandle } from "@/hooks/useScaledClock";
+import type { ScaledTimeoutHandle } from "@/types/hooks/time";
 
 export type GamePhase = "title" | "ready" | "go" | "playing";
 

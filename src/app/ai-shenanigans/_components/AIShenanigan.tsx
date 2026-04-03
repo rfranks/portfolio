@@ -8,6 +8,7 @@ import Chip from "@mui/material/Chip";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import FadeInSection from "@/components/shared/FadeInSection";
 import AIShenaniganAdaptation from "./AIShenaniganAdaptation";
 import AIShenaniganWorkSeries from "./AIShenaniganWorkSeries";
@@ -199,9 +200,13 @@ function DefaultAIShenanigan({
   const rightsStampAngle = ((rank * 7) % 17) - 8;
   const panelChromeSx = {
     borderRadius: "24px",
-    border: "1px solid rgba(255,255,255,0.08)",
-    backgroundColor: "rgba(255,255,255,0.03)",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+    border: "1px solid",
+    borderColor: "var(--fabric-surface-border)",
+    backgroundColor: "var(--fabric-surface-1)",
+    backgroundImage:
+      "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
+    boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
+    backdropFilter: "blur(var(--fabric-blur-sm))",
   } as const;
   const mediaPanelSx = {
     ...panelChromeSx,
@@ -631,7 +636,10 @@ function DefaultAIShenanigan({
                   borderStyle: "dashed",
                   borderColor: "rgba(148,163,184,0.55)",
                   color: "rgba(148,163,184,0.88)",
-                  backgroundColor: "rgba(148,163,184,0.06)",
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === "light"
+                      ? alpha(theme.palette.grey[500], 0.08)
+                      : "rgba(148,163,184,0.06)",
                   "& .MuiChip-label": {
                     fontStyle: "italic",
                   },

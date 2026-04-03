@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 
 export default function BlasteroidsPage() {
   const { setDocumentTitle } = useDocumentTitle();

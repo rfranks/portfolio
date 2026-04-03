@@ -1,12 +1,7 @@
 import * as React from "react";
-import Paper, { PaperProps } from "@mui/material/Paper";
+import Paper from "@mui/material/Paper";
 import { styled } from "@mui/material/styles";
-
-export interface SurfaceProps extends PaperProps {
-  layer?: 1 | 2 | 3;
-  interactive?: boolean;
-  glow?: boolean;
-}
+import type { SurfaceProps } from "@/types/components/fabric";
 
 const layerToVariable: Record<1 | 2 | 3, string> = {
   1: "var(--fabric-surface-1)",

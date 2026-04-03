@@ -18,7 +18,7 @@ import { requestFinalRender } from "@/app/rickbert-studio/_features/finalRender"
 import { useRickbertStudioStore } from "@/app/rickbert-studio/_store";
 import { CHARACTER_CONFIGS } from "@/app/rickbert-studio/_domain/characterConfigs";
 import { setRickbertOpenAIKey } from "@/app/rickbert-studio/_utils/openAIKey";
-import useCopyToClipboard from "@/hooks/useCopyToClipboard";
+import useCopyToClipboard from "@/hooks/window/useCopyToClipboard";
 
 function JsonView({ data, onCopy }: { data: unknown; onCopy: () => void }) {
   return (
@@ -94,11 +94,11 @@ export function RickbertStudioShell() {
 
   const visibleSpec = renderedSpec ?? parsedSpec;
   const [characterMapDraft, setCharacterMapDraft] = useState(
-    JSON.stringify(characterMapOverrides, null, 2)
+    JSON.stringify(characterMapOverrides, null, 2),
   );
-  const [characterMapDraftError, setCharacterMapDraftError] = useState<string | null>(
-    null
-  );
+  const [characterMapDraftError, setCharacterMapDraftError] = useState<
+    string | null
+  >(null);
 
   const copyText = (value: string) => {
     void copyToClipboard(value);
@@ -126,8 +126,7 @@ export function RickbertStudioShell() {
     });
 
     return Array.from(seen).reduce<Record<string, unknown>>((acc, name) => {
-      acc[name] =
-        CHARACTER_CONFIGS[name] ??
+      acc[name] = CHARACTER_CONFIGS[name] ??
         characterMapOverrides[name] ?? { note: "No canonical config" };
       return acc;
     }, base);
@@ -147,7 +146,7 @@ export function RickbertStudioShell() {
 
   const handleDocReferenceFileUpload = async (
     docId: string,
-    event: ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -160,7 +159,7 @@ export function RickbertStudioShell() {
   };
 
   const handleStyleReferenceUpload = async (
-    event: ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -168,7 +167,9 @@ export function RickbertStudioShell() {
     }
 
     if (file.size > 6 * 1024 * 1024) {
-      failFinalRender("Style reference image is too large. Please use a file under 6MB.");
+      failFinalRender(
+        "Style reference image is too large. Please use a file under 6MB.",
+      );
       event.target.value = "";
       return;
     }
@@ -176,10 +177,13 @@ export function RickbertStudioShell() {
     const dataUrl = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result ?? ""));
-      reader.onerror = () => reject(new Error("Failed to read style reference image."));
+      reader.onerror = () =>
+        reject(new Error("Failed to read style reference image."));
       reader.readAsDataURL(file);
     }).catch((error) => {
-      failFinalRender(error instanceof Error ? error.message : "Failed to read style image.");
+      failFinalRender(
+        error instanceof Error ? error.message : "Failed to read style image.",
+      );
       return "";
     });
 
@@ -227,7 +231,7 @@ export function RickbertStudioShell() {
       completeFinalRender(response.imageDataUrl, response.responseId ?? null);
     } catch (error) {
       failFinalRender(
-        error instanceof Error ? error.message : "Final render request failed."
+        error instanceof Error ? error.message : "Final render request failed.",
       );
     } finally {
       setRunningAction((current) => (current === "aiRender" ? null : current));
@@ -236,7 +240,7 @@ export function RickbertStudioShell() {
 
   const runQuickAction = (
     action: "parse" | "validate" | "render",
-    fn: () => void
+    fn: () => void,
   ) => {
     setRunningAction(action);
     fn();
@@ -246,7 +250,7 @@ export function RickbertStudioShell() {
   };
 
   const actionSpinner = (
-    action: "parse" | "validate" | "render" | "aiRender"
+    action: "parse" | "validate" | "render" | "aiRender",
   ) =>
     runningAction === action ? (
       <CircularProgress size={14} color="inherit" />
@@ -275,7 +279,7 @@ export function RickbertStudioShell() {
       setCharacterMapDraftError(null);
     } catch (error) {
       setCharacterMapDraftError(
-        error instanceof Error ? error.message : "Invalid character map JSON."
+        error instanceof Error ? error.message : "Invalid character map JSON.",
       );
     }
   };
@@ -284,7 +288,9 @@ export function RickbertStudioShell() {
     <div className="min-h-screen bg-gradient-to-b from-stone-200 via-orange-50 to-stone-100 text-slate-900">
       <header className="border-b border-stone-300 bg-stone-100/95 px-4 py-3 shadow-sm backdrop-blur">
         <div className="mx-auto flex w-full max-w-[1860px] flex-wrap items-center gap-2">
-          <h1 className="mr-3 text-lg font-black tracking-wide">RICKBERT STUDIO</h1>
+          <h1 className="mr-3 text-lg font-black tracking-wide">
+            RICKBERT STUDIO
+          </h1>
           <Button
             variant="contained"
             size="small"
@@ -320,7 +326,11 @@ export function RickbertStudioShell() {
             disabled={!visibleSpec || finalRenderStatus === "loading"}
             startIcon={actionSpinner("aiRender")}
           >
-            <span className={runningAction === "aiRender" ? "shimmer-text" : undefined}>
+            <span
+              className={
+                runningAction === "aiRender" ? "shimmer-text" : undefined
+              }
+            >
               {finalRenderStatus === "loading" ? "AI Rendering" : "AI Render"}
             </span>
           </Button>
@@ -333,7 +343,12 @@ export function RickbertStudioShell() {
           >
             Export PNG
           </Button>
-          <Button variant="outlined" size="small" color="inherit" onClick={reset}>
+          <Button
+            variant="outlined"
+            size="small"
+            color="inherit"
+            onClick={reset}
+          >
             Reset
           </Button>
           <Button
@@ -375,10 +390,7 @@ export function RickbertStudioShell() {
             Inputs
           </h2>
 
-          <form
-            className="mb-3"
-            onSubmit={(event) => event.preventDefault()}
-          >
+          <form className="mb-3" onSubmit={(event) => event.preventDefault()}>
             <input
               type="text"
               name="username"
@@ -423,7 +435,9 @@ export function RickbertStudioShell() {
           />
 
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-700">Reference Docs</span>
+            <span className="text-xs font-semibold text-stone-700">
+              Reference Docs
+            </span>
             <button
               className="rounded border border-stone-300 px-2 py-1 text-[11px]"
               onClick={loadSample}
@@ -469,12 +483,16 @@ export function RickbertStudioShell() {
                   ref={(element) => {
                     docFileInputRefs.current[doc.id] = element;
                   }}
-                  onChange={(event) => handleDocReferenceFileUpload(doc.id, event)}
+                  onChange={(event) =>
+                    handleDocReferenceFileUpload(doc.id, event)
+                  }
                 />
                 <textarea
                   className="h-24 w-full rounded border border-stone-300 p-2 text-xs"
                   value={doc.content}
-                  onChange={(event) => setReferenceDoc(doc.id, event.target.value)}
+                  onChange={(event) =>
+                    setReferenceDoc(doc.id, event.target.value)
+                  }
                 />
               </div>
             ))}
@@ -502,7 +520,9 @@ export function RickbertStudioShell() {
               </button>
             )}
             <span className="text-[11px] text-stone-600">
-              {styleReferenceDataUrl ? "Style image loaded" : "No style image loaded"}
+              {styleReferenceDataUrl
+                ? "Style image loaded"
+                : "No style image loaded"}
             </span>
           </div>
 
@@ -517,7 +537,8 @@ export function RickbertStudioShell() {
                 setFinalRenderUseOutlineGuide(event.target.checked)
               }
             />
-            Use current outline render as layout guide (can increase stick-figure bias)
+            Use current outline render as layout guide (can increase
+            stick-figure bias)
           </label>
 
           <div className="mb-1 mt-3 flex items-center justify-between">
@@ -543,7 +564,11 @@ export function RickbertStudioShell() {
           </h2>
           <div className="overflow-auto rounded border border-stone-200 bg-stone-50 p-2">
             {visibleSpec ? (
-              <ComicStage spec={visibleSpec} settings={renderSettings} stageRef={stageRef} />
+              <ComicStage
+                spec={visibleSpec}
+                settings={renderSettings}
+                stageRef={stageRef}
+              />
             ) : (
               <div className="flex h-[540px] items-center justify-center rounded border border-dashed border-stone-300 text-sm text-stone-500">
                 Parse and render a strip to preview.
@@ -594,7 +619,15 @@ export function RickbertStudioShell() {
           {activeTab === "parsed" && (
             <JsonView
               data={parsedSpec ?? { status: "Not parsed" }}
-              onCopy={() => copyText(JSON.stringify(parsedSpec ?? { status: "Not parsed" }, null, 2))}
+              onCopy={() =>
+                copyText(
+                  JSON.stringify(
+                    parsedSpec ?? { status: "Not parsed" },
+                    null,
+                    2,
+                  ),
+                )
+              }
             />
           )}
           {activeTab === "validation" && (
@@ -605,8 +638,8 @@ export function RickbertStudioShell() {
                   JSON.stringify(
                     validationReport ?? { status: "Validation not run" },
                     null,
-                    2
-                  )
+                    2,
+                  ),
                 )
               }
             />
@@ -632,14 +665,20 @@ export function RickbertStudioShell() {
                 onChange={(event) => setCharacterMapDraft(event.target.value)}
               />
               <div className="flex items-center gap-2">
-                <Button size="small" variant="contained" onClick={applyCharacterMapOverrides}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={applyCharacterMapOverrides}
+                >
                   Apply Character Map
                 </Button>
                 <Button
                   size="small"
                   variant="outlined"
                   onClick={() =>
-                    setCharacterMapDraft(JSON.stringify(characterMapOverrides, null, 2))
+                    setCharacterMapDraft(
+                      JSON.stringify(characterMapOverrides, null, 2),
+                    )
                   }
                 >
                   Reset Draft
@@ -685,13 +724,12 @@ export function RickbertStudioShell() {
                         }}
                       />
                     </div>
-                    <span className="sr-only">
-                      AI render preview
-                    </span>
+                    <span className="sr-only">AI render preview</span>
                   </div>
                   {finalImageDimensions && (
                     <p className="text-[11px] text-stone-600">
-                      Image size: {finalImageDimensions.width}x{finalImageDimensions.height}
+                      Image size: {finalImageDimensions.width}x
+                      {finalImageDimensions.height}
                       {finalImageDimensions.width <= finalImageDimensions.height
                         ? " (non-landscape output; retry AI Render for wider framing)"
                         : ""}
@@ -724,7 +762,8 @@ export function RickbertStudioShell() {
                 </>
               ) : (
                 <p className="text-sm text-stone-600">
-                  Run AI Render after validation passes to generate the polished comic image.
+                  Run AI Render after validation passes to generate the polished
+                  comic image.
                 </p>
               )}
             </div>
@@ -759,7 +798,8 @@ export function RickbertStudioShell() {
                   onChange={(event) =>
                     setRenderSettings({
                       stageHeight:
-                        Number(event.target.value) || renderSettings.stageHeight,
+                        Number(event.target.value) ||
+                        renderSettings.stageHeight,
                     })
                   }
                 />

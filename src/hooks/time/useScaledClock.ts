@@ -1,39 +1,27 @@
 import { useRef, type MutableRefObject } from "react";
+import type { ClockState, ScaledTimeoutHandle } from "@/types/hooks/time";
 
 const FRAME_MS = 1000 / 60;
-
-interface TimeoutHandle {
-  remaining: number;
-  cb: () => void;
-  cancelled: boolean;
-}
-
-export interface ClockState {
-  deltaMs: number;
-  scale: number;
-}
 
 export let clockRef: MutableRefObject<ClockState>;
 export let setScaledTimeout: (
   cb: () => void,
-  ms: number
-) => TimeoutHandle;
-export let clearScaledTimeout: (handle: TimeoutHandle | null) => void;
+  ms: number,
+) => ScaledTimeoutHandle;
+export let clearScaledTimeout: (handle: ScaledTimeoutHandle | null) => void;
 export let advanceClock: (deltaMs: number) => void;
 
-export type ScaledTimeoutHandle = TimeoutHandle;
-
 export default function useScaledClock() {
-  const timeouts = useRef<TimeoutHandle[]>([]);
+  const timeouts = useRef<ScaledTimeoutHandle[]>([]);
   clockRef = useRef<ClockState>({ deltaMs: FRAME_MS, scale: 1 });
 
   setScaledTimeout = (cb: () => void, ms: number) => {
-    const handle: TimeoutHandle = { remaining: ms, cb, cancelled: false };
+    const handle: ScaledTimeoutHandle = { remaining: ms, cb, cancelled: false };
     timeouts.current.push(handle);
     return handle;
   };
 
-  clearScaledTimeout = (handle: TimeoutHandle | null) => {
+  clearScaledTimeout = (handle: ScaledTimeoutHandle | null) => {
     if (handle) {
       handle.cancelled = true;
     }
@@ -57,4 +45,3 @@ export default function useScaledClock() {
     }
   };
 }
-

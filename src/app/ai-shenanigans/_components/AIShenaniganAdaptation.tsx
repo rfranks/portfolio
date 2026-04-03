@@ -8,6 +8,7 @@ import Chip from "@mui/material/Chip";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import FadeInSection from "@/components/shared/FadeInSection";
 import ShenaniganPanel from "./ShenaniganPanel";
 import { useAudio } from "@/hooks/audio/useAudio";
@@ -103,9 +104,13 @@ export default function AIShenaniganAdaptation({
   const hasVisibleMedia = bookVisible;
   const panelChromeSx = {
     borderRadius: "24px",
-    border: "1px solid rgba(255,255,255,0.08)",
-    backgroundColor: "rgba(255,255,255,0.03)",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+    border: "1px solid",
+    borderColor: "var(--fabric-surface-border)",
+    backgroundColor: "var(--fabric-surface-1)",
+    backgroundImage:
+      "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
+    boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
+    backdropFilter: "blur(var(--fabric-blur-sm))",
   } as const;
   const mediaPanelSx = {
     ...panelChromeSx,
@@ -438,12 +443,16 @@ export default function AIShenaniganAdaptation({
     return (
       <Box sx={{ mt: 2 }}>
         <Box
-          sx={{
+          sx={(theme) => ({
             overflow: "hidden",
             borderRadius: "18px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            bgcolor: "rgba(15,23,42,0.48)",
-          }}
+            border: "1px solid",
+            borderColor: "var(--fabric-surface-border)",
+            bgcolor:
+              theme.palette.mode === "light"
+                ? alpha(theme.palette.common.white, 0.8)
+                : "rgba(15,23,42,0.48)",
+          })}
         >
           <Box
             component="object"
@@ -465,7 +474,10 @@ export default function AIShenaniganAdaptation({
                 width: "100%",
                 height: { xs: 520, md: 680, lg: 760 },
                 border: 0,
-                bgcolor: "rgba(15,23,42,0.48)",
+                bgcolor: (theme) =>
+                  theme.palette.mode === "light"
+                    ? alpha(theme.palette.common.white, 0.84)
+                    : "rgba(15,23,42,0.48)",
               }}
             />
           </Box>

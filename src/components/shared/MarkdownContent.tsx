@@ -1,17 +1,8 @@
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
-import type { SxProps, Theme } from "@mui/material/styles";
-import type { TypographyProps } from "@mui/material/Typography";
 import Markdown from "react-markdown";
-
-interface MarkdownContentProps {
-  content: string;
-  className?: string;
-  color?: TypographyProps["color"];
-  sx?: SxProps<Theme>;
-  variant?: TypographyProps["variant"];
-}
+import type { MarkdownContentProps } from "@/types/components/shared";
 
 export default function MarkdownContent({
   content,

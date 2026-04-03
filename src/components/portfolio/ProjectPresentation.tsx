@@ -17,30 +17,9 @@ import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import FadeInSection from "@/components/shared/FadeInSection";
 import { Diagram } from "@/components/shared/Diagram";
 import MarkdownContent from "@/components/shared/MarkdownContent";
+import type { ProjectData } from "@/types/components/portfolio";
 import { withBasePath } from "@/utils/basePath";
-
-export interface Technology {
-  name: string;
-  url?: string;
-}
-
-export interface ProjectData {
-  project: string;
-  description: string;
-  /**
-   * Brief punchline that highlights the value proposition of the
-   * project. Rendered prominently to give the presentation a bit of
-   * "wow" for viewers such as physicians evaluating the tooling.
-   */
-  wowFactor?: string;
-  demoGifUrl?: string;
-  demoVideoUrl?: string;
-  specifications: Record<string, unknown>;
-  technologiesUsed: Technology[];
-  blockDiagram: string;
-  componentDiagram: string;
-  sequenceDiagram: string;
-}
+export type { ProjectData, Technology } from "@/types/components/portfolio";
 
 interface ProjectPresentationProps {
   project: ProjectData;

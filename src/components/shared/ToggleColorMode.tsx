@@ -1,15 +1,11 @@
 import * as React from "react";
-import { Box, Button, PaletteMode } from "@mui/material";
+import { Box, Button } from "@mui/material";
 
 import {
   WbSunnyRounded as WbSunnyRoundedIcon,
   ModeNightRounded as ModeNightRoundedIcon,
 } from "@mui/icons-material";
-
-interface ToggleColorModeProps {
-  mode: PaletteMode;
-  toggleColorMode: () => void;
-}
+import type { ToggleColorModeProps } from "@/types/components/shared";
 
 function ToggleColorMode({ mode, toggleColorMode }: ToggleColorModeProps) {
   return (

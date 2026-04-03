@@ -230,10 +230,14 @@ export default function Hero() {
             height: { xs: 200, sm: 400 },
             overflowY: "auto",
             width: "100%",
+            backgroundColor:
+              theme.palette.mode === "light"
+                ? alpha(theme.palette.background.paper, 0.92)
+                : alpha(theme.palette.background.paper, 0.72),
             backgroundImage:
               theme.palette.mode === "light"
-                ? 'url("/static/images/templates/templates-images/hero-light.png")'
-                : 'url("/static/images/templates/templates-images/hero-dark.png")',
+                ? `linear-gradient(180deg, ${alpha(theme.palette.common.white, 0.78)}, ${alpha(theme.palette.primary.light, 0.12)}), url("/static/images/templates/templates-images/hero-light.png")`
+                : `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.82)}, ${alpha(theme.palette.primary.dark, 0.28)}), url("/static/images/templates/templates-images/hero-dark.png")`,
             backgroundSize: "cover",
             borderRadius: "10px",
             outline: "1px solid",
@@ -256,15 +260,20 @@ export default function Hero() {
             return (
               <Box
                 key={index}
-                sx={{
+                sx={(theme) => ({
                   borderRadius: "10px",
                   p: 1,
                   my: 1,
                   backgroundColor:
                     chat?.role === "user"
-                      ? alpha("#BFCCD9", 0.5)
-                      : alpha("#9CCCFC", 0.5),
-                }}
+                      ? alpha(theme.palette.background.default, 0.92)
+                      : alpha(theme.palette.primary.light, 0.24),
+                  border: "1px solid",
+                  borderColor:
+                    chat?.role === "user"
+                      ? alpha(theme.palette.divider, 0.9)
+                      : alpha(theme.palette.primary.main, 0.22),
+                })}
               >
                 {chat?.role === "assistant" ? (
                   <Typography

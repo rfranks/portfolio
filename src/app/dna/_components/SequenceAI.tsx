@@ -334,11 +334,27 @@ export default function SequenceAI({
 
   if (!apiKeyReady) {
     return (
-      <Paper sx={{ width: "100%", overflow: "auto" }}>
+      <Paper
+        sx={{
+          width: "100%",
+          overflow: "auto",
+          backgroundColor: "transparent",
+          backgroundImage: "none",
+          border: "none",
+          boxShadow: "none",
+        }}
+      >
         <OpenAIKeyInterstitialContent
           appName="GeneBoard AI"
           logoAlt="GeneBoard AI logo"
           logoSrc={withBasePath("/dna/images/geneboard_banner.png")}
+          logoFrameSx={{
+            backgroundColor: "#ffffff",
+            borderRadius: "22px",
+            px: 2,
+            py: 1.5,
+            boxShadow: "var(--dna-shadow-soft)",
+          }}
           value={draftKey}
           onChange={setDraftKey}
           onSubmit={handleKeySubmit}

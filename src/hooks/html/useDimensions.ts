@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import type { Dimensions } from "@/types/hooks/dimensions";
 
 // MUI components
 import { Breakpoint, useTheme } from "@mui/material/styles";
@@ -6,18 +7,6 @@ import { Breakpoint, useTheme } from "@mui/material/styles";
 // utils
 import debounce from "lodash/debounce";
 import type { DebouncedFunc } from "lodash";
-
-/**
- * Dimensions of an element—its height, width, and breakpoint size.
- */
-export interface Dimensions {
-  /** The width of the element */
-  width: number;
-  /** The height of the element */
-  height: number;
-  /** The breakpoint of the dimension */
-  breakpoint: Breakpoint;
-}
 
 /**
  * Hook for getting the current dimensions—height, width and breakpoint—of

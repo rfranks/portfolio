@@ -1,13 +1,7 @@
 import * as React from "react";
 import { useAudio } from "@/hooks/audio/useAudio";
+import type { UseAmbienceOptions } from "@/types/hooks/audio";
 import { pauseAudio, rewindAndPlayAudio } from "@/utils/audio";
-
-type UseAmbienceOptions = {
-  minDelayMs?: number;
-  maxDelayMs?: number;
-  minVolume?: number;
-  maxVolume?: number;
-};
 
 function randomInRange(min: number, max: number) {
   return min + Math.random() * (max - min);

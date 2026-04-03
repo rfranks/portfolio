@@ -13,7 +13,10 @@
     "contact": {
       "linkedin": "https://www.linkedin.com/in/richardfranksjr",
       "email": "richardfranksjr@hotmail.com",
-      "github": ["https://github.com/rfranks", "https://github.com/rfrankspk"]
+      "github": [
+        "https://github.com/rfranks",
+        "https://github.com/rfrankspk"
+      ]
     },
     "gutter": [
       "Principal / Distinguished-level full-stack engineer with 15 years of experience building production web applications, APIs, and domain-specific software across healthcare, fintech, and scientific-adjacent environments. Strong hands-on background in Python, Java, TypeScript, React, RESTful services, SQL/NoSQL-backed systems, and AI-enabled workflows.",
@@ -55,7 +58,8 @@
       "metadataTitle": "Rickbert Studio",
       "metadataDescription": "Structured comic strip generation studio for the RICKBERT series.",
       "interstitialAppName": "Rickbert Studio",
-      "interstitialLogoAlt": "Rickbert Studio logo"
+      "interstitialLogoAlt": "Rickbert Studio logo",
+      "interstitialLogoSrc": "/images/projects/rickbert-studio.png"
     }
   },
   "navigation": {
@@ -744,7 +748,9 @@
     {
       "company": "IDEXX",
       "position": "Consultant",
-      "details": ["Consultant on veterinary practice management platform."]
+      "details": [
+        "Consultant on veterinary practice management platform."
+      ]
     },
     {
       "company": "Fetch Enterprises",
@@ -952,7 +958,93 @@
         "width": 280,
         "height": 140,
         "imageClassName": "h-auto w-56 object-contain"
-      }
+      },
+      "demoGifUrl": "/demogifs/patient_list_demo.gif",
+      "specifications": {
+        "facadeArchitecture": {
+          "purpose": "Stabilize UI contracts while allowing domain and DAO evolution.",
+          "modules": [
+            "patient-list-war: Backbone/Handlebars UI, routers, views, templates, static assets.",
+            "patient-list-rest: Spring Web controllers that only accept/return patient-list-api DTOs.",
+            "patient-list-api: Facade interfaces and DTOs (VisitDto, VisitListDto, PagingDto, FilterDto).",
+            "patient-list-services: Implements the Facade; mapping between DTOs and domain; validation; transactions; caching.",
+            "patient-list-dao: Persistence repositories/queries; no API types leak upward."
+          ],
+          "callFlow": "UI (war) → REST controller (rest) ↔ DTOs (api) → Facade service (services) → Repository (dao) → DB.",
+          "mapping": "DTO↔Domain mapping occurs only inside patient-list-services via MapStruct or manual mappers.",
+          "evolution": "Additive DTO changes with versioned REST routes (/api/v1/*), deprecations flagged in Facade; UI remains stable."
+        },
+        "backboneVisitListFlow": {
+          "uiModelsAndCollections": {
+            "VisitModel": "Client-side model mirroring VisitDto fields used by the UI (id, mrn, name, admitTime, location, provider, status, flags).",
+            "VisitCollection": {
+              "url": "/api/v1/visits",
+              "parse": "Extracts array and paging metadata from {items:[], paging:{...}}.",
+              "behavior": "Supports query params for listId, search, filters, sort, page, pageSize."
+            },
+            "VisitListState": "Backbone.Model that stores route-bound state (listId, page, sort, filters); converts to query string with toQuery()."
+          },
+          "views": {
+            "VisitListView": "Owns lifecycle and layout; listens to VisitCollection events 'request','sync','reset','error' to toggle spinner, render rows, show empty/error.",
+            "VisitItemView": "Renders a single visit row; rerenders on model change.",
+            "ToolbarView": "Search box, filter chips, bulk actions; emits 'filter:changed', 'search:typed', 'action:export'.",
+            "PaginationView": "Changes page → updates VisitListState → triggers fetch.",
+            "WizardView": "Multi-step builder/manager for patient lists; saves via /api/v1/visitLists and then routes to VisitList with the new listId."
+          },
+          "router": {
+            "VisitRouter": "Routes '#/visits?listId=123&page=1&sort=admitTime,desc&filters=...' to instantiate VisitListView with a VisitCollection and VisitListState seeded from the query."
+          },
+          "renderingPipeline": "VisitRouter → VisitListView.initialize() → collection.fetch({data: state.toQuery()}) → REST returns VisitDto[] + paging → collection.reset(items) → VisitListView.render() → for each model new VisitItemView({model}).render() → Handlebars templates produce the table."
+        },
+        "managementOfPatientListApp": {
+          "assets": "patient-list-war bundles Backbone modules, templates (.hbs), and pk-common-ui widgets; versioned static paths to enable long-lived caching with cache-busting.",
+          "security": "Spring Security in patient-list-rest validates JWT/session; per-list authorization enforced in Facade based on user/org/role.",
+          "reliability": "Controller timeouts, service-level retries for transient DB faults, idempotent job endpoints for PromptJob.",
+          "performance": "Server-side pagination/sort/filter, DAO query tuning (indexes, joins to avoid N+1), HTTP caching with ETag/If-None-Match, compressed assets.",
+          "telemetry": "UI emits audit events (route, filter change, export) to /audit; services log query timings; PromptJob publishes progress to a job-status endpoint."
+        }
+      },
+      "technologiesUsed": [
+        {
+          "name": "Backbone.js",
+          "url": "https://backbonejs.org/"
+        },
+        {
+          "name": "Handlebars.js",
+          "url": "https://handlebarsjs.com/"
+        },
+        {
+          "name": "pk-common-ui (shared widgets/utilities)",
+          "url": "https://example.org/pk-common-ui"
+        },
+        {
+          "name": "Spring Web MVC",
+          "url": "https://spring.io/projects/spring-framework"
+        },
+        {
+          "name": "Spring Boot",
+          "url": "https://spring.io/projects/spring-boot"
+        },
+        {
+          "name": "Java / Maven",
+          "url": "https://maven.apache.org/"
+        },
+        {
+          "name": "JUnit / Mockito",
+          "url": "https://junit.org/"
+        },
+        {
+          "name": "MapStruct (optional mappers)",
+          "url": "https://mapstruct.org/"
+        },
+        {
+          "name": "Mermaid (diagrams)",
+          "url": "https://mermaid.js.org/"
+        }
+      ],
+      "blockDiagram": "graph TD;\n  WAR[patient-list-war\\\nBackbone/Handlebars UI] --> REST[patient-list-rest\\\nSpring Controllers];\n  REST --> API[patient-list-api\\\nFacade + DTOs];\n  API <--implements--> SRV[patient-list-services\\\nBusiness Logic, Mapping, Validation];\n  SRV --> DAO[patient-list-dao\\\nRepositories/Queries];\n  DAO --> DB[(Database)];\n  WAR -. static assets .-> ASSETS[Templates JS CSS];",
+      "componentDiagram": "graph TD;\n  subgraph UI (patient-list-war)\n    Router[VisitRouter]\n    State[VisitListState]\n    Coll[VisitCollection]\n    ListView[VisitListView]\n    ItemView[VisitItemView]\n    Toolbar[ToolbarView]\n    Pager[PaginationView]\n    Wizard[WizardView]\n    TList[visit-list.hbs]\n    TRow[visit-row.hbs]\n  end\n  subgraph REST/API\n    EP[/GET /api/v1/visits/]\n    EPlist[/GET /api/v1/visitLists/{id}/visits/]\n    DTO[VisitDto]\n  end\n  subgraph Server\n    Ctl[VisitController]\n    Fac[VisitFacade]\n    Svc[VisitServiceImpl]\n    Map[VisitMapper]\n    Repo[VisitRepository]\n    DB[(DB)]\n  end\n  Router --> ListView\n  Router --> State\n  ListView --> Toolbar\n  ListView --> Pager\n  ListView --> Coll\n  Coll -->|reset/sync| ListView\n  ListView -->|each model| ItemView\n  ListView --> TList\n  ItemView --> TRow\n  Toolbar -->|filter:changed| State\n  Pager -->|page:changed| State\n  State -->|toQuery()| Coll\n  Coll -->|fetch| EP\n  EP --> Ctl --> Fac --> Svc --> Repo --> DB\n  Repo --> Svc --> Map --> DTO --> Ctl --> EP --> Coll\n  Wizard -->|save list| Ctl",
+      "sequenceDiagram": "sequenceDiagram\n  participant U as User\n  participant R as VisitRouter\n  participant V as VisitListView\n  participant S as VisitListState\n  participant C as VisitCollection\n  participant T as ToolbarView\n  participant H as Handlebars Templates\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as VisitFacade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/visits?listId=123&page=1\n  R->>S: create from query (listId,page,sort,filters)\n  R->>V: new VisitListView({state:S, collection:C})\n  V->>C: fetch({data: S.toQuery()})\n  C->>REST: GET /api/v1/visits?listId=123&page=1&sort=...\n  REST->>CTR: Dispatch controller\n  CTR->>FAC: findVisits(listId,paging,filters)\n  FAC->>DAO: query(listId,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>C: 200 JSON {items:[], paging:{}}\n  C-->>V: reset/sync events\n  V->>H: Render visit-list.hbs + visit-row.hbs\n  H-->>V: HTML table\n  V-->>U: Patient visit list displayed\n  U->>T: Change filter/search\n  T-->>S: event filter:changed\n  S-->>V: change:*\n  V->>C: fetch() (debounced) with new query\n  C->>REST: GET /api/v1/visits?... (repeat)"
     },
     {
       "name": "Patient Assignment List Project",
@@ -968,7 +1060,98 @@
         "width": 280,
         "height": 140,
         "imageClassName": "h-auto w-56 object-contain"
-      }
+      },
+      "demoGifUrl": "/demogifs/assignment_list_demo.gif",
+      "specifications": {
+        "facadeArchitecture": {
+          "goal": "Stabilize contracts for UI while the domain/DAO layer evolves.",
+          "modules": [
+            "patient-list-war: Backbone/Handlebars UI (AssignmentListView, VisitListView, routers, templates).",
+            "patient-list-rest: Spring MVC controllers exposing versioned REST endpoints that accept/return patient-list-api DTOs only.",
+            "patient-list-api: Facade interfaces + DTOs (AssignmentListDto, VisitDto, PagingDto, FilterDto).",
+            "patient-list-services: Facade implementations, mapping between DTOs and domain entities, validation, transactions, caching.",
+            "patient-list-dao: Repositories/queries; isolates persistence (SQL/ORM)."
+          ],
+          "flow": "UI (war) → REST (rest) ↔ DTO (api) → Facade (services) → Repository (dao) → DB.",
+          "evolution": "Additive DTOs with /api/v1/* routes, deprecation windows, and mappers contained in services so UI is insulated.",
+          "security": "AuthN/Z enforced in patient-list-rest and re-checked inside Facade using user/org scope for list/assignment access."
+        },
+        "backboneAssignmentListFlow": {
+          "intent": "Render an Assignment List that nests/embeds a VisitList inside the AssignmentListView (e.g., by assignee/role/queue).",
+          "uiModelsAndCollections": {
+            "AssignmentModel": "Client model mirroring AssignmentListDto (id, name, criteria, owner, counts).",
+            "AssignmentCollection": {
+              "url": "/api/v1/assignmentLists",
+              "parse": "Returns array of AssignmentModel and paging."
+            },
+            "VisitModel": "Client model mirroring VisitDto for row rendering.",
+            "VisitCollection": {
+              "url": "/api/v1/visits",
+              "parse": "Extracts items[] and paging.",
+              "queryParams": "listId (assignment list), assigneeId/role, page, pageSize, sort, filters"
+            },
+            "AssignmentState": "Backbone.Model storing route-bound state (assignmentListId, assignee, page, sort, filters) with toQuery()."
+          },
+          "views": {
+            "AssignmentListView": "Container view that manages assignee tabs/queues and owns one VisitCollection per active context; listens to collection events to show spinners/empty/error and composes VisitListView as a subview.",
+            "VisitListView": "Subview that renders table rows for the currently selected assignee/segment using VisitCollection.",
+            "ToolbarView": "Shared toolbar for search, filters, bulk actions; emits 'filter:changed', 'action:*'.",
+            "PaginationView": "Controls page changes; updates AssignmentState and triggers fetch.",
+            "WizardView": "Multi-step builder for creating/editing assignment lists; on save, routes back to the AssignmentListView with new listId."
+          },
+          "router": {
+            "AssignmentRouter": "Routes '#/assignments/:id?assignee=RN1&page=1&sort=admitTime,desc&filters=...' to instantiate AssignmentListView with AssignmentState and VisitCollection seeded from query."
+          },
+          "renderingPipeline": "AssignmentRouter → AssignmentListView.initialize() → active VisitCollection.fetch({data: state.toQuery()}) → REST returns VisitDto[] + paging → collection.reset(items) → VisitListView.render() (row subviews) → Handlebars templates produce the table inside the AssignmentListView region."
+        },
+        "management": {
+          "assets": "patient-list-war bundles Backbone modules and Handlebars templates; cache-busted filenames. pk-common-ui provides shared widgets.",
+          "performance": "Server-side pagination/sort/filter, tuned DAO queries to avoid N+1, ETag/If-None-Match, gzip/brotli, client-side debounce on filter/search.",
+          "reliability": "Controller timeouts, service retries for transient DB faults, idempotent prompt job endpoints.",
+          "telemetry": "UI emits audit events (assignee switch, filter change, export) to /audit; services log timing and cache hit/miss."
+        }
+      },
+      "technologiesUsed": [
+        {
+          "name": "Backbone.js",
+          "url": "https://backbonejs.org/"
+        },
+        {
+          "name": "Handlebars.js",
+          "url": "https://handlebarsjs.com/"
+        },
+        {
+          "name": "pk-common-ui (shared UI utilities)",
+          "url": "https://example.org/pk-common-ui"
+        },
+        {
+          "name": "Spring Web MVC",
+          "url": "https://spring.io/projects/spring-framework"
+        },
+        {
+          "name": "Spring Boot",
+          "url": "https://spring.io/projects/spring-boot"
+        },
+        {
+          "name": "Java / Maven (multi-module)",
+          "url": "https://maven.apache.org/"
+        },
+        {
+          "name": "JUnit / Mockito",
+          "url": "https://junit.org/"
+        },
+        {
+          "name": "MapStruct (optional mappers)",
+          "url": "https://mapstruct.org/"
+        },
+        {
+          "name": "Mermaid (diagrams)",
+          "url": "https://mermaid.js.org/"
+        }
+      ],
+      "blockDiagram": "graph TD;\n  WAR[patient-list-war\\\nBackbone/Handlebars UI] --> REST[patient-list-rest\\\nSpring Controllers];\n  REST --> API[patient-list-api\\\nFacade + DTOs];\n  API <--implements--> SRV[patient-list-services\\\nBusiness Logic, Mapping, Validation];\n  SRV --> DAO[patient-list-dao\\\nRepositories/Queries];\n  DAO --> DB[(Database)];\n  WAR -. static assets .-> ASSETS[Templates JS CSS];",
+      "componentDiagram": "graph TD;\n  subgraph UI patient-list-war\n    AR[AssignmentRouter]\n    AS[AssignmentState]\n    ALV[AssignmentListView]\n    VCOL[VisitCollection]\n    VLV[VisitListView]\n    TBV[ToolbarView]\n    PGR[PaginationView]\n    WIZ[WizardView]\n    TLIST[assignment-list.hbs]\n    TROW[visit-row.hbs]\n  end\n  subgraph REST/API\n    EPV[/GET /api/v1/visits/]\n    EPA[/GET /api/v1/assignmentLists/id/summary/]\n    DTOv[VisitDto]\n    DTOa[AssignmentListDto]\n  end\n  subgraph Server\n    CtlV[VisitController]\n    CtlA[AssignmentController]\n    Fac[PatientListFacade]\n    Svc[Facade Impl]\n    Map[DTO Mappers]\n    RepoV[VisitRepository]\n    RepoA[AssignmentRepository]\n    DB[(DB)]\n  end\n  AR --> AS\n  AR --> ALV\n  ALV --> TBV\n  ALV --> PGR\n  ALV --> VCOL\n  ALV -->|subview| VLV\n  VCOL -->|reset/sync| VLV\n  ALV --> TLIST\n  VLV --> TROW\n  TBV -->|filter:changed| AS\n  PGR -->|page:changed| AS\n  AS -->|toQuery| VCOL\n  VCOL -->|fetch| EPV\n  EPV --> CtlV --> Fac --> Svc --> RepoV --> DB\n  RepoV --> Svc --> Map --> DTOv --> CtlV --> EPV --> VCOL\n  ALV -->|load summary| EPA --> CtlA --> Fac --> RepoA --> DB\n  WIZ -->|save list| CtlA",
+      "sequenceDiagram": "sequenceDiagram\n  participant U as User\n  participant R as AssignmentRouter\n  participant S as AssignmentState\n  participant A as AssignmentListView\n  participant VC as VisitCollection\n  participant V as VisitListView\n  participant T as ToolbarView\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as Facade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/assignments/42?assignee=RN1&page=1\n  R->>S: Initialize state (listId=42, assignee=RN1, page=1, sort, filters)\n  R->>A: new AssignmentListView({state:S})\n  A->>VC: fetch({ data: S.toQuery() })\n  VC->>REST: GET /api/v1/visits?listId=42&assignee=RN1&page=1&sort=...\n  REST->>CTR: Dispatch\n  CTR->>FAC: findVisitsForAssignment(listId,assignee,paging,filters)\n  FAC->>DAO: query(listId,assignee,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>VC: 200 {items:[], paging:{}}\n  VC-->>A: reset/sync events\n  A->>V: render subview with VC\n  V->>V: render rows using Handlebars (visit-row.hbs)\n  A-->>U: Assignment list with visits displayed\n  U->>T: Change filter/search/assignee\n  T-->>S: filter:changed / assignee:changed\n  S-->>A: change:*\n  A->>VC: fetch() (debounced) with new query\n  VC->>REST: GET /api/v1/visits?... (repeat)"
     },
     {
       "name": "AI-Driven Clinical Copilot",
@@ -984,7 +1167,183 @@
         "width": 240,
         "height": 240,
         "imageClassName": "h-28 w-28 rounded-3xl object-contain"
-      }
+      },
+      "wowFactor": "Delivers concise, citation-backed patient insights in seconds so physicians can spend more time caring and less time scrolling charts.",
+      "demoGifUrl": "/demogifs/ai_summary.gif",
+      "specifications": {
+        "Routing & URL Params (useAISummaryParams.ts)": {
+          "params": {
+            "siteId": "string | undefined",
+            "patientId": "string | undefined (parsed to number in page)",
+            "userId": "string | undefined",
+            "promptEnumParam": "string | undefined (disabled when interactive=false)",
+            "chatUri": "string | undefined — absolute URL for Flask /v1/chat_patient",
+            "aiPatientIsPrimed": "boolean — from ?aiPatientIsPrimed=true",
+            "fetchAnswerOnLoad": "boolean — auto-run on first render",
+            "comboPromptEnum": "string — default 'summarizeComboPrompts'",
+            "moduleToStopLoadingForParam": "string | undefined — name for parent postMessage loading events",
+            "initialErrorText": "string — seed error banner",
+            "interactiveMode": "boolean — default true; set false with ?interactive=false"
+          }
+        },
+        "Auth & Environment": {
+          "auth": "useAuth() reads a bearer token from parent window via postMessage and injects it on all Refine/Azure calls (axios interceptor) and forwards it to chatUri when present.",
+          "env": {
+            "API_URL": "Base for Azure Functions (ui/aicopilot/src/providers/data-provider).",
+            "API_ROOT": "Optional prefix (joined to API_URL)."
+          },
+          "originGate": "If no auth and origin is not localhost, the page returns notFound()."
+        },
+        "Data Access (Refine DataProvider)": {
+          "resources": [
+            "v1/clients (resource: 'clients') — used to derive clientType for category filtering.",
+            "v1/categories (resource: 'categories') — select options filtered by clientType.",
+            "v1/prompts (resource: 'prompts') — fetches Prompt records by site/clientType/promptEnum/text.",
+            "v1/chatAudits (resource: 'chatAudits') — polled to retrieve score/validity for an answerId."
+          ],
+          "filtering": "Simple eq filters mapped to query string (e.g., { field: 'siteId', operator: 'eq', value: siteId })."
+        },
+        "Core Components & Hooks": {
+          "page": "/patientPromptEnum/page.tsx (client component)",
+          "dynamicImports": [
+            "PatientPrompt (no SSR, skeleton during load)",
+            "AISummaryModal (no SSR)",
+            "PromptRenderer (no SSR)",
+            "ModalTriggerTextField (no SSR)",
+            "PromptChips, BackToTopFab (no SSR)"
+          ],
+          "hooks": [
+            "useAISummaryParams — parse URL params.",
+            "useAISummaryInit — bootstrap: fetch combo prompts, honor fetchAnswerOnLoad, hydrate localStorage (model, guardrails, recent questions, initial prompt).",
+            "usePromptResources — get Prompt[] by enum/text via DataProvider.",
+            "useSubPrompts — expand a combo prompt's fullText by '<new_question>' into multiple questions.",
+            "useAnswer — orchestrate selection (enum vs free-text), post parent startLoading, clear state, then set prompts list.",
+            "usePromptVisibility — chip visibility rules based on content/citations/completion.",
+            "usePromptTitle — derive section title from first answer's markdown header if present.",
+            "useModalFocus — bottom sheet open/close and focus management.",
+            "useAuth, useOrigin — bearer and origin awareness."
+          ]
+        },
+        "AI Interface (PatientPrompt → chatUri)": {
+          "http": "POST {chatUri} (Flask /v1/chat_patient); also supports OPTIONS CORS preflight.",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {auth} (if available)"
+          },
+          "requestBodyShape": {
+            "auth": "string | null — forwarded bearer for downstream services (optional).",
+            "siteID": "string",
+            "patientID": "number | number[] — single or multi-patient; special case: -1 triggers generic chat flow.",
+            "userID": "number",
+            "queryText": "string — the physician's typed question or one sub-prompt from a combo.",
+            "model": "string — e.g., 'gemini2' (default from localStorage).",
+            "context": "object — key/value placeholder inputs captured by PatientPrompt.",
+            "category": "string[] | string — selected categories (from Settings menu or prompt defaults).",
+            "data": "PatientRecord | PatientRecord[] | null — EHR payload if provided via postMessage.",
+            "format": "optional 'text' | 'audio' — if 'audio', returns audio/mpeg."
+          },
+          "responseBodyShape": {
+            "answerId": "number",
+            "content": "string — possibly a fallback single blob if parts are empty or for errors.",
+            "parts": "string[] — each entry is usually JSON (stringified); UI attempts JSON.parse; fallback to plain text.",
+            "context": "object — may include merged placeholder values the UI stores back into state."
+          },
+          "uiParsing": "Each part, if parsable JSON, conforms to UI ChatAnswer { content, categories: string[], citationsMap: Record<string,(string|number)[]>, score?, scoreReasoning? }."
+        },
+        "Scoring / Guardrails (chatAudits)": {
+          "toggle": "SettingsMenu toggles 'isUsingGuardrails'.",
+          "flow": "For each returned answer part that has answerId, when scoreAnswer=true, the UI polls GET v1/chatAudits?answerId=… until a record exists; then copies score, scoreReasoning, valid, invalidReason.",
+          "retryLogic": "If !valid OR score < 7 (MINIMUM_SCORE_THRESHOLD) and retryCount < 3 (MAX_RETRY_ON_LOW_SCORE), PatientPrompt re-calls chatUri for that prompt; otherwise continues. Defaults when scoring disabled: score=10 and valid=true."
+        },
+        "UX Behavior": {
+          "chips": "When multiple prompts, PromptChips render; visibility changes once content+citations exist and prompt is completed.",
+          "modal": "AISummaryModal provides free-text ask, recent questions (localStorage), suggested combo prompts, model picker, categories multiselect, and guardrails toggle.",
+          "postMessage": "Parent ↔ IFrame integration: startLoading/stopLoading with { module }, fetchAnswer events carrying { promptEnum | question, data, model, patientId }.",
+          "scroll": "Back-to-top FAB via useScrollTrigger on the prompts container.",
+          "errorBanners": "HTTP 401/403/404/500 specific messages; 413/context-length guidance; generic catch-all lists troubleshooting steps."
+        },
+        "Persistence (localStorage keys)": [
+          "page.patientPromptEnum.initialPromptEnum",
+          "page.patientPromptEnum.userFreeTextQuestions",
+          "page.patientPromptEnum.model",
+          "page.patientPromptEnum.isUsingGuardrails",
+          "page.patientPromptEnum.categories"
+        ],
+        "Performance / Resilience": [
+          "Dynamic import of heavy client widgets; SSR disabled.",
+          "Single DataProvider instance; axios interceptor injects bearer.",
+          "Minimal prompt lookups via usePromptResources and useSubPrompts.",
+          "Polling chatAudits with 5s delay until record is present.",
+          "Merges response.context to persist dynamic placeholder values across retries."
+        ],
+        "Primary Types (ui/interfaces & aichat/models)": {
+          "UI.ChatAnswer": "{ answerId?, prompt?, content?, categories?, citationsMap?, score?, scoreReasoning? }",
+          "UI.PatientRecord": "Minimal EHR snapshot interface used by UI.",
+          "UI.Prompt": "{ id, promptEnum, text, fullText, title?, categories? }",
+          "API.ChatRequest": "{ queryText, patientID, siteID, userID, model?, category?, categoryAttributes?, referenceID?, auth?, subcategories?, currentDateTime?, questions?, filters?, context?, data?, format?, noCache?, nudges? }",
+          "API.ChatAnswer": "{ answerId, content, parts: string[], context?: object }"
+        },
+        "Exact Endpoints Involved": [
+          "GET v1/clients?siteId=…",
+          "GET v1/categories?clientType=…",
+          "GET v1/prompts?siteId=…&promptEnum=… OR text=…",
+          "POST v1/chat_patient (chatUri from URL param)",
+          "GET v1/chatAudits?answerId=…"
+        ]
+      },
+      "technologiesUsed": [
+        {
+          "name": "Next.js (App Router)",
+          "url": "https://nextjs.org/"
+        },
+        {
+          "name": "React 18",
+          "url": "https://react.dev/"
+        },
+        {
+          "name": "TypeScript",
+          "url": "https://www.typescriptlang.org/"
+        },
+        {
+          "name": "Refine (headless)",
+          "url": "https://refine.dev/"
+        },
+        {
+          "name": "Material UI (MUI)",
+          "url": "https://mui.com/"
+        },
+        {
+          "name": "Axios",
+          "url": "https://axios-http.com/"
+        },
+        {
+          "name": "Azure Functions (TypeScript)",
+          "url": "https://learn.microsoft.com/azure/azure-functions/"
+        },
+        {
+          "name": "Azure Cosmos DB",
+          "url": "https://learn.microsoft.com/azure/cosmos-db/"
+        },
+        {
+          "name": "Python Flask",
+          "url": "https://flask.palletsprojects.com/"
+        },
+        {
+          "name": "LangChain",
+          "url": "https://python.langchain.com/"
+        },
+        {
+          "name": "OpenAI / Azure OpenAI (LLM)",
+          "url": "https://platform.openai.com/"
+        },
+        {
+          "name": "gTTS (optional audio synthesis)",
+          "url": "https://pypi.org/project/gTTS/"
+        }
+      ],
+      "blockDiagram": "graph TD\n  subgraph Browser[Physician Browser]\n    U[/URL with siteId, patientId, userId, chatUri/]\n    Page[Next.js /patientPromptEnum]\n  end\n\n  U --> Page\n  subgraph UI[Next.js App aicopilot]\n    Page --> Params[useAISummaryParams]\n    Page --> Init[useAISummaryInit]\n    Page --> PR[usePromptResources]\n    Page --> Sub[useSubPrompts]\n    Page --> Ans[useAnswer]\n    Page --> Chips[PromptChips]\n    Page --> Modal[AISummaryModal]\n    Page --> Renderer[PromptRenderer]\n    Renderer --> PP[PatientPrompt]\n  end\n\n  subgraph AF[Azure Functions TypeScript]\n    Clients[/GET v1/clients/]:::fn\n    Cats[/GET v1/categories/]:::fn\n    Prompts[/GET v1/prompts/]:::fn\n    Audits[/GET v1/chatAudits/]:::fn\n    DB[(Cosmos DB)]:::db\n    Clients --> DB\n    Cats --> DB\n    Prompts --> DB\n    Audits --> DB\n  end\n\n  subgraph PY[AI Chat Service Flask]\n    Chat[/POST v1/chat_patient/]:::fn\n    LC[LangChain + LLM]\n    Chat --> LC\n  end\n\n  PR -- load prompts --> Prompts\n  Page -- clientType lookup --> Clients\n  Page -- category options --> Cats\n  PP -- POST question/context/data --> Chat\n  Chat -- ChatAnswer(parts,context) --> PP\n  PP -- poll score --> Audits\n\n  classDef fn fill:#eef,stroke:#335,stroke-width:1px;\n  classDef db fill:#efe,stroke:#393,stroke-width:1px;",
+      "componentDiagram": "graph TB\n  A[/patientPromptEnum/page.tsx/]\n  subgraph Hooks\n    P1[useAISummaryParams]\n    P2[useAISummaryInit]\n    P3[usePromptResources]\n    P4[useSubPrompts]\n    P5[useAnswer]\n    P6[usePromptVisibility]\n    P7[usePromptTitle]\n    P8[useModalFocus]\n    P9[useAuth]\n    P10[useOrigin]\n  end\n\n  subgraph UI Components\n    C1[PromptRenderer]\n    C2[PatientPrompt]\n    C3[AISummaryModal]\n    C4[ModalTriggerTextField]\n    C5[PromptChips]\n    C6[BackToTopFab]\n    C7[Loading]\n    C8[SettingsMenu]\n  end\n\n  A --> P1 & P2 & P3 & P4 & P5 & P6 & P7 & P8 & P9 & P10\n  A --> C1 & C3 & C4 & C5 & C6 & C7 & C8\n  C1 --> C2\n  C2 -.->|onPromptFetching/onPromptFetched| A\n  A -.->|postMessage start/stopLoading| ParentApp",
+      "sequenceDiagram": "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Parent as Parent App (optional)\n  participant UI as Next.js /patientPromptEnum\n  participant Hooks as use* hooks\n  participant DP as Refine DataProvider\n  participant AF as Azure Functions (v1/clients, v1/categories, v1/prompts, v1/chatAudits)\n  participant DB as Cosmos DB\n  participant PP as PatientPrompt\n  participant PY as Flask aichat (/v1/chat_patient)\n  participant LLM as LangChain + LLM\n\n  Physician->>UI: Open with ?siteId&patientId&userId&chatUri[=&promptEnum|&interactive]\n  UI->>Hooks: useAISummaryParams() parse flags\n  Note over UI: If no auth and not localhost → notFound()\n  UI->>DP: list('clients', filter: siteId)\n  DP->>AF: GET /v1/clients?siteId=...\n  AF->>DB: query Clients\n  DB-->>AF: Client[] (clientType)\n  AF-->>DP: Client[]\n  UI->>DP: list('categories', filter: clientType)\n  DP->>AF: GET /v1/categories?clientType=...\n  AF->>DB: query Categories\n  DB-->>AF: Category[]\n  AF-->>DP: Category[]\n  UI->>DP: list('prompts', filters: siteId + promptEnum or text)\n  DP->>AF: GET /v1/prompts?siteId=...&promptEnum=...|text=...\n  AF->>DB: query Prompts\n  DB-->>AF: Prompt[]\n  AF-->>DP: Prompt[]\n  DP-->>UI: Prompt[]\n  UI->>UI: useSubPrompts split '<new_question>' → prompts[]\n  UI->>PP: Render for each prompt (or free-text)\n\n  loop For each question\n    PP->>Parent: postMessage startLoading{module}\n    PP->>PY: POST { chatUri=/v1/chat_patient }\\n{ siteID, patientID, userID, queryText, model, category[], context{}, data }\n    PY->>LLM: Build chain and fetch\n    LLM-->>PY: ChatAnswer(parts[], context)\n    PY-->>PP: 200 { answerId, content, parts[], context }\n    PP->>AF: Poll GET /v1/chatAudits?answerId=… (if guardrails on)\n    AF->>DB: Find ChatAudit\n    DB-->>AF: score, valid, reason\n    AF-->>PP: ChatAudit\n    alt score < 7 or !valid and retries < 3\n      PP->>PY: retry POST /v1/chat_patient\n    else success\n      PP->>UI: onPromptFetched(prompt, parts)\n      PP->>Parent: postMessage stopLoading{module}\n    end\n  end\n\n  Physician->>UI: Adjust model/categories/guardrails, then ask again\n  UI->>PP: Re-run with updated settings"
     },
     {
       "name": "AI Patient List Podcasts",
@@ -1000,7 +1359,83 @@
         "width": 240,
         "height": 240,
         "imageClassName": "h-28 w-28 rounded-3xl object-contain"
-      }
+      },
+      "demoVideoUrl": "/demovideos/physician_last12hours_podcast.mov",
+      "specifications": {
+        "UI contract": [
+          "The page accepts chatUri (points to Flask aichat /v1/chat_patient) and an optional time window defaulting to last 12 hours; it POSTs the physician’s prompt to start a PromptJob and receives a jobId."
+        ],
+        "Agentic pipeline": [
+          "The aichat Flask service (LangChain) orchestrates tools that call TypeScript Azure Functions to (1) fetch per-patient events for the last 12 hours, (2) draft podcast scripts, (3) synthesize audio via Gemini TTS, and (4) persist results."
+        ],
+        "Data model": [
+          "Cosmos DB containers for Patients, Events (labs, vitals, notes), PromptJobs (status, progress), and PodcastItems (patientId, timestamps, outline/script, audioUrl, transcript, status)."
+        ],
+        "Storage": [
+          "Podcast audio persisted as MP3/OGG in Azure Blob Storage.",
+          "Blob URLs or SAS tokens returned to the UI through PodcastItems."
+        ],
+        "Access pattern": [
+          "UI polls PromptJobs and PodcastItems endpoints (or listens to optional push) to incrementally render cards per patient as audio becomes available."
+        ],
+        "Security": [
+          "aichat and Azure Functions secured via AAD or function keys; UI includes bearer/token when invoking chatUri and Functions; PHI is not logged; only minimum patient fields are projected to UI."
+        ],
+        "Observability": [
+          "jobId/requestId propagated across aichat, Functions, and storage; structured logs and metrics emitted on each stage (fetch, script, TTS, persist)."
+        ],
+        "Resiliency": [
+          "Idempotent PromptJob creation keyed by (prompt, timeWindow); per-patient steps retried independently; partial completions surfaced live to the UI."
+        ],
+        "Performance": [
+          "Server-side time filtering (last 12h) and pagination; audio generation parallelized per patient with bounded concurrency; blobs served with CDN/SAS    ; UI uses built-in Next.js fetch with incremental re-fetch logic."
+        ]
+      },
+      "technologiesUsed": [
+        {
+          "name": "Next.js (React + TypeScript)",
+          "url": "https://nextjs.org"
+        },
+        {
+          "name": "React",
+          "url": "https://react.dev"
+        },
+        {
+          "name": "TypeScript",
+          "url": "https://www.typescriptlang.org"
+        },
+        {
+          "name": "Native Fetch API (Next.js App Router / Route Handlers)",
+          "url": "https://developer.mozilla.org/docs/Web/API/Fetch_API"
+        },
+        {
+          "name": "Flask (aichat service)",
+          "url": "https://flask.palletsprojects.com"
+        },
+        {
+          "name": "LangChain (agent + tools)",
+          "url": "https://python.langchain.com"
+        },
+        {
+          "name": "Google Gemini (Generative AI TTS)",
+          "url": "https://ai.google.dev"
+        },
+        {
+          "name": "Azure Functions (TypeScript)",
+          "url": "https://learn.microsoft.com/azure/azure-functions/"
+        },
+        {
+          "name": "Azure Cosmos DB (Core/SQL)",
+          "url": "https://learn.microsoft.com/azure/cosmos-db/"
+        },
+        {
+          "name": "Azure Blob Storage",
+          "url": "https://learn.microsoft.com/azure/storage/blobs/"
+        }
+      ],
+      "blockDiagram": "flowchart TB\n  subgraph UI[Next.js PromptJob Page]\n    Q[Physician Question]\n    L[List: Patient Podcasts]\n    P[HTML5 Audio Player]\n    F[Filters: last 12h]\n    S[Status/Progress Chips]\n  end\n\n  subgraph AICHAT[Python Flask aichat]\n    R[v1/chat_patient]\n    AG[LangChain Agent]\n    T1[Tool:getPatientEvents for 12h]\n    T2[Tool:planAndDraftScript]\n    T3[Tool:geminiTTS]\n    T4[Tool:savePodcastItem]\n  end\n\n  subgraph AFNS[Azure Functions-TypeScript]\n    FN1[/GET Patients/]\n    FN2[/GET Events?since=12h/]\n    FN3[/POST PromptJobs/]\n    FN4[/GET PromptJobs/:id/]\n    FN5[/PUT PodcastItems/]\n  end\n\n  subgraph DATA[Azure Resources]\n    COSMOS[(Cosmos DB)]\n    BLOB[[Blob Storage: audio.mp3]]\n  end\n\n  Q -->|POST prompt, window:12h via chatUri| R\n  R --> AG\n  AG -->|invoke| T1 --> FN2 --> COSMOS\n  AG -->|invoke| T2\n  AG -->|invoke| T3 --> BLOB\n  AG -->|invoke| T4 --> FN5 --> COSMOS\n  R -->|create job| FN3 --> COSMOS\n  UI <--> |poll| FN4\n  UI --> |fetch list| FN5\n  COSMOS -->|podcast metadata| UI\n  BLOB -->|audioUrl - SAS | UI\n  UI -.-> L\n  UI -.-> P\n  UI -.-> S\n  UI -.-> F\n",
+      "componentDiagram": "flowchart LR\n  subgraph Page[PromptJobPage.tsx]\n    HOOK0[useInit chatUri, window=12h]\n    HOOK1[usePromptJob-chatUri]\n    HOOK2[usePromptJobStatus-jobId]\n    HOOK3[usePatientPodcasts-window=12h]\n    HOOK4[useAudioPlayer]\n    HOOK5[useFilters]\n    BAR[FiltersBar]\n    LIST[PodcastList]\n    CARD[PatientPodcastCard]\n    PLAYER[PodcastPlayer]\n    EMPTY[EmptyState]\n  end\n\n  HOOK0 --> HOOK1\n  HOOK1 --> HOOK2\n  HOOK2 --> HOOK3\n  HOOK5 --> HOOK3\n  HOOK3 --> LIST\n  LIST --> CARD\n  CARD --> PLAYER\n  PLAYER --> HOOK4\n  BAR --> HOOK5\n\n  subgraph DataLayer\n    API[apiClient using native fetch]\n    STATE[useState/useEffect]\n  end\n\n  HOOK1 -->|POST /v1/chat_patient| API\n  HOOK2 -->|GET /functions/promptjobs/:id| API\n  HOOK3 -->|GET /functions/podcastItems?since=12h| API\n  API --> STATE",
+      "sequenceDiagram": "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Page as Next.js PromptJobPage\n  participant AIC as Flask aichat (/v1/chat_patient)\n  participant AG as LangChain Agent\n  participant AF as Azure Functions (TS)\n  participant DB as Cosmos DB\n  participant BL as Blob Storage\n  participant GM as Gemini TTS\n\n  Physician->>Page: Type question & Submit\n  Note over Page: chatUri prop points to /v1/chat_patient\n  Page->>AIC: POST /v1/chat_patient { prompt, window: last12h }\n  AIC->>AF: POST /promptjobs (create)\n  AF->>DB: Insert PromptJob { jobId, status: queued }\n  AF-->>AIC: 201 { jobId }\n  AIC->>AG: Start agent(jobId, window=12h)\n\n  AG->>AF: GET /events?since=12h&groupBy=patient\n  AF->>DB: Query events (labs, vitals, notes)\n  DB-->>AF: Events by patient\n  AF-->>AG: Events payload\n  AG->>AG: Plan outline + draft script per patient\n  AG->>GM: Synthesize(script, voice)\n  GM-->>AG: Audio bytes\n  AG->>BL: PUT /blobs/podcasts/{jobId}/{patientId}.mp3\n  BL-->>AG: audioUrl (SAS)\n  AG->>AF: PUT /podcastItems { jobId, patientId, audioUrl, transcript, status: ready }\n  AF->>DB: Upsert PodcastItem\n  loop Progress updates\n    AG->>AF: PUT /promptjobs/{jobId}/progress { completed, total }\n    AF->>DB: Update PromptJob\n  end\n  AG-->>AIC: Completed\n  AIC->>AF: PUT /promptjobs/{jobId} { status: complete }\n  AF->>DB: Mark complete\n\n  par UI refresh cycle\n    Page->>AF: GET /promptjobs/{jobId}\n    AF-->>Page: { status, progress }\n    Page->>AF: GET /podcastItems?jobId&since=12h\n    AF->>DB: Query podcast items\n    DB-->>AF: Results (with audioUrl)\n    AF-->>Page: PodcastItems[]\n  end\n\n  Physician->>Page: Click play on a patient\n  Page->>BL: GET audioUrl (SAS)\n  BL-->>Page: MP3 stream\n  Page-->>Physician: Audio playback + transcript + controls"
     },
     {
       "name": "Petly",
@@ -1162,14 +1597,18 @@
       "degree": "B.S. Biomedical Engineering",
       "year": "2003",
       "image": "/personal/images/education/bu.jpeg",
-      "awards": ["Order of the Engineer • Engineering • 1998"]
+      "awards": [
+        "Order of the Engineer • Engineering • 1998"
+      ]
     },
     {
       "school": "University of Southern Maine",
       "degree": "M.S. Computer Science",
       "year": "2008",
       "image": "/personal/images/education/usm.jpeg",
-      "awards": ["Graduate Student of the Year • Computer Science • 2008"]
+      "awards": [
+        "Graduate Student of the Year • Computer Science • 2008"
+      ]
     }
   ],
   "projectsSection": {

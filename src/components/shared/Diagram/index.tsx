@@ -29,47 +29,11 @@ import Undo from "@mui/icons-material/Undo";
 import Redo from "@mui/icons-material/Redo";
 import Code from "@mui/icons-material/Code";
 import CodeOff from "@mui/icons-material/CodeOff";
+import type { DiagramProps } from "@/types/components/shared";
+export type { DiagramProps } from "@/types/components/shared";
 
 // Custom hooks
-import { useIsVisible } from "@/hooks/useIsVisible";
-
-/**
- * Props for the Diagram component.
- *
- * @property {string} [id] - Unique identifier for the diagram.
- * @property {string} [diagram] - The diagram code in Mermaid syntax.
- * @property {string[]} [steps] - Array of steps to be included in the diagram.
- * @property {"TB" | "TD" | "BT" | "RL" | "LR"} [orientation] - Orientation of the diagram.
- * @property {string} [title] - Title of the diagram.
- * @property {"classDiagram" | "erDiagram" | "flowchart" | "graph" | "gantt" | "gitGraph" | "journey" | "mindmap" | "sequenceDiagram" | "stateDiagram-v2" | "timeline"} [type] - Type of the diagram.
- * @property {"mermaid" | "text"} [syntax] - Syntax type of the diagram.
- * @property {string | number} [height] - Height of the diagram container.
- * @property {string | number} [width] - Width of the diagram container.
- */
-export interface DiagramProps {
-  id?: string;
-  diagram?: string;
-  steps?: string[];
-  orientation?: "TB" | "TD" | "BT" | "RL" | "LR";
-  title?: string;
-  type?:
-    | "classDiagram"
-    | "erDiagram"
-    | "flowchart"
-    | "graph"
-    | "gantt"
-    | "gitGraph"
-    | "journey"
-    | "mindmap"
-    | "sequenceDiagram"
-    | "stateDiagram-v2"
-    | "timeline";
-  syntax?: "mermaid" | "text";
-  height?: string | number;
-  width?: string | number;
-  showDots?: boolean; // Optional prop to control dots visibility
-  showToolbar?: boolean; // Optional prop to control toolbar visibility
-}
+import { useIsVisible } from "@/hooks/html/useIsVisible";
 
 /**
  * Renders a diagram using the Mermaid library.

@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { Container } from "@mui/material";
 import Game from "./_Game";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import "./page.css";
 
 export default function WarbirdsPage() {

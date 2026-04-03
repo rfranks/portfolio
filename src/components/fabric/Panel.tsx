@@ -1,11 +1,8 @@
 import * as React from "react";
 import type { SxProps, Theme } from "@mui/material/styles";
+import type { PanelProps } from "@/types/components/fabric";
 
-import Surface, { SurfaceProps } from "./Surface";
-
-export interface PanelProps extends SurfaceProps {
-  compact?: boolean;
-}
+import Surface from "./Surface";
 
 export default function Panel({
   compact = false,

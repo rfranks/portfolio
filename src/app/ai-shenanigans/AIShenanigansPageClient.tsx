@@ -16,14 +16,17 @@ import AIShenanigan, {
   AIShenaniganType,
 } from "./_components/AIShenanigan";
 import AppBar from "@/components/portfolio/layout/AppBar";
+import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
 import { aiShenanigans, portfolioApps, summary } from "@/consts/resumeData";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
 import getFabricTheme from "@/themes/fabricTheme";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import { withBasePath } from "@/utils/basePath";
 
 export default function AIShenanigansPageClient() {
-  const { mode, toggleColorMode } = useColorModePreference();
+  const { mode, toggleColorMode, isReady } = useColorModePreference({
+    storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
+  });
   const theme = useMemo(() => getFabricTheme(mode), [mode]);
   const { setDocumentTitle } = useDocumentTitle();
 
@@ -31,15 +34,29 @@ export default function AIShenanigansPageClient() {
     setDocumentTitle(portfolioApps.aiShenanigans.documentTitle);
   }, [setDocumentTitle]);
 
+  if (!isReady) {
+    return null;
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline enableColorScheme />
       <Box
-        sx={{
+        sx={(theme) => ({
           minHeight: "100vh",
           bgcolor: "background.default",
           color: "text.primary",
-        }}
+          ...(theme.palette.mode === "light" && {
+            "--fabric-surface-1": "rgba(255, 255, 255, 0.54)",
+            "--fabric-surface-2": "rgba(255, 255, 255, 0.7)",
+            "--fabric-surface-3": "rgba(255, 255, 255, 0.84)",
+            "--fabric-surface-border": "rgba(55, 86, 136, 0.14)",
+            "--fabric-surface-border-strong": "rgba(55, 86, 136, 0.24)",
+            "--fabric-inner-glow": "rgba(255, 255, 255, 0.9)",
+            "--fabric-shadow-soft": "0 14px 40px rgba(35, 58, 99, 0.1)",
+            "--fabric-shadow-tight": "0 8px 22px rgba(33, 55, 95, 0.08)",
+          }),
+        })}
       >
         <AppBar
           mode={mode}
@@ -77,7 +94,26 @@ export default function AIShenanigansPageClient() {
         <Toolbar />
         <Container sx={{ py: { xs: 3, md: 5 } }}>
           <Stack spacing={3}>
-            <Box className="rounded-[32px] border border-white/10 bg-white/5 px-6 py-7 shadow-lg">
+            <Box
+              sx={(theme) => ({
+                px: 3,
+                py: 3.5,
+                borderRadius: "32px",
+                border: "1px solid",
+                borderColor:
+                  theme.palette.mode === "light"
+                    ? "rgba(55, 86, 136, 0.16)"
+                    : "rgba(255,255,255,0.1)",
+                backgroundColor:
+                  theme.palette.mode === "light"
+                    ? "rgba(255,255,255,0.68)"
+                    : "rgba(255,255,255,0.05)",
+                boxShadow:
+                  theme.palette.mode === "light"
+                    ? "0 18px 40px rgba(35, 58, 99, 0.1)"
+                    : undefined,
+              })}
+            >
               <Typography variant="overline" color="primary">
                 {portfolioApps.aiShenanigans.heroEyebrow}
               </Typography>

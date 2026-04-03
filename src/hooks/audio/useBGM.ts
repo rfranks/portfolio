@@ -1,15 +1,5 @@
 import * as React from "react";
-
-export type BGMChord = readonly string[];
-
-type UseBGMOptions = {
-  bpm?: number;
-  beatsPerChord?: number;
-  volume?: number;
-  waveform?: OscillatorType;
-  bassWaveform?: OscillatorType;
-  swing?: number;
-};
+import type { BGMChord, UseBGMOptions } from "@/types/hooks/audio";
 
 const SEMITONES: Record<string, number> = {
   C: 0,

@@ -10,7 +10,7 @@ import {
 } from "@/consts/game/ui";
 import { ENEMY_COLORS } from "@/consts/game/vehicles";
 import { MAX_AMMO, DEFAULT_CURSOR } from "../_constants";
-import { useWindowSize } from "@/hooks/useWindowSize";
+import { useWindowSize } from "@/hooks/window/useWindowSize";
 import { BASE_DIMS } from "@/consts/game/dimensions";
 import { withBasePath } from "@/utils/basePath";
 import { GameUIState } from "../_types";

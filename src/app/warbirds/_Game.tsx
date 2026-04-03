@@ -6,7 +6,7 @@ import { withBasePath } from "@/utils/basePath";
 import { TitleSplash } from "./_components/TitleSplash";
 import GameUI from "./_components/GameUI";
 import useGameEngine from "./_hooks/useGameEngine";
-import useDisableDrag from "@/hooks/useDisableDrag";
+import useDisableDrag from "@/hooks/event/useDisableDrag";
 
 export default function Game() {
   const engine = useGameEngine();
