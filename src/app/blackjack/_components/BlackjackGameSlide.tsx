@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import Image from "next/image";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { createPortal } from "react-dom";
 import { withBasePath } from "@/utils/basePath";
 import {
   BLACKJACK_START_CARD_ACE_SRC,
@@ -33,6 +35,7 @@ import {
   hasCurrencyValue,
 } from "../_utils/helpers";
 import AnimatedBlackjackCard from "./AnimatedBlackjackCard";
+import AnimatedTotalLabel from "./AnimatedTotalLabel";
 import ChipDecoratedValue from "./ChipDecoratedValue";
 
 type BlackjackGameSlideProps = {
@@ -86,58 +89,138 @@ export default function BlackjackGameSlide({
   tableShellRef,
   winningChipFx,
 }: BlackjackGameSlideProps) {
-  return (
-    <section
-      id="game-card"
-      ref={setSlideRef}
-      className="blackjack-panel blackjack-game-panel blackjack-carousel-slide"
-    >
-      {!gameStarted && (
-        <div className="blackjack-start-screen">
-          <div className="blackjack-start-backdrop" aria-hidden="true">
-            <Image
-              className="blackjack-start-card blackjack-start-card--back"
-              src={withBasePath(BLACKJACK_START_CARD_BACK_SRC)}
-              alt=""
-              width={240}
-              height={348}
-            />
-            <Image
-              className="blackjack-start-card blackjack-start-card--jack"
-              src={withBasePath(BLACKJACK_START_CARD_JACK_SRC)}
-              alt=""
-              width={240}
-              height={348}
-            />
-            <Image
-              className="blackjack-start-card blackjack-start-card--ace"
-              src={withBasePath(BLACKJACK_START_CARD_ACE_SRC)}
-              alt=""
-              width={240}
-              height={348}
-            />
-          </div>
-          <button
-            type="button"
-            className="blackjack-start-button"
-            onClick={onStartGame}
+  const isMobile = useMediaQuery("(max-width:768px)");
+  const showRoundEndModal = Boolean(
+    isMobile && engineState?.askingToDeal && engineState?.result,
+  );
+  const roundEndModal =
+    showRoundEndModal && engineState?.result && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="blackjack-round-end-modal"
+            role="dialog"
+            aria-modal="true"
           >
-            <span className="blackjack-start-button-title">Go! Blackjack!</span>
-            <span className="blackjack-start-button-caption">
-              Click to play!
-            </span>
-          </button>
-        </div>
-      )}
-      <div
-        className={
-          gameStarted
-            ? controlsArmed
-              ? "blackjack-game-shell"
-              : "blackjack-game-shell blackjack-game-shell--cooldown"
-            : "blackjack-game-shell blackjack-game-shell--hidden"
-        }
+            <div
+              className="blackjack-round-end-modal__backdrop"
+              aria-hidden="true"
+            />
+            <div className="blackjack-round-end-modal__panel">
+              <div
+                className={`blackjack-result-summary ${getResultToneClass(engineState.result.tone)}`}
+              >
+                {resultEmojis ? `${resultEmojis[0]} ` : null}
+                {engineState.result.badge === "Push"
+                  ? "You pushed!"
+                  : engineState.result.summary}
+                {resultEmojis ? ` ${resultEmojis[1]}` : null}
+              </div>
+              {engineState.result.badge ? (
+                <div className="blackjack-result-badge-row">
+                  <span className={getResultBadgeClass(engineState.result.badge)}>
+                    {engineState.result.badge}
+                  </span>
+                </div>
+              ) : null}
+              {engineState.result.detailLines.map((line, index) => (
+                <div
+                  key={index}
+                  className={`${getResultToneClass(engineState.result.tone)}${hasCurrencyValue(line) ? " blackjack-money-chip" : ""}`}
+                >
+                  {hasCurrencyValue(line) ? (
+                    <ChipDecoratedValue
+                      chipSrc={CHIP_WHITE_BLUE_SRC}
+                      className="blackjack-money-chip-inline"
+                    >
+                      {decorateResultDetailLine(
+                        line,
+                        engineState.result.tone,
+                        engineState.result.badge,
+                      )}
+                    </ChipDecoratedValue>
+                  ) : (
+                    decorateResultDetailLine(
+                      line,
+                      engineState.result.tone,
+                      engineState.result.badge,
+                    )
+                  )}
+                </div>
+              ))}
+              <div className="blackjack-result-status-row">
+                <div id="status">
+                  {decorateStatusText(engineState?.statusText ?? "")}
+                </div>
+                <button
+                  id="deal"
+                  className="blackjack-button blackjack-button-primary"
+                  style={{
+                    display: getControlDisplay(engineState.controls.deal),
+                  }}
+                  onClick={() => onAction("deal")}
+                >
+                  🃏 Deal
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
+
+  return (
+    <>
+      <section
+        id="game-card"
+        ref={setSlideRef}
+        className="blackjack-panel blackjack-game-panel blackjack-carousel-slide"
       >
+        {!gameStarted && (
+          <div className="blackjack-start-screen">
+            <div className="blackjack-start-backdrop" aria-hidden="true">
+              <Image
+                className="blackjack-start-card blackjack-start-card--back"
+                src={withBasePath(BLACKJACK_START_CARD_BACK_SRC)}
+                alt=""
+                width={240}
+                height={348}
+              />
+              <Image
+                className="blackjack-start-card blackjack-start-card--jack"
+                src={withBasePath(BLACKJACK_START_CARD_JACK_SRC)}
+                alt=""
+                width={240}
+                height={348}
+              />
+              <Image
+                className="blackjack-start-card blackjack-start-card--ace"
+                src={withBasePath(BLACKJACK_START_CARD_ACE_SRC)}
+                alt=""
+                width={240}
+                height={348}
+              />
+            </div>
+            <button
+              type="button"
+              className="blackjack-start-button"
+              onClick={onStartGame}
+            >
+              <span className="blackjack-start-button-title">Go! Blackjack!</span>
+              <span className="blackjack-start-button-caption">
+                Click to play!
+              </span>
+            </button>
+          </div>
+        )}
+        <div
+          className={
+            gameStarted
+              ? controlsArmed
+                ? "blackjack-game-shell"
+                : "blackjack-game-shell blackjack-game-shell--cooldown"
+              : "blackjack-game-shell blackjack-game-shell--hidden"
+          }
+        >
         <div className="blackjack-game-banner">
           <div className="blackjack-game-banner-cards" aria-hidden="true">
             <Image
@@ -288,60 +371,9 @@ export default function BlackjackGameSlide({
               </div>
             </div>
             <div id="dealer-total">
-              {engineState?.dealer.totalLabel ?? "Total: 0"}
+              <AnimatedTotalLabel value={engineState?.dealer.totalLabel ?? "Total: 0"} />
             </div>
           </div>
-          {engineState?.result ? (
-            <div id="result" className="blackjack-status-panel">
-              <div
-                className={`blackjack-result-summary ${getResultToneClass(engineState.result.tone)}`}
-              >
-                {resultEmojis ? `${resultEmojis[0]} ` : null}
-                {engineState.result.badge === "Push"
-                  ? "You pushed!"
-                  : engineState.result.summary}
-                {resultEmojis ? ` ${resultEmojis[1]}` : null}
-              </div>
-              {engineState.result.badge ? (
-                <div className="blackjack-result-badge-row">
-                  <span
-                    className={getResultBadgeClass(engineState.result.badge)}
-                  >
-                    {engineState.result.badge}
-                  </span>
-                </div>
-              ) : null}
-              {engineState.result.detailLines.map((line, index) => (
-                <div
-                  key={index}
-                  className={`${engineState.result ? getResultToneClass(engineState.result.tone) : ""}${hasCurrencyValue(line) ? " blackjack-money-chip" : ""}`}
-                >
-                  {hasCurrencyValue(line) ? (
-                    <ChipDecoratedValue
-                      chipSrc={CHIP_WHITE_BLUE_SRC}
-                      className="blackjack-money-chip-inline"
-                    >
-                      {engineState.result
-                        ? decorateResultDetailLine(
-                            line,
-                            engineState.result.tone,
-                            engineState.result.badge,
-                          )
-                        : ""}
-                    </ChipDecoratedValue>
-                  ) : engineState.result ? (
-                    decorateResultDetailLine(
-                      line,
-                      engineState.result.tone,
-                      engineState.result.badge,
-                    )
-                  ) : (
-                    ""
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : null}
           <div className="blackjack-player">
             <div id="player-info" className="blackjack-info-row">
               Player:{" "}
@@ -448,7 +480,7 @@ export default function BlackjackGameSlide({
                       </div>
                     </div>
                     <div className="blackjack-hand-total">
-                      {hand.totalLabel}
+                      <AnimatedTotalLabel value={hand.totalLabel} />
                       {hand.busted ? (
                         <span className="blackjack-busted-badge">Busted!</span>
                       ) : null}
@@ -458,142 +490,195 @@ export default function BlackjackGameSlide({
               </div>
             </div>
           </div>
-          {engineState?.hintText ? (
-            <div id="hint" className="blackjack-hint-panel">
-              {engineState.hintText}
+        </div>
+        {engineState?.result && !showRoundEndModal ? (
+          <div id="result" className="blackjack-status-panel blackjack-post-table-panel">
+            <div
+              className={`blackjack-result-summary ${getResultToneClass(engineState.result.tone)}`}
+            >
+              {resultEmojis ? `${resultEmojis[0]} ` : null}
+              {engineState.result.badge === "Push"
+                ? "You pushed!"
+                : engineState.result.summary}
+              {resultEmojis ? ` ${resultEmojis[1]}` : null}
             </div>
+            {engineState.result.badge ? (
+              <div className="blackjack-result-badge-row">
+                <span className={getResultBadgeClass(engineState.result.badge)}>
+                  {engineState.result.badge}
+                </span>
+              </div>
+            ) : null}
+            {engineState.result.detailLines.map((line, index) => (
+              <div
+                key={index}
+                className={`${engineState.result ? getResultToneClass(engineState.result.tone) : ""}${hasCurrencyValue(line) ? " blackjack-money-chip" : ""}`}
+              >
+                {hasCurrencyValue(line) ? (
+                  <ChipDecoratedValue
+                    chipSrc={CHIP_WHITE_BLUE_SRC}
+                    className="blackjack-money-chip-inline"
+                  >
+                    {engineState.result
+                      ? decorateResultDetailLine(
+                          line,
+                          engineState.result.tone,
+                          engineState.result.badge,
+                        )
+                      : ""}
+                  </ChipDecoratedValue>
+                ) : engineState.result ? (
+                  decorateResultDetailLine(
+                    line,
+                    engineState.result.tone,
+                    engineState.result.badge,
+                  )
+                ) : (
+                  ""
+                )}
+              </div>
+            ))}
+          </div>
+        ) : null}
+        {engineState?.hintText ? (
+          <div id="hint" className="blackjack-hint-panel blackjack-post-table-panel">
+            {engineState.hintText}
+          </div>
+        ) : null}
+          {!showRoundEndModal ? (
+          <div className="blackjack-status-panel blackjack-post-table-panel">
+            <div className="blackjack-status-row">
+              <div id="status">
+                {decorateStatusText(engineState?.statusText ?? "")}
+              </div>
+              {engineState?.askingToDeal ? (
+                <button
+                  id="deal"
+                  className="blackjack-button blackjack-button-primary"
+                  style={{
+                    display: getControlDisplay(engineState.controls.deal),
+                  }}
+                  onClick={() => onAction("deal")}
+                >
+                  🃏 Deal
+                </button>
+              ) : null}
+            </div>
+            <div id="controls" className="blackjack-controls">
+              {!engineState?.askingToDeal ? (
+                <button
+                  id="deal"
+                  className="blackjack-button blackjack-button-primary"
+                  style={{
+                    display: getControlDisplay(engineState?.controls.deal),
+                  }}
+                  onClick={() => onAction("deal")}
+                >
+                  🃏 Deal
+                </button>
+              ) : null}
+              <button
+                id="double"
+                className="blackjack-button"
+                style={{
+                  display: getControlDisplay(engineState?.controls.double),
+                }}
+                onClick={() => onAction("double")}
+              >
+                💥 Double
+              </button>
+              <button
+                id="split"
+                className="blackjack-button"
+                style={{
+                  display: getControlDisplay(engineState?.controls.split),
+                }}
+                onClick={() => onAction("split")}
+              >
+                ✂️ Split
+              </button>
+              <button
+                id="hit"
+                className="blackjack-button"
+                style={{ display: getControlDisplay(engineState?.controls.hit) }}
+                onClick={() => onAction("hit")}
+              >
+                ➕ Hit
+              </button>
+              <button
+                id="stand"
+                className="blackjack-button"
+                style={{
+                  display: getControlDisplay(engineState?.controls.stand),
+                }}
+                onClick={() => onAction("stand")}
+              >
+                ✋ Stand
+              </button>
+              <button
+                id="insure"
+                className="blackjack-button"
+                style={{
+                  display: getControlDisplay(engineState?.controls.insure),
+                }}
+                onClick={() => onAction("insure")}
+              >
+                🛡️ Insure
+              </button>
+              <button
+                id="decline"
+                className="blackjack-button blackjack-button-subtle"
+                style={{
+                  display: getControlDisplay(engineState?.controls.decline),
+                }}
+                onClick={() => onAction("decline")}
+              >
+                Decline
+              </button>
+            </div>
+            <div className="blackjack-audio-toggles">
+              <span className="blackjack-audio-label">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="blackjack-audio-label-icon"
+                >
+                  <path
+                    d="M3 10v4h4l5 4V6L7 10H3zm12.5 2a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 15.5 12zm0-9.5v2.06a7.5 7.5 0 0 1 0 14.88v2.06a9.5 9.5 0 0 0 0-19z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </span>
+              <label className="blackjack-audio-toggle">
+                <input
+                  type="checkbox"
+                  checked={bgmEnabled}
+                  onChange={onToggleBGM}
+                />
+                <span>BGM</span>
+              </label>
+              <label className="blackjack-audio-toggle">
+                <input
+                  type="checkbox"
+                  checked={ambienceEnabled}
+                  onChange={onToggleAmbience}
+                />
+                <span>Ambient</span>
+              </label>
+              <label className="blackjack-audio-toggle">
+                <input
+                  type="checkbox"
+                  checked={soundsEnabled}
+                  onChange={onToggleSounds}
+                />
+                <span>Sounds</span>
+              </label>
+            </div>
+          </div>
           ) : null}
         </div>
-        <div className="blackjack-status-panel">
-          <div className="blackjack-status-row">
-            <div id="status">
-              {decorateStatusText(engineState?.statusText ?? "")}
-            </div>
-            {engineState?.askingToDeal ? (
-              <button
-                id="deal"
-                className="blackjack-button blackjack-button-primary"
-                style={{
-                  display: getControlDisplay(engineState.controls.deal),
-                }}
-                onClick={() => onAction("deal")}
-              >
-                🃏 Deal
-              </button>
-            ) : null}
-          </div>
-          <div id="controls" className="blackjack-controls">
-            {!engineState?.askingToDeal ? (
-              <button
-                id="deal"
-                className="blackjack-button blackjack-button-primary"
-                style={{
-                  display: getControlDisplay(engineState?.controls.deal),
-                }}
-                onClick={() => onAction("deal")}
-              >
-                🃏 Deal
-              </button>
-            ) : null}
-            <button
-              id="double"
-              className="blackjack-button"
-              style={{
-                display: getControlDisplay(engineState?.controls.double),
-              }}
-              onClick={() => onAction("double")}
-            >
-              💥 Double
-            </button>
-            <button
-              id="split"
-              className="blackjack-button"
-              style={{
-                display: getControlDisplay(engineState?.controls.split),
-              }}
-              onClick={() => onAction("split")}
-            >
-              ✂️ Split
-            </button>
-            <button
-              id="hit"
-              className="blackjack-button"
-              style={{ display: getControlDisplay(engineState?.controls.hit) }}
-              onClick={() => onAction("hit")}
-            >
-              ➕ Hit
-            </button>
-            <button
-              id="stand"
-              className="blackjack-button"
-              style={{
-                display: getControlDisplay(engineState?.controls.stand),
-              }}
-              onClick={() => onAction("stand")}
-            >
-              ✋ Stand
-            </button>
-            <button
-              id="insure"
-              className="blackjack-button"
-              style={{
-                display: getControlDisplay(engineState?.controls.insure),
-              }}
-              onClick={() => onAction("insure")}
-            >
-              🛡️ Insure
-            </button>
-            <button
-              id="decline"
-              className="blackjack-button blackjack-button-subtle"
-              style={{
-                display: getControlDisplay(engineState?.controls.decline),
-              }}
-              onClick={() => onAction("decline")}
-            >
-              Decline
-            </button>
-          </div>
-          <div className="blackjack-audio-toggles">
-            <span className="blackjack-audio-label">
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                className="blackjack-audio-label-icon"
-              >
-                <path
-                  d="M3 10v4h4l5 4V6L7 10H3zm12.5 2a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 15.5 12zm0-9.5v2.06a7.5 7.5 0 0 1 0 14.88v2.06a9.5 9.5 0 0 0 0-19z"
-                  fill="currentColor"
-                />
-              </svg>
-            </span>
-            <label className="blackjack-audio-toggle">
-              <input
-                type="checkbox"
-                checked={bgmEnabled}
-                onChange={onToggleBGM}
-              />
-              <span>BGM</span>
-            </label>
-            <label className="blackjack-audio-toggle">
-              <input
-                type="checkbox"
-                checked={ambienceEnabled}
-                onChange={onToggleAmbience}
-              />
-              <span>Ambient</span>
-            </label>
-            <label className="blackjack-audio-toggle">
-              <input
-                type="checkbox"
-                checked={soundsEnabled}
-                onChange={onToggleSounds}
-              />
-              <span>Sounds</span>
-            </label>
-          </div>
-        </div>
-      </div>
-    </section>
+      </section>
+      {roundEndModal}
+    </>
   );
 }

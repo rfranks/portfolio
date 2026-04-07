@@ -90,6 +90,7 @@ export function useBlackjackPage() {
   const winningChipClearTimeoutRef = React.useRef<number | null>(null);
   const winningChipImpactTimeoutRef = React.useRef<number | null>(null);
   const blackjackConfettiClearTimeoutRef = React.useRef<number | null>(null);
+  const blackjackConfettiWaveTimeoutRef = React.useRef<number | null>(null);
   const previousActiveHandIndexRef = React.useRef<number | null>(null);
   const musicStartedRef = React.useRef(false);
 
@@ -272,14 +273,33 @@ export function useBlackjackPage() {
 
   const triggerBlackjackCelebration = React.useCallback(() => {
     const nextPieces = createBlackjackConfettiPieces(42);
+    const secondWavePreview = createBlackjackConfettiPieces(28).map((piece) => ({
+      ...piece,
+      delayMs: piece.delayMs + 600,
+    }));
     setBlackjackConfettiPieces(nextPieces);
     playSfx(blackjackConfettiSfx, { volume: 0.68 });
 
     if (blackjackConfettiClearTimeoutRef.current !== null) {
       window.clearTimeout(blackjackConfettiClearTimeoutRef.current);
     }
+    if (blackjackConfettiWaveTimeoutRef.current !== null) {
+      window.clearTimeout(blackjackConfettiWaveTimeoutRef.current);
+    }
 
-    const maxLifetimeMs = nextPieces.reduce(
+    blackjackConfettiWaveTimeoutRef.current = window.setTimeout(() => {
+      setBlackjackConfettiPieces((currentPieces) => [
+        ...currentPieces,
+        ...secondWavePreview.map((piece) => ({
+          ...piece,
+          id: `${piece.id}-wave-2`,
+          delayMs: Math.max(0, piece.delayMs - 600),
+        })),
+      ]);
+      blackjackConfettiWaveTimeoutRef.current = null;
+    }, 520);
+
+    const maxLifetimeMs = [...nextPieces, ...secondWavePreview].reduce(
       (maxLifetime, piece) =>
         Math.max(maxLifetime, piece.delayMs + piece.durationMs),
       0,
@@ -288,7 +308,7 @@ export function useBlackjackPage() {
     blackjackConfettiClearTimeoutRef.current = window.setTimeout(() => {
       setBlackjackConfettiPieces([]);
       blackjackConfettiClearTimeoutRef.current = null;
-    }, maxLifetimeMs + 180);
+    }, maxLifetimeMs + 320);
   }, [blackjackConfettiSfx, playSfx]);
 
   const startMusic = React.useCallback(() => {
@@ -390,6 +410,9 @@ export function useBlackjackPage() {
       }
       if (blackjackConfettiClearTimeoutRef.current !== null) {
         window.clearTimeout(blackjackConfettiClearTimeoutRef.current);
+      }
+      if (blackjackConfettiWaveTimeoutRef.current !== null) {
+        window.clearTimeout(blackjackConfettiWaveTimeoutRef.current);
       }
     };
   }, [stopStackTicker]);

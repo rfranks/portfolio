@@ -75,8 +75,8 @@ export function createBlackjackConfettiPieces(pieceCount: number) {
     return {
       id: `blackjack-confetti-${Date.now()}-${index}`,
       left: 2 + Math.random() * 96,
-      delayMs: Math.random() * 220,
-      durationMs: 2100 + Math.random() * 900,
+      delayMs: Math.random() * 320,
+      durationMs: 3200 + Math.random() * 1600,
       size,
       driftX: Math.random() * 180 - 90,
       rotateStart: Math.random() * 180 - 90,
