@@ -374,7 +374,7 @@ func cardSuitString(c cards.Card) string {
 
 func handNote(hand player.Hand) string {
 	if hand.TrifectaWager > 0 {
-		return "Trifecta Wager: " + PrintCurrency(hand.TrifectaWager*100)
+		return "Bonus Bet: " + PrintCurrency(hand.TrifectaWager*100)
 	}
 	if hand.Split {
 		return "Split Hand"

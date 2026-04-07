@@ -436,12 +436,12 @@ export default function BlackjackGameSlide({
                         <span className="blackjack-hand-label">
                           Hand {hand.index + 1}
                         </span>
-                        <ChipDecoratedValue
-                          className="blackjack-hand-meta blackjack-money-chip"
-                          chipSrc={CHIP_BLACK_WHITE_SRC}
-                        >
-                          Wager: ${hand.wager}
-                        </ChipDecoratedValue>
+                      <ChipDecoratedValue
+                        className="blackjack-hand-meta blackjack-money-chip"
+                        chipSrc={CHIP_BLACK_WHITE_SRC}
+                      >
+                        ${hand.wager}
+                      </ChipDecoratedValue>
                         {hand.note ? (
                           hasCurrencyValue(hand.note) ? (
                             <ChipDecoratedValue
