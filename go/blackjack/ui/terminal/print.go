@@ -415,7 +415,7 @@ func PrintGame(cfg flags.Config, askingForInsurance bool, askingToDeal bool) {
 			}
 			fmt.Printf("Hand %d:   Wager: $%d   ", i+1, hand.Wager)
 			if hand.TrifectaWager > 0 {
-				fmt.Printf(constants.Purple+"Bonus Bet: $%d"+constants.Reset, hand.TrifectaWager)
+				fmt.Printf(constants.Purple+"Bonus: $%d"+constants.Reset, hand.TrifectaWager)
 			}
 			fmt.Println()
 
