@@ -25,8 +25,6 @@ import {
   decorateStatusText,
   formatPlayerStackValue,
   getControlDisplay,
-  getGameModeChipClass,
-  getGameModeChipSrc,
   getOutcomeStampAngle,
   getOutcomeStampClass,
   getResultBadgeClass,
@@ -36,6 +34,7 @@ import {
 } from "../_utils/helpers";
 import AnimatedBlackjackCard from "./AnimatedBlackjackCard";
 import AnimatedTotalLabel from "./AnimatedTotalLabel";
+import BlackjackGameModeChip from "./BlackjackGameModeChip";
 import ChipDecoratedValue from "./ChipDecoratedValue";
 
 type BlackjackGameSlideProps = {
@@ -166,6 +165,11 @@ export default function BlackjackGameSlide({
                   🃏 Deal
                 </button>
               </div>
+              <BlackjackGameModeChip
+                engineState={engineState}
+                onToggleGameMode={onToggleGameMode}
+                className="blackjack-round-end-modal__mode-chip"
+              />
             </div>
           </div>,
           document.body,
@@ -256,30 +260,10 @@ export default function BlackjackGameSlide({
               Wasm Web Client
             </div>
             {engineState ? (
-              <button
-                type="button"
-                className={getGameModeChipClass(engineState.gameMode)}
-                disabled={!engineState.canToggleGameMode}
-                onClick={onToggleGameMode}
-                title={
-                  engineState.canToggleGameMode
-                    ? "Cycle blackjack game mode"
-                    : "Finish the current round before changing mode"
-                }
-              >
-                <Image
-                  className="blackjack-chip-adornment"
-                  src={withBasePath(getGameModeChipSrc(engineState.gameMode))}
-                  alt=""
-                  aria-hidden="true"
-                  width={20}
-                  height={20}
-                />
-                <span className="blackjack-game-mode-chip-label">Mode</span>
-                <span className="blackjack-game-mode-chip-value">
-                  {engineState.gameModeLabel}
-                </span>
-              </button>
+              <BlackjackGameModeChip
+                engineState={engineState}
+                onToggleGameMode={onToggleGameMode}
+              />
             ) : null}
             {modeTransitionMessageVisible ? (
               <div

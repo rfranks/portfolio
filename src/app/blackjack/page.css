@@ -109,6 +109,11 @@
   color: #eff6ff;
 }
 
+.blackjack-round-end-modal__mode-chip {
+  align-self: center;
+  margin-top: 0.25rem;
+}
+
 .blackjack-confetti-layer {
   position: fixed;
   inset: 0;
