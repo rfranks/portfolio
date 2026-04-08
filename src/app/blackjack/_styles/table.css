@@ -102,6 +102,10 @@
   font-weight: 600;
 }
 
+.blackjack-dealer-count {
+  margin-left: auto;
+}
+
 #player-winnings {
   margin-left: auto;
   text-align: right;
@@ -171,7 +175,7 @@
   flex-direction: column;
   flex: 0 0 auto;
   margin-bottom: 0;
-  min-height: 8.75rem;
+  min-height: 14rem;
 }
 
 .blackjack-hand--active {
@@ -186,6 +190,8 @@
 }
 
 .blackjack-hand-header {
+  flex: 0 0 auto;
+  block-size: fit-content;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -218,11 +224,14 @@
 }
 
 .blackjack-hand-total {
-  margin-top: auto;
-  padding-top: 0.75rem;
-  min-height: 2.35rem;
+  flex: 0 0 auto;
+  block-size: fit-content;
+  margin-top: 0;
+  margin-bottom: 0.55rem;
+  padding-top: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  gap: 0.45rem;
   overflow: visible;
   font-weight: 700;
   color: #f8fafc;
@@ -487,9 +496,11 @@
   transform: rotateY(180deg);
 }
 
-#dealer-total,
-.blackjack-hand-total {
-  margin-top: 0.75rem;
+#dealer-total {
+  flex: 0 0 auto;
+  block-size: fit-content;
+  margin-top: 0;
+  margin-bottom: 0.55rem;
   font-weight: 700;
   color: #f8fafc;
 }

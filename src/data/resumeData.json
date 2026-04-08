@@ -798,7 +798,7 @@
       "description": "Classic twenty-one card game against the dealer.",
       "href": "/blackjack",
       "type": "personal",
-      "interestsMeWhy": "The project highlights state management and probability in a familiar game. It's a clean example of how to model rules and player interaction.  It also illustrates how business logic in Go can be run both on the server and compiled to WebAssembly for client-side play.  This business logic is shared via the web, the raw terminal, and via the VSCode Go debugger versions.\n\nPlus...it's Blackjack!",
+      "interestsMeWhy": "This project uses a familiar game to demonstrate serious engineering ideas: state management, probability, and clean separation of concerns. Blackjack works especially well because each round behaves like a compact state machine with meaningful decisions, hidden information, and strict rule evaluation. The Go engine models all of that in one place: card values, hand totals, split/double/insurance eligibility, dealer behavior, payout resolution, side-bet math, and running statistics.\n\nWhat makes it especially compelling is portability. The same Go business logic runs in multiple forms: as a terminal application, inside the VS Code Go debugger, and in the browser via WebAssembly. A thin message bridge translates web UI actions into engine inputs and turns engine state into render-ready output, while keeping rules centralized.\n\nIn practice, this means the web client and terminal client are different presentation layers over one shared rules core, rather than duplicated implementations. It is a practical example of writing business logic once and reusing it across runtime environments.\n\nPlus...it's Blackjack!",
       "watermark": {
         "kind": "cardsFan",
         "containerClassName": "pointer-events-none absolute bottom-3 right-3 h-36 w-40 opacity-[0.16] transition-all duration-500 group-hover:scale-[1.03] group-hover:opacity-[0.24]",
@@ -831,7 +831,7 @@
           "title": "Blackjack Component Diagram",
           "type": "flowchart",
           "height": 420,
-          "diagram": "flowchart TB\n  User[\"Player\"] --> ReactUI[\"Next.js Blackjack Page\"]\n  ReactUI --> Audio[\"Audio Hooks\\nuseAudio / useBGM / useAmbience\"]\n  ReactUI --> Bus[\"window.postMessage Bus\"]\n  Bus --> WebUI[\"Go WASM WebUI\\nui/web/web.go\"]\n  WebUI --> Engine[\"Blackjack Engine\\ndealer / game / player / sidebets\"]\n  Engine --> StateBuilder[\"Render State Builder\\nui/web/messages.go\"]\n  StateBuilder --> WebUI\n  WebUI --> Bus\n  Bus --> ReactUI\n  ReactUI --> DOM[\"Rendered Cards / Controls / Status\"]\n  ReactUI --> Audio"
+          "diagram": "flowchart TB\n  User[\"Player\"] --> ReactUI[\"Next.js Blackjack Page\"]\n  ReactUI --> Audio[\"Audio Hooks - useAudio / useBGM / useAmbience\"]\n  ReactUI --> Bus[\"window.postMessage Bus\"]\n  Bus --> WebUI[\"Go WASM WebUI - ui/web/web.go\"]\n  WebUI --> Engine[\"Blackjack Engine - dealer / game / player / sidebets\"]\n  Engine --> StateBuilder[\"Render State Builder - ui/web/messages.go\"]\n  StateBuilder --> WebUI\n  WebUI --> Bus\n  Bus --> ReactUI\n  ReactUI --> DOM[\"Rendered Cards / Controls / Status\"]\n  ReactUI --> Audio"
         },
         {
           "title": "Blackjack Sequence Diagram",

@@ -9,6 +9,7 @@ import { rewindAndPlayAudio } from "@/utils/audio";
 import {
   BLACKJACK_AMBIENT_SOUNDS,
   BLACKJACK_BGM_PROGRESSION,
+  BLACKJACK_CARD_FLIP_SOUNDS,
   BLACKJACK_CONFETTI_SOUND,
   BLACKJACK_SOUNDS_STORAGE_KEY,
   CHIP_WIN_IMPACT_SOUNDS,
@@ -38,7 +39,6 @@ import {
   createWinningChipFx,
 } from "../_utils/effects";
 import {
-  countRenderedCards,
   getDealerOutcomeStampLabel,
   getDisplayResultSummary,
   getPlayerHasBlackjack,
@@ -100,11 +100,12 @@ export function useBlackjackPage() {
   const blackjackSfx = useAudio("/audio/jingles_STEEL16.ogg");
   const bustSfx = useAudio("/audio/lowDown.ogg");
   const dealSfx = useAudio("/audio/cards-pack-take-out-2.ogg");
-  const hitSfx = useAudio("/audio/card-slide-8.ogg");
+  const actionSfx = useAudio("/audio/select_005.ogg");
   const loseSfx = useAudio("/audio/error_008.ogg");
   const winSfx = useAudio("/audio/jingles_HIT03.mp3");
   const chipWinLaunchSfx = useAudio(CHIP_WIN_LAUNCH_SOUNDS[0]);
   const chipWinImpactSfx = useAudio(CHIP_WIN_IMPACT_SOUNDS[0]);
+  const cardFlipSfx = useAudio(BLACKJACK_CARD_FLIP_SOUNDS[0]);
   const blackjackConfettiSfx = useAudio(BLACKJACK_CONFETTI_SOUND);
 
   const {
@@ -163,6 +164,14 @@ export function useBlackjackPage() {
     },
     [soundsEnabled],
   );
+
+  const playWagerChipSfx = React.useCallback(() => {
+    const wagerToggleSound =
+      CHIP_WIN_IMPACT_SOUNDS[
+        Math.floor(Math.random() * CHIP_WIN_IMPACT_SOUNDS.length)
+      ];
+    playSfx(chipWinImpactSfx, wagerToggleSound, { volume: 0.48 });
+  }, [chipWinImpactSfx, playSfx]);
 
   const stopStackTicker = React.useCallback(() => {
     if (stackTickerFrameRef.current !== null) {
@@ -329,10 +338,15 @@ export function useBlackjackPage() {
   const handleAction = React.useCallback(
     (action: BlackjackUiAction) => {
       startMusic();
+      playSfx(actionSfx, undefined, { volume: 0.4 });
       postBlackjackAction(action);
     },
-    [startMusic],
+    [actionSfx, playSfx, startMusic],
   );
+
+  const handleModalOk = React.useCallback(() => {
+    playSfx(actionSfx, undefined, { volume: 0.4 });
+  }, [actionSfx, playSfx]);
 
   const handleStartGame = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -403,12 +417,22 @@ export function useBlackjackPage() {
   ]);
 
   const handleCycleWager = React.useCallback(() => {
+    playWagerChipSfx();
     postBlackjackCycleWager();
-  }, []);
+  }, [playWagerChipSfx]);
 
   const handleCycleBonusWager = React.useCallback(() => {
+    playWagerChipSfx();
     postBlackjackCycleBonusWager();
-  }, []);
+  }, [playWagerChipSfx]);
+
+  const handleCardFlip = React.useCallback(() => {
+    const flipSound =
+      BLACKJACK_CARD_FLIP_SOUNDS[
+        Math.floor(Math.random() * BLACKJACK_CARD_FLIP_SOUNDS.length)
+      ];
+    playSfx(cardFlipSfx, flipSound, { volume: 0.34 });
+  }, [cardFlipSfx, playSfx]);
 
   const setSlideRef = React.useCallback(
     (id: BlackjackCarouselSlideId, node: HTMLElement | null) => {
@@ -571,17 +595,6 @@ export function useBlackjackPage() {
         }
       }
 
-      const currentTotalCards = countRenderedCards(engineState);
-      const previousTotalCards = countRenderedCards(previousState);
-      if (
-        !engineState.askingToDeal &&
-        currentTotalCards > previousTotalCards &&
-        !previousState.askingToDeal &&
-        previousTotalCards > 0
-      ) {
-        playSfx(hitSfx);
-      }
-
       if (currentResultKey && currentResultKey !== previousResultKey) {
         const previousWinnings = previousState.player?.winnings ?? 0;
         const currentWinnings = engineState.player?.winnings ?? 0;
@@ -645,7 +658,6 @@ export function useBlackjackPage() {
     bustSfx,
     displayedPlayerStack,
     engineState,
-    hitSfx,
     loseSfx,
     playSfx,
     syncDisplayedPlayerStack,
@@ -722,7 +734,9 @@ export function useBlackjackPage() {
     handleAction,
     handleCycleBonusWager,
     handleCycleWager,
+    handleCardFlip,
     handleCycleSlides,
+    handleModalOk,
     handleStartGame,
     handleToggleAllAudio,
     handleToggleGameMode,

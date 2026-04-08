@@ -63,6 +63,8 @@ export default function BlackjackPage() {
         onAction={blackjack.handleAction}
         onCycleBonusWager={blackjack.handleCycleBonusWager}
         onCycleWager={blackjack.handleCycleWager}
+        onCardFlip={blackjack.handleCardFlip}
+        onModalOk={blackjack.handleModalOk}
         onSetHandRef={blackjack.setHandRef}
         onStartGame={blackjack.handleStartGame}
         onToggleAllAudio={blackjack.handleToggleAllAudio}

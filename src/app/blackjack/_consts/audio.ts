@@ -23,6 +23,13 @@ export const CHIP_WIN_IMPACT_SOUNDS = [
   "/audio/chips-stack-3.ogg",
 ] as const;
 
+export const BLACKJACK_CARD_FLIP_SOUNDS = [
+  "/audio/card-place-1.ogg",
+  "/audio/card-place-2.ogg",
+  "/audio/card-place-3.ogg",
+  "/audio/card-place-4.ogg",
+] as const;
+
 export const BLACKJACK_CONFETTI_SOUND = "/audio/explosionCrunch_003.ogg";
 export const BLACKJACK_SOUNDS_STORAGE_KEY = "blackjack-sounds-enabled";
 export const BLACKJACK_AMBIENT_SOUNDS = [

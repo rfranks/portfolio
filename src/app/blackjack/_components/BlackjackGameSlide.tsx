@@ -37,8 +37,10 @@ import AnimatedBlackjackCard from "./AnimatedBlackjackCard";
 import AnimatedTotalLabel from "./AnimatedTotalLabel";
 import BlackjackBonusWagerChip from "./BlackjackBonusWagerChip";
 import BlackjackGameModeChip from "./BlackjackGameModeChip";
+import BlackjackSettingsModal from "./BlackjackSettingsModal";
 import BlackjackWagerChip from "./BlackjackWagerChip";
 import ChipDecoratedValue from "./ChipDecoratedValue";
+import styles from "./BlackjackGameSlide.module.css";
 
 type BlackjackGameSlideProps = {
   activeVisualHandIndex: number | null;
@@ -52,6 +54,8 @@ type BlackjackGameSlideProps = {
   onAction: (action: BlackjackUiAction) => void;
   onCycleBonusWager: () => void;
   onCycleWager: () => void;
+  onCardFlip: () => void;
+  onModalOk: () => void;
   onSetHandRef: (index: number, node: HTMLDivElement | null) => void;
   onStartGame: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onToggleAllAudio: () => void;
@@ -87,6 +91,8 @@ export default function BlackjackGameSlide({
   onAction,
   onCycleBonusWager,
   onCycleWager,
+  onCardFlip,
+  onModalOk,
   onSetHandRef,
   onStartGame,
   onToggleAllAudio,
@@ -103,6 +109,8 @@ export default function BlackjackGameSlide({
   winningChipFx,
 }: BlackjackGameSlideProps) {
   const isMobile = useMediaQuery("(max-width:768px)");
+  const isShortViewport = useMediaQuery("(max-height:820px)");
+  const useRoundEndModalLayout = isMobile || isShortViewport;
   const hintSuggestedAction = engineState?.hintText
     ? getHintSuggestedAction(engineState.hintText)
     : null;
@@ -112,8 +120,14 @@ export default function BlackjackGameSlide({
   const [gameModeModalOpen, setGameModeModalOpen] = React.useState(false);
   const [gameModeModalVisible, setGameModeModalVisible] = React.useState(false);
   const [gameModeModalClosing, setGameModeModalClosing] = React.useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
+  const [settingsModalVisible, setSettingsModalVisible] = React.useState(false);
+  const [settingsModalClosing, setSettingsModalClosing] = React.useState(false);
   const shouldShowRoundEndModal = Boolean(
-    gameStarted && isMobile && engineState?.askingToDeal && engineState?.result,
+    gameStarted &&
+      useRoundEndModalLayout &&
+      engineState?.askingToDeal &&
+      engineState?.result,
   );
   const [roundEndModalVisible, setRoundEndModalVisible] = React.useState(false);
 
@@ -144,6 +158,9 @@ export default function BlackjackGameSlide({
       gameModeModalOpen &&
       engineState &&
       typeof document !== "undefined",
+  );
+  const showSettingsModal = Boolean(
+    settingsModalVisible && settingsModalOpen && typeof document !== "undefined",
   );
 
   React.useEffect(() => {
@@ -196,12 +213,37 @@ export default function BlackjackGameSlide({
     };
   }, [gameModeModalOpen, gameModeModalVisible]);
 
+  React.useEffect(() => {
+    if (settingsModalOpen) {
+      setSettingsModalVisible(true);
+      setSettingsModalClosing(false);
+      return;
+    }
+
+    if (!settingsModalVisible) {
+      return;
+    }
+
+    setSettingsModalClosing(true);
+    const timeoutId = window.setTimeout(() => {
+      setSettingsModalVisible(false);
+      setSettingsModalClosing(false);
+    }, MODAL_EXIT_ANIMATION_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [settingsModalOpen, settingsModalVisible]);
+
   const closeHintModal = React.useCallback(() => {
     setHintModalOpen(false);
   }, []);
 
   const closeGameModeModal = React.useCallback(() => {
     setGameModeModalOpen(false);
+  }, []);
+  const closeSettingsModal = React.useCallback(() => {
+    setSettingsModalOpen(false);
   }, []);
   const renderActionButtonLabel = React.useCallback(
     (actionLabel: string) =>
@@ -327,7 +369,10 @@ export default function BlackjackGameSlide({
                     id="close-mode-modal"
                     type="button"
                     className="blackjack-button blackjack-button-subtle"
-                    onClick={closeGameModeModal}
+                    onClick={() => {
+                      onModalOk();
+                      closeGameModeModal();
+                    }}
                   >
                     OK
                   </button>
@@ -364,7 +409,10 @@ export default function BlackjackGameSlide({
                 <button
                   type="button"
                   className="blackjack-button blackjack-button-subtle"
-                  onClick={closeHintModal}
+                  onClick={() => {
+                    onModalOk();
+                    closeHintModal();
+                  }}
                 >
                   OK
                 </button>
@@ -566,11 +614,34 @@ export default function BlackjackGameSlide({
               Wasm Web Client
             </div>
             {engineState ? (
-              <BlackjackGameModeChip
-                engineState={engineState}
-                onToggleGameMode={() => setGameModeModalOpen(true)}
-                allowWhenLocked
-              />
+              <div className={styles.bannerControls}>
+                <BlackjackGameModeChip
+                  engineState={engineState}
+                  onToggleGameMode={() => setGameModeModalOpen(true)}
+                  className={styles.bannerModeChip}
+                  allowWhenLocked
+                />
+                <button
+                  type="button"
+                  className={styles.settingsTrigger}
+                  onClick={() => setSettingsModalOpen(true)}
+                  aria-label="Open settings"
+                >
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className={styles.settingsTriggerIcon}
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.04 7.04 0 0 0-1.63-.94l-.36-2.54a.49.49 0 0 0-.49-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.56 8.84a.5.5 0 0 0 .12.64L4.7 11.06c-.04.31-.06.62-.06.94s.02.63.07.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.4 1.05.72 1.63.94l.36 2.54a.49.49 0 0 0 .49.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.58-.23 1.12-.54 1.63-.94l2.39.96c.23.09.5 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.02-1.58zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"
+                    />
+                  </svg>
+                  <span className={styles.settingsTriggerLabel}>
+                    Settings
+                  </span>
+                </button>
+              </div>
             ) : null}
             {modeTransitionMessageVisible ? (
               <div
@@ -633,10 +704,17 @@ export default function BlackjackGameSlide({
               </div>
             ) : null}
             <div id="dealer-info" className="blackjack-info-row">
-              Dealer: House: <span id="house">{engineState?.house ?? 0}</span>{" "}
-              Count: <span id="count">{engineState?.count ?? 0}</span>
+              Dealer:
+              <span className="blackjack-dealer-count">
+                Count: <span id="count">{engineState?.count ?? 0}</span>
+              </span>
             </div>
             <div id="dealer" className="blackjack-seat">
+              <div id="dealer-total">
+                <AnimatedTotalLabel
+                  value={engineState?.dealer.totalLabel ?? "Total: 0"}
+                />
+              </div>
               <div className="blackjack-hand-cards-wrap">
                 <div className="blackjack-dealer-cards-stack">
                   <div id="dealer-cards" className="cards">
@@ -645,6 +723,7 @@ export default function BlackjackGameSlide({
                         key={`${card.suit}-${card.value}-${index}`}
                         card={card}
                         dealIndex={index}
+                        onFlip={onCardFlip}
                         alt={
                           card.masked
                             ? "Hidden card"
@@ -671,11 +750,6 @@ export default function BlackjackGameSlide({
                     </div>
                   ) : null}
                 </div>
-              </div>
-              <div id="dealer-total">
-                <AnimatedTotalLabel
-                  value={engineState?.dealer.totalLabel ?? "Total: 0"}
-                />
               </div>
             </div>
             <div className="blackjack-player">
@@ -764,6 +838,14 @@ export default function BlackjackGameSlide({
                           </span>
                         ) : null}
                       </div>
+                      <div className="blackjack-hand-total">
+                        <AnimatedTotalLabel value={hand.totalLabel} />
+                        {hand.busted ? (
+                          <span className="blackjack-busted-badge">
+                            Busted!
+                          </span>
+                        ) : null}
+                      </div>
                       <div className="blackjack-hand-cards-wrap">
                         <div className="blackjack-hand-cards-stack">
                           <div className="cards">
@@ -772,6 +854,7 @@ export default function BlackjackGameSlide({
                                 key={`${hand.index}-${card.suit}-${card.value}-${index}`}
                                 card={card}
                                 dealIndex={index}
+                                onFlip={onCardFlip}
                                 alt={
                                   card.masked
                                     ? "Hidden card"
@@ -801,21 +884,13 @@ export default function BlackjackGameSlide({
                           ) : null}
                         </div>
                       </div>
-                      <div className="blackjack-hand-total">
-                        <AnimatedTotalLabel value={hand.totalLabel} />
-                        {hand.busted ? (
-                          <span className="blackjack-busted-badge">
-                            Busted!
-                          </span>
-                        ) : null}
-                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           </div>
-          {engineState?.result && !showRoundEndModal ? (
+          {engineState?.result && !shouldShowRoundEndModal ? (
             <div
               id="result"
               className="blackjack-status-panel blackjack-post-table-panel"
@@ -979,64 +1054,23 @@ export default function BlackjackGameSlide({
                   </button>
                 </div>
               </div>
-              <div className="blackjack-audio-row blackjack-post-table-panel">
-                <div className="blackjack-audio-toggles">
-                  <button
-                    type="button"
-                    className="blackjack-audio-label blackjack-audio-label-button"
-                    onClick={onToggleAllAudio}
-                    title={
-                      bgmEnabled && ambienceEnabled && soundsEnabled
-                        ? "Turn all audio off"
-                        : "Turn all audio on"
-                    }
-                    aria-label={
-                      bgmEnabled && ambienceEnabled && soundsEnabled
-                        ? "Turn all audio off"
-                        : "Turn all audio on"
-                    }
-                  >
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 24 24"
-                      className="blackjack-audio-label-icon"
-                    >
-                      <path
-                        d="M3 10v4h4l5 4V6L7 10H3zm12.5 2a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 15.5 12zm0-9.5v2.06a7.5 7.5 0 0 1 0 14.88v2.06a9.5 9.5 0 0 0 0-19z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </button>
-                  <label className="blackjack-audio-toggle">
-                    <input
-                      type="checkbox"
-                      checked={bgmEnabled}
-                      onChange={onToggleBGM}
-                    />
-                    <span>BGM</span>
-                  </label>
-                  <label className="blackjack-audio-toggle">
-                    <input
-                      type="checkbox"
-                      checked={ambienceEnabled}
-                      onChange={onToggleAmbience}
-                    />
-                    <span>Ambient</span>
-                  </label>
-                  <label className="blackjack-audio-toggle">
-                    <input
-                      type="checkbox"
-                      checked={soundsEnabled}
-                      onChange={onToggleSounds}
-                    />
-                    <span>Sounds</span>
-                  </label>
-                </div>
-              </div>
             </>
           ) : null}
         </div>
       </section>
+      <BlackjackSettingsModal
+        open={showSettingsModal}
+        closing={settingsModalClosing}
+        onClose={closeSettingsModal}
+        onModalOk={onModalOk}
+        bgmEnabled={bgmEnabled}
+        ambienceEnabled={ambienceEnabled}
+        soundsEnabled={soundsEnabled}
+        onToggleAllAudio={onToggleAllAudio}
+        onToggleBGM={onToggleBGM}
+        onToggleAmbience={onToggleAmbience}
+        onToggleSounds={onToggleSounds}
+      />
       {hintModal}
       {gameModeModal}
       {roundEndModal}

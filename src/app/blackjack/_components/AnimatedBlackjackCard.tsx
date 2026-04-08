@@ -11,12 +11,14 @@ type AnimatedBlackjackCardProps = {
   card: BlackjackCardView;
   alt: string;
   dealIndex: number;
+  onFlip: () => void;
 };
 
 export default function AnimatedBlackjackCard({
   card,
   alt,
   dealIndex,
+  onFlip,
 }: AnimatedBlackjackCardProps) {
   const [entered, setEntered] = React.useState(false);
   const [revealed, setRevealed] = React.useState(card.masked);
@@ -31,6 +33,7 @@ export default function AnimatedBlackjackCard({
       if (!card.masked) {
         revealTimeout = window.setTimeout(
           () => {
+            onFlip();
             setRevealed(true);
           },
           220 + dealIndex * 70,
@@ -44,7 +47,7 @@ export default function AnimatedBlackjackCard({
         window.clearTimeout(revealTimeout);
       }
     };
-  }, [card.masked, card.suit, card.value, dealIndex]);
+  }, [card.masked, card.suit, card.value, dealIndex, onFlip]);
 
   return (
     <div

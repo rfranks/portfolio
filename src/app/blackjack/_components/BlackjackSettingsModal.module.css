@@ -1,0 +1,117 @@
+.settingsPanel {
+  width: min(100%, 27rem);
+  text-align: left;
+}
+
+.settingsTitle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.settingsTitleIcon {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: rgba(191, 219, 254, 0.95);
+}
+
+.settingsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.2rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.settingsSectionTitle {
+  color: rgba(191, 219, 254, 0.88);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.audioToggles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 0;
+}
+
+.audioLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgba(191, 219, 254, 0.88);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.audioLabelButton {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    color 180ms ease,
+    opacity 180ms ease;
+}
+
+.audioLabelButton:hover,
+.audioLabelButton:focus-visible {
+  color: #dbeafe;
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.audioLabelIcon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+}
+
+.audioToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgba(226, 232, 240, 0.88);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.audioToggleInput {
+  margin: 0;
+  inline-size: 0.9rem;
+  block-size: 0.9rem;
+  accent-color: #60a5fa;
+}
+
+.settingsActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .settingsPanel {
+    width: min(100%, 23rem);
+  }
+}

@@ -125,6 +125,7 @@ export function getOutcomeStampClass(label: string) {
       return "blackjack-hand-stamp blackjack-hand-stamp--loser";
     case "Push":
     case "Push!":
+    case "PUSH!":
       return "blackjack-hand-stamp blackjack-hand-stamp--push";
     default:
       return "blackjack-hand-stamp";
@@ -274,7 +275,7 @@ export function getDealerOutcomeStampLabel(state: BlackjackRenderState | null) {
     case "Lost!":
       return "Won!";
     case "Push":
-      return "Push";
+      return "PUSH!";
     default:
       return "";
   }
