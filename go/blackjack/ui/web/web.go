@@ -16,6 +16,7 @@ import (
 
 type WebUI struct {
 	actionCh            chan rune
+	currentBonusWager   int
 	currentWager        int
 	messageFn           js.Func
 	cfg                 flags.Config
@@ -26,10 +27,11 @@ type WebUI struct {
 
 func New(cfg flags.Config) *WebUI {
 	w := &WebUI{
-		actionCh:     make(chan rune),
-		currentWager: cfg.MinWager,
-		cfg:          cfg,
-		lastWinnings: 0,
+		actionCh:          make(chan rune),
+		currentBonusWager: 10,
+		currentWager:      cfg.MinWager,
+		cfg:               cfg,
+		lastWinnings:      0,
 	}
 	w.bindMessageBus()
 	return w
@@ -55,6 +57,11 @@ func (w *WebUI) bindMessageBus() {
 		switch data.Get("type").String() {
 		case "blackjack/start":
 			w.actionCh <- 'd'
+		case "blackjack/cycle-bonus-wager":
+			if w.canToggleGameMode() && len(game.State.Players) > 0 {
+				w.cycleBonusWagerForPlayer(&game.State.Players[0])
+				w.postStateMessage(ui.GameState{AskingToDeal: true})
+			}
 		case "blackjack/cycle-wager":
 			if w.canToggleGameMode() && len(game.State.Players) > 0 {
 				w.cycleWagerForPlayer(&game.State.Players[0])
@@ -62,7 +69,7 @@ func (w *WebUI) bindMessageBus() {
 			}
 		case "blackjack/toggle-game-mode":
 			if w.canToggleGameMode() {
-				w.toggleGameMode()
+				w.toggleGameMode(data.Get("direction").String())
 				w.postStateMessage(ui.GameState{AskingToDeal: true})
 			}
 		case "blackjack/action":
@@ -96,23 +103,31 @@ func (w *WebUI) canToggleGameMode() bool {
 	return !rules.CanHit(&game.State.Dealer.Hands[0])
 }
 
-func (w *WebUI) toggleGameMode() {
-	switch game.GameMode {
-	case game.Blackjack:
-		game.GameMode = game.JackAttack
-	case game.JackAttack:
-		game.GameMode = game.Trifecta
-	case game.Trifecta:
-		game.GameMode = game.Trifecta3
-	case game.Trifecta3:
-		game.GameMode = game.TrifectaStaxx
-	case game.TrifectaStaxx:
-		game.GameMode = game.Spanish21
-	case game.Spanish21:
-		game.GameMode = game.Blackjack
-	default:
-		game.GameMode = game.Blackjack
+func (w *WebUI) toggleGameMode(direction string) {
+	gameModes := []game.Game{
+		game.Blackjack,
+		game.JackAttack,
+		game.Trifecta,
+		game.Trifecta3,
+		game.TrifectaStaxx,
+		game.Spanish21,
 	}
+
+	currentIndex := 0
+	for i, mode := range gameModes {
+		if game.GameMode == mode {
+			currentIndex = i
+			break
+		}
+	}
+
+	if direction == "prev" {
+		currentIndex = (currentIndex - 1 + len(gameModes)) % len(gameModes)
+	} else {
+		currentIndex = (currentIndex + 1) % len(gameModes)
+	}
+
+	game.GameMode = gameModes[currentIndex]
 
 	game.State.Count = 0
 	game.State.Dealer.Hands = nil
@@ -138,6 +153,21 @@ func availableWagersForStack(stack int, minWager int) []int {
 	}
 	if len(available) == 0 && stack >= minWager {
 		available = append(available, minWager)
+	}
+	return available
+}
+
+func availableBonusWagersForStack(stack int) []int {
+	candidates := []int{0, 5, 10}
+	available := make([]int, 0, len(candidates))
+	for _, wager := range candidates {
+		if wager > stack {
+			continue
+		}
+		available = append(available, wager)
+	}
+	if len(available) == 0 {
+		return []int{0}
 	}
 	return available
 }
@@ -173,6 +203,33 @@ func (w *WebUI) cycleWagerForPlayer(cardPlayer *player.Player) {
 		return
 	}
 	w.currentWager = available[0]
+}
+
+func (w *WebUI) SelectedBonusWagerForPlayer(cardPlayer *player.Player) int {
+	if cardPlayer == nil {
+		return 0
+	}
+	available := availableBonusWagersForStack(cardPlayer.Stack)
+	for _, wager := range available {
+		if wager == w.currentBonusWager {
+			return wager
+		}
+	}
+	w.currentBonusWager = available[len(available)-1]
+	return w.currentBonusWager
+}
+
+func (w *WebUI) cycleBonusWagerForPlayer(cardPlayer *player.Player) {
+	available := availableBonusWagersForStack(cardPlayer.Stack)
+	current := w.SelectedBonusWagerForPlayer(cardPlayer)
+	for index, wager := range available {
+		if wager != current {
+			continue
+		}
+		w.currentBonusWager = available[(index+1)%len(available)]
+		return
+	}
+	w.currentBonusWager = available[0]
 }
 
 func (w *WebUI) ReadAction() (rune, error) {

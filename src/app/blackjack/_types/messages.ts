@@ -15,6 +15,8 @@ export type BlackjackGameMode =
   | "trifecta-staxx"
   | "spanish21";
 
+export type BlackjackGameModeDirection = "next" | "prev";
+
 export type BlackjackTone = "loss" | "neutral" | "win";
 export type BlackjackWinningsTone = "negative" | "neutral" | "positive";
 
@@ -35,6 +37,8 @@ export interface BlackjackDealerView {
 
 export interface BlackjackPlayerHandView {
   active: boolean;
+  bonusType: string;
+  bonusWinnings: number;
   busted: boolean;
   cards: BlackjackCardView[];
   index: number;
@@ -49,6 +53,7 @@ export interface BlackjackPlayerHandView {
 
 export interface BlackjackPlayerView {
   hands: BlackjackPlayerHandView[];
+  selectedBonusWager: number;
   selectedWager: number;
   stack: number;
   winnings: number;
@@ -103,11 +108,16 @@ export interface BlackjackStartMessage {
 }
 
 export interface BlackjackToggleGameModeMessage {
+  direction?: BlackjackGameModeDirection;
   type: "blackjack/toggle-game-mode";
 }
 
 export interface BlackjackCycleWagerMessage {
   type: "blackjack/cycle-wager";
+}
+
+export interface BlackjackCycleBonusWagerMessage {
+  type: "blackjack/cycle-bonus-wager";
 }
 
 export interface BlackjackStateMessage {
@@ -117,6 +127,7 @@ export interface BlackjackStateMessage {
 
 export type BlackjackMessage =
   | BlackjackActionMessage
+  | BlackjackCycleBonusWagerMessage
   | BlackjackCycleWagerMessage
   | BlackjackStartMessage
   | BlackjackToggleGameModeMessage

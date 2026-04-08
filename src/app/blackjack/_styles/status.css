@@ -63,6 +63,10 @@
   flex: 0 1 auto;
 }
 
+.blackjack-result-status-row--deal-again {
+  justify-content: center;
+}
+
 @keyframes blackjack-result-pop {
   0% {
     opacity: 0;
@@ -93,6 +97,10 @@
 
 .blackjack-status-row #status {
   flex: 1 1 auto;
+}
+
+.blackjack-status-row--deal-again {
+  justify-content: center;
 }
 
 .blackjack-audio-toggles {
@@ -169,6 +177,30 @@
 .blackjack-hint-panel {
   white-space: pre-line;
   color: rgba(226, 232, 240, 0.9);
+}
+
+.blackjack-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    rgba(219, 234, 254, 0.8) 18%,
+    rgba(255, 255, 255, 0.98) 50%,
+    rgba(250, 204, 21, 0.88) 82%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: blackjack-shimmer-text 1.9s linear infinite;
+}
+
+@keyframes blackjack-shimmer-text {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .blackjack-controls {

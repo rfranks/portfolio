@@ -80,8 +80,14 @@ func DealHand(cfg flags.Config) {
 				}
 
 				if currPlayer.WillPlayTrifecta(currPlayer.Stack) {
-					currPlayer.Stack -= cfg.MinWager / 2
-					currPlayer.Hands[0].TrifectaWager = cfg.MinWager / 2
+					bonusWager := 10
+					if currPlayer.PlaceTrifectaWager != nil {
+						bonusWager = currPlayer.PlaceTrifectaWager()
+					}
+					if bonusWager > 0 && currPlayer.Stack >= bonusWager {
+						currPlayer.Stack -= bonusWager
+						currPlayer.Hands[0].TrifectaWager = bonusWager
+					}
 				}
 			}
 		}

@@ -257,6 +257,11 @@ export function getDisplayResultSummary(result: BlackjackResultView) {
   return result.summary;
 }
 
+export function getHintSuggestedAction(hintText: string) {
+  const match = hintText.match(/Hint: Autoplay says you should ([A-Z ]+)!/);
+  return match?.[1] ?? null;
+}
+
 export function getDealerOutcomeStampLabel(state: BlackjackRenderState | null) {
   const dealerLabel = state?.dealer.outcomeLabel;
   if (dealerLabel) {

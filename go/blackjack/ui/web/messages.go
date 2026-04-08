@@ -62,16 +62,19 @@ type BlackjackDealerView struct {
 }
 
 type BlackjackPlayerView struct {
-	Hands           []BlackjackPlayerHandView `json:"hands"`
-	SelectedWager   int                       `json:"selectedWager"`
-	Stack           int                       `json:"stack"`
-	Winnings        int                       `json:"winnings"`
-	WinningsDisplay string                    `json:"winningsDisplay"`
-	WinningsTone    string                    `json:"winningsTone"`
+	Hands              []BlackjackPlayerHandView `json:"hands"`
+	SelectedBonusWager int                       `json:"selectedBonusWager"`
+	SelectedWager      int                       `json:"selectedWager"`
+	Stack              int                       `json:"stack"`
+	Winnings           int                       `json:"winnings"`
+	WinningsDisplay    string                    `json:"winningsDisplay"`
+	WinningsTone       string                    `json:"winningsTone"`
 }
 
 type BlackjackPlayerHandView struct {
 	Active        bool                `json:"active"`
+	BonusType     string              `json:"bonusType"`
+	BonusWinnings int                 `json:"bonusWinnings"`
 	Busted        bool                `json:"busted"`
 	Cards         []BlackjackCardView `json:"cards"`
 	Index         int                 `json:"index"`
@@ -318,19 +321,23 @@ func (w *WebUI) buildPlayerView() *BlackjackPlayerView {
 	}
 
 	p := game.State.Players[0]
+	totalWinnings := p.Winnings + game.State.SidebetWinnings - game.State.SidebetLosses
 	view := &BlackjackPlayerView{
-		Hands:           make([]BlackjackPlayerHandView, 0, len(p.Hands)),
-		SelectedWager:   w.SelectedWagerForPlayer(&p),
-		Stack:           p.Stack,
-		Winnings:        p.Winnings,
-		WinningsDisplay: PrintCurrency(p.Winnings * 100),
-		WinningsTone:    winningsTone(p.Winnings),
+		Hands:              make([]BlackjackPlayerHandView, 0, len(p.Hands)),
+		SelectedBonusWager: w.SelectedBonusWagerForPlayer(&p),
+		SelectedWager:      w.SelectedWagerForPlayer(&p),
+		Stack:              p.Stack,
+		Winnings:           totalWinnings,
+		WinningsDisplay:    PrintCurrency(totalWinnings * 100),
+		WinningsTone:       winningsTone(totalWinnings),
 	}
 
 	for i := 0; i < len(p.Hands); i++ {
 		hand := p.Hands[i]
 		view.Hands = append(view.Hands, BlackjackPlayerHandView{
 			Active:        hand.Active,
+			BonusType:     handBonusTypeLabel(hand),
+			BonusWinnings: hand.TrifectaWinnings,
 			Busted:        handIsBusted(hand),
 			Cards:         buildCardViews(hand.Cards),
 			Index:         i,
@@ -382,6 +389,61 @@ func handNote(hand player.Hand) string {
 		return "Split Hand"
 	}
 	return ""
+}
+
+func handBonusTypeLabel(hand player.Hand) string {
+	if hand.TrifectaWager <= 0 || hand.TrifectaWinnings <= 0 {
+		return ""
+	}
+
+	switch game.GameMode {
+	case game.JackAttack:
+		return "Jack Attack"
+	case game.Spanish21:
+		return "Match"
+	case game.Trifecta:
+		switch {
+		case sidebets.IsTrifectaTriplet(hand, cards.Five, false):
+			return "Fives"
+		case sidebets.IsTrifectaStraightFlush(hand):
+			return "Straight Flush"
+		case sidebets.IsTrifectaTrips(hand, false):
+			return "Trips"
+		case sidebets.IsTrifectaStraight(hand):
+			return "Straight"
+		case sidebets.IsTrifectaFlush(hand):
+			return "Flush"
+		case sidebets.IsTrifectaJacksOrBetter(hand):
+			return "Jacks or Better"
+		}
+	case game.Trifecta3:
+		switch {
+		case sidebets.IsTrifectaTrips(hand, true):
+			return "Suited Trips"
+		case sidebets.IsTrifectaStraightFlush(hand):
+			return "Straight Flush"
+		case sidebets.IsTrifectaTrips(hand, false):
+			return "Trips"
+		}
+	case game.TrifectaStaxx:
+		switch {
+		case sidebets.IsTrifectaTripAces(hand, true),
+			sidebets.IsTrifectaTripAces(hand, false),
+			sidebets.IsTrifectaTriplet(hand, cards.King, false),
+			sidebets.IsTrifectaTriplet(hand, cards.Queen, false):
+			return "Progressive"
+		case sidebets.IsTrifectaStraightFlush(hand):
+			return "Straight Flush"
+		case sidebets.IsTrifectaTrips(hand, false):
+			return "Trips"
+		case sidebets.IsTrifectaStraight(hand):
+			return "Straight"
+		case sidebets.IsTrifectaFlush(hand):
+			return "Flush"
+		}
+	}
+
+	return "Bet"
 }
 
 func winningsTone(winnings int) string {
@@ -480,10 +542,28 @@ func (w *WebUI) buildResultView(state ui.GameState) *BlackjackResultView {
 		Tone:        "neutral",
 	}
 
+	appendBonusDetails := func(prefix string, includeNetOnWin bool) {
+		switch {
+		case bonusDiff > 0:
+			line := prefix + PrintCurrency(bonusDiff*100) + "!"
+			if bonusReasonText != "" {
+				line += " " + bonusReasonText
+			}
+			view.DetailLines = append(view.DetailLines, line)
+			if includeNetOnWin {
+				view.DetailLines = append(view.DetailLines, "Net: "+PrintCurrency(netDiff*100)+".")
+			}
+		case bonusDiff < 0:
+			view.DetailLines = append(view.DetailLines, "Bonus "+PrintCurrency(bonusDiff*100)+".")
+			view.DetailLines = append(view.DetailLines, "Net: "+PrintCurrency(netDiff*100)+".")
+		}
+	}
+
 	switch {
 	case dealerHasBlackjack && playerBlackjackCount > 0:
 		view.Summary = "Blackjack on both sides."
 		view.Badge = "Push"
+		appendBonusDetails("You also won a bonus of ", false)
 	case dealerHasBlackjack:
 		view.Summary = "Dealer blackjack."
 		view.Badge = "Lost!"
@@ -491,66 +571,44 @@ func (w *WebUI) buildResultView(state ui.GameState) *BlackjackResultView {
 		if baseDiff < 0 {
 			view.DetailLines = append(view.DetailLines, "You lost "+PrintCurrency(-baseDiff*100)+" on the hand!")
 		}
+		appendBonusDetails("You won a bonus of ", true)
 	case playerBlackjackCount > 0:
 		view.Summary = "Blackjack!"
 		view.Badge = "Won!"
 		view.Tone = "win"
-		if baseDiff > 0 {
-			view.DetailLines = append(view.DetailLines, "You won "+PrintCurrency(baseDiff*100)+" on the hand!")
-		} else if len(p.Hands) > 0 {
+		blackjackHandWin := baseDiff
+		if blackjackHandWin <= 0 && len(p.Hands) > 0 {
 			for i := 0; i < len(p.Hands); i++ {
 				if rules.IsBlackjack(p.Hands[i]) {
 					winnings := p.Hands[i].Wager + (p.Hands[i].Wager / 2.0) + p.Hands[i].Wager
-					view.DetailLines = append(view.DetailLines, "You won "+PrintCurrency(winnings*100)+" on the hand!")
+					blackjackHandWin = winnings
 					break
 				}
 			}
+		}
+		if bonusDiff != 0 {
+			line := "Net: " + PrintCurrency(netDiff*100) + " (bonus " + PrintCurrency(bonusDiff*100) + ")."
+			if bonusDiff > 0 && bonusReasonText != "" {
+				line += " " + bonusReasonText
+			}
+			view.DetailLines = append(view.DetailLines, line)
+		} else if blackjackHandWin > 0 {
+			view.DetailLines = append(view.DetailLines, "You won "+PrintCurrency(blackjackHandWin*100)+" on the hand!")
 		}
 	case baseDiff > 0:
 		view.Summary = "You won " + PrintCurrency(baseDiff*100) + " for the hand!"
 		view.Badge = "Won!"
 		view.Tone = "win"
-		switch {
-		case bonusDiff > 0:
-			line := "You also won a bonus of " + PrintCurrency(bonusDiff*100) + "!"
-			if bonusReasonText != "" {
-				line += " " + bonusReasonText
-			}
-			view.DetailLines = append(view.DetailLines, line)
-		case bonusDiff < 0:
-			view.DetailLines = append(view.DetailLines, "You lost "+PrintCurrency(-bonusDiff*100)+" on bonus wagers.")
-			view.DetailLines = append(view.DetailLines, "Net: "+PrintCurrency(netDiff*100)+".")
-		}
+		appendBonusDetails("You also won a bonus of ", false)
 	case baseDiff < 0:
 		view.Summary = "You lost " + PrintCurrency(-baseDiff*100) + " on the hand!"
 		view.Badge = "Lost!"
 		view.Tone = "loss"
-		switch {
-		case bonusDiff > 0:
-			line := "You won a bonus of " + PrintCurrency(bonusDiff*100) + "."
-			if bonusReasonText != "" {
-				line += " " + bonusReasonText
-			}
-			view.DetailLines = append(view.DetailLines, line)
-			view.DetailLines = append(view.DetailLines, "Net: "+PrintCurrency(netDiff*100)+".")
-		case bonusDiff < 0:
-			view.DetailLines = append(view.DetailLines, "You lost "+PrintCurrency(-bonusDiff*100)+" on bonus wagers.")
-			view.DetailLines = append(view.DetailLines, "Net: "+PrintCurrency(netDiff*100)+".")
-		}
+		appendBonusDetails("You won a bonus of ", true)
 	default:
 		view.Summary = "Push."
 		view.Badge = "Push"
-		switch {
-		case bonusDiff > 0:
-			line := "You also won a bonus of " + PrintCurrency(bonusDiff*100) + "!"
-			if bonusReasonText != "" {
-				line += " " + bonusReasonText
-			}
-			view.DetailLines = append(view.DetailLines, line)
-		case bonusDiff < 0:
-			view.DetailLines = append(view.DetailLines, "You lost "+PrintCurrency(-bonusDiff*100)+" on bonus wagers.")
-			view.DetailLines = append(view.DetailLines, "Net: "+PrintCurrency(netDiff*100)+".")
-		}
+		appendBonusDetails("You also won a bonus of ", false)
 	}
 
 	return view

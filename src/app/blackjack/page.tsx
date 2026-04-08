@@ -61,6 +61,7 @@ export default function BlackjackPage() {
         gameStarted={blackjack.gameStarted}
         modeTransitionMessageVisible={blackjack.modeTransitionMessageVisible}
         onAction={blackjack.handleAction}
+        onCycleBonusWager={blackjack.handleCycleBonusWager}
         onCycleWager={blackjack.handleCycleWager}
         onSetHandRef={blackjack.setHandRef}
         onStartGame={blackjack.handleStartGame}

@@ -287,6 +287,11 @@
   letter-spacing: 0.03em;
 }
 
+.blackjack-game-mode-modal__chip-row .blackjack-game-mode-chip {
+  margin-top: 0;
+  align-self: center;
+}
+
 .blackjack-wager-chip--borderless {
   border-color: transparent;
   box-shadow: none;

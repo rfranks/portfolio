@@ -16,6 +16,7 @@ import {
 } from "../_consts/audio";
 import type {
   BlackjackGameMode,
+  BlackjackGameModeDirection,
   BlackjackRenderState,
   BlackjackUiAction,
 } from "../_types/messages";
@@ -27,6 +28,7 @@ import type {
 import {
   isBlackjackStateMessage,
   postBlackjackAction,
+  postBlackjackCycleBonusWager,
   postBlackjackCycleWager,
   postBlackjackStart,
   postBlackjackToggleGameMode,
@@ -346,8 +348,12 @@ export function useBlackjackPage() {
   );
 
   const handleToggleGameMode = React.useCallback(
-    (options?: { autoDeal?: boolean }) => {
+    (options?: {
+      autoDeal?: boolean;
+      direction?: BlackjackGameModeDirection;
+    }) => {
       const autoDeal = options?.autoDeal ?? true;
+      const direction = options?.direction ?? "next";
       startMusic();
       pendingModeChangeAutoDealRef.current = autoDeal;
       modeChangeObservedRef.current = false;
@@ -357,7 +363,7 @@ export function useBlackjackPage() {
         pendingModeChangeAutoDealRef.current = false;
       }
 
-      postBlackjackToggleGameMode();
+      postBlackjackToggleGameMode(direction);
     },
     [startMusic],
   );
@@ -398,6 +404,10 @@ export function useBlackjackPage() {
 
   const handleCycleWager = React.useCallback(() => {
     postBlackjackCycleWager();
+  }, []);
+
+  const handleCycleBonusWager = React.useCallback(() => {
+    postBlackjackCycleBonusWager();
   }, []);
 
   const setSlideRef = React.useCallback(
@@ -710,6 +720,7 @@ export function useBlackjackPage() {
     engineState,
     gameStarted,
     handleAction,
+    handleCycleBonusWager,
     handleCycleWager,
     handleCycleSlides,
     handleStartGame,

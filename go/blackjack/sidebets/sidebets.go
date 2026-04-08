@@ -213,7 +213,10 @@ func IsTwentyHand(hand player.Hand) bool {
 func PayJackAttack() {
 	for i := 0; i < len(game.State.Players); i++ {
 		playerToTest := &game.State.Players[i]
-		hand := player.ActiveHand(playerToTest)
+		hand := trifectaHandForPlayer(playerToTest)
+		if hand == nil || hand.TrifectaWager <= 0 {
+			continue
+		}
 		winnings := 0
 
 		if rules.IsPairHand(*hand, cards.Jack, true) && cards.IsOneEyedJack(hand.Cards[0]) && cards.IsOneEyedJack(hand.Cards[1]) {
@@ -235,10 +238,12 @@ func PayJackAttack() {
 		if winnings > 0 {
 			// you get your wager back?
 			playerToTest.Stack += winnings + hand.TrifectaWager
+			hand.TrifectaWinnings = winnings
 
 			// track our winnings
 			game.State.SidebetWinnings += winnings
 		} else {
+			hand.TrifectaWinnings = 0
 			game.State.SidebetLosses += hand.TrifectaWager
 		}
 	}
@@ -299,7 +304,13 @@ func PaySpanish21Matches() {
 
 			if winnings > 0 {
 				currPlayer.Stack += winnings + hand.TrifectaWager
+				hand.TrifectaWinnings = winnings
 				game.State.SidebetWinnings += winnings
+			} else {
+				hand.TrifectaWinnings = 0
+				if hand.TrifectaWager > 0 {
+					game.State.SidebetLosses += hand.TrifectaWager
+				}
 			}
 		})
 	})
@@ -310,7 +321,10 @@ func PaySpanish21Matches() {
 func PayTrifecta() {
 	for i := 0; i < len(game.State.Players); i++ {
 		playerToTest := &game.State.Players[i]
-		hand := player.ActiveHand(playerToTest)
+		hand := trifectaHandForPlayer(playerToTest)
+		if hand == nil || hand.TrifectaWager <= 0 {
+			continue
+		}
 		trifectaWinnings := 0
 
 		if IsTrifectaTriplet(*hand, cards.Five, false) {
@@ -335,10 +349,12 @@ func PayTrifecta() {
 		if trifectaWinnings > 0 {
 			// you get your wager back?
 			playerToTest.Stack += trifectaWinnings + hand.TrifectaWager
+			hand.TrifectaWinnings = trifectaWinnings
 
 			// track our winnings
 			game.State.SidebetWinnings += trifectaWinnings
 		} else {
+			hand.TrifectaWinnings = 0
 			game.State.SidebetLosses += hand.TrifectaWager
 		}
 	}
@@ -349,7 +365,10 @@ func PayTrifecta() {
 func PayTrifecta3() {
 	for i := 0; i < len(game.State.Players); i++ {
 		playerToTest := &game.State.Players[i]
-		hand := player.ActiveHand(playerToTest)
+		hand := trifectaHandForPlayer(playerToTest)
+		if hand == nil || hand.TrifectaWager <= 0 {
+			continue
+		}
 		trifectaWinnings := 0
 
 		if IsTrifectaTrips(*hand, true) {
@@ -366,10 +385,12 @@ func PayTrifecta3() {
 		if trifectaWinnings > 0 {
 			// you get your wager back?
 			playerToTest.Stack += trifectaWinnings + hand.TrifectaWager
+			hand.TrifectaWinnings = trifectaWinnings
 
 			// track our winnings
 			game.State.SidebetWinnings += trifectaWinnings
 		} else {
+			hand.TrifectaWinnings = 0
 			game.State.SidebetLosses += hand.TrifectaWager
 		}
 	}
@@ -380,32 +401,35 @@ func PayTrifecta3() {
 func PayTrifectaStax() {
 	for i := 0; i < len(game.State.Players); i++ {
 		playerToTest := &game.State.Players[i]
-		hand := *player.ActiveHand(playerToTest)
+		hand := trifectaHandForPlayer(playerToTest)
+		if hand == nil || hand.TrifectaWager <= 0 {
+			continue
+		}
 		trifectaWinnings := 0
 
-		if IsTrifectaTripAces(hand, true) {
+		if IsTrifectaTripAces(*hand, true) {
 			//suited trip aces win the jackpot progressive
 			trifectaWinnings += TrifectaProgressives[0] / 100
 			TrifectaProgressives[0] = 1000000
-		} else if IsTrifectaTripAces(hand, false) {
+		} else if IsTrifectaTripAces(*hand, false) {
 			//unsuited trip aces win the mega progressive
 			trifectaWinnings += TrifectaProgressives[1] / 100
 			TrifectaProgressives[1] = 500000
-		} else if IsTrifectaTriplet(hand, cards.King, false) {
+		} else if IsTrifectaTriplet(*hand, cards.King, false) {
 			//unsuited trip kings win the super progressive
 			trifectaWinnings += TrifectaProgressives[2] / 100
 			TrifectaProgressives[2] = 100000
-		} else if IsTrifectaTriplet(hand, cards.Queen, false) {
+		} else if IsTrifectaTriplet(*hand, cards.Queen, false) {
 			//unsuited trip queens win the progressive
 			trifectaWinnings += TrifectaProgressives[3] / 100
 			TrifectaProgressives[3] = 50000
-		} else if IsTrifectaStraightFlush(hand) {
+		} else if IsTrifectaStraightFlush(*hand) {
 			trifectaWinnings += 150
-		} else if IsTrifectaTrips(hand, false) {
+		} else if IsTrifectaTrips(*hand, false) {
 			trifectaWinnings += 100
-		} else if IsTrifectaStraight(hand) {
+		} else if IsTrifectaStraight(*hand) {
 			trifectaWinnings += 30
-		} else if IsTrifectaFlush(hand) {
+		} else if IsTrifectaFlush(*hand) {
 			trifectaWinnings += 20
 		} else {
 			// add losing trifecta stax wagers to the progressives, weighted
@@ -418,10 +442,12 @@ func PayTrifectaStax() {
 		if trifectaWinnings > 0 {
 			// you get your wager back?
 			playerToTest.Stack += trifectaWinnings + hand.TrifectaWager
+			hand.TrifectaWinnings = trifectaWinnings
 
 			// track our winnings
 			game.State.SidebetWinnings += trifectaWinnings
 		} else {
+			hand.TrifectaWinnings = 0
 			game.State.SidebetLosses += hand.TrifectaWager
 		}
 	}
@@ -431,4 +457,14 @@ func PayTrifectaStax() {
 
 func CardsMatchSuit(aCard cards.Card, bCard cards.Card) bool {
 	return aCard.Suit == bCard.Suit
+}
+
+func trifectaHandForPlayer(currPlayer *player.Player) *player.Hand {
+	for i := 0; i < len(currPlayer.Hands); i++ {
+		if currPlayer.Hands[i].TrifectaWager > 0 {
+			return &currPlayer.Hands[i]
+		}
+	}
+
+	return player.ActiveHand(currPlayer)
 }

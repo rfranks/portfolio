@@ -209,6 +209,14 @@
   text-align: right;
 }
 
+.blackjack-hand-bonus-win {
+  margin-left: auto;
+  color: #4ade80;
+  font-weight: 800;
+  text-align: right;
+  text-shadow: 0 0 12px rgba(74, 222, 128, 0.28);
+}
+
 .blackjack-hand-total {
   margin-top: auto;
   padding-top: 0.75rem;
@@ -485,4 +493,3 @@
   font-weight: 700;
   color: #f8fafc;
 }
-

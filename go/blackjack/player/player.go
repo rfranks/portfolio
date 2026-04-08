@@ -24,17 +24,18 @@ type Hand struct {
 }
 
 type Player struct {
-	Hands            []Hand               `yaml:"hands"`
-	Dealer           bool                 `yaml:"dealer"`
-	Stack            int                  `yaml:"stack"`
-	DoAction         func() (rune, error) `yaml:"-"`
-	PlaceWager       func() int           `yaml:"-"`
-	WillPlayTrifecta func(stack int) bool `yaml:"-"`
-	LastHandWon      bool                 `yaml:"last-hand-won"`
-	LastHandPushed   bool                 `yaml:"last-hand-pushed"`
-	LastWager        int                  `yaml:"last-wager"`
-	WinStreak        int                  `yaml:"win-streak"`
-	Winnings         int                  `yaml:"winnings"`
+	Hands              []Hand               `yaml:"hands"`
+	Dealer             bool                 `yaml:"dealer"`
+	Stack              int                  `yaml:"stack"`
+	DoAction           func() (rune, error) `yaml:"-"`
+	PlaceWager         func() int           `yaml:"-"`
+	PlaceTrifectaWager func() int           `yaml:"-"`
+	WillPlayTrifecta   func(stack int) bool `yaml:"-"`
+	LastHandWon        bool                 `yaml:"last-hand-won"`
+	LastHandPushed     bool                 `yaml:"last-hand-pushed"`
+	LastWager          int                  `yaml:"last-wager"`
+	WinStreak          int                  `yaml:"win-streak"`
+	Winnings           int                  `yaml:"winnings"`
 }
 
 func ActiveHand(player *Player) *Hand {

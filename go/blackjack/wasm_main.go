@@ -113,6 +113,11 @@ func Start(this js.Value, args []js.Value) any {
 					return webConsole.SelectedWagerForPlayer(currPlayer)
 				}
 			}(cardPlayer)
+			cardPlayer.PlaceTrifectaWager = func(currPlayer *player.Player) func() int {
+				return func() int {
+					return webConsole.SelectedBonusWagerForPlayer(currPlayer)
+				}
+			}(cardPlayer)
 		}
 	}
 

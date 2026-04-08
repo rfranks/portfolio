@@ -17,6 +17,10 @@ func SidebetReasons(hand player.Hand) []string {
 	switch game.GameMode {
 	case game.Spanish21:
 		return spanish21Reasons(hand)
+	case game.Trifecta:
+		return trifectaReasons(hand)
+	case game.Trifecta3:
+		return trifecta3Reasons(hand)
 	case game.TrifectaStaxx:
 		return trifectaStaxxReasons(hand)
 	default:
@@ -94,6 +98,46 @@ func trifectaStaxxReasons(hand player.Hand) []string {
 		return []string{"Trifecta FLUSH!"}
 	case sidebets.IsTrifectaStraight(hand):
 		return []string{"Trifecta STRAIGHT!"}
+	default:
+		return nil
+	}
+}
+
+func trifectaReasons(hand player.Hand) []string {
+	if hand.TrifectaWager <= 0 {
+		return nil
+	}
+
+	switch {
+	case sidebets.IsTrifectaTriplet(hand, cards.Five, false):
+		return []string{"Trifecta FIVES! 60 to 1 WINNER!"}
+	case sidebets.IsTrifectaStraightFlush(hand):
+		return []string{"Trifecta STRAIGHT FLUSH! 40 to 1 WINNER!"}
+	case sidebets.IsTrifectaTrips(hand, false):
+		return []string{"Trifecta TRIPS! 30 to 1 WINNER!"}
+	case sidebets.IsTrifectaStraight(hand):
+		return []string{"Trifecta STRAIGHT! 6 to 1 WINNER!"}
+	case sidebets.IsTrifectaFlush(hand):
+		return []string{"Trifecta FLUSH! 4 to 1 WINNER!"}
+	case sidebets.IsTrifectaJacksOrBetter(hand):
+		return []string{"Trifecta JACKS OR BETTER! 2 to 1 WINNER!"}
+	default:
+		return nil
+	}
+}
+
+func trifecta3Reasons(hand player.Hand) []string {
+	if hand.TrifectaWager <= 0 {
+		return nil
+	}
+
+	switch {
+	case sidebets.IsTrifectaTrips(hand, true):
+		return []string{"Trifecta 3 SUITED TRIPS! 270 to 1 WINNER!"}
+	case sidebets.IsTrifectaStraightFlush(hand):
+		return []string{"Trifecta 3 STRAIGHT FLUSH! 180 to 1 WINNER!"}
+	case sidebets.IsTrifectaTrips(hand, false):
+		return []string{"Trifecta 3 TRIPS! 90 to 1 WINNER!"}
 	default:
 		return nil
 	}

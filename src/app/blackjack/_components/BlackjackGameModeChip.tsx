@@ -10,12 +10,14 @@ type BlackjackGameModeChipProps = {
   engineState: BlackjackRenderState;
   onToggleGameMode: () => void;
   className?: string;
+  allowWhenLocked?: boolean;
 };
 
 export default function BlackjackGameModeChip({
   engineState,
   onToggleGameMode,
   className,
+  allowWhenLocked = false,
 }: BlackjackGameModeChipProps) {
   const chipClassName = [
     getGameModeChipClass(engineState.gameMode),
@@ -23,17 +25,20 @@ export default function BlackjackGameModeChip({
   ]
     .filter(Boolean)
     .join(" ");
+  const isInteractive = engineState.canToggleGameMode || allowWhenLocked;
 
   return (
     <button
       type="button"
       className={chipClassName}
-      disabled={!engineState.canToggleGameMode}
+      disabled={!isInteractive}
       onClick={onToggleGameMode}
       title={
         engineState.canToggleGameMode
           ? "Cycle blackjack game mode"
-          : "Finish the current round before changing mode"
+          : allowWhenLocked
+            ? "View current game mode details"
+            : "Finish the current round before changing mode"
       }
     >
       <Image
