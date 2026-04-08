@@ -52,7 +52,7 @@ type BlackjackGameSlideProps = {
   onStartGame: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onToggleAmbience: () => void;
   onToggleBGM: () => void;
-  onToggleGameMode: () => void;
+  onToggleGameMode: (options?: { autoDeal?: boolean }) => void;
   onToggleSounds: () => void;
   playerStackRef: React.RefObject<HTMLSpanElement | null>;
   resultEmojis: [string, string] | null;
@@ -421,12 +421,12 @@ export default function BlackjackGameSlide({
                         <span className="blackjack-hand-label">
                           Hand {hand.index + 1}
                         </span>
-                      <ChipDecoratedValue
-                        className="blackjack-hand-meta blackjack-money-chip"
-                        chipSrc={CHIP_BLACK_WHITE_SRC}
-                      >
-                        ${hand.wager}
-                      </ChipDecoratedValue>
+                        <ChipDecoratedValue
+                          className="blackjack-hand-meta blackjack-money-chip"
+                          chipSrc={CHIP_BLACK_WHITE_SRC}
+                        >
+                          ${hand.wager}
+                        </ChipDecoratedValue>
                         {hand.note ? (
                           hasCurrencyValue(hand.note) ? (
                             <ChipDecoratedValue
