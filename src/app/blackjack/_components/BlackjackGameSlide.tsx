@@ -22,6 +22,7 @@ import type {
 import type { WinningChipFx } from "../_types/page";
 import {
   decorateResultDetailLine,
+  getResultBadgeLabel,
   decorateStatusText,
   formatPlayerStackValue,
   getControlDisplay,
@@ -105,6 +106,15 @@ export default function BlackjackGameSlide({
               aria-hidden="true"
             />
             <div className="blackjack-round-end-modal__panel">
+              {engineState.result.badge ? (
+                <div className="blackjack-result-badge-row">
+                  <span
+                    className={getResultBadgeClass(engineState.result.badge)}
+                  >
+                    {getResultBadgeLabel(engineState.result)}
+                  </span>
+                </div>
+              ) : null}
               <div
                 className={`blackjack-result-summary ${getResultToneClass(engineState.result.tone)}`}
               >
@@ -114,15 +124,6 @@ export default function BlackjackGameSlide({
                   : engineState.result.summary}
                 {resultEmojis ? ` ${resultEmojis[1]}` : null}
               </div>
-              {engineState.result.badge ? (
-                <div className="blackjack-result-badge-row">
-                  <span
-                    className={getResultBadgeClass(engineState.result.badge)}
-                  >
-                    {engineState.result.badge}
-                  </span>
-                </div>
-              ) : null}
               {engineState.result.detailLines.map((line, index) =>
                 engineState.result ? (
                   <div
@@ -167,7 +168,7 @@ export default function BlackjackGameSlide({
               </div>
               <BlackjackGameModeChip
                 engineState={engineState}
-                onToggleGameMode={onToggleGameMode}
+                onToggleGameMode={() => onToggleGameMode({ autoDeal: false })}
                 className="blackjack-round-end-modal__mode-chip"
               />
             </div>
@@ -497,6 +498,15 @@ export default function BlackjackGameSlide({
               id="result"
               className="blackjack-status-panel blackjack-post-table-panel"
             >
+              {engineState.result.badge ? (
+                <div className="blackjack-result-badge-row">
+                  <span
+                    className={getResultBadgeClass(engineState.result.badge)}
+                  >
+                    {getResultBadgeLabel(engineState.result)}
+                  </span>
+                </div>
+              ) : null}
               <div
                 className={`blackjack-result-summary ${getResultToneClass(engineState.result.tone)}`}
               >
@@ -506,15 +516,6 @@ export default function BlackjackGameSlide({
                   : engineState.result.summary}
                 {resultEmojis ? ` ${resultEmojis[1]}` : null}
               </div>
-              {engineState.result.badge ? (
-                <div className="blackjack-result-badge-row">
-                  <span
-                    className={getResultBadgeClass(engineState.result.badge)}
-                  >
-                    {engineState.result.badge}
-                  </span>
-                </div>
-              ) : null}
               {engineState.result.detailLines.map((line, index) => (
                 <div
                   key={index}

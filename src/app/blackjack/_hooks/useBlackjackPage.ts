@@ -342,13 +342,22 @@ export function useBlackjackPage() {
     [dealSfx, playSfx, startMusic],
   );
 
-  const handleToggleGameMode = React.useCallback(() => {
-    startMusic();
-    pendingModeChangeAutoDealRef.current = true;
-    modeChangeObservedRef.current = false;
-    setModeTransitionMessageVisible(true);
-    postBlackjackToggleGameMode();
-  }, [startMusic]);
+  const handleToggleGameMode = React.useCallback(
+    (options?: { autoDeal?: boolean }) => {
+      const autoDeal = options?.autoDeal ?? true;
+      startMusic();
+      pendingModeChangeAutoDealRef.current = autoDeal;
+      modeChangeObservedRef.current = false;
+      setModeTransitionMessageVisible(autoDeal);
+
+      if (!autoDeal) {
+        pendingModeChangeAutoDealRef.current = false;
+      }
+
+      postBlackjackToggleGameMode();
+    },
+    [startMusic],
+  );
 
   const handleToggleSounds = React.useCallback(() => {
     setSoundsEnabled((previous) => {

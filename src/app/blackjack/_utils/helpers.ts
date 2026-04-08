@@ -52,6 +52,29 @@ export function getResultBadgeClass(badge: BlackjackResultView["badge"]) {
   }
 }
 
+export function getResultBadgeLabel(result: BlackjackResultView) {
+  const normalizedSummary = result.summary.toLowerCase();
+
+  if (normalizedSummary.includes("blackjack")) {
+    return "Blackjack!";
+  }
+
+  if (normalizedSummary.includes("busted")) {
+    return "You busted!";
+  }
+
+  switch (result.badge) {
+    case "Won!":
+      return "You won!";
+    case "Lost!":
+      return "You lost!";
+    case "Push":
+      return "You pushed!";
+    default:
+      return result.badge;
+  }
+}
+
 export function getGameModeChipClass(gameMode: BlackjackGameMode) {
   switch (gameMode) {
     case "blackjack":
