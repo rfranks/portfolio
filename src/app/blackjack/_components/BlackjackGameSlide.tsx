@@ -25,6 +25,7 @@ import {
   decorateStatusText,
   formatPlayerStackValue,
   getControlDisplay,
+  getDisplayHandBonusWinnings,
   getHintSuggestedAction,
   getOutcomeStampAngle,
   getOutcomeStampClass,
@@ -791,101 +792,108 @@ export default function BlackjackGameSlide({
                   id="player-hands"
                   className={`blackjack-hands${(engineState?.player?.hands?.length ?? 0) > 1 ? " blackjack-hands--split" : ""}`}
                 >
-                  {(engineState?.player?.hands ?? []).map((hand) => (
-                    <div
-                      key={hand.index}
-                      ref={(node) => onSetHandRef(hand.index, node)}
-                      className={`blackjack-seat blackjack-hand${activeVisualHandIndex === hand.index ? " blackjack-hand--active" : ""}`}
-                    >
-                      <div className="blackjack-hand-header">
-                        <span className="blackjack-hand-label">
-                          Hand {hand.index + 1}
-                        </span>
-                        <BlackjackWagerChip
-                          engineState={engineState!}
-                          onCycleWager={onCycleWager}
-                          fallbackWager={hand.wager}
-                        />
-                        {engineState?.askingToDeal ? (
-                          <BlackjackBonusWagerChip
-                            engineState={engineState}
-                            onCycleBonusWager={onCycleBonusWager}
-                            fallbackWager={hand.trifectaWager}
+                  {(engineState?.player?.hands ?? []).map((hand) => {
+                    const displayBonusWinnings = getDisplayHandBonusWinnings(
+                      engineState!,
+                      hand,
+                    );
+
+                    return (
+                      <div
+                        key={hand.index}
+                        ref={(node) => onSetHandRef(hand.index, node)}
+                        className={`blackjack-seat blackjack-hand${activeVisualHandIndex === hand.index ? " blackjack-hand--active" : ""}`}
+                      >
+                        <div className="blackjack-hand-header">
+                          <span className="blackjack-hand-label">
+                            Hand {hand.index + 1}
+                          </span>
+                          <BlackjackWagerChip
+                            engineState={engineState!}
+                            onCycleWager={onCycleWager}
+                            fallbackWager={hand.wager}
                           />
-                        ) : hand.note ? (
-                          hasCurrencyValue(hand.note) ? (
-                            <ChipDecoratedValue
-                              className="blackjack-hand-note blackjack-money-chip"
-                              chipSrc={CHIP_GREEN_WHITE_SRC}
-                            >
-                              {hand.note}
-                            </ChipDecoratedValue>
-                          ) : (
-                            <span className="blackjack-hand-note">
-                              {hand.note}
+                          {engineState?.askingToDeal ? (
+                            <BlackjackBonusWagerChip
+                              engineState={engineState}
+                              onCycleBonusWager={onCycleBonusWager}
+                              fallbackWager={hand.trifectaWager}
+                            />
+                          ) : hand.note ? (
+                            hasCurrencyValue(hand.note) ? (
+                              <ChipDecoratedValue
+                                className="blackjack-hand-note blackjack-money-chip"
+                                chipSrc={CHIP_GREEN_WHITE_SRC}
+                              >
+                                {hand.note}
+                              </ChipDecoratedValue>
+                            ) : (
+                              <span className="blackjack-hand-note">
+                                {hand.note}
+                              </span>
+                            )
+                          ) : null}
+                          {!isMobile && displayBonusWinnings > 0 ? (
+                            <span className="blackjack-hand-bonus-win">
+                              Bonus {hand.bonusType || "Bet"} won! +
+                              {displayBonusWinnings.toLocaleString("en-US", {
+                                currency: "USD",
+                                maximumFractionDigits: 0,
+                                style: "currency",
+                              })}
+                              !
                             </span>
-                          )
-                        ) : null}
-                        {!isMobile && hand.bonusWinnings > 0 ? (
-                          <span className="blackjack-hand-bonus-win">
-                            Bonus {hand.bonusType || "Bet"} won! +
-                            {hand.bonusWinnings.toLocaleString("en-US", {
-                              currency: "USD",
-                              maximumFractionDigits: 0,
-                              style: "currency",
-                            })}
-                            !
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="blackjack-hand-total">
-                        <AnimatedTotalLabel value={hand.totalLabel} />
-                        {hand.busted ? (
-                          <span className="blackjack-busted-badge">
-                            Busted!
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="blackjack-hand-cards-wrap">
-                        <div className="blackjack-hand-cards-stack">
-                          <div className="cards">
-                            {hand.cards.map((card, index) => (
-                              <AnimatedBlackjackCard
-                                key={`${hand.index}-${card.suit}-${card.value}-${index}`}
-                                card={card}
-                                dealIndex={index}
-                                onFlip={onCardFlip}
-                                alt={
-                                  card.masked
-                                    ? "Hidden card"
-                                    : `${card.value} of ${card.suit}`
-                                }
-                              />
-                            ))}
-                          </div>
-                          {hand.outcomeLabel ? (
-                            <div
-                              className={getOutcomeStampClass(
-                                hand.outcomeLabel,
-                              )}
-                              style={{
-                                transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle(
-                                  {
-                                    index: hand.index,
-                                    cardsLength: hand.cards.length,
-                                    totalLabel: hand.totalLabel,
-                                    outcomeLabel: hand.outcomeLabel,
-                                  },
-                                )}deg)`,
-                              }}
-                            >
-                              {hand.outcomeLabel}
-                            </div>
                           ) : null}
                         </div>
+                        <div className="blackjack-hand-total">
+                          <AnimatedTotalLabel value={hand.totalLabel} />
+                          {hand.busted ? (
+                            <span className="blackjack-busted-badge">
+                              Busted!
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="blackjack-hand-cards-wrap">
+                          <div className="blackjack-hand-cards-stack">
+                            <div className="cards">
+                              {hand.cards.map((card, index) => (
+                                <AnimatedBlackjackCard
+                                  key={`${hand.index}-${card.suit}-${card.value}-${index}`}
+                                  card={card}
+                                  dealIndex={index}
+                                  onFlip={onCardFlip}
+                                  alt={
+                                    card.masked
+                                      ? "Hidden card"
+                                      : `${card.value} of ${card.suit}`
+                                  }
+                                />
+                              ))}
+                            </div>
+                            {hand.outcomeLabel ? (
+                              <div
+                                className={getOutcomeStampClass(
+                                  hand.outcomeLabel,
+                                )}
+                                style={{
+                                  transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle(
+                                    {
+                                      index: hand.index,
+                                      cardsLength: hand.cards.length,
+                                      totalLabel: hand.totalLabel,
+                                      outcomeLabel: hand.outcomeLabel,
+                                    },
+                                  )}deg)`,
+                                }}
+                              >
+                                {hand.outcomeLabel}
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>

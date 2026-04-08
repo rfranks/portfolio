@@ -1,6 +1,7 @@
 import type {
   BlackjackCardView,
   BlackjackGameMode,
+  BlackjackPlayerHandView,
   BlackjackRenderState,
   BlackjackResultView,
 } from "../_types/messages";
@@ -157,6 +158,50 @@ export function getCardImageSrc(card: BlackjackCardView) {
   }
 
   return `/assets/boardgame/PNG/Cards/card${card.suit}${card.value}.png`;
+}
+
+function getSpanish21VisibleMatchWinnings(
+  hand: BlackjackPlayerHandView,
+  dealerUpCard: BlackjackCardView,
+) {
+  if (hand.trifectaWager <= 0 || hand.cards.length < 2 || dealerUpCard.masked) {
+    return 0;
+  }
+
+  const getMatchWinnings = (playerCard: BlackjackCardView) => {
+    if (playerCard.value !== dealerUpCard.value) {
+      return 0;
+    }
+
+    const multiplier = playerCard.suit === dealerUpCard.suit ? 12 : 3;
+    return multiplier * hand.trifectaWager;
+  };
+
+  return getMatchWinnings(hand.cards[0]) + getMatchWinnings(hand.cards[1]);
+}
+
+export function getDisplayHandBonusWinnings(
+  state: BlackjackRenderState,
+  hand: BlackjackPlayerHandView,
+) {
+  if (state.gameMode !== "spanish21") {
+    return hand.bonusWinnings;
+  }
+
+  const dealerCards = state.dealer.cards;
+  const dealerDownCardHidden = dealerCards.slice(1).some((card) => card.masked);
+  if (!dealerDownCardHidden) {
+    return hand.bonusWinnings;
+  }
+
+  const dealerUpCard = dealerCards[0];
+  if (!dealerUpCard) {
+    return 0;
+  }
+
+  // While the dealer down card is hidden, only reveal bonus value that can be
+  // derived from visible information (player cards + dealer up card).
+  return getSpanish21VisibleMatchWinnings(hand, dealerUpCard);
 }
 
 export function formatPlayerStackValue(value: number) {
