@@ -58,14 +58,19 @@ func DealHand(cfg flags.Config) {
 		}
 
 		if currPlayer.Stack >= cfg.MinWager {
-			hand := player.Hand{Active: true, Cards: make([]cards.Card, 0), Player: currPlayer, Wager: cfg.MinWager}
-			currPlayer.Hands = append(currPlayer.Hands, hand)
-
-			if cfg.Autoplay {
-				hand.Wager = currPlayer.PlaceWager()
-				currPlayer.LastWager = hand.Wager
+			wager := cfg.MinWager
+			if currPlayer.PlaceWager != nil {
+				wager = currPlayer.PlaceWager()
+				currPlayer.LastWager = wager
 			}
-			currPlayer.Stack -= hand.Wager
+			hand := player.Hand{
+				Active: true,
+				Cards:  make([]cards.Card, 0),
+				Player: currPlayer,
+				Wager:  wager,
+			}
+			currPlayer.Hands = append(currPlayer.Hands, hand)
+			currPlayer.Stack -= wager
 
 			if currPlayer.Stack > 0 {
 				if currPlayer.WillPlayTrifecta == nil {

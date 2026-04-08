@@ -27,6 +27,7 @@ import type {
 import {
   isBlackjackStateMessage,
   postBlackjackAction,
+  postBlackjackCycleWager,
   postBlackjackStart,
   postBlackjackToggleGameMode,
 } from "../_utils/messages";
@@ -107,6 +108,7 @@ export function useBlackjackPage() {
   const {
     enabled: bgmEnabled,
     start: startBGM,
+    stop: stopBGM,
     toggle: toggleBGM,
   } = useBGM(BLACKJACK_BGM_PROGRESSION, {
     bpm: 62,
@@ -118,6 +120,7 @@ export function useBlackjackPage() {
   const {
     enabled: ambienceEnabled,
     start: startAmbience,
+    stop: stopAmbience,
     toggle: toggleAmbience,
   } = useAmbience(BLACKJACK_AMBIENT_SOUNDS, {
     minDelayMs: 1400,
@@ -365,6 +368,36 @@ export function useBlackjackPage() {
       window.localStorage.setItem(BLACKJACK_SOUNDS_STORAGE_KEY, String(next));
       return next;
     });
+  }, []);
+
+  const handleToggleAllAudio = React.useCallback(() => {
+    const shouldEnableAll = !(bgmEnabled && ambienceEnabled && soundsEnabled);
+
+    if (shouldEnableAll) {
+      void startBGM();
+      startAmbience();
+    } else {
+      void stopBGM();
+      stopAmbience();
+    }
+
+    setSoundsEnabled(shouldEnableAll);
+    window.localStorage.setItem(
+      BLACKJACK_SOUNDS_STORAGE_KEY,
+      String(shouldEnableAll),
+    );
+  }, [
+    ambienceEnabled,
+    bgmEnabled,
+    soundsEnabled,
+    startAmbience,
+    startBGM,
+    stopAmbience,
+    stopBGM,
+  ]);
+
+  const handleCycleWager = React.useCallback(() => {
+    postBlackjackCycleWager();
   }, []);
 
   const setSlideRef = React.useCallback(
@@ -677,8 +710,10 @@ export function useBlackjackPage() {
     engineState,
     gameStarted,
     handleAction,
+    handleCycleWager,
     handleCycleSlides,
     handleStartGame,
+    handleToggleAllAudio,
     handleToggleGameMode,
     handleToggleSounds,
     handRefs,

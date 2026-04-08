@@ -105,6 +105,17 @@ func Start(this js.Value, args []js.Value) any {
 		game.State.Dealer = player.Player{Dealer: true}
 	}
 
+	if webConsole, ok := console.(*web.WebUI); ok && !cfg.Autoplay {
+		for i := 0; i < len(game.State.Players); i++ {
+			cardPlayer := &game.State.Players[i]
+			cardPlayer.PlaceWager = func(currPlayer *player.Player) func() int {
+				return func() int {
+					return webConsole.SelectedWagerForPlayer(currPlayer)
+				}
+			}(cardPlayer)
+		}
+	}
+
 	if cfg.Autoplay {
 		for i := 0; i < len(game.State.Players); i++ {
 			cardPlayer := &game.State.Players[i]

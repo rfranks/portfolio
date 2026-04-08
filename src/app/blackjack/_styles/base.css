@@ -1,0 +1,240 @@
+.blackjack-page {
+  --blackjack-carousel-nav-space: 4.4rem;
+  --blackjack-card-width: min(120px, 22vw);
+  --blackjack-card-full-height: calc(var(--blackjack-card-width) * 174 / 120);
+  --blackjack-card-visible-height: calc(var(--blackjack-card-full-height) * 0.5);
+  position: relative;
+  isolation: isolate;
+  block-size: 100dvh;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(245, 158, 11, 0.12),
+      transparent 24rem
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(59, 130, 246, 0.12),
+      transparent 26rem
+    ),
+    linear-gradient(180deg, #0f172a 0%, #111827 42%, #172033 100%);
+  color: #e5eefc;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+
+.blackjack-page::before,
+.blackjack-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-repeat: no-repeat;
+}
+
+.blackjack-page::before {
+  opacity: 0.14;
+  background-image:
+    url("/assets/cards/PNG/Cards%20%28medium%29/card_back.png"),
+    url("/assets/cards/PNG/Cards%20%28medium%29/card_spades_A.png");
+  background-position:
+    right 2rem top 4.5rem,
+    right 7rem top 7.5rem;
+  background-size:
+    8.5rem auto,
+    8.5rem auto;
+}
+
+.blackjack-page::after {
+  opacity: 0.08;
+  background-image:
+    url("/assets/boardgame/Vector/chips.svg"),
+    url("/assets/cards/PNG/Cards%20%28medium%29/card_spades_J.png");
+  background-position:
+    left -2rem bottom 1rem,
+    left 5rem bottom 6rem;
+  background-size:
+    12rem auto,
+    8.5rem auto;
+}
+
+.blackjack-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.blackjack-round-end-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  pointer-events: auto;
+}
+
+.blackjack-round-end-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 8, 23, 0.34);
+  pointer-events: auto;
+}
+
+.blackjack-round-end-modal__panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  width: min(100%, 28rem);
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+    rgba(15, 23, 42, 0.94);
+  box-shadow: 0 24px 48px rgba(2, 8, 23, 0.42);
+  text-align: center;
+  pointer-events: auto;
+}
+
+.blackjack-round-end-modal__panel #status {
+  color: #eff6ff;
+}
+
+.blackjack-round-end-modal__mode-chip {
+  align-self: center;
+  margin-top: 0.25rem;
+}
+
+.blackjack-round-end-modal__wager-chip {
+  align-self: center;
+}
+
+.blackjack-confetti-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+  overflow: hidden;
+}
+
+.blackjack-confetti-piece {
+  position: absolute;
+  top: -8vh;
+  opacity: 0;
+  transform:
+    translate3d(0, 0, 0)
+    rotate(var(--confetti-rotate-start, 0deg));
+  animation-name: blackjack-confetti-fall;
+  animation-timing-function: cubic-bezier(0.2, 0.72, 0.22, 1);
+  animation-fill-mode: forwards;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+  will-change: transform, opacity;
+}
+
+.blackjack-confetti-piece--rect {
+  border-radius: 2px;
+}
+
+.blackjack-confetti-piece--circle {
+  border-radius: 999px;
+}
+
+@keyframes blackjack-confetti-fall {
+  0% {
+    opacity: 0;
+    transform:
+      translate3d(0, 0, 0)
+      rotate(var(--confetti-rotate-start, 0deg));
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate3d(var(--confetti-drift-x, 0px), 112vh, 0)
+      rotate(var(--confetti-rotate-end, 360deg));
+  }
+}
+
+.blackjack-panel {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 24px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.04)
+    ),
+    rgba(15, 23, 42, 0.78);
+  box-shadow:
+    0 20px 48px rgba(2, 8, 23, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+.blackjack-carousel-slide {
+  flex: 0 0 100%;
+  inline-size: 100vw;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.blackjack-carousel-slide:not(.blackjack-game-panel) {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.blackjack-page > .blackjack-carousel-slide {
+  padding: 1.5rem 1rem;
+  box-sizing: border-box;
+}
+
+.blackjack-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.07;
+  background-repeat: no-repeat;
+}
+
+.blackjack-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.blackjack-game-panel::before {
+  background-image:
+    url("/assets/boardgame/Vector/chips.svg"),
+    url("/assets/cards/PNG/Cards%20%28medium%29/card_back.png");
+  background-position:
+    right -2rem bottom -2rem,
+    left -1rem top -1rem;
+  background-size:
+    10rem auto,
+    7rem auto;
+}

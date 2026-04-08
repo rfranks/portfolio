@@ -63,6 +63,7 @@ type BlackjackDealerView struct {
 
 type BlackjackPlayerView struct {
 	Hands           []BlackjackPlayerHandView `json:"hands"`
+	SelectedWager   int                       `json:"selectedWager"`
 	Stack           int                       `json:"stack"`
 	Winnings        int                       `json:"winnings"`
 	WinningsDisplay string                    `json:"winningsDisplay"`
@@ -111,7 +112,7 @@ func (w *WebUI) buildRenderState(state ui.GameState) BlackjackRenderState {
 		HasRendered:         hasRenderedGameState(),
 		HintText:            buildHintText(),
 		House:               game.State.House,
-		Player:              buildPlayerView(),
+		Player:              w.buildPlayerView(),
 		Progressives:        append([]int(nil), sidebets.TrifectaProgressives...),
 		Result:              w.buildResultView(state),
 		StatusText:          buildStatusText(state),
@@ -311,7 +312,7 @@ func dealerOutcomeLabel(hand *player.Hand) string {
 	}
 }
 
-func buildPlayerView() *BlackjackPlayerView {
+func (w *WebUI) buildPlayerView() *BlackjackPlayerView {
 	if len(game.State.Players) == 0 {
 		return nil
 	}
@@ -319,6 +320,7 @@ func buildPlayerView() *BlackjackPlayerView {
 	p := game.State.Players[0]
 	view := &BlackjackPlayerView{
 		Hands:           make([]BlackjackPlayerHandView, 0, len(p.Hands)),
+		SelectedWager:   w.SelectedWagerForPlayer(&p),
 		Stack:           p.Stack,
 		Winnings:        p.Winnings,
 		WinningsDisplay: PrintCurrency(p.Winnings * 100),
@@ -374,7 +376,7 @@ func cardSuitString(c cards.Card) string {
 
 func handNote(hand player.Hand) string {
 	if hand.TrifectaWager > 0 {
-		return "Bonus: " + PrintCurrency(hand.TrifectaWager*100)
+		return PrintCurrency(hand.TrifectaWager * 100)
 	}
 	if hand.Split {
 		return "Split Hand"

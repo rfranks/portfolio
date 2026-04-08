@@ -16,6 +16,7 @@ import (
 
 type WebUI struct {
 	actionCh            chan rune
+	currentWager        int
 	messageFn           js.Func
 	cfg                 flags.Config
 	lastWinnings        int
@@ -26,6 +27,7 @@ type WebUI struct {
 func New(cfg flags.Config) *WebUI {
 	w := &WebUI{
 		actionCh:     make(chan rune),
+		currentWager: cfg.MinWager,
 		cfg:          cfg,
 		lastWinnings: 0,
 	}
@@ -53,6 +55,11 @@ func (w *WebUI) bindMessageBus() {
 		switch data.Get("type").String() {
 		case "blackjack/start":
 			w.actionCh <- 'd'
+		case "blackjack/cycle-wager":
+			if w.canToggleGameMode() && len(game.State.Players) > 0 {
+				w.cycleWagerForPlayer(&game.State.Players[0])
+				w.postStateMessage(ui.GameState{AskingToDeal: true})
+			}
 		case "blackjack/toggle-game-mode":
 			if w.canToggleGameMode() {
 				w.toggleGameMode()
@@ -118,6 +125,54 @@ func (w *WebUI) toggleGameMode() {
 		game.State.Players[i].Hands = nil
 	}
 	game.SaveBlackjackStateYaml()
+}
+
+func availableWagersForStack(stack int, minWager int) []int {
+	candidates := []int{25, 50, 100}
+	available := make([]int, 0, len(candidates))
+	for _, wager := range candidates {
+		if wager < minWager || wager > stack {
+			continue
+		}
+		available = append(available, wager)
+	}
+	if len(available) == 0 && stack >= minWager {
+		available = append(available, minWager)
+	}
+	return available
+}
+
+func (w *WebUI) SelectedWagerForPlayer(cardPlayer *player.Player) int {
+	if cardPlayer == nil {
+		return w.cfg.MinWager
+	}
+	available := availableWagersForStack(cardPlayer.Stack, w.cfg.MinWager)
+	if len(available) == 0 {
+		return w.cfg.MinWager
+	}
+	for _, wager := range available {
+		if wager == w.currentWager {
+			return wager
+		}
+	}
+	w.currentWager = available[0]
+	return w.currentWager
+}
+
+func (w *WebUI) cycleWagerForPlayer(cardPlayer *player.Player) {
+	available := availableWagersForStack(cardPlayer.Stack, w.cfg.MinWager)
+	if len(available) == 0 {
+		return
+	}
+	current := w.SelectedWagerForPlayer(cardPlayer)
+	for index, wager := range available {
+		if wager != current {
+			continue
+		}
+		w.currentWager = available[(index+1)%len(available)]
+		return
+	}
+	w.currentWager = available[0]
 }
 
 func (w *WebUI) ReadAction() (rune, error) {

@@ -113,7 +113,7 @@ export const askOpenAI = async ({
       message:
         newChatHistory?.[newChatIndex]?.message.replaceAll(
           logMessagesToChatHistory ? "I'm thinking..." : "Processing PDF...",
-          "",
+          ""
         ) +
         (initialContext.length > aiBufferSize
           ? responseText

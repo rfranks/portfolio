@@ -15,6 +15,7 @@ export const CHIP_GREEN_WHITE_SRC =
   "/assets/boardgame/PNG/Chips/chipGreenWhite.png";
 export const CHIP_BLACK_WHITE_SRC =
   "/assets/boardgame/PNG/Chips/chipBlackWhite.png";
+export const BLACKJACK_WAGER_CYCLE_VALUES = [25, 50, 100] as const;
 
 export const BLACKJACK_CAROUSEL_SLIDES = [
   { id: "game-card", label: "Game card" },

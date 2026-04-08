@@ -1,5 +1,6 @@
 import {
   BlackjackActionMessage,
+  BlackjackCycleWagerMessage,
   BlackjackStartMessage,
   BlackjackStateMessage,
   BlackjackToggleGameModeMessage,
@@ -41,6 +42,15 @@ export function postBlackjackToggleGameMode() {
     {
       type: "blackjack/toggle-game-mode",
     } satisfies BlackjackToggleGameModeMessage,
+    window.location.origin,
+  );
+}
+
+export function postBlackjackCycleWager() {
+  window.postMessage(
+    {
+      type: "blackjack/cycle-wager",
+    } satisfies BlackjackCycleWagerMessage,
     window.location.origin,
   );
 }

@@ -49,6 +49,7 @@ export interface BlackjackPlayerHandView {
 
 export interface BlackjackPlayerView {
   hands: BlackjackPlayerHandView[];
+  selectedWager: number;
   stack: number;
   winnings: number;
   winningsDisplay: string;
@@ -105,6 +106,10 @@ export interface BlackjackToggleGameModeMessage {
   type: "blackjack/toggle-game-mode";
 }
 
+export interface BlackjackCycleWagerMessage {
+  type: "blackjack/cycle-wager";
+}
+
 export interface BlackjackStateMessage {
   state: BlackjackRenderState;
   type: "blackjack/state";
@@ -112,6 +117,7 @@ export interface BlackjackStateMessage {
 
 export type BlackjackMessage =
   | BlackjackActionMessage
+  | BlackjackCycleWagerMessage
   | BlackjackStartMessage
   | BlackjackToggleGameModeMessage
   | BlackjackStateMessage;

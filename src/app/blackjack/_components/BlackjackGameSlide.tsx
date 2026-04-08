@@ -9,7 +9,6 @@ import {
   BLACKJACK_START_CARD_ACE_SRC,
   BLACKJACK_START_CARD_BACK_SRC,
   BLACKJACK_START_CARD_JACK_SRC,
-  CHIP_BLACK_WHITE_SRC,
   CHIP_BLUE_WHITE_SRC,
   CHIP_GREEN_WHITE_SRC,
   CHIP_RED_WHITE_SRC,
@@ -36,6 +35,7 @@ import {
 import AnimatedBlackjackCard from "./AnimatedBlackjackCard";
 import AnimatedTotalLabel from "./AnimatedTotalLabel";
 import BlackjackGameModeChip from "./BlackjackGameModeChip";
+import BlackjackWagerChip from "./BlackjackWagerChip";
 import ChipDecoratedValue from "./ChipDecoratedValue";
 
 type BlackjackGameSlideProps = {
@@ -48,8 +48,10 @@ type BlackjackGameSlideProps = {
   gameStarted: boolean;
   modeTransitionMessageVisible: boolean;
   onAction: (action: BlackjackUiAction) => void;
+  onCycleWager: () => void;
   onSetHandRef: (index: number, node: HTMLDivElement | null) => void;
   onStartGame: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onToggleAllAudio: () => void;
   onToggleAmbience: () => void;
   onToggleBGM: () => void;
   onToggleGameMode: (options?: { autoDeal?: boolean }) => void;
@@ -75,8 +77,10 @@ export default function BlackjackGameSlide({
   gameStarted,
   modeTransitionMessageVisible,
   onAction,
+  onCycleWager,
   onSetHandRef,
   onStartGame,
+  onToggleAllAudio,
   onToggleAmbience,
   onToggleBGM,
   onToggleGameMode,
@@ -166,6 +170,15 @@ export default function BlackjackGameSlide({
                   🃏 Deal
                 </button>
               </div>
+              <BlackjackWagerChip
+                engineState={engineState}
+                onCycleWager={onCycleWager}
+                label="Wager"
+                presentation="mode-chip"
+                showChipIcon
+                showBorder
+                className="blackjack-round-end-modal__wager-chip"
+              />
               <BlackjackGameModeChip
                 engineState={engineState}
                 onToggleGameMode={() => onToggleGameMode({ autoDeal: false })}
@@ -421,12 +434,11 @@ export default function BlackjackGameSlide({
                         <span className="blackjack-hand-label">
                           Hand {hand.index + 1}
                         </span>
-                        <ChipDecoratedValue
-                          className="blackjack-hand-meta blackjack-money-chip"
-                          chipSrc={CHIP_BLACK_WHITE_SRC}
-                        >
-                          ${hand.wager}
-                        </ChipDecoratedValue>
+                        <BlackjackWagerChip
+                          engineState={engineState!}
+                          onCycleWager={onCycleWager}
+                          fallbackWager={hand.wager}
+                        />
                         {hand.note ? (
                           hasCurrencyValue(hand.note) ? (
                             <ChipDecoratedValue
@@ -556,137 +568,155 @@ export default function BlackjackGameSlide({
             </div>
           ) : null}
           {!showRoundEndModal ? (
-            <div className="blackjack-status-panel blackjack-post-table-panel">
-              <div className="blackjack-status-row">
-                <div id="status">
-                  {decorateStatusText(engineState?.statusText ?? "")}
+            <>
+              <div className="blackjack-actions-panel blackjack-post-table-panel">
+                <div className="blackjack-status-row">
+                  <div id="status">
+                    {decorateStatusText(engineState?.statusText ?? "")}
+                  </div>
+                  {engineState?.askingToDeal ? (
+                    <button
+                      id="deal"
+                      className="blackjack-button blackjack-button-primary"
+                      style={{
+                        display: getControlDisplay(engineState.controls.deal),
+                      }}
+                      onClick={() => onAction("deal")}
+                    >
+                      🃏 Deal
+                    </button>
+                  ) : null}
                 </div>
-                {engineState?.askingToDeal ? (
+                <div id="controls" className="blackjack-controls">
+                  {!engineState?.askingToDeal ? (
+                    <button
+                      id="deal"
+                      className="blackjack-button blackjack-button-primary"
+                      style={{
+                        display: getControlDisplay(engineState?.controls.deal),
+                      }}
+                      onClick={() => onAction("deal")}
+                    >
+                      🃏 Deal
+                    </button>
+                  ) : null}
                   <button
-                    id="deal"
-                    className="blackjack-button blackjack-button-primary"
+                    id="double"
+                    className="blackjack-button"
                     style={{
-                      display: getControlDisplay(engineState.controls.deal),
+                      display: getControlDisplay(engineState?.controls.double),
                     }}
-                    onClick={() => onAction("deal")}
+                    onClick={() => onAction("double")}
                   >
-                    🃏 Deal
+                    💥 Double
                   </button>
-                ) : null}
-              </div>
-              <div id="controls" className="blackjack-controls">
-                {!engineState?.askingToDeal ? (
                   <button
-                    id="deal"
-                    className="blackjack-button blackjack-button-primary"
+                    id="split"
+                    className="blackjack-button"
                     style={{
-                      display: getControlDisplay(engineState?.controls.deal),
+                      display: getControlDisplay(engineState?.controls.split),
                     }}
-                    onClick={() => onAction("deal")}
+                    onClick={() => onAction("split")}
                   >
-                    🃏 Deal
+                    ✂️ Split
                   </button>
-                ) : null}
-                <button
-                  id="double"
-                  className="blackjack-button"
-                  style={{
-                    display: getControlDisplay(engineState?.controls.double),
-                  }}
-                  onClick={() => onAction("double")}
-                >
-                  💥 Double
-                </button>
-                <button
-                  id="split"
-                  className="blackjack-button"
-                  style={{
-                    display: getControlDisplay(engineState?.controls.split),
-                  }}
-                  onClick={() => onAction("split")}
-                >
-                  ✂️ Split
-                </button>
-                <button
-                  id="hit"
-                  className="blackjack-button"
-                  style={{
-                    display: getControlDisplay(engineState?.controls.hit),
-                  }}
-                  onClick={() => onAction("hit")}
-                >
-                  ➕ Hit
-                </button>
-                <button
-                  id="stand"
-                  className="blackjack-button"
-                  style={{
-                    display: getControlDisplay(engineState?.controls.stand),
-                  }}
-                  onClick={() => onAction("stand")}
-                >
-                  ✋ Stand
-                </button>
-                <button
-                  id="insure"
-                  className="blackjack-button"
-                  style={{
-                    display: getControlDisplay(engineState?.controls.insure),
-                  }}
-                  onClick={() => onAction("insure")}
-                >
-                  🛡️ Insure
-                </button>
-                <button
-                  id="decline"
-                  className="blackjack-button blackjack-button-subtle"
-                  style={{
-                    display: getControlDisplay(engineState?.controls.decline),
-                  }}
-                  onClick={() => onAction("decline")}
-                >
-                  Decline
-                </button>
-              </div>
-              <div className="blackjack-audio-toggles">
-                <span className="blackjack-audio-label">
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    className="blackjack-audio-label-icon"
+                  <button
+                    id="hit"
+                    className="blackjack-button"
+                    style={{
+                      display: getControlDisplay(engineState?.controls.hit),
+                    }}
+                    onClick={() => onAction("hit")}
                   >
-                    <path
-                      d="M3 10v4h4l5 4V6L7 10H3zm12.5 2a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 15.5 12zm0-9.5v2.06a7.5 7.5 0 0 1 0 14.88v2.06a9.5 9.5 0 0 0 0-19z"
-                      fill="currentColor"
+                    ➕ Hit
+                  </button>
+                  <button
+                    id="stand"
+                    className="blackjack-button"
+                    style={{
+                      display: getControlDisplay(engineState?.controls.stand),
+                    }}
+                    onClick={() => onAction("stand")}
+                  >
+                    ✋ Stand
+                  </button>
+                  <button
+                    id="insure"
+                    className="blackjack-button"
+                    style={{
+                      display: getControlDisplay(engineState?.controls.insure),
+                    }}
+                    onClick={() => onAction("insure")}
+                  >
+                    🛡️ Insure
+                  </button>
+                  <button
+                    id="decline"
+                    className="blackjack-button blackjack-button-subtle"
+                    style={{
+                      display: getControlDisplay(engineState?.controls.decline),
+                    }}
+                    onClick={() => onAction("decline")}
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+              <div className="blackjack-audio-row blackjack-post-table-panel">
+                <div className="blackjack-audio-toggles">
+                  <button
+                    type="button"
+                    className="blackjack-audio-label blackjack-audio-label-button"
+                    onClick={onToggleAllAudio}
+                    title={
+                      bgmEnabled && ambienceEnabled && soundsEnabled
+                        ? "Turn all audio off"
+                        : "Turn all audio on"
+                    }
+                    aria-label={
+                      bgmEnabled && ambienceEnabled && soundsEnabled
+                        ? "Turn all audio off"
+                        : "Turn all audio on"
+                    }
+                  >
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      className="blackjack-audio-label-icon"
+                    >
+                      <path
+                        d="M3 10v4h4l5 4V6L7 10H3zm12.5 2a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 15.5 12zm0-9.5v2.06a7.5 7.5 0 0 1 0 14.88v2.06a9.5 9.5 0 0 0 0-19z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </button>
+                  <label className="blackjack-audio-toggle">
+                    <input
+                      type="checkbox"
+                      checked={bgmEnabled}
+                      onChange={onToggleBGM}
                     />
-                  </svg>
-                </span>
-                <label className="blackjack-audio-toggle">
-                  <input
-                    type="checkbox"
-                    checked={bgmEnabled}
-                    onChange={onToggleBGM}
-                  />
-                  <span>BGM</span>
-                </label>
-                <label className="blackjack-audio-toggle">
-                  <input
-                    type="checkbox"
-                    checked={ambienceEnabled}
-                    onChange={onToggleAmbience}
-                  />
-                  <span>Ambient</span>
-                </label>
-                <label className="blackjack-audio-toggle">
-                  <input
-                    type="checkbox"
-                    checked={soundsEnabled}
-                    onChange={onToggleSounds}
-                  />
-                  <span>Sounds</span>
-                </label>
+                    <span>BGM</span>
+                  </label>
+                  <label className="blackjack-audio-toggle">
+                    <input
+                      type="checkbox"
+                      checked={ambienceEnabled}
+                      onChange={onToggleAmbience}
+                    />
+                    <span>Ambient</span>
+                  </label>
+                  <label className="blackjack-audio-toggle">
+                    <input
+                      type="checkbox"
+                      checked={soundsEnabled}
+                      onChange={onToggleSounds}
+                    />
+                    <span>Sounds</span>
+                  </label>
+                </div>
               </div>
-            </div>
+            </>
           ) : null}
         </div>
       </section>

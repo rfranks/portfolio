@@ -61,8 +61,10 @@ export default function BlackjackPage() {
         gameStarted={blackjack.gameStarted}
         modeTransitionMessageVisible={blackjack.modeTransitionMessageVisible}
         onAction={blackjack.handleAction}
+        onCycleWager={blackjack.handleCycleWager}
         onSetHandRef={blackjack.setHandRef}
         onStartGame={blackjack.handleStartGame}
+        onToggleAllAudio={blackjack.handleToggleAllAudio}
         onToggleAmbience={blackjack.toggleAmbience}
         onToggleBGM={blackjack.toggleBGM}
         onToggleGameMode={blackjack.handleToggleGameMode}

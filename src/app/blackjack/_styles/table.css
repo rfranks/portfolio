@@ -1,0 +1,488 @@
+.blackjack-table-shell {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1.25rem;
+  border: 1px solid rgba(74, 222, 128, 0.18);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top, rgba(34, 197, 94, 0.16), transparent 28rem),
+    linear-gradient(180deg, rgba(20, 83, 45, 0.9), rgba(15, 23, 42, 0.86));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  text-align: left;
+  overflow: hidden;
+}
+
+.blackjack-winning-chip-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+}
+
+.blackjack-winning-chip {
+  position: absolute;
+  opacity: 0;
+  filter: drop-shadow(0 8px 16px rgba(15, 23, 42, 0.34));
+  transform:
+    translate3d(0, 0, 0)
+    scale(var(--chip-scale-start, 1))
+    rotate(var(--chip-rotate-start, 0deg));
+  animation-name: blackjack-winning-chip-flight;
+  animation-timing-function: cubic-bezier(0.2, 0.76, 0.22, 1);
+  animation-fill-mode: forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes blackjack-winning-chip-flight {
+  0% {
+    opacity: 0;
+    transform:
+      translate3d(0, 0, 0)
+      scale(var(--chip-scale-start, 1))
+      rotate(var(--chip-rotate-start, 0deg));
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  38% {
+    opacity: 1;
+    transform:
+      translate3d(
+        calc(var(--chip-dx, 0px) * 0.28),
+        calc(var(--chip-dy, 0px) * 0.2 + var(--chip-arc-y, -24px)),
+        0
+      )
+      scale(calc(var(--chip-scale-start, 1) * 1.08))
+      rotate(calc(var(--chip-rotate-start, 0deg) + 120deg));
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate3d(var(--chip-dx, 0px), var(--chip-dy, 0px), 0)
+      scale(0.72)
+      rotate(var(--chip-rotate-end, 240deg));
+  }
+}
+
+.blackjack-table-shell::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 4rem;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 15% 50%,
+      rgba(250, 204, 21, 0.14),
+      transparent 18%
+    ),
+    radial-gradient(
+      circle at 85% 50%,
+      rgba(59, 130, 246, 0.14),
+      transparent 18%
+    );
+}
+
+.blackjack-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: rgba(226, 232, 240, 0.88);
+  font-weight: 600;
+}
+
+#player-winnings {
+  margin-left: auto;
+  text-align: right;
+  color: #facc15;
+}
+
+#player-winnings.positive {
+  color: green;
+}
+
+#player-winnings.negative {
+  color: #f87171;
+}
+
+.blackjack-seat {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.blackjack-hands {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#player-hands {
+  height: 100%;
+}
+
+@media (min-width: 960px) {
+  .blackjack-hands--split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .blackjack-hands--split .blackjack-hand {
+    min-width: 0;
+  }
+}
+
+.blackjack-table-spacer {
+  display: none;
+}
+
+.blackjack-hands-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: min(16rem, 24vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.blackjack-player {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.blackjack-hand {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  margin-bottom: 0;
+  min-height: 8.75rem;
+}
+
+.blackjack-hand--active {
+  border-color: rgba(96, 165, 250, 0.92);
+  background:
+    linear-gradient(180deg, rgba(59, 130, 246, 0.14), rgba(15, 23, 42, 0.3)),
+    rgba(15, 23, 42, 0.34);
+  box-shadow:
+    inset 0 0 0 2px rgba(147, 197, 253, 0.38),
+    0 0 0 2px rgba(59, 130, 246, 0.22),
+    0 14px 28px rgba(30, 64, 175, 0.16);
+}
+
+.blackjack-hand-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.blackjack-hand-label {
+  letter-spacing: 0.01em;
+}
+
+.blackjack-hand-meta {
+  color: rgba(226, 232, 240, 0.88);
+}
+
+.blackjack-hand-note {
+  margin-left: auto;
+  color: #facc15;
+  text-align: right;
+}
+
+.blackjack-hand-total {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  min-height: 2.35rem;
+  display: flex;
+  align-items: flex-end;
+  overflow: visible;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.blackjack-hand-cards-wrap {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  min-height: 0;
+  overflow: auto;
+}
+
+.blackjack-animated-total {
+  position: relative;
+  display: inline-grid;
+  align-items: end;
+  min-height: 2.1em;
+  overflow: visible;
+  line-height: 1.1;
+}
+
+.blackjack-animated-total-value {
+  grid-area: 1 / 1;
+  display: inline-block;
+  will-change: transform, opacity;
+  transform-origin: 50% 100%;
+}
+
+.blackjack-animated-total-value--incoming {
+  z-index: 2;
+}
+
+.blackjack-animated-total-value--outgoing {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.blackjack-animated-total-value--incoming {
+  animation: blackjack-total-incoming 420ms cubic-bezier(0.18, 0.84, 0.24, 1) forwards;
+}
+
+.blackjack-animated-total-value--outgoing {
+  animation: blackjack-total-outgoing 480ms cubic-bezier(0.22, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes blackjack-total-incoming {
+  0% {
+    opacity: 0;
+    transform: translateY(1.1rem) scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes blackjack-total-outgoing {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-1.35rem) scale(1.12);
+  }
+}
+
+.blackjack-hand-cards-stack {
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.blackjack-dealer-cards-stack {
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.blackjack-hand-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  pointer-events: none;
+  padding: 0.35rem 1rem;
+  border: 4px solid rgba(15, 23, 42, 0.22);
+  border-radius: 0.75rem;
+  background: rgba(248, 250, 252, 0.9);
+  box-shadow:
+    0 10px 28px rgba(15, 23, 42, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  color: rgba(15, 23, 42, 0.88);
+  font-size: clamp(1.25rem, 2.2vw, 1.9rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow:
+    -1px -1px 0 rgba(255, 255, 255, 0.7),
+    1px -1px 0 rgba(255, 255, 255, 0.7),
+    -1px 1px 0 rgba(255, 255, 255, 0.7),
+    1px 1px 0 rgba(255, 255, 255, 0.7);
+  -webkit-text-stroke: 1px rgba(15, 23, 42, 0.16);
+  opacity: 0.96;
+}
+
+.blackjack-hand-stamp--winner {
+  border-color: rgba(22, 163, 74, 0.85);
+  background: rgba(236, 253, 245, 0.92);
+  color: rgba(22, 101, 52, 0.94);
+}
+
+.blackjack-hand-stamp--blackjack {
+  border-color: rgba(202, 138, 4, 0.9);
+  background: rgba(254, 252, 232, 0.96);
+  color: rgba(133, 77, 14, 0.98);
+}
+
+.blackjack-hand-stamp--loser {
+  border-color: rgba(185, 28, 28, 0.88);
+  background: rgba(255, 241, 242, 0.94);
+  color: rgba(153, 27, 27, 0.96);
+}
+
+.blackjack-hand-stamp--push {
+  border-color: rgba(37, 99, 235, 0.86);
+  background: rgba(239, 246, 255, 0.94);
+  color: rgba(30, 64, 175, 0.96);
+}
+
+.blackjack-busted-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.65rem;
+  padding: 0.18rem 0.6rem;
+  border: 1px solid rgba(248, 113, 113, 0.38);
+  border-radius: 999px;
+  background: rgba(127, 29, 29, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: #fecaca;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.blackjack-result-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.blackjack-result-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+}
+
+.blackjack-result-badge-row {
+  margin-top: 0.4rem;
+}
+
+.blackjack-result-badge--winner {
+  border-color: rgba(74, 222, 128, 0.46);
+  background: rgba(20, 83, 45, 0.42);
+  color: #bbf7d0;
+}
+
+.blackjack-result-badge--loser {
+  border-color: rgba(248, 113, 113, 0.46);
+  background: rgba(127, 29, 29, 0.42);
+  color: #fecaca;
+}
+
+.blackjack-result-badge--push {
+  border-color: rgba(96, 165, 250, 0.44);
+  background: rgba(30, 64, 175, 0.34);
+  color: #bfdbfe;
+}
+
+.cards {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  max-width: 100%;
+}
+
+.blackjack-hand .cards {
+  min-height: 0;
+  max-height: 7.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.25rem;
+}
+
+.card {
+  width: var(--blackjack-card-width);
+  height: var(--blackjack-card-visible-height);
+  filter: drop-shadow(0 12px 20px rgba(15, 23, 42, 0.28));
+}
+
+.blackjack-card {
+  position: relative;
+  overflow: hidden;
+  transform: translateY(48px);
+  opacity: 0;
+  transition:
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
+  perspective: 1200px;
+}
+
+.blackjack-card--entered {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.blackjack-card-inner {
+  position: relative;
+  width: 100%;
+  height: var(--blackjack-card-full-height);
+  transform-style: preserve-3d;
+  transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.blackjack-card--revealed .blackjack-card-inner {
+  transform: rotateY(180deg);
+}
+
+.blackjack-card-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 0.55rem;
+  backface-visibility: hidden;
+}
+
+.blackjack-card-face img {
+  object-fit: contain;
+}
+
+.blackjack-card-face--front {
+  transform: rotateY(180deg);
+}
+
+#dealer-total,
+.blackjack-hand-total {
+  margin-top: 0.75rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
