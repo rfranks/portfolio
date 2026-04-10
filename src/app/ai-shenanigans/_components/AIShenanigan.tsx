@@ -864,20 +864,20 @@ function DefaultAIShenanigan({
         <Stack spacing={3}>
           <Stack
             spacing={2.5}
-            direction={{ xs: "column", lg: "row" }}
+            direction={{ xs: "column", md: "row" }}
             sx={{
-              alignItems: { xs: "stretch", lg: "flex-start" },
-              overflow: { xs: "hidden", lg: "visible" },
+              alignItems: { xs: "stretch", md: "flex-start" },
+              overflow: { xs: "hidden", md: "visible" },
             }}
           >
             <Box
               sx={{
                 width: "100%",
-                minWidth: { xs: 0, lg: hasVisibleMedia ? 340 : 0 },
-                maxWidth: { xs: "100%", lg: hasVisibleMedia ? 340 : "100%" },
+                minWidth: { xs: 0, md: hasVisibleMedia ? 340 : 0 },
+                maxWidth: { xs: "100%", md: hasVisibleMedia ? 340 : "100%" },
                 flexBasis: {
                   xs: "100%",
-                  lg: hasVisibleMedia ? "340px" : "100%",
+                  md: hasVisibleMedia ? "340px" : "100%",
                 },
                 flexShrink: 0,
                 transition:
@@ -888,19 +888,19 @@ function DefaultAIShenanigan({
                 sx={{
                   position: {
                     xs: "static",
-                    lg: hasVisibleMedia ? "sticky" : "static",
+                    md: hasVisibleMedia ? "sticky" : "static",
                   },
-                  top: { lg: 104 },
+                  top: { md: 104 },
                   maxHeight: {
                     xs: "none",
-                    lg: hasVisibleMedia ? "calc(100dvh - 120px)" : "none",
+                    md: hasVisibleMedia ? "calc(100dvh - 120px)" : "none",
                   },
                   overflowY: {
                     xs: "visible",
-                    lg: hasVisibleMedia ? "auto" : "visible",
+                    md: hasVisibleMedia ? "auto" : "visible",
                   },
-                  overscrollBehaviorY: { lg: "contain" },
-                  pr: { lg: hasVisibleMedia ? 0.5 : 0 },
+                  overscrollBehaviorY: { md: "contain" },
+                  pr: { md: hasVisibleMedia ? 0.5 : 0 },
                   transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
                 }}
               >
@@ -962,20 +962,20 @@ function DefaultAIShenanigan({
                       mt: 3,
                       position: {
                         xs: "static",
-                        lg: hasVisibleMedia ? "sticky" : "static",
+                        md: hasVisibleMedia ? "sticky" : "static",
                       },
-                      bottom: { lg: 0 },
-                      pt: { lg: hasVisibleMedia ? 1.5 : 0 },
-                      pb: { lg: hasVisibleMedia ? 0.25 : 0 },
-                      zIndex: { lg: 1 },
+                      bottom: { md: 0 },
+                      pt: { md: hasVisibleMedia ? 1.5 : 0 },
+                      pb: { md: hasVisibleMedia ? 0.25 : 0 },
+                      zIndex: { md: 1 },
                       background: {
                         xs: "transparent",
-                        lg: hasVisibleMedia
+                        md: hasVisibleMedia
                           ? (theme) =>
                               `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0)} 0%, ${alpha(theme.palette.background.paper, 0.72)} 24%, ${alpha(theme.palette.background.paper, 0.88)} 100%)`
                           : "transparent",
                       },
-                      backdropFilter: { lg: hasVisibleMedia ? "blur(4px)" : "none" },
+                      backdropFilter: { md: hasVisibleMedia ? "blur(4px)" : "none" },
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
@@ -1021,11 +1021,11 @@ function DefaultAIShenanigan({
                 width: "100%",
                 maxWidth: {
                   xs: "100%",
-                  lg: hasVisibleMedia ? "calc(100% - 340px)" : 0,
+                  md: hasVisibleMedia ? "calc(100% - 340px)" : 0,
                 },
                 flexBasis: {
                   xs: "100%",
-                  lg: hasVisibleMedia ? "calc(100% - 340px)" : "0px",
+                  md: hasVisibleMedia ? "calc(100% - 340px)" : "0px",
                 },
                 opacity: hasVisibleMedia ? 1 : 0,
                 transform: hasVisibleMedia

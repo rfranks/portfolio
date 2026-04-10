@@ -690,6 +690,21 @@
         "movieSource": "Sora video generation",
         "movieCaption": "What should have been a simple Christmas card photo turns into a festive comedy as Zak and Graham refuse to cooperate, crowding in, mugging for attention, and making the whole holiday portrait delightfully impossible.",
         "blurb": "Christmas Card takes a well-meaning holiday photo op and turns it into a classic barnyard comedy. Anne and I try to hold it together while Zak and Graham, wearing Santa hats and absolutely no interest in behaving, steal the moment. The result is equal parts wholesome, chaotic, and exactly the kind of Christmas-card disaster worth remembering."
+      },
+      {
+        "slug": "mad-hatter",
+        "title": "Mad Hatter!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/mad-hatter/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a clean headshot, calm and composed, before the whole thing tips sideways into Wonderland nonsense.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/mad-hatter/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The headshot gets remixed into a lavish Mad Hatter fantasy, complete with teacups, mushrooms, steampunk whimsy, and a suspiciously well-dressed rabbit sidekick.",
+        "movieRendering": "/personal/images/ai-shenanigans/mad-hatter/movie.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "What begins as an ordinary portrait turns into a full Mad Hatter transformation, with theatrical flair, enchanted tea-party chaos, and a stroll straight into a strange storybook world.",
+        "blurb": "Mad Hatter takes a professional headshot and pushes it deep into whimsical fantasy. The result is a richly detailed Wonderland-style shenanigan where polished portraiture gives way to eccentric costume, magical atmosphere, and just enough absurdity to feel like tea time has become a full-blown character reveal."
       }
     ]
   },
