@@ -11,6 +11,7 @@ import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import FadeInSection from "@/components/shared/FadeInSection";
 import AIShenaniganAdaptation from "./AIShenaniganAdaptation";
+import AIShenaniganPalmReading from "./AIShenaniganPalmReading";
 import AIShenaniganWorkSeries from "./AIShenaniganWorkSeries";
 import ShenaniganPanel from "./ShenaniganPanel";
 import { useAudio } from "@/hooks/audio/useAudio";
@@ -21,7 +22,8 @@ export type AIShenaniganMovieOrientation = "landscape" | "portrait" | undefined;
 export type AIShenaniganType =
   | "default"
   | "book-to-limited-series"
-  | "work-to-series-adaptation";
+  | "work-to-series-adaptation"
+  | "palmylyzer-pro";
 
 type AIShenaniganProps = {
   type?: AIShenaniganType;
@@ -90,6 +92,23 @@ type AIShenaniganProps = {
     sourceHref?: string;
     caption?: string;
   }>;
+  rawImage?: string;
+  rawSource?: string;
+  rawSourceHref?: string;
+  rawCaption?: string;
+  analyzedImage?: string;
+  analyzedSource?: string;
+  analyzedSourceHref?: string;
+  analyzedCaption?: string;
+  palmLineAnalysisImage?: string;
+  palmLineAnalysisSource?: string;
+  palmLineAnalysisSourceHref?: string;
+  palmLineAnalysisCaption?: string;
+  palmReadingTitle?: string;
+  palmReadingText?: string;
+  palmReadingMarkdownPath?: string;
+  palmReadingSource?: string;
+  palmReadingSourceHref?: string;
 };
 
 type RevealStage = "intro" | "realistic" | "stylized" | "movie";
@@ -141,6 +160,45 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         seriesSourceHref={props.seriesSourceHref || props.movieSourceHref}
         seriesCaption={props.seriesCaption || props.movieCaption}
         seriesParts={props.seriesParts}
+      />
+    );
+  }
+
+  if (props.type === "palmylyzer-pro") {
+    return (
+      <AIShenaniganPalmReading
+        rank={props.rank}
+        title={props.title}
+        blurb={props.blurb}
+        intentToCopyright={props.intentToCopyright}
+        rightsNotice={props.rightsNotice}
+        rawImage={props.rawImage || props.realisticImage}
+        rawSource={props.rawSource || props.realisticSource}
+        rawSourceHref={props.rawSourceHref || props.realisticSourceHref}
+        rawCaption={props.rawCaption || props.realisticCaption}
+        analyzedImage={props.analyzedImage || props.stylizedRendering || ""}
+        analyzedSource={props.analyzedSource || props.stylizedSource}
+        analyzedSourceHref={
+          props.analyzedSourceHref || props.stylizedSourceHref
+        }
+        analyzedCaption={props.analyzedCaption || props.stylizedCaption}
+        palmLineAnalysisImage={
+          props.palmLineAnalysisImage || props.movieRendering || ""
+        }
+        palmLineAnalysisSource={
+          props.palmLineAnalysisSource || props.movieSource
+        }
+        palmLineAnalysisSourceHref={
+          props.palmLineAnalysisSourceHref || props.movieSourceHref
+        }
+        palmLineAnalysisCaption={
+          props.palmLineAnalysisCaption || props.movieCaption
+        }
+        palmReadingTitle={props.palmReadingTitle}
+        palmReadingText={props.palmReadingText || props.blurb}
+        palmReadingMarkdownPath={props.palmReadingMarkdownPath}
+        palmReadingSource={props.palmReadingSource}
+        palmReadingSourceHref={props.palmReadingSourceHref}
       />
     );
   }

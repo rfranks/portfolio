@@ -144,6 +144,23 @@ export default function AIShenanigansPageClient() {
                 movieSource2?: string;
                 movieSourceHref2?: string;
                 movieCaption2?: string;
+                rawImage?: string;
+                rawSource?: string;
+                rawSourceHref?: string;
+                rawCaption?: string;
+                analyzedImage?: string;
+                analyzedSource?: string;
+                analyzedSourceHref?: string;
+                analyzedCaption?: string;
+                palmLineAnalysisImage?: string;
+                palmLineAnalysisSource?: string;
+                palmLineAnalysisSourceHref?: string;
+                palmLineAnalysisCaption?: string;
+                palmReadingTitle?: string;
+                palmReadingText?: string;
+                palmReadingMarkdownPath?: string;
+                palmReadingSource?: string;
+                palmReadingSourceHref?: string;
                 intentToCopyright?: boolean;
                 rightsNotice?: string;
                 bookCoverImage?: string;
@@ -203,6 +220,21 @@ export default function AIShenanigansPageClient() {
                   : {}),
                 ...(itemWithLinks.movieSourceHref2
                   ? { movieSourceHref2: itemWithLinks.movieSourceHref2 }
+                  : {}),
+                ...(itemWithLinks.rawSourceHref
+                  ? { rawSourceHref: itemWithLinks.rawSourceHref }
+                  : {}),
+                ...(itemWithLinks.analyzedSourceHref
+                  ? { analyzedSourceHref: itemWithLinks.analyzedSourceHref }
+                  : {}),
+                ...(itemWithLinks.palmLineAnalysisSourceHref
+                  ? {
+                      palmLineAnalysisSourceHref:
+                        itemWithLinks.palmLineAnalysisSourceHref,
+                    }
+                  : {}),
+                ...(itemWithLinks.palmReadingSourceHref
+                  ? { palmReadingSourceHref: itemWithLinks.palmReadingSourceHref }
                   : {}),
                 ...(itemWithLinks.intentToCopyright
                   ? { intentToCopyright: itemWithLinks.intentToCopyright }
@@ -300,6 +332,19 @@ export default function AIShenanigansPageClient() {
                   movieRendering2={itemWithLinks.movieRendering2}
                   movieSource2={itemWithLinks.movieSource2}
                   movieCaption2={itemWithLinks.movieCaption2}
+                  rawImage={itemWithLinks.rawImage}
+                  rawSource={itemWithLinks.rawSource}
+                  rawCaption={itemWithLinks.rawCaption}
+                  analyzedImage={itemWithLinks.analyzedImage}
+                  analyzedSource={itemWithLinks.analyzedSource}
+                  analyzedCaption={itemWithLinks.analyzedCaption}
+                  palmLineAnalysisImage={itemWithLinks.palmLineAnalysisImage}
+                  palmLineAnalysisSource={itemWithLinks.palmLineAnalysisSource}
+                  palmLineAnalysisCaption={itemWithLinks.palmLineAnalysisCaption}
+                  palmReadingTitle={itemWithLinks.palmReadingTitle}
+                  palmReadingText={itemWithLinks.palmReadingText}
+                  palmReadingMarkdownPath={itemWithLinks.palmReadingMarkdownPath}
+                  palmReadingSource={itemWithLinks.palmReadingSource}
                   {...linkProps}
                 />
               );
