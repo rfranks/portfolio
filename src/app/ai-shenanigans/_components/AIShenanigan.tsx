@@ -43,6 +43,10 @@ type AIShenaniganProps = {
   movieSource?: string;
   movieSourceHref?: string;
   movieCaption?: string;
+  movieRendering2?: string | null;
+  movieSource2?: string;
+  movieSourceHref2?: string;
+  movieCaption2?: string;
   bookCoverImage?: string;
   bookSource?: string;
   bookSourceHref?: string;
@@ -163,6 +167,10 @@ function DefaultAIShenanigan({
   movieSource,
   movieSourceHref,
   movieCaption,
+  movieRendering2,
+  movieSource2,
+  movieSourceHref2,
+  movieCaption2,
 }: AIShenaniganProps) {
   const [stage, setStage] = useState<RevealStage>("intro");
   const [realisticVisible, setRealisticVisible] = useState(false);
@@ -188,7 +196,21 @@ function DefaultAIShenanigan({
   const motionSfx = useAudio("/audio/whoosh.ogg");
   const rewindSfx = useAudio("/audio/phaserDown2.ogg");
   const hasStylized = Boolean(stylizedRendering);
-  const hasMovie = Boolean(movieRendering);
+  const primaryMovieRendering = movieRendering || movieRendering2 || null;
+  const primaryMovieSource = movieRendering ? movieSource : movieSource2;
+  const primaryMovieSourceHref = movieRendering
+    ? movieSourceHref
+    : movieSourceHref2;
+  const primaryMovieCaption = movieRendering ? movieCaption : movieCaption2;
+  const secondaryMovieRendering =
+    movieRendering && movieRendering2 ? movieRendering2 : null;
+  const secondaryMovieSource =
+    movieRendering && movieRendering2 ? movieSource2 : undefined;
+  const secondaryMovieSourceHref =
+    movieRendering && movieRendering2 ? movieSourceHref2 : undefined;
+  const secondaryMovieCaption =
+    movieRendering && movieRendering2 ? movieCaption2 : undefined;
+  const hasMovie = Boolean(primaryMovieRendering);
   const isPortrait = orientation === "portrait";
   const hasVisibleMedia = realisticVisible;
   const mediaAspectRatio = isPortrait ? "9 / 16" : "16 / 9";
@@ -838,14 +860,14 @@ function DefaultAIShenanigan({
 
   return (
     <FadeInSection>
-      <ShenaniganPanel className="overflow-hidden">
+      <ShenaniganPanel>
         <Stack spacing={3}>
           <Stack
             spacing={2.5}
             direction={{ xs: "column", lg: "row" }}
             sx={{
               alignItems: { xs: "stretch", lg: "flex-start" },
-              overflow: "hidden",
+              overflow: { xs: "hidden", lg: "visible" },
             }}
           >
             <Box
@@ -868,7 +890,17 @@ function DefaultAIShenanigan({
                     xs: "static",
                     lg: hasVisibleMedia ? "sticky" : "static",
                   },
-                  top: 104,
+                  top: { lg: 104 },
+                  maxHeight: {
+                    xs: "none",
+                    lg: hasVisibleMedia ? "calc(100dvh - 120px)" : "none",
+                  },
+                  overflowY: {
+                    xs: "visible",
+                    lg: hasVisibleMedia ? "auto" : "visible",
+                  },
+                  overscrollBehaviorY: { lg: "contain" },
+                  pr: { lg: hasVisibleMedia ? 0.5 : 0 },
                   transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
                 }}
               >
@@ -928,6 +960,22 @@ function DefaultAIShenanigan({
                   <Box
                     sx={{
                       mt: 3,
+                      position: {
+                        xs: "static",
+                        lg: hasVisibleMedia ? "sticky" : "static",
+                      },
+                      bottom: { lg: 0 },
+                      pt: { lg: hasVisibleMedia ? 1.5 : 0 },
+                      pb: { lg: hasVisibleMedia ? 0.25 : 0 },
+                      zIndex: { lg: 1 },
+                      background: {
+                        xs: "transparent",
+                        lg: hasVisibleMedia
+                          ? (theme) =>
+                              `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0)} 0%, ${alpha(theme.palette.background.paper, 0.72)} 24%, ${alpha(theme.palette.background.paper, 0.88)} 100%)`
+                          : "transparent",
+                      },
+                      backdropFilter: { lg: hasVisibleMedia ? "blur(4px)" : "none" },
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
@@ -1167,7 +1215,7 @@ function DefaultAIShenanigan({
                         <Box
                           component="video"
                           ref={motionVideoRef}
-                          src={withBasePath(movieRendering!)}
+                          src={withBasePath(primaryMovieRendering!)}
                           controls
                           autoPlay
                           playsInline
@@ -1186,15 +1234,60 @@ function DefaultAIShenanigan({
                             mx: isPortrait ? "auto" : undefined,
                           }}
                         />
-                        {renderSource(movieSource, movieSourceHref)}
-                        {movieCaption && (
+                        {renderSource(primaryMovieSource, primaryMovieSourceHref)}
+                        {primaryMovieCaption && (
                           <Typography
                             variant="body2"
                             color="text.secondary"
-                            sx={{ mt: movieSource ? 0.75 : 1.5 }}
+                            sx={{ mt: primaryMovieSource ? 0.75 : 1.5 }}
                           >
-                            {movieCaption}
+                            {primaryMovieCaption}
                           </Typography>
+                        )}
+                        {secondaryMovieRendering && (
+                          <Box
+                            sx={{
+                              mt: 2.5,
+                              pt: 2,
+                              borderTop: "1px solid rgba(255,255,255,0.08)",
+                            }}
+                          >
+                            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                              Alternate motion rendering
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ mb: 2 }}
+                            >
+                              An alternate cut of the same shenanigan.
+                            </Typography>
+                            <Box
+                              component="video"
+                              src={withBasePath(secondaryMovieRendering)}
+                              controls
+                              playsInline
+                              className="block w-full rounded-[22px] bg-black/10 object-contain"
+                              sx={{
+                                aspectRatio: mediaAspectRatio,
+                                maxWidth: mediaMaxWidth,
+                                mx: isPortrait ? "auto" : undefined,
+                              }}
+                            />
+                            {renderSource(
+                              secondaryMovieSource,
+                              secondaryMovieSourceHref,
+                            )}
+                            {secondaryMovieCaption && (
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mt: secondaryMovieSource ? 0.75 : 1.5 }}
+                              >
+                                {secondaryMovieCaption}
+                              </Typography>
+                            )}
+                          </Box>
                         )}
                         {renderMobilePanelFooter(
                           stage === "movie",

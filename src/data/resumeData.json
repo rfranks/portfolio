@@ -13,10 +13,7 @@
     "contact": {
       "linkedin": "https://www.linkedin.com/in/richardfranksjr",
       "email": "richardfranksjr@hotmail.com",
-      "github": [
-        "https://github.com/rfranks",
-        "https://github.com/rfrankspk"
-      ]
+      "github": ["https://github.com/rfranks", "https://github.com/rfrankspk"]
     },
     "gutter": [
       "Principal / Distinguished-level full-stack engineer with 15 years of experience building production web applications, APIs, and domain-specific software across healthcare, fintech, and scientific-adjacent environments. Strong hands-on background in Python, Java, TypeScript, React, RESTful services, SQL/NoSQL-backed systems, and AI-enabled workflows.",
@@ -38,8 +35,8 @@
     "aiShenanigans": {
       "documentTitle": "AI Shenanigans",
       "metadataTitle": "AI Shenanigans",
-      "metadataDescription": "Stylized AI experiments blending source photos, caricature renders, and optional motion passes.",
-      "appBarSubtitle": "Stylization, caricature, and optional motion",
+      "metadataDescription": "AI creative lab for stylized visuals, motion shorts, and narrative adaptation experiments from source image to story-world prototype.",
+      "appBarSubtitle": "Visual experiments and narrative adaptation using AI",
       "heroEyebrow": "Portfolio experiment"
     },
     "dna": {
@@ -454,7 +451,7 @@
   },
   "aiShenanigans": {
     "title": "AI Shenanigans",
-    "description": "Little experiments in stylization, caricature, and motion where a grounded source image gets pushed into something stranger, warmer, and more playful.",
+    "description": "A mixed-media AI storytelling lab: some pieces transform real photos into stylized or caricatured motion moments, while others prototype longer-form ideas like books, episode arcs, and adaptation-ready story beats.",
     "items": [
       {
         "slug": "momma-helen",
@@ -645,6 +642,54 @@
           }
         ],
         "blurb": "P.T. Barnum's Creepy Cryptids is a vintage horror art-book concept that reimagines obscure folkloric creatures as the headline attractions of a lost nineteenth-century traveling sideshow. Each creature is treated as both scholarship and spectacle: one page reads like an antique encyclopedia entry full of lore, maps, warnings, and taxonomy, while the facing page explodes into a sensational Barnum-style broadside. The result is a cabinet of international nightmares where eerie research meets carnival showmanship, and every spread asks what dreadful thing Barnum has dragged back this time."
+      },
+      {
+        "slug": "boom-team",
+        "title": "Boom Team!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/boom-team/realistic.jpeg",
+        "realisticSource": "Photo (Anne Barbarick)",
+        "realisticCaption": "The leader of the Boom Team. Logan, our little terrorist!",
+        "stylizedRendering": "/personal/images/ai-shenanigans/boom-team/stylistic.png",
+        "stylizedSource": "ChatGPT (Dall-E) image generation",
+        "stylizedCaption": "The trio becomes an even punchier action-caricature scene, dialing up the comic menace, motion, and explosive absurdity.",
+        "movieRendering": "/personal/images/ai-shenanigans/boom-team/movie.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "Logan charges, Oscar triggers, and Devlin barrels in behind as the Boom Team erupts into a fast, cinematic burst of snowy mayhem.",
+        "blurb": "Boom Team turns a chaotic character illustration into a full-on action gag, with Logan leading the charge, Oscar working the remote, and Devlin bringing big unhinged energy from the rear. It plays like a mischievous mini movie: part cartoon menace, part explosive comedy, and fully committed to the bit."
+      },
+      {
+        "slug": "game-over",
+        "title": "Game Over!",
+        "orientation": "landscape",
+        "realisticImage": "/personal/images/ai-shenanigans/game-over/realistic.jpeg",
+        "realisticSource": "Photo (Anne Barbarick)",
+        "realisticCaption": "Fresh off the crane game victory, I’m riding home grinning like a man who just beat the arcade gods and hauled the prize back to the truck.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/game-over/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The happy truck-side victory pose gets redrawn into a bold cartoon setup, right on the verge of the pillow revealing its bad intentions.",
+        "movieRendering": "/personal/images/ai-shenanigans/game-over/movieA.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "What starts as a proud post-crane-game celebration turns into chaos when the Game Over pillow wakes up as a naughty little critter bent on tearing through the truck and ruining the ride home.",
+        "movieRendering2": "/personal/images/ai-shenanigans/game-over/movieB.mp4",
+        "movieSource2": "Sora video generation",
+        "movieCaption2": "The second clip escalates the bit, with the Game Over pillow fully embracing its destructive little goblin energy and turning the truck ride into a full shenanigan meltdown.",
+        "blurb": "Game Over starts with a genuine crane-game triumph: winning a pixelated FAO Schwarz pillow and proudly showing it off on the ride home. Then the shenanigan kicks in. The prize comes alive, turns into a mischievous destruction-loving creature, and transforms a wholesome victory lap into a full-blown backseat gremlin incident."
+      },
+      {
+        "slug": "christmas-card",
+        "title": "Christmas Card!",
+        "orientation": "landscape",
+        "realisticImage": "/personal/images/ai-shenanigans/christmas-card/realistic.jpeg",
+        "realisticSource": "Photo (Susan Hellman)",
+        "realisticCaption": "Our Christmas card attempt starts out sweet enough, with Anne and me squeezed between Zak and Graham as the horses do their absolute best not to cooperate.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/christmas-card/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The holiday chaos gets reimagined in a Wallace-and-Gromit-style caricature, with Zak and Graham leaning fully into their stubborn, scene-stealing Christmas energy.",
+        "movieRendering": "/personal/images/ai-shenanigans/christmas-card/movie.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "What should have been a simple Christmas card photo turns into a festive comedy as Zak and Graham refuse to cooperate, crowding in, mugging for attention, and making the whole holiday portrait delightfully impossible.",
+        "blurb": "Christmas Card takes a well-meaning holiday photo op and turns it into a classic barnyard comedy. Anne and I try to hold it together while Zak and Graham, wearing Santa hats and absolutely no interest in behaving, steal the moment. The result is equal parts wholesome, chaotic, and exactly the kind of Christmas-card disaster worth remembering."
       }
     ]
   },
@@ -748,9 +793,7 @@
     {
       "company": "IDEXX",
       "position": "Consultant",
-      "details": [
-        "Consultant on veterinary practice management platform."
-      ]
+      "details": ["Consultant on veterinary practice management platform."]
     },
     {
       "company": "Fetch Enterprises",
@@ -930,10 +973,10 @@
     },
     {
       "name": "AI Shenanigans",
-      "description": "Stylization and caricature experiments that transform grounded source images into playful rendered scenes, with optional motion passes layered on top.",
+      "description": "Mixed-media AI experiments spanning photo stylization, caricature, motion, and narrative concept development.",
       "href": "/ai-shenanigans",
       "type": "personal",
-      "interestsMeWhy": "This one is fun because it treats image generation less like a one-shot prompt and more like a staged reveal: source material, stylized interpretation, then motion. It turns AI output into a little storytelling sequence instead of a single artifact.",
+      "interestsMeWhy": "This route is compelling because it treats AI as a creative pipeline, not a one-shot generator: source capture, visual reinterpretation, motion, and sometimes adaptation into larger story structures.",
       "watermark": {
         "kind": "image",
         "containerClassName": "pointer-events-none absolute bottom-5 right-5 opacity-[0.1] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.18]",
@@ -1597,18 +1640,14 @@
       "degree": "B.S. Biomedical Engineering",
       "year": "2003",
       "image": "/personal/images/education/bu.jpeg",
-      "awards": [
-        "Order of the Engineer • Engineering • 1998"
-      ]
+      "awards": ["Order of the Engineer • Engineering • 1998"]
     },
     {
       "school": "University of Southern Maine",
       "degree": "M.S. Computer Science",
       "year": "2008",
       "image": "/personal/images/education/usm.jpeg",
-      "awards": [
-        "Graduate Student of the Year • Computer Science • 2008"
-      ]
+      "awards": ["Graduate Student of the Year • Computer Science • 2008"]
     }
   ],
   "projectsSection": {

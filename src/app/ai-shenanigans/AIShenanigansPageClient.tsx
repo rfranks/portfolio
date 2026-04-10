@@ -140,6 +140,10 @@ export default function AIShenanigansPageClient() {
                 realisticSourceHref?: string;
                 stylizedSourceHref?: string;
                 movieSourceHref?: string;
+                movieRendering2?: string;
+                movieSource2?: string;
+                movieSourceHref2?: string;
+                movieCaption2?: string;
                 intentToCopyright?: boolean;
                 rightsNotice?: string;
                 bookCoverImage?: string;
@@ -196,6 +200,9 @@ export default function AIShenanigansPageClient() {
                   : {}),
                 ...(itemWithLinks.movieSourceHref
                   ? { movieSourceHref: itemWithLinks.movieSourceHref }
+                  : {}),
+                ...(itemWithLinks.movieSourceHref2
+                  ? { movieSourceHref2: itemWithLinks.movieSourceHref2 }
                   : {}),
                 ...(itemWithLinks.intentToCopyright
                   ? { intentToCopyright: itemWithLinks.intentToCopyright }
@@ -290,6 +297,9 @@ export default function AIShenanigansPageClient() {
                   movieRendering={item.movieRendering}
                   movieSource={item.movieSource}
                   movieCaption={item.movieCaption}
+                  movieRendering2={itemWithLinks.movieRendering2}
+                  movieSource2={itemWithLinks.movieSource2}
+                  movieCaption2={itemWithLinks.movieCaption2}
                   {...linkProps}
                 />
               );
