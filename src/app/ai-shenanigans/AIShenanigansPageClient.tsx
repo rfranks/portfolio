@@ -171,6 +171,11 @@ export default function AIShenanigansPageClient() {
                 manuscriptSource?: string;
                 manuscriptSourceHref?: string;
                 manuscriptCaption?: string;
+                trailerMovie?: string;
+                trailerOrientation?: AIShenaniganMovieOrientation;
+                trailerSource?: string;
+                trailerSourceHref?: string;
+                trailerCaption?: string;
                 episodesPdf?: string;
                 episodesSource?: string;
                 episodesSourceHref?: string;
@@ -248,6 +253,9 @@ export default function AIShenanigansPageClient() {
                 ...(itemWithLinks.manuscriptSourceHref
                   ? { manuscriptSourceHref: itemWithLinks.manuscriptSourceHref }
                   : {}),
+                ...(itemWithLinks.trailerSourceHref
+                  ? { trailerSourceHref: itemWithLinks.trailerSourceHref }
+                  : {}),
                 ...(itemWithLinks.episodesSourceHref
                   ? { episodesSourceHref: itemWithLinks.episodesSourceHref }
                   : {}),
@@ -268,6 +276,18 @@ export default function AIShenanigansPageClient() {
                   : {}),
                 ...(itemWithLinks.manuscriptCaption
                   ? { manuscriptCaption: itemWithLinks.manuscriptCaption }
+                  : {}),
+                ...(itemWithLinks.trailerMovie
+                  ? { trailerMovie: itemWithLinks.trailerMovie }
+                  : {}),
+                ...(itemWithLinks.trailerOrientation
+                  ? { trailerOrientation: itemWithLinks.trailerOrientation }
+                  : {}),
+                ...(itemWithLinks.trailerSource
+                  ? { trailerSource: itemWithLinks.trailerSource }
+                  : {}),
+                ...(itemWithLinks.trailerCaption
+                  ? { trailerCaption: itemWithLinks.trailerCaption }
                   : {}),
                 ...(itemWithLinks.episodesPdf
                   ? { episodesPdf: itemWithLinks.episodesPdf }

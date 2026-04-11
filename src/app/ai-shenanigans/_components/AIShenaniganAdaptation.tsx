@@ -15,8 +15,9 @@ import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { withBasePath } from "@/utils/basePath";
 
-type RevealStage = "intro" | "book" | "manuscript" | "episodes";
+type RevealStage = "intro" | "book" | "manuscript" | "trailer" | "episodes";
 type ArrowDirection = "right" | "down";
+type TrailerOrientation = "landscape" | "portrait" | undefined;
 
 const ARROW_REVEAL_MS = 280;
 
@@ -34,6 +35,11 @@ type AIShenaniganAdaptationProps = {
   manuscriptSource?: string;
   manuscriptSourceHref?: string;
   manuscriptCaption?: string;
+  trailerMovie?: string;
+  trailerOrientation?: TrailerOrientation;
+  trailerSource?: string;
+  trailerSourceHref?: string;
+  trailerCaption?: string;
   episodesPdf: string;
   episodesSource?: string;
   episodesSourceHref?: string;
@@ -63,6 +69,11 @@ export default function AIShenaniganAdaptation({
   manuscriptSource,
   manuscriptSourceHref,
   manuscriptCaption,
+  trailerMovie,
+  trailerOrientation = "landscape",
+  trailerSource,
+  trailerSourceHref,
+  trailerCaption,
   episodesPdf,
   episodesSource,
   episodesSourceHref,
@@ -73,28 +84,37 @@ export default function AIShenaniganAdaptation({
   const [bookVisible, setBookVisible] = useState(false);
   const [bookCoverLoaded, setBookCoverLoaded] = useState(false);
   const [manuscriptVisible, setManuscriptVisible] = useState(false);
+  const [trailerVisible, setTrailerVisible] = useState(false);
+  const [trailerLoaded, setTrailerLoaded] = useState(false);
+  const [pendingTrailerReveal, setPendingTrailerReveal] = useState(false);
   const [episodesVisible, setEpisodesVisible] = useState(false);
   const [revealedEpisodeCount, setRevealedEpisodeCount] = useState(0);
   const [showManuscriptArrow, setShowManuscriptArrow] = useState(false);
+  const [showTrailerArrow, setShowTrailerArrow] = useState(false);
   const [showEpisodesArrow, setShowEpisodesArrow] = useState(false);
   const [transitioningTo, setTransitioningTo] = useState<RevealStage | null>(
     null,
   );
   const manuscriptTimeoutRef = useRef<number | null>(null);
+  const trailerTimeoutRef = useRef<number | null>(null);
   const episodesTimeoutRef = useRef<number | null>(null);
   const bookSectionRef = useRef<HTMLDivElement | null>(null);
   const bookCoverRef = useRef<HTMLDivElement | null>(null);
   const manuscriptSectionRef = useRef<HTMLDivElement | null>(null);
+  const trailerSectionRef = useRef<HTMLDivElement | null>(null);
   const episodesSectionRef = useRef<HTMLDivElement | null>(null);
   const bookFooterRef = useRef<HTMLDivElement | null>(null);
   const manuscriptFooterRef = useRef<HTMLDivElement | null>(null);
+  const trailerFooterRef = useRef<HTMLDivElement | null>(null);
   const episodesFooterRef = useRef<HTMLDivElement | null>(null);
   const episodeCardRefs = useRef<Array<HTMLDivElement | null>>([]);
   const episodeFooterRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const trailerVideoRef = useRef<HTMLVideoElement | null>(null);
   const episodeVideoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const scrollStabilizersRef = useRef<Array<() => void>>([]);
   const bookSfx = useAudio("/audio/highUp.ogg");
   const manuscriptSfx = useAudio("/audio/open_003.ogg");
+  const trailerSfx = useAudio("/audio/whoosh.ogg");
   const episodesSfx = useAudio("/audio/select_004.ogg");
   const nextEpisodeSfx = useAudio("/audio/whoosh.ogg");
   const rewindSfx = useAudio("/audio/phaserDown2.ogg");
@@ -116,6 +136,10 @@ export default function AIShenaniganAdaptation({
     ...panelChromeSx,
     p: 2.5,
   } as const;
+  const hasTrailer = Boolean(trailerMovie);
+  const isTrailerPortrait = trailerOrientation === "portrait";
+  const trailerAspectRatio = isTrailerPortrait ? "9 / 16" : "16 / 9";
+  const trailerMaxWidth = isTrailerPortrait ? 420 : undefined;
   const hasEpisodesPdf = Boolean(episodesPdf);
   const hasEpisodeMedia = episodeMedia.length > 0;
 
@@ -124,13 +148,23 @@ export default function AIShenaniganAdaptation({
       window.clearTimeout(manuscriptTimeoutRef.current);
       manuscriptTimeoutRef.current = null;
     }
+    if (trailerTimeoutRef.current) {
+      window.clearTimeout(trailerTimeoutRef.current);
+      trailerTimeoutRef.current = null;
+    }
     if (episodesTimeoutRef.current) {
       window.clearTimeout(episodesTimeoutRef.current);
       episodesTimeoutRef.current = null;
     }
   }, []);
 
-  const stopEpisodeVideos = () => {
+  const stopMediaVideos = () => {
+    if (trailerVideoRef.current) {
+      trailerVideoRef.current.pause();
+      trailerVideoRef.current.muted = false;
+      trailerVideoRef.current.currentTime = 0;
+    }
+
     episodeVideoRefs.current.forEach((video) => {
       if (!video) {
         return;
@@ -138,6 +172,18 @@ export default function AIShenaniganAdaptation({
       video.pause();
       video.muted = false;
       video.currentTime = 0;
+    });
+  };
+
+  const playTrailer = () => {
+    const video = trailerVideoRef.current;
+    if (!video) {
+      return;
+    }
+    video.muted = false;
+    video.currentTime = 0;
+    void video.play().catch(() => {
+      // Controls remain available if autoplay with sound is blocked.
     });
   };
 
@@ -279,6 +325,16 @@ export default function AIShenaniganAdaptation({
       active: manuscriptVisible || showManuscriptArrow,
       reached: manuscriptVisible,
     },
+    ...(hasTrailer
+      ? [
+          {
+            key: "trailer" as const,
+            label: "Trailer",
+            active: trailerVisible || showTrailerArrow,
+            reached: trailerVisible,
+          },
+        ]
+      : []),
     {
       key: "episodes" as const,
       label: "Episodes Draft",
@@ -537,6 +593,18 @@ export default function AIShenaniganAdaptation({
       return (
         <Button
           variant="contained"
+          onClick={hasTrailer ? handleRevealTrailer : handleRevealEpisodes}
+          disabled={transitioningTo !== null}
+        >
+          {hasTrailer ? "Reveal Trailer 🎬" : "Reveal Episodes Draft 📺"}
+        </Button>
+      );
+    }
+
+    if (stage === "trailer") {
+      return (
+        <Button
+          variant="contained"
           onClick={handleRevealEpisodes}
           disabled={transitioningTo !== null}
         >
@@ -561,7 +629,12 @@ export default function AIShenaniganAdaptation({
   };
 
   const handleChronologySelect = (
-    target: "book" | "manuscript" | "episodes" | `episode-${number}`,
+    target:
+      | "book"
+      | "manuscript"
+      | "trailer"
+      | "episodes"
+      | `episode-${number}`,
   ) => {
     if (transitioningTo !== null) {
       return;
@@ -570,19 +643,24 @@ export default function AIShenaniganAdaptation({
     rewindAndPlayAudio(rewindSfx, { volume: 0.24 });
     clearPendingTransitions();
     setTransitioningTo(null);
+    setPendingTrailerReveal(false);
     setBookVisible(true);
     setBookCoverLoaded(true);
     setShowManuscriptArrow(target !== "book");
     setManuscriptVisible(target !== "book");
+    const targetsEpisodes = target === "episodes" || target.startsWith("episode-");
+    const targetsTrailer = hasTrailer && (target === "trailer" || targetsEpisodes);
+    setShowTrailerArrow(hasTrailer && target !== "book" && target !== "manuscript");
+    setTrailerVisible(targetsTrailer);
     setShowEpisodesArrow(
-      target === "episodes" || target.startsWith("episode-"),
+      hasTrailer ? targetsEpisodes : target === "episodes" || target.startsWith("episode-"),
     );
-    setEpisodesVisible(target === "episodes" || target.startsWith("episode-"));
+    setEpisodesVisible(targetsEpisodes);
 
     if (target === "book") {
       setStage("book");
       setRevealedEpisodeCount(0);
-      stopEpisodeVideos();
+      stopMediaVideos();
       window.requestAnimationFrame(() => {
         scrollRevealIntoView(
           bookCoverRef.current || bookSectionRef.current,
@@ -595,7 +673,7 @@ export default function AIShenaniganAdaptation({
     if (target === "manuscript") {
       setStage("manuscript");
       setRevealedEpisodeCount(0);
-      stopEpisodeVideos();
+      stopMediaVideos();
       window.requestAnimationFrame(() => {
         scrollRevealIntoView(
           manuscriptSectionRef.current,
@@ -605,10 +683,18 @@ export default function AIShenaniganAdaptation({
       return;
     }
 
+    if (target === "trailer") {
+      setStage("trailer");
+      setRevealedEpisodeCount(0);
+      setPendingTrailerReveal(true);
+      stopMediaVideos();
+      return;
+    }
+
     if (target === "episodes") {
       setStage("episodes");
       setRevealedEpisodeCount(0);
-      stopEpisodeVideos();
+      stopMediaVideos();
       window.requestAnimationFrame(() => {
         scrollRevealIntoView(
           episodesSectionRef.current,
@@ -621,7 +707,7 @@ export default function AIShenaniganAdaptation({
     const episodeIndex = Number(target.replace("episode-", ""));
     setStage("episodes");
     setRevealedEpisodeCount(episodeIndex + 1);
-    stopEpisodeVideos();
+    stopMediaVideos();
     window.requestAnimationFrame(() => {
       scrollRevealIntoView(
         episodeCardRefs.current[episodeIndex],
@@ -770,6 +856,35 @@ export default function AIShenaniganAdaptation({
   }, [bookCoverLoaded, bookVisible, scrollRevealIntoView]);
 
   useEffect(() => {
+    if (
+      !pendingTrailerReveal ||
+      !trailerVisible ||
+      stage !== "trailer" ||
+      !trailerLoaded
+    ) {
+      return;
+    }
+
+    const rafId = window.requestAnimationFrame(() => {
+      scrollRevealIntoView(trailerSectionRef.current, trailerFooterRef.current);
+      window.setTimeout(() => {
+        playTrailer();
+      }, 180);
+      setPendingTrailerReveal(false);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [
+    pendingTrailerReveal,
+    trailerVisible,
+    stage,
+    trailerLoaded,
+    scrollRevealIntoView,
+  ]);
+
+  useEffect(() => {
     return () => {
       clearPendingTransitions();
       clearScrollStabilizers();
@@ -785,13 +900,18 @@ export default function AIShenaniganAdaptation({
     setBookVisible(false);
     setBookCoverLoaded(false);
     setManuscriptVisible(false);
+    setTrailerVisible(false);
+    setTrailerLoaded(false);
+    setPendingTrailerReveal(false);
     setEpisodesVisible(false);
     setRevealedEpisodeCount(0);
     setShowManuscriptArrow(false);
+    setShowTrailerArrow(false);
     setShowEpisodesArrow(false);
-    stopEpisodeVideos();
+    stopMediaVideos();
     episodeCardRefs.current = [];
     episodeFooterRefs.current = [];
+    trailerVideoRef.current = null;
     episodeVideoRefs.current = [];
   };
 
@@ -799,6 +919,7 @@ export default function AIShenaniganAdaptation({
     if (transitioningTo) {
       return;
     }
+    setPendingTrailerReveal(false);
     setTransitioningTo("book");
     rewindAndPlayAudio(bookSfx, { volume: 0.32 });
     window.requestAnimationFrame(() => {
@@ -813,6 +934,7 @@ export default function AIShenaniganAdaptation({
     if (transitioningTo) {
       return;
     }
+    setPendingTrailerReveal(false);
     setTransitioningTo("manuscript");
     rewindAndPlayAudio(manuscriptSfx, { volume: 0.34 });
     setShowManuscriptArrow(true);
@@ -830,10 +952,27 @@ export default function AIShenaniganAdaptation({
     }, ARROW_REVEAL_MS);
   };
 
+  const handleRevealTrailer = () => {
+    if (transitioningTo || !hasTrailer) {
+      return;
+    }
+    setTransitioningTo("trailer");
+    rewindAndPlayAudio(trailerSfx, { volume: 0.32 });
+    setShowTrailerArrow(true);
+    setPendingTrailerReveal(true);
+    trailerTimeoutRef.current = window.setTimeout(() => {
+      setTrailerVisible(true);
+      setStage("trailer");
+      setTransitioningTo(null);
+      trailerTimeoutRef.current = null;
+    }, ARROW_REVEAL_MS);
+  };
+
   const handleRevealEpisodes = () => {
     if (transitioningTo) {
       return;
     }
+    setPendingTrailerReveal(false);
     setTransitioningTo("episodes");
     rewindAndPlayAudio(episodesSfx, { volume: 0.32 });
     setShowEpisodesArrow(true);
@@ -1136,6 +1275,60 @@ export default function AIShenaniganAdaptation({
               )}
 
               {manuscriptVisible && (
+                <Box
+                  sx={{ display: "flex", justifyContent: "center", py: 0.5 }}
+                >
+                  {renderArrow(
+                    "down",
+                    hasTrailer ? showTrailerArrow : showEpisodesArrow,
+                  )}
+                </Box>
+              )}
+
+              {trailerVisible && trailerMovie && (
+                <Box ref={trailerSectionRef} sx={mediaPanelSx}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Trailer
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    Preview the adaptation trailer before opening the full
+                    episodes draft.
+                  </Typography>
+                  <Box
+                    component="video"
+                    ref={trailerVideoRef}
+                    src={withBasePath(trailerMovie)}
+                    onLoadedData={() => {
+                      setTrailerLoaded(true);
+                    }}
+                    controls
+                    playsInline
+                    className="block w-full rounded-[18px] bg-black/10 object-contain"
+                    sx={{
+                      aspectRatio: trailerAspectRatio,
+                      maxWidth: trailerMaxWidth,
+                      marginInline: "auto",
+                    }}
+                  />
+                  {renderSource(trailerSource, trailerSourceHref)}
+                  {trailerCaption && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: trailerSource ? 0.75 : 1.5 }}
+                    >
+                      {trailerCaption}
+                    </Typography>
+                  )}
+                  {renderMobilePanelFooter(stage === "trailer", trailerFooterRef)}
+                </Box>
+              )}
+
+              {trailerVisible && (
                 <Box
                   sx={{ display: "flex", justifyContent: "center", py: 0.5 }}
                 >

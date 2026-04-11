@@ -566,6 +566,10 @@
         "manuscriptPdf": "/personal/images/ai-shenanigans/the-rock/manuscript.pdf",
         "manuscriptSource": "Manuscript draft",
         "manuscriptCaption": "The manuscript opens with Mara Vance's survey team at Uluru uncovering an impossible void: smooth planes, machined seams, metallic dust, a failed probe contact, and the first hint that the rock may actually be a vessel.",
+        "trailerMovie": "/personal/images/ai-shenanigans/the-rock/trailer.mp4",
+        "trailerOrientation": "portrait",
+        "trailerSource": "Sora video generation",
+        "trailerCaption": "The trailer condenses the Uluru anomaly into a tense teaser arc, moving from field survey realism to first-contact dread before the full episodic plan is revealed.",
         "episodesPdf": "/personal/images/ai-shenanigans/the-rock/episodes.pdf",
         "episodesSource": "Episode plan / limited series notes",
         "episodesCaption": "The episodes draft maps the story into a prestige limited-series arc: first the team finds the door, then they recognize the geometry as a vessel, and finally the mystery widens into a planetary-scale emergency.",
@@ -717,6 +721,36 @@
         "blurb": "Christmas Card takes a well-meaning holiday photo op and turns it into a classic barnyard comedy. Anne and I try to hold it together while Zak and Graham, wearing Santa hats and absolutely no interest in behaving, steal the moment. The result is equal parts wholesome, chaotic, and exactly the kind of Christmas-card disaster worth remembering."
       },
       {
+        "slug": "caterpillar",
+        "title": "Caterpillar!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/caterpillar/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a clean headshot, perfectly normal and composed, before drifting off into Wonderland mischief.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/caterpillar/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The portrait transforms into a whimsical Alice-in-Wonderland-inspired caterpillar version of me, perched on a mushroom with hookah smoke, storybook weirdness, and full dreamy fantasy energy.",
+        "movieRendering": "/personal/images/ai-shenanigans/caterpillar/movie.mp4",
+        "movieSource": "Sora video generation",
+        "movieCaption": "What begins as an ordinary headshot slips into surreal Wonderland territory as I become the lounging caterpillar, smoking thoughtfully atop a mushroom in a strange enchanted forest.",
+        "blurb": "Caterpillar takes a straightforward professional headshot and pushes it into full Wonderland absurdity. The result is a playful character transformation, turning a polished portrait into a dreamy, smoke-curled fantasy scene with mushroom-perch grandeur, eccentric charm, and just the right amount of surreal storybook nonsense."
+      },
+      {
+        "slug": "dee-and-dum",
+        "title": "Tweedle Dee and Dum!",
+        "orientation": "landscape",
+        "realisticImage": "/personal/images/ai-shenanigans/dee-and-dum/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a straightforward headshot before splitting into double trouble and full Wonderland nonsense.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/dee-and-dum/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The portrait transforms into a playful Tweedle Dee and Tweedle Dum version of me, complete with rotund striped outfits, propeller caps, oversized bows, and storybook absurdity.",
+        "movieRendering": "/personal/images/ai-shenanigans/dee-and-dum/movie.mp4",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "What begins as a normal portrait turns into a ridiculous Wonderland character reveal as I split into Tweedle Dee and Tweedle Dum, waddling into synchronized chaos and cheerful nonsense.",
+        "blurb": "Dee and Dum takes a polished professional headshot and sends it tumbling straight into Wonderland farce. The result is a gleefully ridiculous double-character transformation, turning one portrait into two rotund storybook troublemakers with bright costumes, matching grins, and just the right amount of theatrical silliness."
+      },
+      {
         "slug": "mad-hatter",
         "title": "Mad Hatter!",
         "orientation": "portrait",
@@ -730,6 +764,21 @@
         "movieSource": "Sora video generation",
         "movieCaption": "What begins as an ordinary portrait turns into a full Mad Hatter transformation, with theatrical flair, enchanted tea-party chaos, and a stroll straight into a strange storybook world.",
         "blurb": "Mad Hatter takes a professional headshot and pushes it deep into whimsical fantasy. The result is a richly detailed Wonderland-style shenanigan where polished portraiture gives way to eccentric costume, magical atmosphere, and just enough absurdity to feel like tea time has become a full-blown character reveal."
+      },
+      {
+        "slug": "king-of-hearts",
+        "title": "King of Hearts!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/king-of-hearts/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a clean professional headshot before shrinking down into royal Wonderland absurdity.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/king-of-hearts/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The portrait transforms into a pint-sized King of Hearts version of me, dressed in theatrical royal finery with a playful, storybook sense of pomp and mischief.",
+        "movieRendering": "/personal/images/ai-shenanigans/king-of-hearts/movie.mp4",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "What begins as a normal portrait turns into a whimsical royal character reveal as I become the pint-sized King of Hearts, strutting into Wonderland with tiny grandeur and oversized attitude.",
+        "blurb": "King of Hearts takes a polished headshot and turns it into a compact burst of Wonderland royalty. The result is a playful character shenanigan, transforming a straightforward portrait into a miniature monarch with theatrical charm, regal swagger, and just enough absurdity to make the whole thing feel delightfully unhinged."
       }
     ]
   },

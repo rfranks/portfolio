@@ -57,6 +57,11 @@ type AIShenaniganProps = {
   manuscriptSource?: string;
   manuscriptSourceHref?: string;
   manuscriptCaption?: string;
+  trailerMovie?: string;
+  trailerOrientation?: AIShenaniganMovieOrientation;
+  trailerSource?: string;
+  trailerSourceHref?: string;
+  trailerCaption?: string;
   episodesPdf?: string;
   episodesSource?: string;
   episodesSourceHref?: string;
@@ -132,6 +137,11 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         manuscriptSource={props.manuscriptSource}
         manuscriptSourceHref={props.manuscriptSourceHref}
         manuscriptCaption={props.manuscriptCaption}
+        trailerMovie={props.trailerMovie}
+        trailerOrientation={props.trailerOrientation}
+        trailerSource={props.trailerSource}
+        trailerSourceHref={props.trailerSourceHref}
+        trailerCaption={props.trailerCaption}
         episodesPdf={props.episodesPdf || ""}
         episodesSource={props.episodesSource}
         episodesSourceHref={props.episodesSourceHref}
