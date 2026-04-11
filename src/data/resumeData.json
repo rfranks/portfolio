@@ -721,6 +721,36 @@
         "blurb": "Christmas Card takes a well-meaning holiday photo op and turns it into a classic barnyard comedy. Anne and I try to hold it together while Zak and Graham, wearing Santa hats and absolutely no interest in behaving, steal the moment. The result is equal parts wholesome, chaotic, and exactly the kind of Christmas-card disaster worth remembering."
       },
       {
+        "slug": "white-rabbit",
+        "title": "White Rabbit!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/white-rabbit/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a clean professional headshot before dashing headlong into Wonderland urgency.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/white-rabbit/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The portrait transforms into a whimsical White Rabbit version of me, complete with storybook tailoring, anxious energy, and the unmistakable feeling that I’m already late.",
+        "movieRendering": "/personal/images/ai-shenanigans/white-rabbit/movie.mp4",
+        "movieSource": "ChatGPT video generation",
+        "movieCaption": "What begins as a normal portrait turns into a frantic Wonderland character reveal as I become the White Rabbit, hurrying off with theatrical urgency, eccentric charm, and barely-contained panic.",
+        "blurb": "White Rabbit takes a polished headshot and sends it racing straight into Wonderland. The result is a playful character shenanigan, transforming a straightforward portrait into a nervous, dapper, storybook creature full of hurried energy, magical oddness, and delightfully anxious charm."
+      },
+      {
+        "slug": "cheshire-cat",
+        "title": "Cheshire Cat!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/cheshire-cat/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a clean professional headshot before grinning its way into full Wonderland mischief.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/cheshire-cat/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The portrait transforms into a whimsical Cheshire Cat version of me, all eerie grin, magical attitude, and storybook strangeness drifting through Wonderland.",
+        "movieRendering": "/personal/images/ai-shenanigans/cheshire-cat/movie.mp4",
+        "movieSource": "ChatGPT video generation",
+        "movieCaption": "What begins as a normal portrait slips into Wonderland weirdness as I become the Cheshire Cat, grinning through a surreal character reveal with playful menace and vanishing-cat energy.",
+        "blurb": "Cheshire Cat takes a polished headshot and pushes it into sly Wonderland absurdity. The result is a mischievous character transformation, turning a straightforward portrait into a grinning, magical troublemaker with eerie charm, theatrical weirdness, and exactly the right amount of dreamlike nonsense."
+      },
+      {
         "slug": "caterpillar",
         "title": "Caterpillar!",
         "orientation": "portrait",
@@ -779,6 +809,21 @@
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a normal portrait turns into a whimsical royal character reveal as I become the pint-sized King of Hearts, strutting into Wonderland with tiny grandeur and oversized attitude.",
         "blurb": "King of Hearts takes a polished headshot and turns it into a compact burst of Wonderland royalty. The result is a playful character shenanigan, transforming a straightforward portrait into a miniature monarch with theatrical charm, regal swagger, and just enough absurdity to make the whole thing feel delightfully unhinged."
+      },
+      {
+        "slug": "little-anne-riding-hood",
+        "title": "Little Anne Riding Hood!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/little-anne-riding-hood/realistic.jpeg",
+        "realisticSource": "Photo (Richard Franks Jr)",
+        "realisticCaption": "It starts with Anne in her real Little Red Riding Hood costume, basket in hand, already looking like she’s halfway into a storybook.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/little-anne-riding-hood/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The costume photo transforms into a bold storybook fantasy, turning Anne into a glamorous Little Red Riding Hood striding through a moonlit forest with just a hint of danger behind the charm.",
+        "movieRendering": "/personal/images/ai-shenanigans/little-anne-riding-hood/movie.mp4",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "What begins as a simple costume snapshot becomes a cinematic fairytale moment as Anne steps into the role of Little Red Riding Hood, moving through the dark woods with confidence, charm, and a lurking sense of trouble nearby.",
+        "blurb": "Little Anne Riding Hood takes a real costume photo and pushes it into polished storybook fantasy. The result is a playful shenanigan that turns Anne into the star of her own moonlit fairytale, blending classic Red Riding Hood iconography with a more dramatic, cinematic edge and just enough wolf-at-the-edge-of-frame tension to make it fun."
       }
     ]
   },
