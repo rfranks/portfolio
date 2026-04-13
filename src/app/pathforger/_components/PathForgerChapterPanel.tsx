@@ -11,6 +11,7 @@ import {
 import { ChevronRight, Close } from "@mui/icons-material";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import EmojiGlyph from "@/app/pathforger/_components/EmojiGlyph";
+import PathForgerGeneratedImageLightbox from "@/app/pathforger/_components/PathForgerGeneratedImageLightbox";
 import type { PathForgerGeneratedImage } from "@/app/pathforger/_types/pipeline";
 import { Thinking } from "@/components/shared/Thinking";
 
@@ -57,15 +58,14 @@ export default function PathForgerChapterPanel(
         position: "fixed",
         inset: 0,
         zIndex: theme.zIndex.modal + 1,
-        p: { xs: 1.25, md: 2.5 },
         display: "flex",
       })}
     >
       <Paper
         variant="outlined"
         sx={{
+          border: "none",
           width: "100%",
-          maxWidth: 1200,
           mx: "auto",
           display: "flex",
           flexDirection: "column",
@@ -110,10 +110,8 @@ export default function PathForgerChapterPanel(
             overflow: "hidden",
           }}
         >
-          <Paper
-            variant="outlined"
+          <Box
             sx={{
-              p: 1.5,
               height: "100%",
               minHeight: 0,
               display: "flex",
@@ -137,18 +135,13 @@ export default function PathForgerChapterPanel(
               })}
             >
               {chapterSpreadImage ? (
-                <Box
-                  component="img"
+                <PathForgerGeneratedImageLightbox
                   src={chapterSpreadImage.imageDataUrl}
                   alt="Chapter setup image"
-                  sx={{
+                  kenBurnsImageSx={kenBurnsImageSx}
+                  previewContainerSx={{
                     position: "absolute",
                     inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    display: "block",
-                    ...kenBurnsImageSx,
                   }}
                 />
               ) : (
@@ -178,7 +171,7 @@ export default function PathForgerChapterPanel(
             >
               <MarkdownContent content={chapterMarkdown} variant="body1" />
             </Box>
-          </Paper>
+          </Box>
         </Box>
 
         <Box

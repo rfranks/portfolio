@@ -1497,6 +1497,9 @@ export default function PathForgerPageClient() {
               coverImage={coverImage}
               showPitchSelectionAnimation={showPitchSelectionAnimation}
               pitchLoadingGifSrc={withBasePath("/pathforger/pitch-loading.gif")}
+              chapterLoadingGifSrc={withBasePath(
+                "/pathforger/chapter-loading.gif",
+              )}
               statusText={statusSnackbarText}
               kenBurnsImageSx={kenBurnsImageSx}
               controlsModalOpen={controlsModalOpen}

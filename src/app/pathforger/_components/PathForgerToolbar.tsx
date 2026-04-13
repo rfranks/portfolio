@@ -4,7 +4,6 @@ import {
   Button,
   Container,
   Paper,
-  Stack,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -28,27 +27,22 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
 
   return (
     <Box
+      className="fixed inset-x-0 bottom-[10px] md:bottom-[14px] pointer-events-none"
       sx={(theme) => ({
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: { xs: 10, md: 14 },
         zIndex: theme.zIndex.appBar - 1,
-        pointerEvents: "none",
       })}
     >
-      <Container maxWidth="xl" sx={{ display: "flex", justifyContent: "center" }}>
+      <Container maxWidth="xl" className="flex justify-center">
         <Paper
           variant="outlined"
+          className="pointer-events-auto px-3 py-2.5"
           sx={(theme) => ({
-            px: 1.5,
-            py: 1.25,
-            pointerEvents: "auto",
             backdropFilter: "blur(8px)",
             backgroundColor: theme.palette.background.paper,
+            border: "none",
           })}
         >
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+          <Box className="flex flex-col gap-2 sm:flex-row">
             <Tooltip title="Show story">
               <span>
                 <Button
@@ -71,7 +65,10 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                     },
                   }}
                   startIcon={
-                    <Typography component="span" sx={{ fontSize: "1.35rem", lineHeight: 1 }}>
+                    <Typography
+                      component="span"
+                      sx={{ fontSize: "1.35rem", lineHeight: 1 }}
+                    >
                       📖
                     </Typography>
                   }
@@ -102,7 +99,10 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                     },
                   }}
                   startIcon={
-                    <Typography component="span" sx={{ fontSize: "1.35rem", lineHeight: 1 }}>
+                    <Typography
+                      component="span"
+                      sx={{ fontSize: "1.35rem", lineHeight: 1 }}
+                    >
                       🧭
                     </Typography>
                   }
@@ -111,7 +111,7 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                 </Button>
               </span>
             </Tooltip>
-          </Stack>
+          </Box>
         </Paper>
       </Container>
     </Box>

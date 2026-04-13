@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import MarkdownContent from "@/components/shared/MarkdownContent";
+import PathForgerGeneratedImageLightbox from "@/app/pathforger/_components/PathForgerGeneratedImageLightbox";
 import {
   PathForgerBranchChoice,
   PathForgerChapterResult,
@@ -245,17 +246,13 @@ export default function PathForgerContinuePanel(
                               }}
                             >
                               {panelImage ? (
-                                <Box
-                                  component="img"
+                                <PathForgerGeneratedImageLightbox
                                   src={panelImage.imageDataUrl}
                                   alt={`Option ${branch} preview`}
-                                  sx={{
-                                    width: "100%",
-                                    height: 120,
-                                    objectFit: "cover",
-                                    display: "block",
-                                    ...kenBurnsImageSx,
-                                  }}
+                                  kenBurnsImageSx={kenBurnsImageSx}
+                                  stopEventPropagation
+                                  previewContainerSx={{ height: 120 }}
+                                  previewImageSx={{ height: 120 }}
                                 />
                               ) : null}
                             </Paper>

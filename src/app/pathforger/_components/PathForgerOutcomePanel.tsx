@@ -1,8 +1,10 @@
 import * as React from "react";
+import { alpha } from "@mui/material/styles";
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { ChevronRight } from "@mui/icons-material";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import EmojiGlyph from "@/app/pathforger/_components/EmojiGlyph";
+import PathForgerGeneratedImageLightbox from "@/app/pathforger/_components/PathForgerGeneratedImageLightbox";
 import type {
   PathForgerBranchChoice,
   PathForgerGeneratedImage,
@@ -62,19 +64,19 @@ export default function PathForgerOutcomePanel(
         position: "fixed",
         inset: 0,
         zIndex: theme.zIndex.modal + 3,
-        p: { xs: 1.25, md: 2.5 },
         display: "flex",
       })}
     >
       <Paper
         variant="outlined"
         sx={{
+          border: "none",
           width: "100%",
-          maxWidth: 1200,
           mx: "auto",
           display: "flex",
           flexDirection: "column",
           minHeight: 0,
+          overflow: "hidden",
         }}
       >
         <Box
@@ -89,7 +91,9 @@ export default function PathForgerOutcomePanel(
             gap: 1,
           }}
         >
-          <Typography variant="h6">{title}</Typography>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="h6">{title}</Typography>
+          </Box>
         </Box>
 
         <Box
@@ -101,25 +105,57 @@ export default function PathForgerOutcomePanel(
             overflow: "hidden",
           }}
         >
-          {activeOptionBranch && outcomeImage ? (
-            <Box
-              component="img"
-              src={outcomeImage.imageDataUrl}
-              alt={`Outcome ${activeOptionBranch} render`}
-              sx={{
-                width: "100%",
-                maxHeight: { xs: "30vh", md: "36vh" },
-                objectFit: "cover",
-                flexShrink: 0,
-                ...kenBurnsImageSx,
-              }}
-            />
-          ) : null}
-          {outcomeMarkdown.trim() ? (
-            <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", pr: 0.5 }}>
-              <MarkdownContent content={outcomeMarkdown} variant="body1" />
-            </Box>
-          ) : null}
+          <Box
+            sx={{
+              height: "100%",
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {activeOptionBranch && outcomeImage ? (
+              <Box
+                sx={(theme) => ({
+                  width: "100%",
+                  mb: 2,
+                  borderRadius: 1,
+                  flexShrink: 0,
+                  overflow: "hidden",
+                  contain: "paint",
+                  position: "relative",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  backgroundColor: alpha(theme.palette.background.paper, 0.42),
+                  aspectRatio: { xs: "16 / 9", md: "21 / 9" },
+                  maxHeight: { xs: "28vh", md: "34vh" },
+                  minHeight: { xs: 148, md: 208 },
+                })}
+              >
+                <PathForgerGeneratedImageLightbox
+                  src={outcomeImage.imageDataUrl}
+                  alt={`Outcome ${activeOptionBranch} render`}
+                  kenBurnsImageSx={kenBurnsImageSx}
+                  previewContainerSx={{
+                    position: "absolute",
+                    inset: 0,
+                  }}
+                />
+              </Box>
+            ) : null}
+            {outcomeMarkdown.trim() ? (
+              <Box
+                sx={{
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: "auto",
+                  overflowX: "hidden",
+                  pr: 0.5,
+                }}
+              >
+                <MarkdownContent content={outcomeMarkdown} variant="body1" />
+              </Box>
+            ) : null}
+          </Box>
         </Box>
 
         <Box
@@ -132,7 +168,7 @@ export default function PathForgerOutcomePanel(
             justifyContent: "flex-end",
           }}
         >
-          <Stack direction="row" spacing={1.25}>
+          <Stack direction="row" spacing={1.25} sx={{ flexWrap: "wrap" }}>
             <Button
               variant="outlined"
               onClick={onOpenJourney}

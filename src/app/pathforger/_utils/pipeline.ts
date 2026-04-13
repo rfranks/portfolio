@@ -77,7 +77,7 @@ type PathForgerKnowledgeCachePayload = {
 };
 
 const PATHFORGER_KNOWLEDGE_CACHE_KEY = "pathforger-knowledge-cache-v1";
-const PATHFORGER_KNOWLEDGE_CACHE_VERSION = `docs:${KNOWLEDGE_DOC_FILES.join("|")}`;
+const PATHFORGER_KNOWLEDGE_CACHE_VERSION = `v2:docs:${KNOWLEDGE_DOC_FILES.join("|")}`;
 
 let knowledgePromise: Promise<PathForgerKnowledge> | null = null;
 let knowledgeCache: PathForgerKnowledge | null = null;
@@ -726,6 +726,7 @@ function buildVisualStyleSystemPrompt(knowledge: PathForgerKnowledge): string {
     "You are PathForger's story setup assistant.",
     "Generate exactly one short visual style phrase based on the onboarding payload.",
     "The style should feel cinematic, specific, and suitable for chapter storytelling imagery.",
+    "Treat age rating as a hard boundary for visual intensity and thematic edge.",
     "Avoid overused stylistic filler terms, especially repetitive neon phrasing.",
     "Return JSON only. Do not include markdown fences.",
     "",
@@ -742,6 +743,7 @@ function buildVisualStyleUserPrompt(
 ): string {
   return [
     "Generate one short visual style phrase for this adventure setup.",
+    "Treat the selected age rating as a hard style/content constraint.",
     "",
     "Output JSON schema:",
     JSON.stringify(toJSONSchema(visualStyleResultSchema), null, 2),
@@ -750,9 +752,17 @@ function buildVisualStyleUserPrompt(
     "- Return only one value in visualStyle.",
     "- Keep it short: ideally 3 to 8 words.",
     "- No punctuation-heavy lists, no slashes, no em-dashes.",
-    "- Should match genre + tone + premise + age rating.",
+    "- Must match genre + tone + premise + age rating.",
+    "- Adjust imagery intensity and edge to fit the rating.",
+    "- For G/PG, keep wording family-safe and avoid graphic/explicit terms.",
+    "- For PG-13, allow heightened tension without explicit brutality.",
+    "- For R/NC-17, mature intensity is allowed but still avoid gratuitous shock phrasing.",
     `- Avoid these overused descriptors: ${OVERUSED_NEON_PHRASES.map((phrase) => `"${phrase}"`).join(", ")}.`,
     "- Prefer varied visual language instead of default cyberpunk shorthand.",
+    "",
+    "Hard constraints:",
+    `- Genre: ${onboarding.genre}`,
+    `- Age rating: ${onboarding.ageRating}`,
     "",
     "Onboarding JSON:",
     JSON.stringify(onboarding, null, 2),
