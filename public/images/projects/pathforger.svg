@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 220" role="img" aria-labelledby="title desc">
+  <title id="title">PathForger</title>
+  <desc id="desc">Logo mark for PathForger interactive adventure pipeline.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="flare" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+  </defs>
+  <rect width="420" height="220" rx="28" fill="url(#bg)"/>
+  <g transform="translate(36 38)">
+    <path d="M45 4 95 54 45 104 17 76 40 54 17 32Z" fill="none" stroke="url(#flare)" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M95 54h86" stroke="url(#flare)" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="186" cy="54" r="8" fill="#f8fafc"/>
+  </g>
+  <text x="36" y="172" fill="#e2e8f0" font-family="ui-sans-serif, system-ui, -apple-system" font-size="42" font-weight="700" letter-spacing="1.2">PATHFORGER</text>
+</svg>

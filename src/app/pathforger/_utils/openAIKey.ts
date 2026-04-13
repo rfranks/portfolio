@@ -6,24 +6,24 @@ import {
   setAppOpenAIKey,
 } from "@/utils/openAIKeyStorage";
 
-const STORAGE_KEY = "rickbert-openai-key";
+const STORAGE_KEY = "pathforger-openai-key";
 const STORAGE_FALLBACK_KEYS = [
-  "pathforger-openai-key",
+  "rickbert-openai-key",
   "talentforge-openai-key",
 ];
 
-export function getRickbertOpenAIKey(): string {
+export function getPathForgerOpenAIKey(): string {
   return getAppOpenAIKey({
     primaryStorageKey: STORAGE_KEY,
     fallbackStorageKeys: STORAGE_FALLBACK_KEYS,
   });
 }
 
-export function setRickbertOpenAIKey(value: string): void {
+export function setPathForgerOpenAIKey(value: string): void {
   setAppOpenAIKey(value, { primaryStorageKey: STORAGE_KEY });
 }
 
-export function hasRickbertOpenAIKey(): boolean {
+export function hasPathForgerOpenAIKey(): boolean {
   return hasAppOpenAIKey({
     primaryStorageKey: STORAGE_KEY,
     fallbackStorageKeys: STORAGE_FALLBACK_KEYS,

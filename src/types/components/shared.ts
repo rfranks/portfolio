@@ -91,4 +91,5 @@ export interface MarkdownContentProps {
   color?: TypographyProps["color"];
   sx?: SxProps<Theme>;
   variant?: TypographyProps["variant"];
+  riskHudColorize?: boolean;
 }

@@ -26,6 +26,7 @@ import {
   Build,
   AutoStories,
   AutoFixHigh,
+  AltRoute,
 } from "@mui/icons-material";
 import AppBar from "@/components/portfolio/layout/AppBar";
 import Drawer from "@/components/portfolio/layout/Drawer";
@@ -98,6 +99,7 @@ export default function HomePageClient() {
     build: <Build />,
     autoFixHigh: <AutoFixHigh />,
     autoStories: <AutoStories />,
+    altRoute: <AltRoute />,
     casino: <Casino />,
     flight: <Flight />,
   } as const;

@@ -57,6 +57,14 @@
       "interstitialAppName": "Rickbert Studio",
       "interstitialLogoAlt": "Rickbert Studio logo",
       "interstitialLogoSrc": "/images/projects/rickbert-studio.png"
+    },
+    "pathforger": {
+      "documentTitle": "PathForger",
+      "metadataTitle": "PathForger",
+      "metadataDescription": "Interactive story-forging studio that generates A/B/C pitches, chapter packages, and parallel cinematic image outputs through staged OpenAI calls.",
+      "interstitialAppName": "PathForger",
+      "interstitialLogoAlt": "PathForger logo",
+      "interstitialLogoSrc": "/images/projects/pathforger.svg"
     }
   },
   "navigation": {
@@ -94,6 +102,11 @@
         "label": "Rickbert Studio",
         "href": "/rickbert-studio",
         "icon": "autoStories"
+      },
+      {
+        "label": "PathForger",
+        "href": "/pathforger",
+        "icon": "altRoute"
       },
       {
         "label": "Blackjack",
@@ -938,6 +951,22 @@
     }
   ],
   "projects": [
+    {
+      "name": "PathForger",
+      "description": "Story-forging playground for branching adventures with a staged OpenAI pipeline.\n\n- Generates A/B/C pitch candidates before committing to a story arc.\n- Builds chapter markdown, path choices, and a Risk HUD in a dedicated narrative stage.\n- Runs image generation as separate parallel calls so visuals can stream in as they finish.",
+      "href": "/pathforger",
+      "type": "personal",
+      "interestsMeWhy": "What draws me to PathForger is orchestration design: prompt contracts, schema-first outputs, and phased execution that keeps text and images loosely coupled. It is a practical sandbox for reliability patterns like cached pitch reuse, incremental rendering, and branch-specific outcome generation without rebuilding the whole pipeline.",
+      "watermark": {
+        "kind": "image",
+        "containerClassName": "pointer-events-none absolute bottom-4 right-4 opacity-[0.12] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.2]",
+        "src": "/images/projects/pathforger.svg",
+        "alt": "PathForger watermark",
+        "width": 320,
+        "height": 168,
+        "imageClassName": "h-auto w-56 object-contain"
+      }
+    },
     {
       "name": "Rickbert Studio",
       "description": "Client-side comic strip production studio with parser, validation preflight, react-konva rendering, and PNG export.",
