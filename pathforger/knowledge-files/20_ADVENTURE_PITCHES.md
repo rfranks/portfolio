@@ -53,8 +53,20 @@ One pitch could be intimate and claustrophobic. Another could be institutional a
 ### Sci-fi
 One pitch could be a derelict station survival story. Another could be time-loop investigation. A third could be planetary expedition horror.
 
+### Children's
+One pitch could be whimsical and exploratory. Another could center friendship and courage under light peril. A third could be puzzle-driven with a warm moral landing.
+
+### True Crime
+One pitch could follow a cold-case reexamination. Another could revolve around a fast-moving live investigation with media pressure. A third could focus on forensic reconstruction and courtroom stakes.
+
 ### Horror
 One pitch could be psychological. Another could be creature-based. A third could be occult or reality-breaking.
 
 ### Thriller
 One pitch could be a fugitive chase. Another could be espionage. A third could be high-tech sabotage.
+
+### Historical Fiction
+One pitch could be intimate and character-driven inside a turbulent era. Another could be political and institutional. A third could blend romance, survival, and historical upheaval.
+
+### Medical Drama
+One pitch could be ER triage under crisis conditions. Another could be a diagnostic mystery with ethical landmines. A third could be a hospital power struggle with life-or-death consequences.
