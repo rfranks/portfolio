@@ -35,6 +35,7 @@ type PathForgerSettingsDialogProps = {
     | "name"
     | "premise"
     | "style"
+    | "tone"
     | "pitch"
     | "chapter"
     | "nextChapter"

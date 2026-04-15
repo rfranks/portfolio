@@ -22,6 +22,7 @@ type ActiveRunAction =
   | "name"
   | "premise"
   | "style"
+  | "tone"
   | "pitch"
   | "chapter"
   | "nextChapter"

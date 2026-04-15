@@ -20,6 +20,7 @@ type ActiveRunAction =
   | "name"
   | "premise"
   | "style"
+  | "tone"
   | "pitch"
   | "chapter"
   | "nextChapter"
@@ -29,9 +30,7 @@ type ActiveRunAction =
 
 export function usePathForgerFormState() {
   const [genre, setGenre] = React.useState("Sci-fi");
-  const [tone, setTone] = React.useState(
-    "Cinematic, tense, emotionally grounded",
-  );
+  const [tone, setTone] = React.useState("");
   const [dangerLevel, setDangerLevel] = React.useState<
     "Forgiving" | "Risky" | "Deadly"
   >("Risky");
@@ -48,6 +47,7 @@ export function usePathForgerFormState() {
   const didAutoGeneratePremiseRef = React.useRef(false);
   const [visualStyle, setVisualStyle] = React.useState("");
   const didAutoGenerateStyleRef = React.useRef(false);
+  const didAutoGenerateToneRef = React.useRef(false);
   const previousGenreRef = React.useRef(genre);
   const [pendingGenreAutoRegenerate, setPendingGenreAutoRegenerate] =
     React.useState(false);
@@ -141,9 +141,10 @@ export function usePathForgerFormState() {
   const createStoryInputSignature = React.useMemo(
     () =>
       JSON.stringify({
-        genre: genre.trim(),
-        adventureLength,
-        visualStyle: visualStyle.trim(),
+      genre: genre.trim(),
+      tone: tone.trim(),
+      adventureLength,
+      visualStyle: visualStyle.trim(),
         ageRating: ageRating.trim(),
         premise: premise.trim(),
         protagonistPreference: protagonistPreference.trim(),
@@ -154,6 +155,7 @@ export function usePathForgerFormState() {
       genre,
       premise,
       protagonistPreference,
+      tone,
       visualStyle,
     ],
   );
@@ -179,6 +181,7 @@ export function usePathForgerFormState() {
     visualStyle,
     setVisualStyle,
     didAutoGenerateStyleRef,
+    didAutoGenerateToneRef,
     previousGenreRef,
     pendingGenreAutoRegenerate,
     setPendingGenreAutoRegenerate,

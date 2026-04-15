@@ -84,6 +84,19 @@ export const runVisualStyleStageInputSchema = z.object({
   textModel: z.string().optional(),
 });
 
+export const onboardingToneStageInputSchema = onboardingInputSchema.extend({
+  tone: z.string().optional().default(""),
+  premise: z.string().optional().default(""),
+  visualStyle: z.string().optional().default(""),
+});
+
+export const runToneStageInputSchema = z.object({
+  apiKey: z.string().min(1),
+  onboarding: onboardingToneStageInputSchema,
+  defaultModel: z.string().optional(),
+  textModel: z.string().optional(),
+});
+
 export const onboardingPremiseStageInputSchema = onboardingInputSchema.extend({
   premise: z.string().optional().default(""),
   visualStyle: z.string().optional().default(""),
@@ -143,6 +156,10 @@ export const protagonistNameResultSchema = z.object({
 
 export const visualStyleResultSchema = z.object({
   visualStyle: z.string().min(1).max(120),
+});
+
+export const toneResultSchema = z.object({
+  tone: z.string().min(1).max(120),
 });
 
 export const premiseResultSchema = z.object({

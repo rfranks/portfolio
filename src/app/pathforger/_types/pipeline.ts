@@ -12,6 +12,7 @@ import {
   runPipelineInputSchema,
   runPitchStageInputSchema,
   runPremiseStageInputSchema,
+  runToneStageInputSchema,
   runProtagonistNameStageInputSchema,
   runVisualStyleStageInputSchema,
 } from "../_schemas/pipeline";
@@ -42,6 +43,7 @@ export interface PathForgerPipelineProgress {
     | "generatingName"
     | "generatingPremise"
     | "generatingStyle"
+    | "generatingTone"
     | "generatingPitches"
     | "generatingChapter"
     | "updatingLedger"
@@ -78,6 +80,9 @@ export type RunPathForgerVisualStyleStageInput = z.infer<
 >;
 export type RunPathForgerPremiseStageInput = z.infer<
   typeof runPremiseStageInputSchema
+>;
+export type RunPathForgerToneStageInput = z.infer<
+  typeof runToneStageInputSchema
 >;
 export type RunPathForgerImageStageInput = z.infer<
   typeof runImageStageInputSchema

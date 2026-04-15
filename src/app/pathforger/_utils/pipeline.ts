@@ -1,9 +1,9 @@
 import { toJSONSchema, z } from "zod";
 import { withBasePath } from "@/utils/basePath";
-import { KnowledgeDocFile, OpenAIErrorPayload, OpenAIInputContentPart, PathForgerBranchChoice, PathForgerChapterResult, PathForgerGeneratedImage, PathForgerImageStageUpdate, PathForgerImageType, PathForgerOnboardingInput, PathForgerPipelineProgress, PathForgerPipelineResult, PathForgerPitchResult, RunPathForgerChapterStageInput, RunPathForgerCoverFromPitchStageInput, RunPathForgerImageStageInput, RunPathForgerOutcomeImageStageInput, RunPathForgerPathLedgerUpdateStageInput, RunPathForgerPipelineInput, RunPathForgerPitchStageInput, RunPathForgerPremiseStageInput, RunPathForgerProtagonistNameStageInput, RunPathForgerVisualStyleStageInput } from "../_types/pipeline";
+import { KnowledgeDocFile, OpenAIErrorPayload, OpenAIInputContentPart, PathForgerBranchChoice, PathForgerChapterResult, PathForgerGeneratedImage, PathForgerImageStageUpdate, PathForgerImageType, PathForgerOnboardingInput, PathForgerPipelineProgress, PathForgerPipelineResult, PathForgerPitchResult, RunPathForgerChapterStageInput, RunPathForgerCoverFromPitchStageInput, RunPathForgerImageStageInput, RunPathForgerOutcomeImageStageInput, RunPathForgerPathLedgerUpdateStageInput, RunPathForgerPipelineInput, RunPathForgerPitchStageInput, RunPathForgerPremiseStageInput, RunPathForgerProtagonistNameStageInput, RunPathForgerToneStageInput, RunPathForgerVisualStyleStageInput } from "../_types/pipeline";
 import { KNOWLEDGE_DOC_FILES } from "../_consts/knowledge";
 import { PathForgerPitchChoice } from "../_types/pitch";
-import { imagePromptSetSchema, pathForgerChapterCoreResultSchema, pathForgerChapterResultSchema, pathForgerPitchResultSchema, pathLedgerUpdateResultSchema, premiseResultSchema, protagonistNameResultSchema, runChapterStageInputSchema, runCoverFromPitchStageInputSchema, runImageStageInputSchema, runOutcomeImageStageInputSchema, runPathLedgerUpdateStageInputSchema, runPipelineInputSchema, runPitchStageInputSchema, runPremiseStageInputSchema, runProtagonistNameStageInputSchema, runVisualStyleStageInputSchema, visualStyleResultSchema } from "../_schemas/pipeline";
+import { imagePromptSetSchema, pathForgerChapterCoreResultSchema, pathForgerChapterResultSchema, pathForgerPitchResultSchema, pathLedgerUpdateResultSchema, premiseResultSchema, protagonistNameResultSchema, runChapterStageInputSchema, runCoverFromPitchStageInputSchema, runImageStageInputSchema, runOutcomeImageStageInputSchema, runPathLedgerUpdateStageInputSchema, runPipelineInputSchema, runPitchStageInputSchema, runPremiseStageInputSchema, runProtagonistNameStageInputSchema, runToneStageInputSchema, runVisualStyleStageInputSchema, toneResultSchema, visualStyleResultSchema } from "../_schemas/pipeline";
 
 const RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_TEXT_MODEL = "gpt-4.1-mini";
@@ -818,6 +818,22 @@ function buildVisualStyleSystemPrompt(knowledge: PathForgerKnowledge): string {
   ].join("\n");
 }
 
+function buildToneSystemPrompt(knowledge: PathForgerKnowledge): string {
+  return [
+    "You are PathForger's story setup assistant.",
+    "Generate exactly one short tone phrase based on the onboarding payload.",
+    "Tone must match genre, premise, age rating, danger level, chapter length, romance preference, and visual style intent.",
+    "Keep it expressive but concise, and avoid stale default wording.",
+    "Return JSON only. Do not include markdown fences.",
+    "",
+    "MAIN_PROMPT:",
+    knowledge.mainPrompt,
+    "",
+    "KNOWLEDGE DOCS:",
+    buildKnowledgeSection(knowledge, PITCH_STAGE_DOCS),
+  ].join("\n");
+}
+
 function buildVisualStyleUserPrompt(
   onboarding: PathForgerOnboardingInput,
 ): string {
@@ -839,6 +855,33 @@ function buildVisualStyleUserPrompt(
     "- For R/NC-17, mature intensity is allowed but still avoid gratuitous shock phrasing.",
     `- Avoid these overused descriptors: ${OVERUSED_NEON_PHRASES.map((phrase) => `"${phrase}"`).join(", ")}.`,
     "- Prefer varied visual language instead of default cyberpunk shorthand.",
+    "",
+    "Hard constraints:",
+    `- Genre: ${onboarding.genre}`,
+    `- Age rating: ${onboarding.ageRating}`,
+    "",
+    "Onboarding JSON:",
+    JSON.stringify(onboarding, null, 2),
+  ].join("\n");
+}
+
+function buildToneUserPrompt(onboarding: PathForgerOnboardingInput): string {
+  return [
+    "Generate one short tone phrase for this adventure setup.",
+    "Treat the selected age rating as a hard tone/content boundary.",
+    "",
+    "Output JSON schema:",
+    JSON.stringify(toJSONSchema(toneResultSchema), null, 2),
+    "",
+    "Output rules:",
+    "- Return only one value in tone.",
+    "- Keep it short: ideally 2 to 8 words.",
+    "- Must reflect genre + premise + age rating + danger level + chapter length + romance mode + visual style.",
+    "- Describe narrative/emotional voice, not camera or rendering techniques.",
+    '- Avoid repetitive defaults like "cinematic, tense, emotionally grounded".',
+    "- For G/PG, prefer lighter/family-safe wording.",
+    "- For PG-13, allow elevated suspense without explicit brutality.",
+    "- For R/NC-17, mature intensity is allowed when fitting the setup.",
     "",
     "Hard constraints:",
     `- Genre: ${onboarding.genre}`,
@@ -1065,6 +1108,23 @@ function buildChapterAgeRatingRule(
   ];
 }
 
+function buildChapterStyleTextRules(
+  onboarding: Pick<PathForgerOnboardingInput, "visualStyle" | "tone">,
+): string[] {
+  const style = onboarding.visualStyle.trim();
+  const tone = onboarding.tone.trim();
+
+  return [
+    "- Treat onboarding.visualStyle as a hard narrative style lock for text outputs.",
+    "- Apply the style lock to chapterMarkdown, choices (label + description), continuePromptMarkdown, outcomeAMarkdown, and outcomeBMarkdown.",
+    "- Keep diction, imagery, pacing, and sentence rhythm aligned with the requested style and tone.",
+    "- Do not drift into default dark/moody/cinematic prose unless the requested style or tone explicitly calls for it.",
+    "- Preserve stakes and tension through events and decisions, not by overriding the requested style voice.",
+    style ? `- Required style reference: "${style}".` : "",
+    tone ? `- Required tone reference: "${tone}".` : "",
+  ].filter(Boolean);
+}
+
 function buildChapterUserPrompt(params: {
   onboarding: PathForgerOnboardingInput;
   pitchResult: PathForgerPitchResult;
@@ -1092,6 +1152,7 @@ function buildChapterUserPrompt(params: {
   const chapterAgeRatingRules = buildChapterAgeRatingRule(
     params.onboarding.ageRating,
   );
+  const chapterStyleTextRules = buildChapterStyleTextRules(params.onboarding);
 
   return [
     `Generate Chapter ${chapterNumber} package for PathForger.`,
@@ -1105,6 +1166,7 @@ function buildChapterUserPrompt(params: {
     chapterLengthRule,
     "- Treat the selected age rating as a strict content policy for chapter prose, options, risk HUD wording, and outcomes.",
     ...chapterAgeRatingRules,
+    ...chapterStyleTextRules,
     "- chapterMarkdown must not include a 'Your Choices' section.",
     "- choices: provide 2 strong options (3 only if absolutely necessary).",
     "- riskHudMarkdown: include success probability, threat level, injury risk, resource cost, reward potential, key risk factors.",
@@ -1112,10 +1174,13 @@ function buildChapterUserPrompt(params: {
     "- pathLedgerMarkdown: concise and continuity-aware.",
     "- continuePromptMarkdown: urgent call to choose a path.",
     "- imagePrompts: production-ready prompts for cover, chapter spread, choice preview A, choice preview B, outcome A, and outcome B visuals.",
+    "- imagePrompts for all image types must strongly reflect onboarding.visualStyle + onboarding.tone (treat style as a hard visual constraint).",
+    "- Do not default to dark/gritty cinematic grading unless the requested style explicitly asks for it.",
     "- imagePrompts.chapterSpread must describe a cinematic chapter SCENE (environment + characters + mood), not a printed page or book layout.",
     "- imagePrompts.chapterSpread must explicitly avoid open books, page borders, paper textures, and text-on-page framing.",
     "- imagePrompts.cover must explicitly include the exact book title text to render and require large, high-contrast, legible typography on a professional front cover composition.",
     "- imagePrompts.choicePreviewA/B must depict PRE-DECISION tension before consequences occur.",
+    "- For imagePrompts.choicePreviewA/B, represent tension via composition/staging/expressions; do not force dark/gritty lighting unless style explicitly requests it.",
     "- imagePrompts.outcomeA/B must depict AFTERMATH with concrete consequences of the corresponding option.",
     "- Each outcome prompt must be visually and temporally distinct from its corresponding choice preview prompt.",
     "- outcomeAMarkdown: resolve Option A in 1-2 vivid paragraphs.",
@@ -1185,6 +1250,7 @@ function buildChapterCoreUserPrompt(params: {
   const chapterAgeRatingRules = buildChapterAgeRatingRule(
     params.onboarding.ageRating,
   );
+  const chapterStyleTextRules = buildChapterStyleTextRules(params.onboarding);
 
   return [
     `Generate Chapter ${chapterNumber} package for PathForger.`,
@@ -1198,6 +1264,7 @@ function buildChapterCoreUserPrompt(params: {
     chapterLengthRule,
     "- Treat the selected age rating as a strict content policy for chapter prose, options, risk HUD wording, and outcomes.",
     ...chapterAgeRatingRules,
+    ...chapterStyleTextRules,
     "- chapterMarkdown must not include a 'Your Choices' section.",
     "- choices: provide 2 strong options (3 only if absolutely necessary).",
     "- riskHudMarkdown: include success probability, threat level, injury risk, resource cost, reward potential, key risk factors.",
@@ -1208,10 +1275,13 @@ function buildChapterCoreUserPrompt(params: {
     "- Keep Outcome A and Outcome B distinct and faithful to their corresponding options.",
     "- continuePromptMarkdown: urgent call to choose a path.",
     "- imagePrompts: production-ready prompts for cover, chapter spread, choice preview A, choice preview B, outcome A, and outcome B visuals.",
+    "- imagePrompts for all image types must strongly reflect onboarding.visualStyle + onboarding.tone (treat style as a hard visual constraint).",
+    "- Do not default to dark/gritty cinematic grading unless the requested style explicitly asks for it.",
     "- imagePrompts.chapterSpread must describe a cinematic chapter SCENE (environment + characters + mood), not a printed page or book layout.",
     "- imagePrompts.chapterSpread must explicitly avoid open books, page borders, paper textures, and text-on-page framing.",
     "- imagePrompts.cover must explicitly include the exact book title text to render and require large, high-contrast, legible typography on a professional front cover composition.",
     "- imagePrompts.choicePreviewA/B must depict PRE-DECISION tension before consequences occur.",
+    "- For imagePrompts.choicePreviewA/B, represent tension via composition/staging/expressions; do not force dark/gritty lighting unless style explicitly requests it.",
     "- imagePrompts.outcomeA/B must depict AFTERMATH with concrete consequences of the corresponding option.",
     "- Each outcome prompt must be visually and temporally distinct from its corresponding choice preview prompt.",
     "",
@@ -1443,6 +1513,7 @@ function buildImageTypePromptRequirements(
     return [
       `This is a CHOICE PREVIEW for Option ${optionLabel}.`,
       "Show the moment BEFORE a decision is executed: tension, uncertainty, and setup.",
+      "Express tension through composition, staging, and character body language instead of automatically darkening the scene.",
       "Do not depict final aftermath, post-battle debris, or resolved consequences.",
       "Composition should read as an anticipatory fork-in-the-road moment.",
     ];
@@ -1462,13 +1533,43 @@ function buildImageTypePromptRequirements(
   if (imageType === "chapterSpread") {
     return [
       "This is a chapter scene image (not a printed spread layout).",
-      "Prioritize a broad, cinematic scene that captures chapter state instead of a single close-up beat.",
+      "Prioritize a broad in-world scene that captures chapter state instead of a single close-up beat.",
       "Do not depict open books, visible page edges, paper textures, panel borders, or any book mockup framing.",
       "Compose this as an in-world scene, not as pages in a book.",
     ];
   }
 
   return [];
+}
+
+function buildStyleAdherenceRequirements(params: {
+  styleHint?: string;
+  toneHint?: string;
+  genreHint?: string;
+  ageRatingHint?: string;
+}): string[] {
+  const style = params.styleHint?.trim() ?? "";
+  const tone = params.toneHint?.trim() ?? "";
+  const genre = params.genreHint?.trim() ?? "";
+  const ageRating = params.ageRatingHint?.trim() ?? "";
+
+  const hasAnyHint = Boolean(style || tone || genre || ageRating);
+  if (!hasAnyHint) {
+    return [];
+  }
+
+  const rules = [
+    "Style adherence rules (hard constraints):",
+    style ? `- Visual Style: ${style}` : "",
+    tone ? `- Tone: ${tone}` : "",
+    genre ? `- Genre: ${genre}` : "",
+    ageRating ? `- Age Rating: ${ageRating}` : "",
+    "- Follow these hints exactly; do not drift to a default moody photoreal look unless explicitly requested.",
+    "- Keep palette, rendering medium, lighting, and line/shape language consistent with the style hint.",
+    "- Do not inject a cinematic/photoreal/dark treatment unless the provided style or tone explicitly requests it.",
+  ].filter(Boolean);
+
+  return rules;
 }
 
 async function requestImageAsset(params: {
@@ -1478,6 +1579,10 @@ async function requestImageAsset(params: {
   imageType: PathForgerImageType;
   selfieDataUrl?: string;
   includeSelfieReferenceImage?: boolean;
+  styleHint?: string;
+  toneHint?: string;
+  genreHint?: string;
+  ageRatingHint?: string;
 }): Promise<Omit<PathForgerGeneratedImage, "prompt">> {
   const coverTitleHint =
     params.imageType === "cover"
@@ -1499,17 +1604,31 @@ async function requestImageAsset(params: {
   const imageTypeRequirements = buildImageTypePromptRequirements(
     params.imageType,
   );
+  const styleRequirements = buildStyleAdherenceRequirements({
+    styleHint: params.styleHint,
+    toneHint: params.toneHint,
+    genreHint: params.genreHint,
+    ageRatingHint: params.ageRatingHint,
+  });
   const userContent: OpenAIInputContentPart[] = [
     {
       type: "input_text",
       text: [
-        "Generate one premium cinematic story illustration.",
+        "Generate one premium story illustration.",
         `Output size must be ${TARGET_IMAGE_SIZE}.`,
         "Do not include unreadable dense text overlays.",
         ...imageTypeRequirements,
         ...coverPromptRequirements,
         "",
+        "Base scene brief:",
         params.prompt,
+        ...(styleRequirements.length > 0
+          ? [
+              "",
+              "Final style lock (highest priority, overrides conflicting wording above):",
+              ...styleRequirements,
+            ]
+          : []),
       ].join("\n"),
     },
   ];
@@ -1532,7 +1651,7 @@ async function requestImageAsset(params: {
             text: [
               "You are PathForger's image renderer.",
               "Produce one polished image that follows the user prompt exactly.",
-              "If a headshot reference image is provided, preserve identity cues while keeping cinematic style.",
+              "If a headshot reference image is provided, preserve identity cues while following the requested visual style.",
               "Return only the image result.",
             ].join("\n"),
           },
@@ -1686,6 +1805,10 @@ async function runImageJobsParallel(params: {
           personalizedImages: params.onboarding.personalizedImages,
           selfieDataUrl: params.selfieDataUrl,
         }),
+        styleHint: params.onboarding.visualStyle,
+        toneHint: params.onboarding.tone,
+        genreHint: params.onboarding.genre,
+        ageRatingHint: params.onboarding.ageRating,
       });
 
       images[job.type] = {
@@ -1816,6 +1939,10 @@ export async function runPathForgerCoverFromPitchStage(
       personalizedImages: input.onboarding.personalizedImages,
       selfieDataUrl: input.selfieDataUrl,
     }),
+    styleHint: input.onboarding.visualStyle,
+    toneHint: input.onboarding.tone,
+    genreHint: input.onboarding.genre,
+    ageRatingHint: input.onboarding.ageRating,
   });
 
   return {
@@ -1952,6 +2079,33 @@ export async function runPathForgerVisualStyleStage(
 
   return {
     visualStyle,
+    textModel,
+  };
+}
+
+export async function runPathForgerToneStage(
+  rawInput: RunPathForgerToneStageInput,
+  onProgress?: (progress: PathForgerPipelineProgress) => void,
+): Promise<{ tone: string; textModel: string }> {
+  const input = runToneStageInputSchema.parse(rawInput);
+  const textModel = resolveTextModel(input.textModel, input.defaultModel);
+
+  const knowledge = await loadPathForgerKnowledgeForStage(onProgress);
+
+  onProgress?.({
+    stage: "generatingTone",
+    message: "Forging story tone...",
+  });
+  const generated = await requestTextStage({
+    apiKey: input.apiKey,
+    model: textModel,
+    systemPrompt: buildToneSystemPrompt(knowledge),
+    userPrompt: buildToneUserPrompt(input.onboarding),
+    schema: toneResultSchema,
+  });
+
+  return {
+    tone: generated.tone.trim(),
     textModel,
   };
 }
@@ -2268,6 +2422,10 @@ export async function runPathForgerOutcomeImageStage(
       personalizedImages: input.onboarding.personalizedImages,
       selfieDataUrl: input.selfieDataUrl,
     }),
+    styleHint: input.onboarding.visualStyle,
+    toneHint: input.onboarding.tone,
+    genreHint: input.onboarding.genre,
+    ageRatingHint: input.onboarding.ageRating,
   });
 
   return {

@@ -33,8 +33,6 @@ type PathForgerControlsDialogProps = {
   onDefaultModelChange: (value: string) => void;
   onTextModelChange: (value: string) => void;
   onImageModelChange: (value: string) => void;
-  tone: string;
-  onToneChange: (value: string) => void;
   romanceMode: RomanceMode;
   onRomanceModeChange: (value: RomanceMode) => void;
   onOpenRenderImageCalls: () => void;
@@ -63,8 +61,6 @@ export default function PathForgerControlsDialog(
     onDefaultModelChange,
     onTextModelChange,
     onImageModelChange,
-    tone,
-    onToneChange,
     romanceMode,
     onRomanceModeChange,
     onOpenRenderImageCalls,
@@ -107,13 +103,6 @@ export default function PathForgerControlsDialog(
               helperText={
                 loadingModelOptions ? "Loading exhaustive model list..." : undefined
               }
-              sx={{ mb: 1.5 }}
-            />
-            <TextField
-              fullWidth
-              label="Tone"
-              value={tone}
-              onChange={(event) => onToneChange(event.target.value)}
               sx={{ mb: 1.5 }}
             />
             <TextField

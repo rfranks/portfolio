@@ -26,6 +26,7 @@ type ActiveRunAction =
   | "name"
   | "premise"
   | "style"
+  | "tone"
   | "pitch"
   | "chapter"
   | "nextChapter"
@@ -278,7 +279,8 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
     isRunning &&
     (activeRunAction === "name" ||
       activeRunAction === "premise" ||
-      activeRunAction === "style");
+      activeRunAction === "style" ||
+      activeRunAction === "tone");
   const showMainCreateSpinner = statusIsRunning && !isFieldWandRun;
   const hideCreateStoryPanel =
     chapterModalOpen || continueModalOpen || chapterOutcomeModalOpen;

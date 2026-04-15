@@ -21,6 +21,7 @@ type ActiveRunAction =
   | "name"
   | "premise"
   | "style"
+  | "tone"
   | "pitch"
   | "chapter"
   | "nextChapter"
@@ -96,19 +97,18 @@ export default function PathForgerContinuePanel(
         position: "fixed",
         inset: 0,
         zIndex: theme.zIndex.modal + 2,
-        p: { xs: 1.25, md: 2.5 },
         display: "flex",
       })}
     >
       <Paper
         variant="outlined"
         sx={{
+          border: "none",
           width: "100%",
-          maxWidth: 1200,
-          mx: "auto",
           display: "flex",
           flexDirection: "column",
           minHeight: 0,
+          overflow: "hidden",
         }}
       >
         <Box

@@ -22,7 +22,7 @@ import PathForgerControlsDialog from "@/app/pathforger/_components/PathForgerCon
 import PathForgerChapterPanel from "@/app/pathforger/_components/PathForgerChapterPanel";
 import PathForgerContinuePanel from "@/app/pathforger/_components/PathForgerContinuePanel";
 import PathForgerImagePromptEditorDialog from "@/app/pathforger/_components/PathForgerImagePromptEditorDialog";
-import PathForgerJourneyDialog from "@/app/pathforger/_components/PathForgerJourneyDialog";
+import PathForgerJourneyPanel from "@/app/pathforger/_components/PathForgerJourneyPanel";
 import PathForgerOutcomePanel from "@/app/pathforger/_components/PathForgerOutcomePanel";
 import PathForgerRenderImageCallsDialog from "@/app/pathforger/_components/PathForgerRenderImageCallsDialog";
 import PathForgerSelectedPitchDialog from "@/app/pathforger/_components/PathForgerSelectedPitchDialog";
@@ -58,6 +58,7 @@ import {
   runPathForgerPathLedgerUpdateStage,
   runPathForgerPremiseStage,
   runPathForgerProtagonistNameStage,
+  runPathForgerToneStage,
   runPathForgerVisualStyleStage,
 } from "@/app/pathforger/_utils/pipeline";
 import {
@@ -103,6 +104,7 @@ export default function PathForgerPageClient() {
     visualStyle,
     setVisualStyle,
     didAutoGenerateStyleRef,
+    didAutoGenerateToneRef,
     previousGenreRef,
     pendingGenreAutoRegenerate,
     setPendingGenreAutoRegenerate,
@@ -1007,10 +1009,91 @@ export default function PathForgerPageClient() {
     }
   };
 
-  const runGenerateVisualStyle = React.useCallback(
-    async (options?: { premiseOverride?: string }) => {
+  const runGenerateTone = React.useCallback(
+    async (options?: {
+      premiseOverride?: string;
+      visualStyleOverride?: string;
+    }) => {
       const effectivePremise =
         options?.premiseOverride?.trim() ?? premise.trim();
+      const effectiveVisualStyle = options?.visualStyleOverride;
+
+      setErrorMessage("");
+      clearStatusMessages();
+      playUiSound(wandActionAudioRef);
+
+      const apiKey = getPathForgerOpenAIKey().trim();
+      if (!apiKey) {
+        setErrorMessage("OpenAI API key is required.");
+        setApiKeyReady(false);
+        return;
+      }
+
+      if (!effectivePremise) {
+        setErrorMessage(
+          "Please provide a premise so PathForger can craft a fitting tone.",
+        );
+        return null;
+      }
+
+      setIsRunning(true);
+      setActiveRunAction("tone");
+
+      try {
+        const generatedTone = await runPathForgerToneStage(
+          {
+            apiKey,
+            onboarding: {
+              ...buildOnboardingPayload(),
+              premise: effectivePremise,
+              ...(typeof effectiveVisualStyle === "string"
+                ? { visualStyle: effectiveVisualStyle }
+                : {}),
+            },
+            defaultModel: resolvedDefaultModel,
+          },
+          (progress) => {
+            enqueueStatusMessage(progress.message);
+          },
+        );
+
+        const nextTone = generatedTone.tone.trim();
+        setTone(nextTone);
+        return nextTone;
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error ? error.message : "Tone generation failed.",
+        );
+        return null;
+      } finally {
+        clearStatusMessages();
+        setIsRunning(false);
+        setActiveRunAction(null);
+      }
+    },
+    [
+      buildOnboardingPayload,
+      clearStatusMessages,
+      enqueueStatusMessage,
+      playUiSound,
+      premise,
+      resolvedDefaultModel,
+      setActiveRunAction,
+      setErrorMessage,
+      setIsRunning,
+      setTone,
+    ],
+  );
+
+  const handleGenerateTone = React.useCallback(() => {
+    void runGenerateTone();
+  }, [runGenerateTone]);
+
+  const runGenerateVisualStyle = React.useCallback(
+    async (options?: { premiseOverride?: string; toneOverride?: string }) => {
+      const effectivePremise =
+        options?.premiseOverride?.trim() ?? premise.trim();
+      const effectiveTone = options?.toneOverride?.trim() ?? tone.trim();
 
       setErrorMessage("");
       clearStatusMessages();
@@ -1040,6 +1123,7 @@ export default function PathForgerPageClient() {
             onboarding: {
               ...buildOnboardingPayload(),
               premise: effectivePremise,
+              tone: effectiveTone,
             },
             defaultModel: resolvedDefaultModel,
           },
@@ -1070,6 +1154,7 @@ export default function PathForgerPageClient() {
       setErrorMessage,
       setIsRunning,
       setVisualStyle,
+      tone,
     ],
   );
 
@@ -1235,6 +1320,39 @@ export default function PathForgerPageClient() {
     if (!hasCreateStoryFormBeenShown) {
       return;
     }
+    if (didAutoGenerateToneRef.current) {
+      return;
+    }
+    if (isRunning) {
+      return;
+    }
+    if (premise.trim().length === 0) {
+      return;
+    }
+    if (tone.trim().length > 0) {
+      return;
+    }
+
+    didAutoGenerateToneRef.current = true;
+    void handleGenerateTone();
+  }, [
+    apiKeyReady,
+    didAutoGenerateToneRef,
+    handleGenerateTone,
+    hasCreateStoryFormBeenShown,
+    isRunning,
+    premise,
+    ready,
+    tone,
+  ]);
+
+  React.useEffect(() => {
+    if (!ready || !apiKeyReady) {
+      return;
+    }
+    if (!hasCreateStoryFormBeenShown) {
+      return;
+    }
     if (didAutoGenerateStyleRef.current) {
       return;
     }
@@ -1242,6 +1360,9 @@ export default function PathForgerPageClient() {
       return;
     }
     if (premise.trim().length === 0) {
+      return;
+    }
+    if (tone.trim().length === 0) {
       return;
     }
     if (visualStyle.trim().length > 0) {
@@ -1258,6 +1379,7 @@ export default function PathForgerPageClient() {
     isRunning,
     premise,
     ready,
+    tone,
     visualStyle,
   ]);
 
@@ -1311,8 +1433,13 @@ export default function PathForgerPageClient() {
     setPendingGenreAutoRegenerate(false);
     void (async () => {
       const generatedPremise = await handleGeneratePremise();
+      const generatedTone = await runGenerateTone({
+        premiseOverride: generatedPremise ?? undefined,
+        visualStyleOverride: "",
+      });
       await runGenerateVisualStyle({
         premiseOverride: generatedPremise ?? undefined,
+        toneOverride: generatedTone ?? undefined,
       });
     })();
   }, [
@@ -1322,6 +1449,7 @@ export default function PathForgerPageClient() {
     isRunning,
     pendingGenreAutoRegenerate,
     ready,
+    runGenerateTone,
     runGenerateVisualStyle,
     setPendingGenreAutoRegenerate,
   ]);
@@ -1735,6 +1863,9 @@ export default function PathForgerPageClient() {
               visualStyle={visualStyle}
               onVisualStyleChange={setVisualStyle}
               onGenerateVisualStyle={handleGenerateVisualStyle}
+              tone={tone}
+              onToneChange={setTone}
+              onGenerateTone={handleGenerateTone}
               ageRating={ageRating}
               onAgeRatingChange={setAgeRating}
               premise={premise}
@@ -1784,8 +1915,6 @@ export default function PathForgerPageClient() {
         onDefaultModelChange={setDefaultModel}
         onTextModelChange={setTextModel}
         onImageModelChange={setImageModel}
-        tone={tone}
-        onToneChange={setTone}
         romanceMode={romanceMode}
         onRomanceModeChange={setRomanceMode}
         onOpenRenderImageCalls={() => setRenderImageCallsModalOpen(true)}
@@ -1907,7 +2036,7 @@ export default function PathForgerPageClient() {
         }
         kenBurnsImageSx={kenBurnsImageSx}
       />
-      <PathForgerJourneyDialog
+      <PathForgerJourneyPanel
         open={pathLedgerModalOpen && Boolean(visibleChapter)}
         onClose={() => setPathLedgerModalOpen(false)}
         pathLedgerMarkdown={visibleChapter?.pathLedgerMarkdown ?? ""}
