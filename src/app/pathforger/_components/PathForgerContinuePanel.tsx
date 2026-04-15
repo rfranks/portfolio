@@ -31,6 +31,7 @@ type ActiveRunAction =
 type PathForgerContinuePanelProps = {
   open: boolean;
   statusIsRunning: boolean;
+  pathForgingGifSrc: string;
   showOptionSelection: boolean;
   continuePromptMarkdown: string;
   optionBranchOrder: PathForgerBranchChoice[];
@@ -60,6 +61,7 @@ export default function PathForgerContinuePanel(
   const {
     open,
     statusIsRunning,
+    pathForgingGifSrc,
     showOptionSelection,
     continuePromptMarkdown,
     optionBranchOrder,
@@ -82,6 +84,11 @@ export default function PathForgerContinuePanel(
   if (!open) {
     return null;
   }
+
+  const showPathForgingAnimation =
+    statusIsRunning &&
+    activeRunAction === "forgePath" &&
+    Boolean(activeOptionBranch);
 
   return (
     <Box
@@ -136,6 +143,36 @@ export default function PathForgerContinuePanel(
             overflow: "hidden",
           }}
         >
+          {showPathForgingAnimation ? (
+            <Paper
+              variant="outlined"
+              sx={{
+                p: { xs: 2, md: 2.5 },
+                height: "100%",
+                minHeight: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Stack spacing={1.25} alignItems="center">
+                <Box
+                  component="img"
+                  src={pathForgingGifSrc}
+                  alt="Forging selected path"
+                  sx={{
+                    width: { xs: 180, md: 240 },
+                    maxWidth: "100%",
+                    height: "auto",
+                    display: "block",
+                  }}
+                />
+                <Typography variant="subtitle2" color="text.secondary">
+                  Forging your path...
+                </Typography>
+              </Stack>
+            </Paper>
+          ) : null}
           {showOptionSelection ? (
             <Paper
               variant="outlined"
@@ -249,6 +286,8 @@ export default function PathForgerContinuePanel(
                                 <PathForgerGeneratedImageLightbox
                                   src={panelImage.imageDataUrl}
                                   alt={`Option ${branch} preview`}
+                                  title={`Option ${branch}`}
+                                  caption={choice?.label?.trim() || "Path preview"}
                                   kenBurnsImageSx={kenBurnsImageSx}
                                   stopEventPropagation
                                   previewContainerSx={{ height: 120 }}

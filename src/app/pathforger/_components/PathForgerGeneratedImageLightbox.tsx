@@ -11,6 +11,8 @@ import type { SxProps, Theme } from "@mui/material/styles";
 type PathForgerGeneratedImageLightboxProps = {
   src: string;
   alt: string;
+  title?: string;
+  caption?: string;
   previewImageSx?: SxProps<Theme>;
   previewContainerSx?: SxProps<Theme>;
   kenBurnsImageSx?: SxProps<Theme>;
@@ -23,6 +25,8 @@ export default function PathForgerGeneratedImageLightbox(
   const {
     src,
     alt,
+    title,
+    caption,
     previewImageSx,
     previewContainerSx,
     kenBurnsImageSx,
@@ -73,7 +77,7 @@ export default function PathForgerGeneratedImageLightbox(
       <Box
         component="button"
         type="button"
-        aria-label={`Open full image: ${alt}`}
+        aria-label={`Open full image: ${title?.trim() || alt}`}
         onClick={handleOpen}
         sx={[
           {
@@ -121,16 +125,44 @@ export default function PathForgerGeneratedImageLightbox(
             sx={{
               position: "absolute",
               top: 10,
+              left: 10,
               right: 10,
               zIndex: 2,
               display: "flex",
               alignItems: "center",
-              gap: 1,
+              justifyContent: "space-between",
+              gap: 1.5,
             }}
           >
-            <Typography variant="caption" color="grey.100">
-              Full image
-            </Typography>
+            <Box
+              sx={{
+                minWidth: 0,
+                flex: 1,
+                px: 1.1,
+                py: 0.75,
+                borderRadius: 1,
+                border: "1px solid",
+                borderColor: "rgba(255,255,255,0.28)",
+                bgcolor: "rgba(0,0,0,0.45)",
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                color="grey.100"
+                sx={{ lineHeight: 1.2 }}
+              >
+                {title?.trim() || alt}
+              </Typography>
+              {caption?.trim() ? (
+                <Typography
+                  variant="caption"
+                  color="grey.300"
+                  sx={{ display: "block", mt: 0.35, lineHeight: 1.25 }}
+                >
+                  {caption}
+                </Typography>
+              ) : null}
+            </Box>
             <IconButton
               aria-label="Close full image"
               onClick={() => setOpen(false)}

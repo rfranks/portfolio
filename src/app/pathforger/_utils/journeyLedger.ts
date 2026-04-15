@@ -1,4 +1,8 @@
-import { JourneyLedgerTone, JourneyLedgerField } from "../_types/journeyLedger";
+import {
+  JourneyLedgerTone,
+  JourneyLedgerField,
+  JourneyLedgerPlaybackEntry,
+} from "../_types/journeyLedger";
 
 const journeyLedgerFieldMeta: Record<string, { label: string; emoji: string }> =
   {
@@ -310,4 +314,105 @@ export function parseJourneyLedger(markdown: string): {
     fields,
     remainderMarkdown,
   };
+}
+
+function normalizeJourneyLedgerPart(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[`*_~]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function buildJourneyLedgerPlaybackEntries(args: {
+  previousMarkdown: string;
+  nextMarkdown: string;
+}): JourneyLedgerPlaybackEntry[] {
+  const { previousMarkdown, nextMarkdown } = args;
+  const previousFields = parseJourneyLedger(previousMarkdown).fields;
+  const nextFields = parseJourneyLedger(nextMarkdown).fields;
+
+  const previousByKey = new Map(previousFields.map((field) => [field.key, field]));
+  const nextByKey = new Map(nextFields.map((field) => [field.key, field]));
+
+  const orderedKeys = [
+    ...nextFields.map((field) => field.key),
+    ...previousFields
+      .map((field) => field.key)
+      .filter((key) => !nextByKey.has(key)),
+  ].filter((key) => key !== "chapter");
+
+  const entries = orderedKeys.map((key) => {
+    const previousField = previousByKey.get(key);
+    const nextField = nextByKey.get(key);
+    const displayField = nextField ?? previousField;
+
+    const beforeItems = previousField
+      ? splitJourneyLedgerValue(previousField.value)
+      : [];
+    const afterItems = nextField ? splitJourneyLedgerValue(nextField.value) : [];
+    const beforeNormalized = new Set(beforeItems.map(normalizeJourneyLedgerPart));
+    const afterNormalized = new Set(afterItems.map(normalizeJourneyLedgerPart));
+
+    const addedItems = afterItems.filter(
+      (item) => !beforeNormalized.has(normalizeJourneyLedgerPart(item)),
+    );
+    const removedItems = beforeItems.filter(
+      (item) => !afterNormalized.has(normalizeJourneyLedgerPart(item)),
+    );
+    const unchangedItems = afterItems.filter((item) =>
+      beforeNormalized.has(normalizeJourneyLedgerPart(item)),
+    );
+
+    return {
+      key,
+      label: displayField?.label ?? "Details",
+      emoji: displayField?.emoji ?? "📌",
+      tone: displayField?.tone ?? "neutral",
+      beforeItems,
+      afterItems,
+      addedItems,
+      removedItems,
+      unchangedItems,
+    };
+  });
+
+  const snapshotKeys = ["chapter", "location", "status"] as const;
+  const snapshotBeforeItems = snapshotKeys
+    .map((key) => previousByKey.get(key))
+    .filter((field): field is JourneyLedgerField => Boolean(field))
+    .map((field) => `${field.emoji} ${field.label}: ${field.value}`);
+  const snapshotAfterItems = snapshotKeys
+    .map((key) => nextByKey.get(key))
+    .filter((field): field is JourneyLedgerField => Boolean(field))
+    .map((field) => `${field.emoji} ${field.label}: ${field.value}`);
+
+  if (snapshotBeforeItems.length > 0 || snapshotAfterItems.length > 0) {
+    const snapshotBeforeNormalized = new Set(
+      snapshotBeforeItems.map(normalizeJourneyLedgerPart),
+    );
+    const snapshotAfterNormalized = new Set(
+      snapshotAfterItems.map(normalizeJourneyLedgerPart),
+    );
+    entries.unshift({
+      key: "snapshot",
+      label: "Journey Snapshot",
+      emoji: "📌",
+      tone: "neutral",
+      beforeItems: snapshotBeforeItems,
+      afterItems: snapshotAfterItems,
+      addedItems: snapshotAfterItems.filter(
+        (item) => !snapshotBeforeNormalized.has(normalizeJourneyLedgerPart(item)),
+      ),
+      removedItems: snapshotBeforeItems.filter(
+        (item) => !snapshotAfterNormalized.has(normalizeJourneyLedgerPart(item)),
+      ),
+      unchangedItems: snapshotAfterItems.filter((item) =>
+        snapshotBeforeNormalized.has(normalizeJourneyLedgerPart(item)),
+      ),
+    });
+  }
+
+  return entries;
 }

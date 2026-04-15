@@ -24,6 +24,13 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
     onToggleStory,
     onOpenJourney,
   } = props;
+  const isStoryActionDisabled = !hasStory;
+  const isJourneyActionDisabled = !hasStory;
+  const hideToolbar = isStoryActionDisabled && isJourneyActionDisabled;
+
+  if (hideToolbar) {
+    return null;
+  }
 
   return (
     <Box
@@ -50,7 +57,7 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                   size="large"
                   aria-label="Show story"
                   onClick={onToggleStory}
-                  disabled={!hasStory}
+                  disabled={isStoryActionDisabled}
                   color={chapterModalOpen ? "primary" : "inherit"}
                   sx={{
                     textTransform: "none",
@@ -73,7 +80,7 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                     </Typography>
                   }
                 >
-                  View Story
+                  Story
                 </Button>
               </span>
             </Tooltip>
@@ -84,7 +91,7 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                   size="large"
                   aria-label="Show path details"
                   onClick={onOpenJourney}
-                  disabled={!hasStory}
+                  disabled={isJourneyActionDisabled}
                   color={pathLedgerModalOpen ? "primary" : "inherit"}
                   sx={{
                     textTransform: "none",
@@ -107,7 +114,7 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                     </Typography>
                   }
                 >
-                  View Journey
+                  Journey
                 </Button>
               </span>
             </Tooltip>

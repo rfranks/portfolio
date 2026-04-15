@@ -1,7 +1,7 @@
 import * as React from "react";
 import { alpha } from "@mui/material/styles";
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
-import { ChevronRight } from "@mui/icons-material";
+import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import EmojiGlyph from "@/app/pathforger/_components/EmojiGlyph";
 import PathForgerGeneratedImageLightbox from "@/app/pathforger/_components/PathForgerGeneratedImageLightbox";
@@ -25,6 +25,7 @@ type PathForgerOutcomePanelProps = {
   open: boolean;
   title: string;
   activeOptionBranch: PathForgerBranchChoice | null;
+  activeOptionLabel?: string;
   outcomeImage?: PathForgerGeneratedImage;
   outcomeMarkdown: string;
   statusIsRunning: boolean;
@@ -43,6 +44,7 @@ export default function PathForgerOutcomePanel(
     open,
     title,
     activeOptionBranch,
+    activeOptionLabel,
     outcomeImage,
     outcomeMarkdown,
     statusIsRunning,
@@ -134,6 +136,8 @@ export default function PathForgerOutcomePanel(
                 <PathForgerGeneratedImageLightbox
                   src={outcomeImage.imageDataUrl}
                   alt={`Outcome ${activeOptionBranch} render`}
+                  title={`Outcome`}
+                  caption={activeOptionLabel?.trim() || "Forged outcome scene"}
                   kenBurnsImageSx={kenBurnsImageSx}
                   previewContainerSx={{
                     position: "absolute",
@@ -173,9 +177,10 @@ export default function PathForgerOutcomePanel(
               variant="outlined"
               onClick={onOpenJourney}
               disabled={statusIsRunning}
-              startIcon={<EmojiGlyph glyph="🧭" />}
+              startIcon={<ChevronLeft />}
+              endIcon={<EmojiGlyph glyph="🧭" />}
             >
-              View Journey
+              Journey
             </Button>
             <Button
               variant="contained"
@@ -186,7 +191,7 @@ export default function PathForgerOutcomePanel(
             >
               {activeRunAction === "nextChapter"
                 ? `Forging Chapter ${nextChapterNumberLabel}...`
-                : `Onto Chapter ${nextChapterNumberLabel}`}
+                : `Chapter ${nextChapterNumberLabel}`}
             </Button>
           </Stack>
         </Box>

@@ -39,9 +39,6 @@ type UsePathForgerDerivedStateArgs = {
   result: PathForgerPipelineResult | null;
   selectedPitch: PitchSelectionState;
   coverImageByPitchKey: Record<string, PathForgerGeneratedImage>;
-  forgedOutcomeImages: Partial<
-    Record<PathForgerBranchChoice, PathForgerGeneratedImage>
-  >;
   activeOptionBranch: PathForgerBranchChoice | null;
   isRunning: boolean;
   isGeneratingChapterImages: boolean;
@@ -62,7 +59,6 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
     result,
     selectedPitch,
     coverImageByPitchKey,
-    forgedOutcomeImages,
     activeOptionBranch,
     isRunning,
     isGeneratingChapterImages,
@@ -120,24 +116,10 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
     Partial<Record<PathForgerBranchChoice, PathForgerGeneratedImage>>
   >(
     () => ({
-      A:
-        forgedOutcomeImages.A ??
-        result?.images.outcomeA ??
-        result?.images.choicePreviewA ??
-        undefined,
-      B:
-        forgedOutcomeImages.B ??
-        result?.images.outcomeB ??
-        result?.images.choicePreviewB ??
-        undefined,
+      A: result?.images.choicePreviewA ?? undefined,
+      B: result?.images.choicePreviewB ?? undefined,
     }),
-    [
-      forgedOutcomeImages,
-      result?.images.choicePreviewA,
-      result?.images.choicePreviewB,
-      result?.images.outcomeA,
-      result?.images.outcomeB,
-    ],
+    [result?.images.choicePreviewA, result?.images.choicePreviewB],
   );
 
   const chapterModalTitle = visibleChapter

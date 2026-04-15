@@ -31,6 +31,7 @@ import PathForgerSnackbar from "@/app/pathforger/_components/PathForgerSnackbar"
 import PathForgerToolbar from "@/app/pathforger/_components/PathForgerToolbar";
 import { usePathForgerDerivedState } from "@/app/pathforger/_hooks/usePathForgerDerivedState";
 import { usePathForgerFormState } from "@/app/pathforger/_hooks/usePathForgerFormState";
+import { usePathForgerNextChapterLedgerPlayback } from "@/app/pathforger/_hooks/usePathForgerNextChapterLedgerPlayback";
 import { usePathForgerPitchChapterActions } from "@/app/pathforger/_hooks/usePathForgerPitchChapterActions";
 import { useStatusMessageQueue } from "@/app/pathforger/_hooks/useStatusMessageQueue";
 import { appTheme, kenBurnsImageSx } from "@/app/pathforger/_theme/theme";
@@ -191,6 +192,12 @@ export default function PathForgerPageClient() {
     React.useState(false);
   const [pathLedgerModalOpen, setPathLedgerModalOpen] = React.useState(false);
   const [journeyTabValue, setJourneyTabValue] = React.useState("");
+  const [lastForgedLedgerTransition, setLastForgedLedgerTransition] =
+    React.useState<{
+      chapterNumber: number;
+      previousMarkdown: string;
+      nextMarkdown: string;
+    } | null>(null);
   const chapterModalBodyScrollRef = React.useRef<HTMLDivElement | null>(null);
   const [chapterModalReachedEnd, setChapterModalReachedEnd] =
     React.useState(false);
@@ -275,7 +282,6 @@ export default function PathForgerPageClient() {
     result,
     selectedPitch,
     coverImageByPitchKey,
-    forgedOutcomeImages,
     activeOptionBranch,
     isRunning,
     isGeneratingChapterImages,
@@ -288,6 +294,49 @@ export default function PathForgerPageClient() {
     journeyTabValue,
     setJourneyTabValue,
   });
+
+  const openChapterModal = React.useCallback(() => {
+    setChapterModalOpen(true);
+  }, []);
+
+  const { nextChapterLedgerPlayback, beginNextChapterLedgerPlayback } =
+    usePathForgerNextChapterLedgerPlayback({
+      visibleChapter,
+      activeRunAction,
+      isRunning,
+      onOpenChapterModal: openChapterModal,
+      lastForgedLedgerTransition,
+    });
+  const activeStoryTitle = React.useMemo(() => {
+    const chapterTitle = chapterModalPitchTitle.trim();
+    if (chapterTitle) {
+      return chapterTitle;
+    }
+
+    const modalPitchTitle = activePitchForModal?.title?.trim();
+    if (modalPitchTitle) {
+      return modalPitchTitle;
+    }
+
+    if (visiblePitches) {
+      const selectedPitchId =
+        visibleSelectedPitch || visiblePitches.recommendedPitch;
+      const selectedPitchTitle =
+        visiblePitches.pitches
+          .find((pitch) => pitch.id === selectedPitchId)
+          ?.title?.trim() || "";
+      if (selectedPitchTitle) {
+        return selectedPitchTitle;
+      }
+    }
+
+    return "Story Cover";
+  }, [
+    activePitchForModal?.title,
+    chapterModalPitchTitle,
+    visiblePitches,
+    visibleSelectedPitch,
+  ]);
 
   const getImagePromptForType = React.useCallback(
     (type: PathForgerImageType) => {
@@ -441,12 +490,6 @@ export default function PathForgerPageClient() {
   React.useEffect(() => {
     setActiveOptionBranch(selectedBranch || null);
   }, [selectedBranch, setActiveOptionBranch]);
-
-  React.useEffect(() => {
-    if (visibleChapter?.chapterMarkdown) {
-      setChapterModalOpen(true);
-    }
-  }, [visibleChapter?.chapterMarkdown]);
 
   React.useEffect(() => {
     if (!chapterModalOpen || !visibleChapter) {
@@ -1292,6 +1335,7 @@ export default function PathForgerPageClient() {
       branchToForge === "A"
         ? visibleChapter.outcomeAMarkdown
         : visibleChapter.outcomeBMarkdown;
+    const previousPathLedgerMarkdown = visibleChapter.pathLedgerMarkdown;
 
     setIsRunning(true);
     setActiveRunAction("forgePath");
@@ -1419,6 +1463,11 @@ export default function PathForgerPageClient() {
             }
           : prev,
       );
+      setLastForgedLedgerTransition({
+        chapterNumber: visibleChapter.chapterNumber,
+        previousMarkdown: previousPathLedgerMarkdown,
+        nextMarkdown: ledgerUpdate.pathLedgerMarkdown,
+      });
 
       playUiSound(forgeSuccessAudioRef);
       setContinueModalOpen(false);
@@ -1434,9 +1483,30 @@ export default function PathForgerPageClient() {
     }
   };
 
+  const handleGenerateNextChapterWithJourneyPlayback = React.useCallback(() => {
+    setChapterModalOpen(false);
+    setContinueModalOpen(false);
+    setChapterOutcomeModalOpen(false);
+
+    const armed = beginNextChapterLedgerPlayback();
+    if (!armed) {
+      return;
+    }
+
+    void handleGenerateNextChapter();
+  }, [
+    beginNextChapterLedgerPlayback,
+    handleGenerateNextChapter,
+    setChapterModalOpen,
+    setChapterOutcomeModalOpen,
+    setContinueModalOpen,
+  ]);
+
   const hasVisibleForgedOutcome =
     Boolean(activeOptionBranch) &&
     Boolean(forgedOutcomes[activeOptionBranch || "A"]?.trim());
+  const showMainCreateSpinnerWithJourneyPlayback =
+    showMainCreateSpinner || nextChapterLedgerPlayback.active;
 
   if (!ready) {
     return null;
@@ -1492,14 +1562,20 @@ export default function PathForgerPageClient() {
         <Container maxWidth="xl" sx={{ pt: 3, pb: { xs: 14, md: 16 } }}>
           <Stack spacing={2.5}>
             <PathForgerCreateStoryPanel
-              hidden={hideCreateStoryPanel}
-              showMainCreateSpinner={showMainCreateSpinner}
+              hidden={hideCreateStoryPanel && !nextChapterLedgerPlayback.active}
+              showMainCreateSpinner={showMainCreateSpinnerWithJourneyPlayback}
               coverImage={coverImage}
+              coverImageTitle={activeStoryTitle}
+              coverImageCaption="Book cover concept art"
               showPitchSelectionAnimation={showPitchSelectionAnimation}
               pitchLoadingGifSrc={withBasePath("/pathforger/pitch-loading.gif")}
               chapterLoadingGifSrc={withBasePath(
                 "/pathforger/chapter-loading.gif",
               )}
+              pathForgingGifSrc={withBasePath(
+                "/pathforger/path-forging.gif",
+              )}
+              nextChapterLedgerPlayback={nextChapterLedgerPlayback}
               statusText={statusSnackbarText}
               kenBurnsImageSx={kenBurnsImageSx}
               controlsModalOpen={controlsModalOpen}
@@ -1618,6 +1694,7 @@ export default function PathForgerPageClient() {
       />
       <PathForgerChapterPanel
         open={chapterModalOpen && Boolean(visibleChapter)}
+        chapterNumber={visibleChapter?.chapterNumber}
         title={chapterModalTitle}
         subtitle={chapterModalPitchTitle}
         chapterSpreadImage={chapterSpreadImage}
@@ -1633,6 +1710,7 @@ export default function PathForgerPageClient() {
       <PathForgerContinuePanel
         open={continueModalOpen && Boolean(visibleChapter)}
         statusIsRunning={statusIsRunning}
+        pathForgingGifSrc={withBasePath("/pathforger/path-forging.gif")}
         showOptionSelection={Boolean(
           visibleChapter && !hasVisibleForgedOutcome,
         )}
@@ -1663,6 +1741,7 @@ export default function PathForgerPageClient() {
             : "Chapter Outcome"
         }
         activeOptionBranch={activeOptionBranch}
+        activeOptionLabel={outcomeModalChoiceLabel}
         outcomeImage={
           activeOptionBranch
             ? forgedOutcomeImages[activeOptionBranch]
@@ -1673,9 +1752,7 @@ export default function PathForgerPageClient() {
         }
         statusIsRunning={statusIsRunning}
         onOpenJourney={() => setPathLedgerModalOpen(true)}
-        onGenerateNextChapter={() => {
-          void handleGenerateNextChapter();
-        }}
+        onGenerateNextChapter={handleGenerateNextChapterWithJourneyPlayback}
         canGenerateNextChapter={Boolean(
           visibleChapter &&
           activeOptionBranch &&

@@ -17,6 +17,7 @@ import { Thinking } from "@/components/shared/Thinking";
 
 type PathForgerChapterPanelProps = {
   open: boolean;
+  chapterNumber?: number;
   title: string;
   subtitle: string;
   chapterSpreadImage?: PathForgerGeneratedImage;
@@ -35,6 +36,7 @@ export default function PathForgerChapterPanel(
 ) {
   const {
     open,
+    chapterNumber,
     title,
     subtitle,
     chapterSpreadImage,
@@ -138,6 +140,12 @@ export default function PathForgerChapterPanel(
                 <PathForgerGeneratedImageLightbox
                   src={chapterSpreadImage.imageDataUrl}
                   alt="Chapter setup image"
+                  title={subtitle?.trim() || title?.trim() || "Chapter Scene"}
+                  caption={
+                    chapterNumber && title?.trim()
+                      ? `Chapter ${chapterNumber} - ${title.trim()}`
+                      : title?.trim() || "Chapter spread art"
+                  }
                   kenBurnsImageSx={kenBurnsImageSx}
                   previewContainerSx={{
                     position: "absolute",

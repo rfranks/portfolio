@@ -9,7 +9,7 @@ const RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_TEXT_MODEL = "gpt-4.1-mini";
 const DEFAULT_IMAGE_MODEL = "gpt-image-1";
 const TARGET_IMAGE_SIZE = "1024x1024";
-const MAX_PARALLEL_IMAGE_CALLS = 4;
+const MAX_PARALLEL_IMAGE_CALLS = 5;
 const OVERUSED_NEON_PHRASES = [
   "neon-lit",
   "neon lit",
@@ -356,9 +356,67 @@ function injectRiskHudEmojis(markdown: string): string {
     .trim();
 }
 
+function toRiskHudLineItems(markdown: string): string {
+  const riskMarkers: Array<{ label: string; emoji: string }> = [
+    { label: "Success Probability", emoji: "🎯" },
+    { label: "Threat Level", emoji: "⚠️" },
+    { label: "Injury Risk", emoji: "🩹" },
+    { label: "Resource Cost", emoji: "💸" },
+    { label: "Reward Potential", emoji: "🏆" },
+    { label: "Key Risk Factors", emoji: "🧭" },
+  ];
+
+  const markerPatterns = riskMarkers.map(
+    ({ label, emoji }) =>
+      `${emoji.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*${label.replace(/\s+/g, "\\s+")}\\s*:`,
+  );
+  const markerAlternation = markerPatterns.join("|");
+  const markerChunkPattern = new RegExp(
+    `(${markerAlternation})[\\s\\S]*?(?=(${markerAlternation})|$)`,
+    "gi",
+  );
+
+  const matches = Array.from(markdown.matchAll(markerChunkPattern)).map(
+    (match) => match[0].trim(),
+  );
+  if (matches.length === 0) {
+    return markdown.trim();
+  }
+
+  const normalizedLines = matches
+    .map((line) => line.replace(/^\s*[-+•]\s*/, "").trim())
+    .filter((line) => line.length > 0);
+
+  if (normalizedLines.length === 0) {
+    return markdown.trim();
+  }
+
+  // Keep the Risk HUD as plain markdown lines and normalize to single
+  // line breaks between sections (instead of forcing bullet list formatting).
+  return normalizedLines.join("\n").trim();
+}
+
+function normalizeRiskHudMarkdownLayout(markdown: string): string {
+  return markdown
+    .split(/\r?\n/)
+    .map((line) =>
+      line
+        .replace(/^\s{0,3}#{1,6}\s+/, "")
+        .replace(/^\s{0,3}>\s+/, "")
+        .replace(/^\s*[-+*•]\s+/, "")
+        .replace(/[*_`~]/g, "")
+        .trim(),
+    )
+    .filter((line) => line.length > 0)
+    .join("\n")
+    .trim();
+}
+
 function sanitizeRiskHudMarkdown(markdown: string): string {
   const withoutHeading = stripRiskHudHeading(markdown);
-  return injectRiskHudEmojis(withoutHeading);
+  const normalized = normalizeRiskHudMarkdownLayout(withoutHeading);
+  const withEmojis = injectRiskHudEmojis(normalized);
+  return toRiskHudLineItems(withEmojis);
 }
 
 function stripChapterChoicesTail(markdown: string): string {
@@ -940,6 +998,51 @@ function buildChapterLengthRule(
   return "- chapterMarkdown length: medium chapter, roughly 700-1200 words.";
 }
 
+function buildChapterAgeRatingRule(
+  ageRating: PathForgerOnboardingInput["ageRating"],
+): string[] {
+  const normalized = ageRating.trim().toUpperCase();
+
+  if (normalized === "G") {
+    return [
+      "- Age rating is G: keep content family-safe with no graphic violence, profanity, sexual content, or intense horror.",
+      "- Favor hopeful tone, gentle peril, and safe-to-young-readers imagery.",
+    ];
+  }
+
+  if (normalized === "PG") {
+    return [
+      "- Age rating is PG: allow mild peril/intensity but avoid graphic violence, explicit sexual content, and strong profanity.",
+      "- Keep darker themes brief, implied, and non-explicit.",
+    ];
+  }
+
+  if (normalized === "PG-13") {
+    return [
+      "- Age rating is PG-13: moderate peril, tension, and thematic intensity are allowed; avoid explicit gore and explicit sexual content.",
+      "- Language and violence can be stronger than PG but should remain non-graphic.",
+    ];
+  }
+
+  if (normalized === "R") {
+    return [
+      "- Age rating is R: mature tone allowed, including stronger violence/language/themes where relevant.",
+      "- Keep content coherent and purposeful; avoid gratuitous shock-only detail.",
+    ];
+  }
+
+  if (normalized === "NC-17") {
+    return [
+      "- Age rating is NC-17: adult intensity allowed, including explicit mature themes and extreme content where narratively justified.",
+      "- Preserve narrative quality and avoid incoherent gratuitous escalation.",
+    ];
+  }
+
+  return [
+    "- Treat the provided age rating as a hard content boundary for violence, horror intensity, language, and sexual themes.",
+  ];
+}
+
 function buildChapterUserPrompt(params: {
   onboarding: PathForgerOnboardingInput;
   pitchResult: PathForgerPitchResult;
@@ -964,6 +1067,9 @@ function buildChapterUserPrompt(params: {
   const chapterLengthRule = buildChapterLengthRule(
     params.onboarding.adventureLength,
   );
+  const chapterAgeRatingRules = buildChapterAgeRatingRule(
+    params.onboarding.ageRating,
+  );
 
   return [
     `Generate Chapter ${chapterNumber} package for PathForger.`,
@@ -975,6 +1081,8 @@ function buildChapterUserPrompt(params: {
     `- chapterNumber must be ${chapterNumber}.`,
     "- chapterTitle: concise cinematic title text for this chapter (plain text, no markdown, no 'Chapter N' prefix).",
     chapterLengthRule,
+    "- Treat the selected age rating as a strict content policy for chapter prose, options, risk HUD wording, and outcomes.",
+    ...chapterAgeRatingRules,
     "- chapterMarkdown must not include a 'Your Choices' section.",
     "- choices: provide 2 strong options (3 only if absolutely necessary).",
     "- riskHudMarkdown: include success probability, threat level, injury risk, resource cost, reward potential, key risk factors.",
@@ -1052,6 +1160,9 @@ function buildChapterCoreUserPrompt(params: {
   const chapterLengthRule = buildChapterLengthRule(
     params.onboarding.adventureLength,
   );
+  const chapterAgeRatingRules = buildChapterAgeRatingRule(
+    params.onboarding.ageRating,
+  );
 
   return [
     `Generate Chapter ${chapterNumber} package for PathForger.`,
@@ -1063,6 +1174,8 @@ function buildChapterCoreUserPrompt(params: {
     `- chapterNumber must be ${chapterNumber}.`,
     "- chapterTitle: concise cinematic title text for this chapter (plain text, no markdown, no 'Chapter N' prefix).",
     chapterLengthRule,
+    "- Treat the selected age rating as a strict content policy for chapter prose, options, risk HUD wording, and outcomes.",
+    ...chapterAgeRatingRules,
     "- chapterMarkdown must not include a 'Your Choices' section.",
     "- choices: provide 2 strong options (3 only if absolutely necessary).",
     "- riskHudMarkdown: include success probability, threat level, injury risk, resource cost, reward potential, key risk factors.",
@@ -1320,6 +1433,7 @@ function buildImageTypePromptRequirements(
       "Show the moment AFTER the decision with concrete consequences and world-state change.",
       "Include clear aftermath signals (environment shift, character condition, gained/lost resources, or threat escalation/reduction).",
       "Do not render this as a neutral decision moment or fork-in-the-road preview.",
+      "Must be clearly visually distinct from the corresponding choice preview (different timing, framing, and consequence details).",
     ];
   }
 
@@ -2088,6 +2202,10 @@ export async function runPathForgerOutcomeImageStage(
     typeof overridePrompt === "string" && overridePrompt.trim().length > 0
       ? overridePrompt.trim()
       : input.imagePrompts[imageType];
+  const choicePreviewPrompt =
+    input.branch === "A"
+      ? input.imagePrompts.choicePreviewA
+      : input.imagePrompts.choicePreviewB;
   const outcomeNarrative = markdownToPlainText(input.outcomeMarkdown, 1200);
   const outcomePrompt = [
     prompt,
@@ -2095,6 +2213,14 @@ export async function runPathForgerOutcomeImageStage(
     "Outcome narrative context (must be reflected in the image):",
     `Option ${input.branch}${input.selectedChoiceLabel ? ` — ${input.selectedChoiceLabel}` : ""}`,
     outcomeNarrative,
+    "",
+    "Choice preview reference for this same option (do NOT mirror this composition):",
+    markdownToPlainText(choicePreviewPrompt, 700),
+    "",
+    "Outcome image hard constraints:",
+    "- Show post-decision aftermath with visible consequences.",
+    "- Do not reuse the same camera angle, framing, beat timing, or neutral setup vibe from the choice preview image.",
+    "- Make the world-state change legible at a glance (damage, injury/safety change, resource gain/loss, threat escalation/de-escalation).",
     "",
     "Render the aftermath and consequences from this outcome narrative, not the pre-choice setup.",
   ].join("\n");
