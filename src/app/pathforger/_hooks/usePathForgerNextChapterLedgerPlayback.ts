@@ -44,6 +44,9 @@ const defaultPlaybackViewModel: JourneyLedgerPlaybackViewModel = {
   currentIndex: 0,
   total: 0,
   currentEntry: null,
+  canGoPrevious: false,
+  canGoNext: false,
+  isLastEntry: false,
 };
 
 export function usePathForgerNextChapterLedgerPlayback(
@@ -55,7 +58,7 @@ export function usePathForgerNextChapterLedgerPlayback(
     isRunning,
     onOpenChapterModal,
     lastForgedLedgerTransition,
-    entryDurationMs = 5000,
+    entryDurationMs = 10000,
   } = args;
 
   const [phase, setPhase] =
@@ -110,6 +113,26 @@ export function usePathForgerNextChapterLedgerPlayback(
     setPhase("playing");
     return true;
   }, [clearPlaybackTimer, lastForgedLedgerTransition, visibleChapter]);
+
+  const moveToPreviousPlaybackEntry = React.useCallback(() => {
+    setPhase("playing");
+    setIndex((prev) => Math.max(0, prev - 1));
+  }, []);
+
+  const moveToNextPlaybackEntry = React.useCallback(() => {
+    const totalEntries = entries.length;
+    if (totalEntries === 0) {
+      setPhase("completed");
+      return;
+    }
+
+    setPhase("playing");
+    setIndex((prev) => Math.min(totalEntries - 1, prev + 1));
+  }, [entries.length]);
+
+  const continueFromPlayback = React.useCallback(() => {
+    setPhase("completed");
+  }, []);
 
   React.useEffect(
     () => () => {
@@ -252,18 +275,43 @@ export function usePathForgerNextChapterLedgerPlayback(
       return defaultPlaybackViewModel;
     }
 
+    const total = entries.length;
+    const currentIndex = Math.max(0, Math.min(index, Math.max(total - 1, 0)));
+    const isLastEntry = total > 0 && currentIndex >= total - 1;
+    const chapterReady =
+      Boolean(visibleChapter && targetChapter !== null) &&
+      visibleChapter?.chapterNumber === targetChapter;
+    const waitingForChapter =
+      phase === "completed"
+        ? !chapterReady || activeRunAction === "nextChapter" || isRunning
+        : false;
+
     return {
       active: true,
-      waitingForChapter: false,
+      waitingForChapter,
       chapterNumber: targetChapter,
-      currentIndex: index,
-      total: entries.length,
-      currentEntry: entries[index] ?? null,
+      currentIndex,
+      total,
+      currentEntry: entries[currentIndex] ?? null,
+      canGoPrevious: total > 0 && currentIndex > 0,
+      canGoNext: total > 0 && currentIndex < total - 1,
+      isLastEntry,
     };
-  }, [entries, index, phase, targetChapter]);
+  }, [
+    activeRunAction,
+    entries,
+    index,
+    isRunning,
+    phase,
+    targetChapter,
+    visibleChapter,
+  ]);
 
   return {
     nextChapterLedgerPlayback: playbackViewModel,
     beginNextChapterLedgerPlayback,
+    moveToPreviousPlaybackEntry,
+    moveToNextPlaybackEntry,
+    continueFromPlayback,
   };
 }

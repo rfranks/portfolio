@@ -304,6 +304,15 @@ export function usePathForgerPitchChapterActions(
     let resolvedCoverForPitch = carriedCoverImage;
     let backgroundImagesStarted = false;
 
+    // Ensure CreateStoryPanel can keep showing the current cover while we clear
+    // `result` during chapter package generation.
+    if (carriedCoverImage) {
+      setCoverImageByPitchKey((prev) => ({
+        ...prev,
+        [targetCoverKey]: carriedCoverImage,
+      }));
+    }
+
     setIsRunning(true);
     setActiveRunAction(options?.activeRunAction ?? "chapter");
     setResult(null);

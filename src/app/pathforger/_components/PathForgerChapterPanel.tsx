@@ -54,6 +54,12 @@ export default function PathForgerChapterPanel(
     return null;
   }
 
+  const trimmedTitle = title.trim();
+  const chapterHeading =
+    chapterNumber && trimmedTitle
+      ? `Chapter ${chapterNumber} - ${trimmedTitle}`
+      : trimmedTitle;
+
   return (
     <Box
       sx={(theme) => ({
@@ -87,7 +93,7 @@ export default function PathForgerChapterPanel(
           }}
         >
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h6">{title}</Typography>
+            <Typography variant="h6">{chapterHeading}</Typography>
             {subtitle ? (
               <Typography variant="body2" color="text.secondary" noWrap>
                 {subtitle}

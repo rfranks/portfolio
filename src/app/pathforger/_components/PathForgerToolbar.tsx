@@ -10,8 +10,11 @@ import {
 
 type PathForgerToolbarProps = {
   hasStory: boolean;
+  createStoryPanelOpen: boolean;
+  statusIsRunning: boolean;
   chapterModalOpen: boolean;
   pathLedgerModalOpen: boolean;
+  onOpenCreateStory: () => void;
   onToggleStory: () => void;
   onOpenJourney: () => void;
 };
@@ -19,14 +22,19 @@ type PathForgerToolbarProps = {
 export default function PathForgerToolbar(props: PathForgerToolbarProps) {
   const {
     hasStory,
+    createStoryPanelOpen,
+    statusIsRunning,
     chapterModalOpen,
     pathLedgerModalOpen,
+    onOpenCreateStory,
     onToggleStory,
     onOpenJourney,
   } = props;
-  const isStoryActionDisabled = !hasStory;
-  const isJourneyActionDisabled = !hasStory;
-  const hideToolbar = isStoryActionDisabled && isJourneyActionDisabled;
+  const isNewActionDisabled = statusIsRunning;
+  const isStoryActionDisabled = !hasStory || statusIsRunning;
+  const isJourneyActionDisabled = !hasStory || statusIsRunning;
+  const hideToolbar =
+    isNewActionDisabled && isStoryActionDisabled && isJourneyActionDisabled;
 
   if (hideToolbar) {
     return null;
@@ -115,6 +123,40 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                   }
                 >
                   Journey
+                </Button>
+              </span>
+            </Tooltip>
+            <Tooltip title="Create your story!">
+              <span>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  aria-label="Open create story panel"
+                  onClick={onOpenCreateStory}
+                  disabled={isNewActionDisabled}
+                  color={createStoryPanelOpen ? "primary" : "inherit"}
+                  sx={{
+                    textTransform: "none",
+                    px: 3.4,
+                    py: 1.2,
+                    minHeight: 56,
+                    fontSize: "1.05rem",
+                    fontWeight: 700,
+                    borderWidth: 2,
+                    "& .MuiButton-startIcon": {
+                      mr: 1,
+                    },
+                  }}
+                  startIcon={
+                    <Typography
+                      component="span"
+                      sx={{ fontSize: "1.35rem", lineHeight: 1 }}
+                    >
+                      ⭐
+                    </Typography>
+                  }
+                >
+                  New
                 </Button>
               </span>
             </Tooltip>

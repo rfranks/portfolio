@@ -32,11 +32,11 @@ import PathForgerToolbar from "@/app/pathforger/_components/PathForgerToolbar";
 import { usePathForgerDerivedState } from "@/app/pathforger/_hooks/usePathForgerDerivedState";
 import { usePathForgerFormState } from "@/app/pathforger/_hooks/usePathForgerFormState";
 import { usePathForgerNextChapterLedgerPlayback } from "@/app/pathforger/_hooks/usePathForgerNextChapterLedgerPlayback";
+import { usePathForgerPersistence } from "@/app/pathforger/_hooks/usePathForgerPersistence";
 import { usePathForgerPitchChapterActions } from "@/app/pathforger/_hooks/usePathForgerPitchChapterActions";
 import { useStatusMessageQueue } from "@/app/pathforger/_hooks/useStatusMessageQueue";
 import { appTheme, kenBurnsImageSx } from "@/app/pathforger/_theme/theme";
 import { sortModelIds } from "@/app/pathforger/_utils/modelOptions";
-import { isPathForgerPitchResult } from "@/app/pathforger/_utils/pitchHelpers";
 import {
   DEFAULT_IMAGE_MODEL_ID,
   DEFAULT_ONE_OFF_MODEL_ID,
@@ -190,6 +190,9 @@ export default function PathForgerPageClient() {
   const [continueModalOpen, setContinueModalOpen] = React.useState(false);
   const [chapterOutcomeModalOpen, setChapterOutcomeModalOpen] =
     React.useState(false);
+  const [createStoryPanelOpen, setCreateStoryPanelOpen] = React.useState(false);
+  const [hasCreateStoryFormBeenShown, setHasCreateStoryFormBeenShown] =
+    React.useState(false);
   const [pathLedgerModalOpen, setPathLedgerModalOpen] = React.useState(false);
   const [journeyTabValue, setJourneyTabValue] = React.useState("");
   const [lastForgedLedgerTransition, setLastForgedLedgerTransition] =
@@ -296,17 +299,23 @@ export default function PathForgerPageClient() {
   });
 
   const openChapterModal = React.useCallback(() => {
+    setCreateStoryPanelOpen(false);
     setChapterModalOpen(true);
   }, []);
 
-  const { nextChapterLedgerPlayback, beginNextChapterLedgerPlayback } =
-    usePathForgerNextChapterLedgerPlayback({
-      visibleChapter,
-      activeRunAction,
-      isRunning,
-      onOpenChapterModal: openChapterModal,
-      lastForgedLedgerTransition,
-    });
+  const {
+    nextChapterLedgerPlayback,
+    beginNextChapterLedgerPlayback,
+    moveToPreviousPlaybackEntry,
+    moveToNextPlaybackEntry,
+    continueFromPlayback,
+  } = usePathForgerNextChapterLedgerPlayback({
+    visibleChapter,
+    activeRunAction,
+    isRunning,
+    onOpenChapterModal: openChapterModal,
+    lastForgedLedgerTransition,
+  });
   const activeStoryTitle = React.useMemo(() => {
     const chapterTitle = chapterModalPitchTitle.trim();
     if (chapterTitle) {
@@ -530,34 +539,22 @@ export default function PathForgerPageClient() {
   }, [pitchModalOpen, updatePitchSelectionOutline]);
 
   React.useEffect(() => {
-    const key = getPathForgerOpenAIKey();
-    setDraftKey(key);
-    setApiKeyReady(key.length > 0);
-    setReady(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (typeof window === "undefined") {
+    if (
+      !createStoryPanelOpen ||
+      chapterModalOpen ||
+      continueModalOpen ||
+      chapterOutcomeModalOpen
+    ) {
       return;
     }
 
-    try {
-      const cachedRaw = window.localStorage.getItem(pitchCacheStorageKey);
-      if (!cachedRaw) {
-        return;
-      }
-
-      const parsed: unknown = JSON.parse(cachedRaw);
-      if (!isPathForgerPitchResult(parsed)) {
-        return;
-      }
-
-      setPitchOnlyResult(parsed);
-      setPitchInputSignature(createStoryInputSignature);
-    } catch {
-      // Ignore malformed storage values.
-    }
-  }, [createStoryInputSignature, setPitchInputSignature, setPitchOnlyResult]);
+    setHasCreateStoryFormBeenShown((prev) => (prev ? prev : true));
+  }, [
+    chapterModalOpen,
+    chapterOutcomeModalOpen,
+    continueModalOpen,
+    createStoryPanelOpen,
+  ]);
 
   React.useEffect(() => {
     if (typeof window === "undefined" || !pitchOnlyResult) {
@@ -791,6 +788,102 @@ export default function PathForgerPageClient() {
       visualStyle,
     ],
   );
+
+  usePathForgerPersistence({
+    ready,
+    setReady,
+    apiKeyReady,
+    setApiKeyReady,
+    setDraftKey,
+    createStoryInputSignature,
+    buildOnboardingPayload,
+    resolvedDefaultModel,
+    textModel,
+    imageModel,
+    selectedPitch,
+    selectedPitchRef,
+    selectedBranch,
+    selfieDataUrl,
+    personalizedImages,
+    renderImages: renderImages as Record<PathForgerImageType, boolean>,
+    imagePromptOverrides,
+    isRunning,
+    isGeneratingChapterImages,
+    chapterImageGenerationRunIdRef,
+    result,
+    pitchOnlyResult,
+    chapterOnlyResult,
+    pitchInputSignature,
+    journeyTabValue,
+    lastForgedLedgerTransition,
+    genre,
+    tone,
+    dangerLevel,
+    adventureLength,
+    protagonistPreference,
+    recentGeneratedProtagonistNames,
+    recentGeneratedPremises,
+    premise,
+    visualStyle,
+    romanceMode,
+    allowPermanentDeath,
+    ageRating,
+    defaultModel,
+    selfieName,
+    activeOptionBranch,
+    revealedOptionBranches: revealedOptionBranches as BranchRevealState,
+    optionRevealTick: optionRevealTick as BranchRevealTickState,
+    forgedOutcomes,
+    imagePromptDrafts,
+    enqueueStatusMessage,
+    clearStatusMessages,
+    setErrorMessage,
+    setIsRunning,
+    setActiveRunAction,
+    setIsGeneratingChapterImages,
+    setSelectedPitch,
+    setSelectedBranch,
+    setPitchInputSignature,
+    setPitchOnlyResult,
+    setChapterOnlyResult,
+    setImagePromptDrafts,
+    setImagePromptOverrides,
+    setActiveOptionBranch,
+    setRevealedOptionBranches:
+      setRevealedOptionBranches as React.Dispatch<
+        React.SetStateAction<BranchRevealState>
+      >,
+    setOptionRevealTick: setOptionRevealTick as React.Dispatch<
+      React.SetStateAction<BranchRevealTickState>
+    >,
+    setForgedOutcomes,
+    setJourneyTabValue,
+    setLastForgedLedgerTransition,
+    setResult,
+    setCreateStoryPanelOpen,
+    setChapterModalOpen,
+    setContinueModalOpen,
+    setChapterOutcomeModalOpen,
+    setGenre,
+    setTone,
+    setDangerLevel,
+    setAdventureLength,
+    setProtagonistPreference,
+    setRecentGeneratedProtagonistNames,
+    setRecentGeneratedPremises,
+    setPremise,
+    setVisualStyle,
+    setRomanceMode,
+    setAllowPermanentDeath,
+    setAgeRating,
+    setPersonalizedImages,
+    setDefaultModel,
+    setTextModel,
+    setImageModel,
+    setRenderImages,
+    setSelfieDataUrl,
+    setSelfieName,
+  });
 
   const {
     handlePitchMe,
@@ -1114,6 +1207,9 @@ export default function PathForgerPageClient() {
     if (!ready || !apiKeyReady) {
       return;
     }
+    if (!hasCreateStoryFormBeenShown) {
+      return;
+    }
     if (didAutoGeneratePremiseRef.current) {
       return;
     }
@@ -1127,12 +1223,16 @@ export default function PathForgerPageClient() {
     apiKeyReady,
     didAutoGeneratePremiseRef,
     handleGeneratePremise,
+    hasCreateStoryFormBeenShown,
     premise,
     ready,
   ]);
 
   React.useEffect(() => {
     if (!ready || !apiKeyReady) {
+      return;
+    }
+    if (!hasCreateStoryFormBeenShown) {
       return;
     }
     if (didAutoGenerateStyleRef.current) {
@@ -1154,6 +1254,7 @@ export default function PathForgerPageClient() {
     apiKeyReady,
     didAutoGenerateStyleRef,
     handleGenerateVisualStyle,
+    hasCreateStoryFormBeenShown,
     isRunning,
     premise,
     ready,
@@ -1161,25 +1262,46 @@ export default function PathForgerPageClient() {
   ]);
 
   React.useEffect(() => {
+    if (!hasCreateStoryFormBeenShown) {
+      previousGenreRef.current = genre;
+      return;
+    }
     if (previousGenreRef.current === genre) {
       return;
     }
 
     previousGenreRef.current = genre;
     setPendingGenreAutoRegenerate(true);
-  }, [genre, previousGenreRef, setPendingGenreAutoRegenerate]);
+  }, [
+    genre,
+    hasCreateStoryFormBeenShown,
+    previousGenreRef,
+    setPendingGenreAutoRegenerate,
+  ]);
 
   React.useEffect(() => {
+    if (!hasCreateStoryFormBeenShown) {
+      previousAgeRatingRef.current = ageRating;
+      return;
+    }
     if (previousAgeRatingRef.current === ageRating) {
       return;
     }
 
     previousAgeRatingRef.current = ageRating;
     setPendingAgeRatingPremiseRegenerate(true);
-  }, [ageRating, previousAgeRatingRef, setPendingAgeRatingPremiseRegenerate]);
+  }, [
+    ageRating,
+    hasCreateStoryFormBeenShown,
+    previousAgeRatingRef,
+    setPendingAgeRatingPremiseRegenerate,
+  ]);
 
   React.useEffect(() => {
     if (!pendingGenreAutoRegenerate) {
+      return;
+    }
+    if (!hasCreateStoryFormBeenShown) {
       return;
     }
     if (!ready || !apiKeyReady || isRunning) {
@@ -1196,6 +1318,7 @@ export default function PathForgerPageClient() {
   }, [
     apiKeyReady,
     handleGeneratePremise,
+    hasCreateStoryFormBeenShown,
     isRunning,
     pendingGenreAutoRegenerate,
     ready,
@@ -1205,6 +1328,9 @@ export default function PathForgerPageClient() {
 
   React.useEffect(() => {
     if (!pendingAgeRatingPremiseRegenerate) {
+      return;
+    }
+    if (!hasCreateStoryFormBeenShown) {
       return;
     }
     if (pendingGenreAutoRegenerate) {
@@ -1220,6 +1346,7 @@ export default function PathForgerPageClient() {
   }, [
     apiKeyReady,
     handleGeneratePremise,
+    hasCreateStoryFormBeenShown,
     isRunning,
     pendingAgeRatingPremiseRegenerate,
     pendingGenreAutoRegenerate,
@@ -1232,6 +1359,9 @@ export default function PathForgerPageClient() {
       return;
     }
 
+    if (!chapterModalOpen) {
+      setCreateStoryPanelOpen(false);
+    }
     setChapterModalOpen((prev) => !prev);
   };
 
@@ -1251,6 +1381,7 @@ export default function PathForgerPageClient() {
       return;
     }
 
+    setCreateStoryPanelOpen(false);
     setChapterModalOpen(false);
     setChapterOutcomeModalOpen(false);
     setContinueModalOpen(true);
@@ -1507,6 +1638,12 @@ export default function PathForgerPageClient() {
     Boolean(forgedOutcomes[activeOptionBranch || "A"]?.trim());
   const showMainCreateSpinnerWithJourneyPlayback =
     showMainCreateSpinner || nextChapterLedgerPlayback.active;
+  const showCreateStoryPanelForPlayback = nextChapterLedgerPlayback.active;
+  const showCreateStoryPanel =
+    createStoryPanelOpen || showCreateStoryPanelForPlayback;
+  const createStoryPanelHidden =
+    (hideCreateStoryPanel && !showCreateStoryPanelForPlayback) ||
+    !showCreateStoryPanel;
 
   if (!ready) {
     return null;
@@ -1562,7 +1699,7 @@ export default function PathForgerPageClient() {
         <Container maxWidth="xl" sx={{ pt: 3, pb: { xs: 14, md: 16 } }}>
           <Stack spacing={2.5}>
             <PathForgerCreateStoryPanel
-              hidden={hideCreateStoryPanel && !nextChapterLedgerPlayback.active}
+              hidden={createStoryPanelHidden}
               showMainCreateSpinner={showMainCreateSpinnerWithJourneyPlayback}
               coverImage={coverImage}
               coverImageTitle={activeStoryTitle}
@@ -1576,10 +1713,15 @@ export default function PathForgerPageClient() {
                 "/pathforger/path-forging.gif",
               )}
               nextChapterLedgerPlayback={nextChapterLedgerPlayback}
+              onLedgerPlaybackPrevious={moveToPreviousPlaybackEntry}
+              onLedgerPlaybackNext={moveToNextPlaybackEntry}
+              onLedgerPlaybackContinue={continueFromPlayback}
               statusText={statusSnackbarText}
               kenBurnsImageSx={kenBurnsImageSx}
               controlsModalOpen={controlsModalOpen}
               settingsModalOpen={settingsModalOpen}
+              showToolbarCloseButton={createStoryPanelOpen}
+              onCloseFromToolbar={() => setCreateStoryPanelOpen(false)}
               onOpenControls={() => setControlsModalOpen(true)}
               onOpenSettings={() => setSettingsModalOpen(true)}
               statusIsRunning={statusIsRunning}
@@ -1614,8 +1756,11 @@ export default function PathForgerPageClient() {
         </Container>
         <PathForgerToolbar
           hasStory={Boolean(visibleChapter)}
+          createStoryPanelOpen={createStoryPanelOpen}
+          statusIsRunning={statusIsRunning}
           chapterModalOpen={chapterModalOpen}
           pathLedgerModalOpen={pathLedgerModalOpen}
+          onOpenCreateStory={() => setCreateStoryPanelOpen(true)}
           onToggleStory={handleToggleChapterModal}
           onOpenJourney={() => setPathLedgerModalOpen(true)}
         />
@@ -1711,9 +1856,7 @@ export default function PathForgerPageClient() {
         open={continueModalOpen && Boolean(visibleChapter)}
         statusIsRunning={statusIsRunning}
         pathForgingGifSrc={withBasePath("/pathforger/path-forging.gif")}
-        showOptionSelection={Boolean(
-          visibleChapter && !hasVisibleForgedOutcome,
-        )}
+        showOptionSelection={Boolean(visibleChapter)}
         continuePromptMarkdown={visibleChapter?.continuePromptMarkdown ?? ""}
         optionBranchOrder={optionBranchOrder}
         branchChoiceA={branchChoiceA}

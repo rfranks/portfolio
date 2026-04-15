@@ -14,7 +14,13 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { ChevronRight, Settings, Tune } from "@mui/icons-material";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Close,
+  Settings,
+  Tune,
+} from "@mui/icons-material";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { PathForgerGeneratedImage } from "@/app/pathforger/_types/pipeline";
 import type { JourneyLedgerPlaybackViewModel } from "@/app/pathforger/_types/journeyLedger";
@@ -49,10 +55,15 @@ type PathForgerCreateStoryPanelProps = {
   chapterLoadingGifSrc: string;
   pathForgingGifSrc: string;
   nextChapterLedgerPlayback: JourneyLedgerPlaybackViewModel;
+  onLedgerPlaybackPrevious?: () => void;
+  onLedgerPlaybackNext?: () => void;
+  onLedgerPlaybackContinue?: () => void;
   statusText: string;
   kenBurnsImageSx: SxProps<Theme>;
   controlsModalOpen: boolean;
   settingsModalOpen: boolean;
+  showToolbarCloseButton?: boolean;
+  onCloseFromToolbar?: () => void;
   onOpenControls: () => void;
   onOpenSettings: () => void;
   statusIsRunning: boolean;
@@ -210,10 +221,15 @@ export default function PathForgerCreateStoryPanel(
     chapterLoadingGifSrc,
     pathForgingGifSrc,
     nextChapterLedgerPlayback,
+    onLedgerPlaybackPrevious,
+    onLedgerPlaybackNext,
+    onLedgerPlaybackContinue,
     statusText,
     kenBurnsImageSx,
     controlsModalOpen,
     settingsModalOpen,
+    showToolbarCloseButton = false,
+    onCloseFromToolbar,
     onOpenControls,
     onOpenSettings,
     statusIsRunning,
@@ -415,6 +431,22 @@ export default function PathForgerCreateStoryPanel(
             </IconButton>
           </span>
         </Tooltip>
+        {showToolbarCloseButton ? (
+          <Tooltip title="Close">
+            <span>
+              <IconButton
+                aria-label="Close create story panel"
+                onClick={onCloseFromToolbar}
+                sx={{
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <Close />
+              </IconButton>
+            </span>
+          </Tooltip>
+        ) : null}
       </Stack>
     </Box>
   );
@@ -485,7 +517,6 @@ export default function PathForgerCreateStoryPanel(
             overflow: "hidden",
           }}
         >
-          {panelHeader}
           <Box
             sx={{
               px: { xs: 1.5, md: 2.5 },
@@ -635,6 +666,36 @@ export default function PathForgerCreateStoryPanel(
                         Preparing the latest journey ledger updates...
                       </Typography>
                     )}
+                    <Stack direction="row" justifyContent="space-between">
+                      <IconButton
+                        aria-label="Previous journey update"
+                        onClick={onLedgerPlaybackPrevious}
+                        disabled={!nextChapterLedgerPlayback.canGoPrevious}
+                        size="small"
+                      >
+                        <ChevronLeft fontSize="small" />
+                      </IconButton>
+                      {nextChapterLedgerPlayback.isLastEntry ? (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          endIcon={<ChevronRight />}
+                          onClick={onLedgerPlaybackContinue}
+                          disabled={nextChapterLedgerPlayback.waitingForChapter}
+                        >
+                          Continue
+                        </Button>
+                      ) : (
+                        <IconButton
+                          aria-label="Next journey update"
+                          onClick={onLedgerPlaybackNext}
+                          disabled={!nextChapterLedgerPlayback.canGoNext}
+                          size="small"
+                        >
+                          <ChevronRight fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Stack>
                   </Stack>
                 </Paper>
               ) : null}

@@ -9,7 +9,13 @@ const RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_TEXT_MODEL = "gpt-4.1-mini";
 const DEFAULT_IMAGE_MODEL = "gpt-image-1";
 const TARGET_IMAGE_SIZE = "1024x1024";
-const MAX_PARALLEL_IMAGE_CALLS = 5;
+const MAX_PARALLEL_IMAGE_CALLS = 6;
+const SELFIE_REFERENCE_IMAGE_TYPES: ReadonlySet<PathForgerImageType> = new Set([
+  "choicePreviewA",
+  "choicePreviewB",
+  "outcomeA",
+  "outcomeB",
+]);
 const OVERUSED_NEON_PHRASES = [
   "neon-lit",
   "neon lit",
@@ -55,6 +61,22 @@ function resolveImageModel(
   }
 
   return DEFAULT_IMAGE_MODEL;
+}
+
+function shouldUseSelfieReferenceImage(params: {
+  imageType: PathForgerImageType;
+  personalizedImages: boolean;
+  selfieDataUrl?: string;
+}): boolean {
+  if (!params.personalizedImages) {
+    return false;
+  }
+
+  if (!params.selfieDataUrl?.trim()) {
+    return false;
+  }
+
+  return SELFIE_REFERENCE_IMAGE_TYPES.has(params.imageType);
 }
 
 const renderImageDefaults: Record<PathForgerImageType, boolean> = {
@@ -1455,6 +1477,7 @@ async function requestImageAsset(params: {
   prompt: string;
   imageType: PathForgerImageType;
   selfieDataUrl?: string;
+  includeSelfieReferenceImage?: boolean;
 }): Promise<Omit<PathForgerGeneratedImage, "prompt">> {
   const coverTitleHint =
     params.imageType === "cover"
@@ -1491,7 +1514,7 @@ async function requestImageAsset(params: {
     },
   ];
 
-  if (params.selfieDataUrl) {
+  if (params.includeSelfieReferenceImage && params.selfieDataUrl) {
     userContent.push({
       type: "input_image",
       image_url: params.selfieDataUrl,
@@ -1657,10 +1680,12 @@ async function runImageJobsParallel(params: {
         model: params.imageModel,
         prompt: job.prompt,
         imageType: job.type,
-        selfieDataUrl:
-          params.onboarding.personalizedImages && params.selfieDataUrl
-            ? params.selfieDataUrl
-            : undefined,
+        selfieDataUrl: params.selfieDataUrl,
+        includeSelfieReferenceImage: shouldUseSelfieReferenceImage({
+          imageType: job.type,
+          personalizedImages: params.onboarding.personalizedImages,
+          selfieDataUrl: params.selfieDataUrl,
+        }),
       });
 
       images[job.type] = {
@@ -1785,10 +1810,12 @@ export async function runPathForgerCoverFromPitchStage(
     model: imageModel,
     prompt,
     imageType: "cover",
-    selfieDataUrl:
-      input.onboarding.personalizedImages && input.selfieDataUrl
-        ? input.selfieDataUrl
-        : undefined,
+    selfieDataUrl: input.selfieDataUrl,
+    includeSelfieReferenceImage: shouldUseSelfieReferenceImage({
+      imageType: "cover",
+      personalizedImages: input.onboarding.personalizedImages,
+      selfieDataUrl: input.selfieDataUrl,
+    }),
   });
 
   return {
@@ -2235,10 +2262,12 @@ export async function runPathForgerOutcomeImageStage(
     model: imageModel,
     prompt: outcomePrompt,
     imageType,
-    selfieDataUrl:
-      input.onboarding.personalizedImages && input.selfieDataUrl
-        ? input.selfieDataUrl
-        : undefined,
+    selfieDataUrl: input.selfieDataUrl,
+    includeSelfieReferenceImage: shouldUseSelfieReferenceImage({
+      imageType,
+      personalizedImages: input.onboarding.personalizedImages,
+      selfieDataUrl: input.selfieDataUrl,
+    }),
   });
 
   return {

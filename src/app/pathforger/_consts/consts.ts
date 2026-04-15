@@ -43,6 +43,7 @@ export const imageTypeOrder: PathForgerImageType[] = [
 
 export const pitchPanelBorderRadius = "8px";
 export const pitchCacheStorageKey = "pathforger-last-pitches-v1";
+export const pathForgerStateStorageKey = "pathforger-state-v1";
 
 export const optionBranchOrder: PathForgerBranchChoice[] = ["A", "B"];
 

@@ -32,4 +32,7 @@ export type JourneyLedgerPlaybackViewModel = {
   currentIndex: number;
   total: number;
   currentEntry: JourneyLedgerPlaybackEntry | null;
+  canGoPrevious: boolean;
+  canGoNext: boolean;
+  isLastEntry: boolean;
 };
