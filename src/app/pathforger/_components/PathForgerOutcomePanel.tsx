@@ -3,7 +3,7 @@ import { alpha } from "@mui/material/styles";
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import MarkdownContent from "@/components/shared/MarkdownContent";
-import EmojiGlyph from "@/app/pathforger/_components/EmojiGlyph";
+import EmojiGlyph from "@/components/shared/EmojiGlyph";
 import PathForgerGeneratedImageLightbox from "@/app/pathforger/_components/PathForgerGeneratedImageLightbox";
 import type {
   PathForgerBranchChoice,

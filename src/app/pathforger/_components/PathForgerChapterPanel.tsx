@@ -9,8 +9,8 @@ import {
   Typography,
 } from "@mui/material";
 import { ChevronRight, Close } from "@mui/icons-material";
+import EmojiGlyph from "@/components/shared/EmojiGlyph";
 import MarkdownContent from "@/components/shared/MarkdownContent";
-import EmojiGlyph from "@/app/pathforger/_components/EmojiGlyph";
 import PathForgerGeneratedImageLightbox from "@/app/pathforger/_components/PathForgerGeneratedImageLightbox";
 import type { PathForgerGeneratedImage } from "@/app/pathforger/_types/pipeline";
 import { Thinking } from "@/components/shared/Thinking";

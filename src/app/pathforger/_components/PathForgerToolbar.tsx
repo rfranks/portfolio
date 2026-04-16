@@ -33,12 +33,6 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
   const isNewActionDisabled = statusIsRunning;
   const isStoryActionDisabled = !hasStory || statusIsRunning;
   const isJourneyActionDisabled = !hasStory || statusIsRunning;
-  const hideToolbar =
-    isNewActionDisabled && isStoryActionDisabled && isJourneyActionDisabled;
-
-  if (hideToolbar) {
-    return null;
-  }
 
   return (
     <Box

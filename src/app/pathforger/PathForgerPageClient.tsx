@@ -17,20 +17,13 @@ import { ThemeProvider } from "@mui/material/styles";
 import OpenAIKeyInterstitialContent from "@/components/shared/OpenAIKeyInterstitialContent";
 import { portfolioApps } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
-import PathForgerCreateStoryPanel from "@/app/pathforger/_components/PathForgerCreateStoryPanel";
-import PathForgerControlsDialog from "@/app/pathforger/_components/PathForgerControlsDialog";
-import PathForgerChapterPanel from "@/app/pathforger/_components/PathForgerChapterPanel";
-import PathForgerContinuePanel from "@/app/pathforger/_components/PathForgerContinuePanel";
-import PathForgerImagePromptEditorDialog from "@/app/pathforger/_components/PathForgerImagePromptEditorDialog";
-import PathForgerJourneyPanel from "@/app/pathforger/_components/PathForgerJourneyPanel";
-import PathForgerOutcomePanel from "@/app/pathforger/_components/PathForgerOutcomePanel";
-import PathForgerRenderImageCallsDialog from "@/app/pathforger/_components/PathForgerRenderImageCallsDialog";
-import PathForgerSelectedPitchDialog from "@/app/pathforger/_components/PathForgerSelectedPitchDialog";
-import PathForgerSettingsDialog from "@/app/pathforger/_components/PathForgerSettingsDialog";
+import PathForgerDialogController from "@/app/pathforger/_components/PathForgerDialogController";
+import PathForgerPanelController from "@/app/pathforger/_components/PathForgerPanelController";
 import PathForgerSnackbar from "@/app/pathforger/_components/PathForgerSnackbar";
 import PathForgerToolbar from "@/app/pathforger/_components/PathForgerToolbar";
 import { usePathForgerDerivedState } from "@/app/pathforger/_hooks/usePathForgerDerivedState";
 import { usePathForgerFormState } from "@/app/pathforger/_hooks/usePathForgerFormState";
+import { usePathForgerGenerationActions } from "@/app/pathforger/_hooks/usePathForgerGenerationActions";
 import { usePathForgerNextChapterLedgerPlayback } from "@/app/pathforger/_hooks/usePathForgerNextChapterLedgerPlayback";
 import { usePathForgerPersistence } from "@/app/pathforger/_hooks/usePathForgerPersistence";
 import { usePathForgerPitchChapterActions } from "@/app/pathforger/_hooks/usePathForgerPitchChapterActions";
@@ -56,10 +49,6 @@ import {
 import {
   runPathForgerOutcomeImageStage,
   runPathForgerPathLedgerUpdateStage,
-  runPathForgerPremiseStage,
-  runPathForgerProtagonistNameStage,
-  runPathForgerToneStage,
-  runPathForgerVisualStyleStage,
 } from "@/app/pathforger/_utils/pipeline";
 import {
   PathForgerBranchChoice,
@@ -83,6 +72,7 @@ export default function PathForgerPageClient() {
   const [draftKey, setDraftKey] = React.useState("");
   const [keyError, setKeyError] = React.useState("");
   const keyInputRef = React.useRef<HTMLInputElement | null>(null);
+
   const {
     genre,
     setGenre,
@@ -183,6 +173,7 @@ export default function PathForgerPageClient() {
     setForgedOutcomeImages,
     createStoryInputSignature,
   } = usePathForgerFormState();
+
   const [pitchModalOpen, setPitchModalOpen] = React.useState(false);
   const [controlsModalOpen, setControlsModalOpen] = React.useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
@@ -203,13 +194,16 @@ export default function PathForgerPageClient() {
       previousMarkdown: string;
       nextMarkdown: string;
     } | null>(null);
+
   const chapterModalBodyScrollRef = React.useRef<HTMLDivElement | null>(null);
   const [chapterModalReachedEnd, setChapterModalReachedEnd] =
     React.useState(false);
+
   const continueOptionsScrollRef = React.useRef<HTMLDivElement | null>(null);
   const continueOptionPanelRefs = React.useRef<
     Partial<Record<PathForgerBranchChoice, HTMLDivElement | null>>
   >({});
+
   const pitchListContainerRef = React.useRef<HTMLDivElement | null>(null);
   const pitchCardRefs = React.useRef<
     Partial<Record<PathForgerPitchChoice, HTMLDivElement | null>>
@@ -219,11 +213,13 @@ export default function PathForgerPageClient() {
     height: 0,
     opacity: 0,
   });
+
   const {
     statusMessage: progressMessage,
     enqueueStatusMessage,
     clearStatusMessages,
   } = useStatusMessageQueue(STATUS_SNACKBAR_MIN_MESSAGE_MS);
+
   const optionRevealAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const optionSelectAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const forgeSuccessAudioRef = React.useRef<HTMLAudioElement | null>(null);
@@ -318,6 +314,7 @@ export default function PathForgerPageClient() {
     onOpenChapterModal: openChapterModal,
     lastForgedLedgerTransition,
   });
+
   const activeStoryTitle = React.useMemo(() => {
     const chapterTitle = chapterModalPitchTitle.trim();
     if (chapterTitle) {
@@ -660,52 +657,6 @@ export default function PathForgerPageClient() {
     setImagePromptEditorValue("");
   };
 
-  const handleUpdateImagePrompt = () => {
-    if (!editingImagePromptType) {
-      return;
-    }
-
-    const promptType = editingImagePromptType;
-    const updatedPrompt = imagePromptEditorValue;
-
-    setImagePromptDrafts((prev) => ({
-      ...prev,
-      [promptType]: updatedPrompt,
-    }));
-    setImagePromptOverrides((prev) => ({
-      ...prev,
-      [promptType]: updatedPrompt,
-    }));
-
-    setResult((prev: PathForgerPipelineResult | null) =>
-      prev
-        ? {
-            ...prev,
-            chapter: {
-              ...prev.chapter,
-              imagePrompts: {
-                ...prev.chapter.imagePrompts,
-                [promptType]: updatedPrompt,
-              },
-            },
-          }
-        : prev,
-    );
-    setChapterOnlyResult((prev: PathForgerChapterResult | null) =>
-      prev
-        ? {
-            ...prev,
-            imagePrompts: {
-              ...prev.imagePrompts,
-              [promptType]: updatedPrompt,
-            },
-          }
-        : prev,
-    );
-
-    handleCloseImagePromptEditor();
-  };
-
   const handleSelfieChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -851,10 +802,9 @@ export default function PathForgerPageClient() {
     setImagePromptDrafts,
     setImagePromptOverrides,
     setActiveOptionBranch,
-    setRevealedOptionBranches:
-      setRevealedOptionBranches as React.Dispatch<
-        React.SetStateAction<BranchRevealState>
-      >,
+    setRevealedOptionBranches: setRevealedOptionBranches as React.Dispatch<
+      React.SetStateAction<BranchRevealState>
+    >,
     setOptionRevealTick: setOptionRevealTick as React.Dispatch<
       React.SetStateAction<BranchRevealTickState>
     >,
@@ -943,350 +893,37 @@ export default function PathForgerPageClient() {
     setCoverImageByPitchKey,
   });
 
-  const handleGenerateProtagonistName = async () => {
-    setErrorMessage("");
-    clearStatusMessages();
-    playUiSound(wandActionAudioRef);
-
-    const apiKey = getPathForgerOpenAIKey().trim();
-    if (!apiKey) {
-      setErrorMessage("OpenAI API key is required.");
-      setApiKeyReady(false);
-      return;
-    }
-
-    if (!premise.trim()) {
-      setErrorMessage(
-        "Please provide a premise so PathForger can craft a fitting name.",
-      );
-      return;
-    }
-
-    setIsRunning(true);
-    setActiveRunAction("name");
-
-    try {
-      const blockedNames = Array.from(
-        new Set(
-          [protagonistPreference, ...recentGeneratedProtagonistNames]
-            .map((name) => name.trim())
-            .filter((name) => name.length > 0 && !/^auto-generate/i.test(name)),
-        ),
-      );
-
-      const generatedName = await runPathForgerProtagonistNameStage(
-        {
-          apiKey,
-          onboarding: buildOnboardingPayload(),
-          defaultModel: resolvedDefaultModel,
-          forbiddenNames: blockedNames,
-          randomnessSeed: `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
-        },
-        (progress) => {
-          enqueueStatusMessage(progress.message);
-        },
-      );
-
-      const resolvedName = generatedName.protagonistName.trim();
-      setProtagonistPreference(resolvedName);
-      setRecentGeneratedProtagonistNames((prev) => {
-        const next = [
-          resolvedName,
-          ...prev.filter((name) => name !== resolvedName),
-        ];
-        return next.slice(0, 20);
-      });
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Protagonist name generation failed.",
-      );
-    } finally {
-      clearStatusMessages();
-      setIsRunning(false);
-      setActiveRunAction(null);
-    }
-  };
-
-  const runGenerateTone = React.useCallback(
-    async (options?: {
-      premiseOverride?: string;
-      visualStyleOverride?: string;
-    }) => {
-      const effectivePremise =
-        options?.premiseOverride?.trim() ?? premise.trim();
-      const effectiveVisualStyle = options?.visualStyleOverride;
-
-      setErrorMessage("");
-      clearStatusMessages();
-      playUiSound(wandActionAudioRef);
-
-      const apiKey = getPathForgerOpenAIKey().trim();
-      if (!apiKey) {
-        setErrorMessage("OpenAI API key is required.");
-        setApiKeyReady(false);
-        return;
-      }
-
-      if (!effectivePremise) {
-        setErrorMessage(
-          "Please provide a premise so PathForger can craft a fitting tone.",
-        );
-        return null;
-      }
-
-      setIsRunning(true);
-      setActiveRunAction("tone");
-
-      try {
-        const generatedTone = await runPathForgerToneStage(
-          {
-            apiKey,
-            onboarding: {
-              ...buildOnboardingPayload(),
-              premise: effectivePremise,
-              ...(typeof effectiveVisualStyle === "string"
-                ? { visualStyle: effectiveVisualStyle }
-                : {}),
-            },
-            defaultModel: resolvedDefaultModel,
-          },
-          (progress) => {
-            enqueueStatusMessage(progress.message);
-          },
-        );
-
-        const nextTone = generatedTone.tone.trim();
-        setTone(nextTone);
-        return nextTone;
-      } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : "Tone generation failed.",
-        );
-        return null;
-      } finally {
-        clearStatusMessages();
-        setIsRunning(false);
-        setActiveRunAction(null);
-      }
-    },
-    [
-      buildOnboardingPayload,
-      clearStatusMessages,
-      enqueueStatusMessage,
-      playUiSound,
-      premise,
-      resolvedDefaultModel,
-      setActiveRunAction,
-      setErrorMessage,
-      setIsRunning,
-      setTone,
-    ],
-  );
-
-  const handleGenerateTone = React.useCallback(() => {
-    void runGenerateTone();
-  }, [runGenerateTone]);
-
-  const runGenerateVisualStyle = React.useCallback(
-    async (options?: { premiseOverride?: string; toneOverride?: string }) => {
-      const effectivePremise =
-        options?.premiseOverride?.trim() ?? premise.trim();
-      const effectiveTone = options?.toneOverride?.trim() ?? tone.trim();
-
-      setErrorMessage("");
-      clearStatusMessages();
-      playUiSound(wandActionAudioRef);
-
-      const apiKey = getPathForgerOpenAIKey().trim();
-      if (!apiKey) {
-        setErrorMessage("OpenAI API key is required.");
-        setApiKeyReady(false);
-        return;
-      }
-
-      if (!effectivePremise) {
-        setErrorMessage(
-          "Please provide a premise so PathForger can craft a fitting style.",
-        );
-        return;
-      }
-
-      setIsRunning(true);
-      setActiveRunAction("style");
-
-      try {
-        const generatedStyle = await runPathForgerVisualStyleStage(
-          {
-            apiKey,
-            onboarding: {
-              ...buildOnboardingPayload(),
-              premise: effectivePremise,
-              tone: effectiveTone,
-            },
-            defaultModel: resolvedDefaultModel,
-          },
-          (progress) => {
-            enqueueStatusMessage(progress.message);
-          },
-        );
-
-        setVisualStyle(generatedStyle.visualStyle);
-      } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : "Style generation failed.",
-        );
-      } finally {
-        clearStatusMessages();
-        setIsRunning(false);
-        setActiveRunAction(null);
-      }
-    },
-    [
-      buildOnboardingPayload,
-      clearStatusMessages,
-      enqueueStatusMessage,
-      playUiSound,
-      premise,
-      resolvedDefaultModel,
-      setActiveRunAction,
-      setErrorMessage,
-      setIsRunning,
-      setVisualStyle,
-      tone,
-    ],
-  );
-
-  const handleGenerateVisualStyle = React.useCallback(() => {
-    void runGenerateVisualStyle();
-  }, [runGenerateVisualStyle]);
-
-  const handleGeneratePremise = React.useCallback(async () => {
-    setErrorMessage("");
-    clearStatusMessages();
-    playUiSound(wandActionAudioRef);
-
-    const apiKey = getPathForgerOpenAIKey().trim();
-    if (!apiKey) {
-      setErrorMessage("OpenAI API key is required.");
-      setApiKeyReady(false);
-      return null;
-    }
-
-    if (!genre.trim()) {
-      setErrorMessage(
-        "Please choose a genre so PathForger can craft a fitting premise.",
-      );
-      return null;
-    }
-
-    setIsRunning(true);
-    setActiveRunAction("premise");
-
-    try {
-      const blockedPremisePhrases = Array.from(
-        new Set(
-          [
-            premise,
-            ...recentGeneratedPremises,
-            "salvage tug",
-            "derelict archive",
-            "orbital archive",
-            "curator-ai",
-            "curator ai",
-            "neon-lit",
-            "neon lit",
-            "neon-drenched",
-            "neon drenched",
-            "neon-soaked",
-            "neon soaked",
-          ]
-            .map((value) => value.trim())
-            .filter((value) => value.length > 0),
-        ),
-      ).slice(0, 12);
-
-      const generatedPremise = await runPathForgerPremiseStage(
-        {
-          apiKey,
-          onboarding: {
-            ...buildOnboardingPayload(),
-            premise: "",
-          },
-          defaultModel: resolvedDefaultModel,
-          forbiddenPhrases: blockedPremisePhrases,
-          randomnessSeed: `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
-        },
-        (progress) => {
-          enqueueStatusMessage(progress.message);
-        },
-      );
-
-      const nextPremise = generatedPremise.premise.trim();
-      setPremise(nextPremise);
-      setRecentGeneratedPremises((prev) => {
-        const next = [
-          nextPremise,
-          ...prev.filter((value) => value !== nextPremise),
-        ];
-        return next.slice(0, 20);
-      });
-
-      const nextProtagonistName = generatedPremise.protagonistName.trim();
-      const normalizedPremise = nextPremise
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-      const normalizedProtagonistName = nextProtagonistName
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-      const premiseMentionsGeneratedProtagonist =
-        normalizedProtagonistName.length > 0 &&
-        normalizedPremise.includes(normalizedProtagonistName);
-
-      if (premiseMentionsGeneratedProtagonist) {
-        setProtagonistPreference(nextProtagonistName);
-        setRecentGeneratedProtagonistNames((prev) => {
-          const next = [
-            nextProtagonistName,
-            ...prev.filter((name) => name !== nextProtagonistName),
-          ];
-          return next.slice(0, 20);
-        });
-      }
-
-      return nextPremise;
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Premise generation failed.",
-      );
-      return null;
-    } finally {
-      clearStatusMessages();
-      setIsRunning(false);
-      setActiveRunAction(null);
-    }
-  }, [
+  const generation = usePathForgerGenerationActions({
+    premise,
+    setPremise,
+    genre,
+    tone,
+    setTone,
+    setVisualStyle,
+    protagonistPreference,
+    setProtagonistPreference,
+    recentGeneratedProtagonistNames,
+    setRecentGeneratedProtagonistNames,
+    recentGeneratedPremises,
+    setRecentGeneratedPremises,
     buildOnboardingPayload,
+    resolvedDefaultModel,
+    setApiKeyReady,
+    setErrorMessage,
     clearStatusMessages,
     enqueueStatusMessage,
-    genre,
     playUiSound,
-    premise,
-    recentGeneratedPremises,
-    resolvedDefaultModel,
-    setActiveRunAction,
-    setErrorMessage,
+    wandActionAudioRef,
     setIsRunning,
-    setPremise,
-    setProtagonistPreference,
-    setRecentGeneratedPremises,
-    setRecentGeneratedProtagonistNames,
-  ]);
+    setActiveRunAction,
+    imagePromptEditorValue,
+    editingImagePromptType,
+    setImagePromptDrafts,
+    setImagePromptOverrides,
+    setResult,
+    setChapterOnlyResult,
+    handleCloseImagePromptEditor,
+  });
 
   React.useEffect(() => {
     if (!ready || !apiKeyReady) {
@@ -1303,11 +940,11 @@ export default function PathForgerPageClient() {
     }
 
     didAutoGeneratePremiseRef.current = true;
-    void handleGeneratePremise();
+    void generation.handleGeneratePremise();
   }, [
     apiKeyReady,
     didAutoGeneratePremiseRef,
-    handleGeneratePremise,
+    generation,
     hasCreateStoryFormBeenShown,
     premise,
     ready,
@@ -1334,11 +971,11 @@ export default function PathForgerPageClient() {
     }
 
     didAutoGenerateToneRef.current = true;
-    void handleGenerateTone();
+    void generation.handleGenerateTone();
   }, [
     apiKeyReady,
     didAutoGenerateToneRef,
-    handleGenerateTone,
+    generation,
     hasCreateStoryFormBeenShown,
     isRunning,
     premise,
@@ -1370,11 +1007,11 @@ export default function PathForgerPageClient() {
     }
 
     didAutoGenerateStyleRef.current = true;
-    void handleGenerateVisualStyle();
+    void generation.handleGenerateVisualStyle();
   }, [
     apiKeyReady,
     didAutoGenerateStyleRef,
-    handleGenerateVisualStyle,
+    generation,
     hasCreateStoryFormBeenShown,
     isRunning,
     premise,
@@ -1432,25 +1069,23 @@ export default function PathForgerPageClient() {
 
     setPendingGenreAutoRegenerate(false);
     void (async () => {
-      const generatedPremise = await handleGeneratePremise();
-      const generatedTone = await runGenerateTone({
+      const generatedPremise = await generation.handleGeneratePremise();
+      const generatedTone = await generation.runGenerateTone({
         premiseOverride: generatedPremise ?? undefined,
         visualStyleOverride: "",
       });
-      await runGenerateVisualStyle({
+      await generation.runGenerateVisualStyle({
         premiseOverride: generatedPremise ?? undefined,
         toneOverride: generatedTone ?? undefined,
       });
     })();
   }, [
     apiKeyReady,
-    handleGeneratePremise,
+    generation,
     hasCreateStoryFormBeenShown,
     isRunning,
     pendingGenreAutoRegenerate,
     ready,
-    runGenerateTone,
-    runGenerateVisualStyle,
     setPendingGenreAutoRegenerate,
   ]);
 
@@ -1470,10 +1105,10 @@ export default function PathForgerPageClient() {
     }
 
     setPendingAgeRatingPremiseRegenerate(false);
-    void handleGeneratePremise();
+    void generation.handleGeneratePremise();
   }, [
     apiKeyReady,
-    handleGeneratePremise,
+    generation,
     hasCreateStoryFormBeenShown,
     isRunning,
     pendingAgeRatingPremiseRegenerate,
@@ -1753,13 +1388,7 @@ export default function PathForgerPageClient() {
     }
 
     void handleGenerateNextChapter();
-  }, [
-    beginNextChapterLedgerPlayback,
-    handleGenerateNextChapter,
-    setChapterModalOpen,
-    setChapterOutcomeModalOpen,
-    setContinueModalOpen,
-  ]);
+  }, [beginNextChapterLedgerPlayback, handleGenerateNextChapter]);
 
   const hasVisibleForgedOutcome =
     Boolean(activeOptionBranch) &&
@@ -1826,57 +1455,137 @@ export default function PathForgerPageClient() {
 
         <Container maxWidth="xl" sx={{ pt: 3, pb: { xs: 14, md: 16 } }}>
           <Stack spacing={2.5}>
-            <PathForgerCreateStoryPanel
-              hidden={createStoryPanelHidden}
-              showMainCreateSpinner={showMainCreateSpinnerWithJourneyPlayback}
-              coverImage={coverImage}
-              coverImageTitle={activeStoryTitle}
-              coverImageCaption="Book cover concept art"
-              showPitchSelectionAnimation={showPitchSelectionAnimation}
-              pitchLoadingGifSrc={withBasePath("/pathforger/pitch-loading.gif")}
-              chapterLoadingGifSrc={withBasePath(
-                "/pathforger/chapter-loading.gif",
-              )}
-              pathForgingGifSrc={withBasePath(
-                "/pathforger/path-forging.gif",
-              )}
-              nextChapterLedgerPlayback={nextChapterLedgerPlayback}
-              onLedgerPlaybackPrevious={moveToPreviousPlaybackEntry}
-              onLedgerPlaybackNext={moveToNextPlaybackEntry}
-              onLedgerPlaybackContinue={continueFromPlayback}
-              statusText={statusSnackbarText}
-              kenBurnsImageSx={kenBurnsImageSx}
-              controlsModalOpen={controlsModalOpen}
-              settingsModalOpen={settingsModalOpen}
-              showToolbarCloseButton={createStoryPanelOpen}
-              onCloseFromToolbar={() => setCreateStoryPanelOpen(false)}
-              onOpenControls={() => setControlsModalOpen(true)}
-              onOpenSettings={() => setSettingsModalOpen(true)}
-              statusIsRunning={statusIsRunning}
-              protagonistPreference={protagonistPreference}
-              onProtagonistPreferenceChange={setProtagonistPreference}
-              onGenerateProtagonistName={handleGenerateProtagonistName}
-              genre={genre}
-              onGenreChange={setGenre}
-              adventureLength={adventureLength}
-              onAdventureLengthChange={setAdventureLength}
-              visualStyle={visualStyle}
-              onVisualStyleChange={setVisualStyle}
-              onGenerateVisualStyle={handleGenerateVisualStyle}
-              tone={tone}
-              onToneChange={setTone}
-              onGenerateTone={handleGenerateTone}
-              ageRating={ageRating}
-              onAgeRatingChange={setAgeRating}
-              premise={premise}
-              onPremiseChange={setPremise}
-              onGeneratePremise={() => {
-                void handleGeneratePremise();
+            <PathForgerPanelController
+              createStoryPanel={{
+                hidden: createStoryPanelHidden,
+                showMainCreateSpinner: showMainCreateSpinnerWithJourneyPlayback,
+                coverImage,
+                coverImageTitle: activeStoryTitle,
+                coverImageCaption: "By You",
+                showPitchSelectionAnimation,
+                pitchLoadingGifSrc: withBasePath(
+                  "/pathforger/pitch-loading.gif",
+                ),
+                chapterLoadingGifSrc: withBasePath(
+                  "/pathforger/chapter-loading.gif",
+                ),
+                pathForgingGifSrc: withBasePath("/pathforger/path-forging.gif"),
+                nextChapterLedgerPlayback,
+                onLedgerPlaybackPrevious: moveToPreviousPlaybackEntry,
+                onLedgerPlaybackNext: moveToNextPlaybackEntry,
+                onLedgerPlaybackContinue: continueFromPlayback,
+                statusText: statusSnackbarText,
+                kenBurnsImageSx,
+                controlsModalOpen,
+                settingsModalOpen,
+                showToolbarCloseButton: createStoryPanelOpen,
+                onCloseFromToolbar: () => setCreateStoryPanelOpen(false),
+                onOpenControls: () => setControlsModalOpen(true),
+                onOpenSettings: () => setSettingsModalOpen(true),
+                statusIsRunning,
+                protagonistPreference,
+                onProtagonistPreferenceChange: setProtagonistPreference,
+                onGenerateProtagonistName:
+                  generation.handleGenerateProtagonistName,
+                genre,
+                onGenreChange: setGenre,
+                adventureLength,
+                onAdventureLengthChange: setAdventureLength,
+                visualStyle,
+                onVisualStyleChange: setVisualStyle,
+                onGenerateVisualStyle: generation.handleGenerateVisualStyle,
+                tone,
+                onToneChange: setTone,
+                onGenerateTone: generation.handleGenerateTone,
+                ageRating,
+                onAgeRatingChange: setAgeRating,
+                premise,
+                onPremiseChange: setPremise,
+                onGeneratePremise: () => {
+                  void generation.handleGeneratePremise();
+                },
+                activeRunAction,
+                isRunning,
+                onCreateIt: () => {
+                  void handlePitchMe();
+                },
               }}
-              activeRunAction={activeRunAction}
-              isRunning={isRunning}
-              onCreateIt={() => {
-                void handlePitchMe();
+              chapterPanel={{
+                open: chapterModalOpen && Boolean(visibleChapter),
+                chapterNumber: visibleChapter?.chapterNumber,
+                title: chapterModalTitle,
+                subtitle: chapterModalPitchTitle,
+                chapterSpreadImage,
+                chapterMarkdown: chapterModalBodyMarkdown,
+                chapterBodyScrollRef: chapterModalBodyScrollRef,
+                onChapterBodyScroll: handleChapterModalBodyScroll,
+                chapterReachedEnd: chapterModalReachedEnd,
+                onClose: () => setChapterModalOpen(false),
+                onProceed: handleOpenContinueModal,
+                proceedDisabled: statusIsRunning || !chapterModalReachedEnd,
+                kenBurnsImageSx,
+              }}
+              continuePanel={{
+                open: continueModalOpen && Boolean(visibleChapter),
+                statusIsRunning,
+                pathForgingGifSrc: withBasePath("/pathforger/path-forging.gif"),
+                showOptionSelection: Boolean(visibleChapter),
+                continuePromptMarkdown:
+                  visibleChapter?.continuePromptMarkdown ?? "",
+                optionBranchOrder,
+                branchChoiceA,
+                branchChoiceB,
+                activeOptionBranch,
+                revealedOptionBranches,
+                optionRevealTick,
+                optionPanelImages,
+                continueOptionsScrollRef,
+                continueOptionPanelRefs,
+                onClose: () => setContinueModalOpen(false),
+                onSelectOptionPanel: handleSelectOptionPanel,
+                onForgeMyPath: handleForgeMyPath,
+                activeRunAction,
+                forgeDisabled:
+                  statusIsRunning || !visibleChapter || !activeOptionBranch,
+                kenBurnsImageSx,
+              }}
+              outcomePanel={{
+                open: chapterOutcomeModalOpen && hasVisibleForgedOutcome,
+                title: activeOptionBranch
+                  ? `You chose Option ${activeOptionBranch}${outcomeModalChoiceLabel ? ` — "${outcomeModalChoiceLabel}".` : "."}`
+                  : "Chapter Outcome",
+                activeOptionBranch,
+                activeOptionLabel: outcomeModalChoiceLabel,
+                outcomeImage: activeOptionBranch
+                  ? forgedOutcomeImages[activeOptionBranch]
+                  : undefined,
+                outcomeMarkdown: activeOptionBranch
+                  ? (forgedOutcomes[activeOptionBranch] ?? "")
+                  : "",
+                statusIsRunning,
+                onOpenJourney: () => setPathLedgerModalOpen(true),
+                onGenerateNextChapter:
+                  handleGenerateNextChapterWithJourneyPlayback,
+                canGenerateNextChapter: Boolean(
+                  visibleChapter &&
+                  activeOptionBranch &&
+                  forgedOutcomes[activeOptionBranch]?.trim(),
+                ),
+                activeRunAction,
+                nextChapterNumberLabel: visibleChapter
+                  ? String(visibleChapter.chapterNumber + 1)
+                  : "N+1",
+                kenBurnsImageSx,
+              }}
+              journeyPanel={{
+                open: pathLedgerModalOpen && Boolean(visibleChapter),
+                onClose: () => setPathLedgerModalOpen(false),
+                pathLedgerMarkdown: visibleChapter?.pathLedgerMarkdown ?? "",
+                journeyTabPanels,
+                journeyTabValue,
+                onJourneyTabValueChange: setJourneyTabValue,
+                activeJourneyPanel,
+                journeySnapshotFields,
               }}
             />
 
@@ -1885,6 +1594,7 @@ export default function PathForgerPageClient() {
             ) : null}
           </Stack>
         </Container>
+
         <PathForgerToolbar
           hasStory={Boolean(visibleChapter)}
           createStoryPanelOpen={createStoryPanelOpen}
@@ -1901,158 +1611,80 @@ export default function PathForgerPageClient() {
         isRunning={statusIsRunning}
         message={statusSnackbarText}
       />
-      <PathForgerControlsDialog
-        open={controlsModalOpen}
-        onClose={() => setControlsModalOpen(false)}
-        defaultModel={defaultModel}
-        textModel={textModel}
-        imageModel={imageModel}
-        modelOptions={modelOptions}
-        loadingModelOptions={loadingModelOptions}
-        defaultModelFallback={DEFAULT_ONE_OFF_MODEL_ID}
-        textModelFallback={DEFAULT_TEXT_MODEL_ID}
-        imageModelFallback={DEFAULT_IMAGE_MODEL_ID}
-        onDefaultModelChange={setDefaultModel}
-        onTextModelChange={setTextModel}
-        onImageModelChange={setImageModel}
-        romanceMode={romanceMode}
-        onRomanceModeChange={setRomanceMode}
-        onOpenRenderImageCalls={() => setRenderImageCallsModalOpen(true)}
-        personalizedImages={personalizedImages}
-        onPersonalizedImagesChange={setPersonalizedImages}
-        onSelfieChange={handleSelfieChange}
-        selfieName={selfieName}
-      />
-      <PathForgerSettingsDialog
-        open={settingsModalOpen}
-        onClose={() => setSettingsModalOpen(false)}
-        dangerLevel={dangerLevel}
-        onDangerLevelChange={setDangerLevel}
-        allowPermanentDeath={allowPermanentDeath}
-        onAllowPermanentDeathChange={setAllowPermanentDeath}
-        selectedPitch={selectedPitch}
-        onSelectedPitchChange={setSelectedPitch}
-        selectedBranch={selectedBranch}
-        onSelectedBranchChange={setSelectedBranch}
-        isRunning={isRunning}
-        activeRunAction={activeRunAction}
-        onRunPipeline={handleRunPipeline}
-      />
-      <PathForgerRenderImageCallsDialog
-        open={renderImageCallsModalOpen}
-        onClose={() => setRenderImageCallsModalOpen(false)}
-        imageTypeOrder={imageTypeOrder}
-        imageTypeLabels={imageTypeLabels}
-        renderImages={renderImages}
-        onSetAll={handleSetAllImageTypes}
-        onToggleType={handleToggleImageType}
-        onEditPrompt={handleOpenImagePromptEditor}
-      />
-      <PathForgerSelectedPitchDialog
-        open={pitchModalOpen && Boolean(visiblePitches)}
-        onClose={() => setPitchModalOpen(false)}
-        visiblePitches={visiblePitches}
-        activePitchForModal={activePitchForModal}
-        visibleSelectedPitch={visibleSelectedPitch}
-        pitchListContainerRef={pitchListContainerRef}
-        pitchCardRefs={pitchCardRefs}
-        pitchSelectionOutline={pitchSelectionOutline}
-        pitchPanelBorderRadius={pitchPanelBorderRadius}
-        onSelectPitch={handleSelectPitchFromModal}
-        onReprompt={() => {
-          void handlePitchMe({ forceRefresh: true });
+      <PathForgerDialogController
+        controlsDialog={{
+          open: controlsModalOpen,
+          onClose: () => setControlsModalOpen(false),
+          defaultModel,
+          textModel,
+          imageModel,
+          modelOptions,
+          loadingModelOptions,
+          defaultModelFallback: DEFAULT_ONE_OFF_MODEL_ID,
+          textModelFallback: DEFAULT_TEXT_MODEL_ID,
+          imageModelFallback: DEFAULT_IMAGE_MODEL_ID,
+          onDefaultModelChange: setDefaultModel,
+          onTextModelChange: setTextModel,
+          onImageModelChange: setImageModel,
+          romanceMode,
+          onRomanceModeChange: setRomanceMode,
+          onOpenRenderImageCalls: () => setRenderImageCallsModalOpen(true),
+          personalizedImages,
+          onPersonalizedImagesChange: setPersonalizedImages,
+          onSelfieChange: handleSelfieChange,
+          selfieName,
         }}
-        onStart={handlePitchModalOk}
-        isRunning={isRunning}
-        activeRunAction={activeRunAction}
-      />
-      <PathForgerChapterPanel
-        open={chapterModalOpen && Boolean(visibleChapter)}
-        chapterNumber={visibleChapter?.chapterNumber}
-        title={chapterModalTitle}
-        subtitle={chapterModalPitchTitle}
-        chapterSpreadImage={chapterSpreadImage}
-        chapterMarkdown={chapterModalBodyMarkdown}
-        chapterBodyScrollRef={chapterModalBodyScrollRef}
-        onChapterBodyScroll={handleChapterModalBodyScroll}
-        chapterReachedEnd={chapterModalReachedEnd}
-        onClose={() => setChapterModalOpen(false)}
-        onProceed={handleOpenContinueModal}
-        proceedDisabled={statusIsRunning || !chapterModalReachedEnd}
-        kenBurnsImageSx={kenBurnsImageSx}
-      />
-      <PathForgerContinuePanel
-        open={continueModalOpen && Boolean(visibleChapter)}
-        statusIsRunning={statusIsRunning}
-        pathForgingGifSrc={withBasePath("/pathforger/path-forging.gif")}
-        showOptionSelection={Boolean(visibleChapter)}
-        continuePromptMarkdown={visibleChapter?.continuePromptMarkdown ?? ""}
-        optionBranchOrder={optionBranchOrder}
-        branchChoiceA={branchChoiceA}
-        branchChoiceB={branchChoiceB}
-        activeOptionBranch={activeOptionBranch}
-        revealedOptionBranches={revealedOptionBranches}
-        optionRevealTick={optionRevealTick}
-        optionPanelImages={optionPanelImages}
-        continueOptionsScrollRef={continueOptionsScrollRef}
-        continueOptionPanelRefs={continueOptionPanelRefs}
-        onClose={() => setContinueModalOpen(false)}
-        onSelectOptionPanel={handleSelectOptionPanel}
-        onForgeMyPath={handleForgeMyPath}
-        activeRunAction={activeRunAction}
-        forgeDisabled={
-          statusIsRunning || !visibleChapter || !activeOptionBranch
-        }
-        kenBurnsImageSx={kenBurnsImageSx}
-      />
-      <PathForgerOutcomePanel
-        open={chapterOutcomeModalOpen && hasVisibleForgedOutcome}
-        title={
-          activeOptionBranch
-            ? `You chose Option ${activeOptionBranch}${outcomeModalChoiceLabel ? ` — "${outcomeModalChoiceLabel}".` : "."}`
-            : "Chapter Outcome"
-        }
-        activeOptionBranch={activeOptionBranch}
-        activeOptionLabel={outcomeModalChoiceLabel}
-        outcomeImage={
-          activeOptionBranch
-            ? forgedOutcomeImages[activeOptionBranch]
-            : undefined
-        }
-        outcomeMarkdown={
-          activeOptionBranch ? (forgedOutcomes[activeOptionBranch] ?? "") : ""
-        }
-        statusIsRunning={statusIsRunning}
-        onOpenJourney={() => setPathLedgerModalOpen(true)}
-        onGenerateNextChapter={handleGenerateNextChapterWithJourneyPlayback}
-        canGenerateNextChapter={Boolean(
-          visibleChapter &&
-          activeOptionBranch &&
-          forgedOutcomes[activeOptionBranch]?.trim(),
-        )}
-        activeRunAction={activeRunAction}
-        nextChapterNumberLabel={
-          visibleChapter ? String(visibleChapter.chapterNumber + 1) : "N+1"
-        }
-        kenBurnsImageSx={kenBurnsImageSx}
-      />
-      <PathForgerJourneyPanel
-        open={pathLedgerModalOpen && Boolean(visibleChapter)}
-        onClose={() => setPathLedgerModalOpen(false)}
-        pathLedgerMarkdown={visibleChapter?.pathLedgerMarkdown ?? ""}
-        journeyTabPanels={journeyTabPanels}
-        journeyTabValue={journeyTabValue}
-        onJourneyTabValueChange={setJourneyTabValue}
-        activeJourneyPanel={activeJourneyPanel}
-        journeySnapshotFields={journeySnapshotFields}
-      />
-      <PathForgerImagePromptEditorDialog
-        open={Boolean(editingImagePromptType)}
-        title={`Image Prompt for ${editingImagePromptType ? imageTypeLabels[editingImagePromptType] : ""}`}
-        value={imagePromptEditorValue}
-        onChange={setImagePromptEditorValue}
-        onClose={handleCloseImagePromptEditor}
-        onUpdate={handleUpdateImagePrompt}
+        settingsDialog={{
+          open: settingsModalOpen,
+          onClose: () => setSettingsModalOpen(false),
+          dangerLevel,
+          onDangerLevelChange: setDangerLevel,
+          allowPermanentDeath,
+          onAllowPermanentDeathChange: setAllowPermanentDeath,
+          selectedPitch,
+          onSelectedPitchChange: setSelectedPitch,
+          selectedBranch,
+          onSelectedBranchChange: setSelectedBranch,
+          isRunning,
+          activeRunAction,
+          onRunPipeline: handleRunPipeline,
+        }}
+        renderImageCallsDialog={{
+          open: renderImageCallsModalOpen,
+          onClose: () => setRenderImageCallsModalOpen(false),
+          imageTypeOrder,
+          imageTypeLabels,
+          renderImages,
+          onSetAll: handleSetAllImageTypes,
+          onToggleType: handleToggleImageType,
+          onEditPrompt: handleOpenImagePromptEditor,
+        }}
+        selectedPitchDialog={{
+          open: pitchModalOpen && Boolean(visiblePitches),
+          onClose: () => setPitchModalOpen(false),
+          visiblePitches,
+          activePitchForModal,
+          visibleSelectedPitch,
+          pitchListContainerRef,
+          pitchCardRefs,
+          pitchSelectionOutline,
+          pitchPanelBorderRadius,
+          onSelectPitch: handleSelectPitchFromModal,
+          onReprompt: () => {
+            void handlePitchMe({ forceRefresh: true });
+          },
+          onStart: handlePitchModalOk,
+          isRunning,
+          activeRunAction,
+        }}
+        imagePromptEditorDialog={{
+          open: Boolean(editingImagePromptType),
+          title: `Image Prompt for ${editingImagePromptType ? imageTypeLabels[editingImagePromptType] : ""}`,
+          value: imagePromptEditorValue,
+          onChange: setImagePromptEditorValue,
+          onClose: handleCloseImagePromptEditor,
+          onUpdate: generation.handleUpdateImagePrompt,
+        }}
       />
     </ThemeProvider>
   );

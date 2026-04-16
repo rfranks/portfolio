@@ -837,6 +837,21 @@
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a simple costume snapshot becomes a cinematic fairytale moment as Anne steps into the role of Little Red Riding Hood, moving through the dark woods with confidence, charm, and a lurking sense of trouble nearby.",
         "blurb": "Little Anne Riding Hood takes a real costume photo and pushes it into polished storybook fantasy. The result is a playful shenanigan that turns Anne into the star of her own moonlit fairytale, blending classic Red Riding Hood iconography with a more dramatic, cinematic edge and just enough wolf-at-the-edge-of-frame tension to make it fun."
+      },
+      {
+        "slug": "dragonballz",
+        "title": "Super Saiyan!",
+        "orientation": "landscape",
+        "realisticImage": "/personal/images/ai-shenanigans/dragonballz/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a clean professional headshot before erupting into full-blown anime power-up chaos.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/dragonballz/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The portrait transforms into a high-energy Super Saiyan version of me, with spiked golden hair, blazing aura, and the kind of over-the-top intensity that says the fight is about to begin.",
+        "movieRendering": "/personal/images/ai-shenanigans/dragonballz/movie.mp4",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "What begins as a normal headshot explodes into a full anime transformation sequence as I power up into a Super Saiyan, surrounded by crackling energy, wind, light, and unapologetic battle-ready swagger.",
+        "blurb": "Super Saiyan! takes a polished headshot and launches it straight into anime escalation. The result is a full-power transformation shenanigan, turning an ordinary portrait into a screaming, glowing, aura-wrapped Super Saiyan character reveal with maximum intensity, theatrical energy, and absolutely no interest in staying subtle."
       }
     ]
   },
