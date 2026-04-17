@@ -10,6 +10,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import ShenaniganPanel from "./ShenaniganPanel";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { withBasePath } from "@/utils/basePath";
@@ -1191,17 +1192,24 @@ export default function AIShenaniganAdaptation({
                     ref={bookCoverRef}
                     sx={{ display: "flex", justifyContent: "center" }}
                   >
-                    <Image
+                    <ImageLightbox
                       src={withBasePath(bookCoverImage)}
                       alt={`${title} book cover`}
-                      width={1400}
-                      height={900}
-                      onLoad={() => {
-                        setBookCoverLoaded(true);
-                      }}
-                      className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                      style={{ maxWidth: 440, marginInline: "auto" }}
-                    />
+                      title={`${title} — Book Cover`}
+                      caption={bookCaption || bookSource}
+                    >
+                      <Image
+                        src={withBasePath(bookCoverImage)}
+                        alt={`${title} book cover`}
+                        width={1400}
+                        height={900}
+                        onLoad={() => {
+                          setBookCoverLoaded(true);
+                        }}
+                        className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                        style={{ maxWidth: 440, marginInline: "auto" }}
+                      />
+                    </ImageLightbox>
                   </Box>
                   {renderSource(bookSource, bookSourceHref)}
                   {bookCaption && (

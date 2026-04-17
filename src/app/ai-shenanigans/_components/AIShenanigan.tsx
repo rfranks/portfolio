@@ -14,6 +14,7 @@ import AIShenaniganPalmReading from "./AIShenaniganPalmReading";
 import AIShenaniganSongRecording from "./AIShenaniganSongRecording";
 import AIShenaniganWorkSeries from "./AIShenaniganWorkSeries";
 import ShenaniganPanel from "./ShenaniganPanel";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { withBasePath } from "@/utils/basePath";
 import { rewindAndPlayAudio } from "@/utils/audio";
@@ -1176,26 +1177,33 @@ function DefaultAIShenanigan({
                       >
                         The grounded starting point.
                       </Typography>
-                      <Image
+                      <ImageLightbox
                         src={withBasePath(realisticImage)}
                         alt={`${title} realistic source`}
-                        width={1200}
-                        height={900}
-                        onLoad={() => {
-                          if (realisticVisible) {
-                            scrollRevealIntoView(
-                              realisticSectionRef.current,
-                              realisticFooterRef.current,
-                            );
-                          }
-                        }}
-                        className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                        style={{
-                          aspectRatio: stillAspectRatio,
-                          maxWidth: stillMaxWidth,
-                          marginInline: "auto",
-                        }}
-                      />
+                        title={`${title} — Realistic Source`}
+                        caption={realisticCaption || realisticSource}
+                      >
+                        <Image
+                          src={withBasePath(realisticImage)}
+                          alt={`${title} realistic source`}
+                          width={1200}
+                          height={900}
+                          onLoad={() => {
+                            if (realisticVisible) {
+                              scrollRevealIntoView(
+                                realisticSectionRef.current,
+                                realisticFooterRef.current,
+                              );
+                            }
+                          }}
+                          className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                          style={{
+                            aspectRatio: stillAspectRatio,
+                            maxWidth: stillMaxWidth,
+                            marginInline: "auto",
+                          }}
+                        />
+                      </ImageLightbox>
                       {renderSource(realisticSource, realisticSourceHref)}
                       {realisticCaption && (
                         <Typography
@@ -1255,26 +1263,33 @@ function DefaultAIShenanigan({
                         >
                           Push the portrait into caricature.
                         </Typography>
-                        <Image
+                        <ImageLightbox
                           src={withBasePath(stylizedRendering)}
                           alt={`${title} stylized rendering`}
-                          width={1200}
-                          height={900}
-                          onLoad={() => {
-                            if (stylizedVisible) {
-                              scrollRevealIntoView(
-                                stylizedSectionRef.current,
-                                stylizedFooterRef.current,
-                              );
-                            }
-                          }}
-                          className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                          style={{
-                            aspectRatio: stillAspectRatio,
-                            maxWidth: stillMaxWidth,
-                            marginInline: "auto",
-                          }}
-                        />
+                          title={`${title} — Stylized Rendering`}
+                          caption={stylizedCaption || stylizedSource}
+                        >
+                          <Image
+                            src={withBasePath(stylizedRendering)}
+                            alt={`${title} stylized rendering`}
+                            width={1200}
+                            height={900}
+                            onLoad={() => {
+                              if (stylizedVisible) {
+                                scrollRevealIntoView(
+                                  stylizedSectionRef.current,
+                                  stylizedFooterRef.current,
+                                );
+                              }
+                            }}
+                            className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                            style={{
+                              aspectRatio: stillAspectRatio,
+                              maxWidth: stillMaxWidth,
+                              marginInline: "auto",
+                            }}
+                          />
+                        </ImageLightbox>
                         {renderSource(stylizedSource, stylizedSourceHref)}
                         {stylizedCaption && (
                           <Typography

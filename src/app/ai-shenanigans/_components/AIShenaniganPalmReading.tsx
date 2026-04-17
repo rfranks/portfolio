@@ -10,6 +10,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import MarkdownContent from "@/components/shared/MarkdownContent";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import ShenaniganPanel from "./ShenaniganPanel";
 import { withBasePath } from "@/utils/basePath";
 
@@ -521,16 +522,23 @@ export default function AIShenaniganPalmReading({
                   <Typography variant="subtitle2" sx={{ mb: 1 }}>
                     Raw image
                   </Typography>
-                  <Image
+                  <ImageLightbox
                     src={withBasePath(rawImage)}
                     alt={`${title} raw image`}
-                    width={1200}
-                    height={900}
-                    className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                    style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
-                    onLoad={() => setRawMediaLoaded(true)}
-                    onError={() => setRawMediaLoaded(true)}
-                  />
+                    title={`${title} — Raw Image`}
+                    caption={rawCaption || rawSource}
+                  >
+                    <Image
+                      src={withBasePath(rawImage)}
+                      alt={`${title} raw image`}
+                      width={1200}
+                      height={900}
+                      className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                      style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
+                      onLoad={() => setRawMediaLoaded(true)}
+                      onError={() => setRawMediaLoaded(true)}
+                    />
+                  </ImageLightbox>
                   {renderSource(rawSource, rawSourceHref)}
                   {rawCaption && (
                     <Typography
@@ -549,16 +557,23 @@ export default function AIShenaniganPalmReading({
                   <Typography variant="subtitle2" sx={{ mb: 1 }}>
                     Analyzed image
                   </Typography>
-                  <Image
+                  <ImageLightbox
                     src={withBasePath(analyzedImage)}
                     alt={`${title} analyzed image`}
-                    width={1200}
-                    height={900}
-                    className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                    style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
-                    onLoad={() => setAnalyzedMediaLoaded(true)}
-                    onError={() => setAnalyzedMediaLoaded(true)}
-                  />
+                    title={`${title} — Analyzed Image`}
+                    caption={analyzedCaption || analyzedSource}
+                  >
+                    <Image
+                      src={withBasePath(analyzedImage)}
+                      alt={`${title} analyzed image`}
+                      width={1200}
+                      height={900}
+                      className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                      style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
+                      onLoad={() => setAnalyzedMediaLoaded(true)}
+                      onError={() => setAnalyzedMediaLoaded(true)}
+                    />
+                  </ImageLightbox>
                   {renderSource(analyzedSource, analyzedSourceHref)}
                   {analyzedCaption && (
                     <Typography
@@ -577,16 +592,23 @@ export default function AIShenaniganPalmReading({
                   <Typography variant="subtitle2" sx={{ mb: 1 }}>
                     Palm line analysis image
                   </Typography>
-                  <Image
+                  <ImageLightbox
                     src={withBasePath(palmLineAnalysisImage)}
                     alt={`${title} palm line analysis image`}
-                    width={1200}
-                    height={900}
-                    className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                    style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
-                    onLoad={() => setLinesMediaLoaded(true)}
-                    onError={() => setLinesMediaLoaded(true)}
-                  />
+                    title={`${title} — Palm Line Analysis`}
+                    caption={palmLineAnalysisCaption || palmLineAnalysisSource}
+                  >
+                    <Image
+                      src={withBasePath(palmLineAnalysisImage)}
+                      alt={`${title} palm line analysis image`}
+                      width={1200}
+                      height={900}
+                      className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                      style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
+                      onLoad={() => setLinesMediaLoaded(true)}
+                      onError={() => setLinesMediaLoaded(true)}
+                    />
+                  </ImageLightbox>
                   {renderSource(
                     palmLineAnalysisSource,
                     palmLineAnalysisSourceHref,

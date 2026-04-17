@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Fade from "@mui/material/Fade";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import ShenaniganPanel from "./ShenaniganPanel";
 import { withBasePath } from "@/utils/basePath";
@@ -40,6 +40,7 @@ export default function AIShenaniganSongRecording({
   intentToCopyright = false,
   rightsNotice,
   songAlbumImage,
+  songAlbumCaption,
   songAudio,
   songWrittenBy,
   songPerformedBy,
@@ -234,16 +235,20 @@ export default function AIShenaniganSongRecording({
                       borderColor: "var(--fabric-surface-border)",
                     }}
                   >
-                    <Box sx={{ position: "relative", width: "100%", aspectRatio: "1 / 1" }}>
-                      <Image
-                        src={withBasePath(songAlbumImage)}
-                        alt={`${title} album cover`}
-                        fill
-                        sizes="(max-width: 900px) 100vw, 300px"
-                        style={{ objectFit: "cover" }}
-                        unoptimized
-                      />
-                    </Box>
+                    <ImageLightbox
+                      src={withBasePath(songAlbumImage)}
+                      alt={`${title} album cover`}
+                      title={`${title} — Album Cover`}
+                      caption={songAlbumCaption || "Album artwork"}
+                      triggerSx={{ width: "100%", display: "block" }}
+                      previewContainerSx={{
+                        width: "100%",
+                        aspectRatio: "1 / 1",
+                        borderRadius: "inherit",
+                        overflow: "hidden",
+                      }}
+                      previewImageSx={{ objectFit: "cover" }}
+                    />
                   </Box>
 
                   <Stack spacing={1.35} sx={{ flex: 1, minWidth: 0 }}>
