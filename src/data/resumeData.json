@@ -479,7 +479,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/momma-helen/movie.mp4",
         "movieSource": "Sora video generation",
         "movieCaption": "The caricature turns into a short motion beat, leaning into Momma Helen's delighted reaction to her first taste of deep-fried frog legs.  The frogs are not impressed.",
-        "blurb": "Momma Helen, reimagined as a full cartoon caricature, tries deep-fried frog legs for the first time and immediately loves them. The whole piece leans into that exact moment of delighted surprise, where one crispy bite turns into a kitchen-table legend and Momma Helen decides this absolutely belongs in the regular rotation."
+        "blurb": "Momma Helen, reimagined as a full cartoon caricature, tries deep-fried frog legs for the first time and immediately loves them. The whole piece leans into that exact moment of delighted surprise, where one crispy bite turns into a kitchen-table legend and Momma Helen decides this absolutely belongs in the regular rotation.",
+        "shortText": "Frog legs, caricature chaos, and kitchen-table joy."
       },
       {
         "slug": "budweiser-pacman",
@@ -491,7 +492,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/budweiser-pacman/movie.mp4",
         "movieSource": "Sora video generation",
         "movieCaption": "The still gets pushed straight into motion, letting the arcade-meets-beer-sign energy do the work without an intermediate stylized frame.",
-        "blurb": "A Budweiser-and-Pac-Man visual mashup that skips the caricature pass and goes straight from the photographed source into motion. This one plays more like a retro ad fragment: bright, weird, nostalgic, and just a little overcaffeinated."
+        "blurb": "A Budweiser-and-Pac-Man visual mashup that skips the caricature pass and goes straight from the photographed source into motion. This one plays more like a retro ad fragment: bright, weird, nostalgic, and just a little overcaffeinated.",
+        "shortText": "Retro arcade energy turned into ad-like motion."
       },
       {
         "slug": "ricky-franks-jr-2b",
@@ -507,7 +509,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/ricky-franks-jr-2b/movie.mp4",
         "movieSource": "Sora video generation",
         "movieCaption": "The card fantasy comes alive in motion, pushing the baseball-daydream energy a step past the still frame.",
-        "blurb": "Ricky Franks dreams of having his own Topps card and lining up at second base for the Red Sox. This shenanigan turns that baseball-kid fantasy into a trading-card moment, then lets it come to life in motion like a highlight reel from an alternate timeline."
+        "blurb": "Ricky Franks dreams of having his own Topps card and lining up at second base for the Red Sox. This shenanigan turns that baseball-kid fantasy into a trading-card moment, then lets it come to life in motion like a highlight reel from an alternate timeline.",
+        "shortText": "Baseball-card daydream meets highlight-reel fantasy."
       },
       {
         "slug": "millie-and-graham",
@@ -522,7 +525,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/millie-and-graham/movie.mp4",
         "movieSource": "Sora video generation",
         "movieCaption": "The still moment turns into a small cinematic beat, leaning into the feeling that this was absolutely Millie's best day ever.",
-        "blurb": "Brave little Millie meets her biggest best friend in Graham, a giant black horse who somehow manages to feel both enormous and gentle at the same time. The whole shenanigan leans into that instant connection, where Millie looks like she knows she just stumbled into the best day ever."
+        "blurb": "Brave little Millie meets her biggest best friend in Graham, a giant black horse who somehow manages to feel both enormous and gentle at the same time. The whole shenanigan leans into that instant connection, where Millie looks like she knows she just stumbled into the best day ever.",
+        "shortText": "Storybook courage and a gentle giant horse."
       },
       {
         "slug": "universal-monster",
@@ -534,7 +538,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/universal-monster/movie.mp4",
         "movieSource": "Sora video generation",
         "movieCaption": "Universal energy comes alive in motion as the monsters close in and the whole scene tips into playful terror.",
-        "blurb": "Universal comes alive and the monsters terrorize. This shenanigan takes a simple Richard Franks Jr. selfie and pushes it straight into a motion-heavy creature-feature beat, like a personal snapshot accidentally wandered onto a classic monster backlot."
+        "blurb": "Universal comes alive and the monsters terrorize. This shenanigan takes a simple Richard Franks Jr. selfie and pushes it straight into a motion-heavy creature-feature beat, like a personal snapshot accidentally wandered onto a classic monster backlot.",
+        "shortText": "Selfie-to-creature-feature in one playful jump."
       },
       {
         "slug": "luck-o-the-irish",
@@ -549,7 +554,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/luck-o-the-irish/movie.mp4",
         "movieSource": "Sora video generation",
         "movieCaption": "The whole bit tips into motion like a festive little fever dream, proving that if I have the luck of the Irish, it is definitely not always working.",
-        "blurb": "Me as a St. Patty's Day leprechaun, because apparently I am a lot more Irish than expected according to 23andMe. The joke, of course, is that if I really do have the luck of the Irish, it sure does not show up on command."
+        "blurb": "Me as a St. Patty's Day leprechaun, because apparently I am a lot more Irish than expected according to 23andMe. The joke, of course, is that if I really do have the luck of the Irish, it sure does not show up on command.",
+        "shortText": "Leprechaun chaos with questionable Irish luck."
       },
       {
         "slug": "rick-pinball-in-yarn",
@@ -564,7 +570,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/rick-pinball-in-yarn/movie.mp4",
         "movieSource": "Sora video generation",
         "movieCaption": "The whole scene springs to life in motion, like the machine woke up and decided Rick gets to have his pinball moment after all.",
-        "blurb": "Rick gets his pinball on. This shenanigan takes a portrait and pushes it into a bizarre pinball-meets-yarn fever dream, where the lights are hot, the action is chaotic, and the whole thing feels like a bonus round built specifically for Rick."
+        "blurb": "Rick gets his pinball on. This shenanigan takes a portrait and pushes it into a bizarre pinball-meets-yarn fever dream, where the lights are hot, the action is chaotic, and the whole thing feels like a bonus round built specifically for Rick.",
+        "shortText": "Pinball fever dream wrapped in yarn."
       },
       {
         "slug": "the-rock",
@@ -609,7 +616,8 @@
             "caption": "Episode 3 widens the scope from site mystery to global crisis: drifting compasses, failing systems, emergency briefings, and opening internal corridors that suggest the buried craft is waking because the world itself is entering failure."
           }
         ],
-        "blurb": "The Rock starts as a tightly grounded survey-thriller at Uluru and opens into a prestige science-fiction mystery about an engineered structure hidden inside the monolith. The manuscript's first movement follows Mara Vance from anomaly scan to first contact; the episodes draft then scales that discovery into a serialized arc about a buried vessel, a waking storm, and a world sliding toward systems failure."
+        "blurb": "The Rock starts as a tightly grounded survey-thriller at Uluru and opens into a prestige science-fiction mystery about an engineered structure hidden inside the monolith. The manuscript's first movement follows Mara Vance from anomaly scan to first contact; the episodes draft then scales that discovery into a serialized arc about a buried vessel, a waking storm, and a world sliding toward systems failure.",
+        "shortText": "Uluru survey thriller expanding into global sci-fi."
       },
       {
         "slug": "creepy-cryptids",
@@ -618,6 +626,7 @@
         "orientation": "portrait",
         "intentToCopyright": true,
         "rightsNotice": "Intent to Copyright",
+        "pagerOptionImage": "/personal/images/ai-shenanigans/creepy-cryptids/cover.png",
         "workParts": [
           {
             "src": "/personal/images/ai-shenanigans/creepy-cryptids/creepy-cryptids-part-1.pdf",
@@ -658,7 +667,8 @@
             "caption": "Part two carries the anthology mood forward, pushing the concept toward a serialized cabinet of regional terrors, traveling menace, and showman-horror pageantry."
           }
         ],
-        "blurb": "P.T. Barnum's Creepy Cryptids is a vintage horror art-book concept that reimagines obscure folkloric creatures as the headline attractions of a lost nineteenth-century traveling sideshow. Each creature is treated as both scholarship and spectacle: one page reads like an antique encyclopedia entry full of lore, maps, warnings, and taxonomy, while the facing page explodes into a sensational Barnum-style broadside. The result is a cabinet of international nightmares where eerie research meets carnival showmanship, and every spread asks what dreadful thing Barnum has dragged back this time."
+        "blurb": "P.T. Barnum's Creepy Cryptids is a vintage horror art-book concept that reimagines obscure folkloric creatures as the headline attractions of a lost nineteenth-century traveling sideshow. Each creature is treated as both scholarship and spectacle: one page reads like an antique encyclopedia entry full of lore, maps, warnings, and taxonomy, while the facing page explodes into a sensational Barnum-style broadside. The result is a cabinet of international nightmares where eerie research meets carnival showmanship, and every spread asks what dreadful thing Barnum has dragged back this time.",
+        "shortText": "Victorian cryptid art-book adapted into anthology beats."
       },
       {
         "slug": "boom-team",
@@ -673,7 +683,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/boom-team/movie.mp4",
         "movieSource": "Sora video generation",
         "movieCaption": "Logan charges, Oscar triggers, and Devlin barrels in behind as the Boom Team erupts into a fast, cinematic burst of snowy mayhem.",
-        "blurb": "Boom Team turns a chaotic character illustration into a full-on action gag, with Logan leading the charge, Oscar working the remote, and Devlin bringing big unhinged energy from the rear. It plays like a mischievous mini movie: part cartoon menace, part explosive comedy, and fully committed to the bit."
+        "blurb": "Boom Team turns a chaotic character illustration into a full-on action gag, with Logan leading the charge, Oscar working the remote, and Devlin bringing big unhinged energy from the rear. It plays like a mischievous mini movie: part cartoon menace, part explosive comedy, and fully committed to the bit.",
+        "shortText": "Explosive cartoon mayhem led by Logan."
       },
       {
         "slug": "palmylyzer-rick",
@@ -698,7 +709,8 @@
         "palmReadingMarkdownPath": "/personal/images/ai-shenanigans/palmylyzer-rick/reading.md",
         "palmReadingSource": "Rick's Palmylyzer Pro GPT",
         "palmReadingSourceHref": "https://chatgpt.com/g/g-69a94cfbde388191bfc008a0814e45c2-palmalyzer",
-        "blurb": "Palmylyzer Pro shows a full staged palm-reading pipeline: raw capture, analyzed image, line-map interpretation, and a final text reading grounded in the traced structures."
+        "blurb": "Palmylyzer Pro shows a full staged palm-reading pipeline: raw capture, analyzed image, line-map interpretation, and a final text reading grounded in the traced structures.",
+        "shortText": "Palm-reading pipeline from raw capture to reading."
       },
       {
         "slug": "game-over",
@@ -716,7 +728,8 @@
         "movieRendering2": "/personal/images/ai-shenanigans/game-over/movieB.mp4",
         "movieSource2": "Sora video generation",
         "movieCaption2": "The second clip escalates the bit, with the Game Over pillow fully embracing its destructive little goblin energy and turning the truck ride into a full shenanigan meltdown.",
-        "blurb": "Game Over starts with a genuine crane-game triumph: winning a pixelated FAO Schwarz pillow and proudly showing it off on the ride home. Then the shenanigan kicks in. The prize comes alive, turns into a mischievous destruction-loving creature, and transforms a wholesome victory lap into a full-blown backseat gremlin incident."
+        "blurb": "Game Over starts with a genuine crane-game triumph: winning a pixelated FAO Schwarz pillow and proudly showing it off on the ride home. Then the shenanigan kicks in. The prize comes alive, turns into a mischievous destruction-loving creature, and transforms a wholesome victory lap into a full-blown backseat gremlin incident.",
+        "shortText": "Crane-game victory mutates into gremlin mayhem."
       },
       {
         "slug": "christmas-card",
@@ -731,7 +744,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/christmas-card/movie.mp4",
         "movieSource": "Sora video generation",
         "movieCaption": "What should have been a simple Christmas card photo turns into a festive comedy as Zak and Graham refuse to cooperate, crowding in, mugging for attention, and making the whole holiday portrait delightfully impossible.",
-        "blurb": "Christmas Card takes a well-meaning holiday photo op and turns it into a classic barnyard comedy. Anne and I try to hold it together while Zak and Graham, wearing Santa hats and absolutely no interest in behaving, steal the moment. The result is equal parts wholesome, chaotic, and exactly the kind of Christmas-card disaster worth remembering."
+        "blurb": "Christmas Card takes a well-meaning holiday photo op and turns it into a classic barnyard comedy. Anne and I try to hold it together while Zak and Graham, wearing Santa hats and absolutely no interest in behaving, steal the moment. The result is equal parts wholesome, chaotic, and exactly the kind of Christmas-card disaster worth remembering.",
+        "shortText": "Holiday portrait sabotage by scene-stealing horses."
       },
       {
         "slug": "white-rabbit",
@@ -746,7 +760,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/white-rabbit/movie.mp4",
         "movieSource": "ChatGPT video generation",
         "movieCaption": "What begins as a normal portrait turns into a frantic Wonderland character reveal as I become the White Rabbit, hurrying off with theatrical urgency, eccentric charm, and barely-contained panic.",
-        "blurb": "White Rabbit takes a polished headshot and sends it racing straight into Wonderland. The result is a playful character shenanigan, transforming a straightforward portrait into a nervous, dapper, storybook creature full of hurried energy, magical oddness, and delightfully anxious charm."
+        "blurb": "White Rabbit takes a polished headshot and sends it racing straight into Wonderland. The result is a playful character shenanigan, transforming a straightforward portrait into a nervous, dapper, storybook creature full of hurried energy, magical oddness, and delightfully anxious charm.",
+        "shortText": "Professional headshot races into Wonderland panic."
       },
       {
         "slug": "cheshire-cat",
@@ -761,7 +776,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/cheshire-cat/movie.mp4",
         "movieSource": "ChatGPT video generation",
         "movieCaption": "What begins as a normal portrait slips into Wonderland weirdness as I become the Cheshire Cat, grinning through a surreal character reveal with playful menace and vanishing-cat energy.",
-        "blurb": "Cheshire Cat takes a polished headshot and pushes it into sly Wonderland absurdity. The result is a mischievous character transformation, turning a straightforward portrait into a grinning, magical troublemaker with eerie charm, theatrical weirdness, and exactly the right amount of dreamlike nonsense."
+        "blurb": "Cheshire Cat takes a polished headshot and pushes it into sly Wonderland absurdity. The result is a mischievous character transformation, turning a straightforward portrait into a grinning, magical troublemaker with eerie charm, theatrical weirdness, and exactly the right amount of dreamlike nonsense.",
+        "shortText": "Grinning Wonderland mischief with eerie charm."
       },
       {
         "slug": "caterpillar",
@@ -774,9 +790,10 @@
         "stylizedSource": "ChatGPT image generation",
         "stylizedCaption": "The portrait transforms into a whimsical Alice-in-Wonderland-inspired caterpillar version of me, perched on a mushroom with hookah smoke, storybook weirdness, and full dreamy fantasy energy.",
         "movieRendering": "/personal/images/ai-shenanigans/caterpillar/movie.mp4",
-        "movieSource": "Sora video generation",
+        "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as an ordinary headshot slips into surreal Wonderland territory as I become the lounging caterpillar, smoking thoughtfully atop a mushroom in a strange enchanted forest.",
-        "blurb": "Caterpillar takes a straightforward professional headshot and pushes it into full Wonderland absurdity. The result is a playful character transformation, turning a polished portrait into a dreamy, smoke-curled fantasy scene with mushroom-perch grandeur, eccentric charm, and just the right amount of surreal storybook nonsense."
+        "blurb": "Caterpillar takes a straightforward professional headshot and pushes it into full Wonderland absurdity. The result is a playful character transformation, turning a polished portrait into a dreamy, smoke-curled fantasy scene with mushroom-perch grandeur, eccentric charm, and just the right amount of surreal storybook nonsense.",
+        "shortText": "Hookah smoke, mushroom perch, and surreal poise."
       },
       {
         "slug": "dee-and-dum",
@@ -791,7 +808,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/dee-and-dum/movie.mp4",
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a normal portrait turns into a ridiculous Wonderland character reveal as I split into Tweedle Dee and Tweedle Dum, waddling into synchronized chaos and cheerful nonsense.",
-        "blurb": "Dee and Dum takes a polished professional headshot and sends it tumbling straight into Wonderland farce. The result is a gleefully ridiculous double-character transformation, turning one portrait into two rotund storybook troublemakers with bright costumes, matching grins, and just the right amount of theatrical silliness."
+        "blurb": "Dee and Dum takes a polished professional headshot and sends it tumbling straight into Wonderland farce. The result is a gleefully ridiculous double-character transformation, turning one portrait into two rotund storybook troublemakers with bright costumes, matching grins, and just the right amount of theatrical silliness.",
+        "shortText": "One portrait split into double Wonderland trouble."
       },
       {
         "slug": "walrus",
@@ -806,7 +824,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/walrus/movie.mp4",
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a normal headshot slips into surreal storybook territory as I become the Walrus, looming through a fanciful seaside scene with eccentric swagger, curious menace, and full Wonderland energy.",
-        "blurb": "The Walrus and the Carpenter takes a polished headshot and pushes it into the strange theatrical world of the classic seaside tale. The result is a playful Alice-in-Wonderland shenanigan, transforming an ordinary portrait into a mustached, tusked, storybook oddball with Victorian flair, sly humor, and delightfully unsettling charm."
+        "blurb": "The Walrus and the Carpenter takes a polished headshot and pushes it into the strange theatrical world of the classic seaside tale. The result is a playful Alice-in-Wonderland shenanigan, transforming an ordinary portrait into a mustached, tusked, storybook oddball with Victorian flair, sly humor, and delightfully unsettling charm.",
+        "shortText": "Victorian seaside oddball with tusked swagger."
       },
       {
         "slug": "mad-hatter",
@@ -821,7 +840,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/mad-hatter/movie.mp4",
         "movieSource": "Sora video generation",
         "movieCaption": "What begins as an ordinary portrait turns into a full Mad Hatter transformation, with theatrical flair, enchanted tea-party chaos, and a stroll straight into a strange storybook world.",
-        "blurb": "Mad Hatter takes a professional headshot and pushes it deep into whimsical fantasy. The result is a richly detailed Wonderland-style shenanigan where polished portraiture gives way to eccentric costume, magical atmosphere, and just enough absurdity to feel like tea time has become a full-blown character reveal."
+        "blurb": "Mad Hatter takes a professional headshot and pushes it deep into whimsical fantasy. The result is a richly detailed Wonderland-style shenanigan where polished portraiture gives way to eccentric costume, magical atmosphere, and just enough absurdity to feel like tea time has become a full-blown character reveal.",
+        "shortText": "Tea-party eccentricity and theatrical costume fantasy."
       },
       {
         "slug": "king-of-hearts",
@@ -836,7 +856,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/king-of-hearts/movie.mp4",
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a normal portrait turns into a whimsical royal character reveal as I become the pint-sized King of Hearts, strutting into Wonderland with tiny grandeur and oversized attitude.",
-        "blurb": "King of Hearts takes a polished headshot and turns it into a compact burst of Wonderland royalty. The result is a playful character shenanigan, transforming a straightforward portrait into a miniature monarch with theatrical charm, regal swagger, and just enough absurdity to make the whole thing feel delightfully unhinged."
+        "blurb": "King of Hearts takes a polished headshot and turns it into a compact burst of Wonderland royalty. The result is a playful character shenanigan, transforming a straightforward portrait into a miniature monarch with theatrical charm, regal swagger, and just enough absurdity to make the whole thing feel delightfully unhinged.",
+        "shortText": "Miniature monarch energy with oversized attitude."
       },
       {
         "slug": "zombie-chaos",
@@ -850,7 +871,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/zombie-chaos/movie.mp4",
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a normal portrait turns into a gleefully unhinged zombie character reveal as I stagger into a chaotic undead scene with comic menace, absurd swagger, and total shenanigan energy.",
-        "blurb": "Zombie Chaos! takes a polished headshot and sends it shambling into cartoon apocalypse territory. The result is a horror-comedy shenanigan that transforms an ordinary portrait into a grinning undead troublemaker, surrounded by creepy details, chaotic street-scene madness, and just enough absurdity to keep the whole thing more playful than grim."
+        "blurb": "Zombie Chaos! takes a polished headshot and sends it shambling into cartoon apocalypse territory. The result is a horror-comedy shenanigan that transforms an ordinary portrait into a grinning undead troublemaker, surrounded by creepy details, chaotic street-scene madness, and just enough absurdity to keep the whole thing more playful than grim.",
+        "shortText": "Undead cartoon menace with playful apocalypse vibes."
       },
       {
         "slug": "outta-time",
@@ -872,7 +894,8 @@
         "songPerformedBy": "Frankie Richards",
         "songLyricsMarkdownPath": "/personal/images/ai-shenanigans/outta-time/lyrics.md",
         "songLyricsSource": "Outta Time lyric sheet",
-        "blurb": "Outta Time is a gritty country-trap Americana anthem about living hard, loving loud, and refusing to waste the little time we get. With dusty roads, dashboard clocks, lost years, and hard-earned wisdom, the song stares mortality straight in the face and answers with urgency, heart, and fire. It's a raw reminder to make the call, mend the fence, kiss your girl, chase the dream, and wring every last drop out of life before the night runs out."
+        "blurb": "Outta Time is a gritty country-trap Americana anthem about living hard, loving loud, and refusing to waste the little time we get. With dusty roads, dashboard clocks, lost years, and hard-earned wisdom, the song stares mortality straight in the face and answers with urgency, heart, and fire. It's a raw reminder to make the call, mend the fence, kiss your girl, chase the dream, and wring every last drop out of life before the night runs out.",
+        "shortText": "Country-trap anthem about urgency, love, and time."
       },
       {
         "slug": "little-anne-riding-hood",
@@ -887,7 +910,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/little-anne-riding-hood/movie.mp4",
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a simple costume snapshot becomes a cinematic fairytale moment as Anne steps into the role of Little Red Riding Hood, moving through the dark woods with confidence, charm, and a lurking sense of trouble nearby.",
-        "blurb": "Little Anne Riding Hood takes a real costume photo and pushes it into polished storybook fantasy. The result is a playful shenanigan that turns Anne into the star of her own moonlit fairytale, blending classic Red Riding Hood iconography with a more dramatic, cinematic edge and just enough wolf-at-the-edge-of-frame tension to make it fun."
+        "blurb": "Little Anne Riding Hood takes a real costume photo and pushes it into polished storybook fantasy. The result is a playful shenanigan that turns Anne into the star of her own moonlit fairytale, blending classic Red Riding Hood iconography with a more dramatic, cinematic edge and just enough wolf-at-the-edge-of-frame tension to make it fun.",
+        "shortText": "Costume photo transformed into moonlit fairytale."
       },
       {
         "slug": "dragonballz",
@@ -902,7 +926,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/dragonballz/movie.mp4",
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a normal headshot explodes into a full anime transformation sequence as I power up into a Super Saiyan, surrounded by crackling energy, wind, light, and unapologetic battle-ready swagger.",
-        "blurb": "Super Saiyan! takes a polished headshot and launches it straight into anime escalation. The result is a full-power transformation shenanigan, turning an ordinary portrait into a screaming, glowing, aura-wrapped Super Saiyan character reveal with maximum intensity, theatrical energy, and absolutely no interest in staying subtle."
+        "blurb": "Super Saiyan! takes a polished headshot and launches it straight into anime escalation. The result is a full-power transformation shenanigan, turning an ordinary portrait into a screaming, glowing, aura-wrapped Super Saiyan character reveal with maximum intensity, theatrical energy, and absolutely no interest in staying subtle.",
+        "shortText": "Headshot detonates into full Super Saiyan power-up."
       }
     ]
   },

@@ -8,9 +8,12 @@ import Chip from "@mui/material/Chip";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
-import ShenaniganPanel from "./ShenaniganPanel";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { alpha, useTheme } from "@mui/material/styles";
+import AIShenaniganPanel from "./AIShenaniganPanel";
+import EmojiGlyph from "@/components/shared/EmojiGlyph";
 import ImageLightbox from "@/components/shared/ImageLightbox";
+import VideoLightbox from "@/components/shared/VideoLightbox";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { withBasePath } from "@/utils/basePath";
@@ -80,6 +83,9 @@ export default function AIShenaniganAdaptation({
   episodesCaption,
   episodeMedia = [],
 }: AIShenaniganAdaptationProps) {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
   const [stage, setStage] = useState<RevealStage>("intro");
   const [bookVisible, setBookVisible] = useState(false);
   const [bookCoverLoaded, setBookCoverLoaded] = useState(false);
@@ -140,6 +146,7 @@ export default function AIShenaniganAdaptation({
   const isTrailerPortrait = trailerOrientation === "portrait";
   const trailerAspectRatio = isTrailerPortrait ? "9 / 16" : "16 / 9";
   const trailerMaxWidth = isTrailerPortrait ? 420 : undefined;
+  const panelFrameHeight = { xs: "44dvh", md: "52dvh" };
   const hasEpisodesPdf = Boolean(episodesPdf);
   const hasEpisodeMedia = episodeMedia.length > 0;
 
@@ -518,7 +525,7 @@ export default function AIShenaniganAdaptation({
             sx={{
               display: "block",
               width: "100%",
-              height: { xs: 520, md: 680, lg: 760 },
+              height: panelFrameHeight,
             }}
           >
             <Box
@@ -528,7 +535,7 @@ export default function AIShenaniganAdaptation({
               onLoad={onLoad}
               sx={{
                 width: "100%",
-                height: { xs: 520, md: 680, lg: 760 },
+                height: panelFrameHeight,
                 border: 0,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light"
@@ -571,8 +578,9 @@ export default function AIShenaniganAdaptation({
           variant="contained"
           onClick={handleRevealBook}
           disabled={transitioningTo !== null}
+          endIcon={<EmojiGlyph glyph="📚" slot="end" />}
         >
-          Reveal Book Cover 📚
+          Reveal Book Cover
         </Button>
       );
     }
@@ -583,8 +591,9 @@ export default function AIShenaniganAdaptation({
           variant="contained"
           onClick={handleRevealManuscript}
           disabled={transitioningTo !== null}
+          endIcon={<EmojiGlyph glyph="✍️" slot="end" />}
         >
-          Reveal Manuscript ✍️
+          Reveal Manuscript
         </Button>
       );
     }
@@ -595,8 +604,9 @@ export default function AIShenaniganAdaptation({
           variant="contained"
           onClick={hasTrailer ? handleRevealTrailer : handleRevealEpisodes}
           disabled={transitioningTo !== null}
+          endIcon={<EmojiGlyph glyph={hasTrailer ? "🎬" : "📺"} slot="end" />}
         >
-          {hasTrailer ? "Reveal Trailer 🎬" : "Reveal Episodes Draft 📺"}
+          {hasTrailer ? "Reveal Trailer" : "Reveal Episodes Draft"}
         </Button>
       );
     }
@@ -607,8 +617,9 @@ export default function AIShenaniganAdaptation({
           variant="contained"
           onClick={handleRevealEpisodes}
           disabled={transitioningTo !== null}
+          endIcon={<EmojiGlyph glyph="📺" slot="end" />}
         >
-          Reveal Episodes Draft 📺
+          Reveal Episodes Draft
         </Button>
       );
     }
@@ -619,8 +630,9 @@ export default function AIShenaniganAdaptation({
           variant="contained"
           onClick={handleRevealNextEpisode}
           disabled={transitioningTo !== null}
+          endIcon={<EmojiGlyph glyph="🎞️" slot="end" />}
         >
-          Reveal Next Episode 🎞️
+          Reveal Next Episode
         </Button>
       );
     }
@@ -648,12 +660,18 @@ export default function AIShenaniganAdaptation({
     setBookCoverLoaded(true);
     setShowManuscriptArrow(target !== "book");
     setManuscriptVisible(target !== "book");
-    const targetsEpisodes = target === "episodes" || target.startsWith("episode-");
-    const targetsTrailer = hasTrailer && (target === "trailer" || targetsEpisodes);
-    setShowTrailerArrow(hasTrailer && target !== "book" && target !== "manuscript");
+    const targetsEpisodes =
+      target === "episodes" || target.startsWith("episode-");
+    const targetsTrailer =
+      hasTrailer && (target === "trailer" || targetsEpisodes);
+    setShowTrailerArrow(
+      hasTrailer && target !== "book" && target !== "manuscript",
+    );
     setTrailerVisible(targetsTrailer);
     setShowEpisodesArrow(
-      hasTrailer ? targetsEpisodes : target === "episodes" || target.startsWith("episode-"),
+      hasTrailer
+        ? targetsEpisodes
+        : target === "episodes" || target.startsWith("episode-"),
     );
     setEpisodesVisible(targetsEpisodes);
 
@@ -767,76 +785,11 @@ export default function AIShenaniganAdaptation({
     ));
   };
 
-  const renderMobilePanelFooter = (
-    showFooter: boolean,
-    footerRef: { current: HTMLDivElement | null },
-  ) => {
-    if (!showFooter) {
-      return null;
+  useEffect(() => {
+    if (!isSmallScreen) {
+      setIsInfoPanelMinimized(false);
     }
-
-    const nextAction = renderNextAction();
-    const sequenceFinished = stage !== "intro" && !nextAction;
-
-    return (
-      <Box
-        ref={footerRef}
-        sx={{
-          display: { xs: "block", lg: "none" },
-          mt: 2,
-          pt: 2,
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-        }}
-      >
-        <Stack
-          direction="row"
-          spacing={1}
-          useFlexGap
-          flexWrap="wrap"
-          sx={{ alignItems: "center" }}
-        >
-          {renderChronologyChips("panel")}
-        </Stack>
-        <Box
-          sx={{
-            mt: 1.75,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 1.5,
-            flexWrap: "wrap",
-          }}
-        >
-          <Box>
-            {stage !== "intro" && !sequenceFinished && (
-              <Button variant="text" onClick={resetReveal}>
-                Start Over
-              </Button>
-            )}
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 1.5,
-              flexWrap: "wrap",
-            }}
-          >
-            {nextAction ?? (
-              <Chip
-                label="Sequence Finished: Start Over 🔁"
-                color="primary"
-                variant="outlined"
-                size="small"
-                clickable
-                onClick={resetReveal}
-              />
-            )}
-          </Box>
-        </Box>
-      </Box>
-    );
-  };
+  }, [isSmallScreen]);
 
   useEffect(() => {
     if (!bookVisible || !bookCoverLoaded) {
@@ -1024,370 +977,438 @@ export default function AIShenaniganAdaptation({
   };
 
   return (
-    
-      <ShenaniganPanel className="overflow-hidden">
-        <Stack spacing={3}>
-          <Stack
-            spacing={2.5}
-            direction={{ xs: "column", lg: "row" }}
+    <AIShenaniganPanel className="overflow-hidden">
+      <Stack spacing={3} flexGrow={1}>
+        <Stack
+          spacing={2.5}
+          direction={{ xs: "column", md: "row" }}
+          flexGrow={1}
+          sx={{
+            alignItems: { xs: "stretch", md: "flex-start" },
+            overflow: { xs: "hidden", md: "visible" },
+          }}
+        >
+          <Box
             sx={{
-              alignItems: { xs: "stretch", lg: "flex-start" },
-              overflow: "hidden",
+              display: "flex",
+              width: "100%",
+              minWidth: { xs: 0, md: hasVisibleMedia ? 400 : 0 },
+              maxWidth: { xs: "100%", md: hasVisibleMedia ? 400 : "100%" },
+              flexBasis: "100%",
+              height: "100%",
+              flexGrow: 1,
+              order: { xs: 2, md: 2 },
+              transition:
+                "flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1), min-width 560ms cubic-bezier(.2,.8,.2,1), transform 560ms cubic-bezier(.2,.8,.2,1)",
             }}
           >
             <Box
               sx={{
-                width: "100%",
-                minWidth: { xs: 0, lg: hasVisibleMedia ? 340 : 0 },
-                maxWidth: { xs: "100%", lg: hasVisibleMedia ? 340 : "100%" },
-                flexBasis: {
-                  xs: "100%",
-                  lg: hasVisibleMedia ? "340px" : "100%",
+                height: "100%",
+                position: {
+                  xs: "static",
+                  md: hasVisibleMedia ? "sticky" : "static",
                 },
-                flexShrink: 0,
-                transition:
-                  "flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1), min-width 560ms cubic-bezier(.2,.8,.2,1), transform 560ms cubic-bezier(.2,.8,.2,1)",
+                top: { md: 104 },
+                maxHeight: {
+                  xs: "none",
+                  md: hasVisibleMedia ? "calc(100dvh - 120px)" : "none",
+                },
+                overflowY: {
+                  xs: "visible",
+                  md: hasVisibleMedia ? "auto" : "visible",
+                },
+                overscrollBehaviorY: { md: "contain" },
+                pr: { md: hasVisibleMedia ? 0.5 : 0 },
+                transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
               }}
             >
               <Box
+                className="relative overflow-hidden"
                 sx={{
-                  position: {
-                    xs: "static",
-                    lg: hasVisibleMedia ? "sticky" : "static",
-                  },
-                  top: 104,
-                  transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
+                  ...panelChromeSx,
+                  display: "flex",
+                  flexDirection: "column",
+                  p: { xs: 3, md: 3.5 },
+                  boxShadow: "none",
+                  height: "100%",
                 }}
               >
                 <Box
-                  className="relative overflow-hidden"
+                  aria-hidden="true"
                   sx={{
-                    ...panelChromeSx,
-                    p: { xs: 3, md: 3.5 },
-                    boxShadow: "none",
+                    position: "absolute",
+                    top: 12,
+                    right: 18,
+                    fontSize: { xs: "2.8rem", sm: "3.5rem" },
+                    fontWeight: 900,
+                    lineHeight: 1,
+                    letterSpacing: "-0.08em",
+                    color: "transparent",
+                    WebkitTextStroke: "1px rgba(96,165,250,0.5)",
+                    textShadow: "0 12px 30px rgba(37,99,235,0.18)",
+                    opacity: 0.95,
+                    userSelect: "none",
                   }}
                 >
-                  <Box
-                    aria-hidden="true"
-                    sx={{
-                      position: "absolute",
-                      top: 12,
-                      right: 18,
-                      fontSize: { xs: "2.8rem", sm: "3.5rem" },
-                      fontWeight: 900,
-                      lineHeight: 1,
-                      letterSpacing: "-0.08em",
-                      color: "transparent",
-                      WebkitTextStroke: "1px rgba(96,165,250,0.5)",
-                      textShadow: "0 12px 30px rgba(37,99,235,0.18)",
-                      opacity: 0.95,
-                      userSelect: "none",
-                    }}
-                  >
-                    {formattedRank}
-                  </Box>
-                  <Typography variant="overline" color="primary">
-                    AI Shenanigan
-                  </Typography>
-                  {renderRightsStamp()}
-                  <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
-                    {title}
-                  </Typography>
-                  <Typography color="text.secondary" className="leading-7">
-                    {blurb}
-                  </Typography>
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    useFlexGap
-                    flexWrap="wrap"
-                    sx={{
-                      mt: 2.5,
-                      alignItems: "center",
-                      display: {
-                        xs: stage === "intro" ? "flex" : "none",
-                        lg: "flex",
-                      },
-                    }}
-                  >
-                    {renderChronologyChips("main")}
-                  </Stack>
-                  <Box
-                    sx={{
-                      mt: 3,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 1.5,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Box>
-                      {stage !== "intro" && renderNextAction() && (
-                        <Button variant="text" onClick={resetReveal}>
-                          Start Over
-                        </Button>
-                      )}
-                    </Box>
+                  {formattedRank}
+                </Box>
+                {renderRightsStamp()}
+                <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
+                  {title}
+                </Typography>
+                {/* <Button
+                  size="small"
+                  variant="text"
+                  onClick={() =>
+                    setIsInfoPanelMinimized((currentValue) => !currentValue)
+                  }
+                  endIcon={
+                    <EmojiGlyph
+                      glyph={isInfoPanelMinimized ? "🔽" : "🔼"}
+                      slot="end"
+                      size="0.95rem"
+                    />
+                  }
+                  sx={{
+                    mt: 0.25,
+                    mb: 1,
+                    display: { xs: "inline-flex", md: "none" },
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  {isInfoPanelMinimized ? "Expand Panel" : "Minimize Panel"}
+                </Button> */}
+                {!(isSmallScreen && isInfoPanelMinimized) && (
+                  <>
+                    <Typography
+                      color="text.secondary"
+                      className="leading-7"
+                      sx={{
+                        maxHeight: isSmallScreen ? "15dvh" : "auto",
+                        overflowY: isSmallScreen ? "auto" : "visible",
+                      }}
+                    >
+                      {blurb}
+                    </Typography>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      useFlexGap
+                      flexWrap="wrap"
+                      sx={{
+                        mt: 2.5,
+                        alignItems: "center",
+                        display: {
+                          xs: stage === "intro" ? "flex" : "none",
+                          md: "flex",
+                        },
+                      }}
+                    >
+                      {renderChronologyChips("main")}
+                    </Stack>
                     <Box
                       sx={{
+                        mt: 3,
+                        position: {
+                          xs: "static",
+                          md: hasVisibleMedia ? "sticky" : "static",
+                        },
+                        bottom: { md: 0 },
+                        pt: { md: hasVisibleMedia ? 1.5 : 0 },
+                        pb: { md: hasVisibleMedia ? 0.25 : 0 },
+                        zIndex: { md: 1 },
+                        background: {
+                          xs: "transparent",
+                          md: hasVisibleMedia
+                            ? (theme) =>
+                                `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0)} 0%, ${alpha(theme.palette.background.paper, 0.72)} 24%, ${alpha(theme.palette.background.paper, 0.88)} 100%)`
+                            : "transparent",
+                        },
+                        backdropFilter: {
+                          md: hasVisibleMedia ? "blur(4px)" : "none",
+                        },
                         display: "flex",
+                        alignItems: "flex-end",
                         justifyContent: "flex-end",
                         gap: 1.5,
+                        flexGrow: 1,
                         flexWrap: "wrap",
                       }}
                     >
-                      {renderNextAction() ??
-                        (stage !== "intro" && (
-                          <Chip
-                            label="Sequence Finished: Start Over 🔁"
-                            color="primary"
-                            variant="outlined"
-                            clickable
+                      <Box>
+                        {stage !== "intro" && renderNextAction() && (
+                          <Button
+                            variant="text"
                             onClick={resetReveal}
-                          />
-                        ))}
+                            startIcon={
+                              <EmojiGlyph glyph="🔁" slot="start" size="1rem" />
+                            }
+                          >
+                            Start Over
+                          </Button>
+                        )}
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          gap: 1.5,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {renderNextAction() ??
+                          (stage !== "intro" && (
+                            <Button
+                              variant="contained"
+                              onClick={resetReveal}
+                              endIcon={<EmojiGlyph glyph="🔁" slot="end" />}
+                            >
+                              Sequence Finished: Start Over
+                            </Button>
+                          ))}
+                      </Box>
                     </Box>
-                  </Box>
-                </Box>
+                  </>
+                )}
               </Box>
             </Box>
-            <Stack
-              spacing={2}
-              sx={{
-                minWidth: 0,
-                flex: "1 1 auto",
-                width: "100%",
-                maxWidth: {
-                  xs: "100%",
-                  lg: hasVisibleMedia ? "calc(100% - 340px)" : 0,
-                },
-                flexBasis: {
-                  xs: "100%",
-                  lg: hasVisibleMedia ? "calc(100% - 340px)" : "0px",
-                },
-                opacity: hasVisibleMedia ? 1 : 0,
-                transform: hasVisibleMedia
-                  ? "translate3d(0, 0, 0)"
-                  : "translate3d(28px, 0, 0)",
-                overflow: "hidden",
-                pointerEvents: hasVisibleMedia ? "auto" : "none",
-                transition:
-                  "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
-              }}
-            >
-              {bookVisible && (
-                <Box ref={bookSectionRef} sx={mediaPanelSx}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Book cover
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
+          </Box>
+          <Stack
+            spacing={2}
+            sx={{
+              minWidth: 0,
+              flex: "1 1 auto",
+              width: "100%",
+              height: hasVisibleMedia ? "80dvh" : 0,
+              overflowY: "auto",
+              overflowX: "hidden",
+              pr: { md: 1.25 },
+              maxWidth: {
+                xs: hasVisibleMedia ? "100%" : 0,
+                md: hasVisibleMedia ? "calc(100% - 400px)" : 0,
+              },
+              flexBasis: {
+                xs: hasVisibleMedia ? "100%" : "0px",
+                md: hasVisibleMedia ? "calc(100% - 400px)" : "0px",
+              },
+              opacity: hasVisibleMedia ? 1 : 0,
+              transform: hasVisibleMedia
+                ? "translate3d(0, 0, 0)"
+                : "translate3d(28px, 0, 0)",
+              pointerEvents: hasVisibleMedia ? "auto" : "none",
+              order: { xs: 1, md: 1 },
+              transition:
+                "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
+            }}
+          >
+            {bookVisible && (
+              <Box ref={bookSectionRef} sx={mediaPanelSx}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Book cover
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  Start with the originating book-side artifact.
+                </Typography>
+                <Box
+                  ref={bookCoverRef}
+                  sx={{ display: "flex", justifyContent: "center" }}
+                >
+                  <ImageLightbox
+                    src={withBasePath(bookCoverImage)}
+                    alt={`${title} book cover`}
+                    title={`${title} — Book Cover`}
+                    caption={bookCaption || bookSource}
                   >
-                    Start with the originating book-side artifact.
-                  </Typography>
-                  <Box
-                    ref={bookCoverRef}
-                    sx={{ display: "flex", justifyContent: "center" }}
-                  >
-                    <ImageLightbox
+                    <Image
                       src={withBasePath(bookCoverImage)}
                       alt={`${title} book cover`}
-                      title={`${title} — Book Cover`}
-                      caption={bookCaption || bookSource}
-                    >
-                      <Image
-                        src={withBasePath(bookCoverImage)}
-                        alt={`${title} book cover`}
-                        width={1400}
-                        height={900}
-                        onLoad={() => {
-                          setBookCoverLoaded(true);
-                        }}
-                        className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                        style={{ maxWidth: 440, marginInline: "auto" }}
-                      />
-                    </ImageLightbox>
-                  </Box>
-                  {renderSource(bookSource, bookSourceHref)}
-                  {bookCaption && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: bookSource ? 0.75 : 1.5 }}
-                    >
-                      {bookCaption}
-                    </Typography>
-                  )}
-                  {renderMobilePanelFooter(stage === "book", bookFooterRef)}
+                      width={1400}
+                      height={900}
+                      onLoad={() => {
+                        setBookCoverLoaded(true);
+                      }}
+                      className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                      style={{ maxWidth: 440, marginInline: "auto" }}
+                    />
+                  </ImageLightbox>
                 </Box>
-              )}
-
-              {bookVisible && (
-                <>
-                  <Box
-                    sx={{
-                      display: { xs: "flex", xl: "none" },
-                      justifyContent: "center",
-                    }}
-                  >
-                    {renderArrow("down", showManuscriptArrow)}
-                  </Box>
-                  <Box
-                    sx={{
-                      display: { xs: "none", xl: "flex" },
-                      justifyContent: "center",
-                    }}
-                  >
-                    {renderArrow("right", showManuscriptArrow)}
-                  </Box>
-                </>
-              )}
-
-              {manuscriptVisible && (
-                <Box ref={manuscriptSectionRef} sx={mediaPanelSx}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Manuscript
-                  </Typography>
+                {renderSource(bookSource, bookSourceHref)}
+                {bookCaption && (
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ mb: 2 }}
+                    sx={{ mt: bookSource ? 0.75 : 1.5 }}
                   >
-                    The book-side narrative source before adaptation.
+                    {bookCaption}
                   </Typography>
-                  {renderPdfFrame(manuscriptPdf, `${title} manuscript`, () => {
+                )}
+              </Box>
+            )}
+
+            {bookVisible && (
+              <>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
+                  {renderArrow("down", showManuscriptArrow)}
+                </Box>
+              </>
+            )}
+
+            {manuscriptVisible && (
+              <Box ref={manuscriptSectionRef} sx={mediaPanelSx}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Manuscript
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  The book-side narrative source before adaptation.
+                </Typography>
+                {renderPdfFrame(manuscriptPdf, `${title} manuscript`, () => {
+                  scrollRevealIntoView(
+                    manuscriptSectionRef.current,
+                    manuscriptFooterRef.current,
+                  );
+                })}
+                {renderSource(manuscriptSource, manuscriptSourceHref)}
+                {manuscriptCaption && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: manuscriptSource ? 0.75 : 1.5 }}
+                  >
+                    {manuscriptCaption}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {manuscriptVisible && (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 0.5 }}>
+                {renderArrow(
+                  "down",
+                  hasTrailer ? showTrailerArrow : showEpisodesArrow,
+                )}
+              </Box>
+            )}
+
+            {trailerVisible && trailerMovie && (
+              <Box ref={trailerSectionRef} sx={mediaPanelSx}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Trailer
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  Preview the adaptation trailer before opening the full
+                  episodes draft.
+                </Typography>
+                <VideoLightbox
+                  ref={trailerVideoRef}
+                  src={withBasePath(trailerMovie)}
+                  onLoadedData={() => {
+                    setTrailerLoaded(true);
+                  }}
+                  controls
+                  playsInline
+                  title={`${title} trailer`}
+                  caption={trailerCaption}
+                  previewVideoClassName="block w-full rounded-[18px] bg-black/10 object-contain"
+                  previewVideoSx={{
+                    aspectRatio: trailerAspectRatio,
+                    maxWidth: trailerMaxWidth,
+                    maxHeight: panelFrameHeight,
+                    marginInline: "auto",
+                  }}
+                />
+                {renderSource(trailerSource, trailerSourceHref)}
+                {trailerCaption && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: trailerSource ? 0.75 : 1.5 }}
+                  >
+                    {trailerCaption}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {trailerVisible && (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 0.5 }}>
+                {renderArrow("down", showEpisodesArrow)}
+              </Box>
+            )}
+
+            {episodesVisible && (
+              <Box ref={episodesSectionRef} sx={mediaPanelSx}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Episodes Draft
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  Reveal the episodic adaptation plan first, then step through
+                  each episode concept one at a time.
+                </Typography>
+                {hasEpisodesPdf &&
+                  renderPdfFrame(episodesPdf, `${title} episodes`, () => {
                     scrollRevealIntoView(
-                      manuscriptSectionRef.current,
-                      manuscriptFooterRef.current,
+                      episodesSectionRef.current,
+                      episodesFooterRef.current,
                     );
                   })}
-                  {renderSource(manuscriptSource, manuscriptSourceHref)}
-                  {manuscriptCaption && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: manuscriptSource ? 0.75 : 1.5 }}
-                    >
-                      {manuscriptCaption}
-                    </Typography>
-                  )}
-                  {renderMobilePanelFooter(
-                    stage === "manuscript",
-                    manuscriptFooterRef,
-                  )}
-                </Box>
-              )}
-
-              {manuscriptVisible && (
-                <Box
-                  sx={{ display: "flex", justifyContent: "center", py: 0.5 }}
-                >
-                  {renderArrow(
-                    "down",
-                    hasTrailer ? showTrailerArrow : showEpisodesArrow,
-                  )}
-                </Box>
-              )}
-
-              {trailerVisible && trailerMovie && (
-                <Box ref={trailerSectionRef} sx={mediaPanelSx}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Trailer
-                  </Typography>
+                {renderSource(episodesSource, episodesSourceHref)}
+                {episodesCaption && (
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ mb: 2 }}
+                    sx={{ mt: episodesSource ? 0.75 : 1.5 }}
                   >
-                    Preview the adaptation trailer before opening the full
-                    episodes draft.
+                    {episodesCaption}
                   </Typography>
-                  <Box
-                    component="video"
-                    ref={trailerVideoRef}
-                    src={withBasePath(trailerMovie)}
-                    onLoadedData={() => {
-                      setTrailerLoaded(true);
-                    }}
-                    controls
-                    playsInline
-                    className="block w-full rounded-[18px] bg-black/10 object-contain"
+                )}
+                {hasEpisodeMedia && (
+                  <Stack
+                    spacing={2}
                     sx={{
-                      aspectRatio: trailerAspectRatio,
-                      maxWidth: trailerMaxWidth,
-                      marginInline: "auto",
+                      mt:
+                        hasEpisodesPdf || episodesCaption || episodesSource
+                          ? 2.5
+                          : 0,
                     }}
-                  />
-                  {renderSource(trailerSource, trailerSourceHref)}
-                  {trailerCaption && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: trailerSource ? 0.75 : 1.5 }}
-                    >
-                      {trailerCaption}
-                    </Typography>
-                  )}
-                  {renderMobilePanelFooter(stage === "trailer", trailerFooterRef)}
-                </Box>
-              )}
-
-              {trailerVisible && (
-                <Box
-                  sx={{ display: "flex", justifyContent: "center", py: 0.5 }}
-                >
-                  {renderArrow("down", showEpisodesArrow)}
-                </Box>
-              )}
-
-              {episodesVisible && (
-                <Box ref={episodesSectionRef} sx={mediaPanelSx}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Episodes Draft
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
                   >
-                    Reveal the episodic adaptation plan first, then step through
-                    each episode concept one at a time.
-                  </Typography>
-                  {hasEpisodesPdf &&
-                    renderPdfFrame(episodesPdf, `${title} episodes`, () => {
-                      scrollRevealIntoView(
-                        episodesSectionRef.current,
-                        episodesFooterRef.current,
-                      );
-                    })}
-                  {renderSource(episodesSource, episodesSourceHref)}
-                  {episodesCaption && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: episodesSource ? 0.75 : 1.5 }}
-                    >
-                      {episodesCaption}
-                    </Typography>
-                  )}
-                  {hasEpisodeMedia && (
-                    <Stack
-                      spacing={2}
-                      sx={{
-                        mt:
-                          hasEpisodesPdf || episodesCaption || episodesSource
-                            ? 2.5
-                            : 0,
-                      }}
-                    >
-                      {episodeMedia
-                        .slice(0, revealedEpisodeCount)
-                        .map((episode, index) => (
+                    {episodeMedia
+                      .slice(0, revealedEpisodeCount)
+                      .map((episode, index) => (
+                        <Box key={`${episode.title}-${index}`}>
+                          {index > 0 && (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                py: 0.5,
+                              }}
+                            >
+                              {renderArrow("down", true)}
+                            </Box>
+                          )}
                           <Box
-                            key={`${episode.title}-${index}`}
                             ref={(node: HTMLDivElement | null) => {
                               episodeCardRefs.current[index] = node;
                             }}
@@ -1407,8 +1428,7 @@ export default function AIShenaniganAdaptation({
                             >
                               {episode.title}
                             </Typography>
-                            <Box
-                              component="video"
+                            <VideoLightbox
                               ref={(node: HTMLVideoElement | null) => {
                                 episodeVideoRefs.current[index] = node;
                               }}
@@ -1421,8 +1441,13 @@ export default function AIShenaniganAdaptation({
                               }}
                               controls
                               playsInline
-                              className="block w-full rounded-[18px] bg-black/10 object-contain"
-                              sx={{ aspectRatio: "16 / 9" }}
+                              title={`${title} ${episode.title}`}
+                              caption={episode.caption}
+                              previewVideoClassName="block w-full rounded-[18px] bg-black/10 object-contain"
+                              previewVideoSx={{
+                                aspectRatio: "16 / 9",
+                                maxHeight: panelFrameHeight,
+                              }}
                             />
                             {renderSource(episode.source, episode.sourceHref)}
                             {episode.caption && (
@@ -1434,32 +1459,16 @@ export default function AIShenaniganAdaptation({
                                 {episode.caption}
                               </Typography>
                             )}
-                            {renderMobilePanelFooter(
-                              stage === "episodes" &&
-                                revealedEpisodeCount === index + 1,
-                              {
-                                get current() {
-                                  return episodeFooterRefs.current[index];
-                                },
-                                set current(value: HTMLDivElement | null) {
-                                  episodeFooterRefs.current[index] = value;
-                                },
-                              },
-                            )}
                           </Box>
-                        ))}
-                    </Stack>
-                  )}
-                  {renderMobilePanelFooter(
-                    stage === "episodes" && revealedEpisodeCount === 0,
-                    episodesFooterRef,
-                  )}
-                </Box>
-              )}
-            </Stack>
+                        </Box>
+                      ))}
+                  </Stack>
+                )}
+              </Box>
+            )}
           </Stack>
         </Stack>
-      </ShenaniganPanel>
-    
+      </Stack>
+    </AIShenaniganPanel>
   );
 }

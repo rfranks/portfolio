@@ -1,24 +1,26 @@
 "use client";
 
 import { type MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
-import Container from "@mui/material/Container";
 import CssBaseline from "@mui/material/CssBaseline";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import Stack from "@mui/material/Stack";
-import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { ArrowBack, ChevronLeft, ChevronRight } from "@mui/icons-material";
+import {
+  ArrowBack,
+  ChevronLeft,
+  ChevronRight,
+  Close,
+  DarkMode,
+  LightMode,
+} from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material/styles";
 import AIShenanigan, {
   AIShenaniganMovieOrientation,
   AIShenaniganType,
 } from "./_components/AIShenanigan";
-import AppBar from "@/components/portfolio/layout/AppBar";
 import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
 import { aiShenanigans, portfolioApps, summary } from "@/consts/resumeData";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
@@ -28,6 +30,8 @@ import { withBasePath } from "@/utils/basePath";
 
 type AIShenaniganItemWithLinks = (typeof aiShenanigans.items)[number] & {
   type?: AIShenaniganType;
+  shortText?: string;
+  pagerOptionImage?: string;
   realisticSourceHref?: string;
   stylizedSourceHref?: string;
   movieSourceHref?: string;
@@ -119,8 +123,6 @@ type AIShenaniganItemWithLinks = (typeof aiShenanigans.items)[number] & {
 
 const shenaniganItems = aiShenanigans.items as AIShenaniganItemWithLinks[];
 
-const formatRank = (value: number) => `#${String(value).padStart(2, "0")}`;
-
 const decodeHashSlug = (hash: string) => {
   const raw = hash.replace(/^#/, "").trim();
   if (!raw) {
@@ -133,6 +135,34 @@ const decodeHashSlug = (hash: string) => {
     return raw;
   }
 };
+
+const getPagerOptionImage = (item: AIShenaniganItemWithLinks) => {
+  if (item.pagerOptionImage) {
+    return item.pagerOptionImage;
+  }
+
+  const isDefaultShenanigan = !item.type || item.type === "default";
+
+  if (isDefaultShenanigan && item.stylizedRendering) {
+    return item.stylizedRendering;
+  }
+
+  return (
+    item.bookCoverImage ||
+    item.songAlbumImage ||
+    item.analyzedImage ||
+    item.stylizedRendering ||
+    item.realisticImage ||
+    item.rawImage ||
+    item.palmLineAnalysisImage ||
+    summary.avatarImage
+  );
+};
+
+const formatPagerOptionLabel = (index: number, title: string) =>
+  `${index + 1}. ${title}`;
+const formatPagerSelectedLabel = (index: number, title: string) =>
+  `${index + 1}. ${title}`;
 
 const buildLinkProps = (item: AIShenaniganItemWithLinks) => ({
   ...(item.type ? { type: item.type } : {}),
@@ -378,205 +408,262 @@ export default function AIShenanigansPageClient() {
           }),
         })}
       >
-        <AppBar mode={mode} toggleColorMode={toggleColorMode}>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="Back to portfolio"
-            href={withBasePath("/")}
-            sx={{ mr: 2 }}
-          >
-            <ArrowBack />
-          </IconButton>
-          <Avatar
-            src={withBasePath(summary.avatarImage)}
-            alt={summary.name}
+        <Box
+          sx={{
+            position: "fixed",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
+            bgcolor: "background.default",
+            borderRadius: 0,
+          }}
+        >
+          <Box
             sx={{
-              width: 38,
-              height: 38,
-              mr: 1.5,
-              border: "1px solid",
+              px: { xs: 1.5, md: 2.5 },
+              py: 1.25,
+              borderBottom: "1px solid",
               borderColor: "divider",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
             }}
-          />
-          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-            <Typography variant="h6" noWrap>
-              {aiShenanigans.title}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" noWrap>
-              {portfolioApps.aiShenanigans.appBarSubtitle}
-            </Typography>
-          </Box>
-        </AppBar>
-        <Toolbar />
-        <Container sx={{ py: { xs: 3, md: 5 } }}>
-          <Stack spacing={3}>
-            <Box
-              sx={(theme) => ({
-                px: 3,
-                py: 3.5,
-                borderRadius: "32px",
-                border: "1px solid",
-                borderColor:
-                  theme.palette.mode === "light"
-                    ? "rgba(55, 86, 136, 0.16)"
-                    : "rgba(255,255,255,0.1)",
-                backgroundColor:
-                  theme.palette.mode === "light"
-                    ? "rgba(255,255,255,0.68)"
-                    : "rgba(255,255,255,0.05)",
-                boxShadow:
-                  theme.palette.mode === "light"
-                    ? "0 18px 40px rgba(35, 58, 99, 0.1)"
-                    : undefined,
-              })}
+          >
+            <IconButton
+              color="inherit"
+              aria-label="Back to portfolio"
+              href={withBasePath("/")}
+              size="small"
             >
-              <Typography variant="overline" color="primary">
-                {portfolioApps.aiShenanigans.heroEyebrow}
-              </Typography>
-              <Typography
-                variant="h2"
-                sx={{
-                  mt: 1.25,
-                  mb: 1.5,
-                  fontSize: { xs: "2.25rem", md: "3.25rem" },
-                }}
-              >
-                {aiShenanigans.title}
-              </Typography>
-              <Typography color="text.secondary" className="max-w-3xl leading-7">
+              <ArrowBack fontSize="small" />
+            </IconButton>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography variant="h6">{aiShenanigans.title}</Typography>
+              <Typography variant="body2" color="text.secondary">
                 {aiShenanigans.description}
               </Typography>
             </Box>
-            <Box
-              sx={(theme) => ({
-                position: "sticky",
-                top: { xs: 70, md: 76 },
-                zIndex: theme.zIndex.appBar - 1,
-                px: { xs: 1, sm: 1.5 },
-                py: 1,
-                borderRadius: "999px",
-                border: "1px solid",
-                borderColor:
-                  theme.palette.mode === "light"
-                    ? "rgba(55, 86, 136, 0.18)"
-                    : "rgba(255,255,255,0.14)",
-                backgroundColor:
-                  theme.palette.mode === "light"
-                    ? "rgba(255,255,255,0.82)"
-                    : "rgba(17,24,39,0.62)",
-                backdropFilter: "blur(10px)",
-              })}
+            <IconButton
+              color="inherit"
+              aria-label={
+                mode === "light" ? "Switch to dark mode" : "Switch to light mode"
+              }
+              onClick={toggleColorMode}
+              size="small"
             >
-              <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                <IconButton
-                  aria-label="Previous shenanigan"
-                  size="small"
-                  onClick={handlePrevious}
-                >
-                  <ChevronLeft />
-                </IconButton>
-                <Chip
-                  clickable
-                  color="primary"
-                  variant="outlined"
-                  onClick={handleSelectorOpen}
-                  label={currentItem.title}
-                  aria-haspopup="menu"
-                  aria-expanded={selectorOpen ? "true" : undefined}
-                  aria-controls={selectorOpen ? "shenanigan-selector-menu" : undefined}
-                  sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    maxWidth: "100%",
-                    "& .MuiChip-label": {
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    },
-                  }}
-                />
-                <IconButton aria-label="Next shenanigan" size="small" onClick={handleNext}>
-                  <ChevronRight />
-                </IconButton>
-              </Stack>
-            </Box>
-            <Menu
-              id="shenanigan-selector-menu"
-              anchorEl={selectorAnchorEl}
-              open={selectorOpen}
-              onClose={handleSelectorClose}
-              slotProps={{
-                paper: {
-                  sx: {
-                    maxHeight: 420,
-                    minWidth: { xs: 280, sm: 360 },
-                  },
+              {mode === "light" ? (
+                <DarkMode fontSize="small" />
+              ) : (
+                <LightMode fontSize="small" />
+              )}
+            </IconButton>
+            <IconButton
+              color="inherit"
+              aria-label="Close shenanigans panel"
+              href={withBasePath("/")}
+              size="small"
+            >
+              <Close fontSize="small" />
+            </IconButton>
+          </Box>
+
+          <Box
+            sx={{
+              px: { xs: 1.5, md: 2.5 },
+              py: 1.5,
+              flex: 1,
+              minHeight: 0,
+              overflow: "hidden",
+              display: "flex",
+              backgroundColor: "transparent",
+            }}
+          >
+            <Box
+              sx={{
+                flex: 1,
+                minHeight: 0,
+                display: "flex",
+                overflow: "hidden",
+                pr: 0.5,
+                backgroundColor: "transparent",
+                "& > *": {
+                  flex: 1,
+                  minHeight: 0,
                 },
               }}
             >
-              {shenaniganItems.map((item, index) => (
-                <MenuItem
-                  key={item.slug}
-                  selected={index === currentIndex}
-                  onClick={() => handleSelectShenanigan(index)}
+              <AIShenanigan
+                key={currentItem.slug}
+                rank={currentIndex + 1}
+                title={currentItem.title}
+                blurb={currentItem.blurb}
+                orientation={currentItem.orientation as AIShenaniganMovieOrientation}
+                realisticImage={(currentItem.realisticImage || currentItem.songAlbumImage) as string}
+                realisticSource={currentItem.realisticSource}
+                realisticCaption={currentItem.realisticCaption}
+                stylizedRendering={currentItem.stylizedRendering}
+                stylizedSource={currentItem.stylizedSource}
+                stylizedCaption={currentItem.stylizedCaption}
+                movieRendering={currentItem.movieRendering}
+                movieSource={currentItem.movieSource}
+                movieCaption={currentItem.movieCaption}
+                movieRendering2={currentItem.movieRendering2}
+                movieSource2={currentItem.movieSource2}
+                movieCaption2={currentItem.movieCaption2}
+                rawImage={currentItem.rawImage}
+                rawSource={currentItem.rawSource}
+                rawCaption={currentItem.rawCaption}
+                analyzedImage={currentItem.analyzedImage}
+                analyzedSource={currentItem.analyzedSource}
+                analyzedCaption={currentItem.analyzedCaption}
+                palmLineAnalysisImage={currentItem.palmLineAnalysisImage}
+                palmLineAnalysisSource={currentItem.palmLineAnalysisSource}
+                palmLineAnalysisCaption={currentItem.palmLineAnalysisCaption}
+                palmReadingTitle={currentItem.palmReadingTitle}
+                palmReadingText={currentItem.palmReadingText}
+                palmReadingMarkdownPath={currentItem.palmReadingMarkdownPath}
+                palmReadingSource={currentItem.palmReadingSource}
+                songAlbumImage={currentItem.songAlbumImage}
+                songAlbumSource={currentItem.songAlbumSource}
+                songAlbumCaption={currentItem.songAlbumCaption}
+                songAudio={currentItem.songAudio}
+                songAudioSource={currentItem.songAudioSource}
+                songAudioCaption={currentItem.songAudioCaption}
+                songWrittenBy={currentItem.songWrittenBy}
+                songPerformedBy={currentItem.songPerformedBy}
+                songLyricsMarkdownPath={currentItem.songLyricsMarkdownPath}
+                songLyricsSource={currentItem.songLyricsSource}
+                {...linkProps}
+              />
+            </Box>
+          </Box>
+
+          <Box
+            sx={{
+              px: { xs: 1.5, md: 2.5 },
+              py: 1.25,
+              borderTop: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "auto minmax(0, 1fr) auto",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <IconButton
+                aria-label="Previous shenanigan"
+                size="small"
+                onClick={handlePrevious}
+              >
+                <ChevronLeft />
+              </IconButton>
+              <Chip
+                clickable
+                color="primary"
+                variant="outlined"
+                onClick={handleSelectorOpen}
+                label={formatPagerSelectedLabel(currentIndex, currentItem.title)}
+                aria-haspopup="menu"
+                aria-expanded={selectorOpen ? "true" : undefined}
+                aria-controls={selectorOpen ? "shenanigan-selector-menu" : undefined}
+                sx={{
+                  minWidth: 0,
+                  maxWidth: "100%",
+                  justifySelf: "stretch",
+                  "& .MuiChip-label": {
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  },
+                }}
+              />
+              <IconButton aria-label="Next shenanigan" size="small" onClick={handleNext}>
+                <ChevronRight />
+              </IconButton>
+            </Box>
+          </Box>
+        </Box>
+
+        <Menu
+          id="shenanigan-selector-menu"
+          anchorEl={selectorAnchorEl}
+          open={selectorOpen}
+          onClose={handleSelectorClose}
+          slotProps={{
+            paper: {
+              sx: {
+                maxHeight: 560,
+                minWidth: { xs: 340, sm: 480 },
+              },
+            },
+          }}
+        >
+          {shenaniganItems.map((item, index) => (
+            <MenuItem
+              key={item.slug}
+              selected={index === currentIndex}
+              onClick={() => handleSelectShenanigan(index)}
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "69px minmax(0, 1fr)",
+                columnGap: 1.65,
+                alignItems: "start",
+                py: 1.45,
+              }}
+            >
+              <Box
+                component="img"
+                src={withBasePath(getPagerOptionImage(item))}
+                alt={`${item.title} preview`}
+                sx={{
+                  width: 69,
+                  height: 69,
+                  mt: 0.2,
+                  flexShrink: 0,
+                  borderRadius: 2,
+                  objectFit: "cover",
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              />
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "1.16rem",
+                    lineHeight: 1.25,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
                 >
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ minWidth: 38, mr: 1 }}
-                  >
-                    {formatRank(index + 1)}
-                  </Typography>
-                  {item.title}
-                </MenuItem>
-              ))}
-            </Menu>
-            <AIShenanigan
-              key={currentItem.slug}
-              rank={currentIndex + 1}
-              title={currentItem.title}
-              blurb={currentItem.blurb}
-              orientation={currentItem.orientation as AIShenaniganMovieOrientation}
-              realisticImage={(currentItem.realisticImage || currentItem.songAlbumImage) as string}
-              realisticSource={currentItem.realisticSource}
-              realisticCaption={currentItem.realisticCaption}
-              stylizedRendering={currentItem.stylizedRendering}
-              stylizedSource={currentItem.stylizedSource}
-              stylizedCaption={currentItem.stylizedCaption}
-              movieRendering={currentItem.movieRendering}
-              movieSource={currentItem.movieSource}
-              movieCaption={currentItem.movieCaption}
-              movieRendering2={currentItem.movieRendering2}
-              movieSource2={currentItem.movieSource2}
-              movieCaption2={currentItem.movieCaption2}
-              rawImage={currentItem.rawImage}
-              rawSource={currentItem.rawSource}
-              rawCaption={currentItem.rawCaption}
-              analyzedImage={currentItem.analyzedImage}
-              analyzedSource={currentItem.analyzedSource}
-              analyzedCaption={currentItem.analyzedCaption}
-              palmLineAnalysisImage={currentItem.palmLineAnalysisImage}
-              palmLineAnalysisSource={currentItem.palmLineAnalysisSource}
-              palmLineAnalysisCaption={currentItem.palmLineAnalysisCaption}
-              palmReadingTitle={currentItem.palmReadingTitle}
-              palmReadingText={currentItem.palmReadingText}
-              palmReadingMarkdownPath={currentItem.palmReadingMarkdownPath}
-              palmReadingSource={currentItem.palmReadingSource}
-              songAlbumImage={currentItem.songAlbumImage}
-              songAlbumSource={currentItem.songAlbumSource}
-              songAlbumCaption={currentItem.songAlbumCaption}
-              songAudio={currentItem.songAudio}
-              songAudioSource={currentItem.songAudioSource}
-              songAudioCaption={currentItem.songAudioCaption}
-              songWrittenBy={currentItem.songWrittenBy}
-              songPerformedBy={currentItem.songPerformedBy}
-              songLyricsMarkdownPath={currentItem.songLyricsMarkdownPath}
-              songLyricsSource={currentItem.songLyricsSource}
-              {...linkProps}
-            />
-          </Stack>
-        </Container>
+                  {formatPagerOptionLabel(index, item.title)}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    mt: 0.25,
+                    fontSize: "1rem",
+                    lineHeight: 1.3,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {item.shortText || item.blurb || "Open this shenanigan."}
+                </Typography>
+              </Box>
+            </MenuItem>
+          ))}
+        </Menu>
       </Box>
     </ThemeProvider>
   );

@@ -7,9 +7,12 @@ import Fade from "@mui/material/Fade";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
+import EmojiGlyph from "@/components/shared/EmojiGlyph";
 import ImageLightbox from "@/components/shared/ImageLightbox";
 import MarkdownContent from "@/components/shared/MarkdownContent";
-import ShenaniganPanel from "./ShenaniganPanel";
+import AIShenaniganPanel from "./AIShenaniganPanel";
 import { withBasePath } from "@/utils/basePath";
 
 type AIShenaniganSongRecordingProps = {
@@ -48,6 +51,9 @@ export default function AIShenaniganSongRecording({
   lyricsSource,
   lyricsSourceHref,
 }: AIShenaniganSongRecordingProps) {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
   const PLAYER_VIEW_HEIGHT_PX = 300;
   const [lyricsMarkdown, setLyricsMarkdown] = useState<string | null>(null);
   const [isLyricsLoading, setIsLyricsLoading] = useState(false);
@@ -93,6 +99,12 @@ export default function AIShenaniganSongRecording({
       </Box>
     );
   };
+
+  useEffect(() => {
+    if (!isSmallScreen) {
+      setIsInfoPanelMinimized(false);
+    }
+  }, [isSmallScreen]);
 
   useEffect(() => {
     if (!lyricsMarkdownPath) {
@@ -166,7 +178,7 @@ export default function AIShenaniganSongRecording({
   };
 
   return (
-    <ShenaniganPanel>
+    <AIShenaniganPanel>
       <Stack spacing={2.25}>
         <Box
           sx={{
@@ -197,14 +209,35 @@ export default function AIShenaniganSongRecording({
           >
             {formattedRank}
           </Box>
-          <Typography variant="overline" color="primary">
-            AI Shenanigan
-          </Typography>
           {renderRightsStamp()}
           <Typography variant="h4" sx={{ mt: 1, mb: 1.2 }}>
             {title}
           </Typography>
-          <Typography color="text.secondary">{blurb}</Typography>
+          <Button
+            size="small"
+            variant="text"
+            onClick={() =>
+              setIsInfoPanelMinimized((currentValue) => !currentValue)
+            }
+            endIcon={
+              <EmojiGlyph
+                glyph={isInfoPanelMinimized ? "🔽" : "🔼"}
+                slot="end"
+                size="0.95rem"
+              />
+            }
+            sx={{
+              mt: 0.25,
+              mb: 0.75,
+              display: { xs: "inline-flex", md: "none" },
+              alignSelf: "flex-start",
+            }}
+          >
+            {isInfoPanelMinimized ? "Expand Panel" : "Minimize Panel"}
+          </Button>
+          {!(isSmallScreen && isInfoPanelMinimized) && (
+            <Typography color="text.secondary">{blurb}</Typography>
+          )}
         </Box>
 
         {songRevealed ? (
@@ -219,61 +252,61 @@ export default function AIShenaniganSongRecording({
               }}
             >
               {!lyricsOpen ? (
-              <Stack spacing={1.7}>
-                <Stack
-                  direction={{ xs: "column", md: "row" }}
-                  spacing={2}
-                  sx={{ minHeight: { md: `${PLAYER_VIEW_HEIGHT_PX}px` } }}
-                >
-                  <Box
-                    sx={{
-                      width: { xs: "100%", md: 300 },
-                      flexShrink: 0,
-                      borderRadius: "16px",
-                      overflow: "hidden",
-                      border: "1px solid",
-                      borderColor: "var(--fabric-surface-border)",
-                    }}
+                <Stack spacing={1.7}>
+                  <Stack
+                    direction={{ xs: "column", md: "row" }}
+                    spacing={2}
+                    sx={{ minHeight: { md: `${PLAYER_VIEW_HEIGHT_PX}px` } }}
                   >
-                    <ImageLightbox
-                      src={withBasePath(songAlbumImage)}
-                      alt={`${title} album cover`}
-                      title={`${title} — Album Cover`}
-                      caption={songAlbumCaption || "Album artwork"}
-                      triggerSx={{ width: "100%", display: "block" }}
-                      previewContainerSx={{
-                        width: "100%",
-                        aspectRatio: "1 / 1",
-                        borderRadius: "inherit",
+                    <Box
+                      sx={{
+                        width: { xs: "100%", md: 300 },
+                        flexShrink: 0,
+                        borderRadius: "16px",
                         overflow: "hidden",
+                        border: "1px solid",
+                        borderColor: "var(--fabric-surface-border)",
                       }}
-                      previewImageSx={{ objectFit: "cover" }}
-                    />
-                  </Box>
+                    >
+                      <ImageLightbox
+                        src={withBasePath(songAlbumImage)}
+                        alt={`${title} album cover`}
+                        title={`${title} — Album Cover`}
+                        caption={songAlbumCaption || "Album artwork"}
+                        triggerSx={{ width: "100%", display: "block" }}
+                        previewContainerSx={{
+                          width: "100%",
+                          aspectRatio: "1 / 1",
+                          borderRadius: "inherit",
+                          overflow: "hidden",
+                        }}
+                        previewImageSx={{ objectFit: "cover" }}
+                      />
+                    </Box>
 
-                  <Stack spacing={1.35} sx={{ flex: 1, minWidth: 0 }}>
-                    {songWrittenBy ? (
-                      <Typography variant="body2" color="text.secondary">
-                        Written by {songWrittenBy}
-                      </Typography>
-                    ) : null}
-                    {songPerformedBy ? (
-                      <Typography variant="body2" color="text.secondary">
-                        Performed by {songPerformedBy}
-                      </Typography>
-                    ) : null}
+                    <Stack spacing={1.35} sx={{ flex: 1, minWidth: 0 }}>
+                      {songWrittenBy ? (
+                        <Typography variant="body2" color="text.secondary">
+                          Written by {songWrittenBy}
+                        </Typography>
+                      ) : null}
+                      {songPerformedBy ? (
+                        <Typography variant="body2" color="text.secondary">
+                          Performed by {songPerformedBy}
+                        </Typography>
+                      ) : null}
+                    </Stack>
                   </Stack>
+                  <Box
+                    component="audio"
+                    controls
+                    preload="metadata"
+                    src={withBasePath(songAudio)}
+                    sx={{ width: "100%" }}
+                  >
+                    Your browser does not support the audio element.
+                  </Box>
                 </Stack>
-                <Box
-                  component="audio"
-                  controls
-                  preload="metadata"
-                  src={withBasePath(songAudio)}
-                  sx={{ width: "100%" }}
-                >
-                  Your browser does not support the audio element.
-                </Box>
-              </Stack>
               ) : (
                 <Box
                   sx={{
@@ -319,6 +352,13 @@ export default function AIShenaniganSongRecording({
                   <Button
                     variant="outlined"
                     onClick={() => setLyricsOpen((prev) => !prev)}
+                    endIcon={
+                      <EmojiGlyph
+                        glyph={lyricsOpen ? "🙈" : "📜"}
+                        slot="end"
+                        size="1rem"
+                      />
+                    }
                   >
                     {lyricsOpen ? "Hide Lyrics" : "Show Lyrics"}
                   </Button>
@@ -330,12 +370,16 @@ export default function AIShenaniganSongRecording({
 
         {!songRevealed && !lyricsOpen ? (
           <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button variant="contained" onClick={() => setSongRevealed(true)}>
-              Reveal Song 🎵
+            <Button
+              variant="contained"
+              onClick={() => setSongRevealed(true)}
+              endIcon={<EmojiGlyph glyph="🎵" slot="end" />}
+            >
+              Reveal Song
             </Button>
           </Box>
         ) : null}
       </Stack>
-    </ShenaniganPanel>
+    </AIShenaniganPanel>
   );
 }

@@ -7,8 +7,11 @@ import Chip from "@mui/material/Chip";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
-import ShenaniganPanel from "./ShenaniganPanel";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { alpha, useTheme } from "@mui/material/styles";
+import AIShenaniganPanel from "./AIShenaniganPanel";
+import EmojiGlyph from "@/components/shared/EmojiGlyph";
+import VideoLightbox from "@/components/shared/VideoLightbox";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { withBasePath } from "@/utils/basePath";
@@ -75,6 +78,9 @@ export default function AIShenaniganWorkSeries({
   seriesCaption,
   seriesParts = [],
 }: AIShenaniganWorkSeriesProps) {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
   const [revealedWorkCount, setRevealedWorkCount] = useState(0);
   const [revealedSeriesCount, setRevealedSeriesCount] = useState(0);
   const [showSeriesArrow, setShowSeriesArrow] = useState(false);
@@ -93,7 +99,8 @@ export default function AIShenaniganWorkSeries({
   const rewindSfx = useAudio("/audio/phaserDown2.ogg");
   const isPortrait = orientation === "portrait";
   const mediaAspectRatio = isPortrait ? "9 / 16" : "16 / 9";
-  const mediaMaxWidth = isPortrait ? 420 : "100%";
+  const mediaMaxWidth = isPortrait ? 360 : "100%";
+  const panelFrameHeight = { xs: "44dvh", md: "52dvh" };
   const normalizedWorkParts =
     workParts.length > 0
       ? workParts
@@ -466,7 +473,7 @@ export default function AIShenaniganWorkSeries({
             sx={{
               display: "block",
               width: "100%",
-              height: { xs: 520, md: 680, lg: 760 },
+              height: panelFrameHeight,
             }}
           >
             <Box
@@ -476,7 +483,7 @@ export default function AIShenaniganWorkSeries({
               onLoad={onLoad}
               sx={{
                 width: "100%",
-                height: { xs: 520, md: 680, lg: 760 },
+                height: panelFrameHeight,
                 border: 0,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light"
@@ -544,8 +551,9 @@ export default function AIShenaniganWorkSeries({
           variant="contained"
           onClick={handleRevealNextStep}
           disabled={transitioning !== null}
+          endIcon={<EmojiGlyph glyph="📖" slot="end" />}
         >
-          {`Reveal ${getWorkLabel(step.index)} 📖`}
+          {`Reveal ${getWorkLabel(step.index)}`}
         </Button>
       );
     }
@@ -555,8 +563,9 @@ export default function AIShenaniganWorkSeries({
         variant="contained"
         onClick={handleRevealNextStep}
         disabled={transitioning !== null}
+        endIcon={<EmojiGlyph glyph="🎬" slot="end" />}
       >
-        {`Reveal ${getSeriesLabel(step.index)} 🎬`}
+        {`Reveal ${getSeriesLabel(step.index)}`}
       </Button>
     );
   };
@@ -641,76 +650,11 @@ export default function AIShenaniganWorkSeries({
       </Box>
     ));
 
-  const renderMobilePanelFooter = (
-    showFooter: boolean,
-    footerRef: { current: HTMLDivElement | null },
-  ) => {
-    if (!showFooter) {
-      return null;
+  useEffect(() => {
+    if (!isSmallScreen) {
+      setIsInfoPanelMinimized(false);
     }
-
-    const nextAction = renderNextAction();
-    const sequenceFinished = !nextAction;
-
-    return (
-      <Box
-        ref={footerRef}
-        sx={{
-          display: { xs: "block", lg: "none" },
-          mt: 2,
-          pt: 2,
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-        }}
-      >
-        <Stack
-          direction="row"
-          spacing={1}
-          useFlexGap
-          flexWrap="wrap"
-          sx={{ alignItems: "center" }}
-        >
-          {renderChronologyChips("panel")}
-        </Stack>
-        <Box
-          sx={{
-            mt: 1.75,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 1.5,
-            flexWrap: "wrap",
-          }}
-        >
-          <Box>
-            {!sequenceFinished && currentStep() && (
-              <Button variant="text" onClick={resetReveal}>
-                Start Over
-              </Button>
-            )}
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 1.5,
-              flexWrap: "wrap",
-            }}
-          >
-            {nextAction ?? (
-              <Chip
-                label="Sequence Finished: Start Over 🔁"
-                color="primary"
-                variant="outlined"
-                size="small"
-                clickable
-                onClick={resetReveal}
-              />
-            )}
-          </Box>
-        </Box>
-      </Box>
-    );
-  };
+  }, [isSmallScreen]);
 
   useEffect(() => {
     if (revealedSeriesCount === 0) {
@@ -837,17 +781,6 @@ export default function AIShenaniganWorkSeries({
           {part.caption}
         </Typography>
       )}
-      {renderMobilePanelFooter(
-        revealedSeriesCount === 0 && revealedWorkCount === index + 1,
-        {
-          get current() {
-            return workFooterRefs.current[index];
-          },
-          set current(value: HTMLDivElement | null) {
-            workFooterRefs.current[index] = value;
-          },
-        },
-      )}
     </Box>
   );
 
@@ -865,8 +798,7 @@ export default function AIShenaniganWorkSeries({
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Push the written concept into motion as a series adaptation beat.
       </Typography>
-      <Box
-        component="video"
+      <VideoLightbox
         ref={(node: HTMLVideoElement | null) => {
           seriesVideoRefs.current[index] = node;
         }}
@@ -880,10 +812,13 @@ export default function AIShenaniganWorkSeries({
             seriesFooterRefs.current[index],
           );
         }}
-        className="block w-full rounded-[22px] bg-black/10 object-contain"
-        sx={{
+        title={`${title} ${getSeriesLabel(index)}`}
+        caption={part.caption}
+        previewVideoClassName="block w-full rounded-[22px] bg-black/10 object-contain"
+        previewVideoSx={{
           aspectRatio: mediaAspectRatio,
           maxWidth: mediaMaxWidth,
+          maxHeight: panelFrameHeight,
           mx: isPortrait ? "auto" : undefined,
         }}
       />
@@ -897,209 +832,294 @@ export default function AIShenaniganWorkSeries({
           {part.caption}
         </Typography>
       )}
-      {renderMobilePanelFooter(revealedSeriesCount === index + 1, {
-        get current() {
-          return seriesFooterRefs.current[index];
-        },
-        set current(value: HTMLDivElement | null) {
-          seriesFooterRefs.current[index] = value;
-        },
-      })}
     </Box>
   );
 
   const current = currentStep();
 
   return (
-    
-      <ShenaniganPanel className="overflow-hidden">
-        <Stack spacing={3}>
-          <Stack
-            spacing={2.5}
-            direction={{ xs: "column", lg: "row" }}
+    <AIShenaniganPanel className="overflow-hidden">
+      <Stack spacing={3} flexGrow={1}>
+        <Stack
+          spacing={2.5}
+          direction={{ xs: "column", md: "row" }}
+          flexGrow={1}
+          sx={{
+            alignItems: { xs: "stretch", md: "flex-start" },
+            overflow: { xs: "hidden", md: "visible" },
+          }}
+        >
+          <Box
             sx={{
-              alignItems: { xs: "stretch", lg: "flex-start" },
-              overflow: "hidden",
+              height: hasVisibleMedia ? "80dvh" : "100%",
+              width: "100%",
+              minWidth: { xs: 0, md: hasVisibleMedia ? 400 : 0 },
+              maxWidth: { xs: "100%", md: hasVisibleMedia ? 400 : "100%" },
+              flexBasis: "100%",
+              flexGrow: 1,
+              order: { xs: 2, md: 2 },
+              transition:
+                "flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1), min-width 560ms cubic-bezier(.2,.8,.2,1), transform 560ms cubic-bezier(.2,.8,.2,1)",
             }}
           >
             <Box
               sx={{
-                width: "100%",
-                minWidth: { xs: 0, lg: hasVisibleMedia ? 340 : 0 },
-                maxWidth: { xs: "100%", lg: hasVisibleMedia ? 340 : "100%" },
-                flexBasis: {
-                  xs: "100%",
-                  lg: hasVisibleMedia ? "340px" : "100%",
+                height: "100%",
+                position: {
+                  xs: "static",
+                  md: hasVisibleMedia ? "sticky" : "static",
                 },
-                flexShrink: 0,
-                transition:
-                  "flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1), min-width 560ms cubic-bezier(.2,.8,.2,1), transform 560ms cubic-bezier(.2,.8,.2,1)",
+                top: { md: 104 },
+                maxHeight: {
+                  xs: "none",
+                  md: hasVisibleMedia ? "calc(100dvh - 120px)" : "none",
+                },
+                overflowY: {
+                  xs: "visible",
+                  md: hasVisibleMedia ? "auto" : "visible",
+                },
+                overscrollBehaviorY: { md: "contain" },
+                pr: { md: hasVisibleMedia ? 0.5 : 0 },
+                transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
               }}
             >
               <Box
+                className="relative overflow-hidden"
                 sx={{
-                  position: {
-                    xs: "static",
-                    lg: hasVisibleMedia ? "sticky" : "static",
-                  },
-                  top: 104,
-                  transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
+                  ...panelChromeSx,
+                  display: "flex",
+                  flexDirection: "column",
+                  p: { xs: 3, md: 3.5 },
+                  boxShadow: "none",
+                  height: "100%",
                 }}
               >
                 <Box
-                  className="relative overflow-hidden"
+                  aria-hidden="true"
                   sx={{
-                    ...panelChromeSx,
-                    p: { xs: 3, md: 3.5 },
-                    boxShadow: "none",
+                    position: "absolute",
+                    top: 12,
+                    right: 18,
+                    fontSize: { xs: "2.8rem", sm: "3.5rem" },
+                    fontWeight: 900,
+                    lineHeight: 1,
+                    letterSpacing: "-0.08em",
+                    color: "transparent",
+                    WebkitTextStroke: "1px rgba(96,165,250,0.5)",
+                    textShadow: "0 12px 30px rgba(37,99,235,0.18)",
+                    opacity: 0.95,
+                    userSelect: "none",
                   }}
                 >
-                  <Box
-                    aria-hidden="true"
-                    sx={{
-                      position: "absolute",
-                      top: 12,
-                      right: 18,
-                      fontSize: { xs: "2.8rem", sm: "3.5rem" },
-                      fontWeight: 900,
-                      lineHeight: 1,
-                      letterSpacing: "-0.08em",
-                      color: "transparent",
-                      WebkitTextStroke: "1px rgba(96,165,250,0.5)",
-                      textShadow: "0 12px 30px rgba(37,99,235,0.18)",
-                      opacity: 0.95,
-                      userSelect: "none",
-                    }}
-                  >
-                    {formattedRank}
-                  </Box>
-                  <Typography variant="overline" color="primary">
-                    AI Shenanigan
-                  </Typography>
-                  {renderRightsStamp()}
-                  <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
-                    {title}
-                  </Typography>
-                  <Typography color="text.secondary" className="leading-7">
-                    {blurb}
-                  </Typography>
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    useFlexGap
-                    flexWrap="wrap"
-                    sx={{
-                      mt: 2.5,
-                      alignItems: "center",
-                      display: { xs: current ? "none" : "flex", lg: "flex" },
-                    }}
-                  >
-                    {renderChronologyChips("main")}
-                  </Stack>
-                  <Box
-                    sx={{
-                      mt: 3,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 1.5,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Box>
-                      {current && renderNextAction() && (
-                        <Button variant="text" onClick={resetReveal}>
-                          Start Over
-                        </Button>
-                      )}
-                    </Box>
+                  {formattedRank}
+                </Box>
+                {renderRightsStamp()}
+                <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
+                  {title}
+                </Typography>
+                {/* <Button
+                  size="small"
+                  variant="text"
+                  onClick={() =>
+                    setIsInfoPanelMinimized((currentValue) => !currentValue)
+                  }
+                  endIcon={
+                    <EmojiGlyph
+                      glyph={isInfoPanelMinimized ? "🔽" : "🔼"}
+                      slot="end"
+                      size="0.95rem"
+                    />
+                  }
+                  sx={{
+                    mt: 0.25,
+                    mb: 1,
+                    display: { xs: "inline-flex", md: "none" },
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  {isInfoPanelMinimized ? "Expand Panel" : "Minimize Panel"}
+                </Button> */}
+                {!(isSmallScreen && isInfoPanelMinimized) && (
+                  <>
+                    <Typography
+                      color="text.secondary"
+                      className="leading-7"
+                      sx={{
+                        maxHeight: isSmallScreen ? "15dvh" : "auto",
+                        overflowY: isSmallScreen ? "auto" : "visible",
+                      }}
+                    >
+                      {blurb}
+                    </Typography>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      useFlexGap
+                      flexWrap="wrap"
+                      sx={{
+                        mt: 2.5,
+                        alignItems: "center",
+                        display: { xs: current ? "none" : "flex", md: "flex" },
+                      }}
+                    >
+                      {renderChronologyChips("main")}
+                    </Stack>
                     <Box
                       sx={{
+                        mt: 3,
+                        position: {
+                          xs: "static",
+                          md: hasVisibleMedia ? "sticky" : "static",
+                        },
+                        bottom: { md: 0 },
+                        pt: { md: hasVisibleMedia ? 1.5 : 0 },
+                        pb: { md: hasVisibleMedia ? 0.25 : 0 },
+                        zIndex: { md: 1 },
+                        background: {
+                          xs: "transparent",
+                          md: hasVisibleMedia
+                            ? (theme) =>
+                                `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0)} 0%, ${alpha(theme.palette.background.paper, 0.72)} 24%, ${alpha(theme.palette.background.paper, 0.88)} 100%)`
+                            : "transparent",
+                        },
+                        backdropFilter: {
+                          md: hasVisibleMedia ? "blur(4px)" : "none",
+                        },
                         display: "flex",
+                        alignItems: "flex-end",
                         justifyContent: "flex-end",
                         gap: 1.5,
+                        flexGrow: 1,
                         flexWrap: "wrap",
                       }}
                     >
-                      {renderNextAction() ??
-                        (current && (
-                          <Chip
-                            label="Sequence Finished: Start Over 🔁"
-                            color="primary"
-                            variant="outlined"
-                            clickable
+                      <Box>
+                        {current && renderNextAction() && (
+                          <Button
+                            variant="text"
                             onClick={resetReveal}
-                          />
-                        ))}
+                            startIcon={
+                              <EmojiGlyph glyph="🔁" slot="start" size="1rem" />
+                            }
+                          >
+                            Start Over
+                          </Button>
+                        )}
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          gap: 1.5,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {renderNextAction() ??
+                          (current && (
+                            <Button
+                              variant="contained"
+                              onClick={resetReveal}
+                              endIcon={<EmojiGlyph glyph="🔁" slot="end" />}
+                            >
+                              Sequence Finished: Start Over
+                            </Button>
+                          ))}
+                      </Box>
                     </Box>
-                  </Box>
-                </Box>
+                  </>
+                )}
               </Box>
             </Box>
-            <Stack
-              spacing={2}
-              sx={{
-                minWidth: 0,
-                flex: "1 1 auto",
-                width: "100%",
-                maxWidth: {
-                  xs: "100%",
-                  lg: hasVisibleMedia ? "calc(100% - 340px)" : 0,
-                },
-                flexBasis: {
-                  xs: "100%",
-                  lg: hasVisibleMedia ? "calc(100% - 340px)" : "0px",
-                },
-                opacity: hasVisibleMedia ? 1 : 0,
-                transform: hasVisibleMedia
-                  ? "translate3d(0, 0, 0)"
-                  : "translate3d(28px, 0, 0)",
-                overflow: "hidden",
-                pointerEvents: hasVisibleMedia ? "auto" : "none",
-                transition:
-                  "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
-              }}
-            >
-              {revealedWorkCount > 0 && (
-                <Stack ref={workSectionRef} spacing={2}>
-                  {normalizedWorkParts
-                    .slice(0, revealedWorkCount)
-                    .map((part, index) => renderWorkPart(part, index))}
-                </Stack>
-              )}
+          </Box>
+          <Stack
+            spacing={2}
+            sx={{
+              minWidth: 0,
+              flex: "1 1 auto",
+              width: "100%",
+              height: hasVisibleMedia ? "80dvh" : 0,
+              overflowY: "auto",
+              overflowX: "hidden",
+              pr: { md: 1.25 },
+              maxWidth: {
+                xs: hasVisibleMedia ? "100%" : 0,
+                md: hasVisibleMedia ? "calc(100% - 400px)" : 0,
+              },
+              flexBasis: {
+                xs: hasVisibleMedia ? "100%" : "0px",
+                md: hasVisibleMedia ? "calc(100% - 400px)" : "0px",
+              },
+              opacity: hasVisibleMedia ? 1 : 0,
+              transform: hasVisibleMedia
+                ? "translate3d(0, 0, 0)"
+                : "translate3d(28px, 0, 0)",
+              pointerEvents: hasVisibleMedia ? "auto" : "none",
+              order: { xs: 1, md: 1 },
+              transition:
+                "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
+            }}
+          >
+            {revealedWorkCount > 0 && (
+              <Stack ref={workSectionRef} spacing={2}>
+                {normalizedWorkParts
+                  .slice(0, revealedWorkCount)
+                  .map((part, index) => (
+                    <Box key={`${part.src}-${index}`}>
+                      {index > 0 && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            py: 0.5,
+                          }}
+                        >
+                          {renderArrow("down", true)}
+                        </Box>
+                      )}
+                      {renderWorkPart(part, index)}
+                    </Box>
+                  ))}
+              </Stack>
+            )}
 
-              {revealedWorkCount === totalWorkParts && totalSeriesParts > 0 && (
-                <>
-                  <Box
-                    sx={{
-                      display: { xs: "flex", xl: "none" },
-                      justifyContent: "center",
-                    }}
-                  >
-                    {renderArrow("down", showSeriesArrow)}
-                  </Box>
-                  <Box
-                    sx={{
-                      display: { xs: "none", xl: "flex" },
-                      justifyContent: "center",
-                    }}
-                  >
-                    {renderArrow("right", showSeriesArrow)}
-                  </Box>
-                </>
-              )}
+            {revealedWorkCount === totalWorkParts && totalSeriesParts > 0 && (
+              <>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
+                  {renderArrow("down", showSeriesArrow)}
+                </Box>
+              </>
+            )}
 
-              {revealedSeriesCount > 0 && (
-                <Stack ref={seriesSectionRef} spacing={2}>
-                  {normalizedSeriesParts
-                    .slice(0, revealedSeriesCount)
-                    .map((part, index) => renderSeriesPart(part, index))}
-                </Stack>
-              )}
-            </Stack>
+            {revealedSeriesCount > 0 && (
+              <Stack ref={seriesSectionRef} spacing={2}>
+                {normalizedSeriesParts
+                  .slice(0, revealedSeriesCount)
+                  .map((part, index) => (
+                    <Box key={`${part.src}-${index}`}>
+                      {index > 0 && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            py: 0.5,
+                          }}
+                        >
+                          {renderArrow("down", true)}
+                        </Box>
+                      )}
+                      {renderSeriesPart(part, index)}
+                    </Box>
+                  ))}
+              </Stack>
+            )}
           </Stack>
         </Stack>
-      </ShenaniganPanel>
-    
+      </Stack>
+    </AIShenaniganPanel>
   );
 }

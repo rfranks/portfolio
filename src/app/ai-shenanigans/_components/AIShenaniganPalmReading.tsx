@@ -8,10 +8,12 @@ import Chip from "@mui/material/Chip";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { alpha, useTheme } from "@mui/material/styles";
+import EmojiGlyph from "@/components/shared/EmojiGlyph";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import ImageLightbox from "@/components/shared/ImageLightbox";
-import ShenaniganPanel from "./ShenaniganPanel";
+import AIShenaniganPanel from "./AIShenaniganPanel";
 import { withBasePath } from "@/utils/basePath";
 
 type RevealStage = "intro" | "raw" | "analyzed" | "lines" | "reading";
@@ -73,6 +75,9 @@ export default function AIShenaniganPalmReading({
   palmReadingSource,
   palmReadingSourceHref,
 }: AIShenaniganPalmReadingProps) {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
   const [stage, setStage] = useState<RevealStage>("intro");
   const [markdownContent, setMarkdownContent] = useState<string | null>(null);
   const [isMarkdownLoading, setIsMarkdownLoading] = useState(false);
@@ -80,8 +85,10 @@ export default function AIShenaniganPalmReading({
   const [rawMediaLoaded, setRawMediaLoaded] = useState(false);
   const [analyzedMediaLoaded, setAnalyzedMediaLoaded] = useState(false);
   const [linesMediaLoaded, setLinesMediaLoaded] = useState(false);
-  const [pendingScrollStage, setPendingScrollStage] =
-    useState<Exclude<RevealStage, "intro"> | null>(null);
+  const [pendingScrollStage, setPendingScrollStage] = useState<Exclude<
+    RevealStage,
+    "intro"
+  > | null>(null);
   const rawPanelRef = useRef<HTMLDivElement | null>(null);
   const analyzedPanelRef = useRef<HTMLDivElement | null>(null);
   const linesPanelRef = useRef<HTMLDivElement | null>(null);
@@ -124,20 +131,26 @@ export default function AIShenaniganPalmReading({
     }
   }, [stage]);
 
-  const nextLabel = useMemo(() => {
+  const nextAction = useMemo<{ label: string; glyph: string } | null>(() => {
     switch (nextStage) {
       case "raw":
-        return "Reveal Raw Image 🖐️";
+        return { label: "Reveal Raw Image", glyph: "🖐️" };
       case "analyzed":
-        return "Reveal Analyzed Image 🔎";
+        return { label: "Reveal Analyzed Image", glyph: "🔎" };
       case "lines":
-        return "Reveal Palm Line Analysis 🧬";
+        return { label: "Reveal Palm Line Analysis", glyph: "🧬" };
       case "reading":
-        return "Reveal Palm Reading 🔮";
+        return { label: "Reveal Palm Reading", glyph: "🔮" };
       default:
         return null;
     }
   }, [nextStage]);
+
+  useEffect(() => {
+    if (!isSmallScreen) {
+      setIsInfoPanelMinimized(false);
+    }
+  }, [isSmallScreen]);
 
   useEffect(() => {
     if (!palmReadingMarkdownPath) {
@@ -276,7 +289,11 @@ export default function AIShenaniganPalmReading({
 
     return (
       <Box sx={{ mt: 1.5 }}>
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: "block" }}
+        >
           Source:{" "}
           {href ? (
             <Link
@@ -293,7 +310,11 @@ export default function AIShenaniganPalmReading({
           )}
         </Typography>
         {isChatGptGptLink(href) && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: "block", mt: 0.25 }}
+          >
             Requires ChatGPT Pro subscription.
           </Typography>
         )}
@@ -338,348 +359,378 @@ export default function AIShenaniganPalmReading({
   };
 
   return (
-    
-      <ShenaniganPanel>
-        <Stack spacing={3}>
-          <Stack
-            spacing={2.5}
-            direction={{ xs: "column", md: "row" }}
+    <AIShenaniganPanel>
+      <Stack spacing={3}>
+        <Stack
+          spacing={2.5}
+          direction={{ xs: "column", md: "row" }}
+          sx={{
+            alignItems: { xs: "stretch", md: "flex-start" },
+            overflow: { xs: "hidden", md: "visible" },
+          }}
+        >
+          <Box
             sx={{
-              alignItems: { xs: "stretch", md: "flex-start" },
-              overflow: { xs: "hidden", md: "visible" },
+              width: "100%",
+              minWidth: { xs: 0, md: hasVisibleMedia ? 340 : 0 },
+              maxWidth: { xs: "100%", md: hasVisibleMedia ? 340 : "100%" },
+              flexBasis: {
+                xs: "100%",
+                md: hasVisibleMedia ? "340px" : "100%",
+              },
+              flexShrink: 0,
             }}
           >
             <Box
               sx={{
-                width: "100%",
-                minWidth: { xs: 0, md: hasVisibleMedia ? 340 : 0 },
-                maxWidth: { xs: "100%", md: hasVisibleMedia ? 340 : "100%" },
-                flexBasis: {
-                  xs: "100%",
-                  md: hasVisibleMedia ? "340px" : "100%",
+                position: {
+                  xs: "static",
+                  md: hasVisibleMedia ? "sticky" : "static",
                 },
-                flexShrink: 0,
+                top: { md: 104 },
+                maxHeight: {
+                  xs: "none",
+                  md: hasVisibleMedia ? "calc(100dvh - 120px)" : "none",
+                },
+                overflowY: {
+                  xs: "visible",
+                  md: hasVisibleMedia ? "auto" : "visible",
+                },
+                overscrollBehaviorY: { md: "contain" },
+                pr: { md: hasVisibleMedia ? 0.5 : 0 },
               }}
             >
               <Box
+                className="relative overflow-hidden"
                 sx={{
-                  position: {
-                    xs: "static",
-                    md: hasVisibleMedia ? "sticky" : "static",
-                  },
-                  top: { md: 104 },
-                  maxHeight: {
-                    xs: "none",
-                    md: hasVisibleMedia ? "calc(100dvh - 120px)" : "none",
-                  },
-                  overflowY: {
-                    xs: "visible",
-                    md: hasVisibleMedia ? "auto" : "visible",
-                  },
-                  overscrollBehaviorY: { md: "contain" },
-                  pr: { md: hasVisibleMedia ? 0.5 : 0 },
+                  ...panelChromeSx,
+                  p: { xs: 3, md: 3.5 },
+                  boxShadow: "none",
                 }}
               >
                 <Box
-                  className="relative overflow-hidden"
+                  aria-hidden="true"
                   sx={{
-                    ...panelChromeSx,
-                    p: { xs: 3, md: 3.5 },
-                    boxShadow: "none",
+                    position: "absolute",
+                    top: 12,
+                    right: 18,
+                    fontSize: { xs: "2.8rem", sm: "3.5rem" },
+                    fontWeight: 900,
+                    lineHeight: 1,
+                    letterSpacing: "-0.08em",
+                    color: "transparent",
+                    WebkitTextStroke: "1px rgba(96,165,250,0.5)",
+                    textShadow: "0 12px 30px rgba(37,99,235,0.18)",
+                    opacity: 0.95,
+                    userSelect: "none",
                   }}
                 >
-                  <Box
-                    aria-hidden="true"
-                    sx={{
-                      position: "absolute",
-                      top: 12,
-                      right: 18,
-                      fontSize: { xs: "2.8rem", sm: "3.5rem" },
-                      fontWeight: 900,
-                      lineHeight: 1,
-                      letterSpacing: "-0.08em",
-                      color: "transparent",
-                      WebkitTextStroke: "1px rgba(96,165,250,0.5)",
-                      textShadow: "0 12px 30px rgba(37,99,235,0.18)",
-                      opacity: 0.95,
-                      userSelect: "none",
-                    }}
-                  >
-                    {formattedRank}
-                  </Box>
-                  <Typography variant="overline" color="primary">
-                    Palmylyzer Pro
-                  </Typography>
-                  {renderRightsStamp()}
-                  <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
-                    {title}
-                  </Typography>
-                  <Typography color="text.secondary" className="leading-7">
-                    {blurb}
-                  </Typography>
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    useFlexGap
-                    flexWrap="wrap"
-                    sx={{ mt: 2.5, alignItems: "center" }}
-                  >
-                    {[
-                      { label: "Raw", key: "raw" as const },
-                      { label: "Analyzed", key: "analyzed" as const },
-                      { label: "Palm Lines", key: "lines" as const },
-                      { label: "Reading", key: "reading" as const },
-                    ].map((item) => {
-                      const reached = isStageVisible(item.key);
-                      const active = stage === item.key;
-                      return (
-                        <Chip
-                          key={item.key}
-                          label={item.label}
-                          color={active ? "primary" : "default"}
-                          variant={active ? "filled" : "outlined"}
-                          size="small"
-                          clickable={reached}
-                          onClick={
-                            reached
-                              ? () => {
-                                  navigateToStage(item.key);
-                                }
-                              : undefined
-                          }
-                        />
-                      );
-                    })}
-                  </Stack>
-                  <Box
-                    sx={{
-                      mt: 3,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 1.5,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Box>
-                      {stage !== "intro" && (
-                        <Button variant="text" onClick={() => navigateToStage("intro")}>
-                          Start Over
-                        </Button>
-                      )}
-                    </Box>
-                    <Box>
-                      {nextLabel ? (
-                        <Button
-                          variant="contained"
-                          onClick={() => navigateToStage(nextStage!)}
-                        >
-                          {nextLabel}
-                        </Button>
-                      ) : (
-                        stage !== "intro" && (
-                          <Chip
-                            label="Sequence Finished: Start Over 🔁"
-                            color="primary"
-                            variant="outlined"
-                            clickable
-                            onClick={() => navigateToStage("intro")}
-                          />
-                        )
-                      )}
-                    </Box>
-                  </Box>
+                  {formattedRank}
                 </Box>
+                {renderRightsStamp()}
+                <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
+                  {title}
+                </Typography>
+                {/* <Button
+                  size="small"
+                  variant="text"
+                  onClick={() =>
+                    setIsInfoPanelMinimized((currentValue) => !currentValue)
+                  }
+                  endIcon={
+                    <EmojiGlyph
+                      glyph={isInfoPanelMinimized ? "🔽" : "🔼"}
+                      slot="end"
+                      size="0.95rem"
+                    />
+                  }
+                  sx={{
+                    mt: 0.25,
+                    mb: 1,
+                    display: { xs: "inline-flex", md: "none" },
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  {isInfoPanelMinimized ? "Expand Panel" : "Minimize Panel"}
+                </Button> */}
+                {!(isSmallScreen && isInfoPanelMinimized) && (
+                  <>
+                    <Typography color="text.secondary" className="leading-7">
+                      {blurb}
+                    </Typography>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      useFlexGap
+                      flexWrap="wrap"
+                      sx={{ mt: 2.5, alignItems: "center" }}
+                    >
+                      {[
+                        { label: "Raw", key: "raw" as const },
+                        { label: "Analyzed", key: "analyzed" as const },
+                        { label: "Palm Lines", key: "lines" as const },
+                        { label: "Reading", key: "reading" as const },
+                      ].map((item) => {
+                        const reached = isStageVisible(item.key);
+                        const active = stage === item.key;
+                        return (
+                          <Chip
+                            key={item.key}
+                            label={item.label}
+                            color={active ? "primary" : "default"}
+                            variant={active ? "filled" : "outlined"}
+                            size="small"
+                            clickable={reached}
+                            onClick={
+                              reached
+                                ? () => {
+                                    navigateToStage(item.key);
+                                  }
+                                : undefined
+                            }
+                          />
+                        );
+                      })}
+                    </Stack>
+                    <Box
+                      sx={{
+                        mt: 3,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 1.5,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <Box>
+                        {stage !== "intro" && (
+                          <Button
+                            variant="text"
+                            onClick={() => navigateToStage("intro")}
+                            startIcon={
+                              <EmojiGlyph glyph="🔁" slot="start" size="1rem" />
+                            }
+                          >
+                            Start Over
+                          </Button>
+                        )}
+                      </Box>
+                      <Box>
+                        {nextAction ? (
+                          <Button
+                            variant="contained"
+                            onClick={() => navigateToStage(nextStage!)}
+                            endIcon={
+                              <EmojiGlyph glyph={nextAction.glyph} slot="end" />
+                            }
+                          >
+                            {nextAction.label}
+                          </Button>
+                        ) : (
+                          stage !== "intro" && (
+                            <Button
+                              variant="contained"
+                              onClick={() => navigateToStage("intro")}
+                              endIcon={<EmojiGlyph glyph="🔁" slot="end" />}
+                            >
+                              Sequence Finished: Start Over
+                            </Button>
+                          )
+                        )}
+                      </Box>
+                    </Box>
+                  </>
+                )}
               </Box>
             </Box>
+          </Box>
 
-            <Stack
-              spacing={2}
-              sx={{
-                minWidth: 0,
-                flex: "1 1 auto",
-                width: "100%",
-                maxWidth: {
-                  xs: "100%",
-                  md: hasVisibleMedia ? "calc(100% - 340px)" : 0,
-                },
-                flexBasis: {
-                  xs: "100%",
-                  md: hasVisibleMedia ? "calc(100% - 340px)" : "0px",
-                },
-                opacity: hasVisibleMedia ? 1 : 0,
-                transform: hasVisibleMedia
-                  ? "translate3d(0, 0, 0)"
-                  : "translate3d(28px, 0, 0)",
-                overflow: "hidden",
-                pointerEvents: hasVisibleMedia ? "auto" : "none",
-                transition:
-                  "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
-              }}
-            >
-              {isStageVisible("raw") && (
-                <Box sx={mediaPanelSx} ref={rawPanelRef}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Raw image
-                  </Typography>
-                  <ImageLightbox
+          <Stack
+            spacing={2}
+            sx={{
+              minWidth: 0,
+              flex: "1 1 auto",
+              width: "100%",
+              maxWidth: {
+                xs: "100%",
+                md: hasVisibleMedia ? "calc(100% - 340px)" : 0,
+              },
+              flexBasis: {
+                xs: "100%",
+                md: hasVisibleMedia ? "calc(100% - 340px)" : "0px",
+              },
+              opacity: hasVisibleMedia ? 1 : 0,
+              transform: hasVisibleMedia
+                ? "translate3d(0, 0, 0)"
+                : "translate3d(28px, 0, 0)",
+              overflow: "hidden",
+              pointerEvents: hasVisibleMedia ? "auto" : "none",
+              transition:
+                "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
+            }}
+          >
+            {isStageVisible("raw") && (
+              <Box sx={mediaPanelSx} ref={rawPanelRef}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Raw image
+                </Typography>
+                <ImageLightbox
+                  src={withBasePath(rawImage)}
+                  alt={`${title} raw image`}
+                  title={`${title} — Raw Image`}
+                  caption={rawCaption || rawSource}
+                >
+                  <Image
                     src={withBasePath(rawImage)}
                     alt={`${title} raw image`}
-                    title={`${title} — Raw Image`}
-                    caption={rawCaption || rawSource}
+                    width={1200}
+                    height={900}
+                    className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                    style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
+                    onLoad={() => setRawMediaLoaded(true)}
+                    onError={() => setRawMediaLoaded(true)}
+                  />
+                </ImageLightbox>
+                {renderSource(rawSource, rawSourceHref)}
+                {rawCaption && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: rawSource ? 0.75 : 1.5 }}
                   >
-                    <Image
-                      src={withBasePath(rawImage)}
-                      alt={`${title} raw image`}
-                      width={1200}
-                      height={900}
-                      className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                      style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
-                      onLoad={() => setRawMediaLoaded(true)}
-                      onError={() => setRawMediaLoaded(true)}
-                    />
-                  </ImageLightbox>
-                  {renderSource(rawSource, rawSourceHref)}
-                  {rawCaption && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: rawSource ? 0.75 : 1.5 }}
-                    >
-                      {rawCaption}
-                    </Typography>
-                  )}
-                </Box>
-              )}
-
-              {isStageVisible("analyzed") && analyzedImage && (
-                <Box sx={mediaPanelSx} ref={analyzedPanelRef}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Analyzed image
+                    {rawCaption}
                   </Typography>
-                  <ImageLightbox
+                )}
+              </Box>
+            )}
+
+            {isStageVisible("analyzed") && analyzedImage && (
+              <Box sx={mediaPanelSx} ref={analyzedPanelRef}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Analyzed image
+                </Typography>
+                <ImageLightbox
+                  src={withBasePath(analyzedImage)}
+                  alt={`${title} analyzed image`}
+                  title={`${title} — Analyzed Image`}
+                  caption={analyzedCaption || analyzedSource}
+                >
+                  <Image
                     src={withBasePath(analyzedImage)}
                     alt={`${title} analyzed image`}
-                    title={`${title} — Analyzed Image`}
-                    caption={analyzedCaption || analyzedSource}
+                    width={1200}
+                    height={900}
+                    className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                    style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
+                    onLoad={() => setAnalyzedMediaLoaded(true)}
+                    onError={() => setAnalyzedMediaLoaded(true)}
+                  />
+                </ImageLightbox>
+                {renderSource(analyzedSource, analyzedSourceHref)}
+                {analyzedCaption && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: analyzedSource ? 0.75 : 1.5 }}
                   >
-                    <Image
-                      src={withBasePath(analyzedImage)}
-                      alt={`${title} analyzed image`}
-                      width={1200}
-                      height={900}
-                      className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                      style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
-                      onLoad={() => setAnalyzedMediaLoaded(true)}
-                      onError={() => setAnalyzedMediaLoaded(true)}
-                    />
-                  </ImageLightbox>
-                  {renderSource(analyzedSource, analyzedSourceHref)}
-                  {analyzedCaption && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: analyzedSource ? 0.75 : 1.5 }}
-                    >
-                      {analyzedCaption}
-                    </Typography>
-                  )}
-                </Box>
-              )}
-
-              {isStageVisible("lines") && palmLineAnalysisImage && (
-                <Box sx={mediaPanelSx} ref={linesPanelRef}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Palm line analysis image
+                    {analyzedCaption}
                   </Typography>
-                  <ImageLightbox
+                )}
+              </Box>
+            )}
+
+            {isStageVisible("lines") && palmLineAnalysisImage && (
+              <Box sx={mediaPanelSx} ref={linesPanelRef}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Palm line analysis image
+                </Typography>
+                <ImageLightbox
+                  src={withBasePath(palmLineAnalysisImage)}
+                  alt={`${title} palm line analysis image`}
+                  title={`${title} — Palm Line Analysis`}
+                  caption={palmLineAnalysisCaption || palmLineAnalysisSource}
+                >
+                  <Image
                     src={withBasePath(palmLineAnalysisImage)}
                     alt={`${title} palm line analysis image`}
-                    title={`${title} — Palm Line Analysis`}
-                    caption={palmLineAnalysisCaption || palmLineAnalysisSource}
+                    width={1200}
+                    height={900}
+                    className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
+                    style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
+                    onLoad={() => setLinesMediaLoaded(true)}
+                    onError={() => setLinesMediaLoaded(true)}
+                  />
+                </ImageLightbox>
+                {renderSource(
+                  palmLineAnalysisSource,
+                  palmLineAnalysisSourceHref,
+                )}
+                {palmLineAnalysisCaption && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: palmLineAnalysisSource ? 0.75 : 1.5 }}
                   >
-                    <Image
-                      src={withBasePath(palmLineAnalysisImage)}
-                      alt={`${title} palm line analysis image`}
-                      width={1200}
-                      height={900}
-                      className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                      style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
-                      onLoad={() => setLinesMediaLoaded(true)}
-                      onError={() => setLinesMediaLoaded(true)}
+                    {palmLineAnalysisCaption}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {isStageVisible("reading") && (
+              <Box sx={mediaPanelSx} ref={readingPanelRef}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  {palmReadingTitle || "Palm reading text"}
+                </Typography>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: "16px",
+                    border: "1px solid",
+                    borderColor: "var(--fabric-surface-border)",
+                    backgroundColor: (theme) =>
+                      alpha(theme.palette.background.paper, 0.4),
+                  }}
+                >
+                  {effectiveReadingContent ? (
+                    <MarkdownContent
+                      content={effectiveReadingContent}
+                      sx={{
+                        "& h1, & h2, & h3, & h4, & h5, & h6": {
+                          mt: 1.5,
+                          mb: 0.75,
+                          fontWeight: 700,
+                          lineHeight: 1.25,
+                          color: "text.primary",
+                        },
+                        "& h1": { fontSize: "1.22rem" },
+                        "& h2": { fontSize: "1.1rem" },
+                        "& h3": { fontSize: "1rem" },
+                        "& p": {
+                          mb: 1.2,
+                          lineHeight: 1.7,
+                        },
+                        "& ul, & ol": {
+                          mb: 1.2,
+                        },
+                      }}
                     />
-                  </ImageLightbox>
-                  {renderSource(
-                    palmLineAnalysisSource,
-                    palmLineAnalysisSourceHref,
-                  )}
-                  {palmLineAnalysisCaption && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: palmLineAnalysisSource ? 0.75 : 1.5 }}
-                    >
-                      {palmLineAnalysisCaption}
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      {isMarkdownLoading
+                        ? "Loading reading..."
+                        : hasMarkdownLoadError
+                          ? "Reading text is unavailable."
+                          : "No reading text provided."}
                     </Typography>
                   )}
                 </Box>
-              )}
-
-              {isStageVisible("reading") && (
-                <Box sx={mediaPanelSx} ref={readingPanelRef}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    {palmReadingTitle || "Palm reading text"}
-                  </Typography>
-                  <Box
-                    sx={{
-                      p: 2,
-                      borderRadius: "16px",
-                      border: "1px solid",
-                      borderColor: "var(--fabric-surface-border)",
-                      backgroundColor: (theme) =>
-                        alpha(theme.palette.background.paper, 0.4),
-                    }}
-                  >
-                    {effectiveReadingContent ? (
-                      <MarkdownContent
-                        content={effectiveReadingContent}
-                        sx={{
-                          "& h1, & h2, & h3, & h4, & h5, & h6": {
-                            mt: 1.5,
-                            mb: 0.75,
-                            fontWeight: 700,
-                            lineHeight: 1.25,
-                            color: "text.primary",
-                          },
-                          "& h1": { fontSize: "1.22rem" },
-                          "& h2": { fontSize: "1.1rem" },
-                          "& h3": { fontSize: "1rem" },
-                          "& p": {
-                            mb: 1.2,
-                            lineHeight: 1.7,
-                          },
-                          "& ul, & ol": {
-                            mb: 1.2,
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        {isMarkdownLoading
-                          ? "Loading reading..."
-                          : hasMarkdownLoadError
-                            ? "Reading text is unavailable."
-                            : "No reading text provided."}
-                      </Typography>
-                    )}
-                  </Box>
-                  {renderSource(palmReadingSource, palmReadingSourceHref)}
-                </Box>
-              )}
-            </Stack>
+                {renderSource(palmReadingSource, palmReadingSourceHref)}
+              </Box>
+            )}
           </Stack>
         </Stack>
-      </ShenaniganPanel>
-    
+      </Stack>
+    </AIShenaniganPanel>
   );
 }
