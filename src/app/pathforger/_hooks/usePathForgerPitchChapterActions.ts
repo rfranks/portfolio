@@ -184,6 +184,20 @@ export function usePathForgerPitchChapterActions(
       : currentSelection;
   };
 
+  const resolvePitchTitle = (
+    pitches: PathForgerPitchResult,
+    pitchChoice: PathForgerPitchChoice,
+  ): string => {
+    const selected = pitches.pitches.find((pitch) => pitch.id === pitchChoice);
+    const title = selected?.title?.trim() ?? "";
+    if (title.length > 0) {
+      return title;
+    }
+
+    const fallback = pitches.adventureTitle?.trim() ?? "";
+    return fallback.length > 0 ? fallback : `Pitch ${pitchChoice}`;
+  };
+
   const handlePitchMe = async (options?: { forceRefresh?: boolean }) => {
     const forceRefresh = options?.forceRefresh ?? false;
     setErrorMessage("");
@@ -285,6 +299,10 @@ export function usePathForgerPitchChapterActions(
     }
 
     const chapterNumber = options?.chapterNumber ?? 1;
+    const selectedPitchTitle = resolvePitchTitle(pitchSource, pitchChoice);
+    enqueueStatusMessage(
+      `Building Chapter ${chapterNumber} package for ${selectedPitchTitle}...`,
+    );
     const selectedBranchForGeneration =
       (options?.selectedBranch ?? selectedBranch) || undefined;
     const targetCoverKey = buildPitchCoverCacheKey({
@@ -591,15 +609,17 @@ export function usePathForgerPitchChapterActions(
   const handlePitchModalOk = async () => {
     setPitchModalOpen(false);
 
-    if (!visiblePitches) {
+    const pitchSource = visiblePitches ?? result?.pitches ?? null;
+    if (!pitchSource) {
+      setErrorMessage("Unable to resolve pitches. Please click Create it! again.");
       return;
     }
 
-    const currentPitchSelection = resolveCurrentPitchSelection(visiblePitches);
+    const currentPitchSelection = resolveCurrentPitchSelection(pitchSource);
 
     await handleGenerateChapterPackageForPitch(
       currentPitchSelection,
-      visiblePitches,
+      pitchSource,
     );
   };
 

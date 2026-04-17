@@ -191,6 +191,7 @@ export const runImageStageInputSchema = z.object({
   apiKey: z.string().min(1),
   onboarding: onboardingInputSchema,
   imagePrompts: imagePromptSetSchema,
+  coverTitle: z.string().optional(),
   selectedBranch: z.enum(["A", "B"]).optional(),
   selfieDataUrl: z.string().optional(),
   defaultModel: z.string().optional(),

@@ -3,12 +3,15 @@ import type {
   PathForgerImageType,
 } from "@/app/pathforger/_types/pipeline";
 
+export const DEV_MODE = process.env.NODE_ENV === "development";
+
 export const DEFAULT_TEXT_MODEL_ID = "gpt-4.1-mini";
-export const DEFAULT_IMAGE_MODEL_ID = "gpt-4.1";
+export const DEFAULT_IMAGE_MODEL_ID = "gpt-image-1-mini";
 export const DEFAULT_ONE_OFF_MODEL_ID = DEFAULT_TEXT_MODEL_ID;
 
 export const defaultModelOptions = [
   "gpt-5.2",
+  "gpt-image-1-mini",
   "gpt-image-1",
   "gpt-4.1",
   "gpt-4.1-mini",
@@ -44,6 +47,17 @@ export const imageTypeOrder: PathForgerImageType[] = [
 export const pitchPanelBorderRadius = "8px";
 export const pitchCacheStorageKey = "pathforger-last-pitches-v1";
 export const pathForgerStateStorageKey = "pathforger-state-v1";
+export const pathForgerSampleStorageArtifactPath =
+  "/pathforger/sample/localStorage.sample.json";
+export const pathForgerSampleImageByType: Record<PathForgerImageType, string> =
+  {
+    cover: "/pathforger/sample/cover.png",
+    chapterSpread: "/pathforger/sample/chapterSpread.png",
+    choicePreviewA: "/pathforger/sample/optionA.png",
+    choicePreviewB: "/pathforger/sample/optionB.png",
+    outcomeA: "/pathforger/sample/outcomeA.png",
+    outcomeB: "/pathforger/sample/outcomeB.png",
+  };
 
 export const optionBranchOrder: PathForgerBranchChoice[] = ["A", "B"];
 

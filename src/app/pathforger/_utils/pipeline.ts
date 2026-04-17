@@ -7,9 +7,11 @@ import { imagePromptSetSchema, pathForgerChapterCoreResultSchema, pathForgerChap
 
 const RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_TEXT_MODEL = "gpt-4.1-mini";
-const DEFAULT_IMAGE_MODEL = "gpt-image-1";
+const DEFAULT_IMAGE_MODEL = "gpt-image-1-mini";
 const TARGET_IMAGE_SIZE = "1024x1024";
 const MAX_PARALLEL_IMAGE_CALLS = 6;
+const IMAGE_RATE_LIMIT_MAX_RETRIES = 3;
+const IMAGE_RATE_LIMIT_BASE_DELAY_MS = 1_500;
 const SELFIE_REFERENCE_IMAGE_TYPES: ReadonlySet<PathForgerImageType> = new Set([
   "choicePreviewA",
   "choicePreviewB",
@@ -269,6 +271,95 @@ function extractErrorMessage(payload: Record<string, unknown>): string {
   return "";
 }
 
+function extractErrorCode(payload: Record<string, unknown>): string {
+  const errorPayload =
+    typeof payload.error === "object" && payload.error
+      ? (payload.error as Record<string, unknown>)
+      : null;
+
+  if (typeof errorPayload?.code === "string") {
+    return errorPayload.code;
+  }
+
+  return "";
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function parseRetryAfterMs(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  const numeric = Number(trimmed);
+  if (Number.isFinite(numeric) && numeric > 0) {
+    return Math.ceil(numeric * 1_000);
+  }
+
+  const dateMs = Date.parse(trimmed);
+  if (!Number.isNaN(dateMs)) {
+    const delta = dateMs - Date.now();
+    return delta > 0 ? delta : null;
+  }
+
+  return null;
+}
+
+function isRateLimitResponse(
+  status: number,
+  payload: Record<string, unknown>,
+  message: string,
+): boolean {
+  if (status === 429) {
+    return true;
+  }
+
+  const code = extractErrorCode(payload).toLowerCase();
+  if (code === "rate_limit_exceeded") {
+    return true;
+  }
+
+  const lower = message.toLowerCase();
+  return lower.includes("rate limit");
+}
+
+function resolveRateLimitDelayMs(
+  response: Response,
+  message: string,
+  attempt: number,
+): number {
+  const headerDelayMs = parseRetryAfterMs(response.headers.get("retry-after"));
+  if (headerDelayMs !== null) {
+    return Math.max(500, headerDelayMs);
+  }
+
+  const retryInMatch = message.match(
+    /try again in\s+(\d+(?:\.\d+)?)\s*(ms|millisecond|milliseconds|s|sec|secs|second|seconds)?/i,
+  );
+  if (retryInMatch) {
+    const numeric = Number(retryInMatch[1]);
+    if (Number.isFinite(numeric) && numeric > 0) {
+      const unit = (retryInMatch[2] ?? "s").toLowerCase();
+      const multiplier =
+        unit.startsWith("ms") || unit.startsWith("millisecond") ? 1 : 1_000;
+      return Math.max(500, Math.ceil(numeric * multiplier));
+    }
+  }
+
+  const exponential = IMAGE_RATE_LIMIT_BASE_DELAY_MS * Math.pow(2, attempt);
+  const jitter = Math.floor(Math.random() * 450);
+  return exponential + jitter;
+}
+
 function extractTextFromResponse(payload: unknown): string {
   if (!payload || typeof payload !== "object") {
     return "";
@@ -443,18 +534,53 @@ function sanitizeRiskHudMarkdown(markdown: string): string {
 
 function stripChapterChoicesTail(markdown: string): string {
   const lines = markdown.split(/\r?\n/);
+  const sectionKeywordPattern =
+    "(?:path\\s*ledger|pathledger|your\\s+choices?|choices?|option\\s*[ab]|outcome\\s*[ab]|continue\\s+prompt|risk\\s*hud|image\\s*prompts?)";
+
   const cutIndex = lines.findIndex((line) => {
     const normalized = normalizeForHeadingMatch(line);
-    return (
-      normalized === "your choices" || normalized.startsWith("your choices ")
-    );
+    if (
+      normalized === "your choices" ||
+      normalized.startsWith("your choices ") ||
+      normalized === "choices" ||
+      normalized === "path ledger" ||
+      normalized === "pathledger" ||
+      normalized.startsWith("path ledger ") ||
+      normalized.startsWith("pathledger ") ||
+      normalized.startsWith("option a") ||
+      normalized.startsWith("option b") ||
+      normalized.startsWith("outcome a") ||
+      normalized.startsWith("outcome b") ||
+      normalized.startsWith("continue prompt") ||
+      normalized.startsWith("risk hud") ||
+      normalized.startsWith("image prompts") ||
+      normalized.startsWith("image prompt")
+    ) {
+      return true;
+    }
+
+    if (
+      new RegExp(`^\\s*#{1,6}\\s*${sectionKeywordPattern}\\b`, "i").test(line)
+    ) {
+      return true;
+    }
+
+    if (
+      new RegExp(
+        `^\\s*(?:[-+*]\\s*)?${sectionKeywordPattern}\\s*(?:[:—–-]|$)`,
+        "i",
+      ).test(line)
+    ) {
+      return true;
+    }
+
+    return false;
   });
 
-  if (cutIndex < 0) {
-    return markdown.trim();
-  }
+  const narrative =
+    cutIndex < 0 ? markdown.trim() : lines.slice(0, cutIndex).join("\n").trim();
 
-  return lines.slice(0, cutIndex).join("\n").trim();
+  return narrative.replace(/\n\s*(?:[-*_]\s*){3,}\s*$/g, "").trim();
 }
 
 function normalizeChoiceRiskHud<T extends { riskHudMarkdown: string }>(
@@ -528,18 +654,38 @@ function buildCoverPromptFromPitch(input: {
   const coverTitle =
     selectedPitchTitle.length > 0 ? selectedPitchTitle : fallbackAdventureTitle;
 
+  return buildCoverPromptFromTitle({
+    onboarding: input.onboarding,
+    coverTitle,
+    teaserMarkdown: selectedPitch.markdown,
+    contextTitle:
+      fallbackAdventureTitle.length > 0 ? fallbackAdventureTitle : undefined,
+  });
+}
+
+function buildCoverPromptFromTitle(input: {
+  onboarding: PathForgerOnboardingInput;
+  coverTitle: string;
+  teaserMarkdown?: string;
+  contextTitle?: string;
+}): string {
+  const sanitizedCoverTitle = input.coverTitle.trim();
+  const teaser = input.teaserMarkdown
+    ? markdownToPlainText(input.teaserMarkdown, 260)
+    : "";
+  const contextTitle = input.contextTitle?.trim() ?? "";
+
   return [
     "Create a premium front-facing novel book cover illustration.",
-    `Book Title: "${coverTitle}"`,
-    `Pitch Focus: Option ${selectedPitch.id} — ${selectedPitchTitle}`,
-    `Pitch Teaser: ${markdownToPlainText(selectedPitch.markdown, 260)}`,
-    fallbackAdventureTitle.length > 0
-      ? `Adventure Context: "${fallbackAdventureTitle}"`
-      : "",
+    `Book Title: "${sanitizedCoverTitle}"`,
+    teaser ? `Story Teaser: ${teaser}` : "",
+    contextTitle ? `Story Context Title: "${contextTitle}"` : "",
     "",
     "Cover requirements:",
     "- The main title text must be large, high-contrast, clean, and legible.",
     "- The title must read exactly as written in the Book Title field.",
+    "- Never render chapter labels or chapter titles (e.g., 'Chapter 1', 'Chapter N — ...').",
+    "- Do not include any text besides the exact Book Title.",
     "- Composition should feel like a real published book cover (not a scene still).",
     "- Keep supporting text minimal and subordinate to the title.",
     "",
@@ -1697,13 +1843,34 @@ async function requestImageAsset(params: {
     return { response, data };
   };
 
-  let { response, data } = await runRequest(
+  const runRequestWithRateLimitRetry = async (
+    body: Record<string, unknown>,
+  ) => {
+    let attempt = 0;
+
+    while (true) {
+      const result = await runRequest(body);
+      const message = extractErrorMessage(result.data);
+      if (
+        !isRateLimitResponse(result.response.status, result.data, message) ||
+        attempt >= IMAGE_RATE_LIMIT_MAX_RETRIES
+      ) {
+        return result;
+      }
+
+      const delayMs = resolveRateLimitDelayMs(result.response, message, attempt);
+      await sleep(delayMs);
+      attempt += 1;
+    }
+  };
+
+  let { response, data } = await runRequestWithRateLimitRetry(
     requestWithPreferredToolOptions as unknown as Record<string, unknown>,
   );
 
   const firstAttemptMessage = extractErrorMessage(data);
   if (shouldRetryWithMinimalToolOptions(response.status, firstAttemptMessage)) {
-    ({ response, data } = await runRequest(
+    ({ response, data } = await runRequestWithRateLimitRetry(
       requestWithMinimalToolOptions as unknown as Record<string, unknown>,
     ));
 
@@ -1711,7 +1878,7 @@ async function requestImageAsset(params: {
     if (
       shouldRetryWithMinimalToolOptions(response.status, secondAttemptMessage)
     ) {
-      ({ response, data } = await runRequest(
+      ({ response, data } = await runRequestWithRateLimitRetry(
         requestWithBareToolOptions as unknown as Record<string, unknown>,
       ));
     }
@@ -2346,6 +2513,20 @@ export async function runPathForgerImageStage(
     }
   }
 
+  if (renderImages.cover) {
+    const coverTitle =
+      input.coverTitle?.trim() ||
+      extractCoverTitleHintFromPrompt(resolvedImagePrompts.cover) ||
+      "";
+    if (coverTitle.length > 0) {
+      resolvedImagePrompts.cover = buildCoverPromptFromTitle({
+        onboarding: input.onboarding,
+        coverTitle,
+        teaserMarkdown: resolvedImagePrompts.cover,
+      });
+    }
+  }
+
   const imageJobs = buildImageJobList(resolvedImagePrompts, renderImages);
   const { images, imageErrors } = await runImageJobsParallel({
     jobs: imageJobs,
@@ -2496,6 +2677,7 @@ export async function runPathForgerPipeline(
       apiKey: input.apiKey,
       onboarding: input.onboarding,
       imagePrompts: chapter.imagePrompts,
+      coverTitle: selectedPitchTitle,
       selectedBranch: input.selectedBranch,
       selfieDataUrl: input.selfieDataUrl,
       imageModel,

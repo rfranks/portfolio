@@ -678,52 +678,8 @@ export default function PathForgerCreateStoryPanel(
               </Stack>
             </Paper>
           ) : null}
-          <TextField
-            fullWidth
-            label="Protagonist Name Preference"
-            placeholder="Auto-generate a name"
-            value={protagonistPreference}
-            onChange={(event) =>
-              onProtagonistPreferenceChange(event.target.value)
-            }
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Tooltip
-                    title={
-                      activeRunAction === "name"
-                        ? "Forging protagonist name..."
-                        : "Generate protagonist name"
-                    }
-                  >
-                    <span>
-                      <IconButton
-                        edge="end"
-                        aria-label="Generate protagonist name"
-                        onClick={onGenerateProtagonistName}
-                        disabled={isRunning}
-                        color={
-                          activeRunAction === "name" ? "primary" : "default"
-                        }
-                        size="small"
-                      >
-                        <Typography
-                          component="span"
-                          sx={{ fontSize: "1.1rem", lineHeight: 1 }}
-                        >
-                          ⚡
-                        </Typography>
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 2 }}
-          />
-
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} sx={{ order: 1 }}>
               <TextField
                 select
                 fullWidth
@@ -761,44 +717,54 @@ export default function PathForgerCreateStoryPanel(
               </TextField>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} sx={{ order: 4 }}>
               <TextField
-                select
                 fullWidth
-                label="Chapter Length"
-                value={adventureLength}
+                label="Protagonist Name Preference"
+                placeholder="Auto-generate a name"
+                value={protagonistPreference}
                 onChange={(event) =>
-                  onAdventureLengthChange(event.target.value as AdventureLength)
+                  onProtagonistPreferenceChange(event.target.value)
                 }
-                SelectProps={{
-                  renderValue: () =>
-                    renderDecoratedOption(
-                      selectedChapterLengthOption,
-                      "selected",
-                    ),
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Tooltip
+                        title={
+                          activeRunAction === "name"
+                            ? "Forging protagonist name..."
+                            : "Generate protagonist name"
+                        }
+                      >
+                        <span>
+                          <IconButton
+                            edge="end"
+                            aria-label="Generate protagonist name"
+                            onClick={onGenerateProtagonistName}
+                            disabled={isRunning}
+                            color={
+                              activeRunAction === "name"
+                                ? "primary"
+                                : "default"
+                            }
+                            size="small"
+                          >
+                            <Typography
+                              component="span"
+                              sx={{ fontSize: "1.1rem", lineHeight: 1 }}
+                            >
+                              ⚡
+                            </Typography>
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </InputAdornment>
+                  ),
                 }}
-                sx={{
-                  "& .MuiSelect-select": {
-                    display: "flex",
-                    alignItems: "center",
-                    minHeight: "3.6rem !important",
-                    py: 0.75,
-                  },
-                }}
-              >
-                {chapterLengthOptionVisuals.map((item) => (
-                  <MenuItem
-                    key={item.label}
-                    value={item.label}
-                    sx={{ py: 1.4, minHeight: 68 }}
-                  >
-                    {renderDecoratedOption(item, "menu")}
-                  </MenuItem>
-                ))}
-              </TextField>
+              />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item xs={12} sx={{ order: 5 }}>
               <TextField
                 fullWidth
                 multiline
@@ -847,7 +813,7 @@ export default function PathForgerCreateStoryPanel(
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item xs={12} sx={{ order: 6 }}>
               <TextField
                 fullWidth
                 label="Tone"
@@ -889,7 +855,7 @@ export default function PathForgerCreateStoryPanel(
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item xs={12} sx={{ order: 7 }}>
               <TextField
                 fullWidth
                 label="Style"
@@ -933,7 +899,7 @@ export default function PathForgerCreateStoryPanel(
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item xs={12} sx={{ order: 2 }}>
               <Typography variant="subtitle2" sx={{ mb: 0.85 }}>
                 Age Rating
               </Typography>
@@ -968,10 +934,7 @@ export default function PathForgerCreateStoryPanel(
                     position: "relative",
                     zIndex: 1,
                     display: "grid",
-                    gridTemplateColumns: {
-                      xs: "repeat(2, minmax(0, 1fr))",
-                      md: "repeat(5, minmax(0, 1fr))",
-                    },
+                    gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
                     gap: 1,
                   }}
                 >
@@ -1063,6 +1026,43 @@ export default function PathForgerCreateStoryPanel(
                   themes enabled.
                 </Alert>
               ) : null}
+            </Grid>
+
+            <Grid item xs={12} sx={{ order: 3 }}>
+              <TextField
+                select
+                fullWidth
+                label="Chapter Length"
+                value={adventureLength}
+                onChange={(event) =>
+                  onAdventureLengthChange(event.target.value as AdventureLength)
+                }
+                SelectProps={{
+                  renderValue: () =>
+                    renderDecoratedOption(
+                      selectedChapterLengthOption,
+                      "selected",
+                    ),
+                }}
+                sx={{
+                  "& .MuiSelect-select": {
+                    display: "flex",
+                    alignItems: "center",
+                    minHeight: "3.6rem !important",
+                    py: 0.75,
+                  },
+                }}
+              >
+                {chapterLengthOptionVisuals.map((item) => (
+                  <MenuItem
+                    key={item.label}
+                    value={item.label}
+                    sx={{ py: 1.4, minHeight: 68 }}
+                  >
+                    {renderDecoratedOption(item, "menu")}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
           </Grid>
         </Box>
