@@ -1,0 +1,167 @@
+{
+  "pathforger-last-pitches-v1": {
+    "adventureTitle": "Shadow of the New Predator",
+    "protagonistName": "Protagonist",
+    "onboardingRecapMarkdown": "Restored PathForger session.",
+    "pitches": [
+      {
+        "id": "A",
+        "title": "Island of Shadows",
+        "markdown": "The island awakens with a roar as power flickers and the sharp-eyed Dr. Alan Grant finds himself trapped in a jungle where dinosaurs outnumber humans. Electric fences are silent, radios crackle with static, and an eerie calm masks lurking predators. You must navigate deep undergrowth, abandoned visitor centers, and broken roads while piecing together what caused the collapse. Survival hinges on your ability to predict dinosaur behavior and outwit both beast and desperate humans. When you uncover a hidden cryptic message hinting at sabotage, the stakes escalate beyond survival to uncovering a deadly conspiracy.\n\nEvery decision counts: do you stick to the visitor trails hoping for rescue, or venture into unknown wilderness seeking a safe haven? The island’s ancient inhabitants and modern dangers blur under a canopy of tension, where one false move can attract the wrong kind of attention. Time is against you as food runs low and the predators grow bolder with each passing hour.\n\nWith the jungle as both ally and adversary, your mission shifts from observation to leadership. Will you rally stranded survivors or trust your solo instincts? Each step through the dense undergrowth is a test of wit, courage, and endurance in a relentless dance with nature’s oldest killers."
+      },
+      {
+        "id": "B",
+        "title": "Predator’s Gambit",
+        "markdown": "The park’s pride turns into a deadly game when the apex predators break free, hunting with terrifying intelligence and ferocity. Dr. Alan Grant must confront primal fears as he tracks the cunning raptors that stalk the shadows and the colossal T. rex whose thunderous footsteps shake the earth. Your knowledge of dinosaur psychology becomes a weapon, but the stakes are high; predators think differently than humans, and their territory is every place you might hide.\n\nWith limited resources and fractured technology, the island is a gauntlet of escalating dangers. Allies are scarce and trust is a precious commodity as misunderstandings and panic spread like wildfire. Facing looming death, you’ll decipher patterns in the predators’ tactics, navigating traps laid by both nature and humans twisted by desperation.\n\nEvery choice weighs risk against survival: confront the predators with clever diversions, or sneak through their territory hoping to remain unseen? Will you use the island’s defunct tech to your advantage or rely solely on raw instinct? This is a high-stakes gambit where the hunt is on, and only the sharpest mind and calmest nerves will prevail."
+      },
+      {
+        "id": "C",
+        "title": "Echoes of Extinction",
+        "markdown": "As the park crumbles, Dr. Alan Grant races against time to extract survivors while uncovering the island’s buried secrets. The line between predator and protector blurs as corporate greed and ancient instinct clash in a crescendo of chaos. Every moment exposes deeper faults in the park’s design and the hubris that sparked its creation.\n\nIn this sprawling saga, you encounter fractured factions—scientists desperate to contain the disaster, mercenaries with unknown motives, and terrified visitors clinging to hope. Alliances form and shatter under pressure, forcing you to weigh loyalty against pragmatism. Heart-pounding encounters with the dinosaurs underscore a powerful theme: nature cannot be controlled, only respected or feared.\n\nYour survival depends on piecing together scattered clues about genetic experiments and security failures while fighting off both human and dinosaur threats. The island itself is a labyrinth of mystery and menace, leading to revelations that could rewrite history or seal your fate forever.\n"
+      }
+    ],
+    "recommendedPitch": "A",
+    "choosePromptMarkdown": "Select your adventure."
+  },
+  "pathforger-state-v1": {
+    "version": 1,
+    "form": {
+      "genre": "Sci-fi",
+      "tone": "Thrilling survival with prehistoric wonder",
+      "dangerLevel": "Risky",
+      "adventureLength": "Very long",
+      "protagonistPreference": "Dr. Alan Grant",
+      "recentGeneratedProtagonistNames": [
+        "Lyra Keane",
+        "Kira Halsey",
+        "Axel Brightwing",
+        "Sable Renner",
+        "Kaela Draven",
+        "Renaya Solis",
+        "Jax Corvin",
+        "Elara Myles",
+        "Mira Caldren"
+      ],
+      "recentGeneratedPremises": [
+        "On a distant planet where prehistoric creatures have been revived through advanced biotech, Dr. Lyra Keane races to protect a fragile research colony from deadly predators while uncovering a conspiracy that could endanger humanity's foothold in the galaxy.",
+        "On a crumbling frontier station that archives forbidden dinosaur DNA, exobiologist Dr. Kira Halsey confronts shadowy factions vying to weaponize prehistoric beasts reborn through biotech, forcing her to navigate desperate alliances and lethal betrayals to prevent an all-out apocalypse.",
+        "In a colorful galaxy filled with quirky planets, a young robotic explorer named Axel Brightwing is tasked with fixing broken ecosystems before their unique creatures vanish forever, but every repair mission brings playful puzzles and unexpected friends.",
+        "When mischievous inventor Sable Renner discovers a mysterious glowing map in her attic, she embarks on a daring quest through enchanted forests and shadowy groves to unlock an ancient secret that could save her village from an encroaching silence.",
+        "In a vast realm where friendship and courage are tested, young adventurer Sable Renner discovers a hidden power within herself that could save her village from a dark threat, but every choice risks turning allies into foes and innocence into harsh lessons.",
+        "In the depths of a frozen exoplanet, bioengineer Sable Renner is drawn into a lethal corporate war over a newly discovered alien genome that could rewrite human biology-facing betrayal, extreme environments, and moral decay, she must decide what sacrifices will define humanity's future.",
+        "In a sprawling, war-torn space colony fractured by corporate wars and mutating biotech, renegade pilot Kaela Draven must navigate moral ambiguity and deadly alliances to uncover a conspiracy that threatens to enslave what remains of humanity-and decide how much she's willing to sacrifice to save it.",
+        "On a harsh, windswept colony at the edge of human space, Renaya Solis, a conflicted exo-anthropologist, races against time to dismantle a corporate conspiracy exploiting alien biotechnology-each choice risks deadly betrayal, moral collapse, or the fragile survival of an entire species.",
+        "After uncovering a clandestine biotech program that weaponizes human emotions on a hostile mining colony, Renaya Solis must navigate treacherous alliances and brutal power plays to expose the truth before the experiment detonates a sociopolitical war across the sector.",
+        "In a distant galaxy simmering with political decay, disillusioned ex-diplomat Renaya Solis becomes entangled in a shadow war between rival planets vying for control of an ancient AI relic rumored to rewrite reality itself-her choices will tip the scales between salvation and apocalypse.",
+        "In the lawless frontier of a shattered exoplanet, disgraced pilot Jax Corvin is hired to transport a cargo that every faction wants dead or alive, forcing him into deadly alliances and betrayals that could ignite full-scale war and unearth secrets far darker than the planet itself.",
+        "After a biotech experiment goes awry, geneticist Elara Myles must navigate a fractured space colony where mutated creatures and rogue AI threaten survival, all while uncovering a conspiracy that could alter human evolution itself.",
+        "As an ex-special forces operative turned renegade, Mira Caldren infiltrates a sprawling off-world mining colony seething with political unrest and brutal corporate exploitation, where she must unravel violent conspiracies and decide which alliances to trust before her past catches up and the colony explodes into rebellion.",
+        "When a ruthless colony governor secretly activates a forbidden terraforming device, you, a disgraced exobiologist, must navigate hostile terrain and tangled loyalties to prevent environmental catastrophe and expose buried conspiracies before the planet-and your past-are lost forever.",
+        "In a future where few can explore beyond Earth, a young exo-biologist discovers a whisper of alien life beneath the ice of Titan, sparking a race against corporation mercenaries to uncover secrets that could reshape humanity's place in the cosmos."
+      ],
+      "premise": "You are Dr. Alan Grant, a brilliant and battle-tested paleontologist who has spent your life studying the bones, behavior, and brutal beauty of dinosaurs. You believe the prehistoric world deserves respect, not spectacle. When eccentric billionaire John Hammond invites you to a remote island to witness a scientific miracle, you expect exaggerated claims and corporate theater. Instead, you come face to face with the impossible: living dinosaurs, resurrected through modern science inside a fully built theme park called Jurassic Park.\n\nAt first, the island feels like the greatest discovery in human history. Towering herbivores roam ancient valleys. Predators stalk the jungle edge. The past is alive again. But beneath the wonder, something is deeply wrong. The people who built this place believe electric fences, computer systems, and human confidence are enough to contain creatures shaped by instinct, hunger, and survival. You know better. These are not attractions. They are animals, and nature does not obey marketing plans.\n\nYour story begins as awe turns into dread. Systems fail. Order collapses. Predators slip free. Children and civilians are stranded. The island becomes a deadly maze of jungle roads, abandoned facilities, shattered enclosures, and ancient instincts reborn. As Dr. Alan Grant, you must use your intelligence, field experience, courage, and understanding of dinosaur behavior to survive, protect others, and navigate a nightmare where every decision could mean rescue, revelation, or death.\n",
+      "visualStyle": "think saturday morning cartoon",
+      "romanceMode": "Optional romance",
+      "allowPermanentDeath": true,
+      "ageRating": "PG-13",
+      "personalizedImages": false,
+      "selectedPitch": "A",
+      "selectedBranch": "",
+      "defaultModel": "gpt-4.1-mini",
+      "textModel": "gpt-4.1-mini",
+      "imageModel": "gpt-image-1-mini",
+      "renderImages": {
+        "cover": true,
+        "chapterSpread": true,
+        "choicePreviewA": true,
+        "choicePreviewB": true,
+        "outcomeA": true,
+        "outcomeB": true
+      },
+      "selfieName": ""
+    },
+    "story": {
+      "pitchInputSignature": null,
+      "pitchOnlyResult": {
+        "adventureTitle": "Shadow of the New Predator",
+        "protagonistName": "Protagonist",
+        "onboardingRecapMarkdown": "Restored PathForger session.",
+        "pitches": [
+          {
+            "id": "A",
+            "title": "Island of Shadows",
+            "markdown": "The island awakens with a roar as power flickers and the sharp-eyed Dr. Alan Grant finds himself trapped in a jungle where dinosaurs outnumber humans. Electric fences are silent, radios crackle with static, and an eerie calm masks lurking predators. You must navigate deep undergrowth, abandoned visitor centers, and broken roads while piecing together what caused the collapse. Survival hinges on your ability to predict dinosaur behavior and outwit both beast and desperate humans. When you uncover a hidden cryptic message hinting at sabotage, the stakes escalate beyond survival to uncovering a deadly conspiracy.\n\nEvery decision counts: do you stick to the visitor trails hoping for rescue, or venture into unknown wilderness seeking a safe haven? The island’s ancient inhabitants and modern dangers blur under a canopy of tension, where one false move can attract the wrong kind of attention. Time is against you as food runs low and the predators grow bolder with each passing hour.\n\nWith the jungle as both ally and adversary, your mission shifts from observation to leadership. Will you rally stranded survivors or trust your solo instincts? Each step through the dense undergrowth is a test of wit, courage, and endurance in a relentless dance with nature’s oldest killers."
+          },
+          {
+            "id": "B",
+            "title": "Predator’s Gambit",
+            "markdown": "The park’s pride turns into a deadly game when the apex predators break free, hunting with terrifying intelligence and ferocity. Dr. Alan Grant must confront primal fears as he tracks the cunning raptors that stalk the shadows and the colossal T. rex whose thunderous footsteps shake the earth. Your knowledge of dinosaur psychology becomes a weapon, but the stakes are high; predators think differently than humans, and their territory is every place you might hide.\n\nWith limited resources and fractured technology, the island is a gauntlet of escalating dangers. Allies are scarce and trust is a precious commodity as misunderstandings and panic spread like wildfire. Facing looming death, you’ll decipher patterns in the predators’ tactics, navigating traps laid by both nature and humans twisted by desperation.\n\nEvery choice weighs risk against survival: confront the predators with clever diversions, or sneak through their territory hoping to remain unseen? Will you use the island’s defunct tech to your advantage or rely solely on raw instinct? This is a high-stakes gambit where the hunt is on, and only the sharpest mind and calmest nerves will prevail."
+          },
+          {
+            "id": "C",
+            "title": "Echoes of Extinction",
+            "markdown": "As the park crumbles, Dr. Alan Grant races against time to extract survivors while uncovering the island’s buried secrets. The line between predator and protector blurs as corporate greed and ancient instinct clash in a crescendo of chaos. Every moment exposes deeper faults in the park’s design and the hubris that sparked its creation.\n\nIn this sprawling saga, you encounter fractured factions—scientists desperate to contain the disaster, mercenaries with unknown motives, and terrified visitors clinging to hope. Alliances form and shatter under pressure, forcing you to weigh loyalty against pragmatism. Heart-pounding encounters with the dinosaurs underscore a powerful theme: nature cannot be controlled, only respected or feared.\n\nYour survival depends on piecing together scattered clues about genetic experiments and security failures while fighting off both human and dinosaur threats. The island itself is a labyrinth of mystery and menace, leading to revelations that could rewrite history or seal your fate forever.\n"
+          }
+        ],
+        "recommendedPitch": "A",
+        "choosePromptMarkdown": "Select your adventure."
+      },
+      "chapterOnlyResult": {
+        "chapterNumber": 8,
+        "chapterTitle": "The Heart of the Beast",
+        "chapterMarkdown": "The humming control chamber buzzes with life, screens flickering as your partial override shakes the systems awake. Despite the precarious fix, the atmosphere is electric with both hope and warning. Ellie leans in, eyes sharp, ready to assist as you sort through layers of corrupted coding intertwined with Hammond's protocols. Outside, the rhythmic thumps of the cyborg dinosaur's pacing grow louder, resonating through the reinforced walls.\n\nYou feel the weight of the moment. This room is the heart of Jurassic Park's fragile order-reclaim control here, or risk total chaos. The corrupted files slow you, a tangle of digital static mixing with missing commands. You scan for patterns, clues hidden in lines of glitching code-Hammond's handwriting remarks etched into the metadata beneath the flashy corporate interface.\n\nSuddenly, an alert blares. The secondary power grid is failing fast. The lights flicker as cooling systems begin to stutter. You realize that stabilizing the park won't be simple rerouting; it will require manual intervention deeper in the core-where the power conduits snake like massive veins.\n\nEllie's voice cuts through the hum sharply. 'We need to get down there. These systems won't hold much longer, and if the power dies, the fences go down-'\n\nYou nod. The elevator you barely trusted earlier hangs in your mind, but the option to take the maintenance tunnels offers a darker path, winding but potentially safer from the cyborg's sensors. The tunnels map is incomplete, only fragments of old schematics on your device, but it's the only chance to reach the core controls without riding the elevator again.\n\nYou grab your multitool and flashlight, the familiar weight grounding you. Ellie shoulders her rifle, her breath steady but determined. The air circuits stutter overhead, warn of dwindling time. Outside, the now-faint but growing roar of the T. rex reminds you that the island is a waiting predator itself.\n\nTogether, you descend into the shadowy maintenance tunnels, metal grates cold underfoot, the faint drip of condensation marking the silence. These corridors pulse with raw industrial life: pipes humming, sporadic flashes of pale tech lights, and the distant, erratic clicks of the cyborg's adaptive sensors searching, hunting.\n\nAs you wind deeper, a sudden power surge sends a flurry of sparks across a junction box. The hum wavers wildly-a reminder that the entire system teeters on the brink. Your screen flickers, showing partial telemetry on the power grid's heart-dangerously unstable.\n\nYour immediate goal crystallizes. Reach the core controls, reroute primary power, and buy more time before the island's electronic heartbeat flatlines. But the tunnels are a labyrinth, and with each step, the threat of discovery grows. Any mechanical whir could mean the cyborg's patrol or worse-one of the free predators drawn to the scent of failing lights and human movement.\n\nAhead, you spot a dim red light flickering on a panel-one of the few live nodes in the failing circuit-a potential spot to recalibrate power flow, but no guarantee it's unguarded.\n\nEllie studies the route quietly. 'We have to decide. Push through the heart of the tunnels or skirt around, risking the unknown? The clock is ticking.'\n\nYour pulse quickens. The island's wildness gnaws at the edges of technology and safety. Every decision feels like threading a needle between disaster and survival.\n\n",
+        "pathLedgerMarkdown": "Chapter: 8\nStatus: Bruised arm, fatigued, moderate shock, focused\nInventory: Multitool (partially used), flashlight, sidearm (limited ammo), GPS tracker, metal pipe, corrupted containment notes (partially uploaded)\nAllies: Dr. Ellie Sattler (armed, calm, alert)\nThreats: Cyborg dinosaur rebooting nearby, T. rex roaring in jungle, unstable power grid\nMajor Choices: Rode unstable elevator, partial system override, chose maintenance tunnels over elevator\nCurrent Objective: Reach core power controls via maintenance tunnels; stabilize power grid before fences fail",
+        "choices": [
+          {
+            "id": "A",
+            "label": "Push directly to the power core node",
+            "description": "You decide to head straight through the maintenance tunnel's central junction. It's the fastest route but the sensors there are rumored to be active and the unknown presence of free predators adds extra danger. Your focus and Ellie's watchful eyes will be critical.",
+            "riskHudMarkdown": "🎯 Success Probability: 62%\n⚠️ Threat Level: High\n🩹 Injury Risk: Moderate\n💸 Resource Cost: Low\n🏆 Reward Potential: High\n🧭 Key Risk Factors: active sensor zones, proximity to cyborg dinosaur, chance of predator encounter"
+          },
+          {
+            "id": "B",
+            "label": "Take the circuitous route around the tunnel perimeter",
+            "description": "Opt for a longer, quieter path on the tunnel outskirts. This route reduces risk of encountering sensor flares or predators but will cost more time, increasing the chance that the systems fail before you act.",
+            "riskHudMarkdown": "🎯 Success Probability: 51%\n⚠️ Threat Level: Moderate\n🩹 Injury Risk: Low\n💸 Resource Cost: Moderate (time, energy)\n🏆 Reward Potential: Moderate\n🧭 Key Risk Factors: power grid time failure, unknown tunnel conditions, extended exposure"
+          }
+        ],
+        "outcomeAMarkdown": "With steady breaths, you lead Ellie through the tunnel's heart where sensors flicker ominously. Your flashlight's beam cuts through shadows as you move swiftly but quietly, every sound amplified in the metal corridors. Suddenly, a sensor flare triggers-a low alarm buzzes-just as a heavy shadow slinks from a side passage. A velociraptor, vivid eyes glinting in the dim light, steps into view, its movement lethal and precise. Ellie raises her rifle, but you spot a loose panel in the wall; a quick, precise strike with your metal pipe creates a loud clang, distracting the creature long enough for you two to dash further before the beast recovers. Heart thudding, you reach the control node. Fingers working fast, you reroute power and stabilize the grid, the hum of restored energy flooding the tunnels. Your window is narrow but real-a hard-won victory from the jaws of disaster.",
+        "outcomeBMarkdown": "Taking the longer tunnel route, you and Ellie tread carefully along the perimeter, avoiding the sensor hotspots. The air grows colder, dripping water echoing softly on the metal. Time stretches thin; the failing power grid pulses dangerously on your device-a countdown ticking in your veins. Suddenly, a faint rumble shakes the tunnel; distant but closing. The cyborg dinosaur, probing deeper, sending electric charges into the ground. You double back and find an emergency access panel disguised behind a bulkhead. Working quickly, you reconnect fragile circuits, buying crucial minutes before the core fails. Though the route delayed you, your cautious approach preserves your energy and leaves you ready for the next challenge ahead.",
+        "continuePromptMarkdown": "The power grid teeters between collapse and survival. Will you face the sensor-guarded core directly, risking predator confrontation? Or take the longer path around, playing a dangerous game against time? Choose now-what is your path?",
+        "imagePrompts": {
+          "cover": "A vibrant, bold illustration in a Saturday morning cartoon style of Dr. Alan Grant gripping a multitool and flashlight, eyes determined as the flickering power control panels glow behind him. Ellie stands alert nearby, rifle ready. Towering silhouettes of dinosaurs loom in the jungle background under a bright sky. The book title 'The Heart of the Beast' appears in large, high-contrast, legible typography across the top, radiating excitement and adventure.",
+          "chapterSpread": "A dynamic underground scene in bright Saturday morning cartoon style showing Dr. Alan Grant and Ellie in a dimly lit metallic maintenance tunnel. Sparks fly from a broken panel, casting colorful light on the worried faces of the characters. Pipes and wires tangle overhead as rhythmic structural vibrations pulse through the corridor. Foreboding shadows hint at lurking threats beyond sight, setting a thrilling tone of survival and urgency.",
+          "choicePreviewA": "Dr. Alan Grant and Ellie peak around a sharp tunnel bend, faces tense and alert under the glow of flickering control lights. A pair of glowing velociraptor eyes catch faint light nearby, stalking silently in the shadowed corridor. The composition captures the moment right before danger converges with your bold advance.",
+          "choicePreviewB": "An elongated tunnel vista rendered in bright cartoon color, showing Dr. Alan Grant and Ellie moving cautiously along a quieter side passage lined with dormant machinery and shadowy pipes. The characters' expressions blend focus and wariness as distant electric pulses shimmer faintly on the metal surfaces, evoking tense patient stealth against looming threats.",
+          "outcomeA": "A vivid scene of Dr. Alan Grant and Ellie hastily repairing a power node inside the cramped maintenance tunnel, the velociraptor snarling just behind a bent metal grate. Sparks fly, light pulses dynamically illuminating the determined faces, dramatizing a narrow escape and a hard-won technical victory.",
+          "outcomeB": "Dr. Alan Grant kneeling and working a fragile emergency panel along a cold, shadow-rich tunnel wall, while Ellie watches vigilantly nearby with rifle poised. Electric glows trace along exposed pipes, signaling fragile network lifelines restored. The mood balances relief and ongoing tension, highlighting thoughtful survival amid persistent danger."
+        }
+      },
+      "imagePromptDrafts": {
+        "cover": "A vibrant, bold illustration in a Saturday morning cartoon style of Dr. Alan Grant gripping a multitool and flashlight, eyes determined as the flickering power control panels glow behind him. Ellie stands alert nearby, rifle ready. Towering silhouettes of dinosaurs loom in the jungle background under a bright sky. The book title 'The Heart of the Beast' appears in large, high-contrast, legible typography across the top, radiating excitement and adventure.",
+        "chapterSpread": "A dynamic underground scene in bright Saturday morning cartoon style showing Dr. Alan Grant and Ellie in a dimly lit metallic maintenance tunnel. Sparks fly from a broken panel, casting colorful light on the worried faces of the characters. Pipes and wires tangle overhead as rhythmic structural vibrations pulse through the corridor. Foreboding shadows hint at lurking threats beyond sight, setting a thrilling tone of survival and urgency.",
+        "choicePreviewA": "Dr. Alan Grant and Ellie peak around a sharp tunnel bend, faces tense and alert under the glow of flickering control lights. A pair of glowing velociraptor eyes catch faint light nearby, stalking silently in the shadowed corridor. The composition captures the moment right before danger converges with your bold advance.",
+        "choicePreviewB": "An elongated tunnel vista rendered in bright cartoon color, showing Dr. Alan Grant and Ellie moving cautiously along a quieter side passage lined with dormant machinery and shadowy pipes. The characters' expressions blend focus and wariness as distant electric pulses shimmer faintly on the metal surfaces, evoking tense patient stealth against looming threats.",
+        "outcomeA": "A vivid scene of Dr. Alan Grant and Ellie hastily repairing a power node inside the cramped maintenance tunnel, the velociraptor snarling just behind a bent metal grate. Sparks fly, light pulses dynamically illuminating the determined faces, dramatizing a narrow escape and a hard-won technical victory.",
+        "outcomeB": "Dr. Alan Grant kneeling and working a fragile emergency panel along a cold, shadow-rich tunnel wall, while Ellie watches vigilantly nearby with rifle poised. Electric glows trace along exposed pipes, signaling fragile network lifelines restored. The mood balances relief and ongoing tension, highlighting thoughtful survival amid persistent danger."
+      },
+      "imagePromptOverrides": {},
+      "activeOptionBranch": null,
+      "revealedOptionBranches": {
+        "A": false,
+        "B": false
+      },
+      "optionRevealTick": {
+        "A": 0,
+        "B": 0
+      },
+      "forgedOutcomes": {},
+      "journeyTabValue": "snapshot",
+      "lastForgedLedgerTransition": {
+        "chapterNumber": 7,
+        "previousMarkdown": "Chapter: 7\nStatus: Bruised arm, fatigued, alert, physically taxed from ventilation crawl\nInventory: Multitool, flashlight, sidearm (ammo low), GPS tracker, metal pipe, corrupted encrypted containment notes\nAllies: Dr. Ellie Sattler (armed, highly focused, relieved)\nThreats: Cyborg dinosaur rebooting (unaware of your approach), T. rex roaming island\nMajor Choices: Triggered controlled system overload (partial success, data corruption), chose stealth approach via ventilation shaft\nCurrent Objective: Regain systems control from within the control chamber; proceed cautiously to avoid cyborg detection",
+        "nextMarkdown": "Chapter: 7\nStatus: Bruised arm, fatigued, alert, physically taxed from ventilation crawl; moderate shock from elevator jolt\nInventory: Multitool (used for repair), flashlight, sidearm (ammo low), GPS tracker, metal pipe, corrupted encrypted containment notes (partially uploaded)\nAllies: Dr. Ellie Sattler (armed, highly focused, relieved)\nThreats: Cyborg dinosaur rebooting (alert, sensors active nearby), T. rex roaming island\nMajor Choices: Triggered controlled system overload (partial success, data corruption), chose stealth approach via ventilation shaft, rode unstable service elevator with temporary emergency repair\nCurrent Objective: Regain systems control from within the control chamber; leverage partial control to delay cyborg dinosaur threat and stabilize core systems"
+      }
+    }
+  }
+}
