@@ -76,10 +76,6 @@ export interface ToggleColorModeProps {
   toggleColorMode: () => void;
 }
 
-export interface FadeInSectionProps {
-  children: React.ReactNode;
-}
-
 export interface TitleProps {
   children?: React.ReactNode;
   sx?: SxProps<Theme>;

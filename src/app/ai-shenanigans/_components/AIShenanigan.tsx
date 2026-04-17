@@ -9,9 +9,9 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
-import FadeInSection from "@/components/shared/FadeInSection";
 import AIShenaniganAdaptation from "./AIShenaniganAdaptation";
 import AIShenaniganPalmReading from "./AIShenaniganPalmReading";
+import AIShenaniganSongRecording from "./AIShenaniganSongRecording";
 import AIShenaniganWorkSeries from "./AIShenaniganWorkSeries";
 import ShenaniganPanel from "./ShenaniganPanel";
 import { useAudio } from "@/hooks/audio/useAudio";
@@ -23,7 +23,8 @@ export type AIShenaniganType =
   | "default"
   | "book-to-limited-series"
   | "work-to-series-adaptation"
-  | "palmylyzer-pro";
+  | "palmylyzer-pro"
+  | "song-recording";
 
 type AIShenaniganProps = {
   type?: AIShenaniganType;
@@ -114,6 +115,19 @@ type AIShenaniganProps = {
   palmReadingMarkdownPath?: string;
   palmReadingSource?: string;
   palmReadingSourceHref?: string;
+  songAlbumImage?: string;
+  songAlbumSource?: string;
+  songAlbumSourceHref?: string;
+  songAlbumCaption?: string;
+  songAudio?: string;
+  songAudioSource?: string;
+  songAudioSourceHref?: string;
+  songAudioCaption?: string;
+  songWrittenBy?: string;
+  songPerformedBy?: string;
+  songLyricsMarkdownPath?: string;
+  songLyricsSource?: string;
+  songLyricsSourceHref?: string;
 };
 
 type RevealStage = "intro" | "realistic" | "stylized" | "movie";
@@ -209,6 +223,33 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         palmReadingMarkdownPath={props.palmReadingMarkdownPath}
         palmReadingSource={props.palmReadingSource}
         palmReadingSourceHref={props.palmReadingSourceHref}
+      />
+    );
+  }
+
+  if (props.type === "song-recording") {
+    return (
+      <AIShenaniganSongRecording
+        rank={props.rank}
+        title={props.title}
+        blurb={props.blurb}
+        intentToCopyright={props.intentToCopyright}
+        rightsNotice={props.rightsNotice}
+        songAlbumImage={props.songAlbumImage || props.realisticImage}
+        songAlbumSource={props.songAlbumSource || props.realisticSource}
+        songAlbumSourceHref={
+          props.songAlbumSourceHref || props.realisticSourceHref
+        }
+        songAlbumCaption={props.songAlbumCaption || props.realisticCaption}
+        songAudio={props.songAudio || ""}
+        songAudioSource={props.songAudioSource}
+        songAudioSourceHref={props.songAudioSourceHref}
+        songAudioCaption={props.songAudioCaption}
+        songWrittenBy={props.songWrittenBy}
+        songPerformedBy={props.songPerformedBy}
+        lyricsMarkdownPath={props.songLyricsMarkdownPath}
+        lyricsSource={props.songLyricsSource}
+        lyricsSourceHref={props.songLyricsSourceHref}
       />
     );
   }
@@ -927,7 +968,7 @@ function DefaultAIShenanigan({
   };
 
   return (
-    <FadeInSection>
+    
       <ShenaniganPanel>
         <Stack spacing={3}>
           <Stack
@@ -1369,6 +1410,6 @@ function DefaultAIShenanigan({
           </Stack>
         </Stack>
       </ShenaniganPanel>
-    </FadeInSection>
+    
   );
 }

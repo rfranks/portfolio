@@ -8,6 +8,7 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import Avatar from "@mui/material/Avatar";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import { withBasePath } from "@/utils/basePath";
 
@@ -42,10 +43,18 @@ export default function Recognition() {
                 <ListItem alignItems="flex-start" disableGutters>
                   {rec.imageSrcUrl && (
                     <ListItemAvatar>
-                      <Avatar
-                        alt={rec.name}
+                      <ImageLightbox
                         src={withBasePath(rec.imageSrcUrl)}
-                      />
+                        alt={rec.name}
+                        title={rec.name}
+                        caption={`${rec.title} · ${rec.date}`}
+                        triggerSx={{ borderRadius: "50%", lineHeight: 0 }}
+                      >
+                        <Avatar
+                          alt={rec.name}
+                          src={withBasePath(rec.imageSrcUrl)}
+                        />
+                      </ImageLightbox>
                     </ListItemAvatar>
                   )}
                   <ListItemText

@@ -5,14 +5,14 @@ import ListItemText from "@mui/material/ListItemText";
 import Box from "@mui/material/Box";
 import { education } from "@/consts/resumeData";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import FadeInSection from "@/components/shared/FadeInSection";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import { ListItemAvatar } from "@mui/material";
 import Image from "next/image";
 import { withBasePath } from "@/utils/basePath";
 
 export default function Education() {
   return (
-    <FadeInSection>
+    
       <PortfolioPanel>
         <Typography variant="h6" gutterBottom className="mb-4">
           Education
@@ -24,12 +24,20 @@ export default function Education() {
               className="rounded-2xl border border-white/10 bg-white/5 transition-all duration-200 ease-out dark:bg-white/[0.03] hover:-translate-y-0.5 hover:bg-white/10 dark:hover:bg-white/[0.06]"
             >
               <ListItemAvatar>
-                <Image
+                <ImageLightbox
                   src={withBasePath(edu.image)}
                   alt={edu.school}
-                  height={48}
-                  width={48}
-                />
+                  title={edu.school}
+                  caption={`${edu.degree} • ${edu.year}`}
+                  triggerSx={{ display: "inline-flex", borderRadius: 1 }}
+                >
+                  <Image
+                    src={withBasePath(edu.image)}
+                    alt={edu.school}
+                    height={48}
+                    width={48}
+                  />
+                </ImageLightbox>
               </ListItemAvatar>
               <ListItemText
                 primary={edu.school}
@@ -59,6 +67,6 @@ export default function Education() {
           ))}
         </List>
       </PortfolioPanel>
-    </FadeInSection>
+    
   );
 }

@@ -9,7 +9,6 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
-import FadeInSection from "@/components/shared/FadeInSection";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import ShenaniganPanel from "./ShenaniganPanel";
 import { withBasePath } from "@/utils/basePath";
@@ -338,7 +337,7 @@ export default function AIShenaniganPalmReading({
   };
 
   return (
-    <FadeInSection>
+    
       <ShenaniganPanel>
         <Stack spacing={3}>
           <Stack
@@ -659,6 +658,6 @@ export default function AIShenaniganPalmReading({
           </Stack>
         </Stack>
       </ShenaniganPanel>
-    </FadeInSection>
+    
   );
 }

@@ -4,12 +4,11 @@ import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
 import { competencies } from "@/consts/resumeData";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import FadeInSection from "@/components/shared/FadeInSection";
 import Chip from "@/components/fabric/Chip";
 
 export default function CoreCompetencies() {
   return (
-    <FadeInSection>
+    
       <PortfolioPanel className="h-full">
         <Typography variant="h6" gutterBottom className="mb-4">
           Core Competencies
@@ -47,6 +46,6 @@ export default function CoreCompetencies() {
           ))}
         </Stack>
       </PortfolioPanel>
-    </FadeInSection>
+    
   );
 }

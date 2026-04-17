@@ -23,7 +23,7 @@ import {
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { PathForgerGeneratedImage } from "@/app/pathforger/_types/pipeline";
 import type { JourneyLedgerPlaybackViewModel } from "@/app/pathforger/_types/journeyLedger";
-import PathForgerGeneratedImageLightbox from "@/app/pathforger/_components/PathForgerGeneratedImageLightbox";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import PathForgerJourneyLedgerCarousel from "@/app/pathforger/_components/PathForgerJourneyLedgerCarousel";
 
 type ActiveRunAction =
@@ -531,7 +531,7 @@ export default function PathForgerCreateStoryPanel(
                     overflow: "hidden",
                   }}
                 >
-                  <PathForgerGeneratedImageLightbox
+                  <ImageLightbox
                     src={coverImage.imageDataUrl}
                     alt="Cover preview"
                     title={coverImageTitle || "Story Cover"}
@@ -635,7 +635,7 @@ export default function PathForgerCreateStoryPanel(
               }}
             >
               <Stack spacing={1.1} alignItems="center">
-                <PathForgerGeneratedImageLightbox
+                <ImageLightbox
                   src={coverImage.imageDataUrl}
                   alt="Cover preview"
                   title={coverImageTitle || "Story Cover"}

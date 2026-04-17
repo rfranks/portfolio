@@ -9,7 +9,6 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
-import FadeInSection from "@/components/shared/FadeInSection";
 import ShenaniganPanel from "./ShenaniganPanel";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
@@ -1024,7 +1023,7 @@ export default function AIShenaniganAdaptation({
   };
 
   return (
-    <FadeInSection>
+    
       <ShenaniganPanel className="overflow-hidden">
         <Stack spacing={3}>
           <Stack
@@ -1453,6 +1452,6 @@ export default function AIShenaniganAdaptation({
           </Stack>
         </Stack>
       </ShenaniganPanel>
-    </FadeInSection>
+    
   );
 }

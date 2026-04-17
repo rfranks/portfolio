@@ -161,6 +161,19 @@ export default function AIShenanigansPageClient() {
                 palmReadingMarkdownPath?: string;
                 palmReadingSource?: string;
                 palmReadingSourceHref?: string;
+                songAlbumImage?: string;
+                songAlbumSource?: string;
+                songAlbumSourceHref?: string;
+                songAlbumCaption?: string;
+                songAudio?: string;
+                songAudioSource?: string;
+                songAudioSourceHref?: string;
+                songAudioCaption?: string;
+                songWrittenBy?: string;
+                songPerformedBy?: string;
+                songLyricsMarkdownPath?: string;
+                songLyricsSource?: string;
+                songLyricsSourceHref?: string;
                 intentToCopyright?: boolean;
                 rightsNotice?: string;
                 bookCoverImage?: string;
@@ -240,6 +253,15 @@ export default function AIShenanigansPageClient() {
                   : {}),
                 ...(itemWithLinks.palmReadingSourceHref
                   ? { palmReadingSourceHref: itemWithLinks.palmReadingSourceHref }
+                  : {}),
+                ...(itemWithLinks.songAlbumSourceHref
+                  ? { songAlbumSourceHref: itemWithLinks.songAlbumSourceHref }
+                  : {}),
+                ...(itemWithLinks.songAudioSourceHref
+                  ? { songAudioSourceHref: itemWithLinks.songAudioSourceHref }
+                  : {}),
+                ...(itemWithLinks.songLyricsSourceHref
+                  ? { songLyricsSourceHref: itemWithLinks.songLyricsSourceHref }
                   : {}),
                 ...(itemWithLinks.intentToCopyright
                   ? { intentToCopyright: itemWithLinks.intentToCopyright }
@@ -340,7 +362,9 @@ export default function AIShenanigansPageClient() {
                   title={item.title}
                   blurb={item.blurb}
                   orientation={item.orientation as AIShenaniganMovieOrientation}
-                  realisticImage={item.realisticImage as string}
+                  realisticImage={
+                    (item.realisticImage || itemWithLinks.songAlbumImage) as string
+                  }
                   realisticSource={item.realisticSource}
                   realisticCaption={item.realisticCaption}
                   stylizedRendering={item.stylizedRendering}
@@ -365,6 +389,16 @@ export default function AIShenanigansPageClient() {
                   palmReadingText={itemWithLinks.palmReadingText}
                   palmReadingMarkdownPath={itemWithLinks.palmReadingMarkdownPath}
                   palmReadingSource={itemWithLinks.palmReadingSource}
+                  songAlbumImage={itemWithLinks.songAlbumImage}
+                  songAlbumSource={itemWithLinks.songAlbumSource}
+                  songAlbumCaption={itemWithLinks.songAlbumCaption}
+                  songAudio={itemWithLinks.songAudio}
+                  songAudioSource={itemWithLinks.songAudioSource}
+                  songAudioCaption={itemWithLinks.songAudioCaption}
+                  songWrittenBy={itemWithLinks.songWrittenBy}
+                  songPerformedBy={itemWithLinks.songPerformedBy}
+                  songLyricsMarkdownPath={itemWithLinks.songLyricsMarkdownPath}
+                  songLyricsSource={itemWithLinks.songLyricsSource}
                   {...linkProps}
                 />
               );

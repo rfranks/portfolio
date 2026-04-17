@@ -9,6 +9,7 @@ import {
   Link,
 } from "@mui/material";
 import type { Accolade } from "@/types/components/portfolio";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import { withBasePath } from "@/utils/basePath";
 export type { Accolade } from "@/types/components/portfolio";
 
@@ -35,13 +36,21 @@ export default function AccoladesCarousel({
         >
           {acc.imageSrcUrl && (
             <Box sx={{ px: 2, pt: 2, display: "flex", justifyContent: "center" }}>
-              <Image
+              <ImageLightbox
                 src={withBasePath(acc.imageSrcUrl)}
                 alt={acc.name}
-                width={64}
-                height={64}
-                style={{ width: "64px", height: "64px" }}
-              />
+                title={acc.name}
+                caption={`${acc.source}${acc.date ? ` • ${acc.date}` : ""}`}
+                triggerSx={{ display: "inline-flex", borderRadius: 1 }}
+              >
+                <Image
+                  src={withBasePath(acc.imageSrcUrl)}
+                  alt={acc.name}
+                  width={64}
+                  height={64}
+                  style={{ width: "64px", height: "64px" }}
+                />
+              </ImageLightbox>
             </Box>
           )}
           <CardContent>

@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
-import FadeInSection from "@/components/shared/FadeInSection";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import { summary } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
@@ -15,7 +15,7 @@ import Hero from "@/components/fabric/Hero";
 
 export default function ResumeOverview() {
   return (
-    <FadeInSection>
+    
       <Hero
         className="mb-6 overflow-hidden transition-transform duration-300 md:mb-8 hover:-translate-y-0.5"
         sx={{ py: 8 }}
@@ -74,13 +74,21 @@ export default function ResumeOverview() {
                 flexShrink: 0,
               }}
             >
-              <Image
+              <ImageLightbox
                 src={withBasePath(summary.headshotImage)}
                 alt={`${summary.name} headshot`}
-                width={480}
-                height={640}
-                className="h-auto w-full rounded-[22px] object-cover"
-              />
+                title={summary.name}
+                caption={summary.title}
+                triggerSx={{ width: "100%" }}
+              >
+                <Image
+                  src={withBasePath(summary.headshotImage)}
+                  alt={`${summary.name} headshot`}
+                  width={480}
+                  height={640}
+                  className="h-auto w-full rounded-[22px] object-cover"
+                />
+              </ImageLightbox>
             </Box>
           </Stack>
           <Stack
@@ -136,6 +144,6 @@ export default function ResumeOverview() {
           </Stack>
         </div>
       </Hero>
-    </FadeInSection>
+    
   );
 }

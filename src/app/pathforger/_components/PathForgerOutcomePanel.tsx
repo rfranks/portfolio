@@ -4,7 +4,7 @@ import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import EmojiGlyph from "@/components/shared/EmojiGlyph";
-import PathForgerGeneratedImageLightbox from "@/app/pathforger/_components/PathForgerGeneratedImageLightbox";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import type {
   PathForgerBranchChoice,
   PathForgerGeneratedImage,
@@ -134,7 +134,7 @@ export default function PathForgerOutcomePanel(
                   minHeight: { xs: 148, md: 208 },
                 })}
               >
-                <PathForgerGeneratedImageLightbox
+                <ImageLightbox
                   src={outcomeImage.imageDataUrl}
                   alt={`Outcome ${activeOptionBranch} render`}
                   title={`Outcome`}

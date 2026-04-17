@@ -38,6 +38,7 @@ import ProjectsGrid from "@/components/portfolio/panels/ProjectsGrid";
 import Education from "@/components/portfolio/panels/Education";
 import Recognition from "@/components/portfolio/panels/Recognition";
 import ContactCTA from "@/components/portfolio/panels/ContactCTA";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import Grid from "@mui/material/Grid";
 import {
   GLOBAL_COLOR_MODE_STORAGE_KEY,
@@ -185,17 +186,28 @@ export default function HomePageClient() {
               minWidth: 0,
             }}
           >
-            <Avatar
+            <ImageLightbox
               src={withBasePath(summary.avatarImage)}
-              alt={summary.name}
-              sx={{
-                width: 38,
-                height: 38,
-                border: "1px solid",
-                borderColor: "divider",
-                boxShadow: 1,
+              alt={`${summary.name} avatar`}
+              title={summary.name}
+              caption={summary.title}
+              triggerSx={{
+                borderRadius: "50%",
+                lineHeight: 0,
               }}
-            />
+            >
+              <Avatar
+                src={withBasePath(summary.avatarImage)}
+                alt={summary.name}
+                sx={{
+                  width: 38,
+                  height: 38,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  boxShadow: 1,
+                }}
+              />
+            </ImageLightbox>
             <Box sx={{ minWidth: 0 }}>
               <Typography
                 component="h1"

@@ -781,7 +781,7 @@
       {
         "slug": "dee-and-dum",
         "title": "Tweedle Dee and Dum!",
-        "orientation": "landscape",
+        "orientation": "portrait",
         "realisticImage": "/personal/images/ai-shenanigans/dee-and-dum/realistic.jpeg",
         "realisticSource": "Professional headshot",
         "realisticCaption": "It starts with a straightforward headshot before splitting into double trouble and full Wonderland nonsense.",
@@ -792,6 +792,21 @@
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a normal portrait turns into a ridiculous Wonderland character reveal as I split into Tweedle Dee and Tweedle Dum, waddling into synchronized chaos and cheerful nonsense.",
         "blurb": "Dee and Dum takes a polished professional headshot and sends it tumbling straight into Wonderland farce. The result is a gleefully ridiculous double-character transformation, turning one portrait into two rotund storybook troublemakers with bright costumes, matching grins, and just the right amount of theatrical silliness."
+      },
+      {
+        "slug": "walrus",
+        "title": "The Walrus and the Carpenter!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/walrus/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a clean professional headshot before waddling off into full storybook absurdity by the sea.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/walrus/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The portrait transforms into a whimsical Walrus version of me, wrapped in Victorian seaside weirdness, theatrical charm, and just enough mischief to make the whole scene feel suspicious.",
+        "movieRendering": "/personal/images/ai-shenanigans/walrus/movie.mp4",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "What begins as a normal headshot slips into surreal storybook territory as I become the Walrus, looming through a fanciful seaside scene with eccentric swagger, curious menace, and full Wonderland energy.",
+        "blurb": "The Walrus and the Carpenter takes a polished headshot and pushes it into the strange theatrical world of the classic seaside tale. The result is a playful Alice-in-Wonderland shenanigan, transforming an ordinary portrait into a mustached, tusked, storybook oddball with Victorian flair, sly humor, and delightfully unsettling charm."
       },
       {
         "slug": "mad-hatter",
@@ -822,6 +837,42 @@
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a normal portrait turns into a whimsical royal character reveal as I become the pint-sized King of Hearts, strutting into Wonderland with tiny grandeur and oversized attitude.",
         "blurb": "King of Hearts takes a polished headshot and turns it into a compact burst of Wonderland royalty. The result is a playful character shenanigan, transforming a straightforward portrait into a miniature monarch with theatrical charm, regal swagger, and just enough absurdity to make the whole thing feel delightfully unhinged."
+      },
+      {
+        "slug": "zombie-chaos",
+        "title": "Zombie Chaos!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/zombie-chaos/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a clean professional headshot before shambling straight into undead cartoon mayhem.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/zombie-chaos/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "movieRendering": "/personal/images/ai-shenanigans/zombie-chaos/movie.mp4",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "What begins as a normal portrait turns into a gleefully unhinged zombie character reveal as I stagger into a chaotic undead scene with comic menace, absurd swagger, and total shenanigan energy.",
+        "blurb": "Zombie Chaos! takes a polished headshot and sends it shambling into cartoon apocalypse territory. The result is a horror-comedy shenanigan that transforms an ordinary portrait into a grinning undead troublemaker, surrounded by creepy details, chaotic street-scene madness, and just enough absurdity to keep the whole thing more playful than grim."
+      },
+      {
+        "slug": "outta-time",
+        "type": "song-recording",
+        "title": "Outta Time",
+        "orientation": "landscape",
+        "intentToCopyright": true,
+        "rightsNotice": "Intent to Copyright",
+        "realisticImage": "/personal/images/ai-shenanigans/outta-time/album.png",
+        "realisticSource": "Outta Time cover art",
+        "realisticCaption": "Cover art for Outta Time.",
+        "songAlbumImage": "/personal/images/ai-shenanigans/outta-time/album.png",
+        "songAlbumSource": "Outta Time cover art",
+        "songAlbumCaption": "Outta Time cover art.",
+        "songAudio": "/personal/images/ai-shenanigans/outta-time/outta-time.mp3",
+        "songAudioSource": "Original song recording",
+        "songAudioCaption": "Outta Time by Frankie Richards.",
+        "songWrittenBy": "Richard Franks Jr",
+        "songPerformedBy": "Frankie Richards",
+        "songLyricsMarkdownPath": "/personal/images/ai-shenanigans/outta-time/lyrics.md",
+        "songLyricsSource": "Outta Time lyric sheet",
+        "blurb": "Outta Time is a gritty country-trap Americana anthem about living hard, loving loud, and refusing to waste the little time we get. With dusty roads, dashboard clocks, lost years, and hard-earned wisdom, the song stares mortality straight in the face and answers with urgency, heart, and fire. It's a raw reminder to make the call, mend the fence, kiss your girl, chase the dream, and wring every last drop out of life before the night runs out."
       },
       {
         "slug": "little-anne-riding-hood",

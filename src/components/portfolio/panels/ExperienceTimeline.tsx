@@ -10,7 +10,7 @@ import TimelineDot from "@mui/lab/TimelineDot";
 import TimelineOppositeContent from "@mui/lab/TimelineOppositeContent";
 import { experience } from "@/consts/resumeData";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import FadeInSection from "@/components/shared/FadeInSection";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import Image from "next/image";
 import { withBasePath } from "@/utils/basePath";
@@ -23,7 +23,7 @@ export default function ExperienceTimeline() {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <FadeInSection>
+    
       <PortfolioPanel>
         <Typography variant="h6" gutterBottom>
           Experience
@@ -59,12 +59,20 @@ export default function ExperienceTimeline() {
                     {exp.end ? ` - ${exp.end}` : ""}
                   </Typography>
                   {exp.image && (
-                    <Image
+                    <ImageLightbox
                       src={withBasePath(exp.image)}
                       alt={exp.company}
-                      height={48}
-                      width={48}
-                    />
+                      title={exp.company}
+                      caption={`${exp.position}${exp.location ? ` • ${exp.location}` : ""}`}
+                      triggerSx={{ display: "inline-flex", borderRadius: 1 }}
+                    >
+                      <Image
+                        src={withBasePath(exp.image)}
+                        alt={exp.company}
+                        height={48}
+                        width={48}
+                      />
+                    </ImageLightbox>
                   )}
                 </TimelineOppositeContent>
               )}
@@ -85,12 +93,20 @@ export default function ExperienceTimeline() {
                     sx={{ mb: 1, color: "text.secondary" }}
                   >
                     {exp.image && (
-                      <Image
+                      <ImageLightbox
                         src={withBasePath(exp.image)}
                         alt={exp.company}
-                        height={40}
-                        width={40}
-                      />
+                        title={exp.company}
+                        caption={`${exp.position}${exp.location ? ` • ${exp.location}` : ""}`}
+                        triggerSx={{ display: "inline-flex", borderRadius: 1 }}
+                      >
+                        <Image
+                          src={withBasePath(exp.image)}
+                          alt={exp.company}
+                          height={40}
+                          width={40}
+                        />
+                      </ImageLightbox>
                     )}
                     <Typography variant="body2">
                       {exp.start}
@@ -132,6 +148,6 @@ export default function ExperienceTimeline() {
           ))}
         </Timeline>
       </PortfolioPanel>
-    </FadeInSection>
+    
   );
 }

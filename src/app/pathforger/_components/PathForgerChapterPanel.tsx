@@ -11,7 +11,7 @@ import {
 import { ChevronRight, Close } from "@mui/icons-material";
 import EmojiGlyph from "@/components/shared/EmojiGlyph";
 import MarkdownContent from "@/components/shared/MarkdownContent";
-import PathForgerGeneratedImageLightbox from "@/app/pathforger/_components/PathForgerGeneratedImageLightbox";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import type { PathForgerGeneratedImage } from "@/app/pathforger/_types/pipeline";
 import { Thinking } from "@/components/shared/Thinking";
 
@@ -143,7 +143,7 @@ export default function PathForgerChapterPanel(
               })}
             >
               {chapterSpreadImage ? (
-                <PathForgerGeneratedImageLightbox
+                <ImageLightbox
                   src={chapterSpreadImage.imageDataUrl}
                   alt="Chapter setup image"
                   title={subtitle?.trim() || title?.trim() || "Chapter Scene"}

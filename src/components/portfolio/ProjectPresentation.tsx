@@ -14,7 +14,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import type { ReactNode } from "react";
 
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import FadeInSection from "@/components/shared/FadeInSection";
 import { Diagram } from "@/components/shared/Diagram";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import type { ProjectData } from "@/types/components/portfolio";
@@ -59,7 +58,7 @@ export default function ProjectPresentation({
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <FadeInSection>
+      
         <PortfolioPanel>
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={6}>
@@ -109,11 +108,11 @@ export default function ProjectPresentation({
             </Grid>
           </Grid>
         </PortfolioPanel>
-      </FadeInSection>
+      
 
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
-          <FadeInSection>
+          
             <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
                 Technologies Used
@@ -136,10 +135,10 @@ export default function ProjectPresentation({
                 ))}
               </List>
             </PortfolioPanel>
-          </FadeInSection>
+          
         </Grid>
         <Grid item xs={12} md={6}>
-          <FadeInSection>
+          
             <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
                 Specifications
@@ -155,40 +154,40 @@ export default function ProjectPresentation({
                 </Accordion>
               ))}
             </PortfolioPanel>
-          </FadeInSection>
+          
         </Grid>
       </Grid>
 
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <FadeInSection>
+          
             <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
                 Block Diagram
               </Typography>
               <Diagram diagram={project.blockDiagram} height="400px" />
             </PortfolioPanel>
-          </FadeInSection>
+          
         </Grid>
         <Grid item xs={12}>
-          <FadeInSection>
+          
             <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
                 Component Diagram
               </Typography>
               <Diagram diagram={project.componentDiagram} height="400px" />
             </PortfolioPanel>
-          </FadeInSection>
+          
         </Grid>
         <Grid item xs={12}>
-          <FadeInSection>
+          
             <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
                 Sequence Diagram
               </Typography>
               <Diagram diagram={project.sequenceDiagram} height="400px" />
             </PortfolioPanel>
-          </FadeInSection>
+          
         </Grid>
       </Grid>
     </Box>

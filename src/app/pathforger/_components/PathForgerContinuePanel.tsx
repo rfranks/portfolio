@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import MarkdownContent from "@/components/shared/MarkdownContent";
-import PathForgerGeneratedImageLightbox from "@/app/pathforger/_components/PathForgerGeneratedImageLightbox";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import {
   PathForgerBranchChoice,
   PathForgerChapterResult,
@@ -283,7 +283,7 @@ export default function PathForgerContinuePanel(
                               }}
                             >
                               {panelImage ? (
-                                <PathForgerGeneratedImageLightbox
+                                <ImageLightbox
                                   src={panelImage.imageDataUrl}
                                   alt={`Option ${branch} preview`}
                                   title={`Option ${branch}`}

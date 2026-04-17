@@ -7,7 +7,7 @@ import CardActions from "@mui/material/CardActions";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import FadeInSection from "@/components/shared/FadeInSection";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import MarkdownContent from "@/components/shared/MarkdownContent";
 import { withBasePath } from "@/utils/basePath";
 import { CardHeader } from "@mui/material";
@@ -45,19 +45,28 @@ type ProjectVisual = ImageVisual | CardsFanVisual;
 function renderVisual(visual: ProjectVisual, key: string) {
   if (visual.kind === "image") {
     const Wrapper = visual.containerClassName ? Box : "div";
+    const imageSrc = withBasePath(visual.src);
 
     return (
       <Wrapper
         key={key}
         className={visual.containerClassName ?? visual.className ?? undefined}
       >
-        <Image
-          src={withBasePath(visual.src)}
+        <ImageLightbox
+          src={imageSrc}
           alt={visual.alt}
-          width={visual.width}
-          height={visual.height}
-          className={visual.imageClassName ?? visual.className ?? undefined}
-        />
+          title={visual.alt}
+          caption="Project visual"
+          triggerSx={{ display: "block", width: "100%" }}
+        >
+          <Image
+            src={imageSrc}
+            alt={visual.alt}
+            width={visual.width}
+            height={visual.height}
+            className={visual.imageClassName ?? visual.className ?? undefined}
+          />
+        </ImageLightbox>
       </Wrapper>
     );
   }
@@ -68,14 +77,22 @@ function renderVisual(visual: ProjectVisual, key: string) {
       className={visual.containerClassName ?? visual.className ?? undefined}
     >
       {visual.cards.map((card) => (
-        <Image
+        <ImageLightbox
           key={`${key}-${card.src}-${card.alt}`}
           src={withBasePath(card.src)}
           alt={card.alt}
-          width={card.width}
-          height={card.height}
-          className={card.className}
-        />
+          title={card.alt}
+          caption="Project visual"
+          triggerSx={{ display: "inline-block" }}
+        >
+          <Image
+            src={withBasePath(card.src)}
+            alt={card.alt}
+            width={card.width}
+            height={card.height}
+            className={card.className}
+          />
+        </ImageLightbox>
       ))}
     </Box>
   );
@@ -87,7 +104,7 @@ export default function ProjectsGrid() {
   );
 
   return (
-    <FadeInSection>
+    
       <PortfolioPanel className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-36 overflow-hidden md:block">
           {projectsSection.marks.map((mark, index) =>
@@ -212,6 +229,6 @@ export default function ProjectsGrid() {
           ))}
         </Grid>
       </PortfolioPanel>
-    </FadeInSection>
+    
   );
 }
