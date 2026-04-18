@@ -697,10 +697,10 @@ export default function AIShenanigansPageClient() {
                     mt: 0.25,
                     fontSize: "1rem",
                     lineHeight: 1.3,
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
+                    display: "block",
+                    whiteSpace: "normal",
+                    wordBreak: "break-word",
+                    overflowWrap: "anywhere",
                   }}
                 >
                   {item.shortText || item.blurb || "Open this shenanigan."}
