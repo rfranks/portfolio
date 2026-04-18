@@ -15,7 +15,9 @@ import type { ReactNode } from "react";
 
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import { Diagram } from "@/components/shared/Diagram";
+import ImageLightbox from "@/components/shared/ImageLightbox";
 import MarkdownContent from "@/components/shared/MarkdownContent";
+import VideoLightbox from "@/components/shared/VideoLightbox";
 import type { ProjectData } from "@/types/components/portfolio";
 import { withBasePath } from "@/utils/basePath";
 export type { ProjectData, Technology } from "@/types/components/portfolio";
@@ -87,21 +89,37 @@ export default function ProjectPresentation({
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <Box sx={{ textAlign: "center" }}>
+              <Box
+                sx={{
+                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                }}
+              >
                 {project.demoGifUrl && (
-                  <Image
+                  <ImageLightbox
                     src={withBasePath(project.demoGifUrl)}
                     alt={`${project.project} demo`}
-                    width={800}
-                    height={450}
-                    style={{ width: "100%", height: "auto", borderRadius: 8 }}
-                  />
+                    title={`${project.project} demo`}
+                    triggerSx={{ width: "100%" }}
+                  >
+                    <Image
+                      src={withBasePath(project.demoGifUrl)}
+                      alt={`${project.project} demo`}
+                      width={800}
+                      height={450}
+                      style={{ width: "100%", height: "auto", borderRadius: 8 }}
+                    />
+                  </ImageLightbox>
                 )}
                 {project.demoVideoUrl && (
-                  <video
+                  <VideoLightbox
                     src={withBasePath(project.demoVideoUrl)}
+                    title={`${project.project} demo video`}
                     controls
-                    style={{ width: "100%", borderRadius: 8 }}
+                    playsInline
+                    previewVideoSx={{ width: "100%", borderRadius: 1 }}
                   />
                 )}
               </Box>
