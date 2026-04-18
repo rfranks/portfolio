@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Container from "@mui/material/Container";
@@ -61,21 +61,107 @@ export default function HomePageClient() {
   );
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
-  const tocSections = [
-    { id: "hero", label: "Summary" },
-    { id: "education", label: "Education" },
-    { id: "experience", label: "Experience" },
-    { id: "competencies", label: "Core Competencies" },
-    { id: "projects", label: "Projects" },
-    { id: "recognition", label: "Recognition" },
-    { id: "hobbies", label: "Hobbies" },
-    { id: "contact", label: "Contact" },
-  ];
+  const tocSections = useMemo(
+    () => [
+      { id: "hero", label: "Summary" },
+      { id: "education", label: "Education" },
+      { id: "experience", label: "Experience" },
+      { id: "competencies", label: "Core Competencies" },
+      { id: "projects", label: "Projects" },
+      { id: "recognition", label: "Recognition" },
+      { id: "hobbies", label: "Hobbies" },
+      { id: "contact", label: "Contact" },
+    ],
+    [],
+  );
 
   const { setDocumentTitle } = useDocumentTitle();
   useEffect(() => {
     setDocumentTitle(summary.documentTitle);
   }, [setDocumentTitle]);
+
+  const scrollToTocSection = useCallback(
+    (sectionId: string, behavior: ScrollBehavior = "smooth") => {
+      const target = document.getElementById(sectionId);
+      if (!target) {
+        return false;
+      }
+      target.scrollIntoView({ behavior, block: "start" });
+      return true;
+    },
+    [],
+  );
+
+  const updateHashForSection = useCallback((sectionId: string) => {
+    const nextHash = `#${encodeURIComponent(sectionId)}`;
+    if (window.location.hash === nextHash) {
+      return;
+    }
+
+    const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
+    try {
+      window.history.pushState(null, "", nextUrl);
+    } catch {
+      window.location.hash = sectionId;
+    }
+  }, []);
+
+  const resolveSectionIdFromHash = useCallback(
+    (hash: string) => {
+      const rawHash = hash.startsWith("#") ? hash.slice(1) : hash;
+      if (!rawHash) {
+        return null;
+      }
+      const decodedHash = decodeURIComponent(rawHash);
+      return tocSections.some((section) => section.id === decodedHash)
+        ? decodedHash
+        : null;
+    },
+    [tocSections],
+  );
+
+  useEffect(() => {
+    if (!isReady) {
+      return;
+    }
+
+    const scrollToHashSection = (behavior: ScrollBehavior = "auto") => {
+      const sectionId = resolveSectionIdFromHash(window.location.hash);
+      if (!sectionId) {
+        return;
+      }
+
+      let attempts = 0;
+      const maxAttempts = 8;
+
+      const attemptScroll = () => {
+        const didScroll = scrollToTocSection(sectionId, behavior);
+        if (didScroll || attempts >= maxAttempts) {
+          return;
+        }
+        attempts += 1;
+        window.setTimeout(attemptScroll, 120);
+      };
+
+      window.requestAnimationFrame(() => {
+        window.setTimeout(attemptScroll, 40);
+      });
+    };
+
+    scrollToHashSection("auto");
+
+    const handleHashOrHistoryChange = () => {
+      scrollToHashSection("smooth");
+    };
+
+    window.addEventListener("hashchange", handleHashOrHistoryChange);
+    window.addEventListener("popstate", handleHashOrHistoryChange);
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashOrHistoryChange);
+      window.removeEventListener("popstate", handleHashOrHistoryChange);
+    };
+  }, [isReady, resolveSectionIdFromHash, scrollToTocSection]);
 
   const toggleDrawer = () => {
     setOpen(!open);
@@ -86,11 +172,11 @@ export default function HomePageClient() {
     sectionId: string,
   ) => {
     event.preventDefault();
-    const target = document.getElementById(sectionId);
-    if (!target) {
+    const didScroll = scrollToTocSection(sectionId, "smooth");
+    if (!didScroll) {
       return;
     }
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    updateHashForSection(sectionId);
   };
 
   const navIcons = {
