@@ -276,9 +276,12 @@ export default function PathForgerContinuePanel(
                             <Paper
                               variant="outlined"
                               sx={{
+                                width: "100%",
                                 borderRadius: 1.25,
                                 overflow: "hidden",
-                                minHeight: 120,
+                                position: "relative",
+                                aspectRatio: "16 / 9",
+                                minHeight: { xs: 120, md: 132 },
                                 bgcolor: "background.paper",
                               }}
                             >
@@ -290,8 +293,10 @@ export default function PathForgerContinuePanel(
                                   caption={choice?.label?.trim() || "Path preview"}
                                   kenBurnsImageSx={kenBurnsImageSx}
                                   stopEventPropagation
-                                  previewContainerSx={{ height: 120 }}
-                                  previewImageSx={{ height: 120 }}
+                                  previewContainerSx={{
+                                    position: "absolute",
+                                    inset: 0,
+                                  }}
                                 />
                               ) : null}
                             </Paper>
