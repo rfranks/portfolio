@@ -1465,17 +1465,23 @@ function DefaultAIShenanigan({
                       }}
                     >
                       <Box>
-                        {stage !== "intro" && renderNextAction() && (
-                          <Button
-                            variant="text"
-                            onClick={resetReveal}
-                            startIcon={
-                              <EmojiGlyph glyph="🔁" slot="start" size="1rem" />
-                            }
-                          >
-                            Start Over
-                          </Button>
-                        )}
+                        {stage !== "intro" &&
+                          renderNextAction() &&
+                          !isSmallScreen && (
+                            <Button
+                              variant="text"
+                              onClick={resetReveal}
+                              startIcon={
+                                <EmojiGlyph
+                                  glyph="🔁"
+                                  slot="start"
+                                  size="1rem"
+                                />
+                              }
+                            >
+                              Start Over
+                            </Button>
+                          )}
                       </Box>
                       <Box
                         sx={{

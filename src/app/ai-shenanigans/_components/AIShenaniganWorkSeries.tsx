@@ -1001,19 +1001,25 @@ export default function AIShenaniganWorkSeries({
                         flexWrap: "wrap",
                       }}
                     >
-                      {/* <Box>
-                        {current && renderNextAction() && (
-                          <Button
-                            variant="text"
-                            onClick={resetReveal}
-                            startIcon={
-                              <EmojiGlyph glyph="🔁" slot="start" size="1rem" />
-                            }
-                          >
-                            Start Over
-                          </Button>
-                        )}
-                      </Box> */}
+                      {!isSmallScreen && (
+                        <Box>
+                          {current && renderNextAction() && (
+                            <Button
+                              variant="text"
+                              onClick={resetReveal}
+                              startIcon={
+                                <EmojiGlyph
+                                  glyph="🔁"
+                                  slot="start"
+                                  size="1rem"
+                                />
+                              }
+                            >
+                              Start Over
+                            </Button>
+                          )}
+                        </Box>
+                      )}
                       <Box
                         sx={{
                           display: "flex",
