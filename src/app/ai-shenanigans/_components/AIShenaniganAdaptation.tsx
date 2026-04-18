@@ -991,11 +991,14 @@ export default function AIShenaniganAdaptation({
           <Box
             sx={{
               display: "flex",
+              maxHeight: {
+                xs: hasVisibleMedia ? "30dvh" : "100%",
+                md: "100%",
+              },
               width: "100%",
               minWidth: { xs: 0, md: hasVisibleMedia ? 400 : 0 },
               maxWidth: { xs: "100%", md: hasVisibleMedia ? 400 : "100%" },
               flexBasis: "100%",
-              height: "100%",
               flexGrow: 1,
               order: { xs: 2, md: 2 },
               transition:
@@ -1091,22 +1094,24 @@ export default function AIShenaniganAdaptation({
                     >
                       {blurb}
                     </Typography>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      useFlexGap
-                      flexWrap="wrap"
-                      sx={{
-                        mt: 2.5,
-                        alignItems: "center",
-                        display: {
-                          xs: stage === "intro" ? "flex" : "none",
-                          md: "flex",
-                        },
-                      }}
-                    >
-                      {renderChronologyChips("main")}
-                    </Stack>
+                    {!isSmallScreen && (
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        useFlexGap
+                        flexWrap="wrap"
+                        sx={{
+                          mt: 2.5,
+                          alignItems: "center",
+                          display: {
+                            xs: stage === "intro" ? "flex" : "none",
+                            md: "flex",
+                          },
+                        }}
+                      >
+                        {renderChronologyChips("main")}
+                      </Stack>
+                    )}
                     <Box
                       sx={{
                         mt: 3,

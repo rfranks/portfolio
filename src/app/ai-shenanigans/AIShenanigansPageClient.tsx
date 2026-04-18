@@ -1,6 +1,12 @@
 "use client";
 
-import { type MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -27,6 +33,7 @@ import { useColorModePreference } from "@/hooks/useColorModePreference";
 import getFabricTheme from "@/themes/fabricTheme";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import { withBasePath } from "@/utils/basePath";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 type AIShenaniganItemWithLinks = (typeof aiShenanigans.items)[number] & {
   type?: AIShenaniganType;
@@ -169,11 +176,15 @@ const buildLinkProps = (item: AIShenaniganItemWithLinks) => ({
   ...(item.realisticSourceHref
     ? { realisticSourceHref: item.realisticSourceHref }
     : {}),
-  ...(item.stylizedSourceHref ? { stylizedSourceHref: item.stylizedSourceHref } : {}),
+  ...(item.stylizedSourceHref
+    ? { stylizedSourceHref: item.stylizedSourceHref }
+    : {}),
   ...(item.movieSourceHref ? { movieSourceHref: item.movieSourceHref } : {}),
   ...(item.movieSourceHref2 ? { movieSourceHref2: item.movieSourceHref2 } : {}),
   ...(item.rawSourceHref ? { rawSourceHref: item.rawSourceHref } : {}),
-  ...(item.analyzedSourceHref ? { analyzedSourceHref: item.analyzedSourceHref } : {}),
+  ...(item.analyzedSourceHref
+    ? { analyzedSourceHref: item.analyzedSourceHref }
+    : {}),
   ...(item.palmLineAnalysisSourceHref
     ? {
         palmLineAnalysisSourceHref: item.palmLineAnalysisSourceHref,
@@ -182,9 +193,15 @@ const buildLinkProps = (item: AIShenaniganItemWithLinks) => ({
   ...(item.palmReadingSourceHref
     ? { palmReadingSourceHref: item.palmReadingSourceHref }
     : {}),
-  ...(item.songAlbumSourceHref ? { songAlbumSourceHref: item.songAlbumSourceHref } : {}),
-  ...(item.songAudioSourceHref ? { songAudioSourceHref: item.songAudioSourceHref } : {}),
-  ...(item.songLyricsSourceHref ? { songLyricsSourceHref: item.songLyricsSourceHref } : {}),
+  ...(item.songAlbumSourceHref
+    ? { songAlbumSourceHref: item.songAlbumSourceHref }
+    : {}),
+  ...(item.songAudioSourceHref
+    ? { songAudioSourceHref: item.songAudioSourceHref }
+    : {}),
+  ...(item.songLyricsSourceHref
+    ? { songLyricsSourceHref: item.songLyricsSourceHref }
+    : {}),
   ...(item.intentToCopyright
     ? { intentToCopyright: item.intentToCopyright }
     : {}),
@@ -193,14 +210,20 @@ const buildLinkProps = (item: AIShenaniganItemWithLinks) => ({
   ...(item.manuscriptSourceHref
     ? { manuscriptSourceHref: item.manuscriptSourceHref }
     : {}),
-  ...(item.trailerSourceHref ? { trailerSourceHref: item.trailerSourceHref } : {}),
-  ...(item.episodesSourceHref ? { episodesSourceHref: item.episodesSourceHref } : {}),
+  ...(item.trailerSourceHref
+    ? { trailerSourceHref: item.trailerSourceHref }
+    : {}),
+  ...(item.episodesSourceHref
+    ? { episodesSourceHref: item.episodesSourceHref }
+    : {}),
   ...(item.bookCoverImage ? { bookCoverImage: item.bookCoverImage } : {}),
   ...(item.bookSource ? { bookSource: item.bookSource } : {}),
   ...(item.bookCaption ? { bookCaption: item.bookCaption } : {}),
   ...(item.manuscriptPdf ? { manuscriptPdf: item.manuscriptPdf } : {}),
   ...(item.manuscriptSource ? { manuscriptSource: item.manuscriptSource } : {}),
-  ...(item.manuscriptCaption ? { manuscriptCaption: item.manuscriptCaption } : {}),
+  ...(item.manuscriptCaption
+    ? { manuscriptCaption: item.manuscriptCaption }
+    : {}),
   ...(item.trailerMovie ? { trailerMovie: item.trailerMovie } : {}),
   ...(item.trailerOrientation
     ? { trailerOrientation: item.trailerOrientation }
@@ -230,7 +253,9 @@ export default function AIShenanigansPageClient() {
   const theme = useMemo(() => getFabricTheme(mode), [mode]);
   const { setDocumentTitle } = useDocumentTitle();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(null);
+  const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(
+    null,
+  );
   const [isInitialHashSynced, setIsInitialHashSynced] = useState(false);
 
   const shenaniganIndexBySlug = useMemo(() => {
@@ -380,6 +405,8 @@ export default function AIShenanigansPageClient() {
     };
   }, [handleNext, handlePrevious]);
 
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+
   if (!isReady || !shenaniganItems.length) {
     return null;
   }
@@ -440,14 +467,18 @@ export default function AIShenanigansPageClient() {
             </IconButton>
             <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography variant="h6">{aiShenanigans.title}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {aiShenanigans.description}
-              </Typography>
+              {!isSmallScreen && (
+                <Typography variant="body2" color="text.secondary">
+                  {aiShenanigans.description}
+                </Typography>
+              )}
             </Box>
             <IconButton
               color="inherit"
               aria-label={
-                mode === "light" ? "Switch to dark mode" : "Switch to light mode"
+                mode === "light"
+                  ? "Switch to dark mode"
+                  : "Switch to light mode"
               }
               onClick={toggleColorMode}
               size="small"
@@ -498,8 +529,13 @@ export default function AIShenanigansPageClient() {
                 rank={currentIndex + 1}
                 title={currentItem.title}
                 blurb={currentItem.blurb}
-                orientation={currentItem.orientation as AIShenaniganMovieOrientation}
-                realisticImage={(currentItem.realisticImage || currentItem.songAlbumImage) as string}
+                orientation={
+                  currentItem.orientation as AIShenaniganMovieOrientation
+                }
+                realisticImage={
+                  (currentItem.realisticImage ||
+                    currentItem.songAlbumImage) as string
+                }
                 realisticSource={currentItem.realisticSource}
                 realisticCaption={currentItem.realisticCaption}
                 stylizedRendering={currentItem.stylizedRendering}
@@ -567,10 +603,15 @@ export default function AIShenanigansPageClient() {
                 color="primary"
                 variant="outlined"
                 onClick={handleSelectorOpen}
-                label={formatPagerSelectedLabel(currentIndex, currentItem.title)}
+                label={formatPagerSelectedLabel(
+                  currentIndex,
+                  currentItem.title,
+                )}
                 aria-haspopup="menu"
                 aria-expanded={selectorOpen ? "true" : undefined}
-                aria-controls={selectorOpen ? "shenanigan-selector-menu" : undefined}
+                aria-controls={
+                  selectorOpen ? "shenanigan-selector-menu" : undefined
+                }
                 sx={{
                   minWidth: 0,
                   maxWidth: "100%",
@@ -582,7 +623,11 @@ export default function AIShenanigansPageClient() {
                   },
                 }}
               />
-              <IconButton aria-label="Next shenanigan" size="small" onClick={handleNext}>
+              <IconButton
+                aria-label="Next shenanigan"
+                size="small"
+                onClick={handleNext}
+              >
                 <ChevronRight />
               </IconButton>
             </Box>

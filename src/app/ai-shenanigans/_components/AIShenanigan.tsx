@@ -1417,22 +1417,24 @@ function DefaultAIShenanigan({
                     >
                       {blurb}
                     </Typography>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      useFlexGap
-                      flexWrap="wrap"
-                      sx={{
-                        mt: 2.5,
-                        alignItems: "center",
-                        display: {
-                          xs: stage === "intro" ? "flex" : "none",
-                          md: "flex",
-                        },
-                      }}
-                    >
-                      {renderChronologyChips("main")}
-                    </Stack>
+                    {!isSmallScreen && (
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        useFlexGap
+                        flexWrap="wrap"
+                        sx={{
+                          mt: 2.5,
+                          alignItems: "center",
+                          display: {
+                            xs: stage === "intro" ? "flex" : "none",
+                            md: "flex",
+                          },
+                        }}
+                      >
+                        {renderChronologyChips("main")}
+                      </Stack>
+                    )}
                     <Box
                       sx={{
                         mt: 3,

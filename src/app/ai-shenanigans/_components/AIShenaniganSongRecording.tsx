@@ -213,7 +213,19 @@ export default function AIShenaniganSongRecording({
           <Typography variant="h4" sx={{ mt: 1, mb: 1.2 }}>
             {title}
           </Typography>
-          <Button
+          <Stack spacing={1.35} sx={{ flex: 1, minWidth: 0, m: 2 }}>
+            {songWrittenBy ? (
+              <Typography variant="body2" color="text.secondary">
+                Written by {songWrittenBy}
+              </Typography>
+            ) : null}
+            {songPerformedBy ? (
+              <Typography variant="body2" color="text.secondary">
+                Performed by {songPerformedBy}
+              </Typography>
+            ) : null}
+          </Stack>
+          {/* <Button
             size="small"
             variant="text"
             onClick={() =>
@@ -234,7 +246,7 @@ export default function AIShenaniganSongRecording({
             }}
           >
             {isInfoPanelMinimized ? "Expand Panel" : "Minimize Panel"}
-          </Button>
+          </Button> */}
           {!(isSmallScreen && isInfoPanelMinimized) && (
             <Typography color="text.secondary">{blurb}</Typography>
           )}
@@ -249,10 +261,11 @@ export default function AIShenaniganSongRecording({
                 borderColor: "var(--fabric-surface-border)",
                 backgroundColor: "var(--fabric-surface-1)",
                 p: 2,
+                overflowY: "auto",
               }}
             >
               {!lyricsOpen ? (
-                <Stack spacing={1.7}>
+                <Stack spacing={1.7} sx={{ p: 2 }}>
                   <Stack
                     direction={{ xs: "column", md: "row" }}
                     spacing={2}
@@ -260,52 +273,46 @@ export default function AIShenaniganSongRecording({
                   >
                     <Box
                       sx={{
-                        width: { xs: "100%", md: 300 },
+                        display: "flex",
+                        flexDirection: "column",
+                        width: "100%",
                         flexShrink: 0,
-                        borderRadius: "16px",
                         overflow: "hidden",
-                        border: "1px solid",
-                        borderColor: "var(--fabric-surface-border)",
+                        alignItems: "center",
                       }}
                     >
-                      <ImageLightbox
-                        src={withBasePath(songAlbumImage)}
-                        alt={`${title} album cover`}
-                        title={`${title} — Album Cover`}
-                        caption={songAlbumCaption || "Album artwork"}
-                        triggerSx={{ width: "100%", display: "block" }}
-                        previewContainerSx={{
-                          width: "100%",
-                          aspectRatio: "1 / 1",
-                          borderRadius: "inherit",
-                          overflow: "hidden",
+                      <Box sx={{ display: "flex", justifyContent: "center" }}>
+                        <ImageLightbox
+                          src={withBasePath(songAlbumImage)}
+                          alt={`${title} album cover`}
+                          title={`${title} — Album Cover`}
+                          caption={songAlbumCaption || "Album artwork"}
+                          triggerSx={{ width: "100%", display: "block" }}
+                          previewContainerSx={{
+                            width: { xs: "20dvh", sm: "30dvh" },
+                            aspectRatio: "1 / 1",
+                            borderRadius: "inherit",
+                            overflow: "hidden",
+                          }}
+                          previewImageSx={{
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Box>
+                      <Box
+                        component="audio"
+                        controls
+                        preload="metadata"
+                        src={withBasePath(songAudio)}
+                        sx={{
+                          width: { xs: "20dvh", sm: "30dvh" },
+                          justifySelf: "center",
                         }}
-                        previewImageSx={{ objectFit: "cover" }}
-                      />
+                      >
+                        Your browser does not support the audio element.
+                      </Box>
                     </Box>
-
-                    <Stack spacing={1.35} sx={{ flex: 1, minWidth: 0 }}>
-                      {songWrittenBy ? (
-                        <Typography variant="body2" color="text.secondary">
-                          Written by {songWrittenBy}
-                        </Typography>
-                      ) : null}
-                      {songPerformedBy ? (
-                        <Typography variant="body2" color="text.secondary">
-                          Performed by {songPerformedBy}
-                        </Typography>
-                      ) : null}
-                    </Stack>
                   </Stack>
-                  <Box
-                    component="audio"
-                    controls
-                    preload="metadata"
-                    src={withBasePath(songAudio)}
-                    sx={{ width: "100%" }}
-                  >
-                    Your browser does not support the audio element.
-                  </Box>
                 </Stack>
               ) : (
                 <Box

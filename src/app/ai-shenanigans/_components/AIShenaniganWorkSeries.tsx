@@ -851,7 +851,10 @@ export default function AIShenaniganWorkSeries({
         >
           <Box
             sx={{
-              height: hasVisibleMedia ? "80dvh" : "100%",
+              maxHeight: {
+                xs: hasVisibleMedia ? "30dvh" : "100%",
+                md: "100%",
+              },
               width: "100%",
               minWidth: { xs: 0, md: hasVisibleMedia ? 400 : 0 },
               maxWidth: { xs: "100%", md: hasVisibleMedia ? 400 : "100%" },
@@ -951,19 +954,24 @@ export default function AIShenaniganWorkSeries({
                     >
                       {blurb}
                     </Typography>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      useFlexGap
-                      flexWrap="wrap"
-                      sx={{
-                        mt: 2.5,
-                        alignItems: "center",
-                        display: { xs: current ? "none" : "flex", md: "flex" },
-                      }}
-                    >
-                      {renderChronologyChips("main")}
-                    </Stack>
+                    {!isSmallScreen && (
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        useFlexGap
+                        flexWrap="wrap"
+                        sx={{
+                          mt: 2.5,
+                          alignItems: "center",
+                          display: {
+                            xs: current ? "none" : "flex",
+                            md: "flex",
+                          },
+                        }}
+                      >
+                        {renderChronologyChips("main")}
+                      </Stack>
+                    )}
                     <Box
                       sx={{
                         mt: 3,
@@ -993,7 +1001,7 @@ export default function AIShenaniganWorkSeries({
                         flexWrap: "wrap",
                       }}
                     >
-                      <Box>
+                      {/* <Box>
                         {current && renderNextAction() && (
                           <Button
                             variant="text"
@@ -1005,7 +1013,7 @@ export default function AIShenaniganWorkSeries({
                             Start Over
                           </Button>
                         )}
-                      </Box>
+                      </Box> */}
                       <Box
                         sx={{
                           display: "flex",
