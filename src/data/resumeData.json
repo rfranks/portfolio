@@ -880,7 +880,7 @@
         "title": "Outta Time",
         "orientation": "landscape",
         "intentToCopyright": true,
-        "rightsNotice": "Intent to Copyright",
+        "rightsNotice": "Copyright filed",
         "realisticImage": "/personal/images/ai-shenanigans/outta-time/album.png",
         "realisticSource": "Outta Time album art",        
         "songAlbumImage": "/personal/images/ai-shenanigans/outta-time/album.png",
@@ -1712,8 +1712,8 @@
           "url": "https://python.langchain.com"
         },
         {
-          "name": "Google Gemini (Generative AI TTS)",
-          "url": "https://ai.google.dev"
+          "name": "Google Gemini Text-to-Speech",
+          "url": "https://ai.google.dev/gemini-api/docs/speech-generation"
         },
         {
           "name": "Azure Functions (TypeScript)",
