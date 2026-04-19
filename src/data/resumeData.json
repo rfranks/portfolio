@@ -574,6 +574,21 @@
         "shortText": "Pinball fever dream wrapped in yarn."
       },
       {
+        "slug": "he-man",
+        "title": "He-Man!",
+        "orientation": "portrait",
+        "realisticImage": "/personal/images/ai-shenanigans/he-man/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a clean professional headshot before exploding into full heroic fantasy power.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/he-man/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The portrait transforms into a bold He-Man-inspired version of me, charging into battle atop a snarling battle cat with sword raised, cartoon bravado, and pure Saturday-morning mayhem.",
+        "movieRendering": "/personal/images/ai-shenanigans/he-man/movie.mp4",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "What begins as a normal portrait becomes a full fantasy action reveal as I power into a He-Man-inspired hero, riding into chaos with sword aloft, big-cartoon energy, and unapologetic toybox epicness.",
+        "blurb": "He-Man! takes a polished headshot and hurls it straight into retro fantasy action. The result is a gleefully overpowered shenanigan, transforming an ordinary portrait into a muscle-bound cartoon hero charging into battle with sword, beast, villains, and maximum nostalgic spectacle."
+      },
+      {
         "slug": "the-rock",
         "type": "book-to-limited-series",
         "title": "The Rock By Frank Richards",
@@ -882,7 +897,7 @@
         "intentToCopyright": true,
         "rightsNotice": "Copyright filed",
         "realisticImage": "/personal/images/ai-shenanigans/outta-time/album.png",
-        "realisticSource": "Outta Time album art",        
+        "realisticSource": "Outta Time album art",
         "songAlbumImage": "/personal/images/ai-shenanigans/outta-time/album.png",
         "songAlbumSource": "ChatGPT image generation",
         "songAudio": "/personal/images/ai-shenanigans/outta-time/outta-time.mp3",
