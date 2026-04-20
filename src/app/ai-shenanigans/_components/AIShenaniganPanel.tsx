@@ -10,11 +10,15 @@ const AIShenaniganPanel = styled(Box)(({ theme }) => ({
   boxShadow: "none",
   height: "100%",
   minHeight: 0,
+  minWidth: 0,
+  maxWidth: "100%",
   display: "flex",
   flexDirection: "column",
   "& > *": {
     flex: 1,
     minHeight: 0,
+    minWidth: 0,
+    maxWidth: "100%",
   },
 }));
 

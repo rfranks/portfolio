@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Loop from "@mui/icons-material/Loop";
 import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -111,6 +113,23 @@ export default function AIShenaniganPalmReading({
     ...panelChromeSx,
     p: 2.5,
   } as const;
+  const mediaControlSx = (currentTheme: typeof theme) => ({
+    color: currentTheme.palette.common.black,
+    borderColor: currentTheme.palette.common.black,
+    bgcolor: currentTheme.palette.common.white,
+    "&:hover": {
+      bgcolor: currentTheme.palette.common.white,
+    },
+    "&.Mui-disabled": {
+      color: alpha(currentTheme.palette.common.black, 0.36),
+      borderColor: alpha(currentTheme.palette.common.black, 0.36),
+      bgcolor: alpha(currentTheme.palette.common.white, 0.8),
+    },
+  });
+  const restartActionSx = (currentTheme: typeof theme) => ({
+    border: "1px solid",
+    ...mediaControlSx(currentTheme),
+  });
 
   const stageIndex = STAGE_ORDER.indexOf(stage);
   const isStageVisible = (candidate: Exclude<RevealStage, "intro">) =>
@@ -504,15 +523,13 @@ export default function AIShenaniganPalmReading({
                     >
                       <Box>
                         {stage !== "intro" && (
-                          <Button
-                            variant="text"
+                          <IconButton
+                            aria-label="Start over"
                             onClick={() => navigateToStage("intro")}
-                            startIcon={
-                              <EmojiGlyph glyph="🔁" slot="start" size="1rem" />
-                            }
+                            sx={restartActionSx}
                           >
-                            Start Over
-                          </Button>
+                            <Loop fontSize="small" />
+                          </IconButton>
                         )}
                       </Box>
                       <Box>
@@ -528,13 +545,13 @@ export default function AIShenaniganPalmReading({
                           </Button>
                         ) : (
                           stage !== "intro" && (
-                            <Button
-                              variant="contained"
+                            <IconButton
+                              aria-label="Sequence finished: start over"
                               onClick={() => navigateToStage("intro")}
-                              endIcon={<EmojiGlyph glyph="🔁" slot="end" />}
+                              sx={restartActionSx}
                             >
-                              Sequence Finished: Start Over
-                            </Button>
+                              <Loop fontSize="small" />
+                            </IconButton>
                           )
                         )}
                       </Box>

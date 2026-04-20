@@ -459,6 +459,8 @@ export default function AIShenanigansPageClient() {
               py: 1.5,
               flex: 1,
               minHeight: 0,
+              minWidth: 0,
+              maxWidth: "100%",
               overflow: "hidden",
               display: "flex",
               backgroundColor: "transparent",
@@ -468,6 +470,8 @@ export default function AIShenanigansPageClient() {
               sx={{
                 flex: 1,
                 minHeight: 0,
+                minWidth: 0,
+                maxWidth: "100%",
                 display: "flex",
                 overflow: "hidden",
                 pr: 0.5,
@@ -475,6 +479,8 @@ export default function AIShenanigansPageClient() {
                 "& > *": {
                   flex: 1,
                   minHeight: 0,
+                  minWidth: 0,
+                  maxWidth: "100%",
                 },
               }}
             >

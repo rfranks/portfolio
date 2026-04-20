@@ -20,6 +20,7 @@ type VideoLightboxProps = Omit<
   stopEventPropagation?: boolean;
   openAriaLabel?: string;
   showExpandButton?: boolean;
+  expandButtonSx?: SxProps<Theme>;
 };
 
 function toSxArray(value?: SxProps<Theme>) {
@@ -42,6 +43,7 @@ const VideoLightbox = React.forwardRef<HTMLVideoElement, VideoLightboxProps>(
       stopEventPropagation = false,
       openAriaLabel,
       showExpandButton = true,
+      expandButtonSx,
       controls = true,
       autoPlay,
       playsInline,
@@ -57,6 +59,10 @@ const VideoLightbox = React.forwardRef<HTMLVideoElement, VideoLightboxProps>(
     } = props;
     const [open, setOpen] = React.useState(false);
     const triggerSxArray = React.useMemo(() => toSxArray(triggerSx), [triggerSx]);
+    const expandButtonSxArray = React.useMemo(
+      () => toSxArray(expandButtonSx),
+      [expandButtonSx],
+    );
     const previewVideoSxArray = React.useMemo(
       () => toSxArray(previewVideoSx),
       [previewVideoSx],
@@ -132,26 +138,29 @@ const VideoLightbox = React.forwardRef<HTMLVideoElement, VideoLightboxProps>(
               type="button"
               aria-label={openAriaLabel || `Open full video: ${lightboxLabel}`}
               onClick={handleOpen}
-              sx={(theme) => ({
-                position: "absolute",
-                top: 12,
-                right: 12,
-                zIndex: theme.zIndex.tooltip + 2,
-                width: 38,
-                height: 38,
-                border: "1px solid",
-                borderColor: alpha(theme.palette.common.white, 0.5),
-                color: theme.palette.common.white,
-                bgcolor: "rgba(2,6,23,0.78)",
-                boxShadow:
-                  "0 0 0 1px rgba(255,255,255,0.22) inset, 0 10px 18px rgba(2,6,23,0.45)",
-                backdropFilter: "blur(6px)",
-                opacity: 1,
-                pointerEvents: "auto",
-                "&:hover": {
-                  bgcolor: "rgba(2,6,23,0.9)",
-                },
-              })}
+              sx={[
+                (theme) => ({
+                  position: "absolute",
+                  top: 12,
+                  right: 12,
+                  zIndex: theme.zIndex.tooltip + 2,
+                  width: 38,
+                  height: 38,
+                  border: "1px solid",
+                  borderColor: alpha(theme.palette.common.white, 0.5),
+                  color: theme.palette.common.white,
+                  bgcolor: "rgba(2,6,23,0.78)",
+                  boxShadow:
+                    "0 0 0 1px rgba(255,255,255,0.22) inset, 0 10px 18px rgba(2,6,23,0.45)",
+                  backdropFilter: "blur(6px)",
+                  opacity: 1,
+                  pointerEvents: "auto",
+                  "&:hover": {
+                    bgcolor: "rgba(2,6,23,0.9)",
+                  },
+                }),
+                ...expandButtonSxArray,
+              ]}
             >
               <OpenInFull fontSize="small" />
             </IconButton>

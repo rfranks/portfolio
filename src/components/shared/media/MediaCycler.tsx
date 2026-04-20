@@ -4,16 +4,24 @@ import * as React from "react";
 import Image from "next/image";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
+import Close from "@mui/icons-material/Close";
+import InfoOutlined from "@mui/icons-material/InfoOutlined";
+import Loop from "@mui/icons-material/Loop";
 import OpenInFull from "@mui/icons-material/OpenInFull";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
-import EmojiGlyph from "../controls/EmojiGlyph";
+import MarkdownContent from "../content/MarkdownContent";
+import PDFContent from "../content/PDFContent";
+import type { DiagramProps } from "../visualization";
+import { Diagram } from "../visualization";
 import ImageLightbox from "./ImageLightbox";
 import VideoLightbox from "./VideoLightbox";
 
@@ -22,13 +30,29 @@ export type MediaCyclerItem = {
   title: string;
   description?: string;
   mediaUrl: string;
-  mediaType: "image" | "video";
+  mediaType: "image" | "video" | "pdf" | "markdown" | "diagram" | "custom";
   mediaAlt?: string;
   mediaLightboxTitle?: string;
   lightboxCaption?: string;
   mediaCaption?: string;
   mediaSource?: string;
   mediaSourceHref?: string;
+  customContent?: React.ReactNode;
+  customContentSx?: SxProps<Theme>;
+  markdownContent?: string;
+  markdownPath?: string;
+  markdownSx?: SxProps<Theme>;
+  diagramProps?: Omit<DiagramProps, "diagram" | "id">;
+  diagramSx?: SxProps<Theme>;
+  pdfContainerSx?: SxProps<Theme>;
+  pdfFrameSx?: SxProps<Theme>;
+  pdfPreviewSx?: SxProps<Theme>;
+  pdfObjectSx?: SxProps<Theme>;
+  pdfIframeSx?: SxProps<Theme>;
+  pdfShowOpenLink?: boolean;
+  pdfOpenLinkLabel?: string;
+  pdfOpenLinkHref?: string;
+  pdfOpenLinkDescription?: React.ReactNode;
   onSelect?: () => void;
   onMediaActivate?: () => void;
   onMediaLoaded?: () => void;
@@ -47,7 +71,10 @@ export type MediaCyclerItem = {
   playsInline?: boolean;
   loop?: boolean;
   muted?: boolean;
-  videoProps?: Omit<React.ComponentPropsWithoutRef<"video">, "src" | "children">;
+  videoProps?: Omit<
+    React.ComponentPropsWithoutRef<"video">,
+    "src" | "children"
+  >;
   extraContent?: React.ReactNode;
 };
 
@@ -62,14 +89,19 @@ type MediaCyclerProps = {
   showChevronNavigation?: boolean;
   loopNavigation?: boolean;
   loopNavigationLabel?: string;
-  loopNavigationGlyph?: string;
   disableLoopNavigation?: boolean;
+  compactMetadataOnSmallScreens?: boolean;
   showExpandIcon?: boolean;
   disableChevronPrevious?: boolean;
   disableChevronNext?: boolean;
+  hideDisabledNextChevron?: boolean;
   onChevronPrevious?: () => void;
   onChevronNext?: () => void;
   onLoopNavigation?: () => void;
+  smallScreenInfoBlurb?: string;
+  navigationControlSx?: SxProps<Theme>;
+  expandControlSx?: SxProps<Theme>;
+  showCompactInfoButton?: boolean;
 };
 
 const toSxArray = (value?: SxProps<Theme>) => {
@@ -109,7 +141,8 @@ const renderSource = (label?: string, href?: string) => {
 };
 
 const createMediaKeyDownHandler =
-  (onMediaActivate?: () => void) => (event: React.KeyboardEvent<HTMLElement>) => {
+  (onMediaActivate?: () => void) =>
+  (event: React.KeyboardEvent<HTMLElement>) => {
     if (!onMediaActivate) {
       return;
     }
@@ -130,15 +163,20 @@ export default function MediaCycler({
   disableTransition = false,
   showChevronNavigation = false,
   loopNavigation = false,
-  loopNavigationLabel = "Start Over",
-  loopNavigationGlyph = "🔁",
+  loopNavigationLabel = "Loop media cycle",
   disableLoopNavigation = false,
+  compactMetadataOnSmallScreens = false,
   showExpandIcon = true,
   disableChevronPrevious,
   disableChevronNext,
+  hideDisabledNextChevron = false,
   onChevronPrevious,
   onChevronNext,
   onLoopNavigation,
+  smallScreenInfoBlurb,
+  navigationControlSx,
+  expandControlSx,
+  showCompactInfoButton = true,
 }: MediaCyclerProps) {
   const resolveActiveItem = React.useCallback(() => {
     if (items.length === 0) {
@@ -146,20 +184,24 @@ export default function MediaCycler({
     }
 
     if (singlePanelActiveKey) {
-      return items.find((item) => item.key === singlePanelActiveKey) ?? items[0];
+      return (
+        items.find((item) => item.key === singlePanelActiveKey) ?? items[0]
+      );
     }
 
     return items[0];
   }, [items, singlePanelActiveKey]);
 
   const initialItem = resolveActiveItem();
-  const [renderedItem, setRenderedItem] = React.useState<MediaCyclerItem | null>(
-    initialItem,
-  );
+  const [renderedItem, setRenderedItem] =
+    React.useState<MediaCyclerItem | null>(initialItem);
   const [isVisible, setIsVisible] = React.useState(true);
   const [transitionDirection, setTransitionDirection] = React.useState<
     "left" | "right"
   >("right");
+  const [metadataDialogItemKey, setMetadataDialogItemKey] = React.useState<
+    string | null
+  >(null);
 
   React.useEffect(() => {
     if (!singlePanel) {
@@ -210,6 +252,9 @@ export default function MediaCycler({
   ]);
 
   const activeKey = renderedItem?.key ?? null;
+  const stackSxArray = toSxArray(stackSx);
+  const navigationControlSxArray = toSxArray(navigationControlSx);
+  const expandControlSxArray = toSxArray(expandControlSx);
   const activeIndex =
     activeKey == null ? -1 : items.findIndex((item) => item.key === activeKey);
   const previousItem = activeIndex > 0 ? items[activeIndex - 1] : null;
@@ -217,11 +262,14 @@ export default function MediaCycler({
   const isAtFinalItem =
     activeIndex >= 0 && activeIndex === Math.max(items.length - 1, 0);
   const previousDisabled =
-    disableChevronPrevious ?? (!previousItem || !Boolean(previousItem.onSelect));
+    disableChevronPrevious ??
+    (!previousItem || !Boolean(previousItem.onSelect));
   const nextDisabled =
     disableChevronNext ?? (!nextItem || !Boolean(nextItem.onSelect));
   const showLoopAction = loopNavigation && isAtFinalItem;
   const loopDisabled = disableLoopNavigation;
+  const hideNextChevron =
+    hideDisabledNextChevron && !showLoopAction && nextDisabled;
 
   const handleChevronPrevious = React.useCallback(() => {
     if (previousDisabled) {
@@ -263,7 +311,72 @@ export default function MediaCycler({
     firstCycleItem?.onSelect?.();
   }, [items, loopDisabled, onLoopNavigation]);
 
-  const renderItem = (item: MediaCyclerItem) => {
+  const metadataDialogItem =
+    metadataDialogItemKey == null
+      ? null
+      : items.find((item) => item.key === metadataDialogItemKey) || null;
+  const [markdownByKey, setMarkdownByKey] = React.useState<
+    Record<string, string>
+  >({});
+
+  React.useEffect(() => {
+    const markdownItems = items.filter(
+      (item) => item.mediaType === "markdown" && item.markdownPath?.trim(),
+    );
+
+    if (markdownItems.length === 0) {
+      return;
+    }
+
+    const abortControllers: AbortController[] = [];
+    let cancelled = false;
+
+    const loadMarkdown = async () => {
+      const entries = await Promise.all(
+        markdownItems.map(async (item) => {
+          const controller = new AbortController();
+          abortControllers.push(controller);
+
+          try {
+            const response = await fetch(item.markdownPath as string, {
+              signal: controller.signal,
+            });
+            if (!response.ok) {
+              return [item.key, ""] as const;
+            }
+            const text = await response.text();
+            return [item.key, text] as const;
+          } catch {
+            return [item.key, ""] as const;
+          }
+        }),
+      );
+
+      if (cancelled) {
+        return;
+      }
+
+      setMarkdownByKey((current) => {
+        const next = { ...current };
+        entries.forEach(([key, content]) => {
+          next[key] = content;
+        });
+        return next;
+      });
+    };
+
+    void loadMarkdown();
+
+    return () => {
+      cancelled = true;
+      abortControllers.forEach((controller) => controller.abort());
+    };
+  }, [items]);
+
+  const renderItem = (
+    item: MediaCyclerItem,
+    navigationOverlay?: React.ReactNode,
+  ) => {
     const canActivate = Boolean(item.onMediaActivate);
     const hasTitle = item.title.trim().length > 0;
     const imageAlt = item.mediaAlt || item.title;
@@ -271,6 +384,29 @@ export default function MediaCycler({
     const panelSxArray = toSxArray(item.panelSx);
     const assetFrameSxArray = toSxArray(item.assetFrameSx);
     const previewVideoSxArray = toSxArray(item.previewVideoSx);
+    const markdownSxArray = toSxArray(item.markdownSx);
+    const diagramSxArray = toSxArray(item.diagramSx);
+    const customContentSxArray = toSxArray(item.customContentSx);
+    const pdfContainerSxArray = toSxArray(item.pdfContainerSx);
+    const pdfFrameSxArray = toSxArray(item.pdfFrameSx);
+    const pdfPreviewSxArray = toSxArray(item.pdfPreviewSx);
+    const pdfObjectSxArray = toSxArray(item.pdfObjectSx);
+    const pdfIframeSxArray = toSxArray(item.pdfIframeSx);
+    const hasMetadata = Boolean(item.mediaSource || item.mediaCaption);
+    const hasSmallScreenInfoBlurb = Boolean(smallScreenInfoBlurb?.trim());
+    const compactMetadata =
+      compactMetadataOnSmallScreens && (hasMetadata || hasSmallScreenInfoBlurb);
+    const inlineMetadataDisplay = compactMetadata
+      ? { xs: "none", md: "block" }
+      : "block";
+    const resolvedMarkdownContent =
+      item.mediaType === "markdown"
+        ? (item.markdownContent ??
+          markdownByKey[item.key] ??
+          item.mediaUrl ??
+          "") as string
+        : "";
+    const pdfUrl = item.mediaUrl;
 
     return (
       <Box
@@ -279,25 +415,65 @@ export default function MediaCycler({
         sx={[
           {
             minWidth: 0,
+            width: "100%",
+            maxWidth: "100%",
           },
           ...panelSxArray,
         ]}
       >
-        {hasTitle ? (
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            {item.title}
-          </Typography>
-        ) : null}
-        {item.description ? (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {item.description}
-          </Typography>
+        {hasTitle || item.description || compactMetadata ? (
+          <Box sx={{ mb: 1.25 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: hasTitle ? "space-between" : "flex-end",
+                gap: 1,
+              }}
+            >
+              {hasTitle ? (
+                <Typography variant="subtitle2" sx={{ minWidth: 0, flex: 1 }}>
+                  {item.title}
+                </Typography>
+              ) : null}
+              {compactMetadata && showCompactInfoButton ? (
+                <IconButton
+                  size="small"
+                  aria-label={`Open media details: ${lightboxTitle}`}
+                  onClick={() => setMetadataDialogItemKey(item.key)}
+                  sx={(theme) => ({
+                    display: { xs: "inline-flex", md: "none" },
+                    flexShrink: 0,
+                    border: "1px solid",
+                    borderColor: alpha(theme.palette.common.white, 0.22),
+                    color:
+                      theme.palette.mode === "dark"
+                        ? theme.palette.grey[100]
+                        : theme.palette.grey[900],
+                    bgcolor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(2,6,23,0.65)"
+                        : alpha(theme.palette.background.paper, 0.82),
+                  })}
+                >
+                  <InfoOutlined fontSize="small" />
+                </IconButton>
+              ) : null}
+            </Box>
+            {item.description ? (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35 }}>
+                {item.description}
+              </Typography>
+            ) : null}
+          </Box>
         ) : null}
 
         <Box
           sx={[
             {
               width: "100%",
+              maxWidth: "100%",
+              position: "relative",
             },
             ...assetFrameSxArray,
           ]}
@@ -342,7 +518,9 @@ export default function MediaCycler({
                     alt={imageAlt}
                     title={lightboxTitle}
                     caption={
-                      item.lightboxCaption || item.mediaCaption || item.mediaSource
+                      item.lightboxCaption ||
+                      item.mediaCaption ||
+                      item.mediaSource
                     }
                     stopEventPropagation
                     triggerSx={{
@@ -351,26 +529,34 @@ export default function MediaCycler({
                       cursor: "zoom-in",
                     }}
                   >
-                    <IconButton
-                      type="button"
-                      aria-label={`Open full image: ${lightboxTitle}`}
-                      sx={(theme) => ({
-                        border: "1px solid",
-                        borderColor: alpha(theme.palette.common.white, 0.32),
-                        color: theme.palette.common.white,
-                        bgcolor: alpha(theme.palette.grey[900], 0.58),
-                        "&:hover": {
-                          bgcolor: alpha(theme.palette.grey[900], 0.76),
-                        },
-                      })}
+                    <Box
+                      component="span"
+                      sx={[
+                        (theme) => ({
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 40,
+                          height: 40,
+                          borderRadius: "50%",
+                          border: "1px solid",
+                          borderColor: alpha(theme.palette.common.white, 0.32),
+                          color: theme.palette.common.white,
+                          bgcolor: alpha(theme.palette.grey[900], 0.58),
+                          "&:hover": {
+                            bgcolor: alpha(theme.palette.grey[900], 0.76),
+                          },
+                        }),
+                        ...expandControlSxArray,
+                      ]}
                     >
                       <OpenInFull fontSize="small" />
-                    </IconButton>
+                    </Box>
                   </ImageLightbox>
                 </Box>
               ) : null}
             </Box>
-          ) : (
+          ) : item.mediaType === "video" ? (
             <Box
               role={canActivate ? "button" : undefined}
               tabIndex={canActivate ? 0 : -1}
@@ -399,169 +585,540 @@ export default function MediaCycler({
                 muted={item.muted}
                 stopEventPropagation={canActivate}
                 showExpandButton={showExpandIcon}
+                expandButtonSx={expandControlSx}
                 previewVideoClassName={item.previewVideoClassName}
                 previewVideoSx={previewVideoSxArray}
                 onLoadedData={item.onMediaLoaded}
                 {...item.videoProps}
               />
             </Box>
+          ) : item.mediaType === "pdf" ? (
+            <Box
+              role={canActivate ? "button" : undefined}
+              tabIndex={canActivate ? 0 : -1}
+              aria-label={canActivate ? `Activate ${item.title}` : undefined}
+              onClick={item.onMediaActivate}
+              onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+              sx={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "stretch",
+                justifyContent: "center",
+                cursor: canActivate ? "pointer" : "default",
+              }}
+            >
+              <PDFContent
+                src={pdfUrl}
+                title={lightboxTitle}
+                onLoad={item.onMediaLoaded}
+                previewSx={[{ height: "100%" }, ...pdfPreviewSxArray]}
+                containerSx={pdfContainerSxArray}
+                frameSx={pdfFrameSxArray}
+                objectSx={pdfObjectSxArray}
+                iframeSx={pdfIframeSxArray}
+                showOpenLink={item.pdfShowOpenLink ?? false}
+                openLinkLabel={item.pdfOpenLinkLabel}
+                openLinkHref={item.pdfOpenLinkHref}
+                openLinkDescription={item.pdfOpenLinkDescription}
+              />
+              {showExpandIcon ? (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    zIndex: 2,
+                  }}
+                >
+                  <Box
+                    component="a"
+                    href={pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Open full document: ${lightboxTitle}`}
+                    onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
+                      event.stopPropagation();
+                    }}
+                    sx={[
+                      {
+                        all: "unset",
+                        display: "inline-flex",
+                        cursor: "pointer",
+                      },
+                    ]}
+                  >
+                    <Box
+                      component="span"
+                      sx={[
+                        (theme) => ({
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 40,
+                          height: 40,
+                          borderRadius: "50%",
+                          border: "1px solid",
+                          borderColor: alpha(theme.palette.common.white, 0.32),
+                          color: theme.palette.common.white,
+                          bgcolor: alpha(theme.palette.grey[900], 0.58),
+                          "&:hover": {
+                            bgcolor: alpha(theme.palette.grey[900], 0.76),
+                          },
+                        }),
+                        ...expandControlSxArray,
+                      ]}
+                    >
+                      <OpenInFull fontSize="small" />
+                    </Box>
+                  </Box>
+                </Box>
+              ) : null}
+            </Box>
+          ) : item.mediaType === "diagram" ? (
+            <Box
+              role={canActivate ? "button" : undefined}
+              tabIndex={canActivate ? 0 : -1}
+              aria-label={canActivate ? `Activate ${item.title}` : undefined}
+              onClick={item.onMediaActivate}
+              onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+              sx={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                minHeight: 0,
+                cursor: canActivate ? "pointer" : "default",
+              }}
+            >
+              <Box
+                sx={[
+                  {
+                    width: "100%",
+                    height: "100%",
+                    minHeight: 0,
+                    overflow: "hidden",
+                    "& [id$='-container']": {
+                      width: "100% !important",
+                      height: "100% !important",
+                      minHeight: 0,
+                    },
+                    "& .mermaid svg": {
+                      maxWidth: "100%",
+                      height: "auto",
+                    },
+                  },
+                  ...diagramSxArray,
+                ]}
+              >
+                <Diagram
+                  diagram={item.mediaUrl}
+                  title={item.diagramProps?.title ?? item.title}
+                  type={item.diagramProps?.type}
+                  orientation={item.diagramProps?.orientation}
+                  syntax={item.diagramProps?.syntax}
+                  steps={item.diagramProps?.steps}
+                  height={item.diagramProps?.height ?? "100%"}
+                  width={item.diagramProps?.width ?? "100%"}
+                  showToolbar={item.diagramProps?.showToolbar ?? true}
+                  showDots={item.diagramProps?.showDots ?? false}
+                />
+              </Box>
+            </Box>
+          ) : item.mediaType === "custom" ? (
+            <Box
+              role={canActivate ? "button" : undefined}
+              tabIndex={canActivate ? 0 : -1}
+              aria-label={canActivate ? `Activate ${item.title}` : undefined}
+              onClick={item.onMediaActivate}
+              onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+              sx={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                minHeight: 0,
+                cursor: canActivate ? "pointer" : "default",
+              }}
+            >
+              <Box
+                sx={[
+                  {
+                    width: "100%",
+                    height: "100%",
+                    minHeight: 0,
+                  },
+                  ...customContentSxArray,
+                ]}
+              >
+                {item.customContent}
+              </Box>
+            </Box>
+          ) : (
+            <Box
+              role={canActivate ? "button" : undefined}
+              tabIndex={canActivate ? 0 : -1}
+              aria-label={canActivate ? `Activate ${item.title}` : undefined}
+              onClick={item.onMediaActivate}
+              onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+              sx={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                minHeight: 0,
+                cursor: canActivate ? "pointer" : "default",
+              }}
+            >
+              <Box
+                sx={(theme) => ({
+                  width: "100%",
+                  height: "100%",
+                  minHeight: 0,
+                  overflow: "auto",
+                  borderRadius: "18px",
+                  border: "1px solid",
+                  borderColor: "var(--fabric-surface-border)",
+                  bgcolor:
+                    theme.palette.mode === "light"
+                      ? alpha(theme.palette.common.white, 0.7)
+                      : "rgba(15,23,42,0.35)",
+                  p: 2,
+                })}
+              >
+                <MarkdownContent
+                  content={resolvedMarkdownContent}
+                  variant="body2"
+                  sx={[
+                    { "& p": { mb: 1.1 } },
+                    ...markdownSxArray,
+                  ]}
+                />
+              </Box>
+            </Box>
           )}
+          {navigationOverlay}
         </Box>
 
-        {renderSource(item.mediaSource, item.mediaSourceHref)}
+        {renderSource(item.mediaSource, item.mediaSourceHref) ? (
+          <Box sx={{ display: inlineMetadataDisplay }}>
+            {renderSource(item.mediaSource, item.mediaSourceHref)}
+          </Box>
+        ) : null}
         {item.mediaCaption ? (
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ mt: item.mediaSource ? 0.75 : 1.5 }}
+            sx={{
+              mt: item.mediaSource ? 0.75 : 1.5,
+              display: inlineMetadataDisplay,
+            }}
           >
             {item.mediaCaption}
           </Typography>
         ) : null}
-
         {item.extraContent}
       </Box>
     );
   };
 
-  if (singlePanel) {
-    return (
-      <Stack spacing={spacing} sx={stackSx}>
-        <Box sx={{ position: "relative" }}>
-          {showChevronNavigation && renderedItem ? (
-            <>
-              <IconButton
-                type="button"
-                aria-label="Previous media panel"
-                onClick={handleChevronPrevious}
-                disabled={previousDisabled}
-                sx={(theme) => ({
-                  position: "absolute",
-                  left: { xs: 6, md: 8 },
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 3,
-                  border: "1px solid",
-                  borderColor: alpha(theme.palette.common.white, 0.22),
-                  color:
-                    theme.palette.mode === "dark"
-                      ? theme.palette.grey[100]
-                      : theme.palette.grey[900],
+  const singlePanelNavigationOverlay =
+    showChevronNavigation && renderedItem ? (
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 3,
+        }}
+      >
+        {!previousDisabled && (
+          <IconButton
+            type="button"
+            aria-label="Previous media panel"
+            onClick={handleChevronPrevious}
+            disabled={previousDisabled}
+            sx={[
+              (theme) => ({
+                position: "absolute",
+                left: { xs: 6, md: 8 },
+                top: "50%",
+                transform: "translateY(-50%)",
+                pointerEvents: "auto",
+                border: "1px solid",
+                borderColor: alpha(theme.palette.common.white, 0.22),
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[100]
+                    : theme.palette.grey[900],
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(2,6,23,0.65)"
+                    : alpha(theme.palette.background.paper, 0.82),
+              }),
+              ...navigationControlSxArray,
+            ]}
+          >
+            <ChevronLeft fontSize="small" />
+          </IconButton>
+        )}
+        {showLoopAction ? (
+          <IconButton
+            type="button"
+            aria-label={loopNavigationLabel}
+            onClick={handleLoopNavigation}
+            disabled={loopDisabled}
+            sx={[
+              (theme) => ({
+                position: "absolute",
+                right: { xs: 6, md: 8 },
+                top: "50%",
+                transform: "translateY(-50%)",
+                pointerEvents: "auto",
+                border: "1px solid",
+                borderColor: alpha(theme.palette.common.white, 0.22),
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[100]
+                    : theme.palette.grey[900],
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(2,6,23,0.72)"
+                    : alpha(theme.palette.background.paper, 0.88),
+                "&:hover": {
                   bgcolor:
                     theme.palette.mode === "dark"
-                      ? "rgba(2,6,23,0.65)"
-                      : alpha(theme.palette.background.paper, 0.82),
-                })}
-              >
-                <ChevronLeft fontSize="small" />
-              </IconButton>
-              {showLoopAction ? (
-                <Button
-                  type="button"
-                  aria-label={loopNavigationLabel}
-                  onClick={handleLoopNavigation}
-                  disabled={loopDisabled}
-                  variant="contained"
-                  size="small"
-                  endIcon={
-                    <EmojiGlyph
-                      glyph={loopNavigationGlyph}
-                      slot="end"
-                      size="0.95rem"
-                    />
-                  }
-                  sx={(theme) => ({
-                    position: "absolute",
-                    right: { xs: 6, md: 8 },
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    zIndex: 3,
-                    borderRadius: "999px",
-                    border: "1px solid",
-                    borderColor: alpha(theme.palette.common.white, 0.22),
-                    color:
-                      theme.palette.mode === "dark"
-                        ? theme.palette.grey[100]
-                        : theme.palette.grey[900],
-                    bgcolor:
-                      theme.palette.mode === "dark"
-                        ? "rgba(2,6,23,0.72)"
-                        : alpha(theme.palette.background.paper, 0.88),
-                    px: 1.1,
-                    py: 0.35,
-                    minHeight: 32,
-                    fontWeight: 700,
-                    whiteSpace: "nowrap",
-                    textTransform: "none",
-                    boxShadow: "none",
-                    "&:hover": {
-                      boxShadow: "none",
-                      bgcolor:
-                        theme.palette.mode === "dark"
-                          ? "rgba(2,6,23,0.84)"
-                          : alpha(theme.palette.background.paper, 0.96),
-                    },
-                  })}
-                >
-                  {loopNavigationLabel}
-                </Button>
-              ) : (
-                <IconButton
-                  type="button"
-                  aria-label="Next media panel"
-                  onClick={handleChevronNext}
-                  disabled={nextDisabled}
-                  sx={(theme) => ({
-                    position: "absolute",
-                    right: { xs: 6, md: 8 },
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    zIndex: 3,
-                    border: "1px solid",
-                    borderColor: alpha(theme.palette.common.white, 0.22),
-                    color:
-                      theme.palette.mode === "dark"
-                        ? theme.palette.grey[100]
-                        : theme.palette.grey[900],
-                    bgcolor:
-                      theme.palette.mode === "dark"
-                        ? "rgba(2,6,23,0.65)"
-                        : alpha(theme.palette.background.paper, 0.82),
-                  })}
-                >
-                  <ChevronRight fontSize="small" />
-                </IconButton>
-              )}
-            </>
-          ) : null}
-          {renderedItem ? (
-            <Box
-              key={renderedItem.key}
-              sx={{
-                opacity: disableTransition ? 1 : isVisible ? 1 : 0,
-                transform: disableTransition
-                  ? "translateX(0px)"
-                  : isVisible
+                      ? "rgba(2,6,23,0.84)"
+                      : alpha(theme.palette.background.paper, 0.96),
+                },
+              }),
+              ...navigationControlSxArray,
+            ]}
+          >
+            <Loop fontSize="small" />
+          </IconButton>
+        ) : !hideNextChevron ? (
+          <IconButton
+            type="button"
+            aria-label="Next media panel"
+            onClick={handleChevronNext}
+            disabled={nextDisabled}
+            sx={[
+              (theme) => ({
+                position: "absolute",
+                right: { xs: 6, md: 8 },
+                top: "50%",
+                transform: "translateY(-50%)",
+                pointerEvents: "auto",
+                border: "1px solid",
+                borderColor: alpha(theme.palette.common.white, 0.22),
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[100]
+                    : theme.palette.grey[900],
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(2,6,23,0.65)"
+                    : alpha(theme.palette.background.paper, 0.82),
+              }),
+              ...navigationControlSxArray,
+            ]}
+          >
+            <ChevronRight fontSize="small" />
+          </IconButton>
+        ) : null}
+      </Box>
+    ) : null;
+
+  if (singlePanel) {
+    return (
+      <>
+        <Stack
+          spacing={spacing}
+          sx={[
+            {
+              minWidth: 0,
+              width: "100%",
+              maxWidth: "100%",
+            },
+            ...stackSxArray,
+          ]}
+        >
+          <Box sx={{ position: "relative", height: "100%", minHeight: 0 }}>
+            {renderedItem ? (
+              <Box
+                key={renderedItem.key}
+                sx={{
+                  height: "100%",
+                  minHeight: 0,
+                  opacity: disableTransition ? 1 : isVisible ? 1 : 0,
+                  transform: disableTransition
                     ? "translateX(0px)"
-                    : transitionDirection === "right"
-                      ? "translateX(24px)"
-                      : "translateX(-24px)",
-                transition: disableTransition
-                  ? "none"
-                  : `opacity ${transitionMs}ms ease, transform ${transitionMs}ms cubic-bezier(.2,.8,.2,1)`,
+                    : isVisible
+                      ? "translateX(0px)"
+                      : transitionDirection === "right"
+                        ? "translateX(24px)"
+                        : "translateX(-24px)",
+                  transition: disableTransition
+                    ? "none"
+                    : `opacity ${transitionMs}ms ease, transform ${transitionMs}ms cubic-bezier(.2,.8,.2,1)`,
+                }}
+              >
+                {renderItem(renderedItem, singlePanelNavigationOverlay)}
+              </Box>
+            ) : null}
+          </Box>
+        </Stack>
+        <Dialog
+          open={Boolean(metadataDialogItem)}
+          onClose={() => setMetadataDialogItemKey(null)}
+          fullWidth
+          maxWidth="xs"
+        >
+          <DialogTitle sx={{ pr: 6 }}>
+            {metadataDialogItem?.mediaLightboxTitle ||
+              metadataDialogItem?.title ||
+              "Media details"}
+            <IconButton
+              aria-label="Close media details"
+              onClick={() => setMetadataDialogItemKey(null)}
+              sx={{
+                position: "absolute",
+                top: 8,
+                right: 8,
               }}
             >
-              {renderItem(renderedItem)}
-            </Box>
-          ) : null}
-        </Box>
-      </Stack>
+              <Close fontSize="small" />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers>
+            {smallScreenInfoBlurb?.trim() ? (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  mb:
+                    metadataDialogItem?.mediaSource ||
+                    metadataDialogItem?.mediaCaption
+                      ? 1.25
+                      : 0,
+                }}
+              >
+                {smallScreenInfoBlurb}
+              </Typography>
+            ) : null}
+            {metadataDialogItem?.mediaSource ? (
+              <Typography variant="body2" color="text.secondary">
+                Source:{" "}
+                {metadataDialogItem.mediaSourceHref ? (
+                  <Link
+                    href={metadataDialogItem.mediaSourceHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    underline="hover"
+                    color="primary.main"
+                  >
+                    {metadataDialogItem.mediaSource}
+                  </Link>
+                ) : (
+                  metadataDialogItem.mediaSource
+                )}
+              </Typography>
+            ) : null}
+            {metadataDialogItem?.mediaCaption ? (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: metadataDialogItem.mediaSource ? 1.25 : 0 }}
+              >
+                {metadataDialogItem.mediaCaption}
+              </Typography>
+            ) : null}
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
   return (
-    <Stack spacing={spacing} sx={stackSx}>
-      {items.map((item) => renderItem(item))}
-    </Stack>
+    <>
+      <Stack
+        spacing={spacing}
+        sx={[
+          {
+            minWidth: 0,
+            width: "100%",
+            maxWidth: "100%",
+          },
+          ...stackSxArray,
+        ]}
+      >
+        {items.map((item) => renderItem(item))}
+      </Stack>
+      <Dialog
+        open={Boolean(metadataDialogItem)}
+        onClose={() => setMetadataDialogItemKey(null)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle sx={{ pr: 6 }}>
+          {metadataDialogItem?.mediaLightboxTitle ||
+            metadataDialogItem?.title ||
+            "Media details"}
+          <IconButton
+            aria-label="Close media details"
+            onClick={() => setMetadataDialogItemKey(null)}
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+            }}
+          >
+            <Close fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {smallScreenInfoBlurb?.trim() ? (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                mb:
+                  metadataDialogItem?.mediaSource || metadataDialogItem?.mediaCaption
+                    ? 1.25
+                    : 0,
+              }}
+            >
+              {smallScreenInfoBlurb}
+            </Typography>
+          ) : null}
+          {metadataDialogItem?.mediaSource ? (
+            <Typography variant="body2" color="text.secondary">
+              Source:{" "}
+              {metadataDialogItem.mediaSourceHref ? (
+                <Link
+                  href={metadataDialogItem.mediaSourceHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  underline="hover"
+                  color="primary.main"
+                >
+                  {metadataDialogItem.mediaSource}
+                </Link>
+              ) : (
+                metadataDialogItem.mediaSource
+              )}
+            </Typography>
+          ) : null}
+          {metadataDialogItem?.mediaCaption ? (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: metadataDialogItem.mediaSource ? 1.25 : 0 }}
+            >
+              {metadataDialogItem.mediaCaption}
+            </Typography>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

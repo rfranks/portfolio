@@ -71,7 +71,21 @@ export default function ImageLightbox(props: ImageLightboxProps) {
   );
 
   const handleOpen = React.useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
+    (event: React.MouseEvent<HTMLElement>) => {
+      if (stopEventPropagation) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      setOpen(true);
+    },
+    [stopEventPropagation],
+  );
+
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLElement>) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
       if (stopEventPropagation) {
         event.preventDefault();
         event.stopPropagation();
@@ -84,10 +98,12 @@ export default function ImageLightbox(props: ImageLightboxProps) {
   return (
     <>
       <Box
-        component="button"
-        type="button"
+        component="span"
+        role="button"
+        tabIndex={0}
         aria-label={`Open full image: ${title?.trim() || alt}`}
         onClick={handleOpen}
+        onKeyDown={handleKeyDown}
         sx={[
           {
             all: "unset",

@@ -11,13 +11,11 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import { Diagram } from "@/components/shared";
-import { ImageLightbox } from "@/components/shared";
-import { MarkdownContent } from "@/components/shared";
-import { VideoLightbox } from "@/components/shared";
+import { ImageLightbox, MarkdownContent, MediaCycler, VideoLightbox } from "@/components/shared";
+import type { MediaCyclerItem } from "@/components/shared";
 import type { ProjectData } from "@/types/components/portfolio";
 import { withBasePath } from "@/utils/basePath";
 export type { ProjectData, Technology } from "@/types/components/portfolio";
@@ -29,6 +27,68 @@ interface ProjectPresentationProps {
 export default function ProjectPresentation({
   project,
 }: ProjectPresentationProps) {
+  const diagramEntries = useMemo(
+    () =>
+      [
+        {
+          key: "block-diagram",
+          title: "Block Diagram",
+          diagram: project.blockDiagram,
+          description: "High-level system boundaries and major data flow.",
+        },
+        {
+          key: "component-diagram",
+          title: "Component Diagram",
+          diagram: project.componentDiagram,
+          description: "Core modules, responsibilities, and integrations.",
+        },
+        {
+          key: "sequence-diagram",
+          title: "Sequence Diagram",
+          diagram: project.sequenceDiagram,
+          description: "Runtime interaction flow across the stack.",
+        },
+      ].filter((entry) => entry.diagram.trim().length > 0),
+    [project.blockDiagram, project.componentDiagram, project.sequenceDiagram],
+  );
+  const [activeDiagramKey, setActiveDiagramKey] = useState<string | undefined>(
+    diagramEntries[0]?.key,
+  );
+  const diagramItems = useMemo<MediaCyclerItem[]>(
+    () =>
+      diagramEntries.map((entry) => ({
+        key: entry.key,
+        title: entry.title,
+        description: entry.description,
+        mediaType: "diagram",
+        mediaUrl: entry.diagram,
+        onSelect: () => {
+          setActiveDiagramKey(entry.key);
+        },
+        panelSx: {
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+        },
+        assetFrameSx: {
+          width: "100%",
+          minHeight: { xs: 300, md: 400 },
+          height: { xs: 300, md: 400 },
+        },
+        diagramProps: {
+          height: "100%",
+          width: "100%",
+          showToolbar: true,
+          showDots: false,
+        },
+      })),
+    [diagramEntries],
+  );
+
+  useEffect(() => {
+    setActiveDiagramKey(diagramEntries[0]?.key);
+  }, [diagramEntries]);
+
   const renderSpecification = (value: unknown): ReactNode => {
     if (Array.isArray(value)) {
       return (
@@ -177,36 +237,24 @@ export default function ProjectPresentation({
       </Grid>
 
       <Grid container spacing={4}>
-        <Grid item xs={12}>
-          
+        {diagramItems.length ? (
+          <Grid item xs={12}>
             <PortfolioPanel>
               <Typography variant="h5" gutterBottom>
-                Block Diagram
+                Architecture Diagrams
               </Typography>
-              <Diagram diagram={project.blockDiagram} height="400px" />
+              <MediaCycler
+                items={diagramItems}
+                singlePanel
+                singlePanelActiveKey={activeDiagramKey}
+                showChevronNavigation
+                loopNavigation={diagramItems.length > 1}
+                loopNavigationLabel="Loop architecture diagrams"
+                stackSx={{ minHeight: { xs: 300, md: 400 } }}
+              />
             </PortfolioPanel>
-          
-        </Grid>
-        <Grid item xs={12}>
-          
-            <PortfolioPanel>
-              <Typography variant="h5" gutterBottom>
-                Component Diagram
-              </Typography>
-              <Diagram diagram={project.componentDiagram} height="400px" />
-            </PortfolioPanel>
-          
-        </Grid>
-        <Grid item xs={12}>
-          
-            <PortfolioPanel>
-              <Typography variant="h5" gutterBottom>
-                Sequence Diagram
-              </Typography>
-              <Diagram diagram={project.sequenceDiagram} height="400px" />
-            </PortfolioPanel>
-          
-        </Grid>
+          </Grid>
+        ) : null}
       </Grid>
     </Box>
   );

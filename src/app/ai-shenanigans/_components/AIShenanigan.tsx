@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Loop from "@mui/icons-material/Loop";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { alpha, useTheme } from "@mui/material/styles";
+import type { Theme } from "@mui/material/styles";
 import AIShenaniganAdaptation from "./AIShenaniganAdaptation";
 import AIShenaniganPalmReading from "./AIShenaniganPalmReading";
 import AIShenaniganSongRecording from "./AIShenaniganSongRecording";
@@ -283,6 +286,7 @@ function DefaultAIShenanigan({
 }: AIShenaniganProps) {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
   const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
   const [stage, setStage] = useState<RevealStage>("intro");
   const [realisticVisible, setRealisticVisible] = useState(false);
@@ -321,10 +325,12 @@ function DefaultAIShenanigan({
   const hasMovie = Boolean(primaryMovieRendering);
   const isPortrait = orientation === "portrait";
   const hasVisibleMedia = realisticVisible;
-  const mediaAspectRatio = isPortrait ? "9 / 16" : "16 / 9";
   const stillAspectRatio = isPortrait ? "3 / 4" : "4 / 3";
-  const mediaMaxWidth = isPortrait ? 420 : "100%";
-  const stillMaxWidth = isPortrait ? 520 : undefined;
+  const mobileInfoPanelHeight = "clamp(220px, 30dvh, 320px)";
+  const mobileSplitGap = "20px";
+  const desktopMediaPanelHeight = "100%";
+  const desktopInfoPanelBasis = "30%";
+  const desktopInfoPanelMaxWidth = "36%";
   const formattedRank = `#${String(rank).padStart(2, "0")}`;
   const rightsLabel = rightsNotice || "Intent to Copyright";
   const rightsStampAngle = ((rank * 7) % 17) - 8;
@@ -338,41 +344,56 @@ function DefaultAIShenanigan({
     boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
     backdropFilter: "blur(var(--fabric-blur-sm))",
   } as const;
+  const mediaControlSx = (theme: Theme) => ({
+    color: theme.palette.common.black,
+    borderColor: theme.palette.common.black,
+    bgcolor: theme.palette.common.white,
+    "&:hover": {
+      bgcolor: theme.palette.common.white,
+    },
+    "&.Mui-disabled": {
+      color: alpha(theme.palette.common.black, 0.36),
+      borderColor: alpha(theme.palette.common.black, 0.36),
+      bgcolor: alpha(theme.palette.common.white, 0.8),
+    },
+  });
+  const restartActionSx = (theme: Theme) => ({
+    border: "1px solid",
+    ...mediaControlSx(theme),
+  });
   const mediaPanelSx = {
     ...panelChromeSx,
     p: 2.5,
-  } as const;
-  const mediaViewportPanelSx = {
-    ...mediaPanelSx,
-    display: "flex",
-    flexDirection: "column",
-    minHeight: {
-      xs: "80dvh",
-      md: "80dvh",
-    },
-    flexShrink: 0,
-    overflow: "hidden",
+    height: "100%",
+    minHeight: 0,
   } as const;
   const realisticPanelSx = {
     ...mediaPanelSx,
     display: "flex",
     flexDirection: "column",
     flexShrink: 0,
-    overflow: "visible",
+    overflow: "hidden",
   } as const;
   const stylizedPanelSx = {
     ...mediaPanelSx,
     display: "flex",
     flexDirection: "column",
     flexShrink: 0,
-    overflow: "visible",
+    overflow: "hidden",
+  } as const;
+  const moviePanelSx = {
+    ...mediaPanelSx,
+    display: "flex",
+    flexDirection: "column",
+    flexShrink: 0,
+    overflow: "hidden",
   } as const;
   const mediaAssetFrameSx = {
     mt: 0.2,
     mb: 0.1,
     width: "100%",
-    flex: "0 0 auto",
-    height: { xs: 400, md: 480, lg: 540 },
+    flex: "1 1 auto",
+    minHeight: 0,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -382,8 +403,8 @@ function DefaultAIShenanigan({
     mt: 0.25,
     mb: 0.35,
     width: "100%",
-    flex: "0 0 auto",
-    height: { xs: 400, md: 480, lg: 540 },
+    flex: "1 1 auto",
+    minHeight: 0,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -393,8 +414,8 @@ function DefaultAIShenanigan({
     mt: 0.2,
     mb: 0.1,
     width: "100%",
-    flex: "0 0 auto",
-    height: { xs: 400, md: 480, lg: 540 },
+    flex: "1 1 auto",
+    minHeight: 0,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -574,8 +595,60 @@ function DefaultAIShenanigan({
 
   const renderChronologyChips = (scope: "main" | "panel") => {
     const visibleLabels = revealLabels;
+    const useCondensedChronology = visibleLabels.length > 3;
 
-    return visibleLabels.map((item, index) => (
+    const activeIndex = visibleLabels.findIndex((item) => item.active);
+    let currentIndex = activeIndex;
+
+    if (currentIndex === -1) {
+      for (let index = visibleLabels.length - 1; index >= 0; index -= 1) {
+        if (visibleLabels[index]?.reached) {
+          currentIndex = index;
+          break;
+        }
+      }
+    }
+
+    if (currentIndex === -1) {
+      currentIndex = 0;
+    }
+
+    const firstIndex = 0;
+    const lastIndex = Math.max(visibleLabels.length - 1, 0);
+    const displayedIndices = useCondensedChronology
+      ? (() => {
+          const condensedIndices = new Set([firstIndex, currentIndex, lastIndex]);
+
+          if (condensedIndices.size < 3) {
+            if (currentIndex === firstIndex && firstIndex + 1 < lastIndex) {
+              condensedIndices.add(firstIndex + 1);
+            }
+
+            if (currentIndex === lastIndex && lastIndex - 1 > firstIndex) {
+              condensedIndices.add(lastIndex - 1);
+            }
+          }
+
+          if (condensedIndices.size < 3) {
+            const middleIndex = Math.floor((firstIndex + lastIndex) / 2);
+            if (middleIndex > firstIndex && middleIndex < lastIndex) {
+              condensedIndices.add(middleIndex);
+            }
+          }
+
+          return Array.from(condensedIndices).sort((left, right) => left - right);
+        })()
+      : visibleLabels.map((_, index) => index);
+
+    return displayedIndices.map((index, chipPosition) => {
+      const item = visibleLabels[index];
+      if (!item) {
+        return null;
+      }
+
+      const hasNextChip = chipPosition < displayedIndices.length - 1;
+
+      return (
       <Box
         key={`${scope}-${item.key}`}
         sx={{
@@ -610,24 +683,29 @@ function DefaultAIShenanigan({
                 }
           }
         />
-        {index < visibleLabels.length - 1 && (
+        {hasNextChip && (
           <Typography
             aria-hidden="true"
             sx={{
               fontSize: "1rem",
               fontWeight: 800,
               lineHeight: 1,
-              color: item.active ? "primary.main" : "text.disabled",
+              color: useCondensedChronology
+                ? "text.disabled"
+                : item.active
+                  ? "primary.main"
+                  : "text.disabled",
               transform: "translateY(-1px)",
               transition: "color 180ms ease",
               userSelect: "none",
             }}
           >
-            →
+            {useCondensedChronology ? "..." : "→"}
           </Typography>
         )}
       </Box>
-    ));
+      );
+    });
   };
 
   useEffect(() => {
@@ -635,6 +713,15 @@ function DefaultAIShenanigan({
       setIsInfoPanelMinimized(false);
     }
   }, [isSmallScreen]);
+
+  useEffect(() => {
+    if (!isSmDown || realisticVisible) {
+      return;
+    }
+
+    setStage("realistic");
+    setRealisticVisible(true);
+  }, [isSmDown, realisticVisible]);
 
   useEffect(() => {
     if (stage !== "movie") {
@@ -747,11 +834,16 @@ function DefaultAIShenanigan({
     handleChronologySelect("stylized");
   };
 
+  const buildMobilePanelSubtext = (subtitle: string, source?: string) =>
+    source?.trim() ? `${subtitle} • ${source.trim()}` : subtitle;
+
   const realisticMediaItem: MediaCyclerItem | null = realisticVisible
     ? {
         key: "realistic",
-        title: "Realistic source",
-        description: "The grounded starting point.",
+        title: isSmDown ? title : "Realistic source",
+        description: isSmDown
+          ? buildMobilePanelSubtext("Realistic source", realisticSource)
+          : "The grounded starting point.",
         mediaType: "image",
         mediaUrl: withBasePath(realisticImage),
         mediaAlt: `${title} realistic source`,
@@ -772,12 +864,14 @@ function DefaultAIShenanigan({
         assetFrameSx: realisticAssetFrameSx,
         imageWidth: 1200,
         imageHeight: 900,
-        imageClassName: "w-full rounded-[22px] bg-black/10 object-contain",
+        imageClassName: "rounded-[22px] bg-black/10 object-contain",
         imageStyle: {
+          width: "100%",
           height: "100%",
+          maxWidth: "100%",
           maxHeight: "100%",
+          objectFit: "contain",
           aspectRatio: stillAspectRatio,
-          maxWidth: stillMaxWidth,
           marginInline: "auto",
         },
         onSelect: () => {
@@ -791,8 +885,10 @@ function DefaultAIShenanigan({
     stylizedVisible && stylizedRendering
       ? {
           key: "stylized",
-          title: "Stylized rendering",
-          description: "Push the portrait into caricature.",
+          title: isSmDown ? title : "Stylized rendering",
+          description: isSmDown
+            ? buildMobilePanelSubtext("Stylized rendering", stylizedSource)
+            : "Push the portrait into caricature.",
           mediaType: "image",
           mediaUrl: withBasePath(stylizedRendering),
           mediaAlt: `${title} stylized rendering`,
@@ -813,12 +909,14 @@ function DefaultAIShenanigan({
           assetFrameSx: stylizedAssetFrameSx,
           imageWidth: 1200,
           imageHeight: 900,
-          imageClassName: "w-full rounded-[22px] bg-black/10 object-contain",
+          imageClassName: "rounded-[22px] bg-black/10 object-contain",
           imageStyle: {
+            width: "100%",
             height: "100%",
+            maxWidth: "100%",
             maxHeight: "100%",
+            objectFit: "contain",
             aspectRatio: stillAspectRatio,
-            maxWidth: stillMaxWidth,
             marginInline: "auto",
           },
           onSelect: () => {
@@ -832,8 +930,10 @@ function DefaultAIShenanigan({
     movieVisible && primaryMovieRendering
       ? {
           key: "movie",
-          title: "Motion rendering",
-          description: "Let the caricature move.",
+          title: isSmDown ? title : "Motion rendering",
+          description: isSmDown
+            ? buildMobilePanelSubtext("Motion rendering", primaryMovieSource)
+            : undefined,
           mediaType: "video",
           mediaUrl: withBasePath(primaryMovieRendering),
           mediaLightboxTitle: `${title} motion rendering`,
@@ -841,7 +941,14 @@ function DefaultAIShenanigan({
           mediaSource: primaryMovieSource,
           mediaSourceHref: primaryMovieSourceHref,
           panelRef: motionSectionRef,
-          panelSx: mediaViewportPanelSx,
+          panelSx: {
+            ...moviePanelSx,
+            minWidth: 0,
+            opacity: 1,
+            transform: "translate3d(0, 0, 0)",
+            transition:
+              "opacity 320ms ease, transform 360ms cubic-bezier(.2,.8,.2,1), flex-basis 360ms cubic-bezier(.2,.8,.2,1), max-width 360ms cubic-bezier(.2,.8,.2,1)",
+          },
           assetFrameSx: mediaAssetFrameSx,
           videoRef: motionVideoRef,
           controls: true,
@@ -850,12 +957,12 @@ function DefaultAIShenanigan({
           previewVideoClassName:
             "block w-full rounded-[22px] bg-black/10 object-contain",
           previewVideoSx: {
-            width: "auto",
+            width: "100%",
             height: "100%",
             maxHeight: "100%",
             maxWidth: "100%",
-            aspectRatio: mediaAspectRatio,
-            ...(mediaMaxWidth ? { maxInlineSize: mediaMaxWidth } : {}),
+            objectFit: "contain",
+            aspectRatio: stillAspectRatio,
             mx: isPortrait ? "auto" : undefined,
           },
           onSelect: () => {
@@ -877,6 +984,9 @@ function DefaultAIShenanigan({
               </Typography>
               <MediaCycler
                 spacing={0}
+                compactMetadataOnSmallScreens
+                smallScreenInfoBlurb={blurb}
+                showCompactInfoButton={false}
                 items={[
                   {
                     key: "movie-alternate",
@@ -898,12 +1008,12 @@ function DefaultAIShenanigan({
                     previewVideoClassName:
                       "block w-full rounded-[22px] bg-black/10 object-contain",
                     previewVideoSx: {
-                      width: "auto",
+                      width: "100%",
                       height: "100%",
                       maxHeight: "100%",
                       maxWidth: "100%",
-                      aspectRatio: mediaAspectRatio,
-                      ...(mediaMaxWidth ? { maxInlineSize: mediaMaxWidth } : {}),
+                      objectFit: "contain",
+                      aspectRatio: stillAspectRatio,
                       mx: isPortrait ? "auto" : undefined,
                     },
                   },
@@ -1005,14 +1115,19 @@ function DefaultAIShenanigan({
 
   return (
     <AIShenaniganPanel>
-      <Stack spacing={3} flexGrow={1}>
+      <Stack spacing={3} flexGrow={1} sx={{ minWidth: 0, maxWidth: "100%" }}>
         <Stack
           spacing={2.5}
           direction={{ xs: "column", md: "row" }}
           flexGrow={1}
           sx={{
-            alignItems: { xs: "stretch", md: "flex-start" },
-            overflow: { xs: "hidden", md: "visible" },
+            minWidth: 0,
+            maxWidth: "100%",
+            minHeight: 0,
+            height: "100%",
+            alignItems: "stretch",
+            overflowX: "hidden",
+            overflowY: "hidden",
           }}
         >
           {hasVisibleMedia && (
@@ -1020,19 +1135,26 @@ function DefaultAIShenanigan({
               spacing={2}
               sx={{
                 minWidth: 0,
-                flex: "1 1 auto",
-                width: "100%",
-                height: hasVisibleMedia ? "80dvh" : 0,
-                overflowY: "auto",
-                overflowX: "hidden",
-                pr: { md: 1.25 },
-                maxWidth: {
-                  xs: hasVisibleMedia ? "100%" : 0,
-                  md: hasVisibleMedia ? "calc(100% - 400px)" : 0,
+                flex: {
+                  xs: hasVisibleMedia ? "1 1 0px" : "0 0 auto",
+                  md: "1 1 0%",
                 },
+                width: { xs: "100%", md: 0 },
+                height: {
+                  xs: hasVisibleMedia
+                    ? isSmDown
+                      ? "100%"
+                      : `calc(100% - ${mobileInfoPanelHeight} - ${mobileSplitGap})`
+                    : 0,
+                  md: hasVisibleMedia ? desktopMediaPanelHeight : 0,
+                },
+                minHeight: 0,
+                overflow: "hidden",
+                pr: { md: 1.25 },
+                maxWidth: "100%",
                 flexBasis: {
                   xs: hasVisibleMedia ? "100%" : "0px",
-                  md: hasVisibleMedia ? "calc(100% - 400px)" : "0px",
+                  md: hasVisibleMedia ? 0 : "0px",
                 },
                 opacity: hasVisibleMedia ? 1 : 0,
                 transform: hasVisibleMedia
@@ -1050,10 +1172,13 @@ function DefaultAIShenanigan({
                 singlePanel
                 singlePanelActiveKey={activeMediaKey}
                 transitionMs={260}
+                compactMetadataOnSmallScreens
+                smallScreenInfoBlurb={blurb}
+                showCompactInfoButton={false}
                 showChevronNavigation
+                navigationControlSx={mediaControlSx}
+                expandControlSx={mediaControlSx}
                 loopNavigation={showLoopNavigation}
-                loopNavigationLabel="Start Over"
-                loopNavigationGlyph="🔁"
                 disableLoopNavigation={transitioningTo !== null}
                 disableChevronPrevious={disableChevronPrevious}
                 disableChevronNext={disableChevronNext}
@@ -1062,8 +1187,9 @@ function DefaultAIShenanigan({
                 onLoopNavigation={handleLoopNavigation}
                 stackSx={{
                   flexGrow: 1,
-                  height: "auto",
-                  overflow: "visible",
+                  minHeight: 0,
+                  height: "100%",
+                  overflow: "hidden",
                   alignItems: "stretch",
                 }}
               />
@@ -1071,19 +1197,20 @@ function DefaultAIShenanigan({
           )}
           <Box
             sx={{
-              display: "flex",
+              display: { xs: isSmDown ? "none" : "flex", md: "flex" },
               height: {
-                xs: "30dvh",
+                xs: hasVisibleMedia ? mobileInfoPanelHeight : "100%",
                 md: "100%",
               },
-              width: "100%",
-              minWidth: { xs: 0, md: hasVisibleMedia ? 400 : 0 },
-              maxWidth: { xs: "100%", md: hasVisibleMedia ? 400 : "100%" },
+              width: { xs: "100%", md: "auto" },
+              maxWidth: { xs: "100%", md: hasVisibleMedia ? desktopInfoPanelMaxWidth : "100%" },
+              minWidth: 0,
+              flex: { xs: "0 0 auto", md: hasVisibleMedia ? `0 1 ${desktopInfoPanelBasis}` : "1 1 100%" },
               flexBasis: {
-                md: hasVisibleMedia ? "400px" : "100%",
+                md: hasVisibleMedia ? desktopInfoPanelBasis : "100%",
               },
-              flexShrink: 0,
-              flexGrow: 1,
+              flexShrink: { xs: 0, md: 1 },
+              flexGrow: { xs: 0, md: hasVisibleMedia ? 0 : 1 },
               order: { xs: 2, md: 2 },
               transition:
                 "flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1), min-width 560ms cubic-bezier(.2,.8,.2,1), transform 560ms cubic-bezier(.2,.8,.2,1)",
@@ -1092,17 +1219,13 @@ function DefaultAIShenanigan({
             <Box
               sx={{
                 height: "100%",
-                position: {
-                  xs: "static",
-                  md: hasVisibleMedia ? "sticky" : "static",
-                },
-                top: { md: 104 },
-                maxHeight: {
-                  xs: "none",
-                  md: hasVisibleMedia ? "calc(100dvh - 120px)" : "none",
-                },
-                overflowY: hasVisibleMedia ? "auto" : "visible",
-                overscrollBehaviorY: { md: "contain" },
+                minWidth: 0,
+                maxWidth: "100%",
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                maxHeight: "100%",
+                overflow: "hidden",
                 pr: { md: hasVisibleMedia ? 0.5 : 0 },
                 transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
               }}
@@ -1113,6 +1236,8 @@ function DefaultAIShenanigan({
                   ...panelChromeSx,
                   display: "flex",
                   flexDirection: "column",
+                  minWidth: 0,
+                  maxWidth: "100%",
                   p: { xs: 3, md: 3.5 },
                   boxShadow: "none",
                   height: "100%",
@@ -1165,14 +1290,7 @@ function DefaultAIShenanigan({
                 </Button> */}
                 {!(isSmallScreen && isInfoPanelMinimized) && (
                   <>
-                    <Typography
-                      color="text.secondary"
-                      className="leading-7"
-                      sx={{
-                        maxHeight: isSmallScreen ? "15dvh" : "auto",
-                        overflowY: isSmallScreen ? "auto" : "visible",
-                      }}
-                    >
+                    <Typography color="text.secondary" className="leading-7">
                       {blurb}
                     </Typography>
                     {!isSmallScreen && (
@@ -1195,25 +1313,8 @@ function DefaultAIShenanigan({
                     )}
                     <Box
                       sx={{
-                        mt: 3,
-                        position: {
-                          xs: "static",
-                          md: hasVisibleMedia ? "sticky" : "static",
-                        },
-                        bottom: { md: 0 },
-                        pt: { md: hasVisibleMedia ? 1.5 : 0 },
-                        pb: { md: hasVisibleMedia ? 0.25 : 0 },
-                        zIndex: { md: 1 },
-                        background: {
-                          xs: "transparent",
-                          md: hasVisibleMedia
-                            ? (theme) =>
-                                `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0)} 0%, ${alpha(theme.palette.background.paper, 0.72)} 24%, ${alpha(theme.palette.background.paper, 0.88)} 100%)`
-                            : "transparent",
-                        },
-                        backdropFilter: {
-                          md: hasVisibleMedia ? "blur(4px)" : "none",
-                        },
+                        mt: "auto",
+                        pt: 2.25,
                         display: "flex",
                         alignItems: "flex-end",
                         justifyContent: "flex-end",
@@ -1226,19 +1327,13 @@ function DefaultAIShenanigan({
                         {stage !== "intro" &&
                           renderNextAction() &&
                           !isSmallScreen && (
-                            <Button
-                              variant="text"
+                            <IconButton
+                              aria-label="Start over"
                               onClick={resetReveal}
-                              startIcon={
-                                <EmojiGlyph
-                                  glyph="🔁"
-                                  slot="start"
-                                  size="1rem"
-                                />
-                              }
+                              sx={restartActionSx}
                             >
-                              Start Over
-                            </Button>
+                              <Loop fontSize="small" />
+                            </IconButton>
                           )}
                       </Box>
                       <Box
@@ -1251,13 +1346,13 @@ function DefaultAIShenanigan({
                       >
                         {renderNextAction() ??
                           (stage !== "intro" && (
-                            <Button
-                              variant="contained"
+                            <IconButton
+                              aria-label="Sequence finished: start over"
                               onClick={resetReveal}
-                              endIcon={<EmojiGlyph glyph="🔁" slot="end" />}
+                              sx={restartActionSx}
                             >
-                              Sequence Finished: Start Over
-                            </Button>
+                              <Loop fontSize="small" />
+                            </IconButton>
                           ))}
                       </Box>
                     </Box>

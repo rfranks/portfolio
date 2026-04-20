@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Loop from "@mui/icons-material/Loop";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -80,7 +82,8 @@ export default function AIShenaniganAdaptation({
   episodeMedia = [],
 }: AIShenaniganAdaptationProps) {
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const isSmDown = useMediaQuery(theme.breakpoints.down("md"));
   const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
   const [stage, setStage] = useState<RevealStage>("intro");
   const [bookVisible, setBookVisible] = useState(false);
@@ -137,12 +140,39 @@ export default function AIShenaniganAdaptation({
   const mediaPanelSx = {
     ...panelChromeSx,
     p: 2.5,
+    position: "relative",
+    height: "100%",
+    minHeight: 0,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
   } as const;
   const hasTrailer = Boolean(trailerMovie);
   const isTrailerPortrait = trailerOrientation === "portrait";
   const trailerAspectRatio = isTrailerPortrait ? "9 / 16" : "16 / 9";
   const trailerMaxWidth = isTrailerPortrait ? 420 : undefined;
-  const panelFrameHeight = { xs: "44dvh", md: "52dvh" };
+  const mobileInfoPanelHeight = "clamp(220px, 30dvh, 320px)";
+  const mobileSplitGap = "20px";
+  const desktopInfoPanelBasis = "30%";
+  const desktopInfoPanelMaxWidth = "36%";
+  const desktopMediaPanelHeight = "100%";
+  const mediaControlSx = (currentTheme: typeof theme) => ({
+    color: currentTheme.palette.common.black,
+    borderColor: currentTheme.palette.common.black,
+    bgcolor: currentTheme.palette.common.white,
+    "&:hover": {
+      bgcolor: currentTheme.palette.common.white,
+    },
+    "&.Mui-disabled": {
+      color: alpha(currentTheme.palette.common.black, 0.36),
+      borderColor: alpha(currentTheme.palette.common.black, 0.36),
+      bgcolor: alpha(currentTheme.palette.common.white, 0.8),
+    },
+  });
+  const restartActionSx = (currentTheme: typeof theme) => ({
+    border: "1px solid",
+    ...mediaControlSx(currentTheme),
+  });
   const hasEpisodesPdf = Boolean(episodesPdf);
 
   const clearPendingTransitions = useCallback(() => {
@@ -248,7 +278,7 @@ export default function AIShenaniganAdaptation({
       const shouldFavorFooter =
         Boolean(footer) &&
         typeof window !== "undefined" &&
-        window.matchMedia("(max-width:1199.95px)").matches;
+        window.matchMedia("(max-width:899.95px)").matches;
 
       if (!shouldFavorFooter || !footer) {
         scrollPanelIntoView(panel, block);
@@ -416,92 +446,159 @@ export default function AIShenaniganAdaptation({
     );
   };
 
+  const renderInlineRightsStamp = () => {
+    if (!intentToCopyright) {
+      return null;
+    }
+
+    return (
+      <Box
+        sx={{
+          px: 0.9,
+          py: 0.45,
+          borderRadius: "8px",
+          border: "2px solid rgba(185,28,28,0.82)",
+          color: "rgba(127,29,29,0.96)",
+          bgcolor: "rgba(255,244,244,0.9)",
+          fontSize: "0.58rem",
+          fontWeight: 900,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          lineHeight: 1,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {rightsLabel}
+      </Box>
+    );
+  };
+
+  const renderMobilePanelHeader = (
+    subtitle: string,
+    source?: string,
+  ) => {
+    if (!isSmDown) {
+      return null;
+    }
+
+    const subtitleLine = source?.trim() ? `${subtitle} • ${source.trim()}` : subtitle;
+
+    return (
+      <Box sx={{ mb: 1.25 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="flex-start"
+          justifyContent="space-between"
+        >
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography variant="h6" sx={{ lineHeight: 1.15 }}>
+              {title}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 0.35, lineHeight: 1.3 }}
+            >
+              {subtitleLine}
+            </Typography>
+          </Box>
+          {renderInlineRightsStamp()}
+        </Stack>
+      </Box>
+    );
+  };
+
   const renderPdfFrame = (
     src: string,
     titleText: string,
     onLoad?: () => void,
     onMediaActivate?: () => void,
+    onChevronPrevious?: () => void,
+    onChevronNext?: () => void,
+    disableChevronPrevious?: boolean,
+    disableChevronNext?: boolean,
+    loopNavigation?: boolean,
+    onLoopNavigation?: () => void,
+    disableLoopNavigation?: boolean,
   ) => {
-    const pdfSrc = `${withBasePath(src)}#view=FitH`;
-
     return (
-      <Box sx={{ mt: 2 }}>
-        <Box
-          sx={(theme) => ({
+      <Box sx={{ mt: 1.25, flex: 1, minHeight: 0, display: "flex" }}>
+        <MediaCycler
+          spacing={0}
+          singlePanel
+          transitionMs={260}
+          showChevronNavigation
+          compactMetadataOnSmallScreens
+          smallScreenInfoBlurb={blurb}
+          showCompactInfoButton={false}
+          navigationControlSx={mediaControlSx}
+          expandControlSx={mediaControlSx}
+          onChevronPrevious={onChevronPrevious}
+          onChevronNext={onChevronNext}
+          disableChevronPrevious={disableChevronPrevious}
+          disableChevronNext={disableChevronNext}
+          loopNavigation={loopNavigation}
+          onLoopNavigation={onLoopNavigation}
+          disableLoopNavigation={disableLoopNavigation}
+          stackSx={{
+            height: "100%",
+            minHeight: 0,
+            display: "flex",
             overflow: "hidden",
-            borderRadius: "18px",
-            border: "1px solid",
-            borderColor: "var(--fabric-surface-border)",
-            cursor: onMediaActivate ? "pointer" : "default",
-            bgcolor:
-              theme.palette.mode === "light"
-                ? alpha(theme.palette.common.white, 0.8)
-                : "rgba(15,23,42,0.48)",
-          })}
-          role={onMediaActivate ? "button" : undefined}
-          tabIndex={onMediaActivate ? 0 : -1}
-          onClick={onMediaActivate}
-          onKeyDown={(event) => {
-            if (!onMediaActivate) {
-              return;
-            }
-
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              onMediaActivate();
-            }
           }}
-        >
-          <Box
-            component="object"
-            data={pdfSrc}
-            type="application/pdf"
-            aria-label={titleText}
-            sx={{
-              display: "block",
-              width: "100%",
-              height: panelFrameHeight,
-            }}
-          >
-            <Box
-              component="iframe"
-              src={pdfSrc}
-              title={titleText}
-              onLoad={onLoad}
-              sx={{
+          items={[
+            {
+              key: `${titleText}-${src}`,
+              title: "",
+              mediaType: "pdf",
+              mediaUrl: withBasePath(src),
+              mediaLightboxTitle: titleText,
+              onMediaLoaded: onLoad,
+              onMediaActivate,
+              panelSx: {
+                height: "100%",
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+              },
+              assetFrameSx: {
+                mt: 0,
+                mb: 0,
                 width: "100%",
-                height: panelFrameHeight,
-                border: 0,
-                bgcolor: (theme) =>
-                  theme.palette.mode === "light"
-                    ? alpha(theme.palette.common.white, 0.84)
-                    : "rgba(15,23,42,0.48)",
-              }}
-            />
-          </Box>
-        </Box>
-        <Stack
-          direction="row"
-          spacing={1.5}
-          alignItems="center"
-          useFlexGap
-          flexWrap="wrap"
-          sx={{ mt: 1.25 }}
-        >
-          <Link
-            href={withBasePath(src)}
-            target="_blank"
-            rel="noopener noreferrer"
-            underline="hover"
-            color="primary.main"
-            sx={{ display: "inline-flex" }}
-          >
-            Open document
-          </Link>
-          <Typography variant="caption" color="text.secondary">
-            Read inline or open the PDF in a separate tab.
-          </Typography>
-        </Stack>
+                flex: "1 1 auto",
+                minHeight: 0,
+                display: "flex",
+              },
+              pdfPreviewSx: {
+                height: "100%",
+              },
+              pdfContainerSx: {
+                height: "100%",
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                flex: "1 1 auto",
+              },
+              pdfFrameSx: {
+                flex: "1 1 auto",
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+              },
+              pdfObjectSx: {
+                flex: "1 1 auto",
+                minHeight: 0,
+              },
+              pdfIframeSx: {
+                flex: "1 1 auto",
+                minHeight: 0,
+              },
+              pdfShowOpenLink: true,
+              pdfOpenLinkLabel: "Open document",
+            },
+          ]}
+        />
       </Box>
     );
   };
@@ -671,8 +768,59 @@ export default function AIShenaniganAdaptation({
 
   const renderChronologyChips = (scope: "main" | "panel") => {
     const visibleLabels = revealLabels;
+    const useCondensedChronology = visibleLabels.length > 3;
+    const activeIndex = visibleLabels.findIndex((item) => item.active);
+    let currentIndex = activeIndex;
 
-    return visibleLabels.map((item, index) => (
+    if (currentIndex === -1) {
+      for (let index = visibleLabels.length - 1; index >= 0; index -= 1) {
+        if (visibleLabels[index]?.reached) {
+          currentIndex = index;
+          break;
+        }
+      }
+    }
+
+    if (currentIndex === -1) {
+      currentIndex = 0;
+    }
+
+    const firstIndex = 0;
+    const lastIndex = Math.max(visibleLabels.length - 1, 0);
+    const displayedIndices = useCondensedChronology
+      ? (() => {
+          const condensedIndices = new Set([firstIndex, currentIndex, lastIndex]);
+
+          if (condensedIndices.size < 3) {
+            if (currentIndex === firstIndex && firstIndex + 1 < lastIndex) {
+              condensedIndices.add(firstIndex + 1);
+            }
+
+            if (currentIndex === lastIndex && lastIndex - 1 > firstIndex) {
+              condensedIndices.add(lastIndex - 1);
+            }
+          }
+
+          if (condensedIndices.size < 3) {
+            const middleIndex = Math.floor((firstIndex + lastIndex) / 2);
+            if (middleIndex > firstIndex && middleIndex < lastIndex) {
+              condensedIndices.add(middleIndex);
+            }
+          }
+
+          return Array.from(condensedIndices).sort((left, right) => left - right);
+        })()
+      : visibleLabels.map((_, index) => index);
+
+    return displayedIndices.map((index, chipPosition) => {
+      const item = visibleLabels[index];
+      if (!item) {
+        return null;
+      }
+
+      const hasNextChip = chipPosition < displayedIndices.length - 1;
+
+      return (
       <Box
         key={`${scope}-${item.key}`}
         sx={{ display: "flex", alignItems: "center", gap: 1 }}
@@ -700,24 +848,29 @@ export default function AIShenaniganAdaptation({
                 }
           }
         />
-        {index < visibleLabels.length - 1 && (
+        {hasNextChip && (
           <Typography
             aria-hidden="true"
             sx={{
               fontSize: "1rem",
               fontWeight: 800,
               lineHeight: 1,
-              color: item.active ? "primary.main" : "text.disabled",
+              color: useCondensedChronology
+                ? "text.disabled"
+                : item.active
+                  ? "primary.main"
+                  : "text.disabled",
               transform: "translateY(-1px)",
               transition: "color 180ms ease",
               userSelect: "none",
             }}
           >
-            →
+            {useCondensedChronology ? "..." : "→"}
           </Typography>
         )}
       </Box>
-    ));
+      );
+    });
   };
 
   useEffect(() => {
@@ -725,6 +878,15 @@ export default function AIShenaniganAdaptation({
       setIsInfoPanelMinimized(false);
     }
   }, [isSmallScreen]);
+
+  useEffect(() => {
+    if (!isSmDown || bookVisible) {
+      return;
+    }
+
+    setBookVisible(true);
+    setStage("book");
+  }, [bookVisible, isSmDown]);
 
   useEffect(() => {
     if (!bookVisible || !bookCoverLoaded) {
@@ -918,28 +1080,43 @@ export default function AIShenaniganAdaptation({
 
   return (
     <AIShenaniganPanel className="overflow-hidden">
-      <Stack spacing={3} flexGrow={1}>
+      <Stack spacing={3} flexGrow={1} sx={{ minWidth: 0, maxWidth: "100%" }}>
         <Stack
           spacing={2.5}
           direction={{ xs: "column", md: "row" }}
           flexGrow={1}
           sx={{
-            alignItems: { xs: "stretch", md: "flex-start" },
-            overflow: { xs: "hidden", md: "visible" },
+            minWidth: 0,
+            maxWidth: "100%",
+            minHeight: 0,
+            height: "100%",
+            alignItems: "stretch",
+            overflowX: "hidden",
+            overflowY: "hidden",
           }}
         >
           <Box
             sx={{
-              display: "flex",
-              maxHeight: {
-                xs: hasVisibleMedia ? "30dvh" : "100%",
+              display: { xs: isSmDown ? "none" : "flex", md: "flex" },
+              height: {
+                xs: hasVisibleMedia ? mobileInfoPanelHeight : "100%",
                 md: "100%",
               },
-              width: "100%",
-              minWidth: { xs: 0, md: hasVisibleMedia ? 400 : 0 },
-              maxWidth: { xs: "100%", md: hasVisibleMedia ? 400 : "100%" },
-              flexBasis: "100%",
-              flexGrow: 1,
+              width: { xs: "100%", md: "auto" },
+              maxWidth: {
+                xs: "100%",
+                md: hasVisibleMedia ? desktopInfoPanelMaxWidth : "100%",
+              },
+              minWidth: 0,
+              flex: {
+                xs: "0 0 auto",
+                md: hasVisibleMedia ? `0 1 ${desktopInfoPanelBasis}` : "1 1 100%",
+              },
+              flexBasis: {
+                md: hasVisibleMedia ? desktopInfoPanelBasis : "100%",
+              },
+              flexShrink: { xs: 0, md: 1 },
+              flexGrow: { xs: 0, md: hasVisibleMedia ? 0 : 1 },
               order: { xs: 2, md: 2 },
               transition:
                 "flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1), min-width 560ms cubic-bezier(.2,.8,.2,1), transform 560ms cubic-bezier(.2,.8,.2,1)",
@@ -948,20 +1125,11 @@ export default function AIShenaniganAdaptation({
             <Box
               sx={{
                 height: "100%",
-                position: {
-                  xs: "static",
-                  md: hasVisibleMedia ? "sticky" : "static",
-                },
-                top: { md: 104 },
-                maxHeight: {
-                  xs: "none",
-                  md: hasVisibleMedia ? "calc(100dvh - 120px)" : "none",
-                },
-                overflowY: {
-                  xs: "visible",
-                  md: hasVisibleMedia ? "auto" : "visible",
-                },
-                overscrollBehaviorY: { md: "contain" },
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                maxHeight: "100%",
+                overflow: "hidden",
                 pr: { md: hasVisibleMedia ? 0.5 : 0 },
                 transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
               }}
@@ -1028,8 +1196,10 @@ export default function AIShenaniganAdaptation({
                       color="text.secondary"
                       className="leading-7"
                       sx={{
-                        maxHeight: isSmallScreen ? "15dvh" : "auto",
-                        overflowY: isSmallScreen ? "auto" : "visible",
+                        flexShrink: 1,
+                        minHeight: 0,
+                        overflowY: "auto",
+                        pr: 0.5,
                       }}
                     >
                       {blurb}
@@ -1054,25 +1224,8 @@ export default function AIShenaniganAdaptation({
                     )}
                     <Box
                       sx={{
-                        mt: 3,
-                        position: {
-                          xs: "static",
-                          md: hasVisibleMedia ? "sticky" : "static",
-                        },
-                        bottom: { md: 0 },
-                        pt: { md: hasVisibleMedia ? 1.5 : 0 },
-                        pb: { md: hasVisibleMedia ? 0.25 : 0 },
-                        zIndex: { md: 1 },
-                        background: {
-                          xs: "transparent",
-                          md: hasVisibleMedia
-                            ? (theme) =>
-                                `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0)} 0%, ${alpha(theme.palette.background.paper, 0.72)} 24%, ${alpha(theme.palette.background.paper, 0.88)} 100%)`
-                            : "transparent",
-                        },
-                        backdropFilter: {
-                          md: hasVisibleMedia ? "blur(4px)" : "none",
-                        },
+                        mt: "auto",
+                        pt: 2.25,
                         display: "flex",
                         alignItems: "flex-end",
                         justifyContent: "flex-end",
@@ -1083,15 +1236,13 @@ export default function AIShenaniganAdaptation({
                     >
                       <Box>
                         {stage !== "intro" && renderNextAction() && (
-                          <Button
-                            variant="text"
+                          <IconButton
+                            aria-label="Start over"
                             onClick={resetReveal}
-                            startIcon={
-                              <EmojiGlyph glyph="🔁" slot="start" size="1rem" />
-                            }
+                            sx={restartActionSx}
                           >
-                            Start Over
-                          </Button>
+                            <Loop fontSize="small" />
+                          </IconButton>
                         )}
                       </Box>
                       <Box
@@ -1104,13 +1255,13 @@ export default function AIShenaniganAdaptation({
                       >
                         {renderNextAction() ??
                           (stage !== "intro" && (
-                            <Button
-                              variant="contained"
+                            <IconButton
+                              aria-label="Sequence finished: start over"
                               onClick={resetReveal}
-                              endIcon={<EmojiGlyph glyph="🔁" slot="end" />}
+                              sx={restartActionSx}
                             >
-                              Sequence Finished: Start Over
-                            </Button>
+                              <Loop fontSize="small" />
+                            </IconButton>
                           ))}
                       </Box>
                     </Box>
@@ -1123,19 +1274,26 @@ export default function AIShenaniganAdaptation({
             spacing={2}
             sx={{
               minWidth: 0,
-              flex: "1 1 auto",
-              width: "100%",
-              height: hasVisibleMedia ? "80dvh" : 0,
-              overflowY: "auto",
-              overflowX: "hidden",
-              pr: { md: 1.25 },
-              maxWidth: {
-                xs: hasVisibleMedia ? "100%" : 0,
-                md: hasVisibleMedia ? "calc(100% - 400px)" : 0,
+              flex: {
+                xs: hasVisibleMedia ? "1 1 0px" : "0 0 auto",
+                md: "1 1 0%",
               },
+              width: { xs: "100%", md: 0 },
+              height: {
+                xs: hasVisibleMedia
+                  ? isSmDown
+                    ? "100%"
+                    : `calc(100% - ${mobileInfoPanelHeight} - ${mobileSplitGap})`
+                  : 0,
+                md: hasVisibleMedia ? desktopMediaPanelHeight : 0,
+              },
+              minHeight: 0,
+              overflow: "hidden",
+              pr: { md: 1.25 },
+              maxWidth: "100%",
               flexBasis: {
                 xs: hasVisibleMedia ? "100%" : "0px",
-                md: hasVisibleMedia ? "calc(100% - 400px)" : "0px",
+                md: hasVisibleMedia ? 0 : "0px",
               },
               opacity: hasVisibleMedia ? 1 : 0,
               transform: hasVisibleMedia
@@ -1149,28 +1307,71 @@ export default function AIShenaniganAdaptation({
           >
             {bookVisible && stage === "book" && (
               <Box ref={bookSectionRef} sx={mediaPanelSx}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Book cover
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  Start with the originating book-side artifact.
-                </Typography>
+                {isSmDown
+                  ? renderMobilePanelHeader("Book cover", bookSource)
+                  : (
+                    <>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Book cover
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                      >
+                        Start with the originating book-side artifact.
+                      </Typography>
+                    </>
+                  )}
                 <Box
                   ref={bookCoverRef}
-                  sx={{ display: "flex", justifyContent: "center" }}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    flex: "1 1 auto",
+                    minHeight: 0,
+                    overflow: "hidden",
+                  }}
                 >
                   <MediaCycler
                     spacing={0}
                     singlePanel
                     transitionMs={260}
+                    showChevronNavigation
+                    compactMetadataOnSmallScreens
+                    smallScreenInfoBlurb={blurb}
+                    showCompactInfoButton={false}
+                    navigationControlSx={mediaControlSx}
+                    expandControlSx={mediaControlSx}
+                    disableChevronPrevious
+                    onChevronNext={() => {
+                      if (transitioningTo) {
+                        return;
+                      }
+
+                      if (!manuscriptVisible) {
+                        handleRevealManuscript();
+                        return;
+                      }
+
+                      handleChronologySelect("book");
+                    }}
+                    disableChevronNext={transitioningTo !== null}
+                    stackSx={{
+                      flexGrow: 1,
+                      minHeight: 0,
+                      height: "100%",
+                      overflow: "hidden",
+                    }}
                     items={[
                       {
                         key: "book-cover",
-                        title: "",
+                        title: isSmDown ? title : "",
+                        description: isSmDown
+                          ? bookSource?.trim()
+                            ? `Book cover • ${bookSource.trim()}`
+                            : "Book cover"
+                          : undefined,
                         mediaType: "image",
                         mediaUrl: withBasePath(bookCoverImage),
                         mediaAlt: `${title} book cover`,
@@ -1194,17 +1395,37 @@ export default function AIShenaniganAdaptation({
 
                           handleChronologySelect("book");
                         },
+                        panelSx: {
+                          height: "100%",
+                          minHeight: 0,
+                          display: "flex",
+                          flexDirection: "column",
+                        },
                         assetFrameSx: {
                           mt: 0,
                           mb: 0,
                           width: "100%",
-                          maxWidth: 440,
+                          flex: "1 1 auto",
+                          minHeight: 0,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          overflow: "hidden",
+                          maxWidth: { md: 320, lg: 380 },
                           marginInline: "auto",
                         },
                         imageWidth: 1400,
                         imageHeight: 900,
                         imageClassName:
-                          "h-auto w-full rounded-[22px] bg-black/10 object-contain",
+                          "rounded-[22px] bg-black/10 object-contain",
+                        imageStyle: {
+                          width: "100%",
+                          height: "auto",
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          marginInline: "auto",
+                          aspectRatio: "3 / 4",
+                        },
                       },
                     ]}
                   />
@@ -1214,16 +1435,22 @@ export default function AIShenaniganAdaptation({
 
             {manuscriptVisible && stage === "manuscript" && (
               <Box ref={manuscriptSectionRef} sx={mediaPanelSx}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Manuscript
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  The book-side narrative source before adaptation.
-                </Typography>
+                {isSmDown
+                  ? renderMobilePanelHeader("Manuscript", manuscriptSource)
+                  : (
+                    <>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Manuscript
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                      >
+                        The book-side narrative source before adaptation.
+                      </Typography>
+                    </>
+                  )}
                 {renderPdfFrame(
                   manuscriptPdf,
                   `${title} manuscript`,
@@ -1250,9 +1477,34 @@ export default function AIShenaniganAdaptation({
 
                     handleChronologySelect("manuscript");
                   },
+                  () => {
+                    handleChronologySelect("book");
+                  },
+                  () => {
+                    if (transitioningTo) {
+                      return;
+                    }
+
+                    if (hasTrailer && !trailerVisible) {
+                      handleRevealTrailer();
+                      return;
+                    }
+
+                    if (!episodesVisible) {
+                      handleRevealEpisodes();
+                      return;
+                    }
+
+                    handleChronologySelect("manuscript");
+                  },
+                  transitioningTo !== null,
+                  transitioningTo !== null,
+                  false,
+                  undefined,
+                  transitioningTo !== null,
                 )}
-                {renderSource(manuscriptSource, manuscriptSourceHref)}
-                {manuscriptCaption && (
+                {!isSmDown && renderSource(manuscriptSource, manuscriptSourceHref)}
+                {!isSmDown && manuscriptCaption && (
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -1266,25 +1518,65 @@ export default function AIShenaniganAdaptation({
 
             {trailerVisible && trailerMovie && stage === "trailer" && (
               <Box ref={trailerSectionRef} sx={mediaPanelSx}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Trailer
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  Preview the adaptation trailer before opening the full
-                  episodes draft.
-                </Typography>
+                {isSmDown
+                  ? renderMobilePanelHeader("Trailer", trailerSource)
+                  : (
+                    <>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Trailer
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                      >
+                        Preview the adaptation trailer before opening the full
+                        episodes draft.
+                      </Typography>
+                    </>
+                  )}
                 <MediaCycler
                   spacing={0}
                   singlePanel
                   transitionMs={260}
+                  showChevronNavigation
+                  compactMetadataOnSmallScreens
+                  smallScreenInfoBlurb={blurb}
+                  showCompactInfoButton={false}
+                  navigationControlSx={mediaControlSx}
+                  expandControlSx={mediaControlSx}
+                  onChevronPrevious={() => {
+                    handleChronologySelect("manuscript");
+                  }}
+                  onChevronNext={() => {
+                    if (transitioningTo) {
+                      return;
+                    }
+
+                    if (!episodesVisible) {
+                      handleRevealEpisodes();
+                      return;
+                    }
+
+                    handleChronologySelect("trailer");
+                  }}
+                  disableChevronPrevious={transitioningTo !== null}
+                  disableChevronNext={transitioningTo !== null}
+                  stackSx={{
+                    flexGrow: 1,
+                    minHeight: 0,
+                    height: "100%",
+                    overflow: "hidden",
+                  }}
                   items={[
                     {
                       key: "trailer",
-                      title: "",
+                      title: isSmDown ? title : "",
+                      description: isSmDown
+                        ? trailerSource?.trim()
+                          ? `Trailer • ${trailerSource.trim()}`
+                          : "Trailer"
+                        : undefined,
                       mediaType: "video",
                       mediaUrl: withBasePath(trailerMovie),
                       mediaLightboxTitle: `${title} trailer`,
@@ -1309,17 +1601,27 @@ export default function AIShenaniganAdaptation({
 
                         handleChronologySelect("trailer");
                       },
+                      panelSx: {
+                        height: "100%",
+                        minHeight: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                      },
                       assetFrameSx: {
                         mt: 0,
                         mb: 0,
                         width: "100%",
+                        flex: "1 1 auto",
+                        minHeight: 0,
+                        display: "flex",
                       },
                       previewVideoClassName:
                         "block w-full rounded-[18px] bg-black/10 object-contain",
                       previewVideoSx: {
                         aspectRatio: trailerAspectRatio,
                         maxWidth: trailerMaxWidth,
-                        maxHeight: panelFrameHeight,
+                        maxHeight: "100%",
+                        height: "100%",
                         marginInline: "auto",
                       },
                     },
@@ -1330,17 +1632,23 @@ export default function AIShenaniganAdaptation({
 
             {episodesVisible && stage === "episodes" && activeEpisodeIndex < 0 && (
               <Box ref={episodesSectionRef} sx={mediaPanelSx}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Episodes Draft
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  Reveal the episodic adaptation plan first, then step through
-                  each episode concept one at a time.
-                </Typography>
+                {isSmDown
+                  ? renderMobilePanelHeader("Episodes Draft", episodesSource)
+                  : (
+                    <>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Episodes Draft
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                      >
+                        Reveal the episodic adaptation plan first, then step through
+                        each episode concept one at a time.
+                      </Typography>
+                    </>
+                  )}
                 {hasEpisodesPdf &&
                   renderPdfFrame(
                     episodesPdf,
@@ -1363,9 +1671,36 @@ export default function AIShenaniganAdaptation({
 
                       handleChronologySelect("episodes");
                     },
+                    () => {
+                      if (hasTrailer) {
+                        handleChronologySelect("trailer");
+                        return;
+                      }
+
+                      handleChronologySelect("manuscript");
+                    },
+                    () => {
+                      if (transitioningTo) {
+                        return;
+                      }
+
+                      if (revealedEpisodeCount < episodeMedia.length) {
+                        handleRevealNextEpisode();
+                        return;
+                      }
+
+                      handleChronologySelect("episodes");
+                    },
+                    transitioningTo !== null,
+                    transitioningTo !== null || episodeMedia.length === 0,
+                    episodeMedia.length === 0,
+                    () => {
+                      handleChronologySelect("book");
+                    },
+                    transitioningTo !== null,
                   )}
-                {renderSource(episodesSource, episodesSourceHref)}
-                {episodesCaption && (
+                {!isSmDown && renderSource(episodesSource, episodesSourceHref)}
+                {!isSmDown && episodesCaption && (
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -1392,20 +1727,86 @@ export default function AIShenaniganAdaptation({
                     backgroundColor: "rgba(15,23,42,0.24)",
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {getEpisodeChronologyLabel(episodeMedia[activeEpisodeIndex])}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 1, fontWeight: 700 }}>
-                    {episodeMedia[activeEpisodeIndex].title}
-                  </Typography>
+                  {isSmDown
+                    ? renderMobilePanelHeader(
+                      getEpisodeChronologyLabel(episodeMedia[activeEpisodeIndex]),
+                      episodeMedia[activeEpisodeIndex].source,
+                    )
+                    : (
+                      <>
+                        <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                          {getEpisodeChronologyLabel(
+                            episodeMedia[activeEpisodeIndex],
+                          )}
+                        </Typography>
+                        <Typography variant="body1" sx={{ mb: 1, fontWeight: 700 }}>
+                          {episodeMedia[activeEpisodeIndex].title}
+                        </Typography>
+                      </>
+                    )}
                   <MediaCycler
                     spacing={0}
                     singlePanel
                     transitionMs={260}
+                    showChevronNavigation
+                    compactMetadataOnSmallScreens
+                    smallScreenInfoBlurb={blurb}
+                    showCompactInfoButton={false}
+                    navigationControlSx={mediaControlSx}
+                    expandControlSx={mediaControlSx}
+                    onChevronPrevious={() => {
+                      if (transitioningTo) {
+                        return;
+                      }
+
+                      if (activeEpisodeIndex > 0) {
+                        handleChronologySelect(
+                          `episode-${activeEpisodeIndex - 1}`,
+                        );
+                        return;
+                      }
+
+                      handleChronologySelect("episodes");
+                    }}
+                    onChevronNext={() => {
+                      if (transitioningTo) {
+                        return;
+                      }
+
+                      if (revealedEpisodeCount < episodeMedia.length) {
+                        handleRevealNextEpisode();
+                      }
+                    }}
+                    disableChevronPrevious={transitioningTo !== null}
+                    disableChevronNext={
+                      transitioningTo !== null ||
+                      activeEpisodeIndex >= episodeMedia.length - 1
+                    }
+                    loopNavigation={
+                      activeEpisodeIndex === episodeMedia.length - 1 &&
+                      revealedEpisodeCount === episodeMedia.length
+                    }
+                    onLoopNavigation={() => {
+                      handleChronologySelect("book");
+                    }}
+                    disableLoopNavigation={transitioningTo !== null}
+                    stackSx={{
+                      flexGrow: 1,
+                      minHeight: 0,
+                      height: "100%",
+                      overflow: "hidden",
+                    }}
                     items={[
                       {
                         key: `episode-media-${activeEpisodeIndex}`,
-                        title: "",
+                        title: isSmDown ? title : "",
+                        description: isSmDown
+                          ? episodeMedia[activeEpisodeIndex].source?.trim()
+                            ? `${getEpisodeChronologyLabel(episodeMedia[activeEpisodeIndex])} • ${episodeMedia[activeEpisodeIndex].source?.trim()}`
+                            : getEpisodeChronologyLabel(
+                                episodeMedia[activeEpisodeIndex],
+                              )
+                          : undefined,
                         mediaType: "video",
                         mediaUrl: withBasePath(
                           episodeMedia[activeEpisodeIndex].src,
@@ -1442,16 +1843,26 @@ export default function AIShenaniganAdaptation({
                             `episode-${activeEpisodeIndex}`,
                           );
                         },
+                        panelSx: {
+                          height: "100%",
+                          minHeight: 0,
+                          display: "flex",
+                          flexDirection: "column",
+                        },
                         assetFrameSx: {
                           mt: 0,
                           mb: 0,
                           width: "100%",
+                          flex: "1 1 auto",
+                          minHeight: 0,
+                          display: "flex",
                         },
                         previewVideoClassName:
                           "block w-full rounded-[18px] bg-black/10 object-contain",
                         previewVideoSx: {
                           aspectRatio: "16 / 9",
-                          maxHeight: panelFrameHeight,
+                          maxHeight: "100%",
+                          height: "100%",
                         },
                       },
                     ]}

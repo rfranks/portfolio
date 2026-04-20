@@ -3,11 +3,20 @@
 import { type MouseEvent, useState } from "react";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
-import { ChevronLeft, ChevronRight } from "@mui/icons-material";
+import {
+  ChevronLeft,
+  ChevronRight,
+  MoreVert,
+  InfoOutlined,
+  Close,
+} from "@mui/icons-material";
 import { summary } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
 
@@ -73,6 +82,7 @@ export default function AIShenaniganPager({
   const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(
     null,
   );
+  const [infoOpen, setInfoOpen] = useState(false);
 
   if (!items.length) {
     return null;
@@ -107,7 +117,7 @@ export default function AIShenaniganPager({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "auto minmax(0, 1fr) auto",
+            gridTemplateColumns: "auto minmax(0, 1fr) auto auto auto",
             alignItems: "center",
             gap: 1,
           }}
@@ -124,7 +134,20 @@ export default function AIShenaniganPager({
             color="primary"
             variant="outlined"
             onClick={handleSelectorOpen}
-            label={formatPagerSelectedLabel(currentIndex, currentItem.title)}
+            label={
+              <Typography
+                component="span"
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {formatPagerSelectedLabel(currentIndex, currentItem.title)}
+              </Typography>
+            }
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? "shenanigan-selector-menu" : undefined}
@@ -133,14 +156,31 @@ export default function AIShenaniganPager({
               maxWidth: "100%",
               justifySelf: "stretch",
               "& .MuiChip-label": {
+                width: "100%",
                 overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                display: "block",
               },
             }}
           />
           <IconButton aria-label="Next shenanigan" size="small" onClick={onNext}>
             <ChevronRight />
+          </IconButton>
+          <IconButton
+            aria-label="Open shenanigan info"
+            size="small"
+            onClick={() => setInfoOpen(true)}
+          >
+            <InfoOutlined fontSize="small" />
+          </IconButton>
+          <IconButton
+            aria-label="Open shenanigan selector"
+            size="small"
+            onClick={handleSelectorOpen}
+            aria-haspopup="menu"
+            aria-expanded={selectorOpen ? "true" : undefined}
+            aria-controls={selectorOpen ? "shenanigan-selector-menu" : undefined}
+          >
+            <MoreVert fontSize="small" />
           </IconButton>
         </Box>
       </Box>
@@ -220,6 +260,28 @@ export default function AIShenaniganPager({
           </MenuItem>
         ))}
       </Menu>
+      <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ pr: 6 }}>
+          {formatPagerSelectedLabel(currentIndex, currentItem.title)}
+          <IconButton
+            aria-label="Close shenanigan info"
+            onClick={() => setInfoOpen(false)}
+            sx={{ position: "absolute", top: 8, right: 8 }}
+          >
+            <Close fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {currentItem.shortText ? (
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              {currentItem.shortText}
+            </Typography>
+          ) : null}
+          <Typography variant="body2" color="text.secondary">
+            {currentItem.blurb}
+          </Typography>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

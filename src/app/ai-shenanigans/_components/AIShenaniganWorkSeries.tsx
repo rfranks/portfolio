@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Loop from "@mui/icons-material/Loop";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -75,6 +77,7 @@ export default function AIShenaniganWorkSeries({
 }: AIShenaniganWorkSeriesProps) {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
   const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
   const [revealedWorkCount, setRevealedWorkCount] = useState(0);
   const [revealedSeriesCount, setRevealedSeriesCount] = useState(0);
@@ -93,7 +96,11 @@ export default function AIShenaniganWorkSeries({
   const isPortrait = orientation === "portrait";
   const mediaAspectRatio = isPortrait ? "9 / 16" : "16 / 9";
   const mediaMaxWidth = isPortrait ? 360 : "100%";
-  const panelFrameHeight = { xs: "44dvh", md: "52dvh" };
+  const mobileInfoPanelHeight = "clamp(220px, 30dvh, 320px)";
+  const mobileSplitGap = "20px";
+  const desktopInfoPanelBasis = "30%";
+  const desktopInfoPanelMaxWidth = "36%";
+  const desktopMediaPanelHeight = "100%";
   const normalizedWorkParts =
     workParts.length > 0
       ? workParts
@@ -134,9 +141,32 @@ export default function AIShenaniganWorkSeries({
     boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
     backdropFilter: "blur(var(--fabric-blur-sm))",
   } as const;
+  const mediaControlSx = (currentTheme: typeof theme) => ({
+    color: currentTheme.palette.common.black,
+    borderColor: currentTheme.palette.common.black,
+    bgcolor: currentTheme.palette.common.white,
+    "&:hover": {
+      bgcolor: currentTheme.palette.common.white,
+    },
+    "&.Mui-disabled": {
+      color: alpha(currentTheme.palette.common.black, 0.36),
+      borderColor: alpha(currentTheme.palette.common.black, 0.36),
+      bgcolor: alpha(currentTheme.palette.common.white, 0.8),
+    },
+  });
+  const restartActionSx = (currentTheme: typeof theme) => ({
+    border: "1px solid",
+    ...mediaControlSx(currentTheme),
+  });
   const mediaPanelSx = {
     ...panelChromeSx,
     p: 2.5,
+    position: "relative",
+    height: "100%",
+    minHeight: 0,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
   } as const;
   const totalWorkParts = normalizedWorkParts.length;
   const totalSeriesParts = normalizedSeriesParts.length;
@@ -356,78 +386,156 @@ export default function AIShenaniganWorkSeries({
     );
   };
 
+  const renderInlineRightsStamp = () => {
+    if (!intentToCopyright) {
+      return null;
+    }
+
+    return (
+      <Box
+        sx={{
+          px: 0.9,
+          py: 0.45,
+          borderRadius: "8px",
+          border: "2px solid rgba(185,28,28,0.82)",
+          color: "rgba(127,29,29,0.96)",
+          bgcolor: "rgba(255,244,244,0.9)",
+          fontSize: "0.58rem",
+          fontWeight: 900,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          lineHeight: 1,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {rightsLabel}
+      </Box>
+    );
+  };
+
+  const renderMobilePanelHeader = (
+    subtitle: string,
+    source?: string,
+  ) => {
+    if (!isSmDown) {
+      return null;
+    }
+
+    const subtitleLine = source?.trim() ? `${subtitle} • ${source.trim()}` : subtitle;
+
+    return (
+      <Box sx={{ mb: 1.25 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="flex-start"
+          justifyContent="space-between"
+        >
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography variant="h6" sx={{ lineHeight: 1.15 }}>
+              {title}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 0.35, lineHeight: 1.3 }}
+            >
+              {subtitleLine}
+            </Typography>
+          </Box>
+          {renderInlineRightsStamp()}
+        </Stack>
+      </Box>
+    );
+  };
+
   const renderPdfFrame = (
     src: string,
     titleText: string,
-    linkLabel: string,
     onLoad?: () => void,
+    onChevronPrevious?: () => void,
+    onChevronNext?: () => void,
+    disableChevronPrevious?: boolean,
+    disableChevronNext?: boolean,
+    loopNavigation?: boolean,
+    onLoopNavigation?: () => void,
+    disableLoopNavigation?: boolean,
   ) => {
-    const pdfSrc = `${withBasePath(src)}#view=FitH`;
-
     return (
-      <Box sx={{ mt: 2 }}>
-        <Box
-          sx={(theme) => ({
+      <Box sx={{ mt: 2, flex: 1, minHeight: 0, display: "flex" }}>
+        <MediaCycler
+          spacing={0}
+          singlePanel
+          transitionMs={260}
+          showChevronNavigation
+          showCompactInfoButton={false}
+          navigationControlSx={mediaControlSx}
+          expandControlSx={mediaControlSx}
+          onChevronPrevious={onChevronPrevious}
+          onChevronNext={onChevronNext}
+          disableChevronPrevious={disableChevronPrevious}
+          disableChevronNext={disableChevronNext}
+          loopNavigation={loopNavigation}
+          onLoopNavigation={onLoopNavigation}
+          disableLoopNavigation={disableLoopNavigation}
+          stackSx={{
+            height: "100%",
+            minHeight: 0,
+            display: "flex",
             overflow: "hidden",
-            borderRadius: "18px",
-            border: "1px solid",
-            borderColor: "var(--fabric-surface-border)",
-            bgcolor:
-              theme.palette.mode === "light"
-                ? alpha(theme.palette.common.white, 0.8)
-                : "rgba(15,23,42,0.48)",
-          })}
-        >
-          <Box
-            component="object"
-            data={pdfSrc}
-            type="application/pdf"
-            aria-label={titleText}
-            sx={{
-              display: "block",
-              width: "100%",
-              height: panelFrameHeight,
-            }}
-          >
-            <Box
-              component="iframe"
-              src={pdfSrc}
-              title={titleText}
-              onLoad={onLoad}
-              sx={{
+          }}
+          items={[
+            {
+              key: `${titleText}-${src}`,
+              title: "",
+              mediaType: "pdf",
+              mediaUrl: withBasePath(src),
+              mediaLightboxTitle: titleText,
+              onMediaLoaded: onLoad,
+              panelSx: {
+                height: "100%",
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+              },
+              assetFrameSx: {
+                mt: 0,
+                mb: 0,
                 width: "100%",
-                height: panelFrameHeight,
-                border: 0,
-                bgcolor: (theme) =>
-                  theme.palette.mode === "light"
-                    ? alpha(theme.palette.common.white, 0.84)
-                    : "rgba(15,23,42,0.48)",
-              }}
-            />
-          </Box>
-        </Box>
-        <Stack
-          direction="row"
-          spacing={1.5}
-          alignItems="center"
-          useFlexGap
-          flexWrap="wrap"
-          sx={{ mt: 1.25 }}
-        >
-          <Link
-            href={withBasePath(src)}
-            target="_blank"
-            rel="noopener noreferrer"
-            underline="hover"
-            color="primary.main"
-            sx={{ display: "inline-flex" }}
-          >
-            {linkLabel}
-          </Link>
-          <Typography variant="caption" color="text.secondary">
-            Read inline or open the PDF in a separate tab.
-          </Typography>
-        </Stack>
+                flex: "1 1 auto",
+                minHeight: 0,
+                display: "flex",
+              },
+              pdfPreviewSx: {
+                height: "100%",
+              },
+              pdfContainerSx: {
+                height: "100%",
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                flex: "1 1 auto",
+              },
+              pdfFrameSx: {
+                flex: "1 1 auto",
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+              },
+              pdfObjectSx: {
+                flex: "1 1 auto",
+                minHeight: 0,
+              },
+              pdfIframeSx: {
+                flex: "1 1 auto",
+                minHeight: 0,
+              },
+              pdfShowOpenLink: true,
+              pdfOpenLinkLabel: "or open the PDF in a separate tab.",
+              pdfOpenLinkDescription: null,
+            },
+          ]}
+        />
       </Box>
     );
   };
@@ -515,57 +623,132 @@ export default function AIShenaniganWorkSeries({
     });
   };
 
-  const renderChronologyChips = (scope: "main" | "panel") =>
-    chronologySteps.map((item, index) => (
-      <Box
-        key={`${scope}-${item.key}`}
-        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-      >
-        <Chip
-          label={item.label}
-          color={item.active ? "primary" : "default"}
-          variant={item.active ? "filled" : "outlined"}
-          size="small"
-          clickable={item.reached}
-          onClick={item.reached ? () => rewindToStep(item.step) : undefined}
-          sx={
-            item.reached
-              ? undefined
-              : {
-                  borderStyle: "dashed",
-                  borderColor: "rgba(148,163,184,0.55)",
-                  color: "rgba(148,163,184,0.88)",
-                  backgroundColor: "rgba(148,163,184,0.06)",
-                  "& .MuiChip-label": {
-                    fontStyle: "italic",
-                  },
-                }
+  const renderChronologyChips = (scope: "main" | "panel") => {
+    const useCondensedChronology = chronologySteps.length > 3;
+    const activeIndex = chronologySteps.findIndex((item) => item.active);
+    let currentIndex = activeIndex;
+
+    if (currentIndex === -1) {
+      for (let index = chronologySteps.length - 1; index >= 0; index -= 1) {
+        if (chronologySteps[index]?.reached) {
+          currentIndex = index;
+          break;
+        }
+      }
+    }
+
+    if (currentIndex === -1) {
+      currentIndex = 0;
+    }
+
+    const firstIndex = 0;
+    const lastIndex = Math.max(chronologySteps.length - 1, 0);
+    const displayedIndices = useCondensedChronology
+      ? (() => {
+          const condensedIndices = new Set([firstIndex, currentIndex, lastIndex]);
+
+          if (condensedIndices.size < 3) {
+            if (currentIndex === firstIndex && firstIndex + 1 < lastIndex) {
+              condensedIndices.add(firstIndex + 1);
+            }
+
+            if (currentIndex === lastIndex && lastIndex - 1 > firstIndex) {
+              condensedIndices.add(lastIndex - 1);
+            }
           }
-        />
-        {index < chronologySteps.length - 1 && (
-          <Typography
-            aria-hidden="true"
-            sx={{
-              fontSize: "1rem",
-              fontWeight: 800,
-              lineHeight: 1,
-              color: item.active ? "primary.main" : "text.disabled",
-              transform: "translateY(-1px)",
-              transition: "color 180ms ease",
-              userSelect: "none",
-            }}
-          >
-            →
-          </Typography>
-        )}
-      </Box>
-    ));
+
+          if (condensedIndices.size < 3) {
+            const middleIndex = Math.floor((firstIndex + lastIndex) / 2);
+            if (middleIndex > firstIndex && middleIndex < lastIndex) {
+              condensedIndices.add(middleIndex);
+            }
+          }
+
+          return Array.from(condensedIndices).sort((left, right) => left - right);
+        })()
+      : chronologySteps.map((_, index) => index);
+
+    return displayedIndices.map((index, chipPosition) => {
+      const item = chronologySteps[index];
+      if (!item) {
+        return null;
+      }
+
+      const hasNextChip = chipPosition < displayedIndices.length - 1;
+
+      return (
+        <Box
+          key={`${scope}-${item.key}`}
+          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+        >
+          <Chip
+            label={item.label}
+            color={item.active ? "primary" : "default"}
+            variant={item.active ? "filled" : "outlined"}
+            size="small"
+            clickable={item.reached}
+            onClick={item.reached ? () => rewindToStep(item.step) : undefined}
+            sx={
+              item.reached
+                ? undefined
+                : {
+                    borderStyle: "dashed",
+                    borderColor: "rgba(148,163,184,0.55)",
+                    color: "rgba(148,163,184,0.88)",
+                    backgroundColor: "rgba(148,163,184,0.06)",
+                    "& .MuiChip-label": {
+                      fontStyle: "italic",
+                    },
+                  }
+            }
+          />
+          {hasNextChip && (
+            <Typography
+              aria-hidden="true"
+              sx={{
+                fontSize: "1rem",
+                fontWeight: 800,
+                lineHeight: 1,
+                color: useCondensedChronology
+                  ? "text.disabled"
+                  : item.active
+                    ? "primary.main"
+                    : "text.disabled",
+                transform: "translateY(-1px)",
+                transition: "color 180ms ease",
+                userSelect: "none",
+              }}
+            >
+              {useCondensedChronology ? "..." : "→"}
+            </Typography>
+          )}
+        </Box>
+      );
+    });
+  };
 
   useEffect(() => {
     if (!isSmallScreen) {
       setIsInfoPanelMinimized(false);
     }
   }, [isSmallScreen]);
+
+  useEffect(() => {
+    if (!isSmDown || hasVisibleMedia) {
+      return;
+    }
+
+    if (totalWorkParts > 0) {
+      setRevealedWorkCount(1);
+      setRevealedSeriesCount(0);
+      return;
+    }
+
+    if (totalSeriesParts > 0) {
+      setRevealedWorkCount(0);
+      setRevealedSeriesCount(1);
+    }
+  }, [hasVisibleMedia, isSmDown, totalSeriesParts, totalWorkParts]);
 
   useEffect(() => {
     if (revealedSeriesCount === 0) {
@@ -660,25 +843,48 @@ export default function AIShenaniganWorkSeries({
       }}
       sx={mediaPanelSx}
     >
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-        {getWorkLabel(index)}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Reveal the source document segment that anchors the concept.
-      </Typography>
+      {renderMobilePanelHeader(
+        getWorkLabel(index),
+        part.source,
+      )}
+      {!isSmDown && (
+        <>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            {getWorkLabel(index)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Reveal the source document segment that anchors the concept.
+          </Typography>
+        </>
+      )}
       {renderPdfFrame(
         part.src,
         `${title} ${getWorkLabel(index)}`,
-        `Open ${getWorkLabel(index)}`,
         () => {
           scrollRevealIntoView(
             workCardRefs.current[index],
             workFooterRefs.current[index],
           );
         },
+        index > 0 ? () => rewindToStep({ kind: "work", index: index - 1 }) : undefined,
+        () => {
+          handleRevealNextStep();
+        },
+        transitioning !== null || index <= 0,
+        transitioning !== null ||
+          !(
+            (nextStep()?.kind === "work" &&
+              nextStep()?.index === index + 1) ||
+            (nextStep()?.kind === "series" && index === totalWorkParts - 1)
+          ),
+        index === revealedWorkCount - 1 && nextStep() === null,
+        () => {
+          rewindToStep({ kind: "work", index: 0 });
+        },
+        transitioning !== null,
       )}
-      {renderSource(part.source, part.sourceHref)}
-      {part.caption && (
+      {!isSmDown && renderSource(part.source, part.sourceHref)}
+      {!isSmDown && part.caption && (
         <Typography
           variant="body2"
           color="text.secondary"
@@ -698,20 +904,94 @@ export default function AIShenaniganWorkSeries({
       }}
       sx={mediaPanelSx}
     >
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-        {getSeriesLabel(index)}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Push the written concept into motion as a series adaptation beat.
-      </Typography>
+      {isSmDown && renderRightsStamp()}
+      {!isSmDown && (
+        <>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            {getSeriesLabel(index)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Push the written concept into motion as a series adaptation beat.
+          </Typography>
+        </>
+      )}
       <MediaCycler
         spacing={0}
         singlePanel
         transitionMs={260}
+        showChevronNavigation
+        showCompactInfoButton={false}
+        navigationControlSx={mediaControlSx}
+        expandControlSx={mediaControlSx}
+        onChevronPrevious={() => {
+          if (transitioning) {
+            return;
+          }
+
+          if (index > 0) {
+            rewindToStep({ kind: "series", index: index - 1 });
+            return;
+          }
+
+          if (totalWorkParts > 0) {
+            rewindToStep({ kind: "work", index: totalWorkParts - 1 });
+          }
+        }}
+        onChevronNext={() => {
+          if (transitioning) {
+            return;
+          }
+
+          const upcoming = nextStep();
+          const isLatestRevealedCard = index === revealedSeriesCount - 1;
+          if (isLatestRevealedCard && upcoming?.kind === "series") {
+            handleRevealNextStep();
+            return;
+          }
+
+          if (index < revealedSeriesCount - 1) {
+            rewindToStep({ kind: "series", index: index + 1 });
+          }
+        }}
+        disableChevronPrevious={
+          transitioning !== null || (index === 0 && totalWorkParts === 0)
+        }
+        disableChevronNext={
+          transitioning !== null ||
+          !(
+            index < revealedSeriesCount - 1 ||
+            (index === revealedSeriesCount - 1 &&
+              nextStep()?.kind === "series")
+          )
+        }
+        loopNavigation={
+          index === revealedSeriesCount - 1 &&
+          nextStep() === null
+        }
+        onLoopNavigation={() => {
+          if (totalWorkParts > 0) {
+            rewindToStep({ kind: "work", index: 0 });
+            return;
+          }
+
+          rewindToStep({ kind: "series", index: 0 });
+        }}
+        disableLoopNavigation={transitioning !== null}
+        stackSx={{
+          flexGrow: 1,
+          minHeight: 0,
+          height: "100%",
+          overflow: "hidden",
+        }}
         items={[
           {
             key: `series-media-${index}`,
-            title: "",
+            title: isSmDown ? title : "",
+            description: isSmDown
+              ? part.source?.trim()
+                ? `${getSeriesLabel(index)} • ${part.source.trim()}`
+                : getSeriesLabel(index)
+              : undefined,
             mediaType: "video",
             mediaUrl: withBasePath(part.src),
             mediaLightboxTitle: `${title} ${getSeriesLabel(index)}`,
@@ -747,17 +1027,27 @@ export default function AIShenaniganWorkSeries({
 
               rewindToStep({ kind: "series", index });
             },
+            panelSx: {
+              height: "100%",
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+            },
             assetFrameSx: {
               mt: 0,
               mb: 0,
               width: "100%",
+              flex: "1 1 auto",
+              minHeight: 0,
+              display: "flex",
             },
             previewVideoClassName:
               "block w-full rounded-[22px] bg-black/10 object-contain",
             previewVideoSx: {
               aspectRatio: mediaAspectRatio,
               maxWidth: mediaMaxWidth,
-              maxHeight: panelFrameHeight,
+              maxHeight: "100%",
+              height: "100%",
               mx: isPortrait ? "auto" : undefined,
             },
           },
@@ -770,27 +1060,43 @@ export default function AIShenaniganWorkSeries({
 
   return (
     <AIShenaniganPanel className="overflow-hidden">
-      <Stack spacing={3} flexGrow={1}>
+      <Stack spacing={3} flexGrow={1} sx={{ minWidth: 0, maxWidth: "100%" }}>
         <Stack
           spacing={2.5}
           direction={{ xs: "column", md: "row" }}
           flexGrow={1}
           sx={{
-            alignItems: { xs: "stretch", md: "flex-start" },
-            overflow: { xs: "hidden", md: "visible" },
+            minWidth: 0,
+            maxWidth: "100%",
+            minHeight: 0,
+            height: "100%",
+            alignItems: "stretch",
+            overflowX: "hidden",
+            overflowY: "hidden",
           }}
         >
           <Box
             sx={{
-              maxHeight: {
-                xs: hasVisibleMedia ? "30dvh" : "100%",
+              display: { xs: isSmDown ? "none" : "flex", md: "flex" },
+              height: {
+                xs: hasVisibleMedia ? mobileInfoPanelHeight : "100%",
                 md: "100%",
               },
-              width: "100%",
-              minWidth: { xs: 0, md: hasVisibleMedia ? 400 : 0 },
-              maxWidth: { xs: "100%", md: hasVisibleMedia ? 400 : "100%" },
-              flexBasis: "100%",
-              flexGrow: 1,
+              width: { xs: "100%", md: "auto" },
+              maxWidth: {
+                xs: "100%",
+                md: hasVisibleMedia ? desktopInfoPanelMaxWidth : "100%",
+              },
+              minWidth: 0,
+              flex: {
+                xs: "0 0 auto",
+                md: hasVisibleMedia ? `0 1 ${desktopInfoPanelBasis}` : "1 1 100%",
+              },
+              flexBasis: {
+                md: hasVisibleMedia ? desktopInfoPanelBasis : "100%",
+              },
+              flexShrink: { xs: 0, md: 1 },
+              flexGrow: { xs: 0, md: hasVisibleMedia ? 0 : 1 },
               order: { xs: 2, md: 2 },
               transition:
                 "flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1), min-width 560ms cubic-bezier(.2,.8,.2,1), transform 560ms cubic-bezier(.2,.8,.2,1)",
@@ -799,20 +1105,11 @@ export default function AIShenaniganWorkSeries({
             <Box
               sx={{
                 height: "100%",
-                position: {
-                  xs: "static",
-                  md: hasVisibleMedia ? "sticky" : "static",
-                },
-                top: { md: 104 },
-                maxHeight: {
-                  xs: "none",
-                  md: hasVisibleMedia ? "calc(100dvh - 120px)" : "none",
-                },
-                overflowY: {
-                  xs: "visible",
-                  md: hasVisibleMedia ? "auto" : "visible",
-                },
-                overscrollBehaviorY: { md: "contain" },
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                maxHeight: "100%",
+                overflow: "hidden",
                 pr: { md: hasVisibleMedia ? 0.5 : 0 },
                 transition: "transform 560ms cubic-bezier(.2,.8,.2,1)",
               }}
@@ -879,8 +1176,10 @@ export default function AIShenaniganWorkSeries({
                       color="text.secondary"
                       className="leading-7"
                       sx={{
-                        maxHeight: isSmallScreen ? "15dvh" : "auto",
-                        overflowY: isSmallScreen ? "auto" : "visible",
+                        flexShrink: 1,
+                        minHeight: 0,
+                        overflowY: "auto",
+                        pr: 0.5,
                       }}
                     >
                       {blurb}
@@ -905,25 +1204,8 @@ export default function AIShenaniganWorkSeries({
                     )}
                     <Box
                       sx={{
-                        mt: 3,
-                        position: {
-                          xs: "static",
-                          md: hasVisibleMedia ? "sticky" : "static",
-                        },
-                        bottom: { md: 0 },
-                        pt: { md: hasVisibleMedia ? 1.5 : 0 },
-                        pb: { md: hasVisibleMedia ? 0.25 : 0 },
-                        zIndex: { md: 1 },
-                        background: {
-                          xs: "transparent",
-                          md: hasVisibleMedia
-                            ? (theme) =>
-                                `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0)} 0%, ${alpha(theme.palette.background.paper, 0.72)} 24%, ${alpha(theme.palette.background.paper, 0.88)} 100%)`
-                            : "transparent",
-                        },
-                        backdropFilter: {
-                          md: hasVisibleMedia ? "blur(4px)" : "none",
-                        },
+                        mt: "auto",
+                        pt: 2.25,
                         display: "flex",
                         alignItems: "flex-end",
                         justifyContent: "flex-end",
@@ -935,19 +1217,13 @@ export default function AIShenaniganWorkSeries({
                       {!isSmallScreen && (
                         <Box>
                           {current && renderNextAction() && (
-                            <Button
-                              variant="text"
+                            <IconButton
+                              aria-label="Start over"
                               onClick={resetReveal}
-                              startIcon={
-                                <EmojiGlyph
-                                  glyph="🔁"
-                                  slot="start"
-                                  size="1rem"
-                                />
-                              }
+                              sx={restartActionSx}
                             >
-                              Start Over
-                            </Button>
+                              <Loop fontSize="small" />
+                            </IconButton>
                           )}
                         </Box>
                       )}
@@ -961,13 +1237,13 @@ export default function AIShenaniganWorkSeries({
                       >
                         {renderNextAction() ??
                           (current && (
-                            <Button
-                              variant="contained"
+                            <IconButton
+                              aria-label="Sequence finished: start over"
                               onClick={resetReveal}
-                              endIcon={<EmojiGlyph glyph="🔁" slot="end" />}
+                              sx={restartActionSx}
                             >
-                              Sequence Finished: Start Over
-                            </Button>
+                              <Loop fontSize="small" />
+                            </IconButton>
                           ))}
                       </Box>
                     </Box>
@@ -980,19 +1256,26 @@ export default function AIShenaniganWorkSeries({
             spacing={2}
             sx={{
               minWidth: 0,
-              flex: "1 1 auto",
-              width: "100%",
-              height: hasVisibleMedia ? "80dvh" : 0,
-              overflowY: "auto",
-              overflowX: "hidden",
-              pr: { md: 1.25 },
-              maxWidth: {
-                xs: hasVisibleMedia ? "100%" : 0,
-                md: hasVisibleMedia ? "calc(100% - 400px)" : 0,
+              flex: {
+                xs: hasVisibleMedia ? "1 1 0px" : "0 0 auto",
+                md: "1 1 0%",
               },
+              width: { xs: "100%", md: 0 },
+              height: {
+                xs: hasVisibleMedia
+                  ? isSmDown
+                    ? "100%"
+                    : `calc(100% - ${mobileInfoPanelHeight} - ${mobileSplitGap})`
+                  : 0,
+                md: hasVisibleMedia ? desktopMediaPanelHeight : 0,
+              },
+              minHeight: 0,
+              overflow: "hidden",
+              pr: { md: 1.25 },
+              maxWidth: "100%",
               flexBasis: {
                 xs: hasVisibleMedia ? "100%" : "0px",
-                md: hasVisibleMedia ? "calc(100% - 400px)" : "0px",
+                md: hasVisibleMedia ? 0 : "0px",
               },
               opacity: hasVisibleMedia ? 1 : 0,
               transform: hasVisibleMedia
