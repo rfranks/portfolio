@@ -1,23 +1,17 @@
 "use client";
 
 import {
-  type MouseEvent,
   useCallback,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
 import CssBaseline from "@mui/material/CssBaseline";
 import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import {
   ArrowBack,
-  ChevronLeft,
-  ChevronRight,
   Close,
   DarkMode,
   LightMode,
@@ -27,8 +21,9 @@ import AIShenanigan, {
   AIShenaniganMovieOrientation,
   AIShenaniganType,
 } from "./_components/AIShenanigan";
+import AIShenaniganPager from "./_components/AIShenaniganPager";
 import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
-import { aiShenanigans, portfolioApps, summary } from "@/consts/resumeData";
+import { aiShenanigans, portfolioApps } from "@/consts/resumeData";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
 import getFabricTheme from "@/themes/fabricTheme";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
@@ -143,34 +138,6 @@ const decodeHashSlug = (hash: string) => {
   }
 };
 
-const getPagerOptionImage = (item: AIShenaniganItemWithLinks) => {
-  if (item.pagerOptionImage) {
-    return item.pagerOptionImage;
-  }
-
-  const isDefaultShenanigan = !item.type || item.type === "default";
-
-  if (isDefaultShenanigan && item.stylizedRendering) {
-    return item.stylizedRendering;
-  }
-
-  return (
-    item.bookCoverImage ||
-    item.songAlbumImage ||
-    item.analyzedImage ||
-    item.stylizedRendering ||
-    item.realisticImage ||
-    item.rawImage ||
-    item.palmLineAnalysisImage ||
-    summary.avatarImage
-  );
-};
-
-const formatPagerOptionLabel = (index: number, title: string) =>
-  `${index + 1}. ${title}`;
-const formatPagerSelectedLabel = (index: number, title: string) =>
-  `${index + 1}. ${title}`;
-
 const buildLinkProps = (item: AIShenaniganItemWithLinks) => ({
   ...(item.type ? { type: item.type } : {}),
   ...(item.realisticSourceHref
@@ -253,9 +220,6 @@ export default function AIShenanigansPageClient() {
   const theme = useMemo(() => getFabricTheme(mode), [mode]);
   const { setDocumentTitle } = useDocumentTitle();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(
-    null,
-  );
   const [isInitialHashSynced, setIsInitialHashSynced] = useState(false);
 
   const shenaniganIndexBySlug = useMemo(() => {
@@ -292,17 +256,8 @@ export default function AIShenanigansPageClient() {
     setCurrentIndex((prevIndex) => clampIndex(prevIndex + 1));
   }, [clampIndex]);
 
-  const handleSelectorOpen = (event: MouseEvent<HTMLElement>) => {
-    setSelectorAnchorEl(event.currentTarget);
-  };
-
-  const handleSelectorClose = () => {
-    setSelectorAnchorEl(null);
-  };
-
   const handleSelectShenanigan = (index: number) => {
     setCurrentIndex(clampIndex(index));
-    setSelectorAnchorEl(null);
   };
 
   useEffect(() => {
@@ -413,7 +368,6 @@ export default function AIShenanigansPageClient() {
 
   const currentItem = shenaniganItems[currentIndex];
   const linkProps = buildLinkProps(currentItem);
-  const selectorOpen = Boolean(selectorAnchorEl);
 
   return (
     <ThemeProvider theme={theme}>
@@ -575,140 +529,14 @@ export default function AIShenanigansPageClient() {
             </Box>
           </Box>
 
-          <Box
-            sx={{
-              px: { xs: 1.5, md: 2.5 },
-              py: 1.25,
-              borderTop: "1px solid",
-              borderColor: "divider",
-            }}
-          >
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "auto minmax(0, 1fr) auto",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <IconButton
-                aria-label="Previous shenanigan"
-                size="small"
-                onClick={handlePrevious}
-              >
-                <ChevronLeft />
-              </IconButton>
-              <Chip
-                clickable
-                color="primary"
-                variant="outlined"
-                onClick={handleSelectorOpen}
-                label={formatPagerSelectedLabel(
-                  currentIndex,
-                  currentItem.title,
-                )}
-                aria-haspopup="menu"
-                aria-expanded={selectorOpen ? "true" : undefined}
-                aria-controls={
-                  selectorOpen ? "shenanigan-selector-menu" : undefined
-                }
-                sx={{
-                  minWidth: 0,
-                  maxWidth: "100%",
-                  justifySelf: "stretch",
-                  "& .MuiChip-label": {
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  },
-                }}
-              />
-              <IconButton
-                aria-label="Next shenanigan"
-                size="small"
-                onClick={handleNext}
-              >
-                <ChevronRight />
-              </IconButton>
-            </Box>
-          </Box>
+          <AIShenaniganPager
+            currentIndex={currentIndex}
+            items={shenaniganItems}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onSelectShenanigan={handleSelectShenanigan}
+          />
         </Box>
-
-        <Menu
-          id="shenanigan-selector-menu"
-          anchorEl={selectorAnchorEl}
-          open={selectorOpen}
-          onClose={handleSelectorClose}
-          slotProps={{
-            paper: {
-              sx: {
-                maxHeight: 560,
-                minWidth: { xs: 340, sm: 480 },
-              },
-            },
-          }}
-        >
-          {shenaniganItems.map((item, index) => (
-            <MenuItem
-              key={item.slug}
-              selected={index === currentIndex}
-              onClick={() => handleSelectShenanigan(index)}
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "69px minmax(0, 1fr)",
-                columnGap: 1.65,
-                alignItems: "start",
-                py: 1.45,
-              }}
-            >
-              <Box
-                component="img"
-                src={withBasePath(getPagerOptionImage(item))}
-                alt={`${item.title} preview`}
-                sx={{
-                  width: 69,
-                  height: 69,
-                  mt: 0.2,
-                  flexShrink: 0,
-                  borderRadius: 2,
-                  objectFit: "cover",
-                  border: "1px solid",
-                  borderColor: "divider",
-                }}
-              />
-              <Box sx={{ minWidth: 0 }}>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: "1.16rem",
-                    lineHeight: 1.25,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {formatPagerOptionLabel(index, item.title)}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{
-                    mt: 0.25,
-                    fontSize: "1rem",
-                    lineHeight: 1.3,
-                    display: "block",
-                    whiteSpace: "normal",
-                    wordBreak: "break-word",
-                    overflowWrap: "anywhere",
-                  }}
-                >
-                  {item.shortText || item.blurb || "Open this shenanigan."}
-                </Typography>
-              </Box>
-            </MenuItem>
-          ))}
-        </Menu>
       </Box>
     </ThemeProvider>
   );
