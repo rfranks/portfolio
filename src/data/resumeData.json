@@ -483,6 +483,22 @@
         "shortText": "Frog legs, caricature chaos, and kitchen-table joy."
       },
       {
+        "slug": "sumner-in-summer",
+        "title": "Sumner in Summer!",
+        "orientation": "landscape",
+        "shortText": "A summer jet-ski photo turns into a splashy, high-energy caricature and motion piece starring Sumner at full throttle.",
+        "realisticImage": "/personal/images/ai-shenanigans/sumner-in-summer/realistic.jpeg",
+        "realisticSource": "Photo (Richard Franks Jr)",
+        "realisticCaption": "The original photo catches Sumner carving across the water under the bridge in a classic summer action shot.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/sumner-in-summer/stylistic.png",
+        "stylizedSource": "ChatGPT DALL-E image generation",
+        "stylizedCaption": "The real ride gets reimagined as a bold, playful caricature, with Sumner grinning through the spray like summer itself handed him the keys.",
+        "movieRendering": "/personal/images/ai-shenanigans/sumner-in-summer/movie.mp4",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "The scene kicks into motion as Sumner tears across the water in a full-on summer joyride, throwing spray and attitude in every direction.",
+        "blurb": "Sumner in Summer! takes a real jet-ski photo and turns it into a breezy, high-energy AI shenanigan built around sunshine, speed, and pure warm-weather fun. The whole piece leans into the thrill of the ride, transforming a great summer snapshot into a stylized action moment that feels like a vacation memory turned into its own little adventure."
+      },
+      {
         "slug": "budweiser-pacman",
         "title": "Budweiser Pac-Man",
         "orientation": "portrait",
@@ -586,7 +602,8 @@
         "movieRendering": "/personal/images/ai-shenanigans/he-man/movie.mp4",
         "movieSource": "KlingAI video generation",
         "movieCaption": "What begins as a normal portrait becomes a full fantasy action reveal as I power into a He-Man-inspired hero, riding into chaos with sword aloft, big-cartoon energy, and unapologetic toybox epicness.",
-        "blurb": "He-Man! takes a polished headshot and hurls it straight into retro fantasy action. The result is a gleefully overpowered shenanigan, transforming an ordinary portrait into a muscle-bound cartoon hero charging into battle with sword, beast, villains, and maximum nostalgic spectacle."
+        "blurb": "He-Man! takes a polished headshot and hurls it straight into retro fantasy action. The result is a gleefully overpowered shenanigan, transforming an ordinary portrait into a muscle-bound cartoon hero charging into battle with sword, beast, villains, and maximum nostalgic spectacle.",
+        "shortText": "\"By the power of GreySkull!\""
       },
       {
         "slug": "the-rock",
