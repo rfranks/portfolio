@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-import MarkdownContent from "@/components/shared/MarkdownContent";
+import { MarkdownContent } from "@/components/shared";
 import PathForgerJourneyLedgerCarousel from "@/app/pathforger/_components/PathForgerJourneyLedgerCarousel";
 import {
   type JourneyLedgerField,

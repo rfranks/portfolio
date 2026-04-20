@@ -148,7 +148,7 @@ export default function Footer() {
           <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
             <Box sx={{ ml: "-15px" }}>
               <Image
-                src="/logo192.png"
+                src="/apps/bookworm/images/logo192.png"
                 style={logoStyle}
                 alt="bookworm logo"
                 width={192}

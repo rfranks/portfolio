@@ -1,14 +1,28 @@
 import * as React from "react";
-import Image from "next/image";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import Chip from "@/components/fabric/Chip";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
+import { MediaCycler } from "@/components/shared";
+import type { MediaCyclerItem } from "@/components/shared";
 import { hobbies } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
 
 export default function HobbiesCard() {
+  const heroFrameSx = React.useMemo(
+    () => ({
+      mt: 0,
+      mb: 0,
+      width: "100%",
+      aspectRatio: "2 / 3",
+      overflow: "hidden",
+      borderRadius: "18px",
+      backgroundColor: "rgba(2,6,23,0.1)",
+    }),
+    [],
+  );
+
   const resolvedHeroVideoUrl = React.useMemo(() => {
     if (typeof hobbies.heroVideoUrl === "string") {
       if ((hobbies.heroVideoUrl as string).trim()) {
@@ -25,27 +39,21 @@ export default function HobbiesCard() {
 
     return "";
   }, []);
-  const hasHeroMedia = Boolean(resolvedHeroVideoUrl || hobbies.heroImageUrl);
   const [isHeroVideoActive, setIsHeroVideoActive] = React.useState(false);
-  const [isHeroVideoLoaded, setIsHeroVideoLoaded] = React.useState(false);
   const [heroVideoUnavailable, setHeroVideoUnavailable] = React.useState(false);
   const heroVideoRef = React.useRef<HTMLVideoElement | null>(null);
 
   const canPlayHeroVideo =
     Boolean(resolvedHeroVideoUrl) && !heroVideoUnavailable;
+  const hasHeroMedia = Boolean(hobbies.heroImageUrl || canPlayHeroVideo);
 
   const handleHeroClick = React.useCallback(() => {
     if (!canPlayHeroVideo) {
       return;
     }
 
-    setIsHeroVideoLoaded(false);
     setIsHeroVideoActive(true);
   }, [canPlayHeroVideo]);
-
-  const handleHeroVideoLoadedData = React.useCallback(() => {
-    setIsHeroVideoLoaded(true);
-  }, []);
 
   const handleHeroVideoEnded = React.useCallback(() => {
     const video = heroVideoRef.current;
@@ -55,30 +63,70 @@ export default function HobbiesCard() {
     }
 
     setIsHeroVideoActive(false);
-    setIsHeroVideoLoaded(false);
   }, []);
 
   const handleHeroVideoError = React.useCallback(() => {
     setHeroVideoUnavailable(true);
     setIsHeroVideoActive(false);
-    setIsHeroVideoLoaded(false);
   }, []);
+  const heroMediaItems = React.useMemo<MediaCyclerItem[]>(() => {
+    const items: MediaCyclerItem[] = [];
+    const hasHeroImage = Boolean(hobbies.heroImageUrl);
 
-  React.useEffect(() => {
-    if (!isHeroVideoActive || !isHeroVideoLoaded) {
-      return;
+    if (hasHeroImage && hobbies.heroImageUrl) {
+      items.push({
+        key: "hero-image",
+        title: "",
+        mediaType: "image",
+        mediaUrl: withBasePath(hobbies.heroImageUrl),
+        mediaAlt: `${hobbies.title} hero`,
+        mediaLightboxTitle: `${hobbies.title} hero`,
+        onMediaActivate: canPlayHeroVideo ? handleHeroClick : undefined,
+        assetFrameSx: heroFrameSx,
+        imageWidth: 960,
+        imageHeight: 540,
+        imageClassName: "h-full w-full rounded-[18px] object-cover",
+      });
     }
 
-    const video = heroVideoRef.current;
-    if (!video) {
-      return;
+    if (canPlayHeroVideo) {
+      items.push({
+        key: "hero-video",
+        title: "",
+        mediaType: "video",
+        mediaUrl: withBasePath(resolvedHeroVideoUrl),
+        mediaLightboxTitle: `${hobbies.title} hero video`,
+        videoRef: heroVideoRef,
+        controls: !hasHeroImage,
+        autoPlay: hasHeroImage,
+        muted: true,
+        playsInline: true,
+        videoProps: {
+          preload: "auto",
+          onEnded: hasHeroImage ? handleHeroVideoEnded : undefined,
+          onError: handleHeroVideoError,
+        },
+        assetFrameSx: heroFrameSx,
+        previewVideoClassName: "block h-full w-full rounded-[18px] object-cover",
+        previewVideoSx: {
+          width: "100%",
+          height: "100%",
+        },
+      });
     }
 
-    video.currentTime = 0;
-    void video.play().catch(() => {
-      // Ignore autoplay failures; user can click again.
-    });
-  }, [isHeroVideoActive, isHeroVideoLoaded]);
+    return items;
+  }, [
+    canPlayHeroVideo,
+    handleHeroClick,
+    handleHeroVideoEnded,
+    handleHeroVideoError,
+    heroFrameSx,
+    resolvedHeroVideoUrl,
+  ]);
+
+  const activeHeroMediaKey =
+    canPlayHeroVideo && isHeroVideoActive ? "hero-video" : "hero-image";
 
   return (
     <PortfolioPanel className="h-full">
@@ -119,80 +167,20 @@ export default function HobbiesCard() {
                 flexShrink: 0,
               }}
             >
-              {hobbies.heroImageUrl && (
-                <Box
-                  sx={{
-                    position: "relative",
-                    borderRadius: "18px",
-                    overflow: "hidden",
-                    cursor: canPlayHeroVideo ? "pointer" : "default",
-                  }}
-                  onClick={handleHeroClick}
-                  role={canPlayHeroVideo ? "button" : undefined}
-                  tabIndex={canPlayHeroVideo ? 0 : -1}
-                  aria-label={
-                    canPlayHeroVideo
-                      ? `Play ${hobbies.title} hero video`
-                      : undefined
-                  }
-                  onKeyDown={(event) => {
-                    if (!canPlayHeroVideo) {
-                      return;
-                    }
-
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      handleHeroClick();
-                    }
-                  }}
-                >
-                  <Image
-                    src={withBasePath(hobbies.heroImageUrl)}
-                    alt={`${hobbies.title} hero`}
-                    width={960}
-                    height={540}
-                    className={`h-auto w-full rounded-[18px] object-cover transition-opacity duration-200 ${
-                      isHeroVideoActive && isHeroVideoLoaded
-                        ? "opacity-0"
-                        : "opacity-100"
-                    }`}
-                  />
-                  {canPlayHeroVideo && isHeroVideoActive ? (
-                    <Box
-                      component="video"
-                      ref={heroVideoRef}
-                      src={withBasePath(resolvedHeroVideoUrl)}
-                      playsInline
-                      muted
-                      preload="auto"
-                      onLoadedData={handleHeroVideoLoadedData}
-                      onEnded={handleHeroVideoEnded}
-                      onError={handleHeroVideoError}
-                      sx={{
-                        position: "absolute",
-                        inset: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        borderRadius: "18px",
-                        opacity: isHeroVideoLoaded ? 1 : 0,
-                        transition: "opacity 200ms ease",
-                        pointerEvents: "none",
-                      }}
-                    />
-                  ) : null}
-                </Box>
-              )}
-              {!hobbies.heroImageUrl && canPlayHeroVideo && (
-                <Box
-                  component="video"
-                  src={withBasePath(resolvedHeroVideoUrl)}
-                  controls
-                  playsInline
-                  muted
-                  className="block h-auto w-full rounded-[18px]"
-                />
-              )}
+              <MediaCycler
+                items={heroMediaItems}
+                singlePanel
+                singlePanelActiveKey={activeHeroMediaKey}
+                transitionMs={220}
+                disableTransition
+                showExpandIcon={false}
+                showChevronNavigation={false}
+                stackSx={{
+                  position: "relative",
+                  borderRadius: "18px",
+                  overflow: "hidden",
+                }}
+              />
             </Box>
           )}
         </Stack>

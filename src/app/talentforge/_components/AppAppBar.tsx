@@ -93,7 +93,7 @@ function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
               }}
             >
               <Image
-                src="/logo192.png"
+                src="/apps/bookworm/images/logo192.png"
                 style={logoStyle}
                 alt="talentforge logo"
                 width={192}

@@ -9,11 +9,11 @@ import {
   Typography,
 } from "@mui/material";
 import { ChevronRight, Close } from "@mui/icons-material";
-import EmojiGlyph from "@/components/shared/EmojiGlyph";
-import MarkdownContent from "@/components/shared/MarkdownContent";
-import ImageLightbox from "@/components/shared/ImageLightbox";
+import { EmojiGlyph } from "@/components/shared";
+import { MarkdownContent } from "@/components/shared";
+import { ImageLightbox } from "@/components/shared";
 import type { PathForgerGeneratedImage } from "@/app/pathforger/_types/pipeline";
-import { Thinking } from "@/components/shared/Thinking";
+import { Thinking } from "@/components/shared";
 
 type PathForgerChapterPanelProps = {
   open: boolean;

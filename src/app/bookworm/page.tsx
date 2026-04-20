@@ -24,7 +24,7 @@ import "./page.css"; // Ensure global styles are applied
 import { hasOpenAIKey, setOpenAIKey } from "@/app/bookworm/_utils/utils";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
-import OpenAIKeyInterstitialContent from "@/components/shared/OpenAIKeyInterstitialContent";
+import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
 import { portfolioApps } from "@/consts/resumeData";
 import getBookwormLandingTheme from "@/app/bookworm/_theme/getBookwormLandingTheme";

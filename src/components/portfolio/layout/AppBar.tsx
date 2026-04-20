@@ -1,7 +1,7 @@
 import { Toolbar } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import { alpha, styled } from "@mui/material/styles";
-import ToggleColorMode from "@/components/shared/ToggleColorMode";
+import { ToggleColorMode } from "@/components/shared";
 import type { AppBarProps } from "@/types/components/portfolio";
 
 interface StyledAppBarProps extends MuiAppBarProps {

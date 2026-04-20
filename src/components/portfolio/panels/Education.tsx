@@ -5,7 +5,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Box from "@mui/material/Box";
 import { education } from "@/consts/resumeData";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import ImageLightbox from "@/components/shared/ImageLightbox";
+import { ImageLightbox } from "@/components/shared";
 import { ListItemAvatar } from "@mui/material";
 import Image from "next/image";
 import { withBasePath } from "@/utils/basePath";

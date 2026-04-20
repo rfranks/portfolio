@@ -26,7 +26,7 @@ import {
 
 import { Sequence } from "../_types/types";
 
-import Title from "@/components/shared/Title";
+import { Title } from "@/components/shared";
 
 export type SequencesTableProps = {
   activeSequences?: Sequence[] | null;

@@ -9,8 +9,8 @@ import {
   Typography,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-import MarkdownContent from "@/components/shared/MarkdownContent";
-import ImageLightbox from "@/components/shared/ImageLightbox";
+import { MarkdownContent } from "@/components/shared";
+import { ImageLightbox } from "@/components/shared";
 import {
   PathForgerBranchChoice,
   PathForgerChapterResult,

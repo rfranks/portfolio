@@ -221,7 +221,7 @@ export default function Dashboard({
             >
               <Box
                 component="img"
-                src={withBasePath("/dna/images/geneboard_banner.png")}
+                src={withBasePath("/apps/dna/images/geneboard_banner.png")}
                 alt="GeneBoard"
                 sx={{
                   display: "block",

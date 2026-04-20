@@ -2,9 +2,9 @@ import * as React from "react";
 import { alpha } from "@mui/material/styles";
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
-import MarkdownContent from "@/components/shared/MarkdownContent";
-import EmojiGlyph from "@/components/shared/EmojiGlyph";
-import ImageLightbox from "@/components/shared/ImageLightbox";
+import { MarkdownContent } from "@/components/shared";
+import { EmojiGlyph } from "@/components/shared";
+import { ImageLightbox } from "@/components/shared";
 import type {
   PathForgerBranchChoice,
   PathForgerGeneratedImage,

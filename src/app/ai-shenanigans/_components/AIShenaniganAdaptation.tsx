@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
@@ -11,15 +10,12 @@ import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { alpha, useTheme } from "@mui/material/styles";
 import AIShenaniganPanel from "./AIShenaniganPanel";
-import EmojiGlyph from "@/components/shared/EmojiGlyph";
-import ImageLightbox from "@/components/shared/ImageLightbox";
-import VideoLightbox from "@/components/shared/VideoLightbox";
+import { EmojiGlyph, MediaCycler } from "@/components/shared";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { withBasePath } from "@/utils/basePath";
 
 type RevealStage = "intro" | "book" | "manuscript" | "trailer" | "episodes";
-type ArrowDirection = "right" | "down";
 type TrailerOrientation = "landscape" | "portrait" | undefined;
 
 const ARROW_REVEAL_MS = 280;
@@ -148,7 +144,6 @@ export default function AIShenaniganAdaptation({
   const trailerMaxWidth = isTrailerPortrait ? 420 : undefined;
   const panelFrameHeight = { xs: "44dvh", md: "52dvh" };
   const hasEpisodesPdf = Boolean(episodesPdf);
-  const hasEpisodeMedia = episodeMedia.length > 0;
 
   const clearPendingTransitions = useCallback(() => {
     if (manuscriptTimeoutRef.current) {
@@ -356,81 +351,6 @@ export default function AIShenaniganAdaptation({
     })),
   ];
 
-  const renderArrow = (direction: ArrowDirection, active: boolean) => (
-    <Box
-      aria-hidden="true"
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        opacity: active ? 1 : 0,
-        transform: active
-          ? "translate3d(0, 0, 0) scale(1)"
-          : direction === "right"
-            ? "translate3d(-8px, 0, 0) scale(0.92)"
-            : "translate3d(0, -8px, 0) scale(0.92)",
-        transition:
-          "opacity 260ms ease, transform 320ms cubic-bezier(.2,.8,.2,1)",
-      }}
-    >
-      <Box
-        sx={{
-          position: "relative",
-          ...(direction === "right"
-            ? { width: 88, height: 48 }
-            : { width: 48, height: 72 }),
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            borderRadius: 999,
-            background:
-              "linear-gradient(90deg, rgba(34,211,238,0.2) 0%, rgba(59,130,246,0.95) 52%, rgba(14,165,233,0.9) 100%)",
-            boxShadow: "0 0 22px rgba(56,189,248,0.35)",
-            ...(direction === "right"
-              ? {
-                  top: "50%",
-                  left: 8,
-                  right: 18,
-                  height: 4,
-                  transform: "translateY(-50%)",
-                }
-              : {
-                  top: 8,
-                  bottom: 18,
-                  left: "50%",
-                  width: 4,
-                  transform: "translateX(-50%)",
-                }),
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            width: 18,
-            height: 18,
-            borderTop: "4px solid",
-            borderRight: "4px solid",
-            borderColor: "rgb(59,130,246)",
-            filter: "drop-shadow(0 0 12px rgba(59,130,246,0.6))",
-            ...(direction === "right"
-              ? {
-                  top: "50%",
-                  right: 6,
-                  transform: "translateY(-50%) rotate(45deg)",
-                }
-              : {
-                  bottom: 6,
-                  left: "50%",
-                  transform: "translateX(-50%) rotate(135deg)",
-                }),
-          }}
-        />
-      </Box>
-    </Box>
-  );
-
   const renderSource = (label?: string, href?: string) => {
     if (!label) {
       return null;
@@ -500,6 +420,7 @@ export default function AIShenaniganAdaptation({
     src: string,
     titleText: string,
     onLoad?: () => void,
+    onMediaActivate?: () => void,
   ) => {
     const pdfSrc = `${withBasePath(src)}#view=FitH`;
 
@@ -511,11 +432,25 @@ export default function AIShenaniganAdaptation({
             borderRadius: "18px",
             border: "1px solid",
             borderColor: "var(--fabric-surface-border)",
+            cursor: onMediaActivate ? "pointer" : "default",
             bgcolor:
               theme.palette.mode === "light"
                 ? alpha(theme.palette.common.white, 0.8)
                 : "rgba(15,23,42,0.48)",
           })}
+          role={onMediaActivate ? "button" : undefined}
+          tabIndex={onMediaActivate ? 0 : -1}
+          onClick={onMediaActivate}
+          onKeyDown={(event) => {
+            if (!onMediaActivate) {
+              return;
+            }
+
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onMediaActivate();
+            }
+          }}
         >
           <Box
             component="object"
@@ -976,6 +911,11 @@ export default function AIShenaniganAdaptation({
     }, 120);
   };
 
+  const activeEpisodeIndex =
+    stage === "episodes" && revealedEpisodeCount > 0
+      ? revealedEpisodeCount - 1
+      : -1;
+
   return (
     <AIShenaniganPanel className="overflow-hidden">
       <Stack spacing={3} flexGrow={1}>
@@ -1207,7 +1147,7 @@ export default function AIShenaniganAdaptation({
                 "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
             }}
           >
-            {bookVisible && (
+            {bookVisible && stage === "book" && (
               <Box ref={bookSectionRef} sx={mediaPanelSx}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Book cover
@@ -1223,52 +1163,56 @@ export default function AIShenaniganAdaptation({
                   ref={bookCoverRef}
                   sx={{ display: "flex", justifyContent: "center" }}
                 >
-                  <ImageLightbox
-                    src={withBasePath(bookCoverImage)}
-                    alt={`${title} book cover`}
-                    title={`${title} — Book Cover`}
-                    caption={bookCaption || bookSource}
-                  >
-                    <Image
-                      src={withBasePath(bookCoverImage)}
-                      alt={`${title} book cover`}
-                      width={1400}
-                      height={900}
-                      onLoad={() => {
-                        setBookCoverLoaded(true);
-                      }}
-                      className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                      style={{ maxWidth: 440, marginInline: "auto" }}
-                    />
-                  </ImageLightbox>
+                  <MediaCycler
+                    spacing={0}
+                    singlePanel
+                    transitionMs={260}
+                    items={[
+                      {
+                        key: "book-cover",
+                        title: "",
+                        mediaType: "image",
+                        mediaUrl: withBasePath(bookCoverImage),
+                        mediaAlt: `${title} book cover`,
+                        mediaLightboxTitle: `${title} — Book Cover`,
+                        lightboxCaption: bookCaption || bookSource,
+                        mediaCaption: bookCaption,
+                        mediaSource: bookSource,
+                        mediaSourceHref: bookSourceHref,
+                        onMediaLoaded: () => {
+                          setBookCoverLoaded(true);
+                        },
+                        onMediaActivate: () => {
+                          if (transitioningTo) {
+                            return;
+                          }
+
+                          if (!manuscriptVisible) {
+                            handleRevealManuscript();
+                            return;
+                          }
+
+                          handleChronologySelect("book");
+                        },
+                        assetFrameSx: {
+                          mt: 0,
+                          mb: 0,
+                          width: "100%",
+                          maxWidth: 440,
+                          marginInline: "auto",
+                        },
+                        imageWidth: 1400,
+                        imageHeight: 900,
+                        imageClassName:
+                          "h-auto w-full rounded-[22px] bg-black/10 object-contain",
+                      },
+                    ]}
+                  />
                 </Box>
-                {renderSource(bookSource, bookSourceHref)}
-                {bookCaption && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: bookSource ? 0.75 : 1.5 }}
-                  >
-                    {bookCaption}
-                  </Typography>
-                )}
               </Box>
             )}
 
-            {bookVisible && (
-              <>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                >
-                  {renderArrow("down", showManuscriptArrow)}
-                </Box>
-              </>
-            )}
-
-            {manuscriptVisible && (
+            {manuscriptVisible && stage === "manuscript" && (
               <Box ref={manuscriptSectionRef} sx={mediaPanelSx}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Manuscript
@@ -1280,12 +1224,33 @@ export default function AIShenaniganAdaptation({
                 >
                   The book-side narrative source before adaptation.
                 </Typography>
-                {renderPdfFrame(manuscriptPdf, `${title} manuscript`, () => {
-                  scrollRevealIntoView(
-                    manuscriptSectionRef.current,
-                    manuscriptFooterRef.current,
-                  );
-                })}
+                {renderPdfFrame(
+                  manuscriptPdf,
+                  `${title} manuscript`,
+                  () => {
+                    scrollRevealIntoView(
+                      manuscriptSectionRef.current,
+                      manuscriptFooterRef.current,
+                    );
+                  },
+                  () => {
+                    if (transitioningTo) {
+                      return;
+                    }
+
+                    if (hasTrailer && !trailerVisible) {
+                      handleRevealTrailer();
+                      return;
+                    }
+
+                    if (!episodesVisible) {
+                      handleRevealEpisodes();
+                      return;
+                    }
+
+                    handleChronologySelect("manuscript");
+                  },
+                )}
                 {renderSource(manuscriptSource, manuscriptSourceHref)}
                 {manuscriptCaption && (
                   <Typography
@@ -1299,16 +1264,7 @@ export default function AIShenaniganAdaptation({
               </Box>
             )}
 
-            {manuscriptVisible && (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 0.5 }}>
-                {renderArrow(
-                  "down",
-                  hasTrailer ? showTrailerArrow : showEpisodesArrow,
-                )}
-              </Box>
-            )}
-
-            {trailerVisible && trailerMovie && (
+            {trailerVisible && trailerMovie && stage === "trailer" && (
               <Box ref={trailerSectionRef} sx={mediaPanelSx}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Trailer
@@ -1321,44 +1277,58 @@ export default function AIShenaniganAdaptation({
                   Preview the adaptation trailer before opening the full
                   episodes draft.
                 </Typography>
-                <VideoLightbox
-                  ref={trailerVideoRef}
-                  src={withBasePath(trailerMovie)}
-                  onLoadedData={() => {
-                    setTrailerLoaded(true);
-                  }}
-                  controls
-                  playsInline
-                  title={`${title} trailer`}
-                  caption={trailerCaption}
-                  previewVideoClassName="block w-full rounded-[18px] bg-black/10 object-contain"
-                  previewVideoSx={{
-                    aspectRatio: trailerAspectRatio,
-                    maxWidth: trailerMaxWidth,
-                    maxHeight: panelFrameHeight,
-                    marginInline: "auto",
-                  }}
+                <MediaCycler
+                  spacing={0}
+                  singlePanel
+                  transitionMs={260}
+                  items={[
+                    {
+                      key: "trailer",
+                      title: "",
+                      mediaType: "video",
+                      mediaUrl: withBasePath(trailerMovie),
+                      mediaLightboxTitle: `${title} trailer`,
+                      mediaCaption: trailerCaption,
+                      mediaSource: trailerSource,
+                      mediaSourceHref: trailerSourceHref,
+                      videoRef: trailerVideoRef,
+                      controls: true,
+                      playsInline: true,
+                      onMediaLoaded: () => {
+                        setTrailerLoaded(true);
+                      },
+                      onMediaActivate: () => {
+                        if (transitioningTo) {
+                          return;
+                        }
+
+                        if (!episodesVisible) {
+                          handleRevealEpisodes();
+                          return;
+                        }
+
+                        handleChronologySelect("trailer");
+                      },
+                      assetFrameSx: {
+                        mt: 0,
+                        mb: 0,
+                        width: "100%",
+                      },
+                      previewVideoClassName:
+                        "block w-full rounded-[18px] bg-black/10 object-contain",
+                      previewVideoSx: {
+                        aspectRatio: trailerAspectRatio,
+                        maxWidth: trailerMaxWidth,
+                        maxHeight: panelFrameHeight,
+                        marginInline: "auto",
+                      },
+                    },
+                  ]}
                 />
-                {renderSource(trailerSource, trailerSourceHref)}
-                {trailerCaption && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: trailerSource ? 0.75 : 1.5 }}
-                  >
-                    {trailerCaption}
-                  </Typography>
-                )}
               </Box>
             )}
 
-            {trailerVisible && (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 0.5 }}>
-                {renderArrow("down", showEpisodesArrow)}
-              </Box>
-            )}
-
-            {episodesVisible && (
+            {episodesVisible && stage === "episodes" && activeEpisodeIndex < 0 && (
               <Box ref={episodesSectionRef} sx={mediaPanelSx}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Episodes Draft
@@ -1372,12 +1342,28 @@ export default function AIShenaniganAdaptation({
                   each episode concept one at a time.
                 </Typography>
                 {hasEpisodesPdf &&
-                  renderPdfFrame(episodesPdf, `${title} episodes`, () => {
-                    scrollRevealIntoView(
-                      episodesSectionRef.current,
-                      episodesFooterRef.current,
-                    );
-                  })}
+                  renderPdfFrame(
+                    episodesPdf,
+                    `${title} episodes`,
+                    () => {
+                      scrollRevealIntoView(
+                        episodesSectionRef.current,
+                        episodesFooterRef.current,
+                      );
+                    },
+                    () => {
+                      if (transitioningTo) {
+                        return;
+                      }
+
+                      if (revealedEpisodeCount < episodeMedia.length) {
+                        handleRevealNextEpisode();
+                        return;
+                      }
+
+                      handleChronologySelect("episodes");
+                    },
+                  )}
                 {renderSource(episodesSource, episodesSourceHref)}
                 {episodesCaption && (
                   <Typography
@@ -1388,89 +1374,90 @@ export default function AIShenaniganAdaptation({
                     {episodesCaption}
                   </Typography>
                 )}
-                {hasEpisodeMedia && (
-                  <Stack
-                    spacing={2}
-                    sx={{
-                      mt:
-                        hasEpisodesPdf || episodesCaption || episodesSource
-                          ? 2.5
-                          : 0,
-                    }}
-                  >
-                    {episodeMedia
-                      .slice(0, revealedEpisodeCount)
-                      .map((episode, index) => (
-                        <Box key={`${episode.title}-${index}`}>
-                          {index > 0 && (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                justifyContent: "center",
-                                py: 0.5,
-                              }}
-                            >
-                              {renderArrow("down", true)}
-                            </Box>
-                          )}
-                          <Box
-                            ref={(node: HTMLDivElement | null) => {
-                              episodeCardRefs.current[index] = node;
-                            }}
-                            sx={{
-                              borderRadius: "20px",
-                              border: "1px solid rgba(255,255,255,0.08)",
-                              backgroundColor: "rgba(15,23,42,0.24)",
-                              p: 2,
-                            }}
-                          >
-                            <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                              {getEpisodeChronologyLabel(episode)}
-                            </Typography>
-                            <Typography
-                              variant="body1"
-                              sx={{ mb: 1, fontWeight: 700 }}
-                            >
-                              {episode.title}
-                            </Typography>
-                            <VideoLightbox
-                              ref={(node: HTMLVideoElement | null) => {
-                                episodeVideoRefs.current[index] = node;
-                              }}
-                              src={withBasePath(episode.src)}
-                              onLoadedData={() => {
-                                scrollRevealIntoView(
-                                  episodeCardRefs.current[index],
-                                  episodeFooterRefs.current[index],
-                                );
-                              }}
-                              controls
-                              playsInline
-                              title={`${title} ${episode.title}`}
-                              caption={episode.caption}
-                              previewVideoClassName="block w-full rounded-[18px] bg-black/10 object-contain"
-                              previewVideoSx={{
-                                aspectRatio: "16 / 9",
-                                maxHeight: panelFrameHeight,
-                              }}
-                            />
-                            {renderSource(episode.source, episode.sourceHref)}
-                            {episode.caption && (
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mt: episode.source ? 0.75 : 1.5 }}
-                              >
-                                {episode.caption}
-                              </Typography>
-                            )}
-                          </Box>
-                        </Box>
-                      ))}
-                  </Stack>
-                )}
               </Box>
             )}
+
+            {episodesVisible &&
+              stage === "episodes" &&
+              activeEpisodeIndex >= 0 &&
+              episodeMedia[activeEpisodeIndex] && (
+                <Box
+                  ref={(node: HTMLDivElement | null) => {
+                    episodeCardRefs.current[activeEpisodeIndex] = node;
+                  }}
+                  sx={{
+                    ...mediaPanelSx,
+                    borderRadius: "20px",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    backgroundColor: "rgba(15,23,42,0.24)",
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {getEpisodeChronologyLabel(episodeMedia[activeEpisodeIndex])}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 1, fontWeight: 700 }}>
+                    {episodeMedia[activeEpisodeIndex].title}
+                  </Typography>
+                  <MediaCycler
+                    spacing={0}
+                    singlePanel
+                    transitionMs={260}
+                    items={[
+                      {
+                        key: `episode-media-${activeEpisodeIndex}`,
+                        title: "",
+                        mediaType: "video",
+                        mediaUrl: withBasePath(
+                          episodeMedia[activeEpisodeIndex].src,
+                        ),
+                        mediaLightboxTitle: `${title} ${episodeMedia[activeEpisodeIndex].title}`,
+                        mediaCaption: episodeMedia[activeEpisodeIndex].caption,
+                        mediaSource: episodeMedia[activeEpisodeIndex].source,
+                        mediaSourceHref: episodeMedia[activeEpisodeIndex].sourceHref,
+                        videoRef: (node: HTMLVideoElement | null) => {
+                          episodeVideoRefs.current[activeEpisodeIndex] = node;
+                        },
+                        controls: true,
+                        playsInline: true,
+                        onMediaLoaded: () => {
+                          scrollRevealIntoView(
+                            episodeCardRefs.current[activeEpisodeIndex],
+                            episodeFooterRefs.current[activeEpisodeIndex],
+                          );
+                        },
+                        onMediaActivate: () => {
+                          if (transitioningTo) {
+                            return;
+                          }
+
+                          const hasNextEpisodeToReveal =
+                            revealedEpisodeCount < episodeMedia.length;
+
+                          if (hasNextEpisodeToReveal) {
+                            handleRevealNextEpisode();
+                            return;
+                          }
+
+                          handleChronologySelect(
+                            `episode-${activeEpisodeIndex}`,
+                          );
+                        },
+                        assetFrameSx: {
+                          mt: 0,
+                          mb: 0,
+                          width: "100%",
+                        },
+                        previewVideoClassName:
+                          "block w-full rounded-[18px] bg-black/10 object-contain",
+                        previewVideoSx: {
+                          aspectRatio: "16 / 9",
+                          maxHeight: panelFrameHeight,
+                        },
+                      },
+                    ]}
+                  />
+                </Box>
+              )}
           </Stack>
         </Stack>
       </Stack>

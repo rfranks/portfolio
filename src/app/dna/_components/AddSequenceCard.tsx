@@ -18,7 +18,7 @@ import Delete from "@mui/icons-material/Delete";
 import { useRef, useState } from "react";
 import { Sequence } from "../_types/types";
 import { parseSequence } from "../_utils/sequenceUtils";
-import Title from "@/components/shared/Title";
+import { Title } from "@/components/shared";
 import { Science } from "@mui/icons-material";
 import { withBasePath } from "@/utils/basePath";
 
@@ -75,7 +75,7 @@ export default function AddSequenceCard({
 
   const loadSample = async (sample: string) => {
     const sampleContent = await (
-      await fetch(withBasePath(`/dna/examples/${sample}`))
+      await fetch(withBasePath(`/apps/dna/examples/${sample}`))
     ).text();
 
     setRawSequenceContent(sampleContent);

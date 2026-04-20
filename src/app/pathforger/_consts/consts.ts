@@ -48,15 +48,15 @@ export const pitchPanelBorderRadius = "8px";
 export const pitchCacheStorageKey = "pathforger-last-pitches-v1";
 export const pathForgerStateStorageKey = "pathforger-state-v1";
 export const pathForgerSampleStorageArtifactPath =
-  "/pathforger/sample/localStorage.sample.json";
+  "/apps/pathforger/sample/localStorage.sample.json";
 export const pathForgerSampleImageByType: Record<PathForgerImageType, string> =
   {
-    cover: "/pathforger/sample/cover.png",
-    chapterSpread: "/pathforger/sample/chapterSpread.png",
-    choicePreviewA: "/pathforger/sample/optionA.png",
-    choicePreviewB: "/pathforger/sample/optionB.png",
-    outcomeA: "/pathforger/sample/outcomeA.png",
-    outcomeB: "/pathforger/sample/outcomeB.png",
+    cover: "/apps/pathforger/sample/cover.png",
+    chapterSpread: "/apps/pathforger/sample/chapterSpread.png",
+    choicePreviewA: "/apps/pathforger/sample/optionA.png",
+    choicePreviewB: "/apps/pathforger/sample/optionB.png",
+    outcomeA: "/apps/pathforger/sample/outcomeA.png",
+    outcomeB: "/apps/pathforger/sample/outcomeB.png",
   };
 
 export const optionBranchOrder: PathForgerBranchChoice[] = ["A", "B"];

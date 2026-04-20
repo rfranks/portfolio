@@ -9,7 +9,7 @@ import {
   Link,
 } from "@mui/material";
 import type { Accolade } from "@/types/components/portfolio";
-import ImageLightbox from "@/components/shared/ImageLightbox";
+import { ImageLightbox } from "@/components/shared";
 import { withBasePath } from "@/utils/basePath";
 export type { Accolade } from "@/types/components/portfolio";
 

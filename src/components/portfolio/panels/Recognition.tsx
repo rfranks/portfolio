@@ -8,8 +8,8 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import Avatar from "@mui/material/Avatar";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import ImageLightbox from "@/components/shared/ImageLightbox";
-import MarkdownContent from "@/components/shared/MarkdownContent";
+import { ImageLightbox } from "@/components/shared";
+import { MarkdownContent } from "@/components/shared";
 import { withBasePath } from "@/utils/basePath";
 
 export default function Recognition() {

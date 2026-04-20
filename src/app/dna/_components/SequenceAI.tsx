@@ -9,7 +9,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 
-import OpenAIKeyInterstitialContent from "@/components/shared/OpenAIKeyInterstitialContent";
+import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import {
   getOpenAIKeySnapshot,
   setOpenAIKey,
@@ -347,7 +347,7 @@ export default function SequenceAI({
         <OpenAIKeyInterstitialContent
           appName="GeneBoard AI"
           logoAlt="GeneBoard AI logo"
-          logoSrc={withBasePath("/dna/images/geneboard_banner.png")}
+          logoSrc={withBasePath("/apps/dna/images/geneboard_banner.png")}
           logoFrameSx={{
             backgroundColor: "#ffffff",
             borderRadius: "22px",

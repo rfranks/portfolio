@@ -9,9 +9,9 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-import EmojiGlyph from "@/components/shared/EmojiGlyph";
-import ImageLightbox from "@/components/shared/ImageLightbox";
-import MarkdownContent from "@/components/shared/MarkdownContent";
+import { EmojiGlyph } from "@/components/shared";
+import { ImageLightbox } from "@/components/shared";
+import { MarkdownContent } from "@/components/shared";
 import AIShenaniganPanel from "./AIShenaniganPanel";
 import { withBasePath } from "@/utils/basePath";
 

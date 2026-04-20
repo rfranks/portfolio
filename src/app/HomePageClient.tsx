@@ -38,7 +38,7 @@ import ProjectsGrid from "@/components/portfolio/panels/ProjectsGrid";
 import Education from "@/components/portfolio/panels/Education";
 import Recognition from "@/components/portfolio/panels/Recognition";
 import ContactCTA from "@/components/portfolio/panels/ContactCTA";
-import ImageLightbox from "@/components/shared/ImageLightbox";
+import { ImageLightbox } from "@/components/shared";
 import Grid from "@mui/material/Grid";
 import {
   GLOBAL_COLOR_MODE_STORAGE_KEY,

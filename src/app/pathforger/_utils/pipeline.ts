@@ -210,9 +210,9 @@ async function loadPathForgerKnowledge(): Promise<PathForgerKnowledge> {
       }
 
       const [mainPrompt, ...docContents] = await Promise.all([
-        readStaticText("/pathforger/MAIN_PROMPT.txt"),
+        readStaticText("/apps/pathforger/MAIN_PROMPT.txt"),
         ...KNOWLEDGE_DOC_FILES.map((file) =>
-          readStaticText(`/pathforger/knowledge-files/${file}`),
+          readStaticText(`/apps/pathforger/knowledge-files/${file}`),
         ),
       ]);
 

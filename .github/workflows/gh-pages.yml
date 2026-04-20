@@ -44,8 +44,8 @@ jobs:
       - name: Build blackjack wasm
         run: |
           cd ./go/blackjack
-          GOOS=js GOARCH=wasm go build -o ../../out/main.wasm
-          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../../out/
+          GOOS=js GOARCH=wasm go build -o ../../out/apps/blackjack/wasm/main.wasm
+          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../../out/apps/blackjack/js/
 
 
       - name: Deploy to gh-pages

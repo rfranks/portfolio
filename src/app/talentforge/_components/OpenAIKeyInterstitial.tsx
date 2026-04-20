@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import OpenAIKeyInterstitialContent from "@/components/shared/OpenAIKeyInterstitialContent";
+import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 import { validateOpenAIKey } from "@/app/talentforge/_utils/utils";
 

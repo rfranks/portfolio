@@ -10,16 +10,11 @@ import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { alpha, useTheme } from "@mui/material/styles";
 import AIShenaniganPanel from "./AIShenaniganPanel";
-import EmojiGlyph from "@/components/shared/EmojiGlyph";
-import VideoLightbox from "@/components/shared/VideoLightbox";
+import { EmojiGlyph, MediaCycler } from "@/components/shared";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { withBasePath } from "@/utils/basePath";
 import type { AIShenaniganMovieOrientation } from "./AIShenanigan";
-
-type ArrowDirection = "right" | "down";
-
-const ARROW_REVEAL_MS = 280;
 
 type WorkDocumentPart = {
   src: string;
@@ -83,9 +78,7 @@ export default function AIShenaniganWorkSeries({
   const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
   const [revealedWorkCount, setRevealedWorkCount] = useState(0);
   const [revealedSeriesCount, setRevealedSeriesCount] = useState(0);
-  const [showSeriesArrow, setShowSeriesArrow] = useState(false);
   const [transitioning, setTransitioning] = useState<RevealStep | null>(null);
-  const seriesArrowTimeoutRef = useRef<number | null>(null);
   const workSectionRef = useRef<HTMLDivElement | null>(null);
   const seriesSectionRef = useRef<HTMLDivElement | null>(null);
   const workCardRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -148,12 +141,7 @@ export default function AIShenaniganWorkSeries({
   const totalWorkParts = normalizedWorkParts.length;
   const totalSeriesParts = normalizedSeriesParts.length;
 
-  const clearPendingTransitions = useCallback(() => {
-    if (seriesArrowTimeoutRef.current) {
-      window.clearTimeout(seriesArrowTimeoutRef.current);
-      seriesArrowTimeoutRef.current = null;
-    }
-  }, []);
+  const clearPendingTransitions = useCallback(() => {}, []);
 
   const stopSeriesVideos = () => {
     seriesVideoRefs.current.forEach((video) => {
@@ -302,81 +290,6 @@ export default function AIShenaniganWorkSeries({
       step: { kind: "series" as const, index },
     })),
   ];
-
-  const renderArrow = (direction: ArrowDirection, active: boolean) => (
-    <Box
-      aria-hidden="true"
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        opacity: active ? 1 : 0,
-        transform: active
-          ? "translate3d(0, 0, 0) scale(1)"
-          : direction === "right"
-            ? "translate3d(-8px, 0, 0) scale(0.92)"
-            : "translate3d(0, -8px, 0) scale(0.92)",
-        transition:
-          "opacity 260ms ease, transform 320ms cubic-bezier(.2,.8,.2,1)",
-      }}
-    >
-      <Box
-        sx={{
-          position: "relative",
-          ...(direction === "right"
-            ? { width: 88, height: 48 }
-            : { width: 48, height: 72 }),
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            borderRadius: 999,
-            background:
-              "linear-gradient(90deg, rgba(34,211,238,0.2) 0%, rgba(59,130,246,0.95) 52%, rgba(14,165,233,0.9) 100%)",
-            boxShadow: "0 0 22px rgba(56,189,248,0.35)",
-            ...(direction === "right"
-              ? {
-                  top: "50%",
-                  left: 8,
-                  right: 18,
-                  height: 4,
-                  transform: "translateY(-50%)",
-                }
-              : {
-                  top: 8,
-                  bottom: 18,
-                  left: "50%",
-                  width: 4,
-                  transform: "translateX(-50%)",
-                }),
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            width: 18,
-            height: 18,
-            borderTop: "4px solid",
-            borderRight: "4px solid",
-            borderColor: "rgb(59,130,246)",
-            filter: "drop-shadow(0 0 12px rgba(59,130,246,0.6))",
-            ...(direction === "right"
-              ? {
-                  top: "50%",
-                  right: 6,
-                  transform: "translateY(-50%) rotate(45deg)",
-                }
-              : {
-                  bottom: 6,
-                  left: "50%",
-                  transform: "translateX(-50%) rotate(135deg)",
-                }),
-          }}
-        />
-      </Box>
-    </Box>
-  );
 
   const renderSource = (label?: string, href?: string) => {
     if (!label) {
@@ -583,7 +496,6 @@ export default function AIShenaniganWorkSeries({
     if (target.kind === "work") {
       setRevealedWorkCount(target.index + 1);
       setRevealedSeriesCount(0);
-      setShowSeriesArrow(false);
       window.requestAnimationFrame(() => {
         scrollRevealIntoView(
           workCardRefs.current[target.index] || workSectionRef.current,
@@ -595,7 +507,6 @@ export default function AIShenaniganWorkSeries({
 
     setRevealedWorkCount(totalWorkParts);
     setRevealedSeriesCount(target.index + 1);
-    setShowSeriesArrow(true);
     window.requestAnimationFrame(() => {
       scrollRevealIntoView(
         seriesCardRefs.current[target.index] || seriesSectionRef.current,
@@ -687,7 +598,6 @@ export default function AIShenaniganWorkSeries({
     setTransitioning(null);
     setRevealedWorkCount(0);
     setRevealedSeriesCount(0);
-    setShowSeriesArrow(false);
     stopSeriesVideos();
     seriesVideoRefs.current = [];
   };
@@ -718,19 +628,15 @@ export default function AIShenaniganWorkSeries({
     }
 
     if (revealedSeriesCount === 0) {
-      setShowSeriesArrow(true);
-      seriesArrowTimeoutRef.current = window.setTimeout(() => {
-        setRevealedWorkCount(totalWorkParts);
-        setRevealedSeriesCount(1);
-        setTransitioning(null);
-        seriesArrowTimeoutRef.current = null;
-        window.requestAnimationFrame(() => {
-          scrollRevealIntoView(
-            seriesCardRefs.current[0] || seriesSectionRef.current,
-            seriesFooterRefs.current[0],
-          );
-        });
-      }, ARROW_REVEAL_MS);
+      setRevealedWorkCount(totalWorkParts);
+      setRevealedSeriesCount(1);
+      setTransitioning(null);
+      window.requestAnimationFrame(() => {
+        scrollRevealIntoView(
+          seriesCardRefs.current[0] || seriesSectionRef.current,
+          seriesFooterRefs.current[0],
+        );
+      });
       return;
     }
 
@@ -798,40 +704,65 @@ export default function AIShenaniganWorkSeries({
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Push the written concept into motion as a series adaptation beat.
       </Typography>
-      <VideoLightbox
-        ref={(node: HTMLVideoElement | null) => {
-          seriesVideoRefs.current[index] = node;
-        }}
-        src={withBasePath(part.src)}
-        controls
-        autoPlay={index === revealedSeriesCount - 1}
-        playsInline
-        onLoadedData={() => {
-          scrollRevealIntoView(
-            seriesCardRefs.current[index],
-            seriesFooterRefs.current[index],
-          );
-        }}
-        title={`${title} ${getSeriesLabel(index)}`}
-        caption={part.caption}
-        previewVideoClassName="block w-full rounded-[22px] bg-black/10 object-contain"
-        previewVideoSx={{
-          aspectRatio: mediaAspectRatio,
-          maxWidth: mediaMaxWidth,
-          maxHeight: panelFrameHeight,
-          mx: isPortrait ? "auto" : undefined,
-        }}
+      <MediaCycler
+        spacing={0}
+        singlePanel
+        transitionMs={260}
+        items={[
+          {
+            key: `series-media-${index}`,
+            title: "",
+            mediaType: "video",
+            mediaUrl: withBasePath(part.src),
+            mediaLightboxTitle: `${title} ${getSeriesLabel(index)}`,
+            mediaCaption: part.caption,
+            mediaSource: part.source,
+            mediaSourceHref: part.sourceHref,
+            videoRef: (node: HTMLVideoElement | null) => {
+              seriesVideoRefs.current[index] = node;
+            },
+            controls: true,
+            autoPlay: index === revealedSeriesCount - 1,
+            playsInline: true,
+            onMediaLoaded: () => {
+              scrollRevealIntoView(
+                seriesCardRefs.current[index],
+                seriesFooterRefs.current[index],
+              );
+            },
+            onMediaActivate: () => {
+              if (transitioning) {
+                return;
+              }
+
+              const upcoming = nextStep();
+              const isLatestRevealedCard = index === revealedSeriesCount - 1;
+              const shouldRevealNextSeriesPart =
+                isLatestRevealedCard && upcoming?.kind === "series";
+
+              if (shouldRevealNextSeriesPart) {
+                handleRevealNextStep();
+                return;
+              }
+
+              rewindToStep({ kind: "series", index });
+            },
+            assetFrameSx: {
+              mt: 0,
+              mb: 0,
+              width: "100%",
+            },
+            previewVideoClassName:
+              "block w-full rounded-[22px] bg-black/10 object-contain",
+            previewVideoSx: {
+              aspectRatio: mediaAspectRatio,
+              maxWidth: mediaMaxWidth,
+              maxHeight: panelFrameHeight,
+              mx: isPortrait ? "auto" : undefined,
+            },
+          },
+        ]}
       />
-      {renderSource(part.source, part.sourceHref)}
-      {part.caption && (
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ mt: part.source ? 0.75 : 1.5 }}
-        >
-          {part.caption}
-        </Typography>
-      )}
     </Box>
   );
 
@@ -1073,64 +1004,16 @@ export default function AIShenaniganWorkSeries({
                 "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
             }}
           >
-            {revealedWorkCount > 0 && (
-              <Stack ref={workSectionRef} spacing={2}>
-                {normalizedWorkParts
-                  .slice(0, revealedWorkCount)
-                  .map((part, index) => (
-                    <Box key={`${part.src}-${index}`}>
-                      {index > 0 && (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            py: 0.5,
-                          }}
-                        >
-                          {renderArrow("down", true)}
-                        </Box>
-                      )}
-                      {renderWorkPart(part, index)}
-                    </Box>
-                  ))}
-              </Stack>
-            )}
+            {current?.kind === "work" &&
+              normalizedWorkParts[current.index] &&
+              renderWorkPart(normalizedWorkParts[current.index], current.index)}
 
-            {revealedWorkCount === totalWorkParts && totalSeriesParts > 0 && (
-              <>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                >
-                  {renderArrow("down", showSeriesArrow)}
-                </Box>
-              </>
-            )}
-
-            {revealedSeriesCount > 0 && (
-              <Stack ref={seriesSectionRef} spacing={2}>
-                {normalizedSeriesParts
-                  .slice(0, revealedSeriesCount)
-                  .map((part, index) => (
-                    <Box key={`${part.src}-${index}`}>
-                      {index > 0 && (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            py: 0.5,
-                          }}
-                        >
-                          {renderArrow("down", true)}
-                        </Box>
-                      )}
-                      {renderSeriesPart(part, index)}
-                    </Box>
-                  ))}
-              </Stack>
-            )}
+            {current?.kind === "series" &&
+              normalizedSeriesParts[current.index] &&
+              renderSeriesPart(
+                normalizedSeriesParts[current.index],
+                current.index,
+              )}
           </Stack>
         </Stack>
       </Stack>

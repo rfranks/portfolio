@@ -9,7 +9,7 @@
     "location": "Boston, MA / Derry, NH",
     "avatarImage": "/personal/images/personal/me.jpeg",
     "headshotImage": "/personal/images/personal/me-headshot.jpeg",
-    "resumeUrl": "/resume.pdf",
+    "resumeUrl": "/personal/pdfs/resume.pdf",
     "contact": {
       "linkedin": "https://www.linkedin.com/in/richardfranksjr",
       "email": "richardfranksjr@hotmail.com",
@@ -56,7 +56,7 @@
       "metadataDescription": "Structured comic strip generation studio for the RICKBERT series.",
       "interstitialAppName": "Rickbert Studio",
       "interstitialLogoAlt": "Rickbert Studio logo",
-      "interstitialLogoSrc": "/images/projects/rickbert-studio.png"
+      "interstitialLogoSrc": "/personal/images/projects/rickbert-studio.png"
     },
     "pathforger": {
       "documentTitle": "PathForger",
@@ -64,7 +64,7 @@
       "metadataDescription": "Interactive story-forging studio that generates A/B/C pitches, chapter packages, and parallel cinematic image outputs through staged OpenAI calls.",
       "interstitialAppName": "PathForger",
       "interstitialLogoAlt": "PathForger logo",
-      "interstitialLogoSrc": "/images/projects/pathforger.svg"
+      "interstitialLogoSrc": "/personal/images/projects/pathforger.svg"
     }
   },
   "navigation": {
@@ -1096,7 +1096,7 @@
       "watermark": {
         "kind": "image",
         "containerClassName": "pointer-events-none absolute bottom-4 right-4 opacity-[0.12] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.2]",
-        "src": "/images/projects/pathforger.svg",
+        "src": "/personal/images/projects/pathforger.svg",
         "alt": "PathForger watermark",
         "width": 320,
         "height": 168,
@@ -1112,7 +1112,7 @@
       "watermark": {
         "kind": "image",
         "containerClassName": "pointer-events-none absolute bottom-4 right-4 opacity-[0.1] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.18]",
-        "src": "/images/projects/rickbert-studio.png",
+        "src": "/personal/images/projects/rickbert-studio.png",
         "alt": "Rickbert Studio watermark",
         "width": 300,
         "height": 200,
@@ -1216,14 +1216,14 @@
           "comment": "Honored to have my code preserved in the Arctic Code Vault for future generations!  Just one issue, how do I commit to GitHub in the Arctic? We would like to release more code, but the wifi is terrible.",
           "launchUrl": "/blasteroids",
           "githubUrl": "https://github.com/rfranks/blasteroids",
-          "imageSrcUrl": "/github-arctic-code-vault-contributor.png",
+          "imageSrcUrl": "/images/github-arctic-code-vault-contributor.png",
           "date": "February 2, 2020"
         }
       ],
       "watermark": {
         "kind": "image",
         "containerClassName": "pointer-events-none absolute bottom-4 right-4 opacity-[0.1] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.18]",
-        "src": "/images/projects/blasteroids.jpeg",
+        "src": "/personal/images/projects/blasteroids.jpeg",
         "alt": "Blasteroids watermark",
         "width": 320,
         "height": 220,
@@ -1239,7 +1239,7 @@
       "watermark": {
         "kind": "image",
         "containerClassName": "pointer-events-none absolute bottom-8 right-4 opacity-[0.1] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.18]",
-        "src": "/dna/images/geneboard_banner.png",
+        "src": "/apps/dna/images/geneboard_banner.png",
         "alt": "GeneBoard watermark",
         "width": 240,
         "height": 72,
@@ -1255,7 +1255,7 @@
       "watermark": {
         "kind": "image",
         "containerClassName": "pointer-events-none absolute bottom-5 right-5 opacity-[0.08] transition-opacity duration-500 group-hover:opacity-[0.14]",
-        "src": "/logo192.png",
+        "src": "/apps/bookworm/images/logo192.png",
         "alt": "Bookworm watermark",
         "width": 192,
         "height": 194,
@@ -1301,7 +1301,7 @@
         "height": 140,
         "imageClassName": "h-auto w-56 object-contain"
       },
-      "demoGifUrl": "/demogifs/patient_list_demo.gif",
+      "demoGifUrl": "/personal/demogifs/patient_list_demo.gif",
       "specifications": {
         "facadeArchitecture": {
           "purpose": "Stabilize UI contracts while allowing domain and DAO evolution.",
@@ -1403,7 +1403,7 @@
         "height": 140,
         "imageClassName": "h-auto w-56 object-contain"
       },
-      "demoGifUrl": "/demogifs/assignment_list_demo.gif",
+      "demoGifUrl": "/personal/demogifs/assignment_list_demo.gif",
       "specifications": {
         "facadeArchitecture": {
           "goal": "Stabilize contracts for UI while the domain/DAO layer evolves.",
@@ -1511,7 +1511,7 @@
         "imageClassName": "h-28 w-28 rounded-3xl object-contain"
       },
       "wowFactor": "Delivers concise, citation-backed patient insights in seconds so physicians can spend more time caring and less time scrolling charts.",
-      "demoGifUrl": "/demogifs/ai_summary.gif",
+      "demoGifUrl": "/personal/demogifs/ai_summary.gif",
       "specifications": {
         "Routing & URL Params (useAISummaryParams.ts)": {
           "params": {
@@ -1702,7 +1702,7 @@
         "height": 240,
         "imageClassName": "h-28 w-28 rounded-3xl object-contain"
       },
-      "demoVideoUrl": "/demovideos/physician_last12hours_podcast.mov",
+      "demoVideoUrl": "/personal/demovideos/physician_last12hours_podcast.mov",
       "specifications": {
         "UI contract": [
           "The page accepts chatUri (points to Flask aichat /v1/chat_patient) and an optional time window defaulting to last 12 hours; it POSTs the physician’s prompt to start a PromptJob and receives a jobId."
@@ -1961,7 +1961,7 @@
     "marks": [
       {
         "kind": "image",
-        "src": "/dna/images/geneboard_banner.png",
+        "src": "/apps/dna/images/geneboard_banner.png",
         "alt": "GeneBoard banner",
         "className": "-left-6 top-2 w-36 rotate-[-10deg] lg:-left-4 lg:top-4 lg:w-40",
         "imageClassName": "h-auto w-full object-contain",
@@ -1970,7 +1970,7 @@
       },
       {
         "kind": "image",
-        "src": "/logo192.png",
+        "src": "/apps/bookworm/images/logo192.png",
         "alt": "Bookworm logo",
         "className": "left-52 top-0 h-16 w-16 rotate-[8deg] lg:left-64 lg:h-20 lg:w-20",
         "imageClassName": "h-full w-full rounded-2xl object-contain",

@@ -19,7 +19,7 @@ export default function OpenAIKeyInterstitialContent({
   onSubmit,
   inputRef,
   buttonLabel = "Continue",
-  logoSrc = "/logo192.png",
+  logoSrc = "/apps/bookworm/images/logo192.png",
   logoAlt,
   textFieldName = "apiKey",
   isSubmitting = false,

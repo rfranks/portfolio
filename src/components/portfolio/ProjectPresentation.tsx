@@ -14,10 +14,10 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import type { ReactNode } from "react";
 
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import { Diagram } from "@/components/shared/Diagram";
-import ImageLightbox from "@/components/shared/ImageLightbox";
-import MarkdownContent from "@/components/shared/MarkdownContent";
-import VideoLightbox from "@/components/shared/VideoLightbox";
+import { Diagram } from "@/components/shared";
+import { ImageLightbox } from "@/components/shared";
+import { MarkdownContent } from "@/components/shared";
+import { VideoLightbox } from "@/components/shared";
 import type { ProjectData } from "@/types/components/portfolio";
 import { withBasePath } from "@/utils/basePath";
 export type { ProjectData, Technology } from "@/types/components/portfolio";

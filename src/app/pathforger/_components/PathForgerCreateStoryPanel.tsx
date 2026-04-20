@@ -23,7 +23,7 @@ import {
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { PathForgerGeneratedImage } from "@/app/pathforger/_types/pipeline";
 import type { JourneyLedgerPlaybackViewModel } from "@/app/pathforger/_types/journeyLedger";
-import ImageLightbox from "@/components/shared/ImageLightbox";
+import { ImageLightbox } from "@/components/shared";
 import PathForgerJourneyLedgerCarousel from "@/app/pathforger/_components/PathForgerJourneyLedgerCarousel";
 
 type ActiveRunAction =

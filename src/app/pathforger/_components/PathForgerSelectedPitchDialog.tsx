@@ -14,7 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Refresh } from "@mui/icons-material";
-import MarkdownContent from "@/components/shared/MarkdownContent";
+import { MarkdownContent } from "@/components/shared";
 import { toPitchSubtitle } from "@/app/pathforger/_utils/pitchHelpers";
 import type { PathForgerPitchChoice } from "@/app/pathforger/_types/pitch";
 import type { PathForgerPitchResult } from "@/app/pathforger/_types/pipeline";

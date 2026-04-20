@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { ArrowBack, AutoStories } from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material/styles";
-import OpenAIKeyInterstitialContent from "@/components/shared/OpenAIKeyInterstitialContent";
+import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import { portfolioApps } from "@/consts/resumeData";
 import { withBasePath } from "@/utils/basePath";
 import PathForgerDialogController from "@/app/pathforger/_components/PathForgerDialogController";
@@ -1464,12 +1464,12 @@ export default function PathForgerPageClient() {
                 coverImageCaption: "By You",
                 showPitchSelectionAnimation,
                 pitchLoadingGifSrc: withBasePath(
-                  "/pathforger/pitch-loading.gif",
+                  "/apps/pathforger/pitch-loading.gif",
                 ),
                 chapterLoadingGifSrc: withBasePath(
-                  "/pathforger/chapter-loading.gif",
+                  "/apps/pathforger/chapter-loading.gif",
                 ),
-                pathForgingGifSrc: withBasePath("/pathforger/path-forging.gif"),
+                pathForgingGifSrc: withBasePath("/apps/pathforger/path-forging.gif"),
                 nextChapterLedgerPlayback,
                 onLedgerPlaybackPrevious: moveToPreviousPlaybackEntry,
                 onLedgerPlaybackNext: moveToNextPlaybackEntry,
@@ -1528,7 +1528,7 @@ export default function PathForgerPageClient() {
               continuePanel={{
                 open: continueModalOpen && Boolean(visibleChapter),
                 statusIsRunning,
-                pathForgingGifSrc: withBasePath("/pathforger/path-forging.gif"),
+                pathForgingGifSrc: withBasePath("/apps/pathforger/path-forging.gif"),
                 showOptionSelection: Boolean(visibleChapter),
                 continuePromptMarkdown:
                   visibleChapter?.continuePromptMarkdown ?? "",

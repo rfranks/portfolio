@@ -3,7 +3,7 @@
 import * as React from "react";
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import OpenAIKeyInterstitialContent from "@/components/shared/OpenAIKeyInterstitialContent";
+import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import RickbertStudioApp from "@/app/rickbert-studio/_app/RickbertStudioApp";
 import { useRickbertStudioStore } from "@/app/rickbert-studio/_store";
 import {

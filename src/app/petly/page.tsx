@@ -17,7 +17,7 @@ export default function PetlyPage() {
         Petly
       </Typography>
       <video
-        src={withBasePath("/demovideos/petly.mov")}
+        src={withBasePath("/personal/demovideos/petly.mov")}
         controls
         style={{ width: "100%", maxWidth: 800 }}
       />

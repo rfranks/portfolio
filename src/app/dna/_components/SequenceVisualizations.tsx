@@ -32,7 +32,7 @@ import {
   RandicChart,
   SquiggleChart,
 } from "./charts";
-import Title from "@/components/shared/Title";
+import { Title } from "@/components/shared";
 import { ChartMethod, Sequence } from "../_types/types";
 
 export type SequenceVisualizationsProps = {

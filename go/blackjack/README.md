@@ -25,12 +25,20 @@ A cross-platform blackjack engine written in Go. The core business rules are sha
    ```bash
    cd go/blackjack
    make wasm
-   cp docs/main.wasm docs/wasm_exec.js ../../public/
    ```
-   The helper `main.js` in `public/` bootstraps the WASM module.
+   This writes:
+   - `public/apps/blackjack/wasm/main.wasm`
+   - `public/apps/blackjack/js/wasm_exec.js`
+   
+   The helper `main.js` in `public/apps/blackjack/js/` bootstraps the WASM module.
    > Alternatively, compile directly without using the `Makefile`:
    > ```bash
-   > GOOS=js GOARCH=wasm go build -o ../../public/main.wasm
+   > GOOS=js GOARCH=wasm go build -o ../../public/apps/blackjack/wasm/main.wasm
+   > cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../../public/apps/blackjack/js/wasm_exec.js
+   > ```
+   > Optional one-off override (for generated export output):
+   > ```bash
+   > make wasm BLACKJACK_ASSET_ROOT=../../out/apps/blackjack
    > ```
 2. Launch the Next.js dev server from the repository root:
    ```bash
@@ -42,7 +50,7 @@ A cross-platform blackjack engine written in Go. The core business rules are sha
 ### Visual Studio Code
 The repository ships with a `.vscode/launch.json` that exposes two handy run targets:
 - **Launch BlackJack** – debug the terminal version (press `F5`).
-- **Build Blackjack Wasm** – compile `main.wasm` straight into the `public/` folder.
+- **Build Blackjack Wasm** – compile `main.wasm` and refresh `wasm_exec.js` in `public/apps/blackjack/`.
 
 ## Technologies
 - **Go 1.19** – core language for rules and game engine.

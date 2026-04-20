@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { projects } from "@/consts/resumeData";
-import { Diagram } from "@/components/shared/Diagram";
-import MarkdownContent from "@/components/shared/MarkdownContent";
+import { Diagram } from "@/components/shared";
+import { MarkdownContent } from "@/components/shared";
 import { withBasePath } from "@/utils/basePath";
 import BlackjackCarouselNav from "./_components/BlackjackCarouselNav";
 import BlackjackGameSlide from "./_components/BlackjackGameSlide";
@@ -106,7 +106,7 @@ export default function BlackjackPage() {
           Via Go in the terminal in VS Code Debugger
         </p>
         <video
-          src={withBasePath("/demovideos/blackjack_terminal.mov")}
+          src={withBasePath("/personal/demovideos/blackjack_terminal.mov")}
           controls
           playsInline
           preload="metadata"
@@ -153,9 +153,14 @@ export default function BlackjackPage() {
         onSelectSlide={blackjack.scrollToSlide}
       />
 
-      <script src="wasm_exec.js" defer></script>
-      <script id="wasm" src="main.wasm" type="application/wasm" defer></script>
-      <script src="main.js" defer></script>
+      <script src={withBasePath("/apps/blackjack/js/wasm_exec.js")} defer></script>
+      <script
+        id="wasm"
+        src={withBasePath("/apps/blackjack/wasm/main.wasm")}
+        type="application/wasm"
+        defer
+      ></script>
+      <script src={withBasePath("/apps/blackjack/js/main.js")} defer></script>
     </main>
   );
 }
