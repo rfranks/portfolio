@@ -243,13 +243,15 @@ func (w *WebUI) ReadAction() (rune, error) {
 func (w *WebUI) Render(state ui.GameState) {
 	w.postStateMessage(state)
 
-	if !state.AskingToDeal {
-		if len(game.State.Players) > 0 {
-			w.lastWinnings = game.State.Players[0].Winnings
-		}
-		w.lastSidebetWinnings = game.State.SidebetWinnings
-		w.lastSidebetLosses = game.State.SidebetLosses
+	// Always snapshot the latest resolved totals after we publish state.
+	// This keeps the next round's diff baseline accurate even when a round
+	// ends immediately (for example, dealer instant blackjack) and there are
+	// no intermediate non-asking-to-deal renders.
+	if len(game.State.Players) > 0 {
+		w.lastWinnings = game.State.Players[0].Winnings
 	}
+	w.lastSidebetWinnings = game.State.SidebetWinnings
+	w.lastSidebetLosses = game.State.SidebetLosses
 }
 
 func (w *WebUI) Close() error {
