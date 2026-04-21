@@ -166,13 +166,13 @@ export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
                 {githubAchievements.length > 0 ? (
                   <Box sx={{ pt: { xs: 1, md: 1.25 }, flexShrink: 0 }}>
                     <Stack
-                      direction="row"
+                      direction={{ xs: "column", md: "row" }}
                       spacing={1}
                       sx={{
                         width: "100%",
                         pb: 0.25,
                         alignItems: "stretch",
-                        justifyContent: "space-evenly",
+                        justifyContent: { xs: "flex-start", md: "space-evenly" },
                         flexWrap: "nowrap",
                         gap: { xs: 1, md: 1.25 },
                       }}
@@ -190,7 +190,7 @@ export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
                             gap: 0.75,
                             width: "100%",
                             minWidth: 0,
-                            flex: "1 1 0",
+                            flex: { xs: "1 1 auto", md: "1 1 0" },
                             borderRadius: "14px",
                             border: "1px solid",
                             borderColor: "divider",

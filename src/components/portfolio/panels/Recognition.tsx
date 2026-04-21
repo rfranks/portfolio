@@ -1,8 +1,15 @@
 import * as React from "react";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
+import Close from "@mui/icons-material/Close";
 import AccountCircleOutlined from "@mui/icons-material/AccountCircleOutlined";
 import type { ResumeData } from "@/consts/resumeData";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
@@ -103,19 +110,25 @@ function renderSnippetContent(snippet: RecognitionSnippetEntry) {
   );
 }
 
-function renderRecommendationContent(rec: RecommendationEntry) {
+function renderRecommendationContent(
+  rec: RecommendationEntry,
+  options?: { inDialog?: boolean; compactPreview?: boolean },
+) {
+  const inDialog = Boolean(options?.inDialog);
+  const compactPreview = Boolean(options?.compactPreview);
+
   return (
     <Box
       className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5"
       sx={{
         width: "100%",
         minHeight: 0,
-        height: "100%",
-        maxHeight: "100%",
+        height: inDialog ? "auto" : "100%",
+        maxHeight: inDialog ? "none" : "100%",
         display: "flex",
         flexDirection: "column",
         gap: 2,
-        overflow: "hidden",
+        overflow: inDialog ? "visible" : "hidden",
       }}
     >
       <Stack
@@ -124,7 +137,7 @@ function renderRecommendationContent(rec: RecommendationEntry) {
         alignItems="flex-start"
         sx={{ minWidth: 0, flexShrink: 0 }}
       >
-        {rec.imageSrcUrl ? (
+        {rec.imageSrcUrl && !compactPreview ? (
           <ImageLightbox
             src={withBasePath(rec.imageSrcUrl)}
             alt={rec.name}
@@ -138,6 +151,8 @@ function renderRecommendationContent(rec: RecommendationEntry) {
               sx={{ width: 48, height: 48 }}
             />
           </ImageLightbox>
+        ) : rec.imageSrcUrl ? (
+          <Avatar alt={rec.name} src={withBasePath(rec.imageSrcUrl)} sx={{ width: 48, height: 48 }} />
         ) : (
           <Avatar
             alt={rec.name}
@@ -168,10 +183,19 @@ function renderRecommendationContent(rec: RecommendationEntry) {
       <Box
         sx={{
           minHeight: 0,
-          flex: "1 1 auto",
-          overflowY: "auto",
+          flex: inDialog ? "0 1 auto" : "1 1 auto",
+          overflowY: compactPreview ? "hidden" : "auto",
           pr: 0.5,
           overflowX: "hidden",
+          maxHeight: inDialog ? "min(56dvh, 520px)" : undefined,
+          "& .MuiTypography-root": compactPreview
+            ? {
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 4,
+                overflow: "hidden",
+              }
+            : undefined,
         }}
       >
         <MarkdownContent
@@ -185,6 +209,11 @@ function renderRecommendationContent(rec: RecommendationEntry) {
           }}
         />
       </Box>
+      {compactPreview ? (
+        <Typography variant="caption" color="text.secondary">
+          Tap to open full recommendation
+        </Typography>
+      ) : null}
     </Box>
   );
 }
@@ -194,6 +223,8 @@ type RecognitionProps = {
 };
 
 export default function Recognition({ topRail }: RecognitionProps) {
+  const theme = useTheme();
+  const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
   const { recognition } = useResumeData();
   const snippets = recognition.snippets as RecognitionSnippetEntry[];
   const recommendations = recognition.recommendations;
@@ -203,6 +234,9 @@ export default function Recognition({ topRail }: RecognitionProps) {
   const [activeRecommendationKey, setActiveRecommendationKey] = React.useState<
     string | undefined
   >(recommendations[0] ? `recommendation-${recommendations[0].name}-0` : undefined);
+  const [dialogRecommendationIndex, setDialogRecommendationIndex] = React.useState<
+    number | null
+  >(null);
 
   React.useEffect(() => {
     setActiveSnippetKey(snippets[0] ? "snippet-1" : undefined);
@@ -213,6 +247,12 @@ export default function Recognition({ topRail }: RecognitionProps) {
       recommendations[0] ? `recommendation-${recommendations[0].name}-0` : undefined,
     );
   }, [recommendations]);
+
+  React.useEffect(() => {
+    if (!isSmDown) {
+      setDialogRecommendationIndex(null);
+    }
+  }, [isSmDown]);
 
   const snippetItems = React.useMemo<MediaCyclerItem[]>(
     () =>
@@ -252,7 +292,12 @@ export default function Recognition({ topRail }: RecognitionProps) {
         mediaType: "recommendation",
         mediaUrl: rec.imageSrcUrl ? withBasePath(rec.imageSrcUrl) : "",
         onSelect: () => setActiveRecommendationKey(`recommendation-${rec.name}-${index}`),
-        customContent: renderRecommendationContent(rec),
+        onMediaActivate: isSmDown
+          ? () => {
+              setDialogRecommendationIndex(index);
+            }
+          : undefined,
+        customContent: renderRecommendationContent(rec, { compactPreview: isSmDown }),
         panelSx: {
           display: "flex",
           flexDirection: "column",
@@ -272,7 +317,7 @@ export default function Recognition({ topRail }: RecognitionProps) {
           overflow: "hidden",
         },
       })),
-    [recommendations],
+    [isSmDown, recommendations],
   );
   const recommendationPagerItems = React.useMemo(
     () =>
@@ -293,6 +338,10 @@ export default function Recognition({ topRail }: RecognitionProps) {
   );
   const hasMultipleSnippetItems = snippetItems.length > 1;
   const hasMultipleRecommendationItems = recommendationItems.length > 1;
+  const dialogRecommendation =
+    dialogRecommendationIndex == null
+      ? null
+      : recommendations[dialogRecommendationIndex] ?? null;
 
   const handlePreviousRecommendation = React.useCallback(() => {
     if (!hasMultipleRecommendationItems) {
@@ -445,6 +494,30 @@ export default function Recognition({ topRail }: RecognitionProps) {
           </Box>
         </Box>
       </Box>
+      <Dialog
+        open={Boolean(dialogRecommendation) && isSmDown}
+        onClose={() => setDialogRecommendationIndex(null)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle sx={{ pr: 6 }}>
+          Recommendation
+          <IconButton
+            aria-label="Close recommendation"
+            onClick={() => setDialogRecommendationIndex(null)}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <Close fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {dialogRecommendation
+            ? renderRecommendationContent(dialogRecommendation, {
+                inDialog: true,
+              })
+            : null}
+        </DialogContent>
+      </Dialog>
     </PortfolioPanel>
   );
 }
