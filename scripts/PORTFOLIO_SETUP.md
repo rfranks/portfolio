@@ -28,6 +28,8 @@ What it does:
   - add/edit/remove education entries,
   - add/edit/remove recognition snippets,
   - add/edit/remove recommendations,
+  - view/set/delete any nested `resumeData.json` path (metadata editor),
+  - move assets into `public/apps/<slug>/...` buckets (`images`, `videos`, `js`, `wasm`, etc.) with optional resume data path ref updates,
   - edit summary/contact basics.
 
 ## Scoped Asset Rules

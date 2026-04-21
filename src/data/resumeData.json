@@ -1790,10 +1790,53 @@
   ],
   "recognition": {
     "snippets": [
-      "Hailed as an exceptional architect blending technical mastery with lightning-fast execution.",
-      "Praised by colleagues as \"the most brilliant engineer I’ve worked with… the closest to a 10x developer\" and a \"true team player and mentor.\"",
-      "Trusted go-to for solving critical, high-stakes production issues with speed and quality.",
-      "Recognized repeatedly for leadership, mentorship, and engineering excellence."
+      {
+        "text": "Hailed as an exceptional architect blending technical mastery with lightning-fast execution.",
+        "glyph": "⚡"
+      },
+      {
+        "text": "Praised by colleagues as \"the most brilliant engineer I’ve worked with… the closest to a 10x developer\" and a \"true team player and mentor.\"",
+        "glyph": "🌟"
+      },
+      {
+        "text": "Trusted go-to for solving critical, high-stakes production issues with speed and quality.",
+        "glyph": "🛠️"
+      },
+      {
+        "text": "Recognized repeatedly for leadership, mentorship, and engineering excellence.",
+        "glyph": "🏆"
+      }
+    ],
+    "githubAchievements": [
+      {
+        "name": "Pull Shark",
+        "tier": "x3",
+        "slug": "pull-shark",
+        "imageSrcUrl": "/personal/images/github/achievments/pull-shark-default.png",
+        "achievementUrl": "https://github.com/rfranks?achievement=pull-shark&tab=achievements",
+        "source": "GitHub profile achievements"
+      },
+      {
+        "name": "Quickdraw",
+        "slug": "quickdraw",
+        "imageSrcUrl": "/personal/images/github/achievments/quickdraw-default.png",
+        "achievementUrl": "https://github.com/rfranks?achievement=quickdraw&tab=achievements",
+        "source": "GitHub profile achievements"
+      },
+      {
+        "name": "YOLO",
+        "slug": "yolo",
+        "imageSrcUrl": "/personal/images/github/achievments/yolo-default.png",
+        "achievementUrl": "https://github.com/rfranks?achievement=yolo&tab=achievements",
+        "source": "GitHub profile achievements"
+      },
+      {
+        "name": "Arctic Code Vault Contributor",
+        "slug": "arctic-code-vault-contributor",
+        "imageSrcUrl": "/personal/images/github/achievments/arctic-code-vault-contributor-default.png",
+        "achievementUrl": "https://github.com/rfranks?achievement=arctic-code-vault-contributor&tab=achievements",
+        "source": "GitHub profile achievements"
+      }
     ],
     "recommendations": [
       {
@@ -1936,6 +1979,7 @@
   "education": [
     {
       "school": "Boston University",
+      "schoolUrl": "https://www.bu.edu/",
       "degree": "B.S. Biomedical Engineering",
       "year": "2003",
       "image": "/personal/images/education/bu.jpeg",
@@ -1943,6 +1987,7 @@
     },
     {
       "school": "University of Southern Maine",
+      "schoolUrl": "https://usm.maine.edu/",
       "degree": "M.S. Computer Science",
       "year": "2008",
       "image": "/personal/images/education/usm.jpeg",

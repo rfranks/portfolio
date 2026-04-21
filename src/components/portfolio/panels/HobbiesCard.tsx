@@ -15,7 +15,8 @@ export default function HobbiesCard() {
       mt: 0,
       mb: 0,
       width: "100%",
-      aspectRatio: "2 / 3",
+      aspectRatio: { xs: "2 / 3", md: "3 / 4" },
+      maxHeight: { xs: "none", md: "clamp(300px, 42dvh, 500px)" },
       overflow: "hidden",
       borderRadius: "18px",
       backgroundColor: "rgba(2,6,23,0.1)",
@@ -85,7 +86,7 @@ export default function HobbiesCard() {
         assetFrameSx: heroFrameSx,
         imageWidth: 960,
         imageHeight: 540,
-        imageClassName: "h-full w-full rounded-[18px] object-cover",
+        imageClassName: "h-full w-full rounded-[18px] bg-black/10 object-contain",
       });
     }
 
@@ -107,7 +108,8 @@ export default function HobbiesCard() {
           onError: handleHeroVideoError,
         },
         assetFrameSx: heroFrameSx,
-        previewVideoClassName: "block h-full w-full rounded-[18px] object-cover",
+        previewVideoClassName:
+          "block h-full w-full rounded-[18px] bg-black/10 object-contain",
         previewVideoSx: {
           width: "100%",
           height: "100%",
@@ -139,10 +141,17 @@ export default function HobbiesCard() {
           direction={{ xs: "column", md: "row" }}
           sx={{
             alignItems: { xs: "stretch", md: "flex-start" },
-            justifyContent: "space-between",
+            justifyContent: "flex-start",
+            minWidth: 0,
           }}
         >
-          <Stack spacing={2} sx={{ minWidth: 0, flex: "1 1 auto" }}>
+          <Stack
+            spacing={2}
+            sx={{
+              minWidth: 0,
+              flex: { xs: "1 1 auto", md: "1 1 calc(50% - 8px)" },
+            }}
+          >
             <Typography color="text.secondary" className="leading-7">
               {hobbies.introText}
             </Typography>
@@ -162,9 +171,11 @@ export default function HobbiesCard() {
             <Box
               className="mx-auto overflow-hidden rounded-[24px] border border-white/10 bg-white/5 p-2 shadow-lg md:mx-0"
               sx={{
-                width: { xs: "100%", md: 220 },
-                minWidth: { xs: 0, md: 220 },
-                flexShrink: 0,
+                width: { xs: "100%", md: "calc(50% - 8px)" },
+                minWidth: 0,
+                maxWidth: { xs: "100%", md: "calc(50% - 8px)" },
+                flex: { xs: "0 1 auto", md: "0 1 calc(50% - 8px)" },
+                flexShrink: 1,
               }}
             >
               <MediaCycler

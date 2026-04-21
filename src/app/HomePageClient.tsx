@@ -39,7 +39,7 @@ import Education from "@/components/portfolio/panels/Education";
 import Recognition from "@/components/portfolio/panels/Recognition";
 import ContactCTA from "@/components/portfolio/panels/ContactCTA";
 import { ImageLightbox } from "@/components/shared";
-import Grid from "@mui/material/Grid";
+import HomeSectionPager from "@/components/portfolio/layout/HomeSectionPager";
 import {
   GLOBAL_COLOR_MODE_STORAGE_KEY,
   LEGACY_COLOR_MODE_STORAGE_KEYS,
@@ -74,23 +74,14 @@ export default function HomePageClient() {
     ],
     [],
   );
+  const [activeSectionId, setActiveSectionId] = useState<string>(
+    tocSections[0]?.id ?? "hero",
+  );
 
   const { setDocumentTitle } = useDocumentTitle();
   useEffect(() => {
     setDocumentTitle(summary.documentTitle);
   }, [setDocumentTitle]);
-
-  const scrollToTocSection = useCallback(
-    (sectionId: string, behavior: ScrollBehavior = "smooth") => {
-      const target = document.getElementById(sectionId);
-      if (!target) {
-        return false;
-      }
-      target.scrollIntoView({ behavior, block: "start" });
-      return true;
-    },
-    [],
-  );
 
   const updateHashForSection = useCallback((sectionId: string) => {
     const nextHash = `#${encodeURIComponent(sectionId)}`;
@@ -125,33 +116,18 @@ export default function HomePageClient() {
       return;
     }
 
-    const scrollToHashSection = (behavior: ScrollBehavior = "auto") => {
+    const applyHashSection = () => {
       const sectionId = resolveSectionIdFromHash(window.location.hash);
       if (!sectionId) {
         return;
       }
-
-      let attempts = 0;
-      const maxAttempts = 8;
-
-      const attemptScroll = () => {
-        const didScroll = scrollToTocSection(sectionId, behavior);
-        if (didScroll || attempts >= maxAttempts) {
-          return;
-        }
-        attempts += 1;
-        window.setTimeout(attemptScroll, 120);
-      };
-
-      window.requestAnimationFrame(() => {
-        window.setTimeout(attemptScroll, 40);
-      });
+      setActiveSectionId(sectionId);
     };
 
-    scrollToHashSection("auto");
+    applyHashSection();
 
     const handleHashOrHistoryChange = () => {
-      scrollToHashSection("smooth");
+      applyHashSection();
     };
 
     window.addEventListener("hashchange", handleHashOrHistoryChange);
@@ -161,22 +137,31 @@ export default function HomePageClient() {
       window.removeEventListener("hashchange", handleHashOrHistoryChange);
       window.removeEventListener("popstate", handleHashOrHistoryChange);
     };
-  }, [isReady, resolveSectionIdFromHash, scrollToTocSection]);
+  }, [isReady, resolveSectionIdFromHash]);
 
   const toggleDrawer = () => {
     setOpen(!open);
   };
+
+  const navigateToSection = useCallback(
+    (sectionId: string) => {
+      const hasSection = tocSections.some((section) => section.id === sectionId);
+      if (!hasSection) {
+        return;
+      }
+
+      setActiveSectionId(sectionId);
+      updateHashForSection(sectionId);
+    },
+    [tocSections, updateHashForSection],
+  );
 
   const handleTocClick = (
     event: React.MouseEvent<HTMLAnchorElement>,
     sectionId: string,
   ) => {
     event.preventDefault();
-    const didScroll = scrollToTocSection(sectionId, "smooth");
-    if (!didScroll) {
-      return;
-    }
-    updateHashForSection(sectionId);
+    navigateToSection(sectionId);
   };
 
   const navIcons = {
@@ -195,6 +180,33 @@ export default function HomePageClient() {
   const hasNavIcon = (icon: string): icon is NavIconKey => icon in navIcons;
 
   const appBarTitle = `${summary.name} • ${summary.title.split("|")[0].trim()}`;
+  const activeSection = useMemo(
+    () => tocSections.find((section) => section.id === activeSectionId) ?? tocSections[0],
+    [activeSectionId, tocSections],
+  );
+
+  const activeSectionContent = useMemo(() => {
+    switch (activeSection?.id) {
+      case "hero":
+        return <ResumeOverview />;
+      case "education":
+        return <Education />;
+      case "experience":
+        return <ExperienceTimeline />;
+      case "competencies":
+        return <CoreCompetencies />;
+      case "projects":
+        return <ProjectsGrid />;
+      case "recognition":
+        return <Recognition />;
+      case "hobbies":
+        return <HobbiesCard />;
+      case "contact":
+        return <ContactCTA />;
+      default:
+        return <ResumeOverview />;
+    }
+  }, [activeSection?.id]);
 
   if (!isReady) {
     return null;
@@ -427,18 +439,20 @@ export default function HomePageClient() {
           <Container
             className="py-6 md:py-8"
             sx={{
-              height: { xs: "auto", lg: "calc(100vh - 64px)" },
+              height: { xs: "calc(100dvh - 56px)", sm: "calc(100dvh - 64px)" },
               display: "flex",
               flexDirection: "column",
             }}
           >
             <Box
               sx={{
-                display: { xs: "block", lg: "flex" },
+                display: "flex",
+                flexDirection: { xs: "column", lg: "row" },
                 alignItems: "stretch",
                 gap: { xs: 0, lg: 4, xl: 6 },
                 minHeight: 0,
-                height: { xs: "auto", lg: "100%" },
+                height: "100%",
+                overflow: "hidden",
               }}
             >
               <Box
@@ -481,7 +495,11 @@ export default function HomePageClient() {
                           handleTocClick(event, section.id)
                         }
                         sx={{
-                          color: "text.secondary",
+                          color:
+                            section.id === activeSection?.id
+                              ? "text.primary"
+                              : "text.secondary",
+                          fontWeight: section.id === activeSection?.id ? 700 : 400,
                           fontSize: "0.925rem",
                           lineHeight: 1.4,
                           textDecoration: "none",
@@ -503,77 +521,47 @@ export default function HomePageClient() {
                   minWidth: 0,
                   flex: "1 1 auto",
                   minHeight: 0,
-                  overflowY: { xs: "visible", lg: "auto" },
+                  height: "100%",
+                  overflow: "hidden",
                   pr: { lg: 1 },
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1.5,
                 }}
               >
                 <Box
                   component="section"
-                  id="hero"
-                  sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
+                  id={activeSection?.id}
+                  sx={{
+                    minHeight: 0,
+                    height: "100%",
+                    flex: "1 1 auto",
+                    overflowY: "auto",
+                    pr: { xs: 0, md: 0.5 },
+                    "& > *": {
+                      display: "flex",
+                      flexDirection: "column",
+                      flex: "1 1 auto",
+                      minHeight: "100%",
+                      height: "100%",
+                      marginBottom: "0 !important",
+                    },
+                  }}
                 >
-                  <ResumeOverview />
+                  {activeSectionContent}
                 </Box>
-                <Grid container spacing={3} className="items-stretch">
-                  <Grid item xs={12} sm={12} md={12} lg={12}>
-                    <Box
-                      component="section"
-                      id="education"
-                      sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
-                    >
-                      <Education />
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={12} md={12} lg={12}>
-                    <Box
-                      component="section"
-                      id="experience"
-                      sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
-                    >
-                      <ExperienceTimeline />
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={12} md={12} lg={12}>
-                    <Box
-                      component="section"
-                      id="competencies"
-                      sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
-                    >
-                      <CoreCompetencies />
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={12} md={12} lg={12}>
-                    <Box
-                      component="section"
-                      id="projects"
-                      sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
-                    >
-                      <ProjectsGrid />
-                    </Box>
-                  </Grid>
-                </Grid>
-                <Box className="space-y-8 pt-2 md:space-y-10">
-                  <Box
-                    component="section"
-                    id="recognition"
-                    sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
-                  >
-                    <Recognition />
-                  </Box>
-                  <Box
-                    component="section"
-                    id="hobbies"
-                    sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
-                  >
-                    <HobbiesCard />
-                  </Box>
-                  <Box
-                    component="section"
-                    id="contact"
-                    sx={{ scrollMarginTop: { xs: 88, md: 96 } }}
-                  >
-                    <ContactCTA />
-                  </Box>
+                <Box
+                  sx={{
+                    mt: "auto",
+                    flexShrink: 0,
+                    pb: { xs: 0.25, md: 0 },
+                  }}
+                >
+                  <HomeSectionPager
+                    items={tocSections}
+                    currentSectionId={activeSection?.id ?? tocSections[0]?.id ?? "hero"}
+                    onSelectSection={navigateToSection}
+                  />
                 </Box>
               </Box>
             </Box>

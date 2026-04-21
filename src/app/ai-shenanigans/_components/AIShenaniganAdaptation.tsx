@@ -1800,13 +1800,7 @@ export default function AIShenaniganAdaptation({
                       {
                         key: `episode-media-${activeEpisodeIndex}`,
                         title: isSmDown ? title : "",
-                        description: isSmDown
-                          ? episodeMedia[activeEpisodeIndex].source?.trim()
-                            ? `${getEpisodeChronologyLabel(episodeMedia[activeEpisodeIndex])} • ${episodeMedia[activeEpisodeIndex].source?.trim()}`
-                            : getEpisodeChronologyLabel(
-                                episodeMedia[activeEpisodeIndex],
-                              )
-                          : undefined,
+                        description: undefined,
                         mediaType: "video",
                         mediaUrl: withBasePath(
                           episodeMedia[activeEpisodeIndex].src,

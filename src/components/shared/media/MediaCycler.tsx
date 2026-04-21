@@ -30,7 +30,17 @@ export type MediaCyclerItem = {
   title: string;
   description?: string;
   mediaUrl: string;
-  mediaType: "image" | "video" | "pdf" | "markdown" | "diagram" | "custom";
+  mediaType:
+    | "image"
+    | "video"
+    | "pdf"
+    | "markdown"
+    | "diagram"
+    | "custom"
+    | "project"
+    | "projectPresentation"
+    | "recognition"
+    | "recommendation";
   mediaAlt?: string;
   mediaLightboxTitle?: string;
   lightboxCaption?: string;
@@ -89,7 +99,10 @@ type MediaCyclerProps = {
   showChevronNavigation?: boolean;
   loopNavigation?: boolean;
   loopNavigationLabel?: string;
+  loopNavigationIcon?: "loop" | "leftChevron" | "rightChevron";
   disableLoopNavigation?: boolean;
+  loopFromBeginning?: boolean;
+  loppFromBeginniner?: boolean;
   compactMetadataOnSmallScreens?: boolean;
   showExpandIcon?: boolean;
   disableChevronPrevious?: boolean;
@@ -164,7 +177,10 @@ export default function MediaCycler({
   showChevronNavigation = false,
   loopNavigation = false,
   loopNavigationLabel = "Loop media cycle",
+  loopNavigationIcon = "loop",
   disableLoopNavigation = false,
+  loopFromBeginning = false,
+  loppFromBeginniner = false,
   compactMetadataOnSmallScreens = false,
   showExpandIcon = true,
   disableChevronPrevious,
@@ -257,16 +273,26 @@ export default function MediaCycler({
   const expandControlSxArray = toSxArray(expandControlSx);
   const activeIndex =
     activeKey == null ? -1 : items.findIndex((item) => item.key === activeKey);
+  const hasMultipleItems = items.length > 1;
+  const loopFromFirstToLast = loopFromBeginning || loppFromBeginniner;
   const previousItem = activeIndex > 0 ? items[activeIndex - 1] : null;
   const nextItem = activeIndex >= 0 ? items[activeIndex + 1] || null : null;
   const isAtFinalItem =
     activeIndex >= 0 && activeIndex === Math.max(items.length - 1, 0);
-  const previousDisabled =
+  const canWrapToFirst = loopNavigation && isAtFinalItem && hasMultipleItems;
+  const canWrapToLast =
+    loopNavigation &&
+    loopFromFirstToLast &&
+    activeIndex === 0 &&
+    hasMultipleItems;
+  const previousDisabledRaw =
     disableChevronPrevious ??
     (!previousItem || !Boolean(previousItem.onSelect));
-  const nextDisabled =
+  const nextDisabledRaw =
     disableChevronNext ?? (!nextItem || !Boolean(nextItem.onSelect));
-  const showLoopAction = loopNavigation && isAtFinalItem;
+  const previousDisabled = previousDisabledRaw && !canWrapToLast;
+  const nextDisabled = nextDisabledRaw && !canWrapToFirst;
+  const showLoopAction = canWrapToFirst;
   const loopDisabled = disableLoopNavigation;
   const hideNextChevron =
     hideDisabledNextChevron && !showLoopAction && nextDisabled;
@@ -281,8 +307,16 @@ export default function MediaCycler({
       return;
     }
 
-    previousItem?.onSelect?.();
-  }, [onChevronPrevious, previousDisabled, previousItem]);
+    if (previousItem?.onSelect) {
+      previousItem.onSelect();
+      return;
+    }
+
+    if (canWrapToLast) {
+      const lastItem = items[items.length - 1];
+      lastItem?.onSelect?.();
+    }
+  }, [canWrapToLast, items, onChevronPrevious, previousDisabled, previousItem]);
 
   const handleChevronNext = React.useCallback(() => {
     if (nextDisabled) {
@@ -725,7 +759,11 @@ export default function MediaCycler({
                 />
               </Box>
             </Box>
-          ) : item.mediaType === "custom" ? (
+          ) : item.mediaType === "custom" ||
+            item.mediaType === "project" ||
+            item.mediaType === "projectPresentation" ||
+            item.mediaType === "recognition" ||
+            item.mediaType === "recommendation" ? (
             <Box
               role={canActivate ? "button" : undefined}
               tabIndex={canActivate ? 0 : -1}
@@ -893,7 +931,13 @@ export default function MediaCycler({
               ...navigationControlSxArray,
             ]}
           >
-            <Loop fontSize="small" />
+            {loopNavigationIcon === "leftChevron" ? (
+              <ChevronLeft fontSize="small" />
+            ) : loopNavigationIcon === "rightChevron" ? (
+              <ChevronRight fontSize="small" />
+            ) : (
+              <Loop fontSize="small" />
+            )}
           </IconButton>
         ) : !hideNextChevron ? (
           <IconButton
