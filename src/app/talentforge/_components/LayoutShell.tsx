@@ -18,8 +18,8 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useTheme } from "@mui/material/styles";
-import ToggleColorMode from "./ToggleColorMode";
 import Surface from "@/components/fabric/Surface";
+import { ToggleColorMode } from "@/components/shared";
 
 interface LayoutShellProps {
   navItems: { label: string; href: string }[];

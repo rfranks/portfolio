@@ -10,7 +10,13 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
-const resumeDataPath = path.join(repoRoot, "src", "data", "resumeData.json");
+const resumeDataPath = path.join(
+  repoRoot,
+  "public",
+  "personal",
+  "data",
+  "resumeData.json",
+);
 const publicDir = path.join(repoRoot, "public");
 const appsPublicDir = path.join(publicDir, "apps");
 const personalDir = path.join(publicDir, "personal");
@@ -133,6 +139,27 @@ type RecommendationEntry = {
   text: string;
 };
 
+type CompetencySkillEntry = {
+  label: string;
+  description: string;
+  [key: string]: unknown;
+};
+
+type CompetencyCategoryEntry = {
+  title: string;
+  shortText?: string;
+  subTitle?: string;
+  icon?: string;
+  items: CompetencySkillEntry[];
+  [key: string]: unknown;
+};
+
+type CompetenciesData = {
+  categories?: CompetencyCategoryEntry[];
+  skills?: string[];
+  [key: string]: unknown;
+};
+
 type AppAssetBucket =
   | "images"
   | "videos"
@@ -179,6 +206,7 @@ type ResumeData = JsonRecord & {
   contactCTA?: JsonRecord;
   hobbies?: JsonRecord;
   aiShenanigans?: AIShenanigansData;
+  competencies?: CompetenciesData;
   projects?: ProjectEntry[];
   experience?: ExperienceEntry[];
   education?: EducationEntry[];
@@ -607,6 +635,44 @@ const shenaniganTypeChoices = [
     value: "song-recording",
     label: "Song Recording",
     description: "Example: album cover + audio + lyrics markdown.",
+  },
+];
+
+const competencyOptionIconChoices: ChoiceOption<string>[] = [
+  {
+    label: "Auto awesome (AI/LLM)",
+    value: "auto-awesome",
+    description: "Best fit for AI/LLM and RAG systems.",
+  },
+  {
+    label: "Web (Frontend)",
+    value: "web",
+    description: "Frontend and UX-focused competency category.",
+  },
+  {
+    label: "DNS (Backend)",
+    value: "dns",
+    description: "Backend services and API category.",
+  },
+  {
+    label: "Cloud",
+    value: "cloud",
+    description: "Cloud platforms and DevOps workflows.",
+  },
+  {
+    label: "Hub (Data/Integration)",
+    value: "hub",
+    description: "Data, integration, and distributed connections.",
+  },
+  {
+    label: "Groups (Leadership)",
+    value: "groups",
+    description: "Leadership and team collaboration category.",
+  },
+  {
+    label: "Custom icon key",
+    value: "__custom__",
+    description: "Enter your own icon key string.",
   },
 ];
 
@@ -1153,6 +1219,43 @@ function defaultRecommendationTemplate(): RecommendationEntry {
   };
 }
 
+function defaultCompetencyCategoryTemplate(): CompetencyCategoryEntry {
+  return {
+    title: "New Competency Category",
+    shortText: "Short one-line summary for pager options.",
+    subTitle: "Short one-line summary for pager options.",
+    icon: "web",
+    items: [
+      {
+        label: "Example skill",
+        description: "Describe the capability shown by this skill.",
+      },
+    ],
+  };
+}
+
+function serializeCompetencyItems(items: CompetencySkillEntry[]): string {
+  return (items || [])
+    .map((item) => `${item.label}::${item.description}`)
+    .join(" | ");
+}
+
+function parseCompetencyItems(inputValue: string): CompetencySkillEntry[] {
+  return inputValue
+    .split("|")
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map((segment) => {
+      const [rawLabel, ...rawDescription] = segment.split("::");
+      const label = rawLabel?.trim() || "";
+      const description = rawDescription.join("::").trim();
+      return {
+        label: label || "Unnamed skill",
+        description: description || "Add a short description.",
+      };
+    });
+}
+
 async function promptProject(
   rl: WizardReadline,
 ): Promise<{ project: ProjectEntry; slug: string; name: string; generateRoute: boolean }> {
@@ -1672,6 +1775,60 @@ async function promptRecommendationEntry(
     relationship,
     imageSrcUrl: imageSrcUrl.trim() ? withLeadingSlash(imageSrcUrl.trim()) : undefined,
     text,
+  };
+}
+
+async function promptCompetencyCategoryEntry(
+  rl: WizardReadline,
+  current: CompetencyCategoryEntry | null = null,
+): Promise<CompetencyCategoryEntry> {
+  const base = current || defaultCompetencyCategoryTemplate();
+  const title = await askText(rl, "Category title", {
+    defaultValue: base.title,
+    required: true,
+  });
+
+  const subtitle = await askText(rl, "Pager subtitle / short text", {
+    defaultValue: base.shortText || base.subTitle || "",
+    required: true,
+  });
+
+  const defaultIconIndex = Math.max(
+    0,
+    competencyOptionIconChoices.findIndex(
+      (choice) => choice.value === (base.icon || ""),
+    ),
+  );
+  const iconChoice = await chooseOne(
+    rl,
+    "Icon key for this competency category",
+    competencyOptionIconChoices,
+    defaultIconIndex,
+  );
+  const icon =
+    iconChoice.value === "__custom__"
+      ? await askText(rl, "Custom icon key", {
+          defaultValue: base.icon || "category",
+          required: true,
+        })
+      : iconChoice.value;
+
+  const itemsInput = await askText(
+    rl,
+    "Skills (label::description separated with |)",
+    {
+      defaultValue: serializeCompetencyItems(base.items),
+      required: true,
+    },
+  );
+
+  return {
+    ...base,
+    title,
+    icon,
+    shortText: subtitle,
+    subTitle: subtitle,
+    items: parseCompetencyItems(itemsInput),
   };
 }
 
@@ -2228,6 +2385,15 @@ async function runUpdateMode(): Promise<void> {
       resumeData.recognition && typeof resumeData.recognition === "object"
       ? resumeData.recognition
       : {};
+    const competenciesData: CompetenciesData =
+      resumeData.competencies && typeof resumeData.competencies === "object"
+      ? resumeData.competencies
+      : {};
+    const competencyCategories: CompetencyCategoryEntry[] = Array.isArray(
+      competenciesData.categories,
+    )
+      ? (competenciesData.categories as CompetencyCategoryEntry[])
+      : [];
     const recognitionSnippets: string[] = Array.isArray(recognition.snippets)
       ? (recognition.snippets as string[])
       : [];
@@ -2278,6 +2444,11 @@ async function runUpdateMode(): Promise<void> {
             label: "Recommendations (add/edit/remove)",
             value: "recommendations",
             description: "Manage recommendation/testimonial entries.",
+          },
+          {
+            label: "Core competencies (add/edit/remove categories)",
+            value: "competencies",
+            description: "Manage competency category titles, icons, subtitles, and skills.",
           },
           {
             label: "Edit any resumeData metadata (path editor)",
@@ -2574,6 +2745,63 @@ async function runUpdateMode(): Promise<void> {
         }
       }
 
+      if (action.value === "competencies") {
+        const nextAction = await chooseOne(
+          rl,
+          "Core competencies action",
+          [
+            { label: "Add competency category", value: "add" },
+            { label: "Edit existing category", value: "edit" },
+            { label: "Remove category", value: "remove" },
+            { label: "Back", value: "back" },
+          ],
+          0,
+        );
+
+        if (nextAction.value === "add") {
+          const category = await promptCompetencyCategoryEntry(rl);
+          competencyCategories.push(category);
+          writeSuccess("Competency category added.");
+        }
+
+        if (nextAction.value === "edit") {
+          if (!competencyCategories.length) {
+            writeWarning("No competency categories to edit.");
+          } else {
+            const index = await chooseIndex(
+              rl,
+              "Select competency category",
+              competencyCategories.map(
+                (item, idx) =>
+                  `${idx + 1}. ${item.title} (${item.items?.length || 0} skills)`,
+              ),
+            );
+            competencyCategories[index] = await promptCompetencyCategoryEntry(
+              rl,
+              competencyCategories[index],
+            );
+            writeSuccess("Competency category updated.");
+          }
+        }
+
+        if (nextAction.value === "remove") {
+          if (!competencyCategories.length) {
+            writeWarning("No competency categories to remove.");
+          } else {
+            const index = await chooseIndex(
+              rl,
+              "Select competency category to remove",
+              competencyCategories.map(
+                (item, idx) =>
+                  `${idx + 1}. ${item.title} (${item.items?.length || 0} skills)`,
+              ),
+            );
+            competencyCategories.splice(index, 1);
+            writeSuccess("Competency category removed.");
+          }
+        }
+      }
+
       if (action.value === "metadata") {
         await handleMetadataEditor(rl, resumeData);
       }
@@ -2598,6 +2826,11 @@ async function runUpdateMode(): Promise<void> {
       ...(resumeData.recognition || {}),
       snippets: recognitionSnippets,
       recommendations,
+    };
+    resumeData.competencies = {
+      ...(resumeData.competencies || {}),
+      ...competenciesData,
+      categories: competencyCategories,
     };
 
     const navRoutes = projects.map((project) => ({

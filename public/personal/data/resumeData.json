@@ -124,6 +124,9 @@
     "categories": [
       {
         "title": "AI/LLM & RAG Systems",
+        "icon": "auto-awesome",
+        "shortText": "Production LLM systems, retrieval, and clinical NLP pipelines.",
+        "subTitle": "Production LLM systems, retrieval, and clinical NLP pipelines.",
         "items": [
           {
             "label": "Retrieval-augmented generation",
@@ -165,6 +168,9 @@
       },
       {
         "title": "Frontend",
+        "icon": "web",
+        "shortText": "Modern React and TypeScript UX across web and mobile surfaces.",
+        "subTitle": "Modern React and TypeScript UX across web and mobile surfaces.",
         "items": [
           {
             "label": "React",
@@ -202,6 +208,9 @@
       },
       {
         "title": "Backend",
+        "icon": "dns",
+        "shortText": "Service APIs, business logic, and scalable backend architecture.",
+        "subTitle": "Service APIs, business logic, and scalable backend architecture.",
         "items": [
           {
             "label": "Python (Django, Flask, FastAPI)",
@@ -223,6 +232,9 @@
       },
       {
         "title": "Cloud & DevOps",
+        "icon": "cloud",
+        "shortText": "Cloud infrastructure, CI/CD automation, and deployment reliability.",
+        "subTitle": "Cloud infrastructure, CI/CD automation, and deployment reliability.",
         "items": [
           {
             "label": "Azure Functions",
@@ -260,6 +272,9 @@
       },
       {
         "title": "Data & Integration",
+        "icon": "hub",
+        "shortText": "Data models, APIs, and cross-system integration delivery.",
+        "subTitle": "Data models, APIs, and cross-system integration delivery.",
         "items": [
           {
             "label": "REST APIs",
@@ -285,6 +300,9 @@
       },
       {
         "title": "Leadership",
+        "icon": "groups",
+        "shortText": "Architecture guidance, mentoring, and cross-functional execution.",
+        "subTitle": "Architecture guidance, mentoring, and cross-functional execution.",
         "items": [
           {
             "label": "Architecture board member",
@@ -1216,7 +1234,7 @@
           "comment": "Honored to have my code preserved in the Arctic Code Vault for future generations!  Just one issue, how do I commit to GitHub in the Arctic? We would like to release more code, but the wifi is terrible.",
           "launchUrl": "/blasteroids",
           "githubUrl": "https://github.com/rfranks/blasteroids",
-          "imageSrcUrl": "/images/github-arctic-code-vault-contributor.png",
+          "imageSrcUrl": "/personal/images/github/achievments/arctic-code-vault-contributor-default.png",
           "date": "February 2, 2020"
         }
       ],
@@ -1978,20 +1996,28 @@
   },
   "education": [
     {
+      "school": "University of Southern Maine",
+      "schoolUrl": "https://usm.maine.edu/department-computer-science/",
+      "degree": "M.S. Computer Science",
+      "year": "2008",
+      "image": "/personal/images/education/usm.jpeg",
+      "awards": ["Graduate Student of the Year • Computer Science • 2008"]
+    },
+    {
       "school": "Boston University",
-      "schoolUrl": "https://www.bu.edu/",
+      "schoolUrl": "https://www.bu.edu/eng/departments/bme/",
       "degree": "B.S. Biomedical Engineering",
       "year": "2003",
       "image": "/personal/images/education/bu.jpeg",
       "awards": ["Order of the Engineer • Engineering • 1998"]
     },
     {
-      "school": "University of Southern Maine",
-      "schoolUrl": "https://usm.maine.edu/",
-      "degree": "M.S. Computer Science",
-      "year": "2008",
-      "image": "/personal/images/education/usm.jpeg",
-      "awards": ["Graduate Student of the Year • Computer Science • 2008"]
+      "school": "Brookstone School",
+      "schoolUrl": "https://www.brookstoneschool.org/",
+      "degree": "High School Diploma",
+      "year": "1994-1998",
+      "image": "/personal/images/education/brookstone-school-logo.jpeg",
+      "awards": ["National Honors Society • 1997"]
     }
   ],
   "projectsSection": {

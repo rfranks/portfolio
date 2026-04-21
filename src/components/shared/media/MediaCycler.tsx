@@ -18,6 +18,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
+import type { TypographyProps } from "@mui/material/Typography";
 import MarkdownContent from "../content/MarkdownContent";
 import PDFContent from "../content/PDFContent";
 import type { DiagramProps } from "../visualization";
@@ -28,6 +29,11 @@ import VideoLightbox from "./VideoLightbox";
 export type MediaCyclerItem = {
   key: string;
   title: string;
+  titleIcon?: React.ReactNode;
+  titleIconAriaLabel?: string;
+  titleIconSx?: SxProps<Theme>;
+  titleVariant?: TypographyProps["variant"];
+  titleSx?: SxProps<Theme>;
   description?: string;
   mediaUrl: string;
   mediaType:
@@ -416,6 +422,8 @@ export default function MediaCycler({
     const imageAlt = item.mediaAlt || item.title;
     const lightboxTitle = item.mediaLightboxTitle || item.title;
     const panelSxArray = toSxArray(item.panelSx);
+    const titleIconSxArray = toSxArray(item.titleIconSx);
+    const titleSxArray = toSxArray(item.titleSx);
     const assetFrameSxArray = toSxArray(item.assetFrameSx);
     const previewVideoSxArray = toSxArray(item.previewVideoSx);
     const markdownSxArray = toSxArray(item.markdownSx);
@@ -466,9 +474,54 @@ export default function MediaCycler({
               }}
             >
               {hasTitle ? (
-                <Typography variant="subtitle2" sx={{ minWidth: 0, flex: 1 }}>
-                  {item.title}
-                </Typography>
+                <Box
+                  sx={{
+                    minWidth: 0,
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  {item.titleIcon ? (
+                    <Box
+                      aria-label={item.titleIconAriaLabel}
+                      sx={[
+                        (theme) => ({
+                          width: 32,
+                          height: 32,
+                          borderRadius: "50%",
+                          border: "1px solid",
+                          borderColor:
+                            theme.palette.mode === "dark"
+                              ? alpha(theme.palette.common.white, 0.28)
+                              : alpha(theme.palette.common.black, 0.26),
+                          bgcolor:
+                            theme.palette.mode === "dark"
+                              ? alpha(theme.palette.background.paper, 0.54)
+                              : alpha(theme.palette.background.paper, 0.9),
+                          color:
+                            theme.palette.mode === "dark"
+                              ? theme.palette.grey[100]
+                              : theme.palette.grey[900],
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }),
+                        ...titleIconSxArray,
+                      ]}
+                    >
+                      {item.titleIcon}
+                    </Box>
+                  ) : null}
+                  <Typography
+                    variant={item.titleVariant ?? "subtitle2"}
+                    sx={[{ minWidth: 0, flex: 1 }, ...titleSxArray]}
+                  >
+                    {item.title}
+                  </Typography>
+                </Box>
               ) : null}
               {compactMetadata && showCompactInfoButton ? (
                 <IconButton

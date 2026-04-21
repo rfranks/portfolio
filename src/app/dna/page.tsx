@@ -12,10 +12,11 @@ import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import getDnaTheme from "./_theme/getDnaTheme";
-import { portfolioApps } from "@/consts/resumeData";
 
 export default function DnaPage() {
+  const { portfolioApps } = useResumeData();
   const { mode, toggleColorMode, isReady } = useColorModePreference({
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
   });
@@ -23,7 +24,7 @@ export default function DnaPage() {
   const { setDocumentTitle } = useDocumentTitle();
   React.useEffect(() => {
     setDocumentTitle(portfolioApps.dna.documentTitle);
-  }, [setDocumentTitle]);
+  }, [portfolioApps.dna.documentTitle, setDocumentTitle]);
 
   if (!isReady) {
     return null;

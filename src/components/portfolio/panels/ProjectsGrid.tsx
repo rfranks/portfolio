@@ -5,12 +5,14 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { projects, projectsSection } from "@/consts/resumeData";
+import type { ResumeData } from "@/consts/resumeData";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
+import SubsectionPager from "@/components/portfolio/layout/SubsectionPager";
 import AccoladesCarousel from "@/components/portfolio/panels/AccoladesCarousel";
 import Chip from "@/components/fabric/Chip";
 import { ImageLightbox, MarkdownContent, MediaCycler } from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 
 type ImageVisual = {
@@ -38,7 +40,8 @@ type CardsFanVisual = {
 };
 
 type ProjectVisual = ImageVisual | CardsFanVisual;
-type ProjectEntry = (typeof projects)[number];
+type ProjectEntry = ResumeData["projects"][number];
+type ProjectsSection = ResumeData["projectsSection"];
 
 function renderVisual(visual: ProjectVisual, key: string) {
   if (visual.kind === "image") {
@@ -96,7 +99,13 @@ function renderVisual(visual: ProjectVisual, key: string) {
   );
 }
 
-function renderProjectContent(project: ProjectEntry) {
+function renderProjectContent(
+  project: ProjectEntry,
+  sectionLabels: Pick<
+    ProjectsSection,
+    "interestHeading" | "accoladesHeading" | "launchLabel"
+  >,
+) {
   return (
     <Box
       className="group relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.04] p-4 md:p-5"
@@ -161,7 +170,7 @@ function renderProjectContent(project: ProjectEntry) {
             }}
           >
             <Typography variant="subtitle1" gutterBottom>
-              {projectsSection.interestHeading}
+              {sectionLabels.interestHeading}
             </Typography>
             <MarkdownContent
               content={project.interestsMeWhy}
@@ -175,7 +184,7 @@ function renderProjectContent(project: ProjectEntry) {
             sx={{ mt: project.interestsMeWhy ? 0.5 : 0 }}
           >
             <Typography variant="subtitle1" gutterBottom>
-              {projectsSection.accoladesHeading}
+              {sectionLabels.accoladesHeading}
             </Typography>
             <AccoladesCarousel accolades={project.accolades} />
           </Box>
@@ -194,7 +203,7 @@ function renderProjectContent(project: ProjectEntry) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          {projectsSection.launchLabel}
+          {sectionLabels.launchLabel}
         </Button>
       </Box>
     </Box>
@@ -202,10 +211,11 @@ function renderProjectContent(project: ProjectEntry) {
 }
 
 export default function ProjectsGrid() {
+  const { projects, projectsSection } = useResumeData();
   const sortedProjects = React.useMemo(
     () =>
       [...projects].sort((left, right) => left.name.localeCompare(right.name)),
-    [],
+    [projects],
   );
   const [activeProjectKey, setActiveProjectKey] = React.useState<
     string | undefined
@@ -224,7 +234,11 @@ export default function ProjectsGrid() {
         mediaType: "project",
         mediaUrl: withBasePath(project.href),
         onSelect: () => setActiveProjectKey(project.href),
-        customContent: renderProjectContent(project),
+        customContent: renderProjectContent(project, {
+          interestHeading: projectsSection.interestHeading,
+          accoladesHeading: projectsSection.accoladesHeading,
+          launchLabel: projectsSection.launchLabel,
+        }),
         panelSx: {
           display: "flex",
           flexDirection: "column",
@@ -235,8 +249,8 @@ export default function ProjectsGrid() {
           width: "100%",
           minHeight: 0,
           height: "100%",
-          px: { xs: 7, md: 8 },
-          py: 1,
+          px: { xs: 0.75, md: 1 },
+          py: 0.5,
         },
         customContentSx: {
           width: "100%",
@@ -244,8 +258,47 @@ export default function ProjectsGrid() {
           height: "100%",
         },
       })),
+    [projectsSection, sortedProjects],
+  );
+  const projectPickerItems = React.useMemo(
+    () =>
+      sortedProjects.map((project) => ({
+        key: project.href,
+        title: project.name,
+      })),
     [sortedProjects],
   );
+  const activeProjectIndex = React.useMemo(
+    () => projectItems.findIndex((item) => item.key === activeProjectKey),
+    [activeProjectKey, projectItems],
+  );
+  const hasMultipleProjectItems = projectItems.length > 1;
+
+  const handlePreviousProject = React.useCallback(() => {
+    if (!hasMultipleProjectItems) {
+      return;
+    }
+
+    if (activeProjectIndex <= 0) {
+      setActiveProjectKey(projectItems[projectItems.length - 1]?.key);
+      return;
+    }
+
+    setActiveProjectKey(projectItems[activeProjectIndex - 1]?.key);
+  }, [activeProjectIndex, hasMultipleProjectItems, projectItems]);
+
+  const handleNextProject = React.useCallback(() => {
+    if (!hasMultipleProjectItems) {
+      return;
+    }
+
+    if (activeProjectIndex >= projectItems.length - 1) {
+      setActiveProjectKey(projectItems[0]?.key);
+      return;
+    }
+
+    setActiveProjectKey(projectItems[activeProjectIndex + 1]?.key);
+  }, [activeProjectIndex, hasMultipleProjectItems, projectItems]);
 
   return (
     <PortfolioPanel
@@ -271,7 +324,25 @@ export default function ProjectsGrid() {
           ),
         )}
       </div>
-      <Box className="relative z-[1] mb-4 flex items-end justify-between gap-4">
+      <Box
+        className="relative z-[1] flex items-end justify-between gap-4"
+        sx={{
+          position: "sticky",
+          top: (theme) => `-${theme.spacing(2)}`,
+          zIndex: 4,
+          mx: -2,
+          mt: -2,
+          px: 3.5,
+          py: 1,
+          mb: 0,
+          bgcolor: "background.paper",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          backdropFilter: "blur(8px)",
+          borderTopLeftRadius: "var(--fabric-radius-xl)",
+          borderTopRightRadius: "var(--fabric-radius-xl)",
+        }}
+      >
         <Box className="max-w-2xl">
           <Typography variant="h6" gutterBottom>
             {projectsSection.title}
@@ -282,6 +353,7 @@ export default function ProjectsGrid() {
               variant="body2"
               color="text.secondary"
               className="max-w-2xl"
+              sx={{ display: { xs: "none", md: "block" } }}
             >
               {line}
             </Typography>
@@ -289,26 +361,33 @@ export default function ProjectsGrid() {
         </Box>
       </Box>
 
-      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
+      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden", pt: 1.25 }}>
         <MediaCycler
           items={projectItems}
           singlePanel
           singlePanelActiveKey={activeProjectKey}
-          showChevronNavigation={projectItems.length > 1}
-          loopNavigation={projectItems.length > 1}
-          loopNavigationIcon="leftChevron"
-          loopFromBeginning
-          loopNavigationLabel="Loop projects"
-          navigationControlSx={{
-            top: 12,
-            transform: "none",
-          }}
+          showChevronNavigation={false}
           stackSx={{
             minHeight: 0,
             height: "100%",
           }}
         />
       </Box>
+      {hasMultipleProjectItems ? (
+        <Box sx={{ py: 1.25 }}>
+          <SubsectionPager
+            menuId="project-item-selector-menu"
+            items={projectPickerItems}
+            currentKey={activeProjectKey}
+            previousAriaLabel="Previous project"
+            nextAriaLabel="Next project"
+            selectorAriaLabel="Open project selector"
+            onSelect={setActiveProjectKey}
+            onPrevious={handlePreviousProject}
+            onNext={handleNextProject}
+          />
+        </Box>
+      ) : null}
     </PortfolioPanel>
   );
 }

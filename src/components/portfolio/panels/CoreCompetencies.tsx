@@ -5,14 +5,26 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
+import FormatListBulleted from "@mui/icons-material/FormatListBulleted";
+import GridView from "@mui/icons-material/GridView";
 import CloseIcon from "@mui/icons-material/Close";
+import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
+import WebOutlined from "@mui/icons-material/WebOutlined";
+import DnsOutlined from "@mui/icons-material/DnsOutlined";
+import CloudQueueOutlined from "@mui/icons-material/CloudQueueOutlined";
+import HubOutlined from "@mui/icons-material/HubOutlined";
+import GroupsOutlined from "@mui/icons-material/GroupsOutlined";
+import CategoryOutlined from "@mui/icons-material/CategoryOutlined";
 import { alpha, keyframes, useTheme } from "@mui/material/styles";
-import { competencies } from "@/consts/resumeData";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
+import SubsectionPager from "@/components/portfolio/layout/SubsectionPager";
 import Chip from "@/components/fabric/Chip";
 import MediaCycler from "@/components/shared/media/MediaCycler";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
+import { competencies } from "@/consts/resumeData";
 
 const spokeLineGrow = keyframes`
   0% { opacity: 0; transform: translateY(-50%) rotate(var(--spoke-angle, 0deg)) scaleX(0); }
@@ -24,7 +36,11 @@ const returnNodeReveal = keyframes`
   100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 `;
 
-type CompetencyCategory = (typeof competencies.categories)[number];
+type CompetencyCategory = (typeof competencies.categories)[number] & {
+  icon?: string;
+  shortText?: string;
+  subTitle?: string;
+};
 type CompetencySkill = CompetencyCategory["items"][number];
 type NodeTransitionSnapshot = {
   label: string;
@@ -110,8 +126,47 @@ const getSkillReferenceUrl = (skillLabel: string) =>
     `${skillLabel} documentation`,
   )}`;
 
+const normalizeCompetencyOptionIconKey = (value: string) =>
+  value.trim().toLowerCase().replace(/[\s_-]+/g, "");
+
+const renderCompetencyOptionIcon = (iconKey?: string) => {
+  const normalized = iconKey ? normalizeCompetencyOptionIconKey(iconKey) : "";
+  switch (normalized) {
+    case "autoawesome":
+    case "sparkles":
+    case "magic":
+      return <AutoAwesomeOutlined fontSize="small" />;
+    case "web":
+    case "frontend":
+    case "ui":
+      return <WebOutlined fontSize="small" />;
+    case "backend":
+    case "server":
+    case "dns":
+    case "api":
+      return <DnsOutlined fontSize="small" />;
+    case "cloud":
+    case "devops":
+    case "infrastructure":
+      return <CloudQueueOutlined fontSize="small" />;
+    case "data":
+    case "integration":
+    case "hub":
+      return <HubOutlined fontSize="small" />;
+    case "leadership":
+    case "people":
+    case "team":
+    case "groups":
+      return <GroupsOutlined fontSize="small" />;
+    default:
+      return <CategoryOutlined fontSize="small" />;
+  }
+};
+
 export default function CoreCompetencies() {
+  const { competencies } = useResumeData();
   const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
   const categories = React.useMemo(
     () =>
       [...competencies.categories].sort((left, right) =>
@@ -119,7 +174,7 @@ export default function CoreCompetencies() {
           sensitivity: "base",
         }),
       ),
-    [],
+    [competencies.categories],
   );
   const [selectedOrbIndex, setSelectedOrbIndex] = React.useState<number | null>(
     null,
@@ -168,7 +223,7 @@ export default function CoreCompetencies() {
 
   const selectedCategory =
     selectedOrbIndex == null ? null : categories[selectedOrbIndex] || null;
-  const isCloudView = viewMode === "cloud";
+  const isCloudView = isMdUp && viewMode === "cloud";
   const spokeNodeOffset = "clamp(26px, 3.2vw, 42px)";
 
   const panelLayout = React.useMemo(() => {
@@ -215,6 +270,10 @@ export default function CoreCompetencies() {
         return {
           key,
           title: category.title,
+          titleIcon: renderCompetencyOptionIcon(
+            typeof category.icon === "string" ? category.icon : undefined,
+          ),
+          titleIconAriaLabel: `${category.title} category icon`,
           description: "",
           mediaType: "custom" as const,
           mediaUrl: "",
@@ -224,19 +283,37 @@ export default function CoreCompetencies() {
           panelSx: {
             width: "100%",
             minHeight: 0,
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+          },
+          titleSx: {
+            fontSize: { xs: "1.55rem", md: "1.75rem" },
+            lineHeight: 1.12,
+            fontWeight: 800,
+            letterSpacing: "-0.01em",
           },
           assetFrameSx: {
             minHeight: 0,
             height: "100%",
-            px: { xs: 6, md: 7 },
-            py: 1,
+            px: 0,
+            py: 0.5,
           },
           customContentSx: {
             minHeight: 0,
             height: "100%",
           },
           customContent: (
-            <Stack spacing={0.9}>
+            <Stack
+              spacing={0.9}
+              sx={{
+                minHeight: 0,
+                height: "100%",
+                overflowY: "auto",
+                overscrollBehavior: "contain",
+                pr: 0.5,
+              }}
+            >
               {category.items.map((competency) => (
                 <Box
                   key={`${category.title}-${competency.label}-subtitle`}
@@ -283,6 +360,59 @@ export default function CoreCompetencies() {
       setActiveBulletCategoryKey(bulletCategoryItems[0]?.key ?? "");
     }
   }, [activeBulletCategoryKey, bulletCategoryItems]);
+
+  const hasMultipleBulletCategoryItems = bulletCategoryItems.length > 1;
+  const bulletCategoryPickerItems = React.useMemo(
+    () =>
+      categories.map((category, index) => {
+        const optionSubtitle =
+          (typeof category.shortText === "string" && category.shortText.trim()) ||
+          (typeof category.subTitle === "string" && category.subTitle.trim()) ||
+          "";
+        return {
+          key: `competency-category-${index}`,
+          title: category.title,
+          optionTitle: category.title,
+          optionSubtitle: optionSubtitle || undefined,
+          optionIcon: renderCompetencyOptionIcon(
+            typeof category.icon === "string" ? category.icon : undefined,
+          ),
+        };
+      }),
+    [categories],
+  );
+  const activeBulletCategoryIndex = React.useMemo(
+    () => bulletCategoryItems.findIndex((item) => item.key === activeBulletCategoryKey),
+    [activeBulletCategoryKey, bulletCategoryItems],
+  );
+
+  const handlePreviousBulletCategory = React.useCallback(() => {
+    if (!hasMultipleBulletCategoryItems || bulletCategoryItems.length === 0) {
+      return;
+    }
+
+    const previousIndex =
+      activeBulletCategoryIndex <= 0
+        ? bulletCategoryItems.length - 1
+        : activeBulletCategoryIndex - 1;
+    bulletCategoryItems[previousIndex]?.onSelect?.();
+  }, [
+    activeBulletCategoryIndex,
+    bulletCategoryItems,
+    hasMultipleBulletCategoryItems,
+  ]);
+
+  const handleNextBulletCategory = React.useCallback(() => {
+    if (!hasMultipleBulletCategoryItems || bulletCategoryItems.length === 0) {
+      return;
+    }
+
+    const nextIndex =
+      activeBulletCategoryIndex >= bulletCategoryItems.length - 1
+        ? 0
+        : activeBulletCategoryIndex + 1;
+    bulletCategoryItems[nextIndex]?.onSelect?.();
+  }, [activeBulletCategoryIndex, bulletCategoryItems, hasMultipleBulletCategoryItems]);
 
   const spokeLayout = React.useMemo(() => {
     if (!selectedCategory) {
@@ -564,77 +694,79 @@ export default function CoreCompetencies() {
     selectedOrbIndex,
   ]);
 
+  const handleViewModeChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const nextCloudView = event.target.checked;
+      if (!nextCloudView) {
+        clearTimers();
+        setViewMode("list");
+        setOpeningNode(null);
+        setReturningNode(null);
+        setSelectedOrbIndex(null);
+        setIsClosingSpokes(false);
+        setSpokesVisible(false);
+        setSkillNodesAtOrbit(false);
+        setExpandedSkillKey(null);
+        return;
+      }
+
+      setViewMode("cloud");
+    },
+    [clearTimers],
+  );
+
+  React.useEffect(() => {
+    if (isMdUp || viewMode === "list") {
+      return;
+    }
+
+    clearTimers();
+    setViewMode("list");
+    setOpeningNode(null);
+    setReturningNode(null);
+    setSelectedOrbIndex(null);
+    setIsClosingSpokes(false);
+    setSpokesVisible(false);
+    setSkillNodesAtOrbit(false);
+    setExpandedSkillKey(null);
+  }, [clearTimers, isMdUp, viewMode]);
+
   return (
     <PortfolioPanel className="h-full overflow-hidden">
       <Box
         sx={{
-          mb: 2,
+          position: "sticky",
+          top: (theme) => `-${theme.spacing(2)}`,
+          zIndex: 5,
+          mx: -2,
+          mt: -2,
+          px: 3.5,
+          py: 1,
+          mb: 0,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 1.5,
+          bgcolor: "background.paper",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          backdropFilter: "blur(8px)",
+          borderTopLeftRadius: "var(--fabric-radius-xl)",
+          borderTopRightRadius: "var(--fabric-radius-xl)",
         }}
       >
         <Typography variant="h6">Core Competencies</Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Typography
-            variant="subtitle2"
-            color={isCloudView ? "text.secondary" : "text.primary"}
-            sx={{ fontWeight: 700 }}
-          >
-            Bullets
-          </Typography>
-          <Switch
-            checked={isCloudView}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              const nextCloudView = event.target.checked;
-              if (!nextCloudView) {
-                clearTimers();
-                setViewMode("list");
-                setOpeningNode(null);
-                setReturningNode(null);
-                setSelectedOrbIndex(null);
-                setIsClosingSpokes(false);
-                setSpokesVisible(false);
-                setSkillNodesAtOrbit(false);
-                setExpandedSkillKey(null);
-                return;
-              }
-
-              setViewMode("cloud");
-            }}
-            inputProps={{ "aria-label": "Toggle competency view mode" }}
-            color="primary"
-            size="small"
-          />
-          <Typography
-            variant="subtitle2"
-            color={isCloudView ? "text.primary" : "text.secondary"}
-            sx={{ fontWeight: 700 }}
-          >
-            Panel
-          </Typography>
-        </Stack>
       </Box>
 
+      <Box sx={{ minHeight: 0, flex: "1 1 auto", pt: 1.25, overflow: "hidden" }}>
       {isCloudView ? (
         <Box
           ref={panelContainerRef}
           sx={{
             position: "relative",
-            minHeight: { xs: 320, md: 420 },
-            borderRadius: "28px",
+            minHeight: 0,
+            height: "100%",
             overflow: "hidden",
-            border: "1px solid",
-            borderColor: "var(--fabric-surface-border)",
-            background:
-              theme.palette.mode === "dark"
-                ? "linear-gradient(180deg, rgba(15,23,42,0.9), rgba(2,6,23,0.96))"
-                : "linear-gradient(180deg, rgba(248,250,252,0.98), rgba(241,245,249,0.98))",
-            boxShadow:
-              theme.palette.mode === "dark"
-                ? "inset 0 0 0 1px rgba(148,163,184,0.12)"
-                : "inset 0 0 0 1px rgba(148,163,184,0.2)",
           }}
         >
           <Box
@@ -1132,21 +1264,86 @@ export default function CoreCompetencies() {
           ) : null}
         </Box>
       ) : (
-        <MediaCycler
-          items={bulletCategoryItems}
-          singlePanel
-          singlePanelActiveKey={activeBulletCategoryKey}
-          showChevronNavigation={bulletCategoryItems.length > 1}
-          loopNavigation={bulletCategoryItems.length > 1}
-          loopNavigationIcon="rightChevron"
-          loopFromBeginning
-          loopNavigationLabel="Loop competency categories"
-          navigationControlSx={{
-            top: 12,
-            transform: "none",
+        <Box
+          sx={{
+            minHeight: 0,
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
           }}
-        />
+        >
+          <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
+            <MediaCycler
+              items={bulletCategoryItems}
+              singlePanel
+              singlePanelActiveKey={activeBulletCategoryKey}
+              showChevronNavigation={false}
+              stackSx={{
+                minHeight: 0,
+                height: "100%",
+              }}
+            />
+          </Box>
+          {hasMultipleBulletCategoryItems ? (
+            <SubsectionPager
+              menuId="competency-category-selector-menu"
+              items={bulletCategoryPickerItems}
+              currentKey={activeBulletCategoryKey}
+              previousAriaLabel="Previous competency category"
+              nextAriaLabel="Next competency category"
+              selectorAriaLabel="Open competency category selector"
+              onSelect={setActiveBulletCategoryKey}
+              onPrevious={handlePreviousBulletCategory}
+              onNext={handleNextBulletCategory}
+            />
+          ) : null}
+        </Box>
       )}
+      </Box>
+      <Box
+        component="footer"
+        sx={{
+          flexShrink: 0,
+          zIndex: 5,
+          mt: 0,
+          mx: -2,
+          mb: -2,
+          px: 3.5,
+          py: 1,
+          bgcolor: "background.paper",
+          borderTop: "1px solid",
+          borderColor: "divider",
+          backdropFilter: "blur(8px)",
+          borderBottomLeftRadius: "var(--fabric-radius-xl)",
+          borderBottomRightRadius: "var(--fabric-radius-xl)",
+        }}
+      >
+        {isMdUp ? (
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+              View
+            </Typography>
+            <FormatListBulleted
+              fontSize="small"
+              color={isCloudView ? "disabled" : "primary"}
+              aria-hidden="true"
+            />
+            <Switch
+              checked={isCloudView}
+              onChange={handleViewModeChange}
+              inputProps={{ "aria-label": "Toggle competency view mode" }}
+              color="primary"
+              size="small"
+            />
+            <GridView
+              fontSize="small"
+              color={isCloudView ? "primary" : "disabled"}
+              aria-hidden="true"
+            />
+          </Stack>
+        ) : null}
+      </Box>
     </PortfolioPanel>
   );
 }

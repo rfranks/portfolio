@@ -1,5 +1,7 @@
+export { default as CircularProgressWithLabel } from "./CircularProgressWithLabel";
+export type { CircularProgressWithLabelProps } from "./CircularProgressWithLabel";
 export {
-  CircularProgressWithLabel,
+  CircularProgressWithLabel as CircularTimerProgressWithLabel,
   default as CircularTimer,
 } from "./CircularTimer";
 export { Thinking } from "./Thinking";

@@ -133,6 +133,9 @@ export default function HomeSectionPager({
 
   const previousItem = currentIndex > 0 ? items[currentIndex - 1] : null;
   const nextItem = currentIndex < items.length - 1 ? items[currentIndex + 1] : null;
+  const wrappedPreviousItem =
+    previousItem ?? (hasMultipleItems ? items[items.length - 1] : null);
+  const wrappedNextItem = nextItem ?? (hasMultipleItems ? items[0] : null);
 
   return (
     <>
@@ -157,10 +160,10 @@ export default function HomeSectionPager({
           <IconButton
             aria-label="Previous section"
             size="small"
-            disabled={!previousItem}
+            disabled={!wrappedPreviousItem}
             onClick={() => {
-              if (previousItem) {
-                onSelectSection(previousItem.id);
+              if (wrappedPreviousItem) {
+                onSelectSection(wrappedPreviousItem.id);
               }
             }}
           >
@@ -202,10 +205,10 @@ export default function HomeSectionPager({
           <IconButton
             aria-label="Next section"
             size="small"
-            disabled={!nextItem}
+            disabled={!wrappedNextItem}
             onClick={() => {
-              if (nextItem) {
-                onSelectSection(nextItem.id);
+              if (wrappedNextItem) {
+                onSelectSection(wrappedNextItem.id);
               }
             }}
           >

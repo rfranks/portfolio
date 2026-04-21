@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { projects } from "@/consts/resumeData";
 import { MarkdownContent, MediaCycler } from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import BlackjackCarouselNav from "./_components/BlackjackCarouselNav";
 import BlackjackGameSlide from "./_components/BlackjackGameSlide";
@@ -12,6 +12,7 @@ import type { BlackjackDiagramConfig } from "./_types/page";
 import "./page.css";
 
 export default function BlackjackPage() {
+  const { projects } = useResumeData();
   const blackjack = useBlackjackPage();
   const blackjackProject = projects?.find((proj) => proj?.href === "/blackjack");
   const blackjackDiagrams = React.useMemo(

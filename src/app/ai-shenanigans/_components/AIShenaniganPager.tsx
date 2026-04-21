@@ -17,7 +17,7 @@ import {
   InfoOutlined,
   Close,
 } from "@mui/icons-material";
-import { summary } from "@/consts/resumeData";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 
 type AIShenaniganPagerItem = {
@@ -44,7 +44,10 @@ type AIShenaniganPagerProps = {
   onSelectShenanigan: (index: number) => void;
 };
 
-const getPagerOptionImage = (item: AIShenaniganPagerItem) => {
+const getPagerOptionImage = (
+  item: AIShenaniganPagerItem,
+  fallbackImage: string,
+) => {
   if (item.pagerOptionImage) {
     return item.pagerOptionImage;
   }
@@ -63,7 +66,7 @@ const getPagerOptionImage = (item: AIShenaniganPagerItem) => {
     item.realisticImage ||
     item.rawImage ||
     item.palmLineAnalysisImage ||
-    summary.avatarImage
+    fallbackImage
   );
 };
 
@@ -79,6 +82,7 @@ export default function AIShenaniganPager({
   onPrevious,
   onSelectShenanigan,
 }: AIShenaniganPagerProps) {
+  const { summary } = useResumeData();
   const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(
     null,
   );
@@ -214,7 +218,7 @@ export default function AIShenaniganPager({
           >
             <Box
               component="img"
-              src={withBasePath(getPagerOptionImage(item))}
+              src={withBasePath(getPagerOptionImage(item, summary.avatarImage))}
               alt={`${item.title} preview`}
               sx={{
                 width: 69,

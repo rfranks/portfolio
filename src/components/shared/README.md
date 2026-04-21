@@ -11,8 +11,9 @@
 ## Naming Rules
 
 - Domain folders are lowercase (`content`, `media`, `loading`, etc.).
-- Multi-file component folders are `PascalCase` (`CircularTimer`, `Timeline`).
-- Single-file reusable components use `PascalCase.tsx`.
+- Shared component files use `PascalCase.tsx` directly in their domain folder
+  (`loading/CircularTimer.tsx`, `visualization/Timeline.tsx`, etc.).
+- Avoid per-component `index.tsx` folders in shared domains.
 - Each domain exposes an `index.ts` barrel.
 - `src/components/shared/index.ts` re-exports all domain barrels for app-level imports.
 

@@ -22,7 +22,7 @@ import {
   summarizePDFPrompt,
   userQuestionPrompt,
 } from "@/app/bookworm/_consts/consts";
-import { ChatMessage } from "@/app/bookworm/_types/types";
+import { ChatMessage } from "@/types";
 import { askOpenAI, pdfToMarkdown } from "@/app/bookworm/_utils/utils";
 
 import CircularProgressWithLabel from "./CircularProgressWithLabel";

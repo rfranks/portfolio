@@ -15,7 +15,7 @@ import {
 import { ArrowBack, AutoStories } from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material/styles";
 import { OpenAIKeyInterstitialContent } from "@/components/shared";
-import { portfolioApps } from "@/consts/resumeData";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import PathForgerDialogController from "@/app/pathforger/_components/PathForgerDialogController";
 import PathForgerPanelController from "@/app/pathforger/_components/PathForgerPanelController";
@@ -67,6 +67,7 @@ type ForgedOutcomeImagesState = Partial<
 >;
 
 export default function PathForgerPageClient() {
+  const { portfolioApps } = useResumeData();
   const [ready, setReady] = React.useState(false);
   const [apiKeyReady, setApiKeyReady] = React.useState(false);
   const [draftKey, setDraftKey] = React.useState("");
@@ -589,7 +590,7 @@ export default function PathForgerPageClient() {
 
   React.useEffect(() => {
     document.title = portfolioApps.pathforger.documentTitle;
-  }, []);
+  }, [portfolioApps.pathforger.documentTitle]);
 
   React.useEffect(() => {
     if (ready && !apiKeyReady) {

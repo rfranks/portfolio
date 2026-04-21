@@ -1,4 +1,4 @@
-import "./index.css";
+import "./Thinking.css";
 
 import React from "react";
 

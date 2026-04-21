@@ -6,10 +6,11 @@ import Chip from "@/components/fabric/Chip";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import { MediaCycler } from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
-import { hobbies } from "@/consts/resumeData";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 
 export default function HobbiesCard() {
+  const { hobbies } = useResumeData();
   const heroFrameSx = React.useMemo(
     () => ({
       mt: 0,
@@ -39,7 +40,7 @@ export default function HobbiesCard() {
     }
 
     return "";
-  }, []);
+  }, [hobbies.heroImageUrl, hobbies.heroVideoUrl]);
   const [isHeroVideoActive, setIsHeroVideoActive] = React.useState(false);
   const [heroVideoUnavailable, setHeroVideoUnavailable] = React.useState(false);
   const heroVideoRef = React.useRef<HTMLVideoElement | null>(null);
@@ -124,6 +125,8 @@ export default function HobbiesCard() {
     handleHeroVideoEnded,
     handleHeroVideoError,
     heroFrameSx,
+    hobbies.heroImageUrl,
+    hobbies.title,
     resolvedHeroVideoUrl,
   ]);
 
@@ -132,9 +135,28 @@ export default function HobbiesCard() {
 
   return (
     <PortfolioPanel className="h-full">
-      <Typography variant="h6" gutterBottom className="mb-4">
+      <Typography
+        variant="h6"
+        sx={{
+          position: "sticky",
+          top: (theme) => `-${theme.spacing(2)}`,
+          zIndex: 4,
+          mx: -2,
+          mt: -2,
+          px: 3.5,
+          py: 1,
+          mb: 0,
+          bgcolor: "background.paper",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          backdropFilter: "blur(8px)",
+          borderTopLeftRadius: "var(--fabric-radius-xl)",
+          borderTopRightRadius: "var(--fabric-radius-xl)",
+        }}
+      >
         {hobbies.title}
       </Typography>
+      <Box sx={{ pt: 1.25 }}>
       <Stack spacing={2}>
         <Stack
           spacing={2}
@@ -196,6 +218,7 @@ export default function HobbiesCard() {
           )}
         </Stack>
       </Stack>
+      </Box>
     </PortfolioPanel>
   );
 }

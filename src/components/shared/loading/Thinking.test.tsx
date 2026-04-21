@@ -1,7 +1,7 @@
 // src/components/showcase/Thinking/Thinking.test.tsx
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { Thinking, ThinkingProps } from "./index";
+import { Thinking, ThinkingProps } from "./Thinking";
 import "@testing-library/jest-dom";
 
 describe("<Thinking />", () => {

@@ -26,10 +26,11 @@ import { useColorModePreference } from "@/hooks/useColorModePreference";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
-import { portfolioApps } from "@/consts/resumeData";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import getBookwormLandingTheme from "@/app/bookworm/_theme/getBookwormLandingTheme";
 
 export default function BookwormPage() {
+  const { portfolioApps } = useResumeData();
   const { mode, toggleColorMode, isReady } = useColorModePreference({
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
   });
@@ -43,7 +44,7 @@ export default function BookwormPage() {
 
   React.useEffect(() => {
     setDocumentTitle(portfolioApps.bookworm.documentTitle);
-  }, [setDocumentTitle]);
+  }, [portfolioApps.bookworm.documentTitle, setDocumentTitle]);
 
   if (!isReady) {
     return null;

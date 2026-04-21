@@ -1,7 +1,7 @@
 // src/components/showcase/Timeline/Timeline.test.tsx
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import Timeline, { TimelineEvent, TimelineProps } from "../Timeline";
+import Timeline, { TimelineEvent, TimelineProps } from "./Timeline";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 // wrap with MUI theme so classes/rendering match

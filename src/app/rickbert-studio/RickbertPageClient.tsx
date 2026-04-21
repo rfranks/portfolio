@@ -10,7 +10,7 @@ import {
   getRickbertOpenAIKey,
   setRickbertOpenAIKey,
 } from "@/app/rickbert-studio/_utils/openAIKey";
-import { portfolioApps } from "@/consts/resumeData";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 
 const defaultTheme = createTheme({
@@ -20,6 +20,7 @@ const defaultTheme = createTheme({
 });
 
 export default function RickbertPageClient() {
+  const { portfolioApps } = useResumeData();
   const setOpenAIKey = useRickbertStudioStore((state) => state.setOpenAIKey);
   const [ready, setReady] = React.useState(false);
   const [apiKeyReady, setApiKeyReady] = React.useState(false);
@@ -36,7 +37,7 @@ export default function RickbertPageClient() {
 
   React.useEffect(() => {
     document.title = portfolioApps.rickbert.documentTitle;
-  }, []);
+  }, [portfolioApps.rickbert.documentTitle]);
 
   React.useEffect(() => {
     if (ready && !apiKeyReady) {

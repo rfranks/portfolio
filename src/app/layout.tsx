@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ThemeRegistry from "../providers/ThemeRegistry";
 import { portfolioApps } from "@/consts/resumeData";
+import ResumeDataProvider from "@/providers/ResumeDataProvider";
 
 export const metadata: Metadata = {
   description: portfolioApps.site.description,
@@ -25,7 +26,9 @@ export default function RootLayout({
         ></script>
       </head>
       <body>
-        <ThemeRegistry>{children}</ThemeRegistry>
+        <ThemeRegistry>
+          <ResumeDataProvider>{children}</ResumeDataProvider>
+        </ThemeRegistry>
       </body>
     </html>
   );

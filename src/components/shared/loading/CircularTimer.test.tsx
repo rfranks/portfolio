@@ -1,7 +1,7 @@
 // src/components/showcase/CircularTimer/CircularTimer.test.tsx
 import React from "react";
 import { render, screen, act, cleanup } from "@testing-library/react";
-import CircularTimer from "../CircularTimer";
+import CircularTimer from "./CircularTimer";
 
 describe("<CircularTimer />", () => {
   beforeEach(() => {

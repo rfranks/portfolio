@@ -23,14 +23,15 @@ import AIShenanigan, {
 } from "./_components/AIShenanigan";
 import AIShenaniganPager from "./_components/AIShenaniganPager";
 import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
-import { aiShenanigans, portfolioApps } from "@/consts/resumeData";
+import type { ResumeData } from "@/consts/resumeData";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import getFabricTheme from "@/themes/fabricTheme";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import { withBasePath } from "@/utils/basePath";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
-type AIShenaniganItemWithLinks = (typeof aiShenanigans.items)[number] & {
+type AIShenaniganItemWithLinks = ResumeData["aiShenanigans"]["items"][number] & {
   type?: AIShenaniganType;
   shortText?: string;
   pagerOptionImage?: string;
@@ -123,8 +124,6 @@ type AIShenaniganItemWithLinks = (typeof aiShenanigans.items)[number] & {
   }>;
 };
 
-const shenaniganItems = aiShenanigans.items as AIShenaniganItemWithLinks[];
-
 const decodeHashSlug = (hash: string) => {
   const raw = hash.replace(/^#/, "").trim();
   if (!raw) {
@@ -214,6 +213,8 @@ const buildLinkProps = (item: AIShenaniganItemWithLinks) => ({
 });
 
 export default function AIShenanigansPageClient() {
+  const { aiShenanigans, portfolioApps } = useResumeData();
+  const shenaniganItems = aiShenanigans.items as AIShenaniganItemWithLinks[];
   const { mode, toggleColorMode, isReady } = useColorModePreference({
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
   });
@@ -230,7 +231,7 @@ export default function AIShenanigansPageClient() {
     });
 
     return indexBySlug;
-  }, []);
+  }, [shenaniganItems]);
 
   const clampIndex = useCallback((value: number) => {
     if (!shenaniganItems.length) {
@@ -246,7 +247,7 @@ export default function AIShenanigansPageClient() {
     }
 
     return value;
-  }, []);
+  }, [shenaniganItems.length]);
 
   const handlePrevious = useCallback(() => {
     setCurrentIndex((prevIndex) => clampIndex(prevIndex - 1));
@@ -262,7 +263,7 @@ export default function AIShenanigansPageClient() {
 
   useEffect(() => {
     setDocumentTitle(portfolioApps.aiShenanigans.documentTitle);
-  }, [setDocumentTitle]);
+  }, [portfolioApps.aiShenanigans.documentTitle, setDocumentTitle]);
 
   useEffect(() => {
     if (!shenaniganItems.length || typeof window === "undefined") {
@@ -289,7 +290,7 @@ export default function AIShenanigansPageClient() {
     return () => {
       window.removeEventListener("hashchange", syncFromHash);
     };
-  }, [shenaniganIndexBySlug]);
+  }, [shenaniganIndexBySlug, shenaniganItems.length]);
 
   useEffect(() => {
     if (
@@ -312,7 +313,7 @@ export default function AIShenanigansPageClient() {
 
     const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
     window.history.replaceState(null, "", nextUrl);
-  }, [currentIndex, isInitialHashSynced]);
+  }, [currentIndex, isInitialHashSynced, shenaniganItems]);
 
   useEffect(() => {
     if (typeof window === "undefined") {

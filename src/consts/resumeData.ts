@@ -1,4 +1,51 @@
-import resumeData from "@/data/resumeData.json";
+import resumeDataSnapshot from "../../public/personal/data/resumeData.json";
+
+export const resumeDataPath = "/personal/data/resumeData.json";
+
+const resumeData = resumeDataSnapshot;
+export type ResumeData = typeof resumeDataSnapshot;
+
+let resumeDataFetchPromise: Promise<ResumeData> | null = null;
+
+const resolveResumeDataUrl = (baseUrl?: string) => {
+  if (baseUrl?.trim()) {
+    return new URL(resumeDataPath, baseUrl).toString();
+  }
+
+  if (typeof window === "undefined") {
+    const explicitOrigin = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+    if (explicitOrigin) {
+      return new URL(resumeDataPath, explicitOrigin).toString();
+    }
+  }
+
+  return resumeDataPath;
+};
+
+export async function fetchResumeData(options?: {
+  baseUrl?: string;
+  cache?: RequestCache;
+}): Promise<ResumeData> {
+  const response = await fetch(resolveResumeDataUrl(options?.baseUrl), {
+    cache: options?.cache ?? "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to load resume data: ${response.status}`);
+  }
+
+  return (await response.json()) as ResumeData;
+}
+
+export async function fetchResumeDataCached(options?: {
+  baseUrl?: string;
+  cache?: RequestCache;
+}): Promise<ResumeData> {
+  if (!resumeDataFetchPromise) {
+    resumeDataFetchPromise = fetchResumeData(options);
+  }
+  return resumeDataFetchPromise;
+}
 
 export default resumeData;
 

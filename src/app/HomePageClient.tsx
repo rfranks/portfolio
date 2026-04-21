@@ -44,13 +44,14 @@ import {
   GLOBAL_COLOR_MODE_STORAGE_KEY,
   LEGACY_COLOR_MODE_STORAGE_KEYS,
 } from "@/consts/colorMode";
-import { navigation, summary } from "@/consts/resumeData";
+import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import getFabricTheme from "@/themes/fabricTheme";
 
 export default function HomePageClient() {
+  const { navigation, summary } = useResumeData();
   const { mode, toggleColorMode, isReady } = useColorModePreference({
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
     legacyStorageKeys: LEGACY_COLOR_MODE_STORAGE_KEYS,
@@ -81,7 +82,7 @@ export default function HomePageClient() {
   const { setDocumentTitle } = useDocumentTitle();
   useEffect(() => {
     setDocumentTitle(summary.documentTitle);
-  }, [setDocumentTitle]);
+  }, [setDocumentTitle, summary.documentTitle]);
 
   const updateHashForSection = useCallback((sectionId: string) => {
     const nextHash = `#${encodeURIComponent(sectionId)}`;
@@ -536,14 +537,15 @@ export default function HomePageClient() {
                     minHeight: 0,
                     height: "100%",
                     flex: "1 1 auto",
-                    overflowY: "auto",
+                    overflowY: "hidden",
                     pr: { xs: 0, md: 0.5 },
                     "& > *": {
                       display: "flex",
                       flexDirection: "column",
                       flex: "1 1 auto",
-                      minHeight: "100%",
+                      minHeight: 0,
                       height: "100%",
+                      overflowY: "auto",
                       marginBottom: "0 !important",
                     },
                   }}
