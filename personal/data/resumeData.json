@@ -76,47 +76,106 @@
       {
         "label": "Home",
         "href": "/",
+        "iconType": "material",
         "icon": "home"
       },
       {
         "label": "GeneBoard",
         "href": "/dna",
+        "iconType": "material",
         "icon": "science"
       },
       {
         "label": "Bookworm",
         "href": "/bookworm",
+        "iconType": "material",
         "icon": "menuBook"
       },
       {
         "label": "TalentForge",
         "href": "/talentforge",
+        "iconType": "material",
         "icon": "build"
       },
       {
         "label": "AI Shenanigans",
         "href": "/ai-shenanigans",
+        "iconType": "material",
         "icon": "autoFixHigh"
       },
       {
         "label": "Rickbert Studio",
         "href": "/rickbert-studio",
+        "iconType": "material",
         "icon": "autoStories"
       },
       {
         "label": "PathForger",
         "href": "/pathforger",
+        "iconType": "material",
         "icon": "altRoute"
       },
       {
         "label": "Blackjack",
         "href": "/blackjack",
+        "iconType": "material",
         "icon": "casino"
       },
       {
         "label": "Warbirds",
         "href": "/warbirds",
+        "iconType": "material",
         "icon": "flight"
+      }
+    ],
+    "homeSections": [
+      {
+        "id": "hero",
+        "label": "Summary",
+        "iconType": "material",
+        "icon": "home"
+      },
+      {
+        "id": "education",
+        "label": "Education",
+        "iconType": "material",
+        "icon": "school"
+      },
+      {
+        "id": "experience",
+        "label": "Experience",
+        "iconType": "material",
+        "icon": "work"
+      },
+      {
+        "id": "competencies",
+        "label": "Core Competencies",
+        "iconType": "material",
+        "icon": "build"
+      },
+      {
+        "id": "projects",
+        "label": "Projects",
+        "iconType": "material",
+        "icon": "autoStories"
+      },
+      {
+        "id": "recognition",
+        "label": "Recognition",
+        "iconType": "material",
+        "icon": "emojiEvents"
+      },
+      {
+        "id": "hobbies",
+        "label": "Hobbies",
+        "iconType": "emoji",
+        "icon": "🎣"
+      },
+      {
+        "id": "contact",
+        "label": "Contact",
+        "iconType": "material",
+        "icon": "alternateEmail"
       }
     ]
   },
@@ -468,7 +527,7 @@
   ],
   "hobbies": {
     "title": "Hobbies",
-    "heroImageUrl": "/personal/images/hobbies-hero.png",
+    "heroImageUrl": "/personal/images/personal/hobbies-hero.png",
     "heroVideoUrl": null,
     "items": [
       "Sea-dooing",
@@ -1081,6 +1140,14 @@
       "image": "/personal/images/employers/cashstar.png"
     },
     {
+      "company": "IDEXX",
+      "position": "Full-stack Consultant",
+      "location": "Portland, ME",
+      "start": "January 2012",
+      "end": "June 2012",
+      "details": ["Consultant on veterinary practice management platform."]
+    },
+    {
       "company": "REZ-1",
       "position": "Software Engineering Consultant",
       "location": "Wellesley, MA",
@@ -1092,13 +1159,11 @@
       ]
     },
     {
-      "company": "IDEXX",
-      "position": "Consultant",
-      "details": ["Consultant on veterinary practice management platform."]
-    },
-    {
       "company": "Fetch Enterprises",
-      "position": "Full-stack Developer",
+      "location": "Portland, ME",
+      "start": "Aug 2008",
+      "end": "October 2010",
+      "position": "",
       "details": [
         "Full-stack developer focused on Java-based web application development."
       ]
