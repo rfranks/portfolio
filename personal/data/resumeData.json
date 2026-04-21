@@ -1581,6 +1581,8 @@
     {
       "name": "AI-Driven Clinical Copilot",
       "description": "Next.js/React frontend with Python/Azure Functions backend.  Integrates LLMs and retrieval-augmented generation (RAG) to summarize EHR data and answer questions with citations.",
+      "shortText": "Next.js/React frontend with Python/Azure Functions backend. Integrates LLMs and retrieval-augmented generation (RAG) to summarize EHR data and answer questions with citations.",
+      "blurb": "A physician-facing AI copilot built for real clinical pace: the frontend is delivered in Next.js/React while Python and Azure Functions power secure orchestration, data retrieval, and answer generation behind the scenes. The workflow combines retrieval-augmented generation (RAG) with structured prompt pipelines so responses are grounded in patient context, chart artifacts, and traceable evidence instead of generic model guesses. The experience is tuned for day-to-day usability in care settings: concise summaries, actionable follow-up prompts, and citation-backed outputs that help clinicians validate conclusions quickly and confidently.",
       "href": "/aisummary",
       "type": "work",
       "interestsMeWhy": "This project brings generative AI directly into physician workflows. It showcases how RAG can surface meaningful insights from enormous EHR datasets.",
