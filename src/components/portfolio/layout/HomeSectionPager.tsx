@@ -9,6 +9,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import {
   ChevronLeft,
   ChevronRight,
@@ -141,12 +142,14 @@ export default function HomeSectionPager({
     <>
       <Box
         sx={{
-          px: { xs: 1.5, md: 2 },
-          py: 1.25,
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 2.5,
-          bgcolor: "background.paper",
+          px: { xs: 1.75, md: 2.25 },
+          py: { xs: 0.75, md: 0.9 },
+          border: "none",
+          borderRadius: 0,
+          bgcolor: "transparent",
+          color: "common.white",
+          boxShadow: "none",
+          backdropFilter: "none",
         }}
       >
         <Box
@@ -166,13 +169,26 @@ export default function HomeSectionPager({
                 onSelectSection(wrappedPreviousItem.id);
               }
             }}
+            sx={{
+              p: 0.45,
+              color: "inherit",
+              borderRadius: "999px",
+              transition: "background-color 160ms ease, transform 160ms ease",
+              "&:hover": {
+                bgcolor: (theme) => alpha(theme.palette.common.white, 0.1),
+              },
+              "&:focus-visible": {
+                bgcolor: (theme) => alpha(theme.palette.common.white, 0.12),
+              },
+            }}
           >
             <ChevronLeft />
           </IconButton>
           <Chip
             clickable
-            color="primary"
+            color="default"
             variant="outlined"
+            size="small"
             onClick={handleSelectorOpen}
             label={
               <Typography
@@ -183,6 +199,10 @@ export default function HomeSectionPager({
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
+                  fontSize: { xs: "1.18rem", md: "1.28rem" },
+                  lineHeight: 1.1,
+                  fontWeight: 900,
+                  color: "inherit",
                 }}
               >
                 {formatSelectedLabel(currentIndex, currentItem.label)}
@@ -195,10 +215,34 @@ export default function HomeSectionPager({
               minWidth: 0,
               maxWidth: "100%",
               justifySelf: "stretch",
+              border: "0 !important",
+              borderColor: "transparent !important",
+              bgcolor: "transparent !important",
+              backgroundColor: "transparent !important",
+              backgroundImage: "none !important",
+              boxShadow: "none !important",
+              backdropFilter: "none !important",
+              filter: "none !important",
+              color: "inherit",
+              borderRadius: "999px",
+              transition: "background-color 160ms ease, box-shadow 160ms ease",
+              "&.MuiChip-outlined": {
+                border: "0 !important",
+              },
+              "&:hover, &.Mui-focusVisible, &:active": {
+                bgcolor: (theme) =>
+                  `${alpha(theme.palette.common.white, 0.1)} !important`,
+                backgroundColor: (theme) =>
+                  `${alpha(theme.palette.common.white, 0.1)} !important`,
+                boxShadow: "none !important",
+                backdropFilter: "none !important",
+                filter: "none !important",
+              },
               "& .MuiChip-label": {
                 width: "100%",
                 overflow: "hidden",
                 display: "block",
+                py: 0,
               },
             }}
           />
@@ -211,6 +255,18 @@ export default function HomeSectionPager({
                 onSelectSection(wrappedNextItem.id);
               }
             }}
+            sx={{
+              p: 0.45,
+              color: "inherit",
+              borderRadius: "999px",
+              transition: "background-color 160ms ease, transform 160ms ease",
+              "&:hover": {
+                bgcolor: (theme) => alpha(theme.palette.common.white, 0.1),
+              },
+              "&:focus-visible": {
+                bgcolor: (theme) => alpha(theme.palette.common.white, 0.12),
+              },
+            }}
           >
             <ChevronRight />
           </IconButton>
@@ -222,6 +278,18 @@ export default function HomeSectionPager({
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? "home-section-selector-menu" : undefined}
+            sx={{
+              p: 0.45,
+              color: "inherit",
+              borderRadius: "999px",
+              transition: "background-color 160ms ease, transform 160ms ease",
+              "&:hover": {
+                bgcolor: (theme) => alpha(theme.palette.common.white, 0.1),
+              },
+              "&:focus-visible": {
+                bgcolor: (theme) => alpha(theme.palette.common.white, 0.12),
+              },
+            }}
           >
             <MoreVert fontSize="small" />
           </IconButton>

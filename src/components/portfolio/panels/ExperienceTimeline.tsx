@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
@@ -29,10 +30,47 @@ const getExperienceRangeLabel = (entry: ExperienceEntry): string | null => {
   return parts.length > 0 ? parts.join(" • ") : null;
 };
 
+function renderExperienceLogo(exp: ExperienceEntry, size = 48) {
+  if (exp.image) {
+    return (
+      <ImageLightbox
+        src={withBasePath(exp.image)}
+        alt={exp.company}
+        title={exp.company}
+        caption={`${exp.position}${exp.location ? ` • ${exp.location}` : ""}`}
+        triggerSx={{ borderRadius: "12px", lineHeight: 0, flexShrink: 0 }}
+      >
+        <Image
+          src={withBasePath(exp.image)}
+          alt={exp.company}
+          width={size}
+          height={size}
+          style={{ borderRadius: 10 }}
+        />
+      </ImageLightbox>
+    );
+  }
+
+  return (
+    <Avatar
+      aria-label={`${exp.company} placeholder logo`}
+      sx={{
+        width: size,
+        height: size,
+        bgcolor: "background.paper",
+        color: "text.secondary",
+        border: "1px solid",
+        borderColor: "divider",
+      }}
+    >
+      <BusinessOutlined fontSize="small" />
+    </Avatar>
+  );
+}
+
 function renderExperienceContent(exp: ExperienceEntry) {
   return (
     <Box
-      className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 md:p-5"
       sx={{
         width: "100%",
         minHeight: 0,
@@ -41,30 +79,18 @@ function renderExperienceContent(exp: ExperienceEntry) {
         display: "flex",
         flexDirection: "column",
         gap: 1.5,
+        px: { xs: 1, md: 1.25 },
+        py: { xs: 0.5, md: 0.75 },
       }}
     >
       <Stack direction="row" spacing={1.5} alignItems="flex-start" sx={{ minWidth: 0 }}>
-        {exp.image ? (
-          <ImageLightbox
-            src={withBasePath(exp.image)}
-            alt={exp.company}
-            title={exp.company}
-            caption={`${exp.position}${exp.location ? ` • ${exp.location}` : ""}`}
-            triggerSx={{ borderRadius: "12px", lineHeight: 0, flexShrink: 0 }}
-          >
-            <Image
-              src={withBasePath(exp.image)}
-              alt={exp.company}
-              width={48}
-              height={48}
-              style={{ borderRadius: 10 }}
-            />
-          </ImageLightbox>
-        ) : null}
+        {renderExperienceLogo(exp)}
         <Box sx={{ minWidth: 0, flex: "1 1 auto" }}>
-          <Typography variant="subtitle1" fontWeight={700}>
-            {exp.company}
-          </Typography>
+          {exp.position ? (
+            <Typography variant="subtitle1" fontWeight={700}>
+              {exp.position}
+            </Typography>
+          ) : null}
           {exp.location ? (
             <Typography variant="body2" color="text.secondary">
               {exp.location}
@@ -174,23 +200,7 @@ function renderExperienceTimelineEntry(
         }}
       >
         <Stack direction="row" spacing={1.5} alignItems="flex-start" sx={{ minWidth: 0 }}>
-          {exp.image ? (
-            <ImageLightbox
-              src={withBasePath(exp.image)}
-              alt={exp.company}
-              title={exp.company}
-              caption={`${exp.position}${exp.location ? ` • ${exp.location}` : ""}`}
-              triggerSx={{ borderRadius: "12px", lineHeight: 0, flexShrink: 0 }}
-            >
-              <Image
-                src={withBasePath(exp.image)}
-                alt={exp.company}
-                width={48}
-                height={48}
-                style={{ borderRadius: 10 }}
-              />
-            </ImageLightbox>
-          ) : null}
+          {renderExperienceLogo(exp)}
           <Box sx={{ minWidth: 0, flex: "1 1 auto" }}>
             <Typography variant="subtitle1" fontWeight={700}>
               {exp.company}
@@ -248,7 +258,11 @@ function renderExperienceTimelineEntry(
   );
 }
 
-export default function ExperienceTimeline() {
+type ExperienceTimelineProps = {
+  topRail?: React.ReactNode;
+};
+
+export default function ExperienceTimeline({ topRail }: ExperienceTimelineProps) {
   const { experience } = useResumeData();
   const [viewMode, setViewMode] = React.useState<"grid" | "timeline">("grid");
   const [activeExperienceKey, setActiveExperienceKey] = React.useState<
@@ -261,17 +275,6 @@ export default function ExperienceTimeline() {
     );
   }, [experience]);
 
-  const activeExperienceEntry = React.useMemo(
-    () =>
-      experience.find(
-        (entry, index) => getExperienceKey(entry, index) === activeExperienceKey,
-      ) ?? experience[0],
-    [activeExperienceKey, experience],
-  );
-  const activeExperienceRangeLabel = activeExperienceEntry
-    ? getExperienceRangeLabel(activeExperienceEntry)
-    : null;
-  const activeExperiencePositionLabel = activeExperienceEntry?.position?.trim() || null;
   const isTimelineView = viewMode === "timeline";
   const activeExperienceIndex = React.useMemo(
     () =>
@@ -371,37 +374,38 @@ export default function ExperienceTimeline() {
         overflow: "hidden",
       }}
     >
-      <Typography
-        component="div"
-        sx={{
-          position: "sticky",
-          top: (theme) => `-${theme.spacing(2)}`,
-          zIndex: 4,
-          mx: -2,
-          mt: -2,
-          px: 3.5,
-          py: 1,
-          mb: 0,
-          bgcolor: "background.paper",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-          backdropFilter: "blur(8px)",
-          borderTopLeftRadius: "var(--fabric-radius-xl)",
-          borderTopRightRadius: "var(--fabric-radius-xl)",
-        }}
-      >
-        <Typography variant="h6">Experience</Typography>
-        {!isTimelineView && activeExperiencePositionLabel ? (
-          <Typography variant="subtitle2" color="text.secondary" sx={{ lineHeight: 1.2 }}>
-            {activeExperiencePositionLabel}
-          </Typography>
-        ) : null}
-        {!isTimelineView && activeExperienceRangeLabel ? (
-          <Typography variant="caption" color="text.secondary">
-            {activeExperienceRangeLabel}
-          </Typography>
-        ) : null}
-      </Typography>
+      {topRail ? (
+        <Box
+          sx={{
+            flexShrink: 0,
+            mx: -2,
+            mt: -2,
+            mb: 0,
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            backdropFilter: "blur(8px)",
+            borderTopLeftRadius: "var(--fabric-radius-xl)",
+            borderTopRightRadius: "var(--fabric-radius-xl)",
+          }}
+        >
+          {topRail}
+        </Box>
+      ) : null}
+      {!isTimelineView && hasMultipleExperienceItems ? (
+        <SubsectionPager
+          menuId="experience-item-selector-menu"
+          items={experiencePickerItems}
+          currentKey={activeExperienceKey}
+          selectedValueAsTitle
+          previousAriaLabel="Previous experience"
+          nextAriaLabel="Next experience"
+          selectorAriaLabel="Open experience selector"
+          onSelect={setActiveExperienceKey}
+          onPrevious={handlePreviousExperience}
+          onNext={handleNextExperience}
+        />
+      ) : null}
       <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
         {isTimelineView ? (
           <Box
@@ -434,19 +438,6 @@ export default function ExperienceTimeline() {
         )}
       </Box>
       <Box sx={{ flexShrink: 0 }}>
-        {!isTimelineView && hasMultipleExperienceItems ? (
-          <SubsectionPager
-            menuId="experience-item-selector-menu"
-            items={experiencePickerItems}
-            currentKey={activeExperienceKey}
-            previousAriaLabel="Previous experience"
-            nextAriaLabel="Next experience"
-            selectorAriaLabel="Open experience selector"
-            onSelect={setActiveExperienceKey}
-            onPrevious={handlePreviousExperience}
-            onNext={handleNextExperience}
-          />
-        ) : null}
         <Box
           sx={{
             mt: 0.5,

@@ -190,7 +190,11 @@ function renderRecommendationContent(rec: RecommendationEntry) {
   );
 }
 
-export default function Recognition() {
+type RecognitionProps = {
+  topRail?: React.ReactNode;
+};
+
+export default function Recognition({ topRail }: RecognitionProps) {
   const { recognition } = useResumeData();
   const snippets = recognition.snippets as RecognitionSnippetEntry[];
   const recommendations = recognition.recommendations;
@@ -349,34 +353,31 @@ export default function Recognition() {
         overflow: "hidden",
       }}
     >
-      <Typography
-        variant="h6"
-        sx={{
-          position: "sticky",
-          top: (theme) => `-${theme.spacing(2)}`,
-          zIndex: 5,
-          mx: -2,
-          mt: -2,
-          px: 3.5,
-          py: 1,
-          mb: 0,
-          bgcolor: "background.paper",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-          backdropFilter: "blur(8px)",
-          borderTopLeftRadius: "var(--fabric-radius-xl)",
-          borderTopRightRadius: "var(--fabric-radius-xl)",
-        }}
-      >
-        Recognition
-      </Typography>
+      {topRail ? (
+        <Box
+          sx={{
+            flexShrink: 0,
+            mx: -2,
+            mt: -2,
+            mb: 0,
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            backdropFilter: "blur(8px)",
+            borderTopLeftRadius: "var(--fabric-radius-xl)",
+            borderTopRightRadius: "var(--fabric-radius-xl)",
+          }}
+        >
+          {topRail}
+        </Box>
+      ) : null}
         <Box
           sx={{
             minHeight: 0,
             flex: "1 1 auto",
             display: "grid",
             gap: 2,
-            pt: 1.25,
+            pt: 0.5,
             gridTemplateRows: {
               xs: "minmax(120px, 150px) minmax(0, 1fr)",
               md: "minmax(130px, 165px) minmax(0, 1fr)",
@@ -436,9 +437,25 @@ export default function Recognition() {
             overflow: "hidden",
           }}
         >
-          <Typography variant="h6" gutterBottom className="mb-3">
-            Recommendations
-          </Typography>
+          {!hasMultipleRecommendationItems ? (
+            <Typography variant="h6" gutterBottom className="mb-3">
+              Recommendations
+            </Typography>
+          ) : null}
+          {hasMultipleRecommendationItems ? (
+            <SubsectionPager
+              menuId="recognition-recommendation-selector-menu"
+              items={recommendationPagerItems}
+              currentKey={activeRecommendationKey}
+              selectedValueAsTitle
+              previousAriaLabel="Previous recommendation"
+              nextAriaLabel="Next recommendation"
+              selectorAriaLabel="Open recommendation selector"
+              onSelect={setActiveRecommendationKey}
+              onPrevious={handlePreviousRecommendation}
+              onNext={handleNextRecommendation}
+            />
+          ) : null}
           <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
             <MediaCycler
               items={recommendationItems}
@@ -451,19 +468,6 @@ export default function Recognition() {
               }}
             />
           </Box>
-          {hasMultipleRecommendationItems ? (
-            <SubsectionPager
-              menuId="recognition-recommendation-selector-menu"
-              items={recommendationPagerItems}
-              currentKey={activeRecommendationKey}
-              previousAriaLabel="Previous recommendation"
-              nextAriaLabel="Next recommendation"
-              selectorAriaLabel="Open recommendation selector"
-              onSelect={setActiveRecommendationKey}
-              onPrevious={handlePreviousRecommendation}
-              onNext={handleNextRecommendation}
-            />
-          ) : null}
         </Box>
       </Box>
     </PortfolioPanel>

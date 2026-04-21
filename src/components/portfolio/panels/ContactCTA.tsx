@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
@@ -7,7 +8,11 @@ import LinkedIn from "@mui/icons-material/LinkedIn";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 
-export default function ContactCTA() {
+type ContactCTAProps = {
+  topRail?: ReactNode;
+};
+
+export default function ContactCTA({ topRail }: ContactCTAProps) {
   const { contactCTA, summary } = useResumeData();
   return (
     <PortfolioPanel
@@ -20,29 +25,25 @@ export default function ContactCTA() {
         overflow: "hidden",
       }}
     >
-      <Typography
-        variant="h6"
-        sx={{
-          position: "sticky",
-          top: (theme) => `-${theme.spacing(2)}`,
-          zIndex: 4,
-          mx: -2,
-          mt: -2,
-          px: 3.5,
-          py: 1,
-          mb: 0,
-          textAlign: "left",
-          bgcolor: "background.paper",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-          backdropFilter: "blur(8px)",
-          borderTopLeftRadius: "var(--fabric-radius-xl)",
-          borderTopRightRadius: "var(--fabric-radius-xl)",
-        }}
-      >
-        Contact
-      </Typography>
-      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflowY: "auto", pt: 1.5, pb: 1.5 }}>
+      {topRail ? (
+        <Box
+          sx={{
+            flexShrink: 0,
+            mx: -2,
+            mt: -2,
+            mb: 0,
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            backdropFilter: "blur(8px)",
+            borderTopLeftRadius: "var(--fabric-radius-xl)",
+            borderTopRightRadius: "var(--fabric-radius-xl)",
+          }}
+        >
+          {topRail}
+        </Box>
+      ) : null}
+      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflowY: "auto", pt: 0.75, pb: 1.5 }}>
         <Box className="mx-auto flex max-w-2xl flex-col items-center gap-4">
           <Typography color="text.secondary" className="leading-7">
             {contactCTA.body}

@@ -3,11 +3,12 @@
 import { type MouseEvent, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
+import Chip, { type ChipProps } from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import MoreVert from "@mui/icons-material/MoreVert";
@@ -15,9 +16,15 @@ import MoreVert from "@mui/icons-material/MoreVert";
 export type SubsectionPagerItem = {
   key: string;
   title: string;
+  selectedTitle?: string;
+  selectedImageSrc?: string;
+  selectedImageAlt?: string;
+  selectedIcon?: ReactNode;
   optionTitle?: string;
   optionSubtitle?: string | string[];
   optionLabel?: string;
+  optionTypeChipLabel?: string;
+  optionTypeChipColor?: ChipProps["color"];
   optionImageSrc?: string;
   optionImageAlt?: string;
   optionIcon?: ReactNode;
@@ -26,6 +33,7 @@ export type SubsectionPagerItem = {
 type SubsectionPagerProps = {
   items: SubsectionPagerItem[];
   currentKey?: string;
+  selectedValueAsTitle?: boolean;
   menuId: string;
   previousAriaLabel: string;
   nextAriaLabel: string;
@@ -40,6 +48,7 @@ const formatLabel = (index: number, title: string) => `${index + 1}. ${title}`;
 export default function SubsectionPager({
   items,
   currentKey,
+  selectedValueAsTitle = false,
   menuId,
   previousAriaLabel,
   nextAriaLabel,
@@ -75,6 +84,51 @@ export default function SubsectionPager({
     onSelect(key);
     setSelectorAnchorEl(null);
   };
+  const selectedTitleSource =
+    currentItem.selectedTitle ??
+    currentItem.optionTitle ??
+    currentItem.optionLabel ??
+    currentItem.title;
+  const selectedTitle = selectedTitleSource?.trim() || currentItem.title;
+  const selectedVisual = currentItem.selectedImageSrc ? (
+    <Box
+      component="img"
+      src={currentItem.selectedImageSrc}
+      alt={currentItem.selectedImageAlt || `${currentItem.title} icon`}
+      sx={{
+        width: 24,
+        height: 24,
+        borderRadius: "50%",
+        objectFit: "cover",
+        border: "1px solid",
+        borderColor: "divider",
+        bgcolor: "background.paper",
+        flexShrink: 0,
+      }}
+    />
+  ) : currentItem.selectedIcon ? (
+    <Box
+      aria-hidden="true"
+      sx={{
+        width: 24,
+        height: 24,
+        borderRadius: "50%",
+        border: "1px solid",
+        borderColor: "divider",
+        bgcolor: "background.paper",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "text.secondary",
+        flexShrink: 0,
+        "& .MuiSvgIcon-root": {
+          fontSize: "0.95rem",
+        },
+      }}
+    >
+      {currentItem.selectedIcon}
+    </Box>
+  ) : null;
 
   return (
     <>
@@ -82,10 +136,18 @@ export default function SubsectionPager({
         sx={{
           flexShrink: 0,
           mt: 0.5,
+          mx: 0.75,
           px: 1,
-          py: 0.25,
-          borderTop: "1px solid",
+          py: 0.5,
+          borderBottom: selectedValueAsTitle ? "none" : "1px solid",
           borderColor: "divider",
+          ...(selectedValueAsTitle
+            ? {
+                bgcolor: "transparent",
+                boxShadow: "none",
+                backdropFilter: "none",
+              }
+            : undefined),
         }}
       >
         <Box
@@ -96,7 +158,27 @@ export default function SubsectionPager({
             gap: 1,
           }}
         >
-          <IconButton size="small" aria-label={previousAriaLabel} onClick={onPrevious}>
+          <IconButton
+            size="small"
+            aria-label={previousAriaLabel}
+            onClick={onPrevious}
+            sx={
+              selectedValueAsTitle
+                ? (theme) => ({
+                    color:
+                      theme.palette.mode === "dark"
+                        ? alpha(theme.palette.common.white, 0.9)
+                        : theme.palette.text.primary,
+                    bgcolor: "transparent",
+                    boxShadow: "none",
+                    backdropFilter: "none",
+                    "&:hover": {
+                      bgcolor: "transparent",
+                    },
+                  })
+                : undefined
+            }
+          >
             <ChevronLeft fontSize="small" />
           </IconButton>
           <Chip
@@ -105,18 +187,37 @@ export default function SubsectionPager({
             variant="outlined"
             onClick={handleSelectorOpen}
             label={
-              <Typography
-                component="span"
+              <Box
                 sx={{
-                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.7,
+                  width: "100%",
                   minWidth: 0,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
                 }}
               >
-                {formatLabel(currentIndex, currentItem.title)}
-              </Typography>
+                {selectedVisual}
+                <Typography
+                  component="span"
+                  sx={{
+                    flex: 1,
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    fontSize: selectedValueAsTitle
+                      ? { xs: "1.22rem", md: "1.38rem" }
+                      : { xs: "1.12rem", md: "1.24rem" },
+                    lineHeight: selectedValueAsTitle ? 1.12 : 1.2,
+                    fontWeight: 800,
+                    color: selectedValueAsTitle
+                      ? (theme) => alpha(theme.palette.common.white, 0.96)
+                      : undefined,
+                  }}
+                >
+                  {formatLabel(currentIndex, selectedTitle)}
+                </Typography>
+              </Box>
             }
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
@@ -125,14 +226,47 @@ export default function SubsectionPager({
               minWidth: 0,
               maxWidth: "100%",
               justifySelf: "stretch",
+              ...(selectedValueAsTitle
+                ? {
+                    borderColor: "transparent",
+                    color: "common.white",
+                    bgcolor: "transparent",
+                    boxShadow: "none",
+                    backdropFilter: "none",
+                    "&:hover": {
+                      bgcolor: "transparent",
+                    },
+                  }
+                : undefined),
               "& .MuiChip-label": {
                 width: "100%",
                 overflow: "hidden",
                 display: "block",
+                py: 0.15,
               },
             }}
           />
-          <IconButton size="small" aria-label={nextAriaLabel} onClick={onNext}>
+          <IconButton
+            size="small"
+            aria-label={nextAriaLabel}
+            onClick={onNext}
+            sx={
+              selectedValueAsTitle
+                ? (theme) => ({
+                    color:
+                      theme.palette.mode === "dark"
+                        ? alpha(theme.palette.common.white, 0.9)
+                        : theme.palette.text.primary,
+                    bgcolor: "transparent",
+                    boxShadow: "none",
+                    backdropFilter: "none",
+                    "&:hover": {
+                      bgcolor: "transparent",
+                    },
+                  })
+                : undefined
+            }
+          >
             <ChevronRight fontSize="small" />
           </IconButton>
           <IconButton
@@ -142,6 +276,22 @@ export default function SubsectionPager({
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? menuId : undefined}
+            sx={
+              selectedValueAsTitle
+                ? (theme) => ({
+                    color:
+                      theme.palette.mode === "dark"
+                        ? alpha(theme.palette.common.white, 0.9)
+                        : theme.palette.text.primary,
+                    bgcolor: "transparent",
+                    boxShadow: "none",
+                    backdropFilter: "none",
+                    "&:hover": {
+                      bgcolor: "transparent",
+                    },
+                  })
+                : undefined
+            }
           >
             <MoreVert fontSize="small" />
           </IconButton>
@@ -223,18 +373,47 @@ export default function SubsectionPager({
                   : undefined),
               }}
             >
-              <Typography
-                variant="body2"
+              <Box
                 sx={{
-                  fontWeight: 600,
-                  lineHeight: 1.3,
-                  whiteSpace: "normal",
-                  wordBreak: "break-word",
-                  overflowWrap: "anywhere",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: 0.75,
                 }}
               >
-                {item.optionTitle ?? item.optionLabel ?? formatLabel(index, item.title)}
-              </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    minWidth: 0,
+                    flex: "1 1 auto",
+                    fontWeight: 600,
+                    lineHeight: 1.3,
+                    whiteSpace: "normal",
+                    wordBreak: "break-word",
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {item.optionTitle ?? item.optionLabel ?? formatLabel(index, item.title)}
+                </Typography>
+                {item.optionTypeChipLabel ? (
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color={item.optionTypeChipColor ?? "default"}
+                    label={item.optionTypeChipLabel}
+                    sx={{
+                      flexShrink: 0,
+                      height: 20,
+                      "& .MuiChip-label": {
+                        px: 0.8,
+                        fontSize: "0.66rem",
+                        fontWeight: 700,
+                        letterSpacing: "0.01em",
+                      },
+                    }}
+                  />
+                ) : null}
+              </Box>
               {item.optionSubtitle ? (
                 <Typography
                   variant="caption"

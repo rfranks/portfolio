@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -10,7 +11,11 @@ import { ListItemAvatar } from "@mui/material";
 import Image from "next/image";
 import { withBasePath } from "@/utils/basePath";
 
-export default function Education() {
+type EducationProps = {
+  topRail?: ReactNode;
+};
+
+export default function Education({ topRail }: EducationProps) {
   const { education } = useResumeData();
   return (
     <PortfolioPanel
@@ -22,28 +27,25 @@ export default function Education() {
         overflow: "hidden",
       }}
     >
-      <Typography
-        variant="h6"
-        sx={{
-          position: "sticky",
-          top: (theme) => `-${theme.spacing(2)}`,
-          zIndex: 4,
-          mx: -2,
-          mt: -2,
-          px: 3.5,
-          py: 1,
-          mb: 0,
-          bgcolor: "background.paper",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-          backdropFilter: "blur(8px)",
-          borderTopLeftRadius: "var(--fabric-radius-xl)",
-          borderTopRightRadius: "var(--fabric-radius-xl)",
-        }}
-      >
-        Education
-      </Typography>
-      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflowY: "auto", pt: 1, pb: 0.5 }}>
+      {topRail ? (
+        <Box
+          sx={{
+            flexShrink: 0,
+            mx: -2,
+            mt: -2,
+            mb: 0,
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            backdropFilter: "blur(8px)",
+            borderTopLeftRadius: "var(--fabric-radius-xl)",
+            borderTopRightRadius: "var(--fabric-radius-xl)",
+          }}
+        >
+          {topRail}
+        </Box>
+      ) : null}
+      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflowY: "auto", pt: 0.5, pb: 0.5 }}>
         <List
           sx={{
             display: "flex",

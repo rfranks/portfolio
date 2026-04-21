@@ -9,7 +9,11 @@ import type { MediaCyclerItem } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 
-export default function HobbiesCard() {
+type HobbiesCardProps = {
+  topRail?: React.ReactNode;
+};
+
+export default function HobbiesCard({ topRail }: HobbiesCardProps) {
   const { hobbies } = useResumeData();
   const heroFrameSx = React.useMemo(
     () => ({
@@ -135,28 +139,25 @@ export default function HobbiesCard() {
 
   return (
     <PortfolioPanel className="h-full">
-      <Typography
-        variant="h6"
-        sx={{
-          position: "sticky",
-          top: (theme) => `-${theme.spacing(2)}`,
-          zIndex: 4,
-          mx: -2,
-          mt: -2,
-          px: 3.5,
-          py: 1,
-          mb: 0,
-          bgcolor: "background.paper",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-          backdropFilter: "blur(8px)",
-          borderTopLeftRadius: "var(--fabric-radius-xl)",
-          borderTopRightRadius: "var(--fabric-radius-xl)",
-        }}
-      >
-        {hobbies.title}
-      </Typography>
-      <Box sx={{ pt: 1.25 }}>
+      {topRail ? (
+        <Box
+          sx={{
+            flexShrink: 0,
+            mx: -2,
+            mt: -2,
+            mb: 0,
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            backdropFilter: "blur(8px)",
+            borderTopLeftRadius: "var(--fabric-radius-xl)",
+            borderTopRightRadius: "var(--fabric-radius-xl)",
+          }}
+        >
+          {topRail}
+        </Box>
+      ) : null}
+      <Box sx={{ pt: 0.5 }}>
       <Stack spacing={2}>
         <Stack
           spacing={2}

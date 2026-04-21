@@ -1,9 +1,9 @@
 import * as React from "react";
 import Image from "next/image";
 import OpenInNew from "@mui/icons-material/OpenInNew";
+import AutoStoriesOutlined from "@mui/icons-material/AutoStoriesOutlined";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { ResumeData } from "@/consts/resumeData";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
@@ -42,6 +42,53 @@ type CardsFanVisual = {
 type ProjectVisual = ImageVisual | CardsFanVisual;
 type ProjectEntry = ResumeData["projects"][number];
 type ProjectsSection = ResumeData["projectsSection"];
+
+function getProjectOptionImage(project: ProjectEntry): string | undefined {
+  const watermark = project.watermark as ProjectVisual | null | undefined;
+  if (!watermark) {
+    return undefined;
+  }
+
+  if (watermark.kind === "image") {
+    return withBasePath(watermark.src);
+  }
+
+  if (watermark.kind === "cardsFan") {
+    const firstCard = watermark.cards[0];
+    return firstCard?.src ? withBasePath(firstCard.src) : undefined;
+  }
+
+  return undefined;
+}
+
+function getProjectOptionShortText(project: ProjectEntry): string {
+  const maybeShortText = (project as Record<string, unknown>).shortText;
+  if (typeof maybeShortText === "string" && maybeShortText.trim()) {
+    return maybeShortText.trim();
+  }
+
+  const fromDescription = project.description
+    ?.split(/\n{2,}/)[0]
+    ?.replace(/\s+/g, " ")
+    ?.trim();
+  if (fromDescription) {
+    return fromDescription.length > 140
+      ? `${fromDescription.slice(0, 137).trimEnd()}...`
+      : fromDescription;
+  }
+
+  const fromInterests = project.interestsMeWhy
+    ?.split(/\n{2,}/)[0]
+    ?.replace(/\s+/g, " ")
+    ?.trim();
+  if (fromInterests) {
+    return fromInterests.length > 140
+      ? `${fromInterests.slice(0, 137).trimEnd()}...`
+      : fromInterests;
+  }
+
+  return "";
+}
 
 function renderVisual(visual: ProjectVisual, key: string) {
   if (visual.kind === "image") {
@@ -108,7 +155,7 @@ function renderProjectContent(
 ) {
   return (
     <Box
-      className="group relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.04] p-4 md:p-5"
+      className="relative overflow-hidden rounded-[24px] p-4 md:p-5"
       sx={{
         width: "100%",
         minHeight: 0,
@@ -116,30 +163,17 @@ function renderProjectContent(
         display: "flex",
         flexDirection: "column",
         gap: 2,
+        bgcolor: "transparent",
+        backdropFilter: "none",
       }}
     >
-      <Box className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-400/70 via-blue-500/70 to-teal-400/70 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
       {project.watermark
         ? renderVisual(
             project.watermark as ProjectVisual,
             `${project.href}-watermark-cycle`,
           )
         : null}
-      <Stack
-        direction="row"
-        spacing={1}
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ minWidth: 0, position: "relative", zIndex: 1 }}
-      >
-        <Typography
-          variant="h6"
-          component="h3"
-          color="text.primary"
-          sx={{ minWidth: 0, pr: 1 }}
-        >
-          {project.name}
-        </Typography>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", position: "relative", zIndex: 1 }}>
         <Chip
           label={project.type === "work" ? "Work" : "Personal"}
           size="small"
@@ -147,7 +181,7 @@ function renderProjectContent(
           color={project.type === "work" ? "primary" : "secondary"}
           sx={{ fontWeight: 600, flexShrink: 0 }}
         />
-      </Stack>
+      </Box>
 
       <Box
         sx={{
@@ -210,7 +244,11 @@ function renderProjectContent(
   );
 }
 
-export default function ProjectsGrid() {
+type ProjectsGridProps = {
+  topRail?: React.ReactNode;
+};
+
+export default function ProjectsGrid({ topRail }: ProjectsGridProps) {
   const { projects, projectsSection } = useResumeData();
   const sortedProjects = React.useMemo(
     () =>
@@ -262,10 +300,28 @@ export default function ProjectsGrid() {
   );
   const projectPickerItems = React.useMemo(
     () =>
-      sortedProjects.map((project) => ({
-        key: project.href,
-        title: project.name,
-      })),
+      sortedProjects.map((project) => {
+        const optionImageSrc = getProjectOptionImage(project);
+        const optionSubtitle = getProjectOptionShortText(project);
+        return {
+          key: project.href,
+          title: project.name,
+          optionTitle: project.name,
+          optionSubtitle: optionSubtitle || undefined,
+          optionTypeChipLabel: project.type === "work" ? "Work" : "Personal",
+          optionTypeChipColor: project.type === "work" ? "primary" : "secondary",
+          optionImageSrc,
+          optionImageAlt: `${project.name} preview`,
+          selectedImageSrc: optionImageSrc,
+          selectedImageAlt: `${project.name} preview`,
+          selectedIcon: optionImageSrc ? undefined : (
+            <AutoStoriesOutlined fontSize="small" />
+          ),
+          optionIcon: optionImageSrc ? undefined : (
+            <AutoStoriesOutlined fontSize="small" />
+          ),
+        };
+      }),
     [sortedProjects],
   );
   const activeProjectIndex = React.useMemo(
@@ -310,6 +366,26 @@ export default function ProjectsGrid() {
         flexDirection: "column",
       }}
     >
+      {topRail ? (
+        <Box
+          sx={{
+            flexShrink: 0,
+            mx: -2,
+            mt: -2,
+            mb: 0,
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            backdropFilter: "blur(8px)",
+            borderTopLeftRadius: "var(--fabric-radius-xl)",
+            borderTopRightRadius: "var(--fabric-radius-xl)",
+            position: "relative",
+            zIndex: 6,
+          }}
+        >
+          {topRail}
+        </Box>
+      ) : null}
       <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-36 overflow-hidden md:block">
         {projectsSection.marks.map((mark, index) =>
           mark.kind === "image" ? (
@@ -324,44 +400,24 @@ export default function ProjectsGrid() {
           ),
         )}
       </div>
-      <Box
-        className="relative z-[1] flex items-end justify-between gap-4"
-        sx={{
-          position: "sticky",
-          top: (theme) => `-${theme.spacing(2)}`,
-          zIndex: 4,
-          mx: -2,
-          mt: -2,
-          px: 3.5,
-          py: 1,
-          mb: 0,
-          bgcolor: "background.paper",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-          backdropFilter: "blur(8px)",
-          borderTopLeftRadius: "var(--fabric-radius-xl)",
-          borderTopRightRadius: "var(--fabric-radius-xl)",
-        }}
-      >
-        <Box className="max-w-2xl">
-          <Typography variant="h6" gutterBottom>
-            {projectsSection.title}
-          </Typography>
-          {projectsSection.descriptionLines.map((line) => (
-            <Typography
-              key={line}
-              variant="body2"
-              color="text.secondary"
-              className="max-w-2xl"
-              sx={{ display: { xs: "none", md: "block" } }}
-            >
-              {line}
-            </Typography>
-          ))}
+      {hasMultipleProjectItems ? (
+        <Box sx={{ py: 1.25 }}>
+          <SubsectionPager
+            menuId="project-item-selector-menu"
+            items={projectPickerItems}
+            currentKey={activeProjectKey}
+            selectedValueAsTitle
+            previousAriaLabel="Previous project"
+            nextAriaLabel="Next project"
+            selectorAriaLabel="Open project selector"
+            onSelect={setActiveProjectKey}
+            onPrevious={handlePreviousProject}
+            onNext={handleNextProject}
+          />
         </Box>
-      </Box>
+      ) : null}
 
-      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden", pt: 1.25 }}>
+      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden", pt: 0.5 }}>
         <MediaCycler
           items={projectItems}
           singlePanel
@@ -373,21 +429,6 @@ export default function ProjectsGrid() {
           }}
         />
       </Box>
-      {hasMultipleProjectItems ? (
-        <Box sx={{ py: 1.25 }}>
-          <SubsectionPager
-            menuId="project-item-selector-menu"
-            items={projectPickerItems}
-            currentKey={activeProjectKey}
-            previousAriaLabel="Previous project"
-            nextAriaLabel="Next project"
-            selectorAriaLabel="Open project selector"
-            onSelect={setActiveProjectKey}
-            onPrevious={handlePreviousProject}
-            onNext={handleNextProject}
-          />
-        </Box>
-      ) : null}
     </PortfolioPanel>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
-import { ThemeProvider } from "@mui/material/styles";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { ThemeProvider, keyframes } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
@@ -48,7 +48,27 @@ import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
+import { useAudio } from "@/hooks/audio/useAudio";
+import { rewindAndPlayAudio } from "@/utils/audio";
 import getFabricTheme from "@/themes/fabricTheme";
+
+const SECTION_TRANSITION_MS = 320;
+const sectionSlideInFromRight = keyframes`
+  0% { opacity: 0.66; transform: translateX(14%); }
+  100% { opacity: 1; transform: translateX(0); }
+`;
+const sectionSlideOutToLeft = keyframes`
+  0% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0.4; transform: translateX(-14%); }
+`;
+const sectionSlideInFromLeft = keyframes`
+  0% { opacity: 0.66; transform: translateX(-14%); }
+  100% { opacity: 1; transform: translateX(0); }
+`;
+const sectionSlideOutToRight = keyframes`
+  0% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0.4; transform: translateX(14%); }
+`;
 
 export default function HomePageClient() {
   const { navigation, summary } = useResumeData();
@@ -78,6 +98,14 @@ export default function HomePageClient() {
   const [activeSectionId, setActiveSectionId] = useState<string>(
     tocSections[0]?.id ?? "hero",
   );
+  const [displaySectionId, setDisplaySectionId] = useState<string>(
+    tocSections[0]?.id ?? "hero",
+  );
+  const [outgoingSectionId, setOutgoingSectionId] = useState<string | null>(null);
+  const [sectionDirection, setSectionDirection] = useState<1 | -1>(1);
+  const [isSectionTransitioning, setIsSectionTransitioning] = useState(false);
+  const sectionTransitionTimerRef = useRef<number | null>(null);
+  const sectionNavSfx = useAudio("/audio/card-slide-3.ogg");
 
   const { setDocumentTitle } = useDocumentTitle();
   useEffect(() => {
@@ -186,28 +214,86 @@ export default function HomePageClient() {
     [activeSectionId, tocSections],
   );
 
-  const activeSectionContent = useMemo(() => {
-    switch (activeSection?.id) {
+  const renderSectionContent = useCallback((sectionId: string) => {
+    const topRail = (
+      <HomeSectionPager
+        items={tocSections}
+        currentSectionId={sectionId}
+        onSelectSection={navigateToSection}
+      />
+    );
+
+    switch (sectionId) {
       case "hero":
-        return <ResumeOverview />;
+        return <ResumeOverview topRail={topRail} />;
       case "education":
-        return <Education />;
+        return <Education topRail={topRail} />;
       case "experience":
-        return <ExperienceTimeline />;
+        return <ExperienceTimeline topRail={topRail} />;
       case "competencies":
-        return <CoreCompetencies />;
+        return <CoreCompetencies topRail={topRail} />;
       case "projects":
-        return <ProjectsGrid />;
+        return <ProjectsGrid topRail={topRail} />;
       case "recognition":
-        return <Recognition />;
+        return <Recognition topRail={topRail} />;
       case "hobbies":
-        return <HobbiesCard />;
+        return <HobbiesCard topRail={topRail} />;
       case "contact":
-        return <ContactCTA />;
+        return <ContactCTA topRail={topRail} />;
       default:
-        return <ResumeOverview />;
+        return <ResumeOverview topRail={topRail} />;
     }
-  }, [activeSection?.id]);
+  }, [navigateToSection, tocSections]);
+
+  useEffect(() => {
+    if (!isReady) {
+      return;
+    }
+
+    if (activeSectionId === displaySectionId) {
+      return;
+    }
+
+    const currentIndex = Math.max(
+      0,
+      tocSections.findIndex((section) => section.id === displaySectionId),
+    );
+    const nextIndex = Math.max(
+      0,
+      tocSections.findIndex((section) => section.id === activeSectionId),
+    );
+
+    setSectionDirection(nextIndex >= currentIndex ? 1 : -1);
+    setOutgoingSectionId(displaySectionId);
+    setDisplaySectionId(activeSectionId);
+    setIsSectionTransitioning(true);
+    rewindAndPlayAudio(sectionNavSfx, { volume: 0.18 });
+
+    if (sectionTransitionTimerRef.current) {
+      window.clearTimeout(sectionTransitionTimerRef.current);
+    }
+
+    sectionTransitionTimerRef.current = window.setTimeout(() => {
+      setOutgoingSectionId(null);
+      setIsSectionTransitioning(false);
+      sectionTransitionTimerRef.current = null;
+    }, SECTION_TRANSITION_MS);
+  }, [
+    activeSectionId,
+    displaySectionId,
+    isReady,
+    sectionNavSfx,
+    tocSections,
+  ]);
+
+  useEffect(
+    () => () => {
+      if (sectionTransitionTimerRef.current) {
+        window.clearTimeout(sectionTransitionTimerRef.current);
+      }
+    },
+    [],
+  );
 
   if (!isReady) {
     return null;
@@ -527,7 +613,7 @@ export default function HomePageClient() {
                   pr: { lg: 1 },
                   display: "flex",
                   flexDirection: "column",
-                  gap: 1.5,
+                  gap: 0,
                 }}
               >
                 <Box
@@ -537,33 +623,59 @@ export default function HomePageClient() {
                     minHeight: 0,
                     height: "100%",
                     flex: "1 1 auto",
-                    overflowY: "hidden",
+                    overflow: "hidden",
                     pr: { xs: 0, md: 0.5 },
-                    "& > *": {
-                      display: "flex",
-                      flexDirection: "column",
-                      flex: "1 1 auto",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <Box
+                    sx={{
                       minHeight: 0,
                       height: "100%",
-                      overflowY: "auto",
-                      marginBottom: "0 !important",
-                    },
-                  }}
-                >
-                  {activeSectionContent}
-                </Box>
-                <Box
-                  sx={{
-                    mt: "auto",
-                    flexShrink: 0,
-                    pb: { xs: 0.25, md: 0 },
-                  }}
-                >
-                  <HomeSectionPager
-                    items={tocSections}
-                    currentSectionId={activeSection?.id ?? tocSections[0]?.id ?? "hero"}
-                    onSelectSection={navigateToSection}
-                  />
+                      flex: "1 1 auto",
+                      overflow: "hidden",
+                      position: "relative",
+                      "& > .home-section-surface": {
+                        display: "flex",
+                        flexDirection: "column",
+                        flex: "1 1 auto",
+                        minHeight: 0,
+                        height: "100%",
+                        overflowY: "auto",
+                        marginBottom: "0 !important",
+                      },
+                    }}
+                  >
+                    {outgoingSectionId ? (
+                      <Box
+                        className="home-section-surface"
+                        sx={{
+                          position: "absolute",
+                          inset: 0,
+                          zIndex: 1,
+                          pointerEvents: "none",
+                          animation: `${sectionDirection > 0 ? sectionSlideOutToLeft : sectionSlideOutToRight} ${SECTION_TRANSITION_MS}ms cubic-bezier(.22,.82,.28,.98) both`,
+                        }}
+                      >
+                        {renderSectionContent(outgoingSectionId)}
+                      </Box>
+                    ) : null}
+                    <Box
+                      className="home-section-surface"
+                      key={`incoming-${displaySectionId}-${sectionDirection}`}
+                      sx={{
+                        position: "absolute",
+                        inset: 0,
+                        zIndex: 2,
+                        animation: isSectionTransitioning
+                          ? `${sectionDirection > 0 ? sectionSlideInFromRight : sectionSlideInFromLeft} ${SECTION_TRANSITION_MS}ms cubic-bezier(.22,.82,.28,.98) both`
+                          : "none",
+                      }}
+                    >
+                      {renderSectionContent(displaySectionId)}
+                    </Box>
+                  </Box>
                 </Box>
               </Box>
             </Box>

@@ -13,7 +13,11 @@ import { AlternateEmail, GitHub, LinkedIn } from "@mui/icons-material";
 import Tooltip from "@mui/material/Tooltip";
 import Hero from "@/components/fabric/Hero";
 
-export default function ResumeOverview() {
+type ResumeOverviewProps = {
+  topRail?: React.ReactNode;
+};
+
+export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
   const { summary, recognition } = useResumeData();
   const githubAchievements = React.useMemo(
     () => recognition.githubAchievements || [],
@@ -47,6 +51,23 @@ export default function ResumeOverview() {
           overflow: "hidden",
         }}
       >
+        {topRail ? (
+          <Box
+            sx={{
+              flexShrink: 0,
+              position: "relative",
+              zIndex: 6,
+              bgcolor: "background.paper",
+              borderBottom: "1px solid",
+              borderColor: "divider",
+              backdropFilter: "blur(8px)",
+              borderTopLeftRadius: "var(--fabric-radius-xl)",
+              borderTopRightRadius: "var(--fabric-radius-xl)",
+            }}
+          >
+            {topRail}
+          </Box>
+        ) : null}
         <Box
           sx={{
             minHeight: 0,
@@ -59,31 +80,9 @@ export default function ResumeOverview() {
           }}
         >
           <Box
-            component="header"
-            sx={{
-              position: "sticky",
-              top: 0,
-              zIndex: 6,
-              minHeight: 52,
-              mt: { xs: -2.5, md: -3.5 },
-              px: { xs: 2, md: 3.5 },
-              pt: { xs: 2.5, md: 3.5 },
-              display: "flex",
-              alignItems: "center",
-              bgcolor: "background.paper",
-              borderBottom: "1px solid",
-              borderColor: "divider",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            <Typography variant="h6" sx={{ textAlign: "left" }}>
-              Summary
-            </Typography>
-          </Box>
-          <Box
             sx={{
               px: { xs: 2, md: 3.5 },
-              pt: { xs: 2, md: 2.25 },
+              pt: { xs: 1.25, md: 1.5 },
               display: "flex",
               flexDirection: "column",
               gap: { xs: 1.5, md: 2 },
@@ -91,7 +90,7 @@ export default function ResumeOverview() {
           >
             <Box
               className="flex flex-col items-center gap-2.5 text-center"
-              sx={{ mt: { xs: 1.5, md: 2.25 } }}
+              sx={{ mt: { xs: 0.25, md: 0.5 } }}
             >
               <Typography
                 component="p"
@@ -167,12 +166,15 @@ export default function ResumeOverview() {
                 {githubAchievements.length > 0 ? (
                   <Box sx={{ pt: { xs: 1, md: 1.25 }, flexShrink: 0 }}>
                     <Stack
-                      direction="column"
+                      direction="row"
                       spacing={1}
                       sx={{
                         width: "100%",
                         pb: 0.25,
-                        justifyContent: "flex-start",
+                        alignItems: "stretch",
+                        justifyContent: "space-evenly",
+                        flexWrap: "nowrap",
+                        gap: { xs: 1, md: 1.25 },
                       }}
                     >
                       {githubAchievements.map((achievement) => (
@@ -181,23 +183,32 @@ export default function ResumeOverview() {
                           component="a"
                           href={achievement.achievementUrl}
                           target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 0.75,
-                          width: "100%",
-                          maxWidth: { xs: "100%", md: 460 },
-                          borderRadius: "14px",
-                          border: "1px solid",
-                          borderColor: "divider",
-                          bgcolor: "background.paper",
-                          px: 1.1,
-                          py: 0.75,
-                          textDecoration: "none",
-                          color: "inherit",
-                        }}
-                      >
+                          rel="noopener noreferrer"
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.75,
+                            width: "100%",
+                            minWidth: 0,
+                            flex: "1 1 0",
+                            borderRadius: "14px",
+                            border: "1px solid",
+                            borderColor: "divider",
+                            bgcolor: "background.paper",
+                            px: 1.1,
+                            py: 0.75,
+                            textDecoration: "none",
+                            color: "inherit",
+                            transition:
+                              "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease",
+                            "&:hover": {
+                              transform: "translateY(-1px)",
+                              boxShadow: 2,
+                              borderColor: "primary.main",
+                              bgcolor: "action.hover",
+                            },
+                          }}
+                        >
                           <ImageLightbox
                             src={withBasePath(achievement.imageSrcUrl)}
                             alt={achievement.name}
@@ -216,11 +227,11 @@ export default function ResumeOverview() {
                           </ImageLightbox>
                         <Typography
                           variant="caption"
-                          sx={{ fontWeight: 700 }}
+                          sx={{ fontWeight: 700, minWidth: 0 }}
                         >
                           {achievement.name}
                           {achievement.tier ? ` ${achievement.tier}` : ""}
-                          </Typography>
+                        </Typography>
                         </Box>
                       ))}
                     </Stack>

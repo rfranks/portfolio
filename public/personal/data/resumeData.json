@@ -468,7 +468,7 @@
   ],
   "hobbies": {
     "title": "Hobbies",
-    "heroImageUrl": "/personal/images/hobbies-hero.png",
+    "heroImageUrl": "/personal/images/personal/hobbies-hero.png",
     "heroVideoUrl": null,
     "items": [
       "Sea-dooing",
@@ -1081,6 +1081,14 @@
       "image": "/personal/images/employers/cashstar.png"
     },
     {
+      "company": "IDEXX",
+      "position": "Full-stack Consultant",
+      "location": "Portland, ME",
+      "start": "January 2012",
+      "end": "June 2012",
+      "details": ["Consultant on veterinary practice management platform."]
+    },
+    {
       "company": "REZ-1",
       "position": "Software Engineering Consultant",
       "location": "Wellesley, MA",
@@ -1092,13 +1100,11 @@
       ]
     },
     {
-      "company": "IDEXX",
-      "position": "Consultant",
-      "details": ["Consultant on veterinary practice management platform."]
-    },
-    {
       "company": "Fetch Enterprises",
-      "position": "Full-stack Developer",
+      "location": "Portland, ME",
+      "start": "Aug 2008",
+      "end": "October 2010",
+      "position": "",
       "details": [
         "Full-stack developer focused on Java-based web application development."
       ]

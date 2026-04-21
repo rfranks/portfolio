@@ -163,7 +163,11 @@ const renderCompetencyOptionIcon = (iconKey?: string) => {
   }
 };
 
-export default function CoreCompetencies() {
+type CoreCompetenciesProps = {
+  topRail?: React.ReactNode;
+};
+
+export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
   const { competencies } = useResumeData();
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
@@ -269,11 +273,7 @@ export default function CoreCompetencies() {
         const key = `competency-category-${index}`;
         return {
           key,
-          title: category.title,
-          titleIcon: renderCompetencyOptionIcon(
-            typeof category.icon === "string" ? category.icon : undefined,
-          ),
-          titleIconAriaLabel: `${category.title} category icon`,
+          title: "",
           description: "",
           mediaType: "custom" as const,
           mediaUrl: "",
@@ -286,12 +286,6 @@ export default function CoreCompetencies() {
             height: "100%",
             display: "flex",
             flexDirection: "column",
-          },
-          titleSx: {
-            fontSize: { xs: "1.55rem", md: "1.75rem" },
-            lineHeight: 1.12,
-            fontWeight: 800,
-            letterSpacing: "-0.01em",
           },
           assetFrameSx: {
             minHeight: 0,
@@ -374,6 +368,9 @@ export default function CoreCompetencies() {
           title: category.title,
           optionTitle: category.title,
           optionSubtitle: optionSubtitle || undefined,
+          selectedIcon: renderCompetencyOptionIcon(
+            typeof category.icon === "string" ? category.icon : undefined,
+          ),
           optionIcon: renderCompetencyOptionIcon(
             typeof category.icon === "string" ? category.icon : undefined,
           ),
@@ -733,32 +730,25 @@ export default function CoreCompetencies() {
 
   return (
     <PortfolioPanel className="h-full overflow-hidden">
-      <Box
-        sx={{
-          position: "sticky",
-          top: (theme) => `-${theme.spacing(2)}`,
-          zIndex: 5,
-          mx: -2,
-          mt: -2,
-          px: 3.5,
-          py: 1,
-          mb: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 1.5,
-          bgcolor: "background.paper",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-          backdropFilter: "blur(8px)",
-          borderTopLeftRadius: "var(--fabric-radius-xl)",
-          borderTopRightRadius: "var(--fabric-radius-xl)",
-        }}
-      >
-        <Typography variant="h6">Core Competencies</Typography>
-      </Box>
-
-      <Box sx={{ minHeight: 0, flex: "1 1 auto", pt: 1.25, overflow: "hidden" }}>
+      {topRail ? (
+        <Box
+          sx={{
+            flexShrink: 0,
+            mx: -2,
+            mt: -2,
+            mb: 0,
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            backdropFilter: "blur(8px)",
+            borderTopLeftRadius: "var(--fabric-radius-xl)",
+            borderTopRightRadius: "var(--fabric-radius-xl)",
+          }}
+        >
+          {topRail}
+        </Box>
+      ) : null}
+      <Box sx={{ minHeight: 0, flex: "1 1 auto", pt: 0.5, overflow: "hidden" }}>
       {isCloudView ? (
         <Box
           ref={panelContainerRef}
@@ -1273,6 +1263,20 @@ export default function CoreCompetencies() {
             overflow: "hidden",
           }}
         >
+          {hasMultipleBulletCategoryItems ? (
+            <SubsectionPager
+              menuId="competency-category-selector-menu"
+              items={bulletCategoryPickerItems}
+              currentKey={activeBulletCategoryKey}
+              selectedValueAsTitle
+              previousAriaLabel="Previous competency category"
+              nextAriaLabel="Next competency category"
+              selectorAriaLabel="Open competency category selector"
+              onSelect={setActiveBulletCategoryKey}
+              onPrevious={handlePreviousBulletCategory}
+              onNext={handleNextBulletCategory}
+            />
+          ) : null}
           <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
             <MediaCycler
               items={bulletCategoryItems}
@@ -1285,19 +1289,6 @@ export default function CoreCompetencies() {
               }}
             />
           </Box>
-          {hasMultipleBulletCategoryItems ? (
-            <SubsectionPager
-              menuId="competency-category-selector-menu"
-              items={bulletCategoryPickerItems}
-              currentKey={activeBulletCategoryKey}
-              previousAriaLabel="Previous competency category"
-              nextAriaLabel="Next competency category"
-              selectorAriaLabel="Open competency category selector"
-              onSelect={setActiveBulletCategoryKey}
-              onPrevious={handlePreviousBulletCategory}
-              onNext={handleNextBulletCategory}
-            />
-          ) : null}
         </Box>
       )}
       </Box>
