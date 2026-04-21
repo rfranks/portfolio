@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Chip from "@/components/fabric/Chip";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import { MediaCycler } from "@/components/shared";
+import { PanelFrame } from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
@@ -138,26 +139,21 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
     canPlayHeroVideo && isHeroVideoActive ? "hero-video" : "hero-image";
 
   return (
-    <PortfolioPanel className="h-full">
-      {topRail ? (
-        <Box
-          sx={{
-            flexShrink: 0,
-            mx: -2,
-            mt: -2,
-            mb: 0,
-            bgcolor: "background.paper",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-            backdropFilter: "blur(8px)",
-            borderTopLeftRadius: "var(--fabric-radius-xl)",
-            borderTopRightRadius: "var(--fabric-radius-xl)",
-          }}
-        >
-          {topRail}
-        </Box>
-      ) : null}
-      <Box sx={{ pt: 0.5 }}>
+    <PortfolioPanel
+      className="h-full"
+      sx={{
+        minHeight: 0,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
+      <PanelFrame
+        topRail={topRail}
+        contentSx={{ pt: 0.5, overflowY: "auto" }}
+        useNegativeTopRailMargins
+      >
       <Stack spacing={2}>
         <Stack
           spacing={2}
@@ -219,7 +215,7 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
           )}
         </Stack>
       </Stack>
-      </Box>
+      </PanelFrame>
     </PortfolioPanel>
   );
 }

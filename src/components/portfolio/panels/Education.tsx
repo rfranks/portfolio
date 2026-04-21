@@ -7,6 +7,7 @@ import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
+import { PanelFrame } from "@/components/shared";
 import { ListItemAvatar } from "@mui/material";
 import Image from "next/image";
 import { withBasePath } from "@/utils/basePath";
@@ -27,25 +28,11 @@ export default function Education({ topRail }: EducationProps) {
         overflow: "hidden",
       }}
     >
-      {topRail ? (
-        <Box
-          sx={{
-            flexShrink: 0,
-            mx: -2,
-            mt: -2,
-            mb: 0,
-            bgcolor: "background.paper",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-            backdropFilter: "blur(8px)",
-            borderTopLeftRadius: "var(--fabric-radius-xl)",
-            borderTopRightRadius: "var(--fabric-radius-xl)",
-          }}
-        >
-          {topRail}
-        </Box>
-      ) : null}
-      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflowY: "auto", pt: 0.5, pb: 0.5 }}>
+      <PanelFrame
+        topRail={topRail}
+        contentSx={{ overflowY: "auto", pt: 0.5, pb: 0.5 }}
+        useNegativeTopRailMargins
+      >
         <List
           sx={{
             display: "flex",
@@ -147,7 +134,7 @@ export default function Education({ topRail }: EducationProps) {
             </ListItem>
           ))}
         </List>
-      </Box>
+      </PanelFrame>
     </PortfolioPanel>
   );
 }

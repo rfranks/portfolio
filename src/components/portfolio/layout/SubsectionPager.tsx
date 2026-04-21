@@ -34,6 +34,8 @@ type SubsectionPagerProps = {
   items: SubsectionPagerItem[];
   currentKey?: string;
   selectedValueAsTitle?: boolean;
+  selectedVisualSize?: number;
+  selectedIconFontSize?: string;
   menuId: string;
   previousAriaLabel: string;
   nextAriaLabel: string;
@@ -49,6 +51,8 @@ export default function SubsectionPager({
   items,
   currentKey,
   selectedValueAsTitle = false,
+  selectedVisualSize = 24,
+  selectedIconFontSize = "0.95rem",
   menuId,
   previousAriaLabel,
   nextAriaLabel,
@@ -96,8 +100,8 @@ export default function SubsectionPager({
       src={currentItem.selectedImageSrc}
       alt={currentItem.selectedImageAlt || `${currentItem.title} icon`}
       sx={{
-        width: 24,
-        height: 24,
+        width: selectedVisualSize,
+        height: selectedVisualSize,
         borderRadius: "50%",
         objectFit: "cover",
         border: "1px solid",
@@ -110,8 +114,8 @@ export default function SubsectionPager({
     <Box
       aria-hidden="true"
       sx={{
-        width: 24,
-        height: 24,
+        width: selectedVisualSize,
+        height: selectedVisualSize,
         borderRadius: "50%",
         border: "1px solid",
         borderColor: "divider",
@@ -122,7 +126,7 @@ export default function SubsectionPager({
         color: "text.secondary",
         flexShrink: 0,
         "& .MuiSvgIcon-root": {
-          fontSize: "0.95rem",
+          fontSize: selectedIconFontSize,
         },
       }}
     >

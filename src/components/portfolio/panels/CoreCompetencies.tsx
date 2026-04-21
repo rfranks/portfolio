@@ -22,6 +22,7 @@ import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import SubsectionPager from "@/components/portfolio/layout/SubsectionPager";
 import Chip from "@/components/fabric/Chip";
 import MediaCycler from "@/components/shared/media/MediaCycler";
+import { PanelFrame } from "@/components/shared";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { competencies } from "@/consts/resumeData";
@@ -309,20 +310,34 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
               }}
             >
               {category.items.map((competency) => (
-                <Box
-                  key={`${category.title}-${competency.label}-subtitle`}
-                  sx={{
-                    px: 0.8,
-                    py: 0.55,
-                    borderRadius: "10px",
-                  }}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontWeight: 700, lineHeight: 1.25 }}
-                  >
-                    {competency.label}
-                  </Typography>
+                (() => {
+                  const maybeSourceLink = (competency as { sourceLink?: unknown })
+                    .sourceLink;
+                  const resolvedSourceLink =
+                    typeof maybeSourceLink === "string" && maybeSourceLink.trim()
+                      ? maybeSourceLink.trim()
+                      : getSkillReferenceUrl(competency.label);
+
+                  return (
+                    <Box
+                      key={`${category.title}-${competency.label}-subtitle`}
+                      sx={{
+                        px: 0.8,
+                        py: 0.55,
+                        borderRadius: "10px",
+                      }}
+                    >
+                      <Typography
+                        component={Link}
+                        href={resolvedSourceLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        underline="hover"
+                        variant="subtitle2"
+                        sx={{ fontWeight: 700, lineHeight: 1.25 }}
+                      >
+                        {competency.label}
+                      </Typography>
                   <Typography
                     variant="subtitle2"
                     color="text.secondary"
@@ -330,7 +345,9 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
                   >
                     {competency.description}
                   </Typography>
-                </Box>
+                    </Box>
+                  );
+                })()
               ))}
             </Stack>
           ),
@@ -692,8 +709,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
   ]);
 
   const handleViewModeChange = React.useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const nextCloudView = event.target.checked;
+    (nextCloudView: boolean) => {
       if (!nextCloudView) {
         clearTimers();
         setViewMode("list");
@@ -710,6 +726,12 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
       setViewMode("cloud");
     },
     [clearTimers],
+  );
+  const handleSwitchViewModeChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      handleViewModeChange(event.target.checked);
+    },
+    [handleViewModeChange],
   );
 
   React.useEffect(() => {
@@ -729,32 +751,74 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
   }, [clearTimers, isMdUp, viewMode]);
 
   return (
-    <PortfolioPanel className="h-full overflow-hidden">
-      {topRail ? (
-        <Box
-          sx={{
-            flexShrink: 0,
-            mx: -2,
-            mt: -2,
-            mb: 0,
-            bgcolor: "background.paper",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-            backdropFilter: "blur(8px)",
-            borderTopLeftRadius: "var(--fabric-radius-xl)",
-            borderTopRightRadius: "var(--fabric-radius-xl)",
-          }}
-        >
-          {topRail}
-        </Box>
-      ) : null}
-      <Box sx={{ minHeight: 0, flex: "1 1 auto", pt: 0.5, overflow: "hidden" }}>
+    <PortfolioPanel
+      className="h-full overflow-hidden"
+      sx={{
+        minHeight: 0,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
+      <PanelFrame
+        topRail={topRail}
+        contentSx={{ pt: 0.5 }}
+        useNegativeTopRailMargins
+        useNegativeFooterMargins
+        footerSx={{
+          py: 1.25,
+          minHeight: "fit-content",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        footer={
+          isMdUp ? (
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                View
+              </Typography>
+              <IconButton
+                size="small"
+                aria-label="Show list view"
+                onClick={() => handleViewModeChange(false)}
+                sx={{ p: 0.35 }}
+              >
+                <FormatListBulleted
+                  fontSize="small"
+                  color={isCloudView ? "disabled" : "primary"}
+                />
+              </IconButton>
+              <Switch
+                checked={isCloudView}
+                onChange={handleSwitchViewModeChange}
+                inputProps={{ "aria-label": "Toggle competency view mode" }}
+                color="primary"
+                size="small"
+              />
+              <IconButton
+                size="small"
+                aria-label="Show panel view"
+                onClick={() => handleViewModeChange(true)}
+                sx={{ p: 0.35 }}
+              >
+                <GridView
+                  fontSize="small"
+                  color={isCloudView ? "primary" : "disabled"}
+                />
+              </IconButton>
+            </Stack>
+          ) : null
+        }
+      >
       {isCloudView ? (
         <Box
           ref={panelContainerRef}
           sx={{
             position: "relative",
             minHeight: 0,
+            flex: "1 1 auto",
             height: "100%",
             overflow: "hidden",
           }}
@@ -1257,6 +1321,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
         <Box
           sx={{
             minHeight: 0,
+            flex: "1 1 auto",
             height: "100%",
             display: "flex",
             flexDirection: "column",
@@ -1269,6 +1334,8 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
               items={bulletCategoryPickerItems}
               currentKey={activeBulletCategoryKey}
               selectedValueAsTitle
+              selectedVisualSize={38}
+              selectedIconFontSize="1.35rem"
               previousAriaLabel="Previous competency category"
               nextAriaLabel="Next competency category"
               selectorAriaLabel="Open competency category selector"
@@ -1291,50 +1358,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
           </Box>
         </Box>
       )}
-      </Box>
-      <Box
-        component="footer"
-        sx={{
-          flexShrink: 0,
-          zIndex: 5,
-          mt: 0,
-          mx: -2,
-          mb: -2,
-          px: 3.5,
-          py: 1,
-          bgcolor: "background.paper",
-          borderTop: "1px solid",
-          borderColor: "divider",
-          backdropFilter: "blur(8px)",
-          borderBottomLeftRadius: "var(--fabric-radius-xl)",
-          borderBottomRightRadius: "var(--fabric-radius-xl)",
-        }}
-      >
-        {isMdUp ? (
-          <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-              View
-            </Typography>
-            <FormatListBulleted
-              fontSize="small"
-              color={isCloudView ? "disabled" : "primary"}
-              aria-hidden="true"
-            />
-            <Switch
-              checked={isCloudView}
-              onChange={handleViewModeChange}
-              inputProps={{ "aria-label": "Toggle competency view mode" }}
-              color="primary"
-              size="small"
-            />
-            <GridView
-              fontSize="small"
-              color={isCloudView ? "primary" : "disabled"}
-              aria-hidden="true"
-            />
-          </Stack>
-        ) : null}
-      </Box>
+      </PanelFrame>
     </PortfolioPanel>
   );
 }

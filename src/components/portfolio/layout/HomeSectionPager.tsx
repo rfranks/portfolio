@@ -14,17 +14,11 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreVert,
-  Home as HomeIcon,
-  School,
-  Work,
-  Build,
-  AutoStories,
-  EmojiEvents,
-  Interests,
-  AlternateEmail,
 } from "@mui/icons-material";
+import type { NavigationIconConfig } from "@/components/portfolio/layout/navigationIcons";
+import { renderNavigationIcon } from "@/components/portfolio/layout/navigationIcons";
 
-export type HomeSectionPagerItem = {
+export type HomeSectionPagerItem = NavigationIconConfig & {
   id: string;
   label: string;
 };
@@ -39,29 +33,6 @@ const formatSelectedLabel = (index: number, label: string) =>
   `${toRoman(index + 1)}. ${label}`;
 const formatOptionLabel = (index: number, label: string) =>
   `${toRoman(index + 1)}. ${label}`;
-
-const getSectionIcon = (sectionId: string) => {
-  switch (sectionId) {
-    case "hero":
-      return <HomeIcon fontSize="small" />;
-    case "education":
-      return <School fontSize="small" />;
-    case "experience":
-      return <Work fontSize="small" />;
-    case "competencies":
-      return <Build fontSize="small" />;
-    case "projects":
-      return <AutoStories fontSize="small" />;
-    case "recognition":
-      return <EmojiEvents fontSize="small" />;
-    case "hobbies":
-      return <Interests fontSize="small" />;
-    case "contact":
-      return <AlternateEmail fontSize="small" />;
-    default:
-      return <HomeIcon fontSize="small" />;
-  }
-};
 
 const toRoman = (value: number): string => {
   if (value <= 0) {
@@ -203,6 +174,7 @@ export default function HomeSectionPager({
                   lineHeight: 1.1,
                   fontWeight: 900,
                   color: "inherit",
+                  textAlign: "left",
                 }}
               >
                 {formatSelectedLabel(currentIndex, currentItem.label)}
@@ -243,6 +215,7 @@ export default function HomeSectionPager({
                 overflow: "hidden",
                 display: "block",
                 py: 0,
+                textAlign: "left",
               },
             }}
           />
@@ -315,7 +288,13 @@ export default function HomeSectionPager({
             selected={index === currentIndex}
             onClick={() => handleSelect(item.id)}
           >
-            <ListItemIcon sx={{ minWidth: 32 }}>{getSectionIcon(item.id)}</ListItemIcon>
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              {renderNavigationIcon(item, {
+                fallbackIconKey: "home",
+                fontSize: "small",
+                emojiSize: "1rem",
+              })}
+            </ListItemIcon>
             <ListItemText>{formatOptionLabel(index, item.label)}</ListItemText>
           </MenuItem>
         ))}

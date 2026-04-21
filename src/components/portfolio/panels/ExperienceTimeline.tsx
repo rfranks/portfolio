@@ -3,15 +3,23 @@
 import * as React from "react";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import ViewModuleOutlined from "@mui/icons-material/ViewModuleOutlined";
 import TimelineOutlined from "@mui/icons-material/TimelineOutlined";
 import BusinessOutlined from "@mui/icons-material/BusinessOutlined";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import type { ResumeData } from "@/consts/resumeData";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import { ImageLightbox, MarkdownContent, MediaCycler } from "@/components/shared";
+import {
+  ImageLightbox,
+  MarkdownContent,
+  MediaCycler,
+  PanelFrame,
+} from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import SubsectionPager from "@/components/portfolio/layout/SubsectionPager";
@@ -264,6 +272,8 @@ type ExperienceTimelineProps = {
 
 export default function ExperienceTimeline({ topRail }: ExperienceTimelineProps) {
   const { experience } = useResumeData();
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
   const [viewMode, setViewMode] = React.useState<"grid" | "timeline">("grid");
   const [activeExperienceKey, setActiveExperienceKey] = React.useState<
     string | undefined
@@ -274,6 +284,12 @@ export default function ExperienceTimeline({ topRail }: ExperienceTimelineProps)
       experience[0] ? getExperienceKey(experience[0], 0) : undefined,
     );
   }, [experience]);
+
+  React.useEffect(() => {
+    if (!isMdUp && viewMode === "timeline") {
+      setViewMode("grid");
+    }
+  }, [isMdUp, viewMode]);
 
   const isTimelineView = viewMode === "timeline";
   const activeExperienceIndex = React.useMemo(
@@ -358,10 +374,20 @@ export default function ExperienceTimeline({ topRail }: ExperienceTimelineProps)
   }, [activeExperienceIndex, experienceItems, hasMultipleExperienceItems]);
 
   const handleViewModeChange = React.useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setViewMode(event.target.checked ? "timeline" : "grid");
+    (nextTimelineView: boolean) => {
+      if (!isMdUp && nextTimelineView) {
+        return;
+      }
+
+      setViewMode(nextTimelineView ? "timeline" : "grid");
     },
-    [],
+    [isMdUp],
+  );
+  const handleSwitchViewModeChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      handleViewModeChange(event.target.checked);
+    },
+    [handleViewModeChange],
   );
 
   return (
@@ -374,107 +400,95 @@ export default function ExperienceTimeline({ topRail }: ExperienceTimelineProps)
         overflow: "hidden",
       }}
     >
-      {topRail ? (
-        <Box
-          sx={{
-            flexShrink: 0,
-            mx: -2,
-            mt: -2,
-            mb: 0,
-            bgcolor: "background.paper",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-            backdropFilter: "blur(8px)",
-            borderTopLeftRadius: "var(--fabric-radius-xl)",
-            borderTopRightRadius: "var(--fabric-radius-xl)",
-          }}
-        >
-          {topRail}
-        </Box>
-      ) : null}
-      {!isTimelineView && hasMultipleExperienceItems ? (
-        <SubsectionPager
-          menuId="experience-item-selector-menu"
-          items={experiencePickerItems}
-          currentKey={activeExperienceKey}
-          selectedValueAsTitle
-          previousAriaLabel="Previous experience"
-          nextAriaLabel="Next experience"
-          selectorAriaLabel="Open experience selector"
-          onSelect={setActiveExperienceKey}
-          onPrevious={handlePreviousExperience}
-          onNext={handleNextExperience}
-        />
-      ) : null}
-      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
-        {isTimelineView ? (
-          <Box
-            sx={{
-              minHeight: 0,
-              height: "100%",
-              overflowY: "auto",
-              pt: 1.25,
-              pb: 1,
-              px: { xs: 1, md: 1.25 },
-            }}
-          >
-            <Stack spacing={1.5}>
-              {experience.map((exp, index) =>
-                renderExperienceTimelineEntry(exp, index, experience.length),
-              )}
+      <PanelFrame
+        topRail={topRail}
+        useNegativeTopRailMargins
+        useNegativeFooterMargins
+        footer={
+          isMdUp ? (
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                View
+              </Typography>
+              <IconButton
+                size="small"
+                aria-label="Show grid view"
+                onClick={() => handleViewModeChange(false)}
+                sx={{ p: 0.35 }}
+              >
+                <ViewModuleOutlined
+                  fontSize="small"
+                  color={isTimelineView ? "disabled" : "primary"}
+                />
+              </IconButton>
+              <Switch
+                checked={isTimelineView}
+                onChange={handleSwitchViewModeChange}
+                inputProps={{ "aria-label": "Toggle experience view mode" }}
+                color="primary"
+                size="small"
+              />
+              <IconButton
+                size="small"
+                aria-label="Show timeline view"
+                onClick={() => handleViewModeChange(true)}
+                sx={{ p: 0.35 }}
+              >
+                <TimelineOutlined
+                  fontSize="small"
+                  color={isTimelineView ? "primary" : "disabled"}
+                />
+              </IconButton>
             </Stack>
-          </Box>
-        ) : (
-          <MediaCycler
-            items={experienceItems}
-            singlePanel
-            singlePanelActiveKey={activeExperienceKey}
-            showChevronNavigation={false}
-            stackSx={{
-              minHeight: 0,
-              height: "100%",
-            }}
+          ) : null
+        }
+      >
+        {!isTimelineView && hasMultipleExperienceItems ? (
+          <SubsectionPager
+            menuId="experience-item-selector-menu"
+            items={experiencePickerItems}
+            currentKey={activeExperienceKey}
+            selectedValueAsTitle
+            previousAriaLabel="Previous experience"
+            nextAriaLabel="Next experience"
+            selectorAriaLabel="Open experience selector"
+            onSelect={setActiveExperienceKey}
+            onPrevious={handlePreviousExperience}
+            onNext={handleNextExperience}
           />
-        )}
-      </Box>
-      <Box sx={{ flexShrink: 0 }}>
-        <Box
-          sx={{
-            mt: 0.5,
-            px: 1,
-            py: 0.25,
-            borderTop: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-              View
-            </Typography>
-            <ViewModuleOutlined
-              fontSize="small"
-              aria-hidden="true"
+        ) : null}
+        <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
+          {isTimelineView ? (
+            <Box
               sx={{
-                color: isTimelineView ? "text.secondary" : "text.primary",
+                minHeight: 0,
+                height: "100%",
+                overflowY: "auto",
+                pt: 1.25,
+                pb: 1,
+                px: { xs: 1, md: 1.25 },
+              }}
+            >
+              <Stack spacing={1.5}>
+                {experience.map((exp, index) =>
+                  renderExperienceTimelineEntry(exp, index, experience.length),
+                )}
+              </Stack>
+            </Box>
+          ) : (
+            <MediaCycler
+              items={experienceItems}
+              singlePanel
+              singlePanelActiveKey={activeExperienceKey}
+              showChevronNavigation={false}
+              stackSx={{
+                minHeight: 0,
+                height: "100%",
               }}
             />
-            <Switch
-              checked={isTimelineView}
-              onChange={handleViewModeChange}
-              inputProps={{ "aria-label": "Toggle experience view mode" }}
-              color="primary"
-              size="small"
-            />
-            <TimelineOutlined
-              fontSize="small"
-              aria-hidden="true"
-              sx={{
-                color: isTimelineView ? "text.primary" : "text.secondary",
-              }}
-            />
-          </Stack>
+          )}
         </Box>
-      </Box>
+      </PanelFrame>
     </PortfolioPanel>
   );
 }

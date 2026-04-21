@@ -18,15 +18,6 @@ import Tooltip from "@mui/material/Tooltip";
 import {
   Menu,
   ChevronLeft,
-  Home as HomeIcon,
-  Science,
-  MenuBook,
-  Casino,
-  Flight,
-  Build,
-  AutoStories,
-  AutoFixHigh,
-  AltRoute,
 } from "@mui/icons-material";
 import AppBar from "@/components/portfolio/layout/AppBar";
 import Drawer from "@/components/portfolio/layout/Drawer";
@@ -39,7 +30,13 @@ import Education from "@/components/portfolio/panels/Education";
 import Recognition from "@/components/portfolio/panels/Recognition";
 import ContactCTA from "@/components/portfolio/panels/ContactCTA";
 import { ImageLightbox } from "@/components/shared";
-import HomeSectionPager from "@/components/portfolio/layout/HomeSectionPager";
+import HomeSectionPager, {
+  type HomeSectionPagerItem,
+} from "@/components/portfolio/layout/HomeSectionPager";
+import {
+  renderNavigationIcon,
+  type NavigationIconType,
+} from "@/components/portfolio/layout/navigationIcons";
 import {
   GLOBAL_COLOR_MODE_STORAGE_KEY,
   LEGACY_COLOR_MODE_STORAGE_KEYS,
@@ -69,6 +66,44 @@ const sectionSlideOutToRight = keyframes`
   0% { opacity: 1; transform: translateX(0); }
   100% { opacity: 0.4; transform: translateX(14%); }
 `;
+const SECTION_SWIPE_THRESHOLD_PX = 72;
+const DEFAULT_HOME_SECTIONS: HomeSectionPagerItem[] = [
+  { id: "hero", label: "Summary", icon: "home", iconType: "material" },
+  { id: "education", label: "Education", icon: "school", iconType: "material" },
+  { id: "experience", label: "Experience", icon: "work", iconType: "material" },
+  {
+    id: "competencies",
+    label: "Core Competencies",
+    icon: "build",
+    iconType: "material",
+  },
+  { id: "projects", label: "Projects", icon: "autoStories", iconType: "material" },
+  {
+    id: "recognition",
+    label: "Recognition",
+    icon: "emojiEvents",
+    iconType: "material",
+  },
+  { id: "hobbies", label: "Hobbies", icon: "interests", iconType: "material" },
+  { id: "contact", label: "Contact", icon: "alternateEmail", iconType: "material" },
+];
+
+const DEFAULT_HOME_DRAWER_ITEM = {
+  label: "Home",
+  href: "/",
+  icon: "home",
+  iconType: "material",
+} as const;
+type DrawerNavigationItem = {
+  label: string;
+  href: string;
+  icon?: string;
+  iconType?: NavigationIconType;
+};
+const normalizeNavigationIconType = (
+  iconType: unknown,
+): NavigationIconType =>
+  iconType === "emoji" ? "emoji" : "material";
 
 export default function HomePageClient() {
   const { navigation, summary } = useResumeData();
@@ -82,19 +117,61 @@ export default function HomePageClient() {
   );
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
-  const tocSections = useMemo(
-    () => [
-      { id: "hero", label: "Summary" },
-      { id: "education", label: "Education" },
-      { id: "experience", label: "Experience" },
-      { id: "competencies", label: "Core Competencies" },
-      { id: "projects", label: "Projects" },
-      { id: "recognition", label: "Recognition" },
-      { id: "hobbies", label: "Hobbies" },
-      { id: "contact", label: "Contact" },
-    ],
-    [],
-  );
+  const tocSections = useMemo<HomeSectionPagerItem[]>(() => {
+    const configuredSections = navigation.homeSections;
+    if (!Array.isArray(configuredSections) || configuredSections.length === 0) {
+      return DEFAULT_HOME_SECTIONS;
+    }
+
+    const normalizedSections = configuredSections
+      .filter(
+        (section): section is (typeof configuredSections)[number] =>
+          Boolean(section?.id?.trim()) && Boolean(section?.label?.trim()),
+      )
+      .map((section) => ({
+        id: section.id.trim(),
+        label: section.label.trim(),
+        icon: section.icon?.trim(),
+        iconType: normalizeNavigationIconType(section.iconType),
+      }));
+
+    return normalizedSections.length > 0 ? normalizedSections : DEFAULT_HOME_SECTIONS;
+  }, [navigation.homeSections]);
+  const drawerItems = useMemo<DrawerNavigationItem[]>(() => {
+    const configuredDrawerItems = Array.isArray(navigation.drawerItems)
+      ? navigation.drawerItems
+      : [];
+    const normalizedDrawerItems = configuredDrawerItems
+      .filter(
+        (item): item is (typeof configuredDrawerItems)[number] =>
+          Boolean(item?.label?.trim()) && Boolean(item?.href?.trim()),
+      )
+      .map((item) => ({
+        ...item,
+        label: item.label.trim(),
+        href: item.href.trim(),
+        icon: item.icon?.trim() || "home",
+        iconType: normalizeNavigationIconType(item.iconType),
+      }));
+    const isHomeDrawerItem = (item: { href: string; label: string }) =>
+      item.href === "/" || item.label.toLowerCase() === "home";
+    const configuredHomeItem = normalizedDrawerItems.find(isHomeDrawerItem);
+    const homeDrawerItem = configuredHomeItem ?? DEFAULT_HOME_DRAWER_ITEM;
+    const remainingDrawerItems = normalizedDrawerItems.filter(
+      (item) => item !== configuredHomeItem && !isHomeDrawerItem(item),
+    );
+
+    return [
+      {
+        ...homeDrawerItem,
+        label: homeDrawerItem.label || "Home",
+        href: "/",
+        icon: homeDrawerItem.icon || "home",
+        iconType: normalizeNavigationIconType(homeDrawerItem.iconType),
+      },
+      ...remainingDrawerItems,
+    ];
+  }, [navigation.drawerItems]);
   const [activeSectionId, setActiveSectionId] = useState<string>(
     tocSections[0]?.id ?? "hero",
   );
@@ -105,9 +182,28 @@ export default function HomePageClient() {
   const [sectionDirection, setSectionDirection] = useState<1 | -1>(1);
   const [isSectionTransitioning, setIsSectionTransitioning] = useState(false);
   const sectionTransitionTimerRef = useRef<number | null>(null);
+  const sectionSwipeRef = useRef<{
+    startX: number;
+    startY: number;
+    blocked: boolean;
+    deltaX: number;
+    deltaY: number;
+  } | null>(null);
   const sectionNavSfx = useAudio("/audio/card-slide-3.ogg");
 
   const { setDocumentTitle } = useDocumentTitle();
+  useEffect(() => {
+    const fallbackSectionId = tocSections[0]?.id ?? "hero";
+
+    if (!tocSections.some((section) => section.id === activeSectionId)) {
+      setActiveSectionId(fallbackSectionId);
+    }
+
+    if (!tocSections.some((section) => section.id === displaySectionId)) {
+      setDisplaySectionId(fallbackSectionId);
+    }
+  }, [activeSectionId, displaySectionId, tocSections]);
+
   useEffect(() => {
     setDocumentTitle(summary.documentTitle);
   }, [setDocumentTitle, summary.documentTitle]);
@@ -193,20 +289,114 @@ export default function HomePageClient() {
     navigateToSection(sectionId);
   };
 
-  const navIcons = {
-    home: <HomeIcon />,
-    science: <Science />,
-    menuBook: <MenuBook />,
-    build: <Build />,
-    autoFixHigh: <AutoFixHigh />,
-    autoStories: <AutoStories />,
-    altRoute: <AltRoute />,
-    casino: <Casino />,
-    flight: <Flight />,
-  } as const;
-  type NavIconKey = keyof typeof navIcons;
+  const isInteractiveSectionSwipeTarget = useCallback(
+    (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) {
+        return false;
+      }
 
-  const hasNavIcon = (icon: string): icon is NavIconKey => icon in navIcons;
+      return Boolean(
+        target.closest(
+          "a,button,input,textarea,select,summary,[role='button'],[role='link'],[data-no-swipe='true']",
+        ),
+      );
+    },
+    [],
+  );
+
+  const navigateRelativeSection = useCallback(
+    (offset: number) => {
+      if (isSectionTransitioning || tocSections.length === 0) {
+        return;
+      }
+
+      const currentIndex = tocSections.findIndex(
+        (section) => section.id === activeSectionId,
+      );
+      if (currentIndex < 0) {
+        return;
+      }
+
+      const total = tocSections.length;
+      const nextIndex = (currentIndex + offset + total) % total;
+      const nextSection = tocSections[nextIndex];
+      if (!nextSection) {
+        return;
+      }
+
+      navigateToSection(nextSection.id);
+    },
+    [activeSectionId, isSectionTransitioning, navigateToSection, tocSections],
+  );
+
+  const handleSectionSwipeStart = useCallback(
+    (event: React.TouchEvent<HTMLElement>) => {
+      if (event.touches.length !== 1 || isSectionTransitioning) {
+        sectionSwipeRef.current = null;
+        return;
+      }
+
+      const touch = event.touches[0];
+      sectionSwipeRef.current = {
+        startX: touch.clientX,
+        startY: touch.clientY,
+        blocked: isInteractiveSectionSwipeTarget(event.target),
+        deltaX: 0,
+        deltaY: 0,
+      };
+    },
+    [isInteractiveSectionSwipeTarget, isSectionTransitioning],
+  );
+
+  const handleSectionSwipeMove = useCallback(
+    (event: React.TouchEvent<HTMLElement>) => {
+      const swipeState = sectionSwipeRef.current;
+      if (!swipeState || swipeState.blocked || event.touches.length !== 1) {
+        return;
+      }
+
+      const touch = event.touches[0];
+      swipeState.deltaX = touch.clientX - swipeState.startX;
+      swipeState.deltaY = touch.clientY - swipeState.startY;
+
+      if (
+        Math.abs(swipeState.deltaX) > 12 &&
+        Math.abs(swipeState.deltaX) > Math.abs(swipeState.deltaY)
+      ) {
+        event.preventDefault();
+      }
+    },
+    [],
+  );
+
+  const handleSectionSwipeEnd = useCallback(() => {
+    const swipeState = sectionSwipeRef.current;
+    sectionSwipeRef.current = null;
+
+    if (!swipeState || swipeState.blocked || isSectionTransitioning) {
+      return;
+    }
+
+    const { deltaX, deltaY } = swipeState;
+    if (Math.abs(deltaX) < SECTION_SWIPE_THRESHOLD_PX) {
+      return;
+    }
+
+    if (Math.abs(deltaX) <= Math.abs(deltaY) * 1.1) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      navigateRelativeSection(1);
+      return;
+    }
+
+    navigateRelativeSection(-1);
+  }, [isSectionTransitioning, navigateRelativeSection]);
+
+  const handleSectionSwipeCancel = useCallback(() => {
+    sectionSwipeRef.current = null;
+  }, []);
 
   const appBarTitle = `${summary.name} • ${summary.title.split("|")[0].trim()}`;
   const activeSection = useMemo(
@@ -443,7 +633,7 @@ export default function HomePageClient() {
           </Toolbar>
           <Divider />
           <List component="nav">
-            {navigation.drawerItems.map((item) => (
+            {drawerItems.map((item) => (
               <Tooltip
                 key={item.href}
                 title={item.label}
@@ -467,7 +657,11 @@ export default function HomePageClient() {
                   sx={{ borderRadius: 0 }}
                 >
                   <ListItemIcon>
-                    {hasNavIcon(item.icon) ? navIcons[item.icon] : <HomeIcon />}
+                    {renderNavigationIcon(item, {
+                      fallbackIconKey: "home",
+                      fontSize: "small",
+                      emojiSize: "1rem",
+                    })}
                   </ListItemIcon>
                   <ListItemText primary={item.label} />
                 </ListItemButton>
@@ -630,6 +824,10 @@ export default function HomePageClient() {
                   }}
                 >
                   <Box
+                    onTouchStart={handleSectionSwipeStart}
+                    onTouchMove={handleSectionSwipeMove}
+                    onTouchEnd={handleSectionSwipeEnd}
+                    onTouchCancel={handleSectionSwipeCancel}
                     sx={{
                       minHeight: 0,
                       height: "100%",

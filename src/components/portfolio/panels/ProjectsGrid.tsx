@@ -7,7 +7,9 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import type { ResumeData } from "@/consts/resumeData";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import SubsectionPager from "@/components/portfolio/layout/SubsectionPager";
+import SubsectionPager, {
+  type SubsectionPagerItem,
+} from "@/components/portfolio/layout/SubsectionPager";
 import AccoladesCarousel from "@/components/portfolio/panels/AccoladesCarousel";
 import Chip from "@/components/fabric/Chip";
 import { ImageLightbox, MarkdownContent, MediaCycler } from "@/components/shared";
@@ -298,7 +300,7 @@ export default function ProjectsGrid({ topRail }: ProjectsGridProps) {
       })),
     [projectsSection, sortedProjects],
   );
-  const projectPickerItems = React.useMemo(
+  const projectPickerItems = React.useMemo<SubsectionPagerItem[]>(
     () =>
       sortedProjects.map((project) => {
         const optionImageSrc = getProjectOptionImage(project);
@@ -407,6 +409,8 @@ export default function ProjectsGrid({ topRail }: ProjectsGridProps) {
             items={projectPickerItems}
             currentKey={activeProjectKey}
             selectedValueAsTitle
+            selectedVisualSize={38}
+            selectedIconFontSize="1.35rem"
             previousAriaLabel="Previous project"
             nextAriaLabel="Next project"
             selectorAriaLabel="Open project selector"

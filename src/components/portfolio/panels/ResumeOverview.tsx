@@ -246,7 +246,7 @@ export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
           sx={{
             flexShrink: 0,
             zIndex: 5,
-            mt: 0,
+            mt: "auto",
             px: { xs: 2, md: 3.5 },
             pb: { xs: 2.5, md: 3.5 },
             py: 1,

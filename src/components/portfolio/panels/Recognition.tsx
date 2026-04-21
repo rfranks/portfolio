@@ -3,9 +3,6 @@ import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
-import ChevronLeft from "@mui/icons-material/ChevronLeft";
-import ChevronRight from "@mui/icons-material/ChevronRight";
 import AccountCircleOutlined from "@mui/icons-material/AccountCircleOutlined";
 import type { ResumeData } from "@/consts/resumeData";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
@@ -45,7 +42,7 @@ function renderSnippetContent(snippet: RecognitionSnippetEntry) {
 
   return (
     <Box
-      className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5"
+      className="rounded-[24px] border border-white/10 bg-white/[0.04]"
       sx={{
         width: "100%",
         minHeight: 0,
@@ -54,6 +51,8 @@ function renderSnippetContent(snippet: RecognitionSnippetEntry) {
         alignItems: "stretch",
         justifyContent: "flex-start",
         overflow: "hidden",
+        px: { xs: 6, md: 7 },
+        py: 2,
       }}
     >
       <Stack
@@ -288,38 +287,12 @@ export default function Recognition({ topRail }: RecognitionProps) {
       })),
     [recommendations],
   );
-  const activeSnippetIndex = React.useMemo(
-    () => snippetItems.findIndex((item) => item.key === activeSnippetKey),
-    [activeSnippetKey, snippetItems],
-  );
   const activeRecommendationIndex = React.useMemo(
     () => recommendationItems.findIndex((item) => item.key === activeRecommendationKey),
     [activeRecommendationKey, recommendationItems],
   );
   const hasMultipleSnippetItems = snippetItems.length > 1;
   const hasMultipleRecommendationItems = recommendationItems.length > 1;
-
-  const handlePreviousSnippet = React.useCallback(() => {
-    if (!hasMultipleSnippetItems) {
-      return;
-    }
-    if (activeSnippetIndex <= 0) {
-      setActiveSnippetKey(snippetItems[snippetItems.length - 1]?.key);
-      return;
-    }
-    setActiveSnippetKey(snippetItems[activeSnippetIndex - 1]?.key);
-  }, [activeSnippetIndex, hasMultipleSnippetItems, snippetItems]);
-
-  const handleNextSnippet = React.useCallback(() => {
-    if (!hasMultipleSnippetItems) {
-      return;
-    }
-    if (activeSnippetIndex >= snippetItems.length - 1) {
-      setActiveSnippetKey(snippetItems[0]?.key);
-      return;
-    }
-    setActiveSnippetKey(snippetItems[activeSnippetIndex + 1]?.key);
-  }, [activeSnippetIndex, hasMultipleSnippetItems, snippetItems]);
 
   const handlePreviousRecommendation = React.useCallback(() => {
     if (!hasMultipleRecommendationItems) {
@@ -393,39 +366,43 @@ export default function Recognition({ topRail }: RecognitionProps) {
             overflow: "hidden",
           }}
         >
+          <Typography variant="h6" gutterBottom className="mb-3">
+            Recognition
+          </Typography>
           <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
             <MediaCycler
               items={snippetItems}
               singlePanel
               singlePanelActiveKey={activeSnippetKey}
-              showChevronNavigation={false}
+              showChevronNavigation={hasMultipleSnippetItems}
+              loopNavigation={hasMultipleSnippetItems}
+              loopFromBeginning
+              loopNavigationIcon="rightChevron"
+              disableChevronPrevious={false}
+              disableChevronNext={false}
+              navigationControlSx={{
+                top: "50%",
+                transform: "translateY(-50%)",
+                border: "0 !important",
+                borderColor: "transparent !important",
+                bgcolor: "transparent !important",
+                backgroundColor: "transparent !important",
+                backgroundImage: "none !important",
+                backdropFilter: "none !important",
+                filter: "none !important",
+                boxShadow: "none !important",
+                "&:hover": {
+                  bgcolor: "rgba(255,255,255,0.14) !important",
+                  backgroundColor: "rgba(255,255,255,0.14) !important",
+                  backdropFilter: "blur(6px) !important",
+                },
+              }}
               stackSx={{
                 minHeight: 0,
                 height: "100%",
               }}
             />
           </Box>
-          {hasMultipleSnippetItems ? (
-            <Box
-              sx={{
-                flexShrink: 0,
-                mt: 0.5,
-                px: 1,
-                py: 0.25,
-                borderTop: "1px solid",
-                borderColor: "divider",
-              }}
-            >
-              <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
-                <IconButton size="small" aria-label="Previous recognition" onClick={handlePreviousSnippet}>
-                  <ChevronLeft fontSize="small" />
-                </IconButton>
-                <IconButton size="small" aria-label="Next recognition" onClick={handleNextSnippet}>
-                  <ChevronRight fontSize="small" />
-                </IconButton>
-              </Stack>
-            </Box>
-          ) : null}
         </Box>
 
         <Box
@@ -437,11 +414,9 @@ export default function Recognition({ topRail }: RecognitionProps) {
             overflow: "hidden",
           }}
         >
-          {!hasMultipleRecommendationItems ? (
-            <Typography variant="h6" gutterBottom className="mb-3">
-              Recommendations
-            </Typography>
-          ) : null}
+          <Typography variant="h6" gutterBottom className="mb-3">
+            Recommendations
+          </Typography>
           {hasMultipleRecommendationItems ? (
             <SubsectionPager
               menuId="recognition-recommendation-selector-menu"
