@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Loop from "@mui/icons-material/Loop";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -134,7 +134,12 @@ type AIShenaniganProps = {
   songLyricsSourceHref?: string;
 };
 
-type RevealStage = "intro" | "realistic" | "stylized" | "movie";
+type RevealStage =
+  | "intro"
+  | "realistic"
+  | "stylized"
+  | "movie"
+  | "alternateMovie";
 const REVEAL_TRANSITION_MS = 0;
 
 export default function AIShenanigan(props: AIShenaniganProps) {
@@ -292,17 +297,22 @@ function DefaultAIShenanigan({
   const [realisticVisible, setRealisticVisible] = useState(false);
   const [showStylizedArrow, setShowStylizedArrow] = useState(false);
   const [showMovieArrow, setShowMovieArrow] = useState(false);
+  const [showAlternateMovieArrow, setShowAlternateMovieArrow] = useState(false);
   const [stylizedVisible, setStylizedVisible] = useState(false);
   const [movieVisible, setMovieVisible] = useState(false);
+  const [alternateMovieVisible, setAlternateMovieVisible] = useState(false);
   const [transitioningTo, setTransitioningTo] = useState<RevealStage | null>(
     null,
   );
   const realisticSectionRef = useRef<HTMLDivElement | null>(null);
   const stylizedSectionRef = useRef<HTMLDivElement | null>(null);
   const motionSectionRef = useRef<HTMLDivElement | null>(null);
+  const alternateMotionSectionRef = useRef<HTMLDivElement | null>(null);
   const motionVideoRef = useRef<HTMLVideoElement | null>(null);
+  const alternateMotionVideoRef = useRef<HTMLVideoElement | null>(null);
   const stylizedTimeoutRef = useRef<number | null>(null);
   const movieTimeoutRef = useRef<number | null>(null);
+  const alternateMovieTimeoutRef = useRef<number | null>(null);
   const inspirationSfx = useAudio("/audio/highUp.ogg");
   const stylizedSfx = useAudio("/audio/powerUp3.ogg");
   const motionSfx = useAudio("/audio/whoosh.ogg");
@@ -323,6 +333,7 @@ function DefaultAIShenanigan({
   const secondaryMovieCaption =
     movieRendering && movieRendering2 ? movieCaption2 : undefined;
   const hasMovie = Boolean(primaryMovieRendering);
+  const hasAlternateMovie = Boolean(secondaryMovieRendering);
   const isPortrait = orientation === "portrait";
   const hasVisibleMedia = realisticVisible;
   const stillAspectRatio = isPortrait ? "3 / 4" : "4 / 3";
@@ -431,20 +442,32 @@ function DefaultAIShenanigan({
       window.clearTimeout(movieTimeoutRef.current);
       movieTimeoutRef.current = null;
     }
+    if (alternateMovieTimeoutRef.current) {
+      window.clearTimeout(alternateMovieTimeoutRef.current);
+      alternateMovieTimeoutRef.current = null;
+    }
   };
 
-  const stopMotionVideo = () => {
-    if (!motionVideoRef.current) {
-      return;
-    }
-    motionVideoRef.current.pause();
-    motionVideoRef.current.muted = false;
-    motionVideoRef.current.currentTime = 0;
-  };
+  const stopVideo = useCallback(
+    (videoRef: { current: HTMLVideoElement | null }) => {
+      if (!videoRef.current) {
+        return;
+      }
+      videoRef.current.pause();
+      videoRef.current.muted = false;
+      videoRef.current.currentTime = 0;
+    },
+    [],
+  );
+
+  const stopMotionVideo = useCallback(() => {
+    stopVideo(motionVideoRef);
+    stopVideo(alternateMotionVideoRef);
+  }, [stopVideo]);
 
   const revealLabels = useMemo(() => {
     const applicableStages: Array<{
-      key: "realistic" | "stylized" | "movie";
+      key: "realistic" | "stylized" | "movie" | "alternateMovie";
       title: string;
       active: boolean;
       reached: boolean;
@@ -475,15 +498,27 @@ function DefaultAIShenanigan({
       });
     }
 
+    if (hasAlternateMovie) {
+      applicableStages.push({
+        key: "alternateMovie",
+        title: "Alternate motion rendering",
+        active: alternateMovieVisible || showAlternateMovieArrow,
+        reached: alternateMovieVisible,
+      });
+    }
+
     return applicableStages.map((stage, index) => ({
       ...stage,
       label: `Step ${index + 1}: ${stage.title}`,
     }));
   }, [
     hasStylized,
+    hasAlternateMovie,
     hasMovie,
+    alternateMovieVisible,
     movieVisible,
     realisticVisible,
+    showAlternateMovieArrow,
     showMovieArrow,
     showStylizedArrow,
     stylizedVisible,
@@ -568,11 +603,24 @@ function DefaultAIShenanigan({
       );
     }
 
+    if (stage === "movie" && hasAlternateMovie) {
+      return (
+        <Button
+          variant="contained"
+          onClick={handleRevealAlternateMovie}
+          disabled={transitioningTo !== null}
+          endIcon={<EmojiGlyph glyph="🎞️" slot="end" />}
+        >
+          Reveal Alternate Motion
+        </Button>
+      );
+    }
+
     return null;
   };
 
   const handleChronologySelect = (
-    target: "realistic" | "stylized" | "movie",
+    target: "realistic" | "stylized" | "movie" | "alternateMovie",
   ) => {
     if (transitioningTo !== null) {
       return;
@@ -583,12 +631,14 @@ function DefaultAIShenanigan({
     setTransitioningTo(null);
     setRealisticVisible(true);
     setShowStylizedArrow(hasStylized && target !== "realistic");
-    setShowMovieArrow(target === "movie");
+    setShowMovieArrow(target === "movie" || target === "alternateMovie");
+    setShowAlternateMovieArrow(target === "alternateMovie");
     setStylizedVisible(hasStylized && target !== "realistic");
-    setMovieVisible(target === "movie");
+    setMovieVisible(target === "movie" || target === "alternateMovie");
+    setAlternateMovieVisible(target === "alternateMovie");
     setStage(target);
 
-    if (target !== "movie") {
+    if (target !== "movie" && target !== "alternateMovie") {
       stopMotionVideo();
     }
   };
@@ -724,11 +774,20 @@ function DefaultAIShenanigan({
   }, [isSmDown, realisticVisible]);
 
   useEffect(() => {
-    if (stage !== "movie") {
+    const isMovieStage = stage === "movie";
+    const isAlternateMovieStage = stage === "alternateMovie";
+    if (!isMovieStage && !isAlternateMovieStage) {
+      stopMotionVideo();
       return;
     }
 
-    const video = motionVideoRef.current;
+    const video = isAlternateMovieStage
+      ? alternateMotionVideoRef.current
+      : motionVideoRef.current;
+    const inactiveVideoRef = isAlternateMovieStage
+      ? motionVideoRef
+      : alternateMotionVideoRef;
+    stopVideo(inactiveVideoRef);
 
     if (!video) {
       return;
@@ -739,7 +798,7 @@ function DefaultAIShenanigan({
     void video.play().catch(() => {
       // Ignore autoplay failures; controls remain available.
     });
-  }, [stage]);
+  }, [stage, stopMotionVideo, stopVideo]);
 
   useEffect(() => {
     return () => {
@@ -755,8 +814,10 @@ function DefaultAIShenanigan({
     setRealisticVisible(false);
     setShowStylizedArrow(false);
     setShowMovieArrow(false);
+    setShowAlternateMovieArrow(false);
     setStylizedVisible(false);
     setMovieVisible(false);
+    setAlternateMovieVisible(false);
     stopMotionVideo();
   };
 
@@ -797,9 +858,26 @@ function DefaultAIShenanigan({
     }
     movieTimeoutRef.current = window.setTimeout(() => {
       setMovieVisible(true);
+      setAlternateMovieVisible(false);
+      setShowAlternateMovieArrow(false);
       setStage("movie");
       setTransitioningTo(null);
       movieTimeoutRef.current = null;
+    }, REVEAL_TRANSITION_MS);
+  };
+
+  const handleRevealAlternateMovie = () => {
+    if (transitioningTo || !hasAlternateMovie) {
+      return;
+    }
+    setTransitioningTo("alternateMovie");
+    rewindAndPlayAudio(motionSfx, { volume: 0.3 });
+    setShowAlternateMovieArrow(true);
+    alternateMovieTimeoutRef.current = window.setTimeout(() => {
+      setAlternateMovieVisible(true);
+      setStage("alternateMovie");
+      setTransitioningTo(null);
+      alternateMovieTimeoutRef.current = null;
     }, REVEAL_TRANSITION_MS);
   };
 
@@ -832,6 +910,19 @@ function DefaultAIShenanigan({
     }
 
     handleChronologySelect("stylized");
+  };
+
+  const handleMovieMediaActivate = () => {
+    if (transitioningTo) {
+      return;
+    }
+
+    if (hasAlternateMovie && !alternateMovieVisible) {
+      handleRevealAlternateMovie();
+      return;
+    }
+
+    handleChronologySelect("movie");
   };
 
   const buildMobilePanelSubtext = (subtitle: string, source?: string) =>
@@ -968,59 +1059,55 @@ function DefaultAIShenanigan({
           onSelect: () => {
             handleChronologySelect("movie");
           },
-          extraContent: secondaryMovieRendering ? (
-            <Box
-              sx={{
-                mt: 2.5,
-                pt: 2,
-                borderTop: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Alternate motion rendering
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                An alternate cut of the same shenanigan.
-              </Typography>
-              <MediaCycler
-                spacing={0}
-                compactMetadataOnSmallScreens
-                smallScreenInfoBlurb={blurb}
-                showCompactInfoButton={false}
-                items={[
-                  {
-                    key: "movie-alternate",
-                    title: "",
-                    mediaType: "video",
-                    mediaUrl: withBasePath(secondaryMovieRendering),
-                    mediaLightboxTitle: `${title} alternate motion rendering`,
-                    mediaCaption: secondaryMovieCaption,
-                    mediaSource: secondaryMovieSource,
-                    mediaSourceHref: secondaryMovieSourceHref,
-                    controls: true,
-                    playsInline: true,
-                    assetFrameSx: {
-                      mt: 0,
-                      mb: 0,
-                      width: "100%",
-                      height: "auto",
-                    },
-                    previewVideoClassName:
-                      "block w-full rounded-[22px] bg-black/10 object-contain",
-                    previewVideoSx: {
-                      width: "100%",
-                      height: "100%",
-                      maxHeight: "100%",
-                      maxWidth: "100%",
-                      objectFit: "contain",
-                      aspectRatio: stillAspectRatio,
-                      mx: isPortrait ? "auto" : undefined,
-                    },
-                  },
-                ]}
-              />
-            </Box>
-          ) : undefined,
+          onMediaActivate: handleMovieMediaActivate,
+        }
+      : null;
+
+  const alternateMovieMediaItem: MediaCyclerItem | null =
+    alternateMovieVisible && secondaryMovieRendering
+      ? {
+          key: "alternateMovie",
+          title: isSmDown ? title : "Alternate motion rendering",
+          description: isSmDown
+            ? buildMobilePanelSubtext(
+                "Alternate motion rendering",
+                secondaryMovieSource,
+              )
+            : undefined,
+          mediaType: "video",
+          mediaUrl: withBasePath(secondaryMovieRendering),
+          mediaLightboxTitle: `${title} alternate motion rendering`,
+          mediaCaption: secondaryMovieCaption,
+          mediaSource: secondaryMovieSource,
+          mediaSourceHref: secondaryMovieSourceHref,
+          panelRef: alternateMotionSectionRef,
+          panelSx: {
+            ...moviePanelSx,
+            minWidth: 0,
+            opacity: 1,
+            transform: "translate3d(0, 0, 0)",
+            transition:
+              "opacity 320ms ease, transform 360ms cubic-bezier(.2,.8,.2,1), flex-basis 360ms cubic-bezier(.2,.8,.2,1), max-width 360ms cubic-bezier(.2,.8,.2,1)",
+          },
+          assetFrameSx: mediaAssetFrameSx,
+          videoRef: alternateMotionVideoRef,
+          controls: true,
+          autoPlay: true,
+          playsInline: true,
+          previewVideoClassName:
+            "block w-full rounded-[22px] bg-black/10 object-contain",
+          previewVideoSx: {
+            width: "100%",
+            height: "100%",
+            maxHeight: "100%",
+            maxWidth: "100%",
+            objectFit: "contain",
+            aspectRatio: stillAspectRatio,
+            mx: isPortrait ? "auto" : undefined,
+          },
+          onSelect: () => {
+            handleChronologySelect("alternateMovie");
+          },
         }
       : null;
 
@@ -1028,9 +1115,14 @@ function DefaultAIShenanigan({
     realisticMediaItem,
     stylizedMediaItem,
     movieMediaItem,
+    alternateMovieMediaItem,
   ].filter((item): item is MediaCyclerItem => Boolean(item));
 
   const activeMediaItem: MediaCyclerItem | null = (() => {
+    if (stage === "alternateMovie" && alternateMovieMediaItem) {
+      return alternateMovieMediaItem;
+    }
+
     if (stage === "movie" && movieMediaItem) {
       return movieMediaItem;
     }
@@ -1043,7 +1135,12 @@ function DefaultAIShenanigan({
       return realisticMediaItem;
     }
 
-    return movieMediaItem || stylizedMediaItem || realisticMediaItem;
+    return (
+      alternateMovieMediaItem ||
+      movieMediaItem ||
+      stylizedMediaItem ||
+      realisticMediaItem
+    );
   })();
 
   const activeMediaKey = activeMediaItem?.key;
@@ -1060,7 +1157,8 @@ function DefaultAIShenanigan({
   const canRevealNextFromCurrent =
     (stage === "realistic" &&
       ((hasStylized && !stylizedVisible) || (!hasStylized && hasMovie && !movieVisible))) ||
-    (stage === "stylized" && hasMovie && !movieVisible);
+    (stage === "stylized" && hasMovie && !movieVisible) ||
+    (stage === "movie" && hasAlternateMovie && !alternateMovieVisible);
   const disableChevronPrevious = transitioningTo !== null || !hasPreviousMedia;
   const disableChevronNext =
     transitioningTo !== null ||
@@ -1102,6 +1200,11 @@ function DefaultAIShenanigan({
 
     if (stage === "stylized" && hasMovie && !movieVisible) {
       handleRevealMovie();
+      return;
+    }
+
+    if (stage === "movie" && hasAlternateMovie && !alternateMovieVisible) {
+      handleRevealAlternateMovie();
     }
   };
 

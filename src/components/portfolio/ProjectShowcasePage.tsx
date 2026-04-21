@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { ArrowBack } from "@mui/icons-material";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowBack, Close } from "@mui/icons-material";
 import {
   Avatar,
   Box,
   Container,
   CssBaseline,
-  Divider,
   IconButton,
   Toolbar,
   Typography,
@@ -29,6 +28,8 @@ interface ProjectShowcasePageProps {
   project: ProjectData;
   subtitle?: string;
 }
+const LAST_HOME_HASH_STORAGE_KEY = "portfolio:last-home-hash";
+const DEFAULT_HOME_HASH = "#projects";
 
 export default function ProjectShowcasePage({
   documentTitle,
@@ -42,6 +43,29 @@ export default function ProjectShowcasePage({
   });
   const theme = useMemo(() => getFabricTheme(mode), [mode]);
   const { setDocumentTitle } = useDocumentTitle();
+  const [homeHref, setHomeHref] = useState(withBasePath("/"));
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const normalizedHash = (() => {
+      try {
+        const storedHash = window.sessionStorage
+          .getItem(LAST_HOME_HASH_STORAGE_KEY)
+          ?.trim();
+        if (storedHash && storedHash.startsWith("#")) {
+          return storedHash;
+        }
+      } catch {
+        // Ignore storage failures.
+      }
+      return DEFAULT_HOME_HASH;
+    })();
+
+    setHomeHref(withBasePath(`/${normalizedHash}`));
+  }, []);
 
   useEffect(() => {
     setDocumentTitle(documentTitle);
@@ -69,7 +93,7 @@ export default function ProjectShowcasePage({
             edge="start"
             color="inherit"
             aria-label="Back to portfolio"
-            href={withBasePath("/")}
+            href={homeHref}
             sx={{ mr: 2 }}
           >
             <ArrowBack />
@@ -93,25 +117,42 @@ export default function ProjectShowcasePage({
               {subtitle}
             </Typography>
           </Box>
+          <IconButton
+            edge="end"
+            color="inherit"
+            aria-label="Close project and return to portfolio"
+            href={homeHref}
+            sx={{ ml: 1 }}
+          >
+            <Close />
+          </IconButton>
         </AppBar>
         <Toolbar />
-        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
-          <Typography
-            variant="h3"
-            align="left"
+        <Container
+          maxWidth="lg"
+          sx={{
+            my: 2,
+            py: 0,
+            height: {
+              xs: "calc(100dvh - 56px - 32px)",
+              sm: "calc(100dvh - 64px - 32px)",
+            },
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
+            overflow: "hidden",
+          }}
+        >
+          <Box
             sx={{
-              fontWeight: 700,
-              mb: 6,
-              background: "linear-gradient(90deg, #1976d2, #21cbf3)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              color: "transparent",
+              minHeight: 0,
+              height: "100%",
+              flex: "1 1 auto",
+              overflow: "hidden",
             }}
           >
-            {heading}
-          </Typography>
-          <Divider sx={{ mb: 6 }} />
-          <ProjectPresentation project={project} />
+            <ProjectPresentation project={project} />
+          </Box>
         </Container>
       </Box>
     </ThemeProvider>

@@ -283,6 +283,7 @@ export default function SubsectionPager({
             sx={
               selectedValueAsTitle
                 ? (theme) => ({
+                    mr: 1.25,
                     color:
                       theme.palette.mode === "dark"
                         ? alpha(theme.palette.common.white, 0.9)
@@ -294,7 +295,7 @@ export default function SubsectionPager({
                       bgcolor: "transparent",
                     },
                   })
-                : undefined
+                : { mr: 1.25 }
             }
           >
             <MoreVert fontSize="small" />

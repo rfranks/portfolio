@@ -17,12 +17,19 @@ export function createProjectPageData(
     ...(baseProject as Partial<ProjectData>),
     ...overrides,
   };
+  const baseProjectRecord = baseProject as Record<string, unknown>;
+  const baseProjectBlurb =
+    typeof baseProjectRecord.blurb === "string" &&
+    baseProjectRecord.blurb.trim()
+      ? baseProjectRecord.blurb.trim()
+      : undefined;
 
   return {
     ...(mergedProject as ProjectData),
     project: overrides.project ?? mergedProject.project ?? baseProject.name,
     description:
       overrides.description ??
+      baseProjectBlurb ??
       mergedProject.description ??
       baseProject.description,
   } satisfies ProjectData;

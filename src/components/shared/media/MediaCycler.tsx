@@ -121,6 +121,7 @@ type MediaCyclerProps = {
   navigationControlSx?: SxProps<Theme>;
   expandControlSx?: SxProps<Theme>;
   showCompactInfoButton?: boolean;
+  allowSwipe?: boolean;
 };
 
 const toSxArray = (value?: SxProps<Theme>) => {
@@ -199,6 +200,7 @@ export default function MediaCycler({
   navigationControlSx,
   expandControlSx,
   showCompactInfoButton = true,
+  allowSwipe = false,
 }: MediaCyclerProps) {
   const resolveActiveItem = React.useCallback(() => {
     if (items.length === 0) {
@@ -302,6 +304,13 @@ export default function MediaCycler({
   const loopDisabled = disableLoopNavigation;
   const hideNextChevron =
     hideDisabledNextChevron && !showLoopAction && nextDisabled;
+  const swipeRef = React.useRef<{
+    startX: number;
+    startY: number;
+    blocked: boolean;
+    deltaX: number;
+    deltaY: number;
+  } | null>(null);
 
   const handleChevronPrevious = React.useCallback(() => {
     if (previousDisabled) {
@@ -350,6 +359,87 @@ export default function MediaCycler({
     const firstCycleItem = items[0];
     firstCycleItem?.onSelect?.();
   }, [items, loopDisabled, onLoopNavigation]);
+
+  const isInteractiveSwipeTarget = React.useCallback((target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    return Boolean(
+      target.closest(
+        "a,button,input,textarea,select,summary,video,[role='button'],[role='link'],[data-no-swipe='true']",
+      ),
+    );
+  }, []);
+
+  const handleSwipeStart = React.useCallback(
+    (event: React.TouchEvent<HTMLElement>) => {
+      if (!allowSwipe || event.touches.length !== 1) {
+        swipeRef.current = null;
+        return;
+      }
+
+      const touch = event.touches[0];
+      swipeRef.current = {
+        startX: touch.clientX,
+        startY: touch.clientY,
+        blocked: isInteractiveSwipeTarget(event.target),
+        deltaX: 0,
+        deltaY: 0,
+      };
+    },
+    [allowSwipe, isInteractiveSwipeTarget],
+  );
+
+  const handleSwipeMove = React.useCallback(
+    (event: React.TouchEvent<HTMLElement>) => {
+      const swipeState = swipeRef.current;
+      if (!allowSwipe || !swipeState || swipeState.blocked || event.touches.length !== 1) {
+        return;
+      }
+
+      const touch = event.touches[0];
+      swipeState.deltaX = touch.clientX - swipeState.startX;
+      swipeState.deltaY = touch.clientY - swipeState.startY;
+
+      if (
+        Math.abs(swipeState.deltaX) > 12 &&
+        Math.abs(swipeState.deltaX) > Math.abs(swipeState.deltaY)
+      ) {
+        event.preventDefault();
+      }
+    },
+    [allowSwipe],
+  );
+
+  const handleSwipeEnd = React.useCallback(() => {
+    const swipeState = swipeRef.current;
+    swipeRef.current = null;
+
+    if (!allowSwipe || !swipeState || swipeState.blocked) {
+      return;
+    }
+
+    const { deltaX, deltaY } = swipeState;
+    if (Math.abs(deltaX) < 72) {
+      return;
+    }
+
+    if (Math.abs(deltaX) <= Math.abs(deltaY) * 1.1) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      handleChevronNext();
+      return;
+    }
+
+    handleChevronPrevious();
+  }, [allowSwipe, handleChevronNext, handleChevronPrevious]);
+
+  const handleSwipeCancel = React.useCallback(() => {
+    swipeRef.current = null;
+  }, []);
 
   const metadataDialogItem =
     metadataDialogItemKey == null
@@ -1039,7 +1129,13 @@ export default function MediaCycler({
             ...stackSxArray,
           ]}
         >
-          <Box sx={{ position: "relative", height: "100%", minHeight: 0 }}>
+          <Box
+            sx={{ position: "relative", height: "100%", minHeight: 0 }}
+            onTouchStart={handleSwipeStart}
+            onTouchMove={handleSwipeMove}
+            onTouchEnd={handleSwipeEnd}
+            onTouchCancel={handleSwipeCancel}
+          >
             {renderedItem ? (
               <Box
                 key={renderedItem.key}

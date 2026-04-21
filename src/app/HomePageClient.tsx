@@ -94,6 +94,7 @@ const DEFAULT_HOME_DRAWER_ITEM = {
   icon: "home",
   iconType: "material",
 } as const;
+const LAST_HOME_HASH_STORAGE_KEY = "portfolio:last-home-hash";
 type DrawerNavigationItem = {
   label: string;
   href: string;
@@ -221,6 +222,21 @@ export default function HomePageClient() {
       window.location.hash = sectionId;
     }
   }, []);
+
+  useEffect(() => {
+    if (!isReady || !activeSectionId) {
+      return;
+    }
+
+    try {
+      window.sessionStorage.setItem(
+        LAST_HOME_HASH_STORAGE_KEY,
+        `#${encodeURIComponent(activeSectionId)}`,
+      );
+    } catch {
+      // Ignore storage failures.
+    }
+  }, [activeSectionId, isReady]);
 
   const resolveSectionIdFromHash = useCallback(
     (hash: string) => {
