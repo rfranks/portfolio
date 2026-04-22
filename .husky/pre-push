@@ -1,1 +1,1 @@
-npm run prepush
+NPM_CONFIG_UPDATE_NOTIFIER=false npm run prepush

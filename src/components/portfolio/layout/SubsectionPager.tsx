@@ -1252,6 +1252,9 @@ export default function SubsectionPager({
     }
     return [base, previousButtonSx];
   })();
+  const previousButtonMergedSxArray = Array.isArray(previousButtonMergedSx)
+    ? previousButtonMergedSx
+    : [previousButtonMergedSx];
   const selectedImageSrc = currentItem.selectedImageSrc ?? currentItem.optionImageSrc;
   const selectedImageAlt =
     currentItem.selectedImageAlt ?? currentItem.optionImageAlt ?? `${currentItem.title} icon`;
@@ -1374,7 +1377,7 @@ export default function SubsectionPager({
             size="small"
             aria-label={previousAriaLabel}
             onClick={onPrevious}
-            sx={[{ display: { xs: "none", md: "inline-flex" } }, previousButtonMergedSx]}
+            sx={[{ display: { xs: "none", md: "inline-flex" } }, ...previousButtonMergedSxArray]}
           >
             <ChevronLeft fontSize="small" />
           </IconButton>
