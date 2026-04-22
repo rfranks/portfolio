@@ -52,14 +52,17 @@ export const Diagram: React.FC<DiagramProps> = ({
   width,
   showToolbar = true,
   showDots = true,
+  showGridDots,
   alwaysShowToolbar = false,
   toolbarActions,
   autoFitOnRender = true,
   autoFitPadding = 20,
   autoFitScaleMultiplier = 1,
+  autoFitVerticalAlign = "top",
   autoFitOffsetX = 0,
   autoFitOffsetY = 0,
 }: DiagramProps): ReactNode => {
+  const shouldShowGridDots = showGridDots ?? showDots;
   const reactId = useId();
   const resolvedId = id?.trim() ? id : `diagramId_${reactId.replace(/[:]/g, "_")}`;
 
@@ -99,9 +102,11 @@ ${steps?.join("\n  ")}
   const translateYRef = useRef(0);
   const wheelFrameRef = useRef<number | null>(null);
   const pendingWheelScaleRef = useRef<number | null>(null);
+  const pendingWheelPointerRef = useRef<{ x: number; y: number } | null>(null);
   const wheelCommitTimeoutRef = useRef<number | null>(null);
   const autoFitFrameRef = useRef<number | null>(null);
   const autoFitInnerFrameRef = useRef<number | null>(null);
+  const autoFitSettleFrameRef = useRef<number | null>(null);
 
   // Undo/Redo History
   const [history, setHistory] = useState<TransformState[]>([
@@ -168,41 +173,69 @@ ${steps?.join("\n  ")}
       return;
     }
 
-    let contentWidth = 0;
-    let contentHeight = 0;
-    let contentOffsetX = 0;
-    let contentOffsetY = 0;
+    const currentScale = Math.max(0.0001, scaleRef.current);
+    const svgRect = svgElement.getBoundingClientRect();
+    const unscaledSvgWidth = svgRect.width / currentScale;
+    const unscaledSvgHeight = svgRect.height / currentScale;
+    const viewBox = svgElement.viewBox?.baseVal;
+    const hasViewBox = Boolean(viewBox && viewBox.width > 0 && viewBox.height > 0);
 
-    // Prefer true rendered bounds so auto-fit centers real content, not nominal canvas.
-    try {
-      const contentBounds = svgElement.getBBox();
-      if (contentBounds.width > 0 && contentBounds.height > 0) {
-        contentWidth = contentBounds.width;
-        contentHeight = contentBounds.height;
-        contentOffsetX = contentBounds.x;
-        contentOffsetY = contentBounds.y;
+    let contentWidthUnits = 0;
+    let contentHeightUnits = 0;
+    let contentOffsetXUnits = 0;
+    let contentOffsetYUnits = 0;
+
+    // Prefer rendered graph bounds (g.root) over the full SVG canvas; Mermaid often keeps
+    // extra outer canvas space that can make initial fit feel overly zoomed-out.
+    const measurementCandidates: Array<SVGGraphicsElement | SVGSVGElement> = [];
+    const graphRoot = svgElement.querySelector("g.root") as SVGGraphicsElement | null;
+    if (graphRoot) {
+      measurementCandidates.push(graphRoot);
+    }
+    measurementCandidates.push(svgElement);
+
+    for (const candidate of measurementCandidates) {
+      try {
+        const contentBounds = candidate.getBBox();
+        if (contentBounds.width > 0 && contentBounds.height > 0) {
+          contentWidthUnits = contentBounds.width;
+          contentHeightUnits = contentBounds.height;
+          contentOffsetXUnits = contentBounds.x;
+          contentOffsetYUnits = contentBounds.y;
+          break;
+        }
+      } catch {
+        // Fall through to the next candidate.
       }
-    } catch {
-      // Fall through to viewBox/bounds fallback.
     }
 
-    if (contentWidth <= 0 || contentHeight <= 0) {
-      const viewBox = svgElement.viewBox?.baseVal;
-      if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
-        contentWidth = viewBox.width;
-        contentHeight = viewBox.height;
-        contentOffsetX = viewBox.x;
-        contentOffsetY = viewBox.y;
+    if (contentWidthUnits <= 0 || contentHeightUnits <= 0) {
+      if (hasViewBox && viewBox) {
+        contentWidthUnits = viewBox.width;
+        contentHeightUnits = viewBox.height;
+        contentOffsetXUnits = viewBox.x;
+        contentOffsetYUnits = viewBox.y;
       } else {
-        const svgRect = svgElement.getBoundingClientRect();
-        contentWidth = svgRect.width;
-        contentHeight = svgRect.height;
+        contentWidthUnits = unscaledSvgWidth;
+        contentHeightUnits = unscaledSvgHeight;
+        contentOffsetXUnits = 0;
+        contentOffsetYUnits = 0;
       }
     }
 
-    if (contentWidth <= 0 || contentHeight <= 0) {
+    if (contentWidthUnits <= 0 || contentHeightUnits <= 0) {
       return;
     }
+
+    // Convert SVG units to unscaled CSS pixels so fit math uses a consistent unit system.
+    const scaleX = hasViewBox && viewBox ? unscaledSvgWidth / Math.max(0.0001, viewBox.width) : 1;
+    const scaleY = hasViewBox && viewBox ? unscaledSvgHeight / Math.max(0.0001, viewBox.height) : 1;
+    const contentWidth = contentWidthUnits * scaleX;
+    const contentHeight = contentHeightUnits * scaleY;
+    const viewBoxOriginX = hasViewBox && viewBox ? viewBox.x : 0;
+    const viewBoxOriginY = hasViewBox && viewBox ? viewBox.y : 0;
+    const contentOffsetX = (contentOffsetXUnits - viewBoxOriginX) * scaleX;
+    const contentOffsetY = (contentOffsetYUnits - viewBoxOriginY) * scaleY;
 
     const safePadding = Math.max(0, autoFitPadding);
     const availableWidth = Math.max(1, viewportRect.width - safePadding * 2);
@@ -214,6 +247,8 @@ ${steps?.join("\n  ")}
     const baseScale = Math.max(0.05, Math.min(fitScaleY, fitScaleX));
     const scaleMultiplier = Math.max(0.1, autoFitScaleMultiplier);
     const fittedScale = Math.min(8, Math.max(0.05, baseScale * scaleMultiplier));
+    const verticalSlack = availableHeight - contentHeight * fittedScale;
+    const verticalAlignOffset = autoFitVerticalAlign === "center" ? verticalSlack / 2 : 0;
 
     const translatedX =
       safePadding +
@@ -221,17 +256,21 @@ ${steps?.join("\n  ")}
       contentOffsetX * fittedScale +
       autoFitOffsetX;
     const translatedY =
-      safePadding +
-      (availableHeight - contentHeight * fittedScale) / 2 -
-      contentOffsetY * fittedScale +
-      autoFitOffsetY;
+      safePadding + verticalAlignOffset - contentOffsetY * fittedScale + autoFitOffsetY;
 
     applyFitTransform({
       scale: fittedScale,
       translateX: translatedX,
       translateY: translatedY,
     });
-  }, [applyFitTransform, autoFitOffsetX, autoFitOffsetY, autoFitPadding, autoFitScaleMultiplier]);
+  }, [
+    applyFitTransform,
+    autoFitOffsetX,
+    autoFitOffsetY,
+    autoFitPadding,
+    autoFitScaleMultiplier,
+    autoFitVerticalAlign,
+  ]);
 
   const scheduleAutoFitToViewport = useCallback(() => {
     if (autoFitFrameRef.current !== null) {
@@ -252,6 +291,59 @@ ${steps?.join("\n  ")}
     });
   }, [fitDiagramToViewport]);
 
+  const scheduleAutoFitAfterRenderSettle = useCallback(() => {
+    if (autoFitSettleFrameRef.current !== null) {
+      window.cancelAnimationFrame(autoFitSettleFrameRef.current);
+      autoFitSettleFrameRef.current = null;
+    }
+
+    let attempts = 0;
+    let stableFrames = 0;
+    let lastWidth = 0;
+    let lastHeight = 0;
+
+    const tick = () => {
+      const diagramNode = diagramRef.current;
+      const svgElement = diagramNode?.querySelector("svg") as SVGSVGElement | null;
+
+      if (!svgElement) {
+        attempts += 1;
+        if (attempts >= 60) {
+          autoFitSettleFrameRef.current = null;
+          scheduleAutoFitToViewport();
+          return;
+        }
+        autoFitSettleFrameRef.current = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      const rect = svgElement.getBoundingClientRect();
+      const widthNow = rect.width;
+      const heightNow = rect.height;
+
+      if (widthNow > 0 && heightNow > 0) {
+        if (Math.abs(widthNow - lastWidth) < 0.5 && Math.abs(heightNow - lastHeight) < 0.5) {
+          stableFrames += 1;
+        } else {
+          stableFrames = 0;
+        }
+        lastWidth = widthNow;
+        lastHeight = heightNow;
+      }
+
+      attempts += 1;
+      if (stableFrames >= 2 || attempts >= 60) {
+        autoFitSettleFrameRef.current = null;
+        scheduleAutoFitToViewport();
+        return;
+      }
+
+      autoFitSettleFrameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    autoFitSettleFrameRef.current = window.requestAnimationFrame(tick);
+  }, [scheduleAutoFitToViewport]);
+
   const handleUndo = useCallback(() => {
     if (!canUndo) return;
     const newIndex = historyIndex - 1;
@@ -267,10 +359,15 @@ ${steps?.join("\n  ")}
   }, [canRedo, historyIndex, history, applyTransformState]);
 
   // Zoom/Pan increments
-  const ZOOM_STEP = 0.5;
   const PAN_STEP = 50;
-  const CLICK_ZOOM_FACTOR = 1.3;
-  const DOUBLE_CLICK_ZOOM_FACTOR = 1.4;
+  const CLICK_ZOOM_FACTOR = 2.5;
+  const ICON_ZOOM_FACTOR = 2.5;
+  const DOUBLE_CLICK_ZOOM_FACTOR = 2.5;
+  const WHEEL_ZOOM_SENSITIVITY = 0.06;
+  const WHEEL_ZOOM_MAX_STEP_FACTOR = 1.26;
+  const PINCH_ZOOM_AMPLIFICATION = 50;
+  const MAX_PINCH_STEP_MULTIPLIER = 4;
+  const MIN_PINCH_STEP_MULTIPLIER = 0.25;
   const clampScale = useCallback((value: number) => Math.min(8, Math.max(0.1, value)), []);
 
   const doTransform = useCallback(
@@ -313,11 +410,11 @@ ${steps?.join("\n  ")}
   );
 
   const handleZoomIn = useCallback(() => {
-    doTransform(clampScale(scale + ZOOM_STEP), translateX, translateY);
+    doTransform(clampScale(scale * ICON_ZOOM_FACTOR), translateX, translateY);
   }, [scale, translateX, translateY, doTransform, clampScale]);
 
   const handleZoomOut = useCallback(() => {
-    doTransform(clampScale(scale - ZOOM_STEP), translateX, translateY);
+    doTransform(clampScale(scale / ICON_ZOOM_FACTOR), translateX, translateY);
   }, [scale, translateX, translateY, doTransform, clampScale]);
 
   const handleReset = useCallback(() => {
@@ -347,6 +444,7 @@ ${steps?.join("\n  ")}
     y: number;
   } | null>(null);
   const pinchDistanceRef = useRef<number | null>(null);
+  const pinchMidpointRef = useRef<{ x: number; y: number } | null>(null);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (pinchDistanceRef.current !== null) return;
@@ -421,9 +519,14 @@ ${steps?.join("\n  ")}
       e.stopPropagation();
 
       const baseScale = pendingWheelScaleRef.current ?? scaleRef.current;
-      const zoomDelta = -e.deltaY * 0.00045;
-      const nextScale = clampScale(baseScale + zoomDelta);
+      const rawWheelFactor = Math.exp(-e.deltaY * WHEEL_ZOOM_SENSITIVITY);
+      const boundedWheelFactor = Math.min(
+        WHEEL_ZOOM_MAX_STEP_FACTOR,
+        Math.max(1 / WHEEL_ZOOM_MAX_STEP_FACTOR, rawWheelFactor),
+      );
+      const nextScale = clampScale(baseScale * boundedWheelFactor);
       pendingWheelScaleRef.current = nextScale;
+      pendingWheelPointerRef.current = { x: e.clientX, y: e.clientY };
 
       if (wheelFrameRef.current === null) {
         wheelFrameRef.current = window.requestAnimationFrame(() => {
@@ -432,9 +535,32 @@ ${steps?.join("\n  ")}
           if (framedScale == null) {
             return;
           }
-          setScale(framedScale);
-          scaleRef.current = framedScale;
+          const viewport = diagramViewportRef.current;
+          const pointer = pendingWheelPointerRef.current;
+          if (!viewport || !pointer) {
+            setScale(framedScale);
+            scaleRef.current = framedScale;
+          } else {
+            const viewportRect = viewport.getBoundingClientRect();
+            const pointX = pointer.x - viewportRect.left;
+            const pointY = pointer.y - viewportRect.top;
+            const currentScale = scaleRef.current;
+            const currentTranslateX = translateXRef.current;
+            const currentTranslateY = translateYRef.current;
+            const contentX = (pointX - currentTranslateX) / currentScale;
+            const contentY = (pointY - currentTranslateY) / currentScale;
+            const nextTranslateX = pointX - contentX * framedScale;
+            const nextTranslateY = pointY - contentY * framedScale;
+
+            setScale(framedScale);
+            scaleRef.current = framedScale;
+            setTranslateX(nextTranslateX);
+            translateXRef.current = nextTranslateX;
+            setTranslateY(nextTranslateY);
+            translateYRef.current = nextTranslateY;
+          }
           pendingWheelScaleRef.current = null;
+          pendingWheelPointerRef.current = null;
         });
       }
 
@@ -455,6 +581,10 @@ ${steps?.join("\n  ")}
 
   const getTouchDistance = (touchA: Touch, touchB: Touch) =>
     Math.hypot(touchA.clientX - touchB.clientX, touchA.clientY - touchB.clientY);
+  const getTouchMidpoint = (touchA: Touch, touchB: Touch) => ({
+    x: (touchA.clientX + touchB.clientX) / 2,
+    y: (touchA.clientY + touchB.clientY) / 2,
+  });
 
   const handleCopyDiagramCode = useCallback(async () => {
     const textToCopy = diagramCode.trim();
@@ -499,6 +629,7 @@ ${steps?.join("\n  ")}
     e.preventDefault();
     e.stopPropagation();
     pinchDistanceRef.current = getTouchDistance(e.touches[0], e.touches[1]);
+    pinchMidpointRef.current = getTouchMidpoint(e.touches[0], e.touches[1]);
     setIsDragging(false);
     setLastPointerPos(null);
   }, []);
@@ -511,17 +642,53 @@ ${steps?.join("\n  ")}
 
       const previousDistance = pinchDistanceRef.current;
       const nextDistance = getTouchDistance(e.touches[0], e.touches[1]);
+      const nextMidpoint = getTouchMidpoint(e.touches[0], e.touches[1]);
       if (!previousDistance || previousDistance <= 0 || nextDistance <= 0) {
         pinchDistanceRef.current = nextDistance;
+        pinchMidpointRef.current = nextMidpoint;
         return;
       }
 
       const pinchRatio = nextDistance / previousDistance;
-      const amplifiedRatio = 1 + (pinchRatio - 1) * 1.9;
-      const nextScale = clampScale(scaleRef.current * amplifiedRatio);
-      setScale(nextScale);
+      const exponentialRatio = Math.exp((pinchRatio - 1) * PINCH_ZOOM_AMPLIFICATION);
+      const amplifiedRatio = Math.min(
+        MAX_PINCH_STEP_MULTIPLIER,
+        Math.max(MIN_PINCH_STEP_MULTIPLIER, exponentialRatio),
+      );
+      const currentScale = scaleRef.current;
+      const nextScale = clampScale(currentScale * amplifiedRatio);
+      const viewport = diagramViewportRef.current;
+
+      if (!viewport) {
+        setScale(nextScale);
+        scaleRef.current = nextScale;
+        pinchDistanceRef.current = nextDistance;
+        pinchMidpointRef.current = nextMidpoint;
+        return;
+      }
+
+      const viewportRect = viewport.getBoundingClientRect();
+      const previousMidpoint = pinchMidpointRef.current ?? nextMidpoint;
+      const previousPointX = previousMidpoint.x - viewportRect.left;
+      const previousPointY = previousMidpoint.y - viewportRect.top;
+      const nextPointX = nextMidpoint.x - viewportRect.left;
+      const nextPointY = nextMidpoint.y - viewportRect.top;
+      const currentTranslateX = translateXRef.current;
+      const currentTranslateY = translateYRef.current;
+
+      const contentX = (previousPointX - currentTranslateX) / currentScale;
+      const contentY = (previousPointY - currentTranslateY) / currentScale;
+      const nextTranslateX = nextPointX - contentX * nextScale;
+      const nextTranslateY = nextPointY - contentY * nextScale;
+
       scaleRef.current = nextScale;
+      setScale(nextScale);
+      translateXRef.current = nextTranslateX;
+      translateYRef.current = nextTranslateY;
+      setTranslateX(nextTranslateX);
+      setTranslateY(nextTranslateY);
       pinchDistanceRef.current = nextDistance;
+      pinchMidpointRef.current = nextMidpoint;
     },
     [clampScale],
   );
@@ -533,6 +700,7 @@ ${steps?.join("\n  ")}
         e.preventDefault();
         e.stopPropagation();
         pinchDistanceRef.current = null;
+        pinchMidpointRef.current = null;
         pushHistory({
           scale: scaleRef.current,
           translateX: translateXRef.current,
@@ -574,7 +742,7 @@ ${steps?.join("\n  ")}
       });
 
       if (!cancelled && autoFitOnRender) {
-        scheduleAutoFitToViewport();
+        scheduleAutoFitAfterRenderSettle();
       }
     };
 
@@ -588,7 +756,7 @@ ${steps?.join("\n  ")}
     diagramCode,
     isHydrated,
     isVisible,
-    scheduleAutoFitToViewport,
+    scheduleAutoFitAfterRenderSettle,
     showingText,
     syntax,
   ]);
@@ -627,6 +795,7 @@ ${steps?.join("\n  ")}
         window.clearTimeout(wheelCommitTimeoutRef.current);
         wheelCommitTimeoutRef.current = null;
       }
+      pendingWheelPointerRef.current = null;
       container.removeEventListener("wheel", handleWheel, options);
       container.removeEventListener("touchstart", handleTouchStart, options);
       container.removeEventListener("touchmove", handleTouchMove, options);
@@ -651,6 +820,10 @@ ${steps?.join("\n  ")}
       if (autoFitInnerFrameRef.current !== null) {
         window.cancelAnimationFrame(autoFitInnerFrameRef.current);
         autoFitInnerFrameRef.current = null;
+      }
+      if (autoFitSettleFrameRef.current !== null) {
+        window.cancelAnimationFrame(autoFitSettleFrameRef.current);
+        autoFitSettleFrameRef.current = null;
       }
     };
   }, []);
@@ -832,7 +1005,7 @@ ${steps?.join("\n  ")}
             flexGrow: 1,
             width: "100%",
             backgroundColor: "#fff",
-            backgroundImage: showDots
+            backgroundImage: shouldShowGridDots
               ? "radial-gradient(#cecece 2.0px, transparent 2.0px)"
               : undefined,
             backgroundSize: "30px 30px",

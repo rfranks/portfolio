@@ -31,6 +31,34 @@ type ValidateResumeOptions = {
   strictAssets: boolean;
 };
 
+type ValidationStats = {
+  resumeDataPath: string;
+  strictAssets: boolean;
+  schemaVersion: number | null;
+  topLevelKeyCount: number;
+  topLevelKeys: string[];
+  projectCount: number;
+  projectTypeCounts: Record<string, number>;
+  projectsWithDiagrams: number;
+  diagramCount: number;
+  projectsWithTerminalDemo: number;
+  experienceCount: number;
+  educationCount: number;
+  recognitionSnippetCount: number;
+  recognitionRecommendationCount: number;
+  recognitionGithubAchievementCount: number;
+  aiShenaniganCount: number;
+  hobbyCount: number;
+  assetReferenceCount: number;
+  uniqueAssetReferenceCount: number;
+  missingAssetCount: number;
+};
+
+type ValidationRunResult = {
+  issues: ValidationIssue[];
+  stats: ValidationStats;
+};
+
 function parseValidateArgs(argv: string[]): {
   options: ValidateResumeOptions;
   usageError: string | null;
@@ -113,7 +141,23 @@ async function pathExists(targetPath: string): Promise<boolean> {
   }
 }
 
-async function runValidation(options: ValidateResumeOptions): Promise<ValidationIssue[]> {
+function countByProjectType(projects: Array<{ type: string }>): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const project of projects) {
+    const type = project.type?.trim() || "unknown";
+    counts[type] = (counts[type] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function formatProjectTypeCounts(counts: Record<string, number>): string {
+  return Object.entries(counts)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([type, count]) => `${type}: ${count}`)
+    .join(", ");
+}
+
+async function runValidation(options: ValidateResumeOptions): Promise<ValidationRunResult> {
   const issues: ValidationIssue[] = [];
   const rawText = await fs.readFile(resumeDataPath, "utf8");
   const rawData = JSON.parse(rawText) as unknown;
@@ -141,12 +185,16 @@ async function runValidation(options: ValidateResumeOptions): Promise<Validation
     }
   }
 
+  const assetReferences = collectAssetReferences(parsed);
+  const uniqueAssetPaths = new Set(assetReferences.map((reference) => reference.assetPath));
+  let missingAssetCount = 0;
+
   if (options.strictAssets) {
-    const assetReferences = collectAssetReferences(parsed);
     for (const reference of assetReferences) {
       const relativeAssetPath = reference.assetPath.replace(/^\/+/, "");
       const absoluteAssetPath = path.join(publicDir, relativeAssetPath);
       if (!(await pathExists(absoluteAssetPath))) {
+        missingAssetCount += 1;
         issues.push({
           severity: "error",
           message: `Missing asset referenced at ${reference.jsonPath}: ${reference.assetPath}`,
@@ -163,7 +211,53 @@ async function runValidation(options: ValidateResumeOptions): Promise<Validation
     });
   }
 
-  return issues;
+  const topLevelKeys = Object.keys(parsed);
+  const recognition = isPlainObject(parsed.recognition) ? parsed.recognition : undefined;
+  const hobbies = isPlainObject(parsed.hobbies) ? parsed.hobbies : undefined;
+  const aiShenanigans = isPlainObject(parsed.aiShenanigans) ? parsed.aiShenanigans : undefined;
+  const diagramCount = parsed.projects.reduce((count, project) => {
+    if (!Array.isArray(project.diagrams)) {
+      return count;
+    }
+    return count + project.diagrams.length;
+  }, 0);
+  const projectsWithDiagrams = parsed.projects.filter(
+    (project) => Array.isArray(project.diagrams) && project.diagrams.length > 0,
+  ).length;
+  const projectsWithTerminalDemo = parsed.projects.filter((project) =>
+    isPlainObject(project.terminalDemo),
+  ).length;
+  const stats: ValidationStats = {
+    resumeDataPath: withPosixPath(path.relative(repoRoot, resumeDataPath)),
+    strictAssets: options.strictAssets,
+    schemaVersion:
+      typeof parsed.schemaVersion === "number" && Number.isFinite(parsed.schemaVersion)
+        ? parsed.schemaVersion
+        : null,
+    topLevelKeyCount: topLevelKeys.length,
+    topLevelKeys,
+    projectCount: parsed.projects.length,
+    projectTypeCounts: countByProjectType(parsed.projects as Array<{ type: string }>),
+    projectsWithDiagrams,
+    diagramCount,
+    projectsWithTerminalDemo,
+    experienceCount: Array.isArray(parsed.experience) ? parsed.experience.length : 0,
+    educationCount: Array.isArray(parsed.education) ? parsed.education.length : 0,
+    recognitionSnippetCount: Array.isArray(recognition?.snippets) ? recognition.snippets.length : 0,
+    recognitionRecommendationCount: Array.isArray(recognition?.recommendations)
+      ? recognition.recommendations.length
+      : 0,
+    recognitionGithubAchievementCount: Array.isArray(recognition?.githubAchievements)
+      ? recognition.githubAchievements.length
+      : 0,
+    aiShenaniganCount: Array.isArray(aiShenanigans?.items) ? aiShenanigans.items.length : 0,
+    hobbyCount: Array.isArray(hobbies?.items) ? hobbies.items.length : 0,
+    assetReferenceCount: assetReferences.length,
+    uniqueAssetReferenceCount: uniqueAssetPaths.size,
+    missingAssetCount,
+  };
+
+  return { issues, stats };
 }
 
 async function main(): Promise<void> {
@@ -179,18 +273,42 @@ async function main(): Promise<void> {
   }
 
   out.section("Resume data validation");
-  const issues = await runValidation(parsedArgs.options);
+  const { issues, stats } = await runValidation(parsedArgs.options);
   const errors = issues.filter((issue) => issue.severity === "error");
   const warnings = issues.filter((issue) => issue.severity === "warning");
 
+  out.metric(`Source: ${stats.resumeDataPath}`);
+  out.metric(
+    `Mode: ${stats.strictAssets ? "strict asset checks enabled" : "strict asset checks disabled"}`,
+  );
+  out.metric(`Schema version: ${stats.schemaVersion ?? "unspecified"}`);
+  out.metric(`Top-level keys (${stats.topLevelKeyCount}): ${stats.topLevelKeys.join(", ")}`);
+  out.metric(
+    `Projects: ${stats.projectCount} (${formatProjectTypeCounts(stats.projectTypeCounts) || "none"})`,
+  );
+  out.metric(
+    `Project media: ${stats.diagramCount} diagrams across ${stats.projectsWithDiagrams} project(s), terminal demos on ${stats.projectsWithTerminalDemo} project(s)`,
+  );
+  out.metric(
+    `Experience/Education: ${stats.experienceCount} experience entries, ${stats.educationCount} education entries`,
+  );
+  out.metric(
+    `Recognition: ${stats.recognitionSnippetCount} snippets, ${stats.recognitionRecommendationCount} recommendations, ${stats.recognitionGithubAchievementCount} GitHub achievements`,
+  );
+  out.metric(
+    `AI shenanigans: ${stats.aiShenaniganCount} items | Hobbies: ${stats.hobbyCount} items`,
+  );
+  out.metric(
+    `Asset references: ${stats.assetReferenceCount} total (${stats.uniqueAssetReferenceCount} unique paths)`,
+  );
+  if (stats.strictAssets) {
+    out.metric(`Missing assets: ${stats.missingAssetCount}`);
+  } else {
+    out.sparkle("Asset existence checks skipped (pass --strict-assets to verify files exist).");
+  }
+
   if (!issues.length) {
-    if (!parsedArgs.options.strictAssets) {
-      out.success(
-        "resumeData validation passed (asset existence checks skipped; use --strict-assets to enable).",
-      );
-    } else {
-      out.success("resumeData validation passed.");
-    }
+    out.success("resumeData validation passed.");
     return;
   }
 

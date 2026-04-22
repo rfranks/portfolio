@@ -915,6 +915,8 @@ export default function MediaCycler({
                   height: item.diagramProps?.height ?? "100%",
                   width: item.diagramProps?.width ?? "100%",
                   showToolbar: item.diagramProps?.showToolbar ?? true,
+                  showGridDots:
+                    item.diagramProps?.showGridDots ?? item.diagramProps?.showDots ?? false,
                   showDots: item.diagramProps?.showDots ?? false,
                 }}
               />
@@ -1046,44 +1048,32 @@ export default function MediaCycler({
             >
               {"<"} Back
             </Link>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{
-                  fontWeight: 700,
-                  letterSpacing: "0.01em",
-                }}
-              >
-                More
-              </Typography>
-              <Link
-                component="button"
-                type="button"
-                underline="hover"
-                color={canAdvanceToNextDiagram ? "primary.main" : "text.disabled"}
-                aria-disabled={!canAdvanceToNextDiagram}
-                tabIndex={canAdvanceToNextDiagram ? 0 : -1}
-                onClick={() => {
-                  if (!canAdvanceToNextDiagram) {
-                    return;
-                  }
-                  nextDiagramItem?.onSelect?.();
-                }}
-                sx={{
-                  p: 0,
-                  border: 0,
-                  background: "none",
-                  fontSize: "0.84rem",
-                  lineHeight: 1.2,
-                  fontWeight: 700,
-                  cursor: canAdvanceToNextDiagram ? "pointer" : "default",
-                  pointerEvents: canAdvanceToNextDiagram ? "auto" : "none",
-                }}
-              >
-                Next {">"}
-              </Link>
-            </Box>
+            <Link
+              component="button"
+              type="button"
+              underline="hover"
+              color={canAdvanceToNextDiagram ? "primary.main" : "text.disabled"}
+              aria-disabled={!canAdvanceToNextDiagram}
+              tabIndex={canAdvanceToNextDiagram ? 0 : -1}
+              onClick={() => {
+                if (!canAdvanceToNextDiagram) {
+                  return;
+                }
+                nextDiagramItem?.onSelect?.();
+              }}
+              sx={{
+                p: 0,
+                border: 0,
+                background: "none",
+                fontSize: "0.84rem",
+                lineHeight: 1.2,
+                fontWeight: 700,
+                cursor: canAdvanceToNextDiagram ? "pointer" : "default",
+                pointerEvents: canAdvanceToNextDiagram ? "auto" : "none",
+              }}
+            >
+              Next {">"}
+            </Link>
           </Box>
         ) : null}
       </Box>

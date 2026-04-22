@@ -26,12 +26,14 @@ export interface DiagramProps {
   height?: string | number;
   width?: string | number;
   showDots?: boolean;
+  showGridDots?: boolean;
   showToolbar?: boolean;
   alwaysShowToolbar?: boolean;
   toolbarActions?: React.ReactNode;
   autoFitOnRender?: boolean;
   autoFitPadding?: number;
   autoFitScaleMultiplier?: number;
+  autoFitVerticalAlign?: "top" | "center";
   autoFitOffsetX?: number;
   autoFitOffsetY?: number;
 }

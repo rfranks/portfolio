@@ -21,10 +21,13 @@ import { useResumeData } from "@/providers/ResumeDataProvider";
 import SubsectionPager from "@/components/portfolio/layout/SubsectionPager";
 import Chip from "@/components/fabric/Chip";
 import MediaCycler from "@/components/shared/media/MediaCycler";
-import { PortfolioPanelShell } from "@/components/shared";
+import {
+  EmojiListAvatar,
+  GridCloudNavigationSlide,
+  PortfolioPanelShell,
+} from "@/components/shared";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
-import { competencies } from "@/consts/resumeData";
 
 const spokeLineGrow = keyframes`
   0% { opacity: 0; transform: translateY(-50%) rotate(var(--spoke-angle, 0deg)) scaleX(0); }
@@ -36,8 +39,18 @@ const returnNodeReveal = keyframes`
   100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 `;
 
-type CompetencyCategory = (typeof competencies.categories)[number] & {
+export type CompetencyItem = {
+  label: string;
+  description: string;
+  emoji?: string;
+  sourceLink?: string;
+};
+
+export type CompetencyCategory = {
+  title: string;
+  items: CompetencyItem[];
   icon?: string;
+  emoji?: string;
   shortText?: string;
   subTitle?: string;
 };
@@ -126,6 +139,50 @@ const normalizeCompetencyOptionIconKey = (value: string) =>
     .toLowerCase()
     .replace(/[\s_-]+/g, "");
 
+const resolveCompetencyEmoji = (
+  categoryTitle: string,
+  competencyLabel: string,
+  configuredEmoji?: string,
+) => {
+  const explicit = configuredEmoji?.trim();
+  if (explicit) {
+    return explicit;
+  }
+
+  const normalizedCategory = categoryTitle.trim().toLowerCase();
+  if (normalizedCategory.includes("ai")) {
+    return "🤖";
+  }
+  if (normalizedCategory.includes("frontend")) {
+    return "🖥️";
+  }
+  if (normalizedCategory.includes("backend")) {
+    return "🧰";
+  }
+  if (normalizedCategory.includes("cloud")) {
+    return "☁️";
+  }
+  if (normalizedCategory.includes("data")) {
+    return "🗂️";
+  }
+  if (normalizedCategory.includes("leadership")) {
+    return "🤝";
+  }
+
+  const normalizedLabel = competencyLabel.trim().toLowerCase();
+  if (normalizedLabel.includes("react") || normalizedLabel.includes("typescript")) {
+    return "⚛️";
+  }
+  if (normalizedLabel.includes("python") || normalizedLabel.includes("java")) {
+    return "💻";
+  }
+  if (normalizedLabel.includes("api")) {
+    return "🔌";
+  }
+
+  return "✨";
+};
+
 const renderCompetencyOptionIcon = (iconKey?: string) => {
   const normalized = iconKey ? normalizeCompetencyOptionIconKey(iconKey) : "";
   switch (normalized) {
@@ -160,22 +217,54 @@ const renderCompetencyOptionIcon = (iconKey?: string) => {
   }
 };
 
-type CoreCompetenciesProps = {
-  topRail?: React.ReactNode;
+const renderCompetencyCategoryVisual = (category: CompetencyCategory) => {
+  const emoji = typeof category.emoji === "string" ? category.emoji.trim() : "";
+  if (emoji) {
+    return (
+      <Box
+        component="span"
+        aria-hidden
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "1.35rem",
+          lineHeight: 1,
+        }}
+      >
+        {emoji}
+      </Box>
+    );
+  }
+
+  return renderCompetencyOptionIcon(typeof category.icon === "string" ? category.icon : undefined);
 };
 
-export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
+type CoreCompetenciesProps = {
+  topRail?: React.ReactNode;
+  categoriesOverride?: CompetencyCategory[];
+  embedded?: boolean;
+  menuIdPrefix?: string;
+};
+
+export default function CoreCompetencies({
+  topRail,
+  categoriesOverride,
+  embedded = false,
+  menuIdPrefix = "competency",
+}: CoreCompetenciesProps) {
   const { competencies } = useResumeData();
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+  const sourceCategories = categoriesOverride ?? competencies.categories;
   const categories = React.useMemo(
     () =>
-      [...competencies.categories].sort((left, right) =>
+      [...sourceCategories].sort((left, right) =>
         left.title.localeCompare(right.title, undefined, {
           sensitivity: "base",
         }),
       ),
-    [competencies.categories],
+    [sourceCategories],
   );
   const [selectedOrbIndex, setSelectedOrbIndex] = React.useState<number | null>(null);
   const [viewMode, setViewMode] = React.useState<"cloud" | "list">("list");
@@ -217,7 +306,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
   ] as const;
 
   const selectedCategory = selectedOrbIndex == null ? null : categories[selectedOrbIndex] || null;
-  const isCloudView = isMdUp && viewMode === "cloud";
+  const isCloudView = viewMode === "cloud";
   const spokeNodeOffset = "clamp(26px, 3.2vw, 42px)";
 
   const panelLayout = React.useMemo(() => {
@@ -298,6 +387,11 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
               {category.items.map((competency) =>
                 (() => {
                   const maybeSourceLink = (competency as { sourceLink?: unknown }).sourceLink;
+                  const maybeEmoji = (competency as { emoji?: unknown }).emoji;
+                  const resolvedEmoji =
+                    typeof maybeEmoji === "string" && maybeEmoji.trim()
+                      ? maybeEmoji.trim()
+                      : resolveCompetencyEmoji(category.title, competency.label);
                   const resolvedSourceLink =
                     typeof maybeSourceLink === "string" && maybeSourceLink.trim()
                       ? maybeSourceLink.trim()
@@ -312,24 +406,45 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
                         borderRadius: "10px",
                       }}
                     >
-                      <Typography
-                        component={Link}
-                        href={resolvedSourceLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        underline="hover"
-                        variant="subtitle2"
-                        sx={{ fontWeight: 700, lineHeight: 1.25 }}
-                      >
-                        {competency.label}
-                      </Typography>
-                      <Typography
-                        variant="subtitle2"
-                        color="text.secondary"
-                        sx={{ lineHeight: 1.3 }}
-                      >
-                        {competency.description}
-                      </Typography>
+                      <Stack direction="row" spacing={1.2} alignItems="stretch">
+                        <Box
+                          sx={{
+                            minWidth: 46,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            alignSelf: "stretch",
+                          }}
+                        >
+                          <EmojiListAvatar
+                            emoji={resolvedEmoji}
+                            size={40}
+                            fontSize="2rem"
+                            borderAlpha={0.26}
+                            backgroundAlpha={0.1}
+                          />
+                        </Box>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography
+                            component={Link}
+                            href={resolvedSourceLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            underline="hover"
+                            variant="subtitle2"
+                            sx={{ fontWeight: 700, lineHeight: 1.25 }}
+                          >
+                            {competency.label}
+                          </Typography>
+                          <Typography
+                            variant="subtitle2"
+                            color="text.secondary"
+                            sx={{ lineHeight: 1.3 }}
+                          >
+                            {competency.description}
+                          </Typography>
+                        </Box>
+                      </Stack>
                     </Box>
                   );
                 })(),
@@ -368,12 +483,8 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
           title: category.title,
           optionTitle: category.title,
           optionSubtitle: optionSubtitle || undefined,
-          selectedIcon: renderCompetencyOptionIcon(
-            typeof category.icon === "string" ? category.icon : undefined,
-          ),
-          optionIcon: renderCompetencyOptionIcon(
-            typeof category.icon === "string" ? category.icon : undefined,
-          ),
+          selectedIcon: renderCompetencyCategoryVisual(category),
+          optionIcon: renderCompetencyCategoryVisual(category),
         };
       }),
     [categories],
@@ -701,28 +812,653 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
     },
     [clearTimers],
   );
-  const handleSwitchViewModeChange = React.useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      handleViewModeChange(event.target.checked);
-    },
-    [handleViewModeChange],
+  const cloudContent = (
+    <Box
+      ref={panelContainerRef}
+      sx={{
+        position: "relative",
+        minHeight: 0,
+        flex: "1 1 auto",
+        height: "100%",
+        overflow: "hidden",
+      }}
+    >
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 3,
+          p: { xs: 1, sm: 1.5, md: 2 },
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "repeat(2, minmax(0, 1fr))",
+            sm: "repeat(6, minmax(0, 1fr))",
+            md: "repeat(8, minmax(0, 1fr))",
+            lg: "repeat(10, minmax(0, 1fr))",
+          },
+          gridAutoRows: "18px",
+          gridAutoFlow: "dense",
+          gap: { xs: 0.6, sm: 0.85, md: 1 },
+          overflowY: "auto",
+          pr: 0.5,
+          opacity: selectedCategory ? 0 : 1,
+          pointerEvents: selectedCategory ? "none" : "auto",
+          transition: "none",
+        }}
+      >
+        {panelLayout.map((panel) => (
+          <Box
+            key={panel.category.title}
+            ref={(node: HTMLDivElement | null) => {
+              panelTileRefs.current[panel.index] = node;
+            }}
+            sx={{
+              gridColumn: {
+                xs: `span ${panel.colSpanXs}`,
+                sm: `span ${panel.colSpanSm}`,
+                md: `span ${panel.colSpanMd}`,
+                lg: `span ${panel.colSpanLg}`,
+              },
+              gridRow: `span ${panel.rowSpan}`,
+              minHeight: 0,
+            }}
+          >
+            <Chip
+              label={panel.category.title}
+              onClick={() => {
+                if (selectedOrbIndex == null) {
+                  handleSelectOrb(panel.index);
+                }
+              }}
+              clickable
+              color="primary"
+              variant="outlined"
+              sx={{
+                width: "100%",
+                height: "100%",
+                minHeight: "100%",
+                cursor: NODE_CURSOR,
+                borderRadius: "12px",
+                borderWidth: 1.2,
+                backdropFilter: "blur(1px)",
+                boxShadow: "0 4px 12px rgba(2,6,23,0.2)",
+                "& .MuiChip-label": {
+                  width: "100%",
+                  px: 0.8,
+                  py: 0.55,
+                  fontSize: `${panel.titleFontSizeRem}rem`,
+                  fontWeight: 700,
+                  whiteSpace: "normal",
+                  lineHeight: 1.15,
+                  textAlign: "center",
+                },
+              }}
+            />
+          </Box>
+        ))}
+      </Box>
+
+      {selectedCategory ? (
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 4,
+            bgcolor: theme.palette.mode === "dark" ? "rgba(2,6,23,0.18)" : "rgba(255,255,255,0.34)",
+            backdropFilter: "blur(2px)",
+            pointerEvents: "none",
+          }}
+        >
+          {spokesVisible && expandedSkillKey == null
+            ? spokeLayout.map((node) => (
+                <Box
+                  key={`line-${node.skill.label}`}
+                  sx={{
+                    "--spoke-angle": `${node.angle}deg`,
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    width: `calc(${node.radiusPx}px + ${spokeNodeOffset})`,
+                    height: "1px",
+                    bgcolor:
+                      theme.palette.mode === "dark"
+                        ? alpha(theme.palette.common.white, 0.26)
+                        : alpha(theme.palette.grey[700], 0.3),
+                    transform: "translateY(-50%) rotate(var(--spoke-angle))",
+                    transformOrigin: "0 50%",
+                    zIndex: 4,
+                    animation: `${spokeLineGrow} ${
+                      isClosingSpokes ? CLOSE_SPOKES_MS : OPEN_SPOKES_MS
+                    }ms cubic-bezier(.22,.82,.28,.98) both`,
+                    animationDelay: `${node.index * (isClosingSpokes ? 12 : 18)}ms`,
+                    animationDirection: isClosingSpokes ? "reverse" : "normal",
+                  }}
+                />
+              ))
+            : null}
+
+          {spokesVisible
+            ? spokeLayout.map((node) =>
+                (() => {
+                  const skillKey = `${node.skill.label}-${node.index}`;
+                  const maybeSourceLink = (node.skill as { sourceLink?: unknown }).sourceLink;
+                  const referenceUrl =
+                    typeof maybeSourceLink === "string" && maybeSourceLink.trim()
+                      ? maybeSourceLink.trim()
+                      : getSkillReferenceUrl(node.skill.label);
+                  const nodeSkillEmoji = resolveCompetencyEmoji(
+                    selectedCategory.title,
+                    node.skill.label,
+                    typeof (node.skill as { emoji?: unknown }).emoji === "string"
+                      ? (node.skill as { emoji?: string }).emoji
+                      : undefined,
+                  );
+                  const isExpanded = expandedSkillKey === skillKey;
+                  const hasExpandedSkill = expandedSkillKey !== null;
+                  const shouldMuteNode = hasExpandedSkill && !isExpanded;
+                  const centerAlongSpokeTransform = `translate(-50%, -50%) rotate(${node.angle}deg) translateX(0px) rotate(${-node.angle}deg)`;
+                  const orbitTransform = `translate(-50%, -50%) rotate(${node.angle}deg) translateX(calc(${node.radiusPx}px + ${spokeNodeOffset})) rotate(${-node.angle}deg)`;
+                  const nodeTransform = isExpanded
+                    ? "translate(-50%, -50%) scale(1.04)"
+                    : skillNodesAtOrbit
+                      ? orbitTransform
+                      : centerAlongSpokeTransform;
+                  const handleExpand = () => {
+                    setExpandedSkillKey(skillKey);
+                    const nextSfx = skillExpandSfxRefs[node.index % skillExpandSfxRefs.length];
+                    rewindAndPlayAudio(nextSfx, {
+                      volume: 0.24,
+                    });
+                  };
+                  const handleCollapse = () => {
+                    setExpandedSkillKey(null);
+                    rewindAndPlayAudio(skillCloseSfx, {
+                      volume: 0.22,
+                    });
+                  };
+
+                  return (
+                    <Box
+                      key={`skill-${node.skill.label}`}
+                      sx={{
+                        position: "absolute",
+                        left: "50%",
+                        top: "50%",
+                        transform: nodeTransform,
+                        transition: isExpanded
+                          ? "transform 420ms cubic-bezier(.22,.82,.28,.98), opacity 240ms ease"
+                          : `transform ${SKILL_NODE_TRAVEL_MS}ms cubic-bezier(.22,1.08,.24,1), opacity 220ms ease`,
+                        transitionDelay:
+                          isExpanded || !skillNodesAtOrbit ? "0ms" : `${node.index * 22}ms`,
+                        zIndex: isExpanded ? 8 : 5,
+                        opacity: shouldMuteNode ? 0 : 1,
+                        pointerEvents: isClosingSpokes || shouldMuteNode ? "none" : "auto",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          transform: isExpanded || skillNodesAtOrbit ? "scale(1)" : "scale(0.42)",
+                          transition: isExpanded
+                            ? "transform 300ms cubic-bezier(.22,.82,.28,.98)"
+                            : `transform ${SKILL_NODE_SCALE_MS}ms cubic-bezier(.16,1,.3,1)`,
+                          transitionDelay:
+                            isExpanded || !skillNodesAtOrbit ? "0ms" : `${node.index * 22}ms`,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: isExpanded ? 0.55 : 0,
+                          }}
+                        >
+                          {isExpanded ? (
+                            <Box
+                              sx={{
+                                width: "fit-content",
+                                minWidth: { xs: 170, md: 220 },
+                                maxWidth: { xs: "min(84vw, 320px)", md: 360 },
+                                height: "fit-content",
+                                px: 1.2,
+                                py: 0.9,
+                                borderRadius: "14px",
+                                bgcolor:
+                                  theme.palette.mode === "dark"
+                                    ? alpha(theme.palette.success.main, 0.3)
+                                    : alpha(theme.palette.success.light, 0.52),
+                                border: "1px solid",
+                                borderColor:
+                                  theme.palette.mode === "dark"
+                                    ? alpha(theme.palette.success.light, 0.48)
+                                    : alpha(theme.palette.success.dark, 0.35),
+                                boxShadow: "0 10px 20px rgba(2,6,23,0.2)",
+                                transition: "box-shadow 260ms ease, background-color 260ms ease",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  gap: 1,
+                                  mb: 0.6,
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    minWidth: 0,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 0.8,
+                                  }}
+                                >
+                                  <EmojiListAvatar
+                                    emoji={nodeSkillEmoji}
+                                    size={26}
+                                    borderAlpha={0.34}
+                                    backgroundAlpha={0.14}
+                                  />
+                                  <Typography
+                                    variant="subtitle2"
+                                    sx={{
+                                      fontWeight: 700,
+                                      lineHeight: 1.2,
+                                      color:
+                                        theme.palette.mode === "dark"
+                                          ? alpha(theme.palette.common.white, 0.94)
+                                          : alpha(theme.palette.success.dark, 0.92),
+                                    }}
+                                  >
+                                    {node.skill.label}
+                                  </Typography>
+                                </Box>
+                                <IconButton
+                                  size="small"
+                                  aria-label={`Close ${node.skill.label}`}
+                                  onClick={handleCollapse}
+                                  sx={{
+                                    cursor: NODE_CURSOR,
+                                    color:
+                                      theme.palette.mode === "dark"
+                                        ? alpha(theme.palette.common.white, 0.94)
+                                        : alpha(theme.palette.success.dark, 0.92),
+                                    border: "1px solid",
+                                    borderColor:
+                                      theme.palette.mode === "dark"
+                                        ? alpha(theme.palette.common.white, 0.44)
+                                        : alpha(theme.palette.success.dark, 0.42),
+                                    bgcolor:
+                                      theme.palette.mode === "dark"
+                                        ? alpha(theme.palette.success.dark, 0.26)
+                                        : alpha(theme.palette.common.white, 0.64),
+                                    "&:hover": {
+                                      bgcolor:
+                                        theme.palette.mode === "dark"
+                                          ? alpha(theme.palette.success.dark, 0.42)
+                                          : alpha(theme.palette.common.white, 0.86),
+                                    },
+                                  }}
+                                >
+                                  <CloseIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+                              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.8 }}>
+                                <EmojiListAvatar
+                                  emoji={nodeSkillEmoji}
+                                  size={24}
+                                  borderAlpha={0.26}
+                                  backgroundAlpha={0.1}
+                                />
+                                <Typography
+                                  variant="subtitle2"
+                                  sx={{
+                                    textAlign: "left",
+                                    lineHeight: 1.28,
+                                    color:
+                                      theme.palette.mode === "dark"
+                                        ? alpha(theme.palette.common.white, 0.9)
+                                        : alpha(theme.palette.success.dark, 0.9),
+                                  }}
+                                >
+                                  {node.skill.description}
+                                </Typography>
+                              </Box>
+                              <Box
+                                sx={{
+                                  mt: 0.6,
+                                  display: "flex",
+                                  justifyContent: "flex-end",
+                                }}
+                              >
+                                <Link
+                                  href={referenceUrl}
+                                  target="_blank"
+                                  rel="noreferrer noopener"
+                                  underline="always"
+                                  sx={{
+                                    cursor: NODE_CURSOR,
+                                    fontSize: "0.8rem",
+                                    fontWeight: 700,
+                                    letterSpacing: "0.02em",
+                                    color:
+                                      theme.palette.mode === "dark"
+                                        ? alpha(theme.palette.common.white, 0.94)
+                                        : alpha(theme.palette.success.dark, 0.92),
+                                  }}
+                                >
+                                  More...
+                                </Link>
+                              </Box>
+                            </Box>
+                          ) : (
+                            <Chip
+                              label={
+                                <Box
+                                  sx={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 0.65,
+                                  }}
+                                >
+                                  <EmojiListAvatar emoji={nodeSkillEmoji} size={22} />
+                                  <Box component="span">{node.skill.label}</Box>
+                                </Box>
+                              }
+                              variant="outlined"
+                              color="primary"
+                              clickable
+                              onClick={handleExpand}
+                              sx={{
+                                width: "fit-content",
+                                maxWidth: { xs: "min(72vw, 280px)", md: 260 },
+                                height: "auto",
+                                cursor: NODE_CURSOR,
+                                borderWidth: 1.2,
+                                boxShadow: "none",
+                                bgcolor:
+                                  theme.palette.mode === "dark"
+                                    ? alpha(theme.palette.background.paper, 0.45)
+                                    : alpha(theme.palette.background.paper, 0.86),
+                                transition: "box-shadow 260ms ease, background-color 260ms ease",
+                                "& .MuiChip-label": {
+                                  px: 1.3,
+                                  py: 0.7,
+                                  whiteSpace: "normal",
+                                  lineHeight: 1.2,
+                                  textAlign: "center",
+                                },
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </Box>
+                    </Box>
+                  );
+                })(),
+              )
+            : null}
+        </Box>
+      ) : null}
+
+      {selectedCategory &&
+      spokesVisible &&
+      !isClosingSpokes &&
+      !openingNode &&
+      !returningNode &&
+      expandedSkillKey == null ? (
+        <Box
+          sx={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 9,
+            pointerEvents: "auto",
+          }}
+        >
+          <IconButton
+            aria-label="Collapse skills"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              handleCloseSpokes();
+            }}
+            sx={{
+              cursor: NODE_CURSOR,
+              border: "1px solid",
+              borderColor:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.common.white, 0.54)
+                  : alpha(theme.palette.common.black, 0.36),
+              color:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.common.white, 0.94)
+                  : alpha(theme.palette.common.black, 0.82),
+              bgcolor:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.common.black, 0.34)
+                  : alpha(theme.palette.common.white, 0.96),
+              boxShadow: "0 8px 18px rgba(2,6,23,0.28)",
+              "&:hover": {
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? alpha(theme.palette.common.black, 0.5)
+                    : alpha(theme.palette.common.white, 1),
+              },
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ) : null}
+
+      {openingNode ? (
+        <Box
+          sx={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            zIndex: 10,
+            pointerEvents: "none",
+            transform: openingNode.toCenter
+              ? "translate(-50%, -50%)"
+              : `translate(calc(-50% + ${openingNode.snapshot.x}px), calc(-50% + ${openingNode.snapshot.y}px))`,
+            transition: `transform ${OPEN_NODE_TRAVEL_MS}ms cubic-bezier(.16,.84,.26,1)`,
+          }}
+        >
+          <Chip
+            label={openingNode.snapshot.label}
+            color="primary"
+            variant="outlined"
+            sx={{
+              cursor: NODE_CURSOR,
+              borderWidth: 1.2,
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(2,6,23,0.2)",
+              bgcolor:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.background.paper, 0.45)
+                  : alpha(theme.palette.background.paper, 0.88),
+              "& .MuiChip-label": {
+                px: 0.9,
+                py: 0.55,
+                fontSize: `${openingNode.snapshot.fontSizeRem}rem`,
+                fontWeight: 700,
+                whiteSpace: "normal",
+                lineHeight: 1.15,
+                textAlign: "center",
+              },
+            }}
+          />
+        </Box>
+      ) : null}
+
+      {returningNode ? (
+        <Box
+          sx={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            zIndex: 10,
+            pointerEvents: "none",
+            opacity: 1,
+            transform:
+              returningNode.phase === "returning"
+                ? `translate(calc(-50% + ${returningNode.snapshot.x}px), calc(-50% + ${returningNode.snapshot.y}px))`
+                : "translate(-50%, -50%)",
+            transition:
+              returningNode.phase === "returning"
+                ? `transform ${RETURN_NODE_TRAVEL_MS}ms cubic-bezier(.16,.84,.26,1)`
+                : "none",
+            animation:
+              returningNode.phase === "revealing"
+                ? `${returnNodeReveal} ${RETURN_NODE_REVEAL_MS}ms cubic-bezier(.22,.82,.28,.98) both`
+                : "none",
+          }}
+        >
+          <Chip
+            label={returningNode.snapshot.label}
+            color="primary"
+            variant="outlined"
+            sx={{
+              cursor: NODE_CURSOR,
+              borderWidth: 1.2,
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(2,6,23,0.2)",
+              bgcolor:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.background.paper, 0.45)
+                  : alpha(theme.palette.background.paper, 0.88),
+              "& .MuiChip-label": {
+                px: 0.9,
+                py: 0.55,
+                fontSize: `${returningNode.snapshot.fontSizeRem}rem`,
+                fontWeight: 700,
+                whiteSpace: "normal",
+                lineHeight: 1.15,
+                textAlign: "center",
+              },
+            }}
+          />
+        </Box>
+      ) : null}
+    </Box>
   );
 
-  React.useEffect(() => {
-    if (isMdUp || viewMode === "list") {
-      return;
-    }
+  const listContent = (
+    <Box
+      sx={{
+        minHeight: 0,
+        flex: "1 1 auto",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
+      {hasMultipleBulletCategoryItems ? (
+        <SubsectionPager
+          menuId={`${menuIdPrefix}-category-selector-menu`}
+          items={bulletCategoryPickerItems}
+          currentKey={activeBulletCategoryKey}
+          showOrdinal={false}
+          selectedValueAsTitle
+          selectedVisualSize={38}
+          selectedIconFontSize="1.35rem"
+          selectedIconFrameStyle="none"
+          borderlessIconButtons
+          previousAriaLabel="Previous competency category"
+          nextAriaLabel="Next competency category"
+          selectorAriaLabel="Open competency category selector"
+          onSelect={setActiveBulletCategoryKey}
+          onPrevious={handlePreviousBulletCategory}
+          onNext={handleNextBulletCategory}
+        />
+      ) : null}
+      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
+        <MediaCycler
+          items={bulletCategoryItems}
+          singlePanel
+          singlePanelActiveKey={activeBulletCategoryKey}
+          showChevronNavigation={false}
+          stackSx={{
+            minHeight: 0,
+            height: "100%",
+          }}
+        />
+      </Box>
+    </Box>
+  );
 
-    clearTimers();
-    setViewMode("list");
-    setOpeningNode(null);
-    setReturningNode(null);
-    setSelectedOrbIndex(null);
-    setIsClosingSpokes(false);
-    setSpokesVisible(false);
-    setSkillNodesAtOrbit(false);
-    setExpandedSkillKey(null);
-  }, [clearTimers, isMdUp, viewMode]);
+  const viewToggleFooter = (
+    <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+        View
+      </Typography>
+      <IconButton
+        size="small"
+        aria-label="Show list view"
+        onClick={() => handleViewModeChange(false)}
+        sx={{ p: 0.35 }}
+      >
+        <FormatListBulleted fontSize="small" color={isCloudView ? "disabled" : "primary"} />
+      </IconButton>
+      <Switch
+        checked={isCloudView}
+        onChange={(event) => handleViewModeChange(event.target.checked)}
+        inputProps={{ "aria-label": "Toggle competency view mode" }}
+        color="primary"
+        size="small"
+      />
+      <IconButton
+        size="small"
+        aria-label="Show panel view"
+        onClick={() => handleViewModeChange(true)}
+        sx={{ p: 0.35 }}
+      >
+        <GridView fontSize="small" color={isCloudView ? "primary" : "disabled"} />
+      </IconButton>
+    </Stack>
+  );
+
+  if (embedded) {
+    return (
+      <Box
+        sx={{
+          minHeight: 0,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
+          <GridCloudNavigationSlide
+            isMdUp={isMdUp}
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
+            listContent={listContent}
+            cloudContent={cloudContent}
+            showViewToggle={false}
+            listViewAriaLabel="Show list view"
+            cloudViewAriaLabel="Show panel view"
+          />
+        </Box>
+        <Box
+          sx={{
+            py: 1.25,
+            minHeight: "fit-content",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {viewToggleFooter}
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <PortfolioPanelShell
@@ -739,571 +1475,25 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
         alignItems: "center",
         justifyContent: "center",
       }}
-      footer={
-        isMdUp ? (
-          <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-              View
-            </Typography>
-            <IconButton
-              size="small"
-              aria-label="Show list view"
-              onClick={() => handleViewModeChange(false)}
-              sx={{ p: 0.35 }}
-            >
-              <FormatListBulleted fontSize="small" color={isCloudView ? "disabled" : "primary"} />
-            </IconButton>
-            <Switch
-              checked={isCloudView}
-              onChange={handleSwitchViewModeChange}
-              inputProps={{ "aria-label": "Toggle competency view mode" }}
-              color="primary"
-              size="small"
-            />
-            <IconButton
-              size="small"
-              aria-label="Show panel view"
-              onClick={() => handleViewModeChange(true)}
-              sx={{ p: 0.35 }}
-            >
-              <GridView fontSize="small" color={isCloudView ? "primary" : "disabled"} />
-            </IconButton>
-          </Stack>
-        ) : null
-      }
+      footer={viewToggleFooter}
     >
-      {isCloudView ? (
-        <Box
-          ref={panelContainerRef}
-          sx={{
-            position: "relative",
-            minHeight: 0,
-            flex: "1 1 auto",
-            height: "100%",
-            overflow: "hidden",
-          }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 3,
-              p: { xs: 1, sm: 1.5, md: 2 },
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "repeat(2, minmax(0, 1fr))",
-                sm: "repeat(6, minmax(0, 1fr))",
-                md: "repeat(8, minmax(0, 1fr))",
-                lg: "repeat(10, minmax(0, 1fr))",
-              },
-              gridAutoRows: "18px",
-              gridAutoFlow: "dense",
-              gap: { xs: 0.6, sm: 0.85, md: 1 },
-              overflowY: "auto",
-              pr: 0.5,
-              opacity: selectedCategory ? 0 : 1,
-              pointerEvents: selectedCategory ? "none" : "auto",
-              transition: "none",
-            }}
-          >
-            {panelLayout.map((panel) => (
-              <Box
-                key={panel.category.title}
-                ref={(node: HTMLDivElement | null) => {
-                  panelTileRefs.current[panel.index] = node;
-                }}
-                sx={{
-                  gridColumn: {
-                    xs: `span ${panel.colSpanXs}`,
-                    sm: `span ${panel.colSpanSm}`,
-                    md: `span ${panel.colSpanMd}`,
-                    lg: `span ${panel.colSpanLg}`,
-                  },
-                  gridRow: `span ${panel.rowSpan}`,
-                  minHeight: 0,
-                }}
-              >
-                <Chip
-                  label={panel.category.title}
-                  onClick={() => {
-                    if (selectedOrbIndex == null) {
-                      handleSelectOrb(panel.index);
-                    }
-                  }}
-                  clickable
-                  color="primary"
-                  variant="outlined"
-                  sx={{
-                    width: "100%",
-                    height: "100%",
-                    minHeight: "100%",
-                    cursor: NODE_CURSOR,
-                    borderRadius: "12px",
-                    borderWidth: 1.2,
-                    backdropFilter: "blur(1px)",
-                    boxShadow: "0 4px 12px rgba(2,6,23,0.2)",
-                    "& .MuiChip-label": {
-                      width: "100%",
-                      px: 0.8,
-                      py: 0.55,
-                      fontSize: `${panel.titleFontSizeRem}rem`,
-                      fontWeight: 700,
-                      whiteSpace: "normal",
-                      lineHeight: 1.15,
-                      textAlign: "center",
-                    },
-                  }}
-                />
-              </Box>
-            ))}
-          </Box>
-
-          {selectedCategory ? (
-            <Box
-              sx={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 4,
-                bgcolor:
-                  theme.palette.mode === "dark" ? "rgba(2,6,23,0.18)" : "rgba(255,255,255,0.34)",
-                backdropFilter: "blur(2px)",
-                pointerEvents: "none",
-              }}
-            >
-              {spokesVisible && expandedSkillKey == null
-                ? spokeLayout.map((node) => (
-                    <Box
-                      key={`line-${node.skill.label}`}
-                      sx={{
-                        "--spoke-angle": `${node.angle}deg`,
-                        position: "absolute",
-                        left: "50%",
-                        top: "50%",
-                        width: `calc(${node.radiusPx}px + ${spokeNodeOffset})`,
-                        height: "1px",
-                        bgcolor:
-                          theme.palette.mode === "dark"
-                            ? alpha(theme.palette.common.white, 0.26)
-                            : alpha(theme.palette.grey[700], 0.3),
-                        transform: "translateY(-50%) rotate(var(--spoke-angle))",
-                        transformOrigin: "0 50%",
-                        zIndex: 4,
-                        animation: `${spokeLineGrow} ${
-                          isClosingSpokes ? CLOSE_SPOKES_MS : OPEN_SPOKES_MS
-                        }ms cubic-bezier(.22,.82,.28,.98) both`,
-                        animationDelay: `${node.index * (isClosingSpokes ? 12 : 18)}ms`,
-                        animationDirection: isClosingSpokes ? "reverse" : "normal",
-                      }}
-                    />
-                  ))
-                : null}
-
-              {spokesVisible
-                ? spokeLayout.map((node) =>
-                    (() => {
-                      const skillKey = `${node.skill.label}-${node.index}`;
-                      const referenceUrl = getSkillReferenceUrl(node.skill.label);
-                      const isExpanded = expandedSkillKey === skillKey;
-                      const hasExpandedSkill = expandedSkillKey !== null;
-                      const shouldMuteNode = hasExpandedSkill && !isExpanded;
-                      const centerAlongSpokeTransform = `translate(-50%, -50%) rotate(${node.angle}deg) translateX(0px) rotate(${-node.angle}deg)`;
-                      const orbitTransform = `translate(-50%, -50%) rotate(${node.angle}deg) translateX(calc(${node.radiusPx}px + ${spokeNodeOffset})) rotate(${-node.angle}deg)`;
-                      const nodeTransform = isExpanded
-                        ? "translate(-50%, -50%) scale(1.04)"
-                        : skillNodesAtOrbit
-                          ? orbitTransform
-                          : centerAlongSpokeTransform;
-                      const handleExpand = () => {
-                        setExpandedSkillKey(skillKey);
-                        const nextSfx = skillExpandSfxRefs[node.index % skillExpandSfxRefs.length];
-                        rewindAndPlayAudio(nextSfx, {
-                          volume: 0.24,
-                        });
-                      };
-                      const handleCollapse = () => {
-                        setExpandedSkillKey(null);
-                        rewindAndPlayAudio(skillCloseSfx, {
-                          volume: 0.22,
-                        });
-                      };
-
-                      return (
-                        <Box
-                          key={`skill-${node.skill.label}`}
-                          sx={{
-                            position: "absolute",
-                            left: "50%",
-                            top: "50%",
-                            transform: nodeTransform,
-                            transition: isExpanded
-                              ? "transform 420ms cubic-bezier(.22,.82,.28,.98), opacity 240ms ease"
-                              : `transform ${SKILL_NODE_TRAVEL_MS}ms cubic-bezier(.22,1.08,.24,1), opacity 220ms ease`,
-                            transitionDelay:
-                              isExpanded || !skillNodesAtOrbit ? "0ms" : `${node.index * 22}ms`,
-                            zIndex: isExpanded ? 8 : 5,
-                            opacity: shouldMuteNode ? 0 : 1,
-                            pointerEvents: isClosingSpokes || shouldMuteNode ? "none" : "auto",
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              transform:
-                                isExpanded || skillNodesAtOrbit ? "scale(1)" : "scale(0.42)",
-                              transition: isExpanded
-                                ? "transform 300ms cubic-bezier(.22,.82,.28,.98)"
-                                : `transform ${SKILL_NODE_SCALE_MS}ms cubic-bezier(.16,1,.3,1)`,
-                              transitionDelay:
-                                isExpanded || !skillNodesAtOrbit ? "0ms" : `${node.index * 22}ms`,
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                gap: isExpanded ? 0.55 : 0,
-                              }}
-                            >
-                              {isExpanded ? (
-                                <Box
-                                  sx={{
-                                    width: "fit-content",
-                                    minWidth: { xs: 170, md: 220 },
-                                    maxWidth: { xs: "min(84vw, 320px)", md: 360 },
-                                    height: "fit-content",
-                                    px: 1.2,
-                                    py: 0.9,
-                                    borderRadius: "14px",
-                                    bgcolor:
-                                      theme.palette.mode === "dark"
-                                        ? alpha(theme.palette.success.main, 0.3)
-                                        : alpha(theme.palette.success.light, 0.52),
-                                    border: "1px solid",
-                                    borderColor:
-                                      theme.palette.mode === "dark"
-                                        ? alpha(theme.palette.success.light, 0.48)
-                                        : alpha(theme.palette.success.dark, 0.35),
-                                    boxShadow: "0 10px 20px rgba(2,6,23,0.2)",
-                                    transition:
-                                      "box-shadow 260ms ease, background-color 260ms ease",
-                                  }}
-                                >
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "space-between",
-                                      gap: 1,
-                                      mb: 0.6,
-                                    }}
-                                  >
-                                    <Typography
-                                      variant="subtitle2"
-                                      sx={{
-                                        fontWeight: 700,
-                                        lineHeight: 1.2,
-                                        color:
-                                          theme.palette.mode === "dark"
-                                            ? alpha(theme.palette.common.white, 0.94)
-                                            : alpha(theme.palette.success.dark, 0.92),
-                                      }}
-                                    >
-                                      {node.skill.label}
-                                    </Typography>
-                                    <IconButton
-                                      size="small"
-                                      aria-label={`Close ${node.skill.label}`}
-                                      onClick={handleCollapse}
-                                      sx={{
-                                        cursor: NODE_CURSOR,
-                                        color:
-                                          theme.palette.mode === "dark"
-                                            ? alpha(theme.palette.common.white, 0.94)
-                                            : alpha(theme.palette.success.dark, 0.92),
-                                        border: "1px solid",
-                                        borderColor:
-                                          theme.palette.mode === "dark"
-                                            ? alpha(theme.palette.common.white, 0.44)
-                                            : alpha(theme.palette.success.dark, 0.42),
-                                        bgcolor:
-                                          theme.palette.mode === "dark"
-                                            ? alpha(theme.palette.success.dark, 0.26)
-                                            : alpha(theme.palette.common.white, 0.64),
-                                        "&:hover": {
-                                          bgcolor:
-                                            theme.palette.mode === "dark"
-                                              ? alpha(theme.palette.success.dark, 0.42)
-                                              : alpha(theme.palette.common.white, 0.86),
-                                        },
-                                      }}
-                                    >
-                                      <CloseIcon fontSize="small" />
-                                    </IconButton>
-                                  </Box>
-                                  <Typography
-                                    variant="subtitle2"
-                                    sx={{
-                                      textAlign: "left",
-                                      lineHeight: 1.28,
-                                      color:
-                                        theme.palette.mode === "dark"
-                                          ? alpha(theme.palette.common.white, 0.9)
-                                          : alpha(theme.palette.success.dark, 0.9),
-                                    }}
-                                  >
-                                    {node.skill.description}
-                                  </Typography>
-                                  <Box
-                                    sx={{
-                                      mt: 0.6,
-                                      display: "flex",
-                                      justifyContent: "flex-end",
-                                    }}
-                                  >
-                                    <Link
-                                      href={referenceUrl}
-                                      target="_blank"
-                                      rel="noreferrer noopener"
-                                      underline="always"
-                                      sx={{
-                                        cursor: NODE_CURSOR,
-                                        fontSize: "0.8rem",
-                                        fontWeight: 700,
-                                        letterSpacing: "0.02em",
-                                        color:
-                                          theme.palette.mode === "dark"
-                                            ? alpha(theme.palette.common.white, 0.94)
-                                            : alpha(theme.palette.success.dark, 0.92),
-                                      }}
-                                    >
-                                      More...
-                                    </Link>
-                                  </Box>
-                                </Box>
-                              ) : (
-                                <Chip
-                                  label={node.skill.label}
-                                  variant="outlined"
-                                  color="primary"
-                                  clickable
-                                  onClick={handleExpand}
-                                  sx={{
-                                    width: "fit-content",
-                                    maxWidth: { xs: "min(72vw, 280px)", md: 260 },
-                                    height: "auto",
-                                    cursor: NODE_CURSOR,
-                                    borderWidth: 1.2,
-                                    boxShadow: "none",
-                                    bgcolor:
-                                      theme.palette.mode === "dark"
-                                        ? alpha(theme.palette.background.paper, 0.45)
-                                        : alpha(theme.palette.background.paper, 0.86),
-                                    transition:
-                                      "box-shadow 260ms ease, background-color 260ms ease",
-                                    "& .MuiChip-label": {
-                                      px: 1.3,
-                                      py: 0.7,
-                                      whiteSpace: "normal",
-                                      lineHeight: 1.2,
-                                      textAlign: "center",
-                                    },
-                                  }}
-                                />
-                              )}
-                            </Box>
-                          </Box>
-                        </Box>
-                      );
-                    })(),
-                  )
-                : null}
-            </Box>
-          ) : null}
-
-          {selectedCategory &&
-          spokesVisible &&
-          !isClosingSpokes &&
-          !openingNode &&
-          !returningNode &&
-          expandedSkillKey == null ? (
-            <Box
-              sx={{
-                position: "absolute",
-                left: "50%",
-                top: "50%",
-                transform: "translate(-50%, -50%)",
-                zIndex: 9,
-                pointerEvents: "auto",
-              }}
-            >
-              <IconButton
-                aria-label="Collapse skills"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  handleCloseSpokes();
-                }}
-                sx={{
-                  cursor: NODE_CURSOR,
-                  border: "1px solid",
-                  borderColor:
-                    theme.palette.mode === "dark"
-                      ? alpha(theme.palette.common.white, 0.54)
-                      : alpha(theme.palette.common.black, 0.36),
-                  color:
-                    theme.palette.mode === "dark"
-                      ? alpha(theme.palette.common.white, 0.94)
-                      : alpha(theme.palette.common.black, 0.82),
-                  bgcolor:
-                    theme.palette.mode === "dark"
-                      ? alpha(theme.palette.common.black, 0.34)
-                      : alpha(theme.palette.common.white, 0.96),
-                  boxShadow: "0 8px 18px rgba(2,6,23,0.28)",
-                  "&:hover": {
-                    bgcolor:
-                      theme.palette.mode === "dark"
-                        ? alpha(theme.palette.common.black, 0.5)
-                        : alpha(theme.palette.common.white, 1),
-                  },
-                }}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          ) : null}
-
-          {openingNode ? (
-            <Box
-              sx={{
-                position: "absolute",
-                left: "50%",
-                top: "50%",
-                zIndex: 10,
-                pointerEvents: "none",
-                transform: openingNode.toCenter
-                  ? "translate(-50%, -50%)"
-                  : `translate(calc(-50% + ${openingNode.snapshot.x}px), calc(-50% + ${openingNode.snapshot.y}px))`,
-                transition: `transform ${OPEN_NODE_TRAVEL_MS}ms cubic-bezier(.16,.84,.26,1)`,
-              }}
-            >
-              <Chip
-                label={openingNode.snapshot.label}
-                color="primary"
-                variant="outlined"
-                sx={{
-                  cursor: NODE_CURSOR,
-                  borderWidth: 1.2,
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 12px rgba(2,6,23,0.2)",
-                  bgcolor:
-                    theme.palette.mode === "dark"
-                      ? alpha(theme.palette.background.paper, 0.45)
-                      : alpha(theme.palette.background.paper, 0.88),
-                  "& .MuiChip-label": {
-                    px: 0.9,
-                    py: 0.55,
-                    fontSize: `${openingNode.snapshot.fontSizeRem}rem`,
-                    fontWeight: 700,
-                    whiteSpace: "normal",
-                    lineHeight: 1.15,
-                    textAlign: "center",
-                  },
-                }}
-              />
-            </Box>
-          ) : null}
-
-          {returningNode ? (
-            <Box
-              sx={{
-                position: "absolute",
-                left: "50%",
-                top: "50%",
-                zIndex: 10,
-                pointerEvents: "none",
-                opacity: 1,
-                transform:
-                  returningNode.phase === "returning"
-                    ? `translate(calc(-50% + ${returningNode.snapshot.x}px), calc(-50% + ${returningNode.snapshot.y}px))`
-                    : "translate(-50%, -50%)",
-                transition:
-                  returningNode.phase === "returning"
-                    ? `transform ${RETURN_NODE_TRAVEL_MS}ms cubic-bezier(.16,.84,.26,1)`
-                    : "none",
-                animation:
-                  returningNode.phase === "revealing"
-                    ? `${returnNodeReveal} ${RETURN_NODE_REVEAL_MS}ms cubic-bezier(.22,.82,.28,.98) both`
-                    : "none",
-              }}
-            >
-              <Chip
-                label={returningNode.snapshot.label}
-                color="primary"
-                variant="outlined"
-                sx={{
-                  cursor: NODE_CURSOR,
-                  borderWidth: 1.2,
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 12px rgba(2,6,23,0.2)",
-                  bgcolor:
-                    theme.palette.mode === "dark"
-                      ? alpha(theme.palette.background.paper, 0.45)
-                      : alpha(theme.palette.background.paper, 0.88),
-                  "& .MuiChip-label": {
-                    px: 0.9,
-                    py: 0.55,
-                    fontSize: `${returningNode.snapshot.fontSizeRem}rem`,
-                    fontWeight: 700,
-                    whiteSpace: "normal",
-                    lineHeight: 1.15,
-                    textAlign: "center",
-                  },
-                }}
-              />
-            </Box>
-          ) : null}
-        </Box>
-      ) : (
-        <Box
-          sx={{
-            minHeight: 0,
-            flex: "1 1 auto",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-          }}
-        >
-          {hasMultipleBulletCategoryItems ? (
-            <SubsectionPager
-              menuId="competency-category-selector-menu"
-              items={bulletCategoryPickerItems}
-              currentKey={activeBulletCategoryKey}
-              selectedValueAsTitle
-              selectedVisualSize={38}
-              selectedIconFontSize="1.35rem"
-              previousAriaLabel="Previous competency category"
-              nextAriaLabel="Next competency category"
-              selectorAriaLabel="Open competency category selector"
-              onSelect={setActiveBulletCategoryKey}
-              onPrevious={handlePreviousBulletCategory}
-              onNext={handleNextBulletCategory}
-            />
-          ) : null}
-          <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden" }}>
-            <MediaCycler
-              items={bulletCategoryItems}
-              singlePanel
-              singlePanelActiveKey={activeBulletCategoryKey}
-              showChevronNavigation={false}
-              stackSx={{
-                minHeight: 0,
-                height: "100%",
-              }}
-            />
-          </Box>
-        </Box>
-      )}
+      <GridCloudNavigationSlide
+        isMdUp={isMdUp}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+        listContent={listContent}
+        cloudContent={cloudContent}
+        showViewToggle={false}
+        footerSx={{
+          py: 1.25,
+          minHeight: "fit-content",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        listViewAriaLabel="Show list view"
+        cloudViewAriaLabel="Show panel view"
+      />
     </PortfolioPanelShell>
   );
 }

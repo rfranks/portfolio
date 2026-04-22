@@ -3,15 +3,14 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
+import { alpha, type SxProps, type Theme } from "@mui/material/styles";
 import { renderNavigationIcon } from "@/components/portfolio/layout/navigationIcons";
-import SubsectionPager, {
-  type SubsectionPagerItem,
-} from "@/components/portfolio/layout/SubsectionPager";
-import { MarkdownContent, MediaCycler, PortfolioPanelShell } from "@/components/shared";
+import type { SubsectionPagerItem } from "@/components/portfolio/layout/SubsectionPager";
+import { DemoSlide, MarkdownContent, VideoLightbox } from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
+import ArchitectureDiagramsSlide from "./_components/ArchitectureDiagramsSlide";
 import BlackjackCarouselNav from "./_components/BlackjackCarouselNav";
 import BlackjackGameSlide from "./_components/BlackjackGameSlide";
 import { useBlackjackPage } from "./_hooks/useBlackjackPage";
@@ -22,6 +21,13 @@ type ResolvedDiagramVisual = {
   iconNode?: React.ReactNode;
   imageSrc?: string;
   imageAlt?: string;
+};
+
+type BlackjackTerminalDemoConfig = {
+  title?: string;
+  subtitle?: string;
+  caption?: string;
+  videoUrl?: string;
 };
 
 const hasResolvedDiagramVisual = (visual: ResolvedDiagramVisual) =>
@@ -71,9 +77,60 @@ export default function BlackjackPage() {
   const { projects } = useResumeData();
   const blackjack = useBlackjackPage();
   const blackjackProject = projects?.find((proj) => proj?.href === "/blackjack");
+  const blackjackTerminalDemo = React.useMemo(() => {
+    const configured = (
+      blackjackProject as { terminalDemo?: BlackjackTerminalDemoConfig } | undefined
+    )?.terminalDemo;
+    if (!configured) {
+      return null;
+    }
+
+    const title = configured.title?.trim();
+    const subtitle = configured.subtitle?.trim();
+    const caption = configured.caption?.trim();
+    const videoUrl = configured.videoUrl?.trim();
+
+    if (!title || !subtitle || !caption || !videoUrl) {
+      return null;
+    }
+
+    return {
+      title,
+      subtitle,
+      caption,
+      videoUrl,
+    };
+  }, [blackjackProject]);
   const blackjackDiagrams = React.useMemo(
     () => (blackjackProject?.diagrams as BlackjackDiagramConfig[] | undefined) ?? [],
     [blackjackProject?.diagrams],
+  );
+  const captionSlotSx = React.useMemo<SxProps<Theme>>(
+    () => ({
+      mt: 0.75,
+      flexShrink: 0,
+      width: "100%",
+      minHeight: { xs: 40, md: 52 },
+      display: "flex",
+      alignItems: "flex-start",
+      justifyContent: "flex-start",
+    }),
+    [],
+  );
+  const captionTextSx = React.useMemo<SxProps<Theme>>(
+    () => ({
+      width: "100%",
+      fontSize: { xs: "0.96rem", md: "1.06rem", lg: "1.12rem" },
+      fontWeight: 500,
+      lineHeight: 1.45,
+      textAlign: "left",
+      color: (theme) => alpha(theme.palette.common.white, 0.9),
+      display: "-webkit-box",
+      WebkitLineClamp: { xs: 2, md: 3 },
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden",
+    }),
+    [],
   );
   const normalizedBlackjackDiagrams = React.useMemo(
     () =>
@@ -169,36 +226,21 @@ export default function BlackjackPage() {
           height: "100%",
           width: "100%",
           showToolbar: true,
-          showDots: false,
+          showGridDots: true,
           autoFitPadding: diagram.autoFitPadding ?? 14,
           autoFitScaleMultiplier: diagram.autoFitScaleMultiplier ?? 1,
           autoFitOffsetX: diagram.autoFitOffsetX ?? 0,
           autoFitOffsetY: diagram.autoFitOffsetY ?? 0,
         },
         extraContent: diagram.description?.trim() ? (
-          <Typography
-            component="div"
-            variant="body2"
-            sx={{
-              mt: 0.75,
-              flexShrink: 0,
-              width: "100%",
-              minHeight: { xs: 40, md: 52 },
-              fontSize: { xs: "0.96rem", md: "1.06rem", lg: "1.12rem" },
-              fontWeight: 500,
-              lineHeight: 1.45,
-              color: (theme) => alpha(theme.palette.common.white, 0.9),
-              display: "-webkit-box",
-              WebkitLineClamp: { xs: 2, md: 3 },
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {diagram.description.trim()}
-          </Typography>
+          <Box sx={captionSlotSx}>
+            <Typography component="div" variant="body2" sx={captionTextSx}>
+              {diagram.description.trim()}
+            </Typography>
+          </Box>
         ) : undefined,
       })),
-    [normalizedBlackjackDiagrams],
+    [captionSlotSx, captionTextSx, normalizedBlackjackDiagrams],
   );
 
   const handleSelectDiagram = React.useCallback((key: string) => {
@@ -290,155 +332,80 @@ export default function BlackjackPage() {
         winningChipFx={blackjack.winningChipFx}
       />
 
-      <section
+      <DemoSlide
         id="why-this-project"
         ref={(node) => blackjack.setSlideRef("why-this-project", node)}
         className="blackjack-panel blackjack-demo-panel blackjack-carousel-slide"
+        title="Why This Project Interests Me"
+        subtitle="One Go, Multiple Clients"
+        titleClassName="blackjack-panel-title"
+        subtitleClassName="blackjack-panel-subtitle"
       >
-        <h2 className="blackjack-panel-title">Why This Project Interests Me</h2>
-        <p className="blackjack-panel-subtitle">One Go, Multiple Clients</p>
         <MarkdownContent
           content={blackjackProject?.interestsMeWhy ?? ""}
           className="blackjack-markdown"
           color="inherit"
           variant="body1"
         />
-      </section>
+      </DemoSlide>
 
-      <section
+      <DemoSlide
         id="terminal-demo"
         ref={(node) => blackjack.setSlideRef("terminal-demo", node)}
         className="blackjack-panel blackjack-demo-panel blackjack-carousel-slide"
+        title={blackjackTerminalDemo?.title || ""}
+        subtitle={blackjackTerminalDemo?.subtitle || ""}
+        caption={blackjackTerminalDemo?.caption}
+        titleClassName="blackjack-panel-title"
+        subtitleClassName="blackjack-panel-subtitle"
+        captionSlotSx={captionSlotSx}
+        captionTextSx={captionTextSx}
       >
-        <h2 className="blackjack-panel-title">Go! Blackjack!</h2>
-        <p className="blackjack-panel-subtitle">Via Go in the terminal in VS Code Debugger</p>
-        <video
-          src={withBasePath("/personal/demovideos/blackjack_terminal.mov")}
-          controls
-          playsInline
-          preload="metadata"
-        />
-      </section>
-
-      <section
-        id="architecture-diagrams"
-        ref={(node) => blackjack.setSlideRef("architecture-diagrams", node)}
-        className="blackjack-diagrams-panel blackjack-carousel-slide"
-      >
-        <PortfolioPanelShell
-          panelClassName="mx-auto"
-          panelSx={{
-            width: "100%",
-            maxWidth: "1200px",
-            minHeight: 0,
-            height: "100%",
-            flex: "1 1 auto",
-            display: "flex",
-            flexDirection: "column",
-            mx: "auto",
-            overflow: "hidden",
-            p: 0,
-            mb: 0,
-            borderColor: "transparent",
-            bgcolor: "transparent",
-            backgroundImage: "none",
-            boxShadow: "none",
-          }}
-          topRail={
-            hasMultipleDiagrams ? (
-              <SubsectionPager
-                menuId="blackjack-architecture-diagram-selector"
-                items={diagramPagerItems}
-                currentKey={activeDiagramKey}
-                selectedValueAsTitle
-                selectedVisualSize={34}
-                previousAriaLabel="Previous architecture diagram"
-                nextAriaLabel="Next architecture diagram"
-                selectorAriaLabel="Open architecture diagram selector"
-                onSelect={handleSelectDiagram}
-                onPrevious={handlePreviousDiagram}
-                onNext={handleNextDiagram}
-              />
-            ) : (
-              <Box sx={{ px: { xs: 2.5, md: 3 }, py: 1.25 }}>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                  Architecture Diagram
-                </Typography>
-              </Box>
-            )
-          }
-          useNegativeTopRailMargins={false}
-          topRailSx={{
-            mx: 0,
-            mt: 0,
-            position: "relative",
-            zIndex: 6,
-            color: (theme) => alpha(theme.palette.common.white, 0.84),
-            bgcolor: "transparent !important",
-            backgroundColor: "transparent !important",
-            backgroundImage: "none !important",
-            borderBottom: "0 !important",
-            borderColor: "transparent !important",
-            backdropFilter: "none !important",
-            filter: "none !important",
-            boxShadow: "none !important",
-            "& .MuiTypography-root": {
-              color: (theme) => `${alpha(theme.palette.common.white, 0.84)} !important`,
-            },
-            "& .MuiChip-root": {
-              color: (theme) => `${alpha(theme.palette.common.white, 0.84)} !important`,
-            },
-            "& .MuiIconButton-root, & .MuiSvgIcon-root": {
-              color: (theme) => `${alpha(theme.palette.common.white, 0.84)} !important`,
-            },
-          }}
-          contentSx={{
-            minHeight: 0,
-            flex: "1 1 auto",
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            pt: 0,
-            pb: 0,
-          }}
-        >
-          <Box
-            className="blackjack-diagram-host"
-            sx={{
-              px: { xs: 1, md: 1.5 },
-              pt: { xs: 0.75, md: 1 },
-              pb: { xs: 1, md: 1.5 },
-              minHeight: 0,
-              flex: "1 1 auto",
+        {blackjackTerminalDemo ? (
+          <VideoLightbox
+            src={withBasePath(blackjackTerminalDemo.videoUrl)}
+            title={blackjackTerminalDemo.title}
+            caption={blackjackTerminalDemo.caption}
+            controls
+            playsInline
+            preload="metadata"
+            triggerSx={{
+              height: "auto",
+              flex: "0 0 auto",
             }}
-          >
-            {blackjackDiagramItems.length > 0 ? (
-              <MediaCycler
-                items={blackjackDiagramItems}
-                singlePanel
-                singlePanelActiveKey={activeDiagramKey}
-                showChevronNavigation={false}
-                loopNavigation={false}
-                stackSx={{ minHeight: 0, height: "100%" }}
-              />
-            ) : (
-              <Box
-                sx={{
-                  minHeight: 0,
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  Architecture diagrams are not available for this project yet.
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        </PortfolioPanelShell>
-      </section>
+            previewVideoSx={{
+              width: "100%",
+              maxWidth: "100%",
+              height: "auto",
+              borderRadius: "16px",
+            }}
+            expandButtonSx={{
+              borderColor: "common.black",
+              color: "common.black",
+              bgcolor: "common.white",
+              boxShadow: "0 0 0 1px rgba(0,0,0,0.14) inset, 0 10px 18px rgba(0,0,0,0.24)",
+              "&:hover": {
+                bgcolor: "common.white",
+              },
+            }}
+          />
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            Go Demo slide configuration is missing in resume data.
+          </Typography>
+        )}
+      </DemoSlide>
+
+      <ArchitectureDiagramsSlide
+        activeDiagramKey={activeDiagramKey}
+        diagramPagerItems={diagramPagerItems}
+        diagramItems={blackjackDiagramItems}
+        hasMultipleDiagrams={hasMultipleDiagrams}
+        onSelectDiagram={handleSelectDiagram}
+        onPreviousDiagram={handlePreviousDiagram}
+        onNextDiagram={handleNextDiagram}
+        setSlideRef={(node) => blackjack.setSlideRef("architecture-diagrams", node)}
+      />
 
       <BlackjackCarouselNav
         activeSlideIndex={blackjack.activeSlideIndex}

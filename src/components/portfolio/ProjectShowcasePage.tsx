@@ -37,11 +37,42 @@ export default function ProjectShowcasePage({
   project,
   subtitle = "Project Showcase",
 }: ProjectShowcasePageProps) {
-  const { summary } = useResumeData();
+  const { summary, projects } = useResumeData();
   const { mode, toggleColorMode, isReady } = useColorModePreference({
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
   });
   const theme = useMemo(() => getFabricTheme(mode), [mode]);
+  const resolvedProject = useMemo<ProjectData>(() => {
+    const projectHref = project.href?.trim();
+    if (!projectHref) {
+      return project;
+    }
+
+    const runtimeProject = projects.find((entry) => entry.href === projectHref);
+    if (!runtimeProject) {
+      return project;
+    }
+
+    const runtimeProjectRecord = runtimeProject as Record<string, unknown>;
+    const runtimeDescription =
+      typeof runtimeProjectRecord.description === "string" &&
+      runtimeProjectRecord.description.trim().length > 0
+        ? runtimeProjectRecord.description.trim()
+        : project.description;
+    const runtimeProjectTitle =
+      typeof runtimeProjectRecord.project === "string" &&
+      runtimeProjectRecord.project.trim().length > 0
+        ? runtimeProjectRecord.project
+        : runtimeProject.name;
+
+    return {
+      ...project,
+      ...(runtimeProject as unknown as Partial<ProjectData>),
+      project: runtimeProjectTitle ?? project.project,
+      description: runtimeDescription,
+      href: projectHref,
+    };
+  }, [project, projects]);
   const { setDocumentTitle } = useDocumentTitle();
   const [homeHref, setHomeHref] = useState(withBasePath("/"));
 
@@ -146,7 +177,7 @@ export default function ProjectShowcasePage({
               overflow: "hidden",
             }}
           >
-            <ProjectPresentation project={project} />
+            <ProjectPresentation project={resolvedProject} />
           </Box>
         </Container>
       </Box>

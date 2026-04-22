@@ -1,3 +1,11 @@
+export { default as ArchitectureDiagramsSlide } from "./ArchitectureDiagramsSlide";
+export type { ArchitectureDiagramsSlideProps } from "./ArchitectureDiagramsSlide";
+export { default as DemoSlide } from "./DemoSlide";
+export type { DemoSlideProps } from "./DemoSlide";
+export { default as EmojiListAvatar } from "./EmojiListAvatar";
+export type { EmojiListAvatarProps } from "./EmojiListAvatar";
+export { default as GridCloudNavigationSlide } from "./GridCloudNavigationSlide";
+export type { GridCloudNavigationSlideProps } from "./GridCloudNavigationSlide";
 export { default as LogoCollection } from "./LogoCollection";
 export { default as MarkdownContent } from "./MarkdownContent";
 export { default as OpenAIKeyInterstitialContent } from "./OpenAIKeyInterstitialContent";

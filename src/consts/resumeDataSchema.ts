@@ -8,129 +8,541 @@ const contactSchema = z
     email: nonEmptyString.optional(),
     github: z.array(nonEmptyString).optional(),
   })
-  .passthrough();
+  .strict();
 
 const summarySchema = z
   .object({
     name: nonEmptyString,
     title: nonEmptyString,
+    heroOverline: nonEmptyString.optional(),
+    documentTitle: nonEmptyString.optional(),
+    metadataTitle: nonEmptyString.optional(),
+    metadataDescription: nonEmptyString.optional(),
     location: nonEmptyString.optional(),
+    avatarImage: nonEmptyString.optional(),
+    headshotImage: nonEmptyString.optional(),
     resumeUrl: nonEmptyString.optional(),
     contact: contactSchema.optional(),
     gutter: z.array(nonEmptyString).optional(),
   })
-  .passthrough();
+  .strict();
 
-const projectEntrySchema = z
+const contactCtaSchema = z
   .object({
-    name: nonEmptyString,
-    description: nonEmptyString,
+    title: nonEmptyString,
+    body: nonEmptyString,
+    primaryLabel: nonEmptyString,
+    secondaryLabel: nonEmptyString.optional(),
+  })
+  .strict();
+
+const portfolioAppSchema = z
+  .object({
+    description: nonEmptyString.optional(),
+    documentTitle: nonEmptyString.optional(),
+    metadataTitle: nonEmptyString.optional(),
+    metadataDescription: nonEmptyString.optional(),
+    appBarSubtitle: nonEmptyString.optional(),
+    heroEyebrow: nonEmptyString.optional(),
+    interstitialAppName: nonEmptyString.optional(),
+    interstitialLogoAlt: nonEmptyString.optional(),
+    interstitialLogoSrc: nonEmptyString.optional(),
+  })
+  .strict();
+
+const portfolioAppsSchema = z.record(nonEmptyString, portfolioAppSchema);
+
+const navIconTypeSchema = z.enum(["material", "emoji", "image"]);
+
+const navIconSchema = z
+  .object({
+    iconType: navIconTypeSchema,
+    icon: nonEmptyString,
+  })
+  .strict();
+
+const drawerNavItemSchema = navIconSchema
+  .extend({
+    label: nonEmptyString,
     href: nonEmptyString,
-    type: z.enum(["personal", "work"]).or(nonEmptyString),
-    interestsMeWhy: nonEmptyString,
   })
-  .passthrough();
+  .strict();
 
-const experienceEntrySchema = z
+const homeSectionSchema = navIconSchema
+  .extend({
+    id: nonEmptyString,
+    label: nonEmptyString,
+  })
+  .strict();
+
+const navigationSchema = z
   .object({
-    company: nonEmptyString,
-    position: z.string().optional(),
-    location: z.string().optional(),
-    start: z.string().optional(),
-    end: z.string().optional(),
-    details: z.array(nonEmptyString).optional(),
-    achievements: z.array(nonEmptyString).optional(),
-    image: z.string().optional(),
+    forkRibbon: z
+      .object({
+        label: nonEmptyString,
+        href: nonEmptyString,
+      })
+      .strict()
+      .optional(),
+    drawerItems: z.array(drawerNavItemSchema),
+    homeSections: z.array(homeSectionSchema),
   })
-  .passthrough();
-
-const educationEntrySchema = z
-  .object({
-    school: nonEmptyString,
-    degree: z.string().optional(),
-    year: z.string().optional(),
-    image: z.string().optional(),
-    awards: z.array(nonEmptyString).optional(),
-  })
-  .passthrough();
-
-const recognitionSnippetSchema = z.union([
-  nonEmptyString,
-  z
-    .object({
-      text: nonEmptyString,
-      glyph: z.string().optional(),
-    })
-    .passthrough(),
-]);
-
-const recommendationEntrySchema = z
-  .object({
-    name: nonEmptyString,
-    title: z.string().optional(),
-    date: z.string().optional(),
-    relationship: z.string().optional(),
-    text: nonEmptyString,
-    imageSrcUrl: z.string().optional(),
-  })
-  .passthrough();
-
-const recognitionSchema = z
-  .object({
-    snippets: z.array(recognitionSnippetSchema).optional(),
-    recommendations: z.array(recommendationEntrySchema).optional(),
-  })
-  .passthrough();
+  .strict();
 
 const competencySkillSchema = z
   .object({
     label: nonEmptyString,
     description: nonEmptyString,
+    emoji: nonEmptyString.optional(),
   })
-  .passthrough();
+  .strict();
 
 const competencyCategorySchema = z
   .object({
     title: nonEmptyString,
-    shortText: z.string().optional(),
-    subTitle: z.string().optional(),
-    icon: z.string().optional(),
+    shortText: nonEmptyString.optional(),
+    subTitle: nonEmptyString.optional(),
+    icon: nonEmptyString.optional(),
+    emoji: nonEmptyString.optional(),
     items: z.array(competencySkillSchema).optional(),
   })
-  .passthrough();
+  .strict();
 
 const competenciesSchema = z
   .object({
     categories: z.array(competencyCategorySchema).optional(),
     skills: z.array(nonEmptyString).optional(),
   })
-  .passthrough();
+  .strict();
+
+const hobbiesSchema = z
+  .object({
+    title: nonEmptyString,
+    heroImageUrl: nonEmptyString.optional(),
+    heroVideoUrl: nonEmptyString.nullable().optional(),
+    items: z.array(nonEmptyString),
+    introText: nonEmptyString.optional(),
+  })
+  .strict();
+
+const aiShenaniganMediaPartSchema = z
+  .object({
+    title: nonEmptyString,
+    src: nonEmptyString,
+    caption: nonEmptyString.optional(),
+    source: nonEmptyString.optional(),
+    episodeNumber: z.number().int().positive().optional(),
+  })
+  .strict();
 
 const aiShenaniganEntrySchema = z
   .object({
     slug: nonEmptyString,
     title: nonEmptyString,
+    type: nonEmptyString.optional(),
+    orientation: nonEmptyString.optional(),
+    shortText: nonEmptyString.optional(),
+    blurb: nonEmptyString.optional(),
+    realisticImage: nonEmptyString.optional(),
+    realisticSource: nonEmptyString.optional(),
+    realisticCaption: nonEmptyString.optional(),
+    stylizedRendering: nonEmptyString.optional(),
+    stylizedSource: nonEmptyString.optional(),
+    stylizedSourceHref: nonEmptyString.optional(),
+    stylizedCaption: nonEmptyString.optional(),
+    movieRendering: nonEmptyString.optional(),
+    movieSource: nonEmptyString.optional(),
+    movieCaption: nonEmptyString.optional(),
+    movieRendering2: nonEmptyString.optional(),
+    movieSource2: nonEmptyString.optional(),
+    movieCaption2: nonEmptyString.optional(),
+    trailerMovie: nonEmptyString.optional(),
+    trailerSource: nonEmptyString.optional(),
+    trailerCaption: nonEmptyString.optional(),
+    trailerOrientation: nonEmptyString.optional(),
+    rawImage: nonEmptyString.optional(),
+    rawSource: nonEmptyString.optional(),
+    rawCaption: nonEmptyString.optional(),
+    analyzedImage: nonEmptyString.optional(),
+    analyzedSource: nonEmptyString.optional(),
+    analyzedSourceHref: nonEmptyString.optional(),
+    analyzedCaption: nonEmptyString.optional(),
+    palmLineAnalysisImage: nonEmptyString.optional(),
+    palmLineAnalysisSource: nonEmptyString.optional(),
+    palmLineAnalysisSourceHref: nonEmptyString.optional(),
+    palmLineAnalysisCaption: nonEmptyString.optional(),
+    palmReadingTitle: nonEmptyString.optional(),
+    palmReadingMarkdownPath: nonEmptyString.optional(),
+    palmReadingSource: nonEmptyString.optional(),
+    palmReadingSourceHref: nonEmptyString.optional(),
+    songAudio: nonEmptyString.optional(),
+    songAudioSource: nonEmptyString.optional(),
+    songAudioCaption: nonEmptyString.optional(),
+    songAlbumImage: nonEmptyString.optional(),
+    songAlbumSource: nonEmptyString.optional(),
+    songLyricsMarkdownPath: nonEmptyString.optional(),
+    songLyricsSource: nonEmptyString.optional(),
+    songPerformedBy: nonEmptyString.optional(),
+    songWrittenBy: nonEmptyString.optional(),
+    manuscriptPdf: nonEmptyString.optional(),
+    manuscriptSource: nonEmptyString.optional(),
+    manuscriptCaption: nonEmptyString.optional(),
+    episodesPdf: nonEmptyString.optional(),
+    episodesSource: nonEmptyString.optional(),
+    episodesCaption: nonEmptyString.optional(),
+    episodeMedia: z.array(aiShenaniganMediaPartSchema).optional(),
+    seriesParts: z.array(aiShenaniganMediaPartSchema).optional(),
+    workParts: z.array(aiShenaniganMediaPartSchema).optional(),
+    bookCoverImage: nonEmptyString.optional(),
+    bookSource: nonEmptyString.optional(),
+    bookCaption: nonEmptyString.optional(),
+    pagerOptionImage: nonEmptyString.optional(),
+    intentToCopyright: z.boolean().optional(),
+    rightsNotice: nonEmptyString.optional(),
   })
-  .passthrough();
+  .strict();
 
 const aiShenanigansSchema = z
   .object({
-    items: z.array(aiShenaniganEntrySchema).optional(),
+    title: nonEmptyString.optional(),
+    description: nonEmptyString.optional(),
+    items: z.array(aiShenaniganEntrySchema),
   })
-  .passthrough();
+  .strict();
+
+const watermarkCardSchema = z
+  .object({
+    src: nonEmptyString,
+    alt: nonEmptyString,
+    width: z.number().positive(),
+    height: z.number().positive(),
+    className: nonEmptyString.optional(),
+  })
+  .strict();
+
+const watermarkImageSchema = z
+  .object({
+    kind: z.literal("image"),
+    src: nonEmptyString,
+    alt: nonEmptyString,
+    width: z.number().positive().optional(),
+    height: z.number().positive().optional(),
+    containerClassName: nonEmptyString.optional(),
+    className: nonEmptyString.optional(),
+    imageClassName: nonEmptyString.optional(),
+  })
+  .strict();
+
+const watermarkCardsFanSchema = z
+  .object({
+    kind: z.literal("cardsFan"),
+    containerClassName: nonEmptyString.optional(),
+    className: nonEmptyString.optional(),
+    cards: z.array(watermarkCardSchema).min(1),
+  })
+  .strict();
+
+const visualMarkSchema = z.union([watermarkImageSchema, watermarkCardsFanSchema]);
+
+const accoladeSchema = z
+  .object({
+    name: nonEmptyString,
+    source: nonEmptyString,
+    sourceUrl: nonEmptyString,
+    description: nonEmptyString.optional(),
+    comment: nonEmptyString.optional(),
+    launchUrl: nonEmptyString.optional(),
+    githubUrl: nonEmptyString.optional(),
+    imageSrcUrl: nonEmptyString.optional(),
+    date: nonEmptyString.optional(),
+  })
+  .strict();
+
+const projectTechnologySchema = z
+  .object({
+    name: nonEmptyString,
+    url: nonEmptyString.optional(),
+    emoji: nonEmptyString.optional(),
+  })
+  .strict();
+
+const diagramVisualSchema = z
+  .object({
+    type: navIconTypeSchema,
+    icon: nonEmptyString.optional(),
+    src: nonEmptyString.optional(),
+    alt: nonEmptyString.optional(),
+  })
+  .superRefine((visual, ctx) => {
+    if (visual.type === "image") {
+      if (!visual.src) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["src"],
+          message: "Image diagram visuals require a src.",
+        });
+      }
+      if (!visual.alt) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["alt"],
+          message: "Image diagram visuals require alt text.",
+        });
+      }
+      if (visual.icon) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["icon"],
+          message: "Image diagram visuals cannot include an icon value.",
+        });
+      }
+      return;
+    }
+
+    if (!visual.icon) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["icon"],
+        message: `${visual.type} diagram visuals require an icon.`,
+      });
+    }
+    if (visual.src) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["src"],
+        message: `${visual.type} diagram visuals cannot include a src.`,
+      });
+    }
+    if (visual.alt) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["alt"],
+        message: `${visual.type} diagram visuals cannot include alt text.`,
+      });
+    }
+  })
+  .strict();
+
+const diagramTypeSchema = z.enum([
+  "classDiagram",
+  "erDiagram",
+  "flowchart",
+  "graph",
+  "gantt",
+  "gitGraph",
+  "journey",
+  "mindmap",
+  "sequenceDiagram",
+  "stateDiagram-v2",
+  "timeline",
+]);
+
+const projectDiagramSchema = z
+  .object({
+    title: nonEmptyString,
+    shortText: nonEmptyString,
+    description: nonEmptyString,
+    selectorOptionVisual: diagramVisualSchema,
+    selectorSelectedVisual: diagramVisualSchema.optional(),
+    type: diagramTypeSchema.optional(),
+    height: z.union([z.number().positive(), nonEmptyString]).optional(),
+    diagram: nonEmptyString,
+    autoFitPadding: z.number().optional(),
+    autoFitScaleMultiplier: z.number().optional(),
+    autoFitOffsetX: z.number().optional(),
+    autoFitOffsetY: z.number().optional(),
+  })
+  .strict();
+
+const terminalDemoSchema = z
+  .object({
+    title: nonEmptyString,
+    subtitle: nonEmptyString,
+    caption: nonEmptyString,
+    videoUrl: nonEmptyString,
+  })
+  .strict();
+
+const projectEntrySchema = z
+  .object({
+    name: nonEmptyString,
+    showcaseHeading: nonEmptyString.optional(),
+    showcaseSubtitle: nonEmptyString.optional(),
+    description: nonEmptyString,
+    href: nonEmptyString,
+    type: z.enum(["personal", "work"]),
+    interestsMeWhy: nonEmptyString,
+    wowFactor: nonEmptyString.optional(),
+    shortText: nonEmptyString.optional(),
+    blurb: nonEmptyString.optional(),
+    demoGifUrl: nonEmptyString.optional(),
+    demoVideoUrl: nonEmptyString.optional(),
+    watermark: z.union([visualMarkSchema, z.null()]).optional(),
+    accolades: z.array(accoladeSchema).optional(),
+    technologiesUsed: z.array(projectTechnologySchema).optional(),
+    specifications: z.record(z.string(), z.unknown()).optional(),
+    blockDiagram: nonEmptyString.optional(),
+    componentDiagram: nonEmptyString.optional(),
+    sequenceDiagram: nonEmptyString.optional(),
+    diagrams: z.array(projectDiagramSchema).optional(),
+    terminalDemo: terminalDemoSchema.optional(),
+  })
+  .superRefine((project, ctx) => {
+    const legacyDiagramFields = [
+      project.blockDiagram,
+      project.componentDiagram,
+      project.sequenceDiagram,
+    ]
+      .filter((value): value is string => typeof value === "string")
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    if (legacyDiagramFields.length > 0 && (!project.diagrams || project.diagrams.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["diagrams"],
+        message:
+          "Projects with legacy diagram fields must also provide a normalized diagrams array.",
+      });
+    }
+
+    if (project.diagrams?.length) {
+      const seenTitles = new Map<string, number>();
+      project.diagrams.forEach((diagram, index) => {
+        const normalizedTitle = diagram.title.trim().toLowerCase();
+        const priorIndex = seenTitles.get(normalizedTitle);
+        if (priorIndex !== undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["diagrams", index, "title"],
+            message: `Duplicate diagram title also used at diagrams.${priorIndex}.title`,
+          });
+          return;
+        }
+        seenTitles.set(normalizedTitle, index);
+      });
+    }
+
+    const terminalDemoVideo = project.terminalDemo?.videoUrl?.trim();
+    const demoVideoUrl = project.demoVideoUrl?.trim();
+    if (terminalDemoVideo && demoVideoUrl && terminalDemoVideo !== demoVideoUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["terminalDemo", "videoUrl"],
+        message: "terminalDemo.videoUrl must match demoVideoUrl when both are provided.",
+      });
+    }
+  })
+  .strict();
+
+const experienceEntrySchema = z
+  .object({
+    company: nonEmptyString,
+    position: z.string().optional(),
+    location: nonEmptyString.optional(),
+    start: nonEmptyString.optional(),
+    end: nonEmptyString.optional(),
+    details: z.array(nonEmptyString).optional(),
+    achievements: z.array(nonEmptyString).optional(),
+    image: nonEmptyString.optional(),
+  })
+  .strict();
+
+const educationEntrySchema = z
+  .object({
+    school: nonEmptyString,
+    schoolUrl: nonEmptyString.optional(),
+    degree: nonEmptyString.optional(),
+    year: nonEmptyString.optional(),
+    image: nonEmptyString.optional(),
+    awards: z.array(nonEmptyString).optional(),
+  })
+  .strict();
+
+const recognitionSnippetSchema = z.union([
+  nonEmptyString,
+  z
+    .object({
+      text: nonEmptyString,
+      glyph: nonEmptyString.optional(),
+    })
+    .strict(),
+]);
+
+const recommendationEntrySchema = z
+  .object({
+    name: nonEmptyString,
+    title: nonEmptyString.optional(),
+    date: nonEmptyString.optional(),
+    relationship: nonEmptyString.optional(),
+    text: nonEmptyString,
+    imageSrcUrl: nonEmptyString.optional(),
+  })
+  .strict();
+
+const githubAchievementSchema = z
+  .object({
+    name: nonEmptyString,
+    slug: nonEmptyString,
+    imageSrcUrl: nonEmptyString,
+    achievementUrl: nonEmptyString,
+    source: nonEmptyString,
+    tier: nonEmptyString.optional(),
+  })
+  .strict();
+
+const recognitionSchema = z
+  .object({
+    snippets: z.array(recognitionSnippetSchema).optional(),
+    githubAchievements: z.array(githubAchievementSchema).optional(),
+    recommendations: z.array(recommendationEntrySchema).optional(),
+  })
+  .strict();
+
+const projectsSectionSchema = z
+  .object({
+    title: nonEmptyString,
+    descriptionLines: z.array(nonEmptyString),
+    launchLabel: nonEmptyString,
+    interestHeading: nonEmptyString,
+    accoladesHeading: nonEmptyString,
+    marks: z.array(visualMarkSchema).optional(),
+  })
+  .strict();
 
 export const resumeDataSchema = z
   .object({
     schemaVersion: z.number().int().positive().optional(),
     summary: summarySchema,
+    contactCTA: contactCtaSchema,
+    portfolioApps: portfolioAppsSchema,
+    navigation: navigationSchema,
+    competencies: competenciesSchema,
+    coreCompetencies: z.array(nonEmptyString),
+    hobbies: hobbiesSchema,
+    aiShenanigans: aiShenanigansSchema,
     projects: z.array(projectEntrySchema),
-    experience: z.array(experienceEntrySchema).optional(),
-    education: z.array(educationEntrySchema).optional(),
-    recognition: recognitionSchema.optional(),
-    competencies: competenciesSchema.optional(),
-    aiShenanigans: aiShenanigansSchema.optional(),
+    experience: z.array(experienceEntrySchema),
+    recognition: recognitionSchema,
+    education: z.array(educationEntrySchema),
+    projectsSection: projectsSectionSchema,
   })
-  .passthrough();
+  .superRefine((data, ctx) => {
+    const seenProjectHrefs = new Map<string, number>();
+    data.projects.forEach((project, index) => {
+      const priorIndex = seenProjectHrefs.get(project.href);
+      if (priorIndex !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["projects", index, "href"],
+          message: `Duplicate project href also used at projects.${priorIndex}.href`,
+        });
+        return;
+      }
+      seenProjectHrefs.set(project.href, index);
+    });
+  })
+  .strict();
 
 export type ResumeDataSchemaType = z.infer<typeof resumeDataSchema>;
 

@@ -8,12 +8,15 @@ interface PageClientProps {
 }
 
 export default function PageClient({ project }: PageClientProps) {
+  const heading = project.showcaseHeading?.trim() || project.project;
+  const subtitle = project.showcaseSubtitle?.trim() || project.project;
+
   return (
     <ProjectShowcasePage
       documentTitle="Patient List Podcasts"
-      heading="Physician-Focused Patient-list Podcasts"
+      heading={heading}
       project={project}
-      subtitle={project.project}
+      subtitle={subtitle}
     />
   );
 }
