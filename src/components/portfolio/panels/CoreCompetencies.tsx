@@ -384,7 +384,7 @@ export default function CoreCompetencies({
                 pr: 0.5,
               }}
             >
-              {category.items.map((competency) =>
+              {category.items.map((competency, competencyIndex) =>
                 (() => {
                   const maybeSourceLink = (competency as { sourceLink?: unknown }).sourceLink;
                   const maybeEmoji = (competency as { emoji?: unknown }).emoji;
@@ -400,7 +400,9 @@ export default function CoreCompetencies({
                   return (
                     <Box
                       key={`${category.title}-${competency.label}-subtitle`}
+                      data-grid-cloud-stagger-leaf="true"
                       sx={{
+                        "--grid-cloud-leaf-index": competencyIndex,
                         px: 0.8,
                         py: 0.55,
                         borderRadius: "10px",
@@ -1440,6 +1442,7 @@ export default function CoreCompetencies({
             onViewModeChange={handleViewModeChange}
             listContent={listContent}
             cloudContent={cloudContent}
+            staggerRevealKey={activeBulletCategoryKey}
             showViewToggle={false}
             listViewAriaLabel="Show list view"
             cloudViewAriaLabel="Show panel view"
@@ -1483,6 +1486,7 @@ export default function CoreCompetencies({
         onViewModeChange={handleViewModeChange}
         listContent={listContent}
         cloudContent={cloudContent}
+        staggerRevealKey={activeBulletCategoryKey}
         showViewToggle={false}
         footerSx={{
           py: 1.25,

@@ -3,8 +3,9 @@
 import * as React from "react";
 import { alpha } from "@mui/material/styles";
 import { Box, Dialog, IconButton, Typography } from "@mui/material";
-import { Close } from "@mui/icons-material";
+import { CenterFocusStrong, Close, ZoomIn, ZoomOut } from "@mui/icons-material";
 import type { SxProps, Theme } from "@mui/material/styles";
+import { usePanZoomViewport } from "@/hooks/html/usePanZoomViewport";
 
 type ImageLightboxProps = {
   src: string;
@@ -33,6 +34,23 @@ export default function ImageLightbox(props: ImageLightboxProps) {
     stopEventPropagation = false,
   } = props;
   const [open, setOpen] = React.useState(false);
+  const {
+    containerRef,
+    viewportRef,
+    scale,
+    translateX,
+    translateY,
+    isDragging,
+    handleZoomIn,
+    handleZoomOut,
+    handleReset,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUpOrLeave,
+    handleDoubleClick,
+  } = usePanZoomViewport({
+    shouldIgnorePointerTarget: (target) => Boolean(target.closest("button")),
+  });
   const previewContainerSxArray = React.useMemo(
     () =>
       previewContainerSx == null
@@ -89,6 +107,12 @@ export default function ImageLightbox(props: ImageLightboxProps) {
     },
     [stopEventPropagation],
   );
+
+  React.useEffect(() => {
+    if (open) {
+      handleReset();
+    }
+  }, [handleReset, open]);
 
   return (
     <>
@@ -202,6 +226,60 @@ export default function ImageLightbox(props: ImageLightboxProps) {
               ) : null}
             </Box>
             <IconButton
+              aria-label="Zoom out image"
+              onClick={handleZoomOut}
+              sx={(theme) => ({
+                border: "1px solid",
+                borderColor: alpha(theme.palette.common.white, 0.35),
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[100]
+                    : theme.palette.common.white,
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(0,0,0,0.45)"
+                    : alpha(theme.palette.grey[900], 0.45),
+              })}
+            >
+              <ZoomOut />
+            </IconButton>
+            <IconButton
+              aria-label="Zoom in image"
+              onClick={handleZoomIn}
+              sx={(theme) => ({
+                border: "1px solid",
+                borderColor: alpha(theme.palette.common.white, 0.35),
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[100]
+                    : theme.palette.common.white,
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(0,0,0,0.45)"
+                    : alpha(theme.palette.grey[900], 0.45),
+              })}
+            >
+              <ZoomIn />
+            </IconButton>
+            <IconButton
+              aria-label="Reset image transform"
+              onClick={handleReset}
+              sx={(theme) => ({
+                border: "1px solid",
+                borderColor: alpha(theme.palette.common.white, 0.35),
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[100]
+                    : theme.palette.common.white,
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(0,0,0,0.45)"
+                    : alpha(theme.palette.grey[900], 0.45),
+              })}
+            >
+              <CenterFocusStrong />
+            </IconButton>
+            <IconButton
               aria-label="Close full image"
               onClick={() => setOpen(false)}
               sx={(theme) => ({
@@ -229,19 +307,41 @@ export default function ImageLightbox(props: ImageLightboxProps) {
               alignItems: "center",
               justifyContent: "center",
               p: { xs: 1.5, md: 3 },
+              touchAction: "none",
+              overscrollBehavior: "contain",
             }}
+            ref={containerRef}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUpOrLeave}
+            onPointerLeave={handlePointerUpOrLeave}
+            onDoubleClick={handleDoubleClick}
           >
             <Box
-              component="img"
-              src={src}
-              alt={alt}
+              ref={viewportRef}
               sx={{
-                maxWidth: "100%",
-                maxHeight: "100%",
-                objectFit: "contain",
-                display: "block",
+                width: "100%",
+                height: "100%",
+                overflow: "hidden",
+                position: "relative",
               }}
-            />
+            >
+              <Box
+                component="img"
+                src={src}
+                alt={alt}
+                sx={{
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  objectFit: "contain",
+                  display: "block",
+                  transformOrigin: "top left",
+                  transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+                  cursor: isDragging ? "grabbing" : "grab",
+                  transition: isDragging ? "none" : "transform 0.12s ease-out",
+                }}
+              />
+            </Box>
           </Box>
         </Box>
       </Dialog>

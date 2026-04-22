@@ -49,6 +49,19 @@ type ProjectVisual = ImageVisual | CardsFanVisual;
 type ProjectEntry = ResumeData["projects"][number];
 type ProjectsSection = ResumeData["projectsSection"];
 
+function getProjectTypeChip(projectType: string): {
+  label: string;
+  color: "primary" | "secondary" | "default";
+} {
+  if (projectType === "work") {
+    return { label: "Work", color: "primary" };
+  }
+  if (projectType === "presentation") {
+    return { label: "Presentation", color: "default" };
+  }
+  return { label: "Personal", color: "secondary" };
+}
+
 function getProjectOptionImage(project: ProjectEntry): string | undefined {
   const watermark = project.watermark as ProjectVisual | null | undefined;
   if (!watermark) {
@@ -150,6 +163,7 @@ function renderProjectContent(
   project: ProjectEntry,
   sectionLabels: Pick<ProjectsSection, "interestHeading" | "accoladesHeading" | "launchLabel">,
 ) {
+  const typeChip = getProjectTypeChip(project.type);
   return (
     <Box
       className="relative overflow-hidden rounded-[24px] p-4 md:p-5"
@@ -169,10 +183,10 @@ function renderProjectContent(
         : null}
       <Box sx={{ display: "flex", justifyContent: "flex-end", position: "relative", zIndex: 1 }}>
         <Chip
-          label={project.type === "work" ? "Work" : "Personal"}
+          label={typeChip.label}
           size="small"
           variant="outlined"
-          color={project.type === "work" ? "primary" : "secondary"}
+          color={typeChip.color}
           sx={{ fontWeight: 600, flexShrink: 0 }}
         />
       </Box>
@@ -293,13 +307,14 @@ export default function ProjectsGrid({ topRail }: ProjectsGridProps) {
       sortedProjects.map((project) => {
         const optionImageSrc = getProjectOptionImage(project);
         const optionSubtitle = getProjectOptionShortText(project);
+        const typeChip = getProjectTypeChip(project.type);
         return {
           key: project.href,
           title: project.name,
           optionTitle: project.name,
           optionSubtitle: optionSubtitle || undefined,
-          optionTypeChipLabel: project.type === "work" ? "Work" : "Personal",
-          optionTypeChipColor: project.type === "work" ? "primary" : "secondary",
+          optionTypeChipLabel: typeChip.label,
+          optionTypeChipColor: typeChip.color,
           optionImageSrc,
           optionImageAlt: `${project.name} preview`,
           selectedImageSrc: optionImageSrc,

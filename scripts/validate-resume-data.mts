@@ -39,6 +39,8 @@ type ValidationStats = {
   topLevelKeys: string[];
   projectCount: number;
   projectTypeCounts: Record<string, number>;
+  presentationProjectCount: number;
+  presentationSlugCount: number;
   projectsWithDiagrams: number;
   diagramCount: number;
   projectsWithTerminalDemo: number;
@@ -157,6 +159,10 @@ function formatProjectTypeCounts(counts: Record<string, number>): string {
     .join(", ");
 }
 
+function normalizeHrefToSlug(href: string): string {
+  return href.replace(/^\/+/, "").trim();
+}
+
 async function runValidation(options: ValidateResumeOptions): Promise<ValidationRunResult> {
   const issues: ValidationIssue[] = [];
   const rawText = await fs.readFile(resumeDataPath, "utf8");
@@ -211,6 +217,84 @@ async function runValidation(options: ValidateResumeOptions): Promise<Validation
     });
   }
 
+  const presentationProjects = parsed.projects.filter((project) => project.type === "presentation");
+  const presentationSlugs = new Map<string, number>();
+  for (const [index, project] of presentationProjects.entries()) {
+    const href = project.href.trim();
+    const slug = normalizeHrefToSlug(href);
+
+    if (!slug) {
+      issues.push({
+        severity: "error",
+        message: `Presentation project '${project.name}' has an empty href slug.`,
+      });
+      continue;
+    }
+
+    if (slug.includes("/")) {
+      issues.push({
+        severity: "error",
+        message: `Presentation project '${project.name}' href '${href}' must be a single-segment route (e.g. '/${slug.split("/")[0]}').`,
+      });
+    }
+
+    if (href.includes("?") || href.includes("#")) {
+      issues.push({
+        severity: "error",
+        message: `Presentation project '${project.name}' href '${href}' must not include query/hash fragments.`,
+      });
+    }
+
+    const normalizedSlug = slug.toLowerCase();
+    const priorIndex = presentationSlugs.get(normalizedSlug);
+    if (priorIndex !== undefined) {
+      issues.push({
+        severity: "error",
+        message: `Duplicate presentation slug '${slug}' between presentation projects at indexes ${priorIndex} and ${index}.`,
+      });
+    } else {
+      presentationSlugs.set(normalizedSlug, index);
+    }
+
+    if (!project.showcaseHeading?.trim()) {
+      issues.push({
+        severity: "warning",
+        message: `Presentation project '${project.name}' is missing showcaseHeading; route page will fall back to project title.`,
+      });
+    }
+    if (!project.showcaseSubtitle?.trim()) {
+      issues.push({
+        severity: "warning",
+        message: `Presentation project '${project.name}' is missing showcaseSubtitle; route page will fall back to project title.`,
+      });
+    }
+  }
+
+  if (presentationProjects.length > 0) {
+    const dynamicRoutePath = path.join(repoRoot, "src", "app", "[projectSlug]", "page.tsx");
+    if (!(await pathExists(dynamicRoutePath))) {
+      issues.push({
+        severity: "error",
+        message:
+          "Presentation projects exist but src/app/[projectSlug]/page.tsx is missing. Dynamic presentation routing will fail.",
+      });
+    }
+
+    for (const project of presentationProjects) {
+      const slug = normalizeHrefToSlug(project.href);
+      if (!slug) {
+        continue;
+      }
+      const shadowingPath = path.join(repoRoot, "src", "app", slug);
+      if (await pathExists(shadowingPath)) {
+        issues.push({
+          severity: "error",
+          message: `Presentation route '/${slug}' is shadowed by existing path src/app/${slug}. Remove or rename that route directory.`,
+        });
+      }
+    }
+  }
+
   const topLevelKeys = Object.keys(parsed);
   const recognition = isPlainObject(parsed.recognition) ? parsed.recognition : undefined;
   const hobbies = isPlainObject(parsed.hobbies) ? parsed.hobbies : undefined;
@@ -238,6 +322,8 @@ async function runValidation(options: ValidateResumeOptions): Promise<Validation
     topLevelKeys,
     projectCount: parsed.projects.length,
     projectTypeCounts: countByProjectType(parsed.projects as Array<{ type: string }>),
+    presentationProjectCount: presentationProjects.length,
+    presentationSlugCount: presentationSlugs.size,
     projectsWithDiagrams,
     diagramCount,
     projectsWithTerminalDemo,
@@ -285,6 +371,9 @@ async function main(): Promise<void> {
   out.metric(`Top-level keys (${stats.topLevelKeyCount}): ${stats.topLevelKeys.join(", ")}`);
   out.metric(
     `Projects: ${stats.projectCount} (${formatProjectTypeCounts(stats.projectTypeCounts) || "none"})`,
+  );
+  out.metric(
+    `Presentation routes: ${stats.presentationProjectCount} project(s), ${stats.presentationSlugCount} unique slug(s)`,
   );
   out.metric(
     `Project media: ${stats.diagramCount} diagrams across ${stats.projectsWithDiagrams} project(s), terminal demos on ${stats.projectsWithTerminalDemo} project(s)`,

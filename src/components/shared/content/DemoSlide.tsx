@@ -4,12 +4,14 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
+import { ImageLightbox, VideoLightbox } from "@/components/shared/media";
 
 type DemoSlideProps = Omit<React.ComponentPropsWithoutRef<"section">, "title" | "children"> & {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   caption?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  media?: DemoSlideMediaConfig;
   rootSx?: SxProps<Theme>;
   titleClassName?: string;
   subtitleClassName?: string;
@@ -19,6 +21,29 @@ type DemoSlideProps = Omit<React.ComponentPropsWithoutRef<"section">, "title" | 
   captionSlotSx?: SxProps<Theme>;
   captionTextSx?: SxProps<Theme>;
 };
+
+type DemoSlideMediaBase = {
+  src: string;
+  title?: string;
+  caption?: string;
+  triggerSx?: SxProps<Theme>;
+  previewSx?: SxProps<Theme>;
+  expandButtonSx?: SxProps<Theme>;
+};
+
+type DemoSlideVideoMedia = DemoSlideMediaBase & {
+  type: "video";
+  controls?: boolean;
+  playsInline?: boolean;
+  preload?: React.ComponentPropsWithoutRef<"video">["preload"];
+};
+
+type DemoSlideImageMedia = DemoSlideMediaBase & {
+  type: "image";
+  alt: string;
+};
+
+type DemoSlideMediaConfig = DemoSlideVideoMedia | DemoSlideImageMedia;
 
 const toSxArray = (value?: SxProps<Theme>) => {
   if (value == null) {
@@ -40,6 +65,7 @@ const DemoSlide = React.forwardRef<HTMLElement, DemoSlideProps>(function DemoSli
     subtitle,
     caption,
     children,
+    media,
     rootSx,
     titleClassName,
     subtitleClassName,
@@ -61,6 +87,53 @@ const DemoSlide = React.forwardRef<HTMLElement, DemoSlideProps>(function DemoSli
   const showTitle = hasRenderableNode(title);
   const showSubtitle = hasRenderableNode(subtitle);
   const showCaption = hasRenderableNode(caption);
+  const mediaNode = React.useMemo(() => {
+    if (!media?.src?.trim()) {
+      return null;
+    }
+
+    if (media.type === "video") {
+      return (
+        <VideoLightbox
+          src={media.src}
+          title={media.title?.trim() || "Demo video"}
+          caption={media.caption}
+          controls={media.controls ?? true}
+          playsInline={media.playsInline ?? true}
+          preload={media.preload ?? "metadata"}
+          triggerSx={media.triggerSx}
+          previewVideoSx={media.previewSx}
+          expandButtonSx={media.expandButtonSx}
+        />
+      );
+    }
+
+    return (
+      <ImageLightbox
+        src={media.src}
+        alt={media.alt}
+        title={media.title}
+        caption={media.caption}
+        triggerSx={media.triggerSx}
+      >
+        <Box
+          component="img"
+          src={media.src}
+          alt={media.alt}
+          sx={[
+            {
+              width: "100%",
+              height: "100%",
+              display: "block",
+              objectFit: "contain",
+            },
+            ...toSxArray(media.previewSx),
+          ]}
+        />
+      </ImageLightbox>
+    );
+  }, [media]);
+  const renderedContent = hasRenderableNode(children) ? children : mediaNode;
 
   return (
     <Box
@@ -103,7 +176,7 @@ const DemoSlide = React.forwardRef<HTMLElement, DemoSlideProps>(function DemoSli
           ...contentSxArray,
         ]}
       >
-        {children}
+        {renderedContent}
       </Box>
       {showCaption ? (
         <Box

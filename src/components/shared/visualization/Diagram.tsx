@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, ReactNode, useId } from "react";
-
-import mermaid from "mermaid";
+import type mermaidType from "mermaid";
 
 // MUI components
 import Box from "@mui/material/Box";
@@ -24,11 +23,17 @@ import Code from "@mui/icons-material/Code";
 import CodeOff from "@mui/icons-material/CodeOff";
 import ContentCopy from "@mui/icons-material/ContentCopy";
 import Check from "@mui/icons-material/Check";
+import ImageIcon from "@mui/icons-material/Image";
+import Polyline from "@mui/icons-material/Polyline";
 import type { DiagramProps } from "@/types/components/shared";
 export type { DiagramProps } from "@/types/components/shared";
 
 // Custom hooks
 import { useIsVisible } from "@/hooks/html/useIsVisible";
+import {
+  buildInteractiveViewportGridSx,
+  usePanZoomViewport,
+} from "@/hooks/html/usePanZoomViewport";
 
 /**
  * Renders a diagram using the Mermaid library.
@@ -77,8 +82,6 @@ ${steps?.join("\n  ")}
 `;
 
   const diagramRef = useRef<HTMLElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const diagramViewportRef = useRef<HTMLDivElement>(null);
   const isVisible = useIsVisible(diagramRef);
 
   // Whether we show text vs rendered diagram
@@ -86,75 +89,41 @@ ${steps?.join("\n  ")}
   const [isHydrated, setIsHydrated] = useState(false);
   const [copySucceeded, setCopySucceeded] = useState(false);
   const copyResetTimeoutRef = useRef<number | null>(null);
+  const mermaidModuleRef = useRef<typeof mermaidType | null>(null);
 
-  // Pan/Zoom states
-  interface TransformState {
-    scale: number;
-    translateX: number;
-    translateY: number;
-  }
-
-  const [scale, setScale] = useState(1);
-  const [translateX, setTranslateX] = useState(0);
-  const [translateY, setTranslateY] = useState(0);
-  const scaleRef = useRef(1);
-  const translateXRef = useRef(0);
-  const translateYRef = useRef(0);
-  const wheelFrameRef = useRef<number | null>(null);
-  const pendingWheelScaleRef = useRef<number | null>(null);
-  const pendingWheelPointerRef = useRef<{ x: number; y: number } | null>(null);
-  const wheelCommitTimeoutRef = useRef<number | null>(null);
   const autoFitFrameRef = useRef<number | null>(null);
   const autoFitInnerFrameRef = useRef<number | null>(null);
   const autoFitSettleFrameRef = useRef<number | null>(null);
 
-  // Undo/Redo History
-  const [history, setHistory] = useState<TransformState[]>([
-    { scale: 1, translateX: 0, translateY: 0 },
-  ]);
-  const [historyIndex, setHistoryIndex] = useState(0);
-
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
-
-  const pushHistory = useCallback(
-    (st: TransformState) => {
-      const truncated = history.slice(0, historyIndex + 1);
-      const last = truncated[truncated.length - 1];
-      // Skip if no actual change
-      if (
-        last.scale === st.scale &&
-        last.translateX === st.translateX &&
-        last.translateY === st.translateY
-      ) {
-        return;
-      }
-      const updated = [...truncated, st];
-      setHistory(updated);
-      setHistoryIndex(updated.length - 1);
-    },
-    [history, historyIndex],
-  );
-
-  const applyTransformState = useCallback((st: TransformState) => {
-    setScale(st.scale);
-    setTranslateX(st.translateX);
-    setTranslateY(st.translateY);
-    scaleRef.current = st.scale;
-    translateXRef.current = st.translateX;
-    translateYRef.current = st.translateY;
-  }, []);
-
-  const applyFitTransform = useCallback((st: TransformState) => {
-    setScale(st.scale);
-    setTranslateX(st.translateX);
-    setTranslateY(st.translateY);
-    scaleRef.current = st.scale;
-    translateXRef.current = st.translateX;
-    translateYRef.current = st.translateY;
-    setHistory([st]);
-    setHistoryIndex(0);
-  }, []);
+  const {
+    containerRef,
+    viewportRef: diagramViewportRef,
+    transformRef,
+    scale,
+    translateX,
+    translateY,
+    isDragging,
+    canUndo,
+    canRedo,
+    doTransform,
+    applyFitTransform,
+    handleUndo,
+    handleRedo,
+    handleZoomIn,
+    handleZoomOut,
+    handlePanUp,
+    handlePanDown,
+    handlePanLeft,
+    handlePanRight,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUpOrLeave,
+    handleDoubleClick,
+  } = usePanZoomViewport({
+    preset: "diagram",
+    shouldIgnorePointerTarget: (target) =>
+      Boolean(target.closest(".MuiToolbar-root") || target.closest("button")),
+  });
 
   const fitDiagramToViewport = useCallback(() => {
     const viewport = diagramViewportRef.current;
@@ -173,7 +142,7 @@ ${steps?.join("\n  ")}
       return;
     }
 
-    const currentScale = Math.max(0.0001, scaleRef.current);
+    const currentScale = Math.max(0.0001, transformRef.current.scale);
     const svgRect = svgElement.getBoundingClientRect();
     const unscaledSvgWidth = svgRect.width / currentScale;
     const unscaledSvgHeight = svgRect.height / currentScale;
@@ -270,6 +239,8 @@ ${steps?.join("\n  ")}
     autoFitPadding,
     autoFitScaleMultiplier,
     autoFitVerticalAlign,
+    diagramViewportRef,
+    transformRef,
   ]);
 
   const scheduleAutoFitToViewport = useCallback(() => {
@@ -344,247 +315,9 @@ ${steps?.join("\n  ")}
     autoFitSettleFrameRef.current = window.requestAnimationFrame(tick);
   }, [scheduleAutoFitToViewport]);
 
-  const handleUndo = useCallback(() => {
-    if (!canUndo) return;
-    const newIndex = historyIndex - 1;
-    setHistoryIndex(newIndex);
-    applyTransformState(history[newIndex]);
-  }, [canUndo, historyIndex, history, applyTransformState]);
-
-  const handleRedo = useCallback(() => {
-    if (!canRedo) return;
-    const newIndex = historyIndex + 1;
-    setHistoryIndex(newIndex);
-    applyTransformState(history[newIndex]);
-  }, [canRedo, historyIndex, history, applyTransformState]);
-
-  // Zoom/Pan increments
-  const PAN_STEP = 50;
-  const CLICK_ZOOM_FACTOR = 2.5;
-  const ICON_ZOOM_FACTOR = 2.5;
-  const DOUBLE_CLICK_ZOOM_FACTOR = 2.5;
-  const WHEEL_ZOOM_SENSITIVITY = 0.06;
-  const WHEEL_ZOOM_MAX_STEP_FACTOR = 1.26;
-  const PINCH_ZOOM_AMPLIFICATION = 50;
-  const MAX_PINCH_STEP_MULTIPLIER = 4;
-  const MIN_PINCH_STEP_MULTIPLIER = 0.25;
-  const clampScale = useCallback((value: number) => Math.min(8, Math.max(0.1, value)), []);
-
-  const doTransform = useCallback(
-    (newScale: number, newX: number, newY: number) => {
-      setScale(newScale);
-      setTranslateX(newX);
-      setTranslateY(newY);
-      scaleRef.current = newScale;
-      translateXRef.current = newX;
-      translateYRef.current = newY;
-      pushHistory({ scale: newScale, translateX: newX, translateY: newY });
-    },
-    [pushHistory],
-  );
-
-  const zoomAtViewportPoint = useCallback(
-    (clientX: number, clientY: number, nextScale: number) => {
-      const viewport = diagramViewportRef.current;
-      if (!viewport) {
-        doTransform(nextScale, translateXRef.current, translateYRef.current);
-        return;
-      }
-
-      const viewportRect = viewport.getBoundingClientRect();
-      const pointX = clientX - viewportRect.left;
-      const pointY = clientY - viewportRect.top;
-      const currentScale = scaleRef.current;
-      const currentTranslateX = translateXRef.current;
-      const currentTranslateY = translateYRef.current;
-
-      const contentX = (pointX - currentTranslateX) / currentScale;
-      const contentY = (pointY - currentTranslateY) / currentScale;
-
-      const nextTranslateX = pointX - contentX * nextScale;
-      const nextTranslateY = pointY - contentY * nextScale;
-
-      doTransform(nextScale, nextTranslateX, nextTranslateY);
-    },
-    [doTransform],
-  );
-
-  const handleZoomIn = useCallback(() => {
-    doTransform(clampScale(scale * ICON_ZOOM_FACTOR), translateX, translateY);
-  }, [scale, translateX, translateY, doTransform, clampScale]);
-
-  const handleZoomOut = useCallback(() => {
-    doTransform(clampScale(scale / ICON_ZOOM_FACTOR), translateX, translateY);
-  }, [scale, translateX, translateY, doTransform, clampScale]);
-
   const handleReset = useCallback(() => {
     scheduleAutoFitToViewport();
   }, [scheduleAutoFitToViewport]);
-
-  const handlePanUp = useCallback(() => {
-    doTransform(scale, translateX, translateY - PAN_STEP);
-  }, [scale, translateX, translateY, doTransform]);
-
-  const handlePanDown = useCallback(() => {
-    doTransform(scale, translateX, translateY + PAN_STEP);
-  }, [scale, translateX, translateY, doTransform]);
-
-  const handlePanLeft = useCallback(() => {
-    doTransform(scale, translateX - PAN_STEP, translateY);
-  }, [scale, translateX, translateY, doTransform]);
-
-  const handlePanRight = useCallback(() => {
-    doTransform(scale, translateX + PAN_STEP, translateY);
-  }, [scale, translateX, translateY, doTransform]);
-
-  // Drag-to-Pan
-  const [isDragging, setIsDragging] = useState(false);
-  const [lastPointerPos, setLastPointerPos] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
-  const pinchDistanceRef = useRef<number | null>(null);
-  const pinchMidpointRef = useRef<{ x: number; y: number } | null>(null);
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (pinchDistanceRef.current !== null) return;
-    const el = e.target as HTMLElement;
-    // Skip if clicking on toolbar or button
-    if (el.closest(".MuiToolbar-root") || el.closest("button")) return;
-
-    // If ctrlKey => zoom in, if shiftKey => zoom out
-    // Single-click with ctrl or shift
-    if (e.ctrlKey && e.button === 0) {
-      e.stopPropagation();
-      e.preventDefault();
-      const nextScale = clampScale(scaleRef.current * CLICK_ZOOM_FACTOR);
-      zoomAtViewportPoint(e.clientX, e.clientY, nextScale);
-      return;
-    }
-    if (e.shiftKey && e.button === 0) {
-      e.stopPropagation();
-      e.preventDefault();
-      const nextScale = clampScale(scaleRef.current / CLICK_ZOOM_FACTOR);
-      zoomAtViewportPoint(e.clientX, e.clientY, nextScale);
-      return;
-    }
-
-    // Otherwise, normal drag
-    if (e.button === 0) {
-      e.currentTarget.setPointerCapture(e.pointerId);
-      setIsDragging(true);
-      setLastPointerPos({ x: e.clientX, y: e.clientY });
-    }
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (pinchDistanceRef.current !== null) return;
-    if (!isDragging || !lastPointerPos) return;
-    const dx = e.clientX - lastPointerPos.x;
-    const dy = e.clientY - lastPointerPos.y;
-    setTranslateX((prev) => prev + dx);
-    setTranslateY((prev) => prev + dy);
-    setLastPointerPos({ x: e.clientX, y: e.clientY });
-  };
-
-  const handlePointerUpOrLeave = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (pinchDistanceRef.current !== null) return;
-    if (isDragging) {
-      pushHistory({ scale, translateX, translateY });
-    }
-    setIsDragging(false);
-    setLastPointerPos(null);
-    e.currentTarget.releasePointerCapture(e.pointerId);
-  };
-
-  // Double-click => zoom in by +1 scale
-  const handleDoubleClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      const el = e.target as HTMLElement;
-      if (el.closest(".MuiToolbar-root") || el.closest("button")) return;
-
-      e.stopPropagation();
-      e.preventDefault();
-      const nextScale = clampScale(scaleRef.current * DOUBLE_CLICK_ZOOM_FACTOR);
-      zoomAtViewportPoint(e.clientX, e.clientY, nextScale);
-    },
-    [clampScale, zoomAtViewportPoint],
-  );
-
-  // Scroll & pinch
-  const handleWheel = useCallback(
-    (e: WheelEvent) => {
-      if (!e.ctrlKey) return;
-      e.preventDefault();
-      e.stopPropagation();
-
-      const baseScale = pendingWheelScaleRef.current ?? scaleRef.current;
-      const rawWheelFactor = Math.exp(-e.deltaY * WHEEL_ZOOM_SENSITIVITY);
-      const boundedWheelFactor = Math.min(
-        WHEEL_ZOOM_MAX_STEP_FACTOR,
-        Math.max(1 / WHEEL_ZOOM_MAX_STEP_FACTOR, rawWheelFactor),
-      );
-      const nextScale = clampScale(baseScale * boundedWheelFactor);
-      pendingWheelScaleRef.current = nextScale;
-      pendingWheelPointerRef.current = { x: e.clientX, y: e.clientY };
-
-      if (wheelFrameRef.current === null) {
-        wheelFrameRef.current = window.requestAnimationFrame(() => {
-          wheelFrameRef.current = null;
-          const framedScale = pendingWheelScaleRef.current;
-          if (framedScale == null) {
-            return;
-          }
-          const viewport = diagramViewportRef.current;
-          const pointer = pendingWheelPointerRef.current;
-          if (!viewport || !pointer) {
-            setScale(framedScale);
-            scaleRef.current = framedScale;
-          } else {
-            const viewportRect = viewport.getBoundingClientRect();
-            const pointX = pointer.x - viewportRect.left;
-            const pointY = pointer.y - viewportRect.top;
-            const currentScale = scaleRef.current;
-            const currentTranslateX = translateXRef.current;
-            const currentTranslateY = translateYRef.current;
-            const contentX = (pointX - currentTranslateX) / currentScale;
-            const contentY = (pointY - currentTranslateY) / currentScale;
-            const nextTranslateX = pointX - contentX * framedScale;
-            const nextTranslateY = pointY - contentY * framedScale;
-
-            setScale(framedScale);
-            scaleRef.current = framedScale;
-            setTranslateX(nextTranslateX);
-            translateXRef.current = nextTranslateX;
-            setTranslateY(nextTranslateY);
-            translateYRef.current = nextTranslateY;
-          }
-          pendingWheelScaleRef.current = null;
-          pendingWheelPointerRef.current = null;
-        });
-      }
-
-      if (wheelCommitTimeoutRef.current !== null) {
-        window.clearTimeout(wheelCommitTimeoutRef.current);
-      }
-      wheelCommitTimeoutRef.current = window.setTimeout(() => {
-        wheelCommitTimeoutRef.current = null;
-        pushHistory({
-          scale: scaleRef.current,
-          translateX: translateXRef.current,
-          translateY: translateYRef.current,
-        });
-      }, 110);
-    },
-    [clampScale, pushHistory],
-  );
-
-  const getTouchDistance = (touchA: Touch, touchB: Touch) =>
-    Math.hypot(touchA.clientX - touchB.clientX, touchA.clientY - touchB.clientY);
-  const getTouchMidpoint = (touchA: Touch, touchB: Touch) => ({
-    x: (touchA.clientX + touchB.clientX) / 2,
-    y: (touchA.clientY + touchB.clientY) / 2,
-  });
 
   const handleCopyDiagramCode = useCallback(async () => {
     const textToCopy = diagramCode.trim();
@@ -624,92 +357,143 @@ ${steps?.join("\n  ")}
     }
   }, [diagramCode]);
 
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (e.touches.length !== 2) return;
-    e.preventDefault();
-    e.stopPropagation();
-    pinchDistanceRef.current = getTouchDistance(e.touches[0], e.touches[1]);
-    pinchMidpointRef.current = getTouchMidpoint(e.touches[0], e.touches[1]);
-    setIsDragging(false);
-    setLastPointerPos(null);
+  const getExportFileBaseName = useCallback(() => {
+    const preferred = (title?.trim() || resolvedId || "diagram").toLowerCase();
+    const normalized = preferred
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80);
+    return normalized || "diagram";
+  }, [resolvedId, title]);
+
+  const resolveSvgSize = useCallback((svgElement: SVGSVGElement) => {
+    const viewBox = svgElement.viewBox?.baseVal;
+    if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
+      return {
+        width: Math.max(1, Math.round(viewBox.width)),
+        height: Math.max(1, Math.round(viewBox.height)),
+      };
+    }
+
+    const widthAttr = Number.parseFloat(svgElement.getAttribute("width") || "");
+    const heightAttr = Number.parseFloat(svgElement.getAttribute("height") || "");
+    if (
+      Number.isFinite(widthAttr) &&
+      widthAttr > 0 &&
+      Number.isFinite(heightAttr) &&
+      heightAttr > 0
+    ) {
+      return {
+        width: Math.max(1, Math.round(widthAttr)),
+        height: Math.max(1, Math.round(heightAttr)),
+      };
+    }
+
+    const rect = svgElement.getBoundingClientRect();
+    return {
+      width: Math.max(1, Math.round(rect.width || 1)),
+      height: Math.max(1, Math.round(rect.height || 1)),
+    };
   }, []);
 
-  const handleTouchMove = useCallback(
-    (e: TouchEvent) => {
-      if (e.touches.length !== 2) return;
-      e.preventDefault();
-      e.stopPropagation();
+  const getRenderedSvg = useCallback(() => {
+    return (diagramRef.current?.querySelector("svg") as SVGSVGElement | null) ?? null;
+  }, []);
 
-      const previousDistance = pinchDistanceRef.current;
-      const nextDistance = getTouchDistance(e.touches[0], e.touches[1]);
-      const nextMidpoint = getTouchMidpoint(e.touches[0], e.touches[1]);
-      if (!previousDistance || previousDistance <= 0 || nextDistance <= 0) {
-        pinchDistanceRef.current = nextDistance;
-        pinchMidpointRef.current = nextMidpoint;
+  const getSerializedSvg = useCallback(() => {
+    const svgElement = getRenderedSvg();
+    if (!svgElement) {
+      return null;
+    }
+
+    const clone = svgElement.cloneNode(true) as SVGSVGElement;
+    const { width: resolvedWidth, height: resolvedHeight } = resolveSvgSize(svgElement);
+    if (!clone.getAttribute("xmlns")) {
+      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    }
+    if (!clone.getAttribute("xmlns:xlink")) {
+      clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+    }
+    if (!clone.getAttribute("viewBox")) {
+      clone.setAttribute("viewBox", `0 0 ${resolvedWidth} ${resolvedHeight}`);
+    }
+    clone.setAttribute("width", `${resolvedWidth}`);
+    clone.setAttribute("height", `${resolvedHeight}`);
+
+    return {
+      svgText: new XMLSerializer().serializeToString(clone),
+      width: resolvedWidth,
+      height: resolvedHeight,
+    };
+  }, [getRenderedSvg, resolveSvgSize]);
+
+  const triggerBlobDownload = useCallback((blob: Blob, fileName: string) => {
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  }, []);
+
+  const handleExportSvg = useCallback(() => {
+    const serialized = getSerializedSvg();
+    if (!serialized) {
+      return;
+    }
+
+    const svgBlob = new Blob([serialized.svgText], { type: "image/svg+xml;charset=utf-8" });
+    triggerBlobDownload(svgBlob, `${getExportFileBaseName()}.svg`);
+  }, [getExportFileBaseName, getSerializedSvg, triggerBlobDownload]);
+
+  const handleExportPng = useCallback(async () => {
+    const serialized = getSerializedSvg();
+    if (!serialized) {
+      return;
+    }
+
+    const { svgText, width, height } = serialized;
+    const svgBlob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
+    const svgBlobUrl = window.URL.createObjectURL(svgBlob);
+
+    try {
+      const exportImage = new window.Image();
+      await new Promise<void>((resolve, reject) => {
+        exportImage.onload = () => resolve();
+        exportImage.onerror = () => reject(new Error("Unable to render SVG for PNG export."));
+        exportImage.src = svgBlobUrl;
+      });
+
+      const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(width * pixelRatio));
+      canvas.height = Math.max(1, Math.round(height * pixelRatio));
+      const context = canvas.getContext("2d");
+      if (!context) {
         return;
       }
 
-      const pinchRatio = nextDistance / previousDistance;
-      const exponentialRatio = Math.exp((pinchRatio - 1) * PINCH_ZOOM_AMPLIFICATION);
-      const amplifiedRatio = Math.min(
-        MAX_PINCH_STEP_MULTIPLIER,
-        Math.max(MIN_PINCH_STEP_MULTIPLIER, exponentialRatio),
-      );
-      const currentScale = scaleRef.current;
-      const nextScale = clampScale(currentScale * amplifiedRatio);
-      const viewport = diagramViewportRef.current;
+      context.scale(pixelRatio, pixelRatio);
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+      context.drawImage(exportImage, 0, 0, width, height);
 
-      if (!viewport) {
-        setScale(nextScale);
-        scaleRef.current = nextScale;
-        pinchDistanceRef.current = nextDistance;
-        pinchMidpointRef.current = nextMidpoint;
+      const pngBlob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, "image/png");
+      });
+      if (!pngBlob) {
         return;
       }
 
-      const viewportRect = viewport.getBoundingClientRect();
-      const previousMidpoint = pinchMidpointRef.current ?? nextMidpoint;
-      const previousPointX = previousMidpoint.x - viewportRect.left;
-      const previousPointY = previousMidpoint.y - viewportRect.top;
-      const nextPointX = nextMidpoint.x - viewportRect.left;
-      const nextPointY = nextMidpoint.y - viewportRect.top;
-      const currentTranslateX = translateXRef.current;
-      const currentTranslateY = translateYRef.current;
-
-      const contentX = (previousPointX - currentTranslateX) / currentScale;
-      const contentY = (previousPointY - currentTranslateY) / currentScale;
-      const nextTranslateX = nextPointX - contentX * nextScale;
-      const nextTranslateY = nextPointY - contentY * nextScale;
-
-      scaleRef.current = nextScale;
-      setScale(nextScale);
-      translateXRef.current = nextTranslateX;
-      translateYRef.current = nextTranslateY;
-      setTranslateX(nextTranslateX);
-      setTranslateY(nextTranslateY);
-      pinchDistanceRef.current = nextDistance;
-      pinchMidpointRef.current = nextMidpoint;
-    },
-    [clampScale],
-  );
-
-  const handleTouchEnd = useCallback(
-    (e: TouchEvent) => {
-      if (e.touches.length >= 2) return;
-      if (pinchDistanceRef.current !== null) {
-        e.preventDefault();
-        e.stopPropagation();
-        pinchDistanceRef.current = null;
-        pinchMidpointRef.current = null;
-        pushHistory({
-          scale: scaleRef.current,
-          translateX: translateXRef.current,
-          translateY: translateYRef.current,
-        });
-      }
-    },
-    [pushHistory],
-  );
+      triggerBlobDownload(pngBlob, `${getExportFileBaseName()}.png`);
+    } catch {
+      // no-op: skip export when SVG rasterization fails.
+    } finally {
+      window.URL.revokeObjectURL(svgBlobUrl);
+    }
+  }, [getExportFileBaseName, getSerializedSvg, triggerBlobDownload]);
 
   // Initialize Mermaid if in view, mermaid syntax, not showing text
   useEffect(() => {
@@ -724,6 +508,15 @@ ${steps?.join("\n  ")}
     const renderAndFitDiagram = async () => {
       const currentDiagramRef = diagramRef.current;
       if (!currentDiagramRef) {
+        return;
+      }
+
+      if (!mermaidModuleRef.current) {
+        const mermaidModule = await import("mermaid");
+        mermaidModuleRef.current = mermaidModule.default;
+      }
+      const mermaid = mermaidModuleRef.current;
+      if (!mermaid) {
         return;
       }
 
@@ -764,48 +557,6 @@ ${steps?.join("\n  ")}
   useEffect(() => {
     setIsHydrated(true);
   }, []);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-
-    const preventGesture = (event: Event) => {
-      event.preventDefault();
-      event.stopPropagation();
-    };
-
-    const options: AddEventListenerOptions = { passive: false };
-    container.addEventListener("wheel", handleWheel, options);
-    container.addEventListener("touchstart", handleTouchStart, options);
-    container.addEventListener("touchmove", handleTouchMove, options);
-    container.addEventListener("touchend", handleTouchEnd, options);
-    container.addEventListener("touchcancel", handleTouchEnd, options);
-    container.addEventListener("gesturestart", preventGesture as EventListener, options);
-    container.addEventListener("gesturechange", preventGesture as EventListener, options);
-    container.addEventListener("gestureend", preventGesture as EventListener, options);
-
-    return () => {
-      if (wheelFrameRef.current !== null) {
-        window.cancelAnimationFrame(wheelFrameRef.current);
-        wheelFrameRef.current = null;
-      }
-      if (wheelCommitTimeoutRef.current !== null) {
-        window.clearTimeout(wheelCommitTimeoutRef.current);
-        wheelCommitTimeoutRef.current = null;
-      }
-      pendingWheelPointerRef.current = null;
-      container.removeEventListener("wheel", handleWheel, options);
-      container.removeEventListener("touchstart", handleTouchStart, options);
-      container.removeEventListener("touchmove", handleTouchMove, options);
-      container.removeEventListener("touchend", handleTouchEnd, options);
-      container.removeEventListener("touchcancel", handleTouchEnd, options);
-      container.removeEventListener("gesturestart", preventGesture as EventListener, options);
-      container.removeEventListener("gesturechange", preventGesture as EventListener, options);
-      container.removeEventListener("gestureend", preventGesture as EventListener, options);
-    };
-  }, [handleTouchEnd, handleTouchMove, handleTouchStart, handleWheel]);
 
   useEffect(() => {
     return () => {
@@ -858,6 +609,16 @@ ${steps?.join("\n  ")}
             <Tooltip title={copySucceeded ? "Copied" : "Copy Mermaid Code"}>
               <IconButton onClick={handleCopyDiagramCode} aria-label="Copy Mermaid source code">
                 {copySucceeded ? <Check /> : <ContentCopy />}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Export SVG">
+              <IconButton onClick={handleExportSvg} aria-label="Export diagram as SVG">
+                <Polyline />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Export PNG">
+              <IconButton onClick={handleExportPng} aria-label="Export diagram as PNG">
+                <ImageIcon />
               </IconButton>
             </Tooltip>
           </Toolbar>
@@ -988,6 +749,25 @@ ${steps?.join("\n  ")}
             <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
 
             {/* Toggle code/diagram */}
+            <Tooltip title={copySucceeded ? "Copied" : "Copy Mermaid Code"}>
+              <IconButton onClick={handleCopyDiagramCode} aria-label="Copy Mermaid source code">
+                {copySucceeded ? <Check /> : <ContentCopy />}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Export SVG">
+              <IconButton onClick={handleExportSvg} aria-label="Export diagram as SVG">
+                <Polyline />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Export PNG">
+              <IconButton onClick={handleExportPng} aria-label="Export diagram as PNG">
+                <ImageIcon />
+              </IconButton>
+            </Tooltip>
+
+            <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+
+            {/* Toggle code/diagram */}
             <Tooltip title="Show Source">
               <IconButton onClick={() => setShowingText(true)}>
                 <Code />
@@ -1004,11 +784,13 @@ ${steps?.join("\n  ")}
             overflow: "hidden",
             flexGrow: 1,
             width: "100%",
-            backgroundColor: "#fff",
-            backgroundImage: shouldShowGridDots
-              ? "radial-gradient(#cecece 2.0px, transparent 2.0px)"
-              : undefined,
-            backgroundSize: "30px 30px",
+            ...buildInteractiveViewportGridSx({
+              enabled: shouldShowGridDots,
+              backgroundColor: "#fff",
+              dotColor: "#cecece",
+              dotSizePx: 2,
+              spacingPx: 30,
+            }),
           }}
         >
           <Box

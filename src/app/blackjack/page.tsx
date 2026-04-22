@@ -24,10 +24,12 @@ type ResolvedDiagramVisual = {
 };
 
 type BlackjackTerminalDemoConfig = {
+  mediaType?: "video" | "image";
+  mediaUrl?: string;
   title?: string;
   subtitle?: string;
   caption?: string;
-  videoUrl?: string;
+  mediaAlt?: string;
 };
 
 const hasResolvedDiagramVisual = (visual: ResolvedDiagramVisual) =>
@@ -88,9 +90,10 @@ export default function BlackjackPage() {
     const title = configured.title?.trim();
     const subtitle = configured.subtitle?.trim();
     const caption = configured.caption?.trim();
-    const videoUrl = configured.videoUrl?.trim();
+    const mediaType = configured.mediaType?.trim();
+    const mediaUrl = configured.mediaUrl?.trim();
 
-    if (!title || !subtitle || !caption || !videoUrl) {
+    if (!title || !subtitle || !caption || !mediaUrl || mediaType !== "video") {
       return null;
     }
 
@@ -98,7 +101,8 @@ export default function BlackjackPage() {
       title,
       subtitle,
       caption,
-      videoUrl,
+      mediaUrl,
+      mediaAlt: configured.mediaAlt?.trim(),
     };
   }, [blackjackProject]);
   const blackjackDiagrams = React.useMemo(
@@ -363,7 +367,7 @@ export default function BlackjackPage() {
       >
         {blackjackTerminalDemo ? (
           <VideoLightbox
-            src={withBasePath(blackjackTerminalDemo.videoUrl)}
+            src={withBasePath(blackjackTerminalDemo.mediaUrl)}
             title={blackjackTerminalDemo.title}
             caption={blackjackTerminalDemo.caption}
             controls

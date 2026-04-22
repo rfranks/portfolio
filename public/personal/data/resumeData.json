@@ -1269,7 +1269,8 @@
         "title": "Go! Blackjack!",
         "subtitle": "Via Go in the terminal in VS Code Debugger",
         "caption": "Terminal debugger run of the Go client showing the same blackjack rules core and round-state behavior used by the web UI, validating shared engine parity across presentation layers.",
-        "videoUrl": "/personal/demovideos/blackjack_terminal.mov"
+        "mediaUrl": "/personal/demovideos/blackjack_terminal.mov",
+        "mediaType": "video"
       },
       "watermark": {
         "kind": "cardsFan",
@@ -1444,9 +1445,11 @@
     },
     {
       "name": "Patient List Project",
-      "description": "Backbone.js-based configurable patient visit list for physicians.  Spring backend with REST APIs, complex filtering, sorting, and pagination.",
+      "showcaseHeading": "Physician Patient List",
+      "showcaseSubtitle": "Configurable visit intelligence at point of care",
+      "description": "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
       "href": "/patientlist",
-      "type": "work",
+      "type": "presentation",
       "interestsMeWhy": "Transforming dense clinical data into a customizable dashboard was both challenging and rewarding. It illustrates the power of modern JavaScript in healthcare, but more importantly it required thoughtful workflow design so physicians could move faster without losing trust in the data. I am drawn to this kind of work because small UX and performance improvements can have outsized real-world impact in clinical settings.",
       "watermark": {
         "kind": "image",
@@ -1457,6 +1460,7 @@
         "height": 140,
         "imageClassName": "h-auto w-56 object-contain"
       },
+      "demoCaption": "Demonstrates physician-facing visit-list workflows: route-bound state hydration, advanced filtering and sorting, paginated REST retrieval, and responsive row rendering for rapid patient review.",
       "demoGifUrl": "/personal/demogifs/patient_list_demo.gif",
       "specifications": {
         "facadeArchitecture": {
@@ -1550,7 +1554,7 @@
         }
       ],
       "blockDiagram": "graph TD;\n  WAR[patient-list-war\\\nBackbone/Handlebars UI] --> REST[patient-list-rest\\\nSpring Controllers];\n  REST --> API[patient-list-api\\\nFacade + DTOs];\n  API <--implements--> SRV[patient-list-services\\\nBusiness Logic, Mapping, Validation];\n  SRV --> DAO[patient-list-dao\\\nRepositories/Queries];\n  DAO --> DB[(Database)];\n  WAR -. static assets .-> ASSETS[Templates JS CSS];",
-      "componentDiagram": "graph TD;\n  subgraph UI (patient-list-war)\n    Router[VisitRouter]\n    State[VisitListState]\n    Coll[VisitCollection]\n    ListView[VisitListView]\n    ItemView[VisitItemView]\n    Toolbar[ToolbarView]\n    Pager[PaginationView]\n    Wizard[WizardView]\n    TList[visit-list.hbs]\n    TRow[visit-row.hbs]\n  end\n  subgraph REST/API\n    EP[/GET /api/v1/visits/]\n    EPlist[/GET /api/v1/visitLists/{id}/visits/]\n    DTO[VisitDto]\n  end\n  subgraph Server\n    Ctl[VisitController]\n    Fac[VisitFacade]\n    Svc[VisitServiceImpl]\n    Map[VisitMapper]\n    Repo[VisitRepository]\n    DB[(DB)]\n  end\n  Router --> ListView\n  Router --> State\n  ListView --> Toolbar\n  ListView --> Pager\n  ListView --> Coll\n  Coll -->|reset/sync| ListView\n  ListView -->|each model| ItemView\n  ListView --> TList\n  ItemView --> TRow\n  Toolbar -->|filter:changed| State\n  Pager -->|page:changed| State\n  State -->|toQuery()| Coll\n  Coll -->|fetch| EP\n  EP --> Ctl --> Fac --> Svc --> Repo --> DB\n  Repo --> Svc --> Map --> DTO --> Ctl --> EP --> Coll\n  Wizard -->|save list| Ctl",
+      "componentDiagram": "graph TD;\n  subgraph UI patient-list-war\n    Router[VisitRouter]\n    State[VisitListState]\n    Coll[VisitCollection]\n    ListView[VisitListView]\n    ItemView[VisitItemView]\n    Toolbar[ToolbarView]\n    Pager[PaginationView]\n    Wizard[WizardView]\n    TList[visit-list.hbs]\n    TRow[visit-row.hbs]\n  end\n  subgraph REST/API\n    EP[/GET /api/v1/visits/]\n    EPlist[/GET /api/v1/visitLists/id/visits/]\n    DTO[VisitDto]\n  end\n  subgraph Server\n    Ctl[VisitController]\n    Fac[VisitFacade]\n    Svc[VisitServiceImpl]\n    Map[VisitMapper]\n    Repo[VisitRepository]\n    DB[(DB)]\n  end\n  Router --> ListView\n  Router --> State\n  ListView --> Toolbar\n  ListView --> Pager\n  ListView --> Coll\n  Coll -->|reset/sync| ListView\n  ListView -->|each model| ItemView\n  ListView --> TList\n  ItemView --> TRow\n  Toolbar -->|filter:changed| State\n  Pager -->|page:changed| State\n  State -->|toQuery| Coll\n  Coll -->|fetch| EP\n  EP --> Ctl --> Fac --> Svc --> Repo --> DB\n  Repo --> Svc --> Map --> DTO --> Ctl --> EP --> Coll\n  Wizard -->|save list| Ctl",
       "sequenceDiagram": "sequenceDiagram\n  participant U as User\n  participant R as VisitRouter\n  participant V as VisitListView\n  participant S as VisitListState\n  participant C as VisitCollection\n  participant T as ToolbarView\n  participant H as Handlebars Templates\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as VisitFacade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/visits?listId=123&page=1\n  R->>S: create from query (listId,page,sort,filters)\n  R->>V: new VisitListView({state:S, collection:C})\n  V->>C: fetch({data: S.toQuery()})\n  C->>REST: GET /api/v1/visits?listId=123&page=1&sort=...\n  REST->>CTR: Dispatch controller\n  CTR->>FAC: findVisits(listId,paging,filters)\n  FAC->>DAO: query(listId,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>C: 200 JSON {items:[], paging:{}}\n  C-->>V: reset/sync events\n  V->>H: Render visit-list.hbs + visit-row.hbs\n  H-->>V: HTML table\n  V-->>U: Patient visit list displayed\n  U->>T: Change filter/search\n  T-->>S: event filter:changed\n  S-->>V: change:*\n  V->>C: fetch() (debounced) with new query\n  C->>REST: GET /api/v1/visits?... (repeat)",
       "diagrams": [
         {
@@ -1558,7 +1562,7 @@
           "shortText": "Component responsibilities and integration touchpoints.",
           "description": "Details Backbone router/view/state relationships and their mapping to Spring controllers, facades, repositories, and DTO boundaries.",
           "type": "flowchart",
-          "diagram": "graph TD;\n  subgraph UI (patient-list-war)\n    Router[VisitRouter]\n    State[VisitListState]\n    Coll[VisitCollection]\n    ListView[VisitListView]\n    ItemView[VisitItemView]\n    Toolbar[ToolbarView]\n    Pager[PaginationView]\n    Wizard[WizardView]\n    TList[visit-list.hbs]\n    TRow[visit-row.hbs]\n  end\n  subgraph REST/API\n    EP[/GET /api/v1/visits/]\n    EPlist[/GET /api/v1/visitLists/{id}/visits/]\n    DTO[VisitDto]\n  end\n  subgraph Server\n    Ctl[VisitController]\n    Fac[VisitFacade]\n    Svc[VisitServiceImpl]\n    Map[VisitMapper]\n    Repo[VisitRepository]\n    DB[(DB)]\n  end\n  Router --> ListView\n  Router --> State\n  ListView --> Toolbar\n  ListView --> Pager\n  ListView --> Coll\n  Coll -->|reset/sync| ListView\n  ListView -->|each model| ItemView\n  ListView --> TList\n  ItemView --> TRow\n  Toolbar -->|filter:changed| State\n  Pager -->|page:changed| State\n  State -->|toQuery()| Coll\n  Coll -->|fetch| EP\n  EP --> Ctl --> Fac --> Svc --> Repo --> DB\n  Repo --> Svc --> Map --> DTO --> Ctl --> EP --> Coll\n  Wizard -->|save list| Ctl",
+          "diagram": "graph TD;\n  subgraph UI patient-list-war\n    Router[VisitRouter]\n    State[VisitListState]\n    Coll[VisitCollection]\n    ListView[VisitListView]\n    ItemView[VisitItemView]\n    Toolbar[ToolbarView]\n    Pager[PaginationView]\n    Wizard[WizardView]\n    TList[visit-list.hbs]\n    TRow[visit-row.hbs]\n  end\n  subgraph REST/API\n    EP[/GET /api/v1/visits/]\n    EPlist[/GET /api/v1/visitLists/id/visits/]\n    DTO[VisitDto]\n  end\n  subgraph Server\n    Ctl[VisitController]\n    Fac[VisitFacade]\n    Svc[VisitServiceImpl]\n    Map[VisitMapper]\n    Repo[VisitRepository]\n    DB[(DB)]\n  end\n  Router --> ListView\n  Router --> State\n  ListView --> Toolbar\n  ListView --> Pager\n  ListView --> Coll\n  Coll -->|reset/sync| ListView\n  ListView -->|each model| ItemView\n  ListView --> TList\n  ItemView --> TRow\n  Toolbar -->|filter:changed| State\n  Pager -->|page:changed| State\n  State -->|toQuery| Coll\n  Coll -->|fetch| EP\n  EP --> Ctl --> Fac --> Svc --> Repo --> DB\n  Repo --> Svc --> Map --> DTO --> Ctl --> EP --> Coll\n  Wizard -->|save list| Ctl",
           "selectorOptionVisual": {
             "type": "emoji",
             "icon": "🧩"
@@ -1586,13 +1590,23 @@
             "icon": "🧱"
           }
         }
-      ]
+      ],
+      "sectionPagerSfx": {
+        "overview": "/audio/click_001.mp3",
+        "why": "/audio/question_001.mp3",
+        "demo": "/audio/select_001.ogg",
+        "technologies": "/audio/switch_001.ogg",
+        "specifications": "/audio/tick_002.mp3",
+        "diagrams": "/audio/switch_007.ogg"
+      }
     },
     {
       "name": "Patient Assignment List Project",
-      "description": "Backbone.js-based manageable patient assignment list for physicians.  Complex drag-and-drop UI, time-based and filter-based population criteria.",
+      "showcaseHeading": "Physician Assignment Worklist",
+      "showcaseSubtitle": "Operational assignment control for clinical teams",
+      "description": "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
       "href": "/assignmentlist",
-      "type": "work",
+      "type": "presentation",
       "interestsMeWhy": "Designing drag-and-drop assignment logic for clinicians pushed the limits of the UI. The project blends real-time updates with intuitive workflow design, and it required careful state synchronization so assignments remained predictable under heavy use. I enjoy this type of problem because it combines interaction design, concurrency awareness, and domain sensitivity in one product surface.",
       "watermark": {
         "kind": "image",
@@ -1603,6 +1617,7 @@
         "height": 140,
         "imageClassName": "h-auto w-56 object-contain"
       },
+      "demoCaption": "Demonstrates assignment-centric clinician workflows: assignee/queue switching, drag-and-drop reassignment UX, state-driven filtering and pagination, and synchronized visit-list rendering across assignment contexts.",
       "demoGifUrl": "/personal/demogifs/assignment_list_demo.gif",
       "specifications": {
         "facadeArchitecture": {
@@ -1737,15 +1752,25 @@
             "icon": "🧱"
           }
         }
-      ]
+      ],
+      "sectionPagerSfx": {
+        "overview": "/audio/click_001.mp3",
+        "why": "/audio/question_001.mp3",
+        "demo": "/audio/select_001.ogg",
+        "technologies": "/audio/switch_001.ogg",
+        "specifications": "/audio/tick_002.mp3",
+        "diagrams": "/audio/switch_007.ogg"
+      }
     },
     {
       "name": "AI-Driven Clinical Copilot",
-      "description": "Next.js/React frontend with Python/Azure Functions backend.  Integrates LLMs and retrieval-augmented generation (RAG) to summarize EHR data and answer questions with citations.",
-      "shortText": "Next.js/React frontend with Python/Azure Functions backend. Integrates LLMs and retrieval-augmented generation (RAG) to summarize EHR data and answer questions with citations.",
-      "blurb": "A physician-facing AI copilot built for real clinical pace: the frontend is delivered in Next.js/React while Python and Azure Functions power secure orchestration, data retrieval, and answer generation behind the scenes. The workflow combines retrieval-augmented generation (RAG) with structured prompt pipelines so responses are grounded in patient context, chart artifacts, and traceable evidence instead of generic model guesses. The experience is tuned for day-to-day usability in care settings: concise summaries, actionable follow-up prompts, and citation-backed outputs that help clinicians validate conclusions quickly and confidently.",
+      "showcaseHeading": "AI Clinical Copilot",
+      "showcaseSubtitle": "Citation-backed physician intelligence",
+      "description": "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+      "shortText": "Physician-facing RAG copilot for concise, citation-backed clinical summaries and Q&A.",
+      "blurb": "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
       "href": "/aisummary",
-      "type": "work",
+      "type": "presentation",
       "interestsMeWhy": "This project brings generative AI directly into physician workflows. It showcases how RAG can surface meaningful insights from enormous EHR datasets while keeping responses concise, auditable, and citation-aware. What interests me most is the balance between model capability and clinical reliability, where engineering decisions directly affect provider trust and adoption.",
       "watermark": {
         "kind": "image",
@@ -1756,7 +1781,8 @@
         "height": 240,
         "imageClassName": "h-28 w-28 rounded-3xl object-contain"
       },
-      "wowFactor": "Delivers concise, citation-backed patient insights in seconds so physicians can spend more time caring and less time scrolling charts.",
+      "wowFactor": "Delivers citation-backed patient insights in seconds so physicians can spend more time caring and less time hunting through charts.",
+      "demoCaption": "Demonstrates a clinician ask-answer cycle with grounded citations, contextual follow-up prompts, and guardrail-aware scoring over patient chart context.",
       "demoGifUrl": "/personal/demogifs/ai_summary.gif",
       "specifications": {
         "Routing & URL Params (useAISummaryParams.ts)": {
@@ -1978,7 +2004,15 @@
             "icon": "🧱"
           }
         }
-      ]
+      ],
+      "sectionPagerSfx": {
+        "overview": "/audio/click_001.mp3",
+        "why": "/audio/question_001.mp3",
+        "demo": "/audio/select_001.ogg",
+        "technologies": "/audio/switch_001.ogg",
+        "specifications": "/audio/tick_002.mp3",
+        "diagrams": "/audio/switch_007.ogg"
+      }
     },
     {
       "name": "AI Patient List Podcasts",
@@ -1986,7 +2020,7 @@
       "showcaseSubtitle": "Concise clinical audio updates",
       "description": "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
       "href": "/patientlistpodcasts",
-      "type": "work",
+      "type": "presentation",
       "interestsMeWhy": "This project interests me because it treats \"last 12 hours\" clinical review as a real-time product problem, not just a model-output problem. Physicians do not need more raw data; they need high-signal context delivered quickly while they are already multitasking. Translating fragmented patient events into concise, per-patient audio briefings is a practical way to reduce cognitive overhead without forcing another dashboard workflow.\n\nFrom an engineering perspective, I like that the hard work is orchestration and reliability, not just prompt writing. The PromptJob lifecycle, per-patient parallelization, retry behavior, and partial-progress rendering all have to work together so the UI remains useful even when one branch is slower or noisy. That combination of agentic sequencing, typed service boundaries, and resilient async UX is exactly the kind of systems design challenge I enjoy.\n\nI am also drawn to the human side of the format. Audio briefings fit naturally into pre-round prep and transition moments, where screen attention is limited but decisions still need to be made. Building AI features that respect clinical pacing, preserve relevance, and remain operationally transparent feels like meaningful product engineering with direct user value.",
       "watermark": {
         "kind": "image",
@@ -2002,7 +2036,8 @@
         "title": "AI Patient List Podcasts Demo",
         "subtitle": "PromptJob pipeline to playable patient audio",
         "caption": "Demonstrates the end-to-end physician prompt flow for the last 12 hours: PromptJob creation, patient event retrieval, script drafting, Gemini TTS generation, and progressive podcast playback in the UI.",
-        "videoUrl": "/personal/demovideos/physician_last12hours_podcast.mov"
+        "mediaUrl": "/personal/demovideos/physician_last12hours_podcast.mov",
+        "mediaType": "video"
       },
       "specifications": {
         "UI contract": [
@@ -2123,7 +2158,15 @@
             "icon": "🧱"
           }
         }
-      ]
+      ],
+      "sectionPagerSfx": {
+        "overview": "/audio/click_001.mp3",
+        "why": "/audio/question_001.mp3",
+        "demo": "/audio/select_001.ogg",
+        "technologies": "/audio/switch_001.ogg",
+        "specifications": "/audio/tick_002.mp3",
+        "diagrams": "/audio/switch_007.ogg"
+      }
     },
     {
       "name": "Petly",

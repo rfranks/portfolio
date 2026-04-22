@@ -1,6 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import resumeDataSnapshot from "../../public/personal/data/resumeData.json";
+import {
+  createPresentationProjectPageData,
+  getPresentationProjectContracts,
+  getPresentationProjectDeepLinkIndex,
+  getPresentationProjectSlugs,
+} from "@/components/portfolio/projectPageData";
 import { parseResumeDataWithSchema } from "@/consts/resumeDataSchema";
 import { migrateResumeData } from "@/utils/data/migrations/resumeDataMigrations";
 
@@ -137,12 +143,54 @@ describe("resumeDataSchema hardening and edge cases", () => {
     expectSchemaFailure((input) => {
       const projects = input.projects as Array<Record<string, unknown>>;
       projects[0].terminalDemo = {
-        title: "Demo",
-        subtitle: "Subtitle",
+        mediaType: "video",
+        mediaUrl: 42,
         caption: "Caption",
-        videoUrl: 42,
       };
-    }, /projects\.0\.terminalDemo\.videoUrl/i);
+    }, /projects\.0\.terminalDemo\.mediaUrl/i);
+  });
+
+  it("rejects malformed project sectionPagerSfx value types", () => {
+    expectSchemaFailure((input) => {
+      const projects = input.projects as Array<Record<string, unknown>>;
+      projects[0].sectionPagerSfx = {
+        overview: 42,
+      };
+    }, /projects\.0\.sectionPagerSfx\.overview/i);
+  });
+
+  it("accepts random project sectionPagerSfx values", () => {
+    const input = cloneSnapshot();
+    const projects = input.projects as Array<Record<string, unknown>>;
+    projects[0].sectionPagerSfx = {
+      overview: "random",
+      why: "random",
+      demo: "/audio/select_001.ogg",
+      technologies: "random",
+      specifications: "/audio/tick_002.mp3",
+      diagrams: "random",
+    };
+
+    expect(() => parseMigrated(input, "resumeDataSchema.test random section sfx")).not.toThrow();
+  });
+
+  it("rejects non-audio project sectionPagerSfx paths", () => {
+    expectSchemaFailure((input) => {
+      const projects = input.projects as Array<Record<string, unknown>>;
+      projects[0].sectionPagerSfx = {
+        overview: "/images/not-a-sound.png",
+      };
+    }, /projects\.0\.sectionPagerSfx\.overview/i);
+  });
+
+  it("rejects unknown keys in project sectionPagerSfx", () => {
+    expectSchemaFailure((input) => {
+      const projects = input.projects as Array<Record<string, unknown>>;
+      projects[0].sectionPagerSfx = {
+        overview: "/audio/open_003.ogg",
+        custom: "/audio/select_004.ogg",
+      };
+    }, /projects\.0\.sectionPagerSfx/i);
   });
 
   it("rejects blank competency emoji values", () => {
@@ -220,7 +268,7 @@ describe("resumeDataSchema hardening and edge cases", () => {
     }, /projects\.0\.type/i);
   });
 
-  it("rejects project types outside the strict personal/work enum", () => {
+  it("rejects project types outside the strict personal/work/presentation enum", () => {
     expectSchemaFailure((input) => {
       const project = (input.projects as Array<Record<string, unknown>>)[0];
       project.type = "prototype";
@@ -306,7 +354,7 @@ describe("resumeDataSchema hardening and edge cases", () => {
     }, /projects\.1\.href/i);
   });
 
-  it("rejects mismatched terminalDemo.videoUrl and demoVideoUrl", () => {
+  it("rejects mismatched terminalDemo.mediaUrl and demoVideoUrl", () => {
     expectSchemaFailure((input) => {
       const projects = input.projects as Array<Record<string, unknown>>;
       const demoProject = projects.find(
@@ -314,12 +362,124 @@ describe("resumeDataSchema hardening and edge cases", () => {
       )!;
       demoProject.demoVideoUrl = "/personal/demovideos/one.mov";
       demoProject.terminalDemo = {
-        title: "Demo",
-        subtitle: "Subtitle",
+        mediaType: "video",
+        mediaUrl: "/personal/demovideos/two.mov",
         caption: "Caption",
-        videoUrl: "/personal/demovideos/two.mov",
       };
-    }, /terminalDemo\.videoUrl/i);
+    }, /terminalDemo\.mediaUrl/i);
+  });
+
+  it("rejects mismatched terminalDemo.mediaUrl and demoGifUrl for image demos", () => {
+    expectSchemaFailure((input) => {
+      const projects = input.projects as Array<Record<string, unknown>>;
+      const demoProject = projects.find(
+        (project) => typeof project.href === "string" && project.href === "/patientlist",
+      )!;
+      demoProject.demoGifUrl = "/personal/demogifs/one.gif";
+      demoProject.terminalDemo = {
+        mediaType: "image",
+        mediaUrl: "/personal/demogifs/two.gif",
+        caption: "Caption",
+      };
+    }, /terminalDemo\.mediaUrl/i);
+  });
+
+  it("enforces presentation project content + media contracts", () => {
+    const parsed = parseMigrated(cloneSnapshot(), "resumeDataSchema.test presentation contract");
+    const presentationProjects = parsed.projects.filter(
+      (project) => project.type === "presentation",
+    );
+    expect(presentationProjects.length).toBeGreaterThan(0);
+
+    const imagePathPattern = /^\/.+\.(gif|png|jpe?g|webp|avif|svg)(?:\?.*)?$/i;
+    const videoPathPattern = /^\/.+\.(mp4|mov|m4v|webm|ogv|ogg)(?:\?.*)?$/i;
+
+    presentationProjects.forEach((project) => {
+      const hasDemoMedia = Boolean(
+        project.terminalDemo?.mediaUrl?.trim() ||
+        project.demoVideoUrl?.trim() ||
+        project.demoGifUrl?.trim(),
+      );
+      const hasDiagramMedia =
+        (project.diagrams?.length ?? 0) > 0 ||
+        Boolean(
+          project.blockDiagram?.trim() ||
+          project.componentDiagram?.trim() ||
+          project.sequenceDiagram?.trim(),
+        );
+
+      expect(project.description.trim().length).toBeGreaterThan(0);
+      expect(project.interestsMeWhy.trim().length).toBeGreaterThan(0);
+      expect(project.technologiesUsed?.length ?? 0).toBeGreaterThan(0);
+      expect(Object.keys(project.specifications ?? {}).length).toBeGreaterThan(0);
+      expect(hasDemoMedia).toBe(true);
+      expect(hasDiagramMedia).toBe(true);
+
+      if (project.demoVideoUrl) {
+        expect(project.demoVideoUrl).toMatch(videoPathPattern);
+      }
+      if (project.demoGifUrl) {
+        expect(project.demoGifUrl).toMatch(imagePathPattern);
+      }
+
+      if (project.terminalDemo) {
+        const mediaPath = project.terminalDemo.mediaUrl;
+        if (project.terminalDemo.mediaType === "video") {
+          expect(mediaPath).toMatch(videoPathPattern);
+        } else {
+          expect(mediaPath).toMatch(imagePathPattern);
+        }
+      }
+
+      project.diagrams?.forEach((diagram) => {
+        const visuals = [diagram.selectorOptionVisual, diagram.selectorSelectedVisual].filter(
+          Boolean,
+        );
+        visuals.forEach((visual) => {
+          if (visual?.type === "image") {
+            expect(visual.src).toMatch(imagePathPattern);
+            expect(visual.alt?.trim().length ?? 0).toBeGreaterThan(0);
+          }
+        });
+      });
+    });
+  });
+
+  it("builds valid deep links for all presentation projects/slides/diagrams", () => {
+    const slugs = getPresentationProjectSlugs();
+    const contracts = getPresentationProjectContracts();
+    const deepLinks = getPresentationProjectDeepLinkIndex();
+
+    expect(slugs.length).toBeGreaterThan(0);
+    expect(contracts.length).toBe(slugs.length);
+    expect(deepLinks.length).toBeGreaterThan(0);
+
+    const contractBySlug = new Map(contracts.map((contract) => [contract.projectSlug, contract]));
+
+    deepLinks.forEach((entry) => {
+      const contract = contractBySlug.get(entry.projectSlug);
+      expect(contract).toBeDefined();
+
+      const resolvedProject = createPresentationProjectPageData(entry.projectSlug);
+      expect(resolvedProject).not.toBeNull();
+
+      const href = new URL(entry.href, "https://portfolio.test");
+      expect(href.pathname).toBe(`/${entry.projectSlug}`);
+      expect(href.searchParams.get("project")).toBe(entry.projectSlug);
+
+      const slide = href.searchParams.get("slide");
+      expect(slide).toBe(entry.slideKey);
+      expect(contract?.sections).toContain(entry.slideKey);
+
+      const diagramParam = href.searchParams.get("diagram");
+      if (entry.slideKey !== "diagrams" || entry.diagramIndex === undefined) {
+        expect(diagramParam).toBeNull();
+      } else {
+        expect(Number.parseInt(diagramParam ?? "0", 10)).toBe(entry.diagramIndex + 1);
+        const diagramTarget = contract?.diagrams[entry.diagramIndex];
+        expect(diagramTarget?.key).toBe(entry.diagramKey);
+      }
+    });
   });
 
   it("rejects malformed recognition github achievement entry", () => {

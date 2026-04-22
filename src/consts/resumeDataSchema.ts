@@ -356,10 +356,31 @@ const projectDiagramSchema = z
 
 const terminalDemoSchema = z
   .object({
-    title: nonEmptyString,
-    subtitle: nonEmptyString,
+    mediaType: z.enum(["video", "image"]),
+    mediaUrl: nonEmptyString,
     caption: nonEmptyString,
-    videoUrl: nonEmptyString,
+    title: nonEmptyString.optional(),
+    subtitle: nonEmptyString.optional(),
+    mediaAlt: nonEmptyString.optional(),
+  })
+  .strict();
+
+const projectSectionPagerSfxValueSchema = nonEmptyString.refine(
+  (value) => value === "random" || /^\/audio\/.+\.(mp3|ogg|wav|m4a)$/i.test(value),
+  {
+    message:
+      "Section pager SFX values must be 'random' or an absolute /audio/*.mp3|ogg|wav|m4a path.",
+  },
+);
+
+const projectSectionPagerSfxSchema = z
+  .object({
+    overview: projectSectionPagerSfxValueSchema.optional(),
+    why: projectSectionPagerSfxValueSchema.optional(),
+    demo: projectSectionPagerSfxValueSchema.optional(),
+    technologies: projectSectionPagerSfxValueSchema.optional(),
+    specifications: projectSectionPagerSfxValueSchema.optional(),
+    diagrams: projectSectionPagerSfxValueSchema.optional(),
   })
   .strict();
 
@@ -370,9 +391,10 @@ const projectEntrySchema = z
     showcaseSubtitle: nonEmptyString.optional(),
     description: nonEmptyString,
     href: nonEmptyString,
-    type: z.enum(["personal", "work"]),
+    type: z.enum(["personal", "work", "presentation"]),
     interestsMeWhy: nonEmptyString,
     wowFactor: nonEmptyString.optional(),
+    demoCaption: nonEmptyString.optional(),
     shortText: nonEmptyString.optional(),
     blurb: nonEmptyString.optional(),
     demoGifUrl: nonEmptyString.optional(),
@@ -386,6 +408,7 @@ const projectEntrySchema = z
     sequenceDiagram: nonEmptyString.optional(),
     diagrams: z.array(projectDiagramSchema).optional(),
     terminalDemo: terminalDemoSchema.optional(),
+    sectionPagerSfx: projectSectionPagerSfxSchema.optional(),
   })
   .superRefine((project, ctx) => {
     const legacyDiagramFields = [
@@ -423,13 +446,32 @@ const projectEntrySchema = z
       });
     }
 
-    const terminalDemoVideo = project.terminalDemo?.videoUrl?.trim();
+    const terminalDemoMediaUrl = project.terminalDemo?.mediaUrl?.trim();
     const demoVideoUrl = project.demoVideoUrl?.trim();
-    if (terminalDemoVideo && demoVideoUrl && terminalDemoVideo !== demoVideoUrl) {
+    if (
+      project.terminalDemo?.mediaType === "video" &&
+      terminalDemoMediaUrl &&
+      demoVideoUrl &&
+      terminalDemoMediaUrl !== demoVideoUrl
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["terminalDemo", "videoUrl"],
-        message: "terminalDemo.videoUrl must match demoVideoUrl when both are provided.",
+        path: ["terminalDemo", "mediaUrl"],
+        message: "terminalDemo.mediaUrl must match demoVideoUrl when mediaType is video.",
+      });
+    }
+
+    const demoGifUrl = project.demoGifUrl?.trim();
+    if (
+      project.terminalDemo?.mediaType === "image" &&
+      terminalDemoMediaUrl &&
+      demoGifUrl &&
+      terminalDemoMediaUrl !== demoGifUrl
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["terminalDemo", "mediaUrl"],
+        message: "terminalDemo.mediaUrl must match demoGifUrl when mediaType is image.",
       });
     }
   })

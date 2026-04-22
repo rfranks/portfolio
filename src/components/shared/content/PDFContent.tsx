@@ -7,6 +7,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
+import { usePanZoomViewport } from "@/hooks/html/usePanZoomViewport";
 
 type PDFContentProps = {
   src: string;
@@ -67,10 +68,26 @@ export default function PDFContent({
   const resolvedPdfSrc = src.includes("#") ? src : `${src}#view=FitH`;
   const resolvedOpenLinkHref = openLinkHref || src;
   const canActivate = Boolean(onMediaActivate);
+  const {
+    containerRef,
+    viewportRef,
+    scale,
+    translateX,
+    translateY,
+    isDragging,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUpOrLeave,
+    handleDoubleClick,
+  } = usePanZoomViewport({
+    preset: "media",
+    shouldIgnorePointerTarget: (target) => Boolean(target.closest("a") || target.closest("button")),
+  });
 
   return (
     <Box sx={containerSxArray}>
       <Box
+        ref={containerRef}
         sx={[
           (theme) => ({
             overflow: "hidden",
@@ -82,6 +99,8 @@ export default function PDFContent({
               theme.palette.mode === "light"
                 ? alpha(theme.palette.common.white, 0.8)
                 : "rgba(15,23,42,0.48)",
+            touchAction: "none",
+            overscrollBehavior: "contain",
           }),
           ...frameSxArray,
         ]}
@@ -89,41 +108,68 @@ export default function PDFContent({
         tabIndex={canActivate ? 0 : -1}
         onClick={onMediaActivate}
         onKeyDown={createMediaKeyDownHandler(onMediaActivate)}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUpOrLeave}
+        onPointerLeave={handlePointerUpOrLeave}
+        onDoubleClick={handleDoubleClick}
       >
         <Box
-          component="object"
-          data={resolvedPdfSrc}
-          type="application/pdf"
-          aria-label={title}
+          ref={viewportRef}
           sx={[
             {
-              display: "block",
               width: "100%",
               height: "100%",
+              overflow: "hidden",
+              position: "relative",
             },
             ...previewSxArray,
-            ...objectSxArray,
           ]}
         >
           <Box
-            component="iframe"
-            src={resolvedPdfSrc}
-            title={title}
-            onLoad={onLoad}
-            sx={[
-              (theme) => ({
-                width: "100%",
-                height: "100%",
-                border: 0,
-                bgcolor:
-                  theme.palette.mode === "light"
-                    ? alpha(theme.palette.common.white, 0.84)
-                    : "rgba(15,23,42,0.48)",
-              }),
-              ...previewSxArray,
-              ...iframeSxArray,
-            ]}
-          />
+            sx={{
+              width: "100%",
+              height: "100%",
+              transformOrigin: "top left",
+              transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+              cursor: isDragging ? "grabbing" : "grab",
+              transition: isDragging ? "none" : "transform 0.12s ease-out",
+            }}
+          >
+            <Box
+              component="object"
+              data={resolvedPdfSrc}
+              type="application/pdf"
+              aria-label={title}
+              sx={[
+                {
+                  display: "block",
+                  width: "100%",
+                  height: "100%",
+                },
+                ...objectSxArray,
+              ]}
+            >
+              <Box
+                component="iframe"
+                src={resolvedPdfSrc}
+                title={title}
+                onLoad={onLoad}
+                sx={[
+                  (theme) => ({
+                    width: "100%",
+                    height: "100%",
+                    border: 0,
+                    bgcolor:
+                      theme.palette.mode === "light"
+                        ? alpha(theme.palette.common.white, 0.84)
+                        : "rgba(15,23,42,0.48)",
+                  }),
+                  ...iframeSxArray,
+                ]}
+              />
+            </Box>
+          </Box>
         </Box>
       </Box>
       {showOpenLink ? (

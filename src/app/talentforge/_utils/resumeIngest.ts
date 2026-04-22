@@ -1,7 +1,5 @@
 "use client";
 
-import * as pdfjs from "pdfjs-dist";
-
 import { Buffer } from "buffer";
 import type { ParsedResume, ResumeEntry } from "@/types";
 
@@ -23,6 +21,17 @@ export interface ResumeTextResult {
 }
 
 const PASTED_RESUME_LABEL = "Pasted resume";
+
+type PdfJsModule = typeof import("pdfjs-dist");
+
+let pdfJsPromise: Promise<PdfJsModule> | null = null;
+
+async function loadPdfJs(): Promise<PdfJsModule> {
+  if (!pdfJsPromise) {
+    pdfJsPromise = import("pdfjs-dist");
+  }
+  return pdfJsPromise;
+}
 
 function nowIsoString(): string {
   return new Date().toISOString();
@@ -105,6 +114,7 @@ export function cleanPdfText(pageLines: string[][]): string {
  * Extract plain text from a PDF file.
  */
 export async function pdfToText(file: File): Promise<string> {
+  const pdfjs = await loadPdfJs();
   const reader = new FileReader();
 
   const fileReadPromise = new Promise<ArrayBuffer>((resolve, reject) => {

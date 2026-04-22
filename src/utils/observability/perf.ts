@@ -40,3 +40,74 @@ export function markEnd(markName: string): number | null {
     return null;
   }
 }
+
+export type LongTaskSample = {
+  name: string;
+  duration: number;
+  startTime: number;
+};
+
+export function observeLongTasks(
+  onLongTask: (sample: LongTaskSample) => void,
+  minDurationMs = 80,
+): () => void {
+  if (
+    typeof PerformanceObserver === "undefined" ||
+    typeof performance === "undefined" ||
+    minDurationMs <= 0
+  ) {
+    return () => {};
+  }
+
+  let observer: PerformanceObserver | null = null;
+  try {
+    observer = new PerformanceObserver((list) => {
+      list.getEntries().forEach((entry) => {
+        if (entry.duration < minDurationMs) {
+          return;
+        }
+
+        onLongTask({
+          name: entry.name,
+          duration: entry.duration,
+          startTime: entry.startTime,
+        });
+      });
+    });
+
+    observer.observe({ type: "longtask", buffered: true } as PerformanceObserverInit);
+  } catch {
+    observer?.disconnect();
+    return () => {};
+  }
+
+  return () => observer?.disconnect();
+}
+
+export function measureAfterNextPaint(
+  markName: string,
+  onMeasured: (durationMs: number | null) => void,
+): () => void {
+  if (typeof window === "undefined") {
+    onMeasured(null);
+    return () => {};
+  }
+
+  let rafIdOne: number | null = null;
+  let rafIdTwo: number | null = null;
+  rafIdOne = window.requestAnimationFrame(() => {
+    rafIdTwo = window.requestAnimationFrame(() => {
+      const duration = markEnd(markName);
+      onMeasured(duration);
+    });
+  });
+
+  return () => {
+    if (rafIdOne !== null) {
+      window.cancelAnimationFrame(rafIdOne);
+    }
+    if (rafIdTwo !== null) {
+      window.cancelAnimationFrame(rafIdTwo);
+    }
+  };
+}

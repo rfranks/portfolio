@@ -1,9 +1,14 @@
 "use client";
 
 import * as React from "react";
+import Check from "@mui/icons-material/Check";
+import Link from "@mui/icons-material/Link";
 import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import SubsectionPager, {
   type SubsectionPagerItem,
 } from "@/components/portfolio/layout/SubsectionPager";
@@ -44,6 +49,10 @@ type ArchitectureDiagramsSlideProps = {
   mediaCyclerNavigationControlSx?: SxProps<Theme>;
   mediaCyclerExpandControlSx?: SxProps<Theme>;
   suppressMediaHeading?: boolean;
+  showCopyLinkButton?: boolean;
+  onCopyLink?: () => void;
+  copyLinkCopied?: boolean;
+  copyLinkAriaLabel?: string;
 };
 
 const toSxArray = (value?: SxProps<Theme>) => {
@@ -52,6 +61,23 @@ const toSxArray = (value?: SxProps<Theme>) => {
   }
   return Array.isArray(value) ? value : [value];
 };
+
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+const toAlphaOrdinal = (index: number) => {
+  let value = Math.max(0, index);
+  let result = "";
+
+  do {
+    result = ALPHABET[value % 26] + result;
+    value = Math.floor(value / 26) - 1;
+  } while (value >= 0);
+
+  return result;
+};
+
+const stripOrdinalPrefix = (text?: string) =>
+  (text ?? "").replace(/^\s*[A-Za-z0-9]+\.\s*/, "").trim();
 
 export default function ArchitectureDiagramsSlide({
   activeDiagramKey,
@@ -86,6 +112,10 @@ export default function ArchitectureDiagramsSlide({
   mediaCyclerNavigationControlSx,
   mediaCyclerExpandControlSx,
   suppressMediaHeading = false,
+  showCopyLinkButton = false,
+  onCopyLink,
+  copyLinkCopied = false,
+  copyLinkAriaLabel = "Copy deep link to this diagram",
 }: ArchitectureDiagramsSlideProps) {
   const resolvedHasMultipleDiagrams =
     hasMultipleDiagrams ?? Math.max(diagramPagerItems.length, diagramItems.length) > 1;
@@ -106,6 +136,23 @@ export default function ArchitectureDiagramsSlide({
           }))
         : diagramItems,
     [diagramItems, suppressMediaHeading],
+  );
+  const alphaPagerItems = React.useMemo<SubsectionPagerItem[]>(
+    () =>
+      diagramPagerItems.map((item, index) => {
+        const ordinal = toAlphaOrdinal(index);
+        const selectedBase =
+          stripOrdinalPrefix(item.selectedTitle) || stripOrdinalPrefix(item.title) || item.title;
+        const optionBase =
+          stripOrdinalPrefix(item.optionTitle) || stripOrdinalPrefix(item.title) || item.title;
+
+        return {
+          ...item,
+          selectedTitle: `${ordinal}. ${selectedBase}`,
+          optionTitle: `${ordinal}. ${optionBase}`,
+        };
+      }),
+    [diagramPagerItems],
   );
 
   return (
@@ -153,22 +200,62 @@ export default function ArchitectureDiagramsSlide({
         ]}
         topRail={
           resolvedHasMultipleDiagrams ? (
-            <SubsectionPager
-              menuId={menuId}
-              items={diagramPagerItems}
-              currentKey={activeDiagramKey}
-              selectedValueAsTitle={selectedValueAsTitle}
-              selectedVisualSize={selectedVisualSize}
-              selectedIconFrameStyle="none"
-              borderlessIconButtons
-              flatIconButtons
-              previousAriaLabel={previousAriaLabel}
-              nextAriaLabel={nextAriaLabel}
-              selectorAriaLabel={selectorAriaLabel}
-              onSelect={onSelectDiagram}
-              onPrevious={onPreviousDiagram}
-              onNext={onNextDiagram}
-            />
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1fr) auto",
+                alignItems: "center",
+                gap: 0.5,
+              }}
+            >
+              <SubsectionPager
+                menuId={menuId}
+                items={alphaPagerItems}
+                currentKey={activeDiagramKey}
+                showOrdinal={false}
+                selectedValueAsTitle={selectedValueAsTitle}
+                selectedVisualSize={selectedVisualSize}
+                selectedIconFrameStyle="none"
+                borderlessIconButtons
+                flatIconButtons
+                previousAriaLabel={previousAriaLabel}
+                nextAriaLabel={nextAriaLabel}
+                selectorAriaLabel={selectorAriaLabel}
+                onSelect={onSelectDiagram}
+                onPrevious={onPreviousDiagram}
+                onNext={onNextDiagram}
+              />
+              {showCopyLinkButton && onCopyLink ? (
+                <Tooltip title={copyLinkCopied ? "Deep link copied" : "Copy deep link"}>
+                  <IconButton
+                    size="small"
+                    aria-label={copyLinkAriaLabel}
+                    onClick={onCopyLink}
+                    sx={(theme) => ({
+                      display: { xs: "none", md: "inline-flex" },
+                      mr: 1.25,
+                      color:
+                        theme.palette.mode === "dark"
+                          ? alpha(theme.palette.common.white, 0.86)
+                          : alpha(theme.palette.text.primary, 0.82),
+                      border: "none",
+                      borderColor: "transparent",
+                      boxShadow: "none",
+                      backdropFilter: "none",
+                      bgcolor: "transparent",
+                      "&:hover": {
+                        bgcolor:
+                          theme.palette.mode === "dark"
+                            ? alpha(theme.palette.common.white, 0.08)
+                            : alpha(theme.palette.text.primary, 0.06),
+                      },
+                    })}
+                  >
+                    {copyLinkCopied ? <Check fontSize="small" /> : <Link fontSize="small" />}
+                  </IconButton>
+                </Tooltip>
+              ) : null}
+            </Box>
           ) : (
             <Box sx={{ px: { xs: 2.5, md: 3 }, py: 1.25 }}>
               <Typography variant="h6" sx={{ fontWeight: 800 }}>

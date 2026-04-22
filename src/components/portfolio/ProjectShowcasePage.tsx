@@ -54,6 +54,10 @@ export default function ProjectShowcasePage({
     }
 
     const runtimeProjectRecord = runtimeProject as Record<string, unknown>;
+    const runtimeBlurb =
+      typeof runtimeProjectRecord.blurb === "string" && runtimeProjectRecord.blurb.trim().length > 0
+        ? runtimeProjectRecord.blurb.trim()
+        : undefined;
     const runtimeDescription =
       typeof runtimeProjectRecord.description === "string" &&
       runtimeProjectRecord.description.trim().length > 0
@@ -69,7 +73,7 @@ export default function ProjectShowcasePage({
       ...project,
       ...(runtimeProject as unknown as Partial<ProjectData>),
       project: runtimeProjectTitle ?? project.project,
-      description: runtimeDescription,
+      description: runtimeBlurb ?? runtimeDescription,
       href: projectHref,
     };
   }, [project, projects]);

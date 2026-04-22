@@ -36,20 +36,37 @@ export interface ProjectDiagramConfig extends Pick<
 }
 
 export interface ProjectTerminalDemoConfig {
+  mediaType: "video" | "image";
+  mediaUrl: string;
+  caption: string;
   title?: string;
   subtitle?: string;
-  caption?: string;
-  videoUrl?: string;
+  mediaAlt?: string;
 }
+
+export type ProjectPresentationSectionKey =
+  | "overview"
+  | "why"
+  | "demo"
+  | "technologies"
+  | "specifications"
+  | "diagrams";
+
+export type ProjectSectionPagerSfxValue = "random" | `/${string}`;
+export type ProjectSectionPagerSfxConfig = Partial<
+  Record<ProjectPresentationSectionKey, ProjectSectionPagerSfxValue>
+>;
 
 export interface ProjectData {
   project: string;
+  type?: "personal" | "work" | "presentation";
   showcaseHeading?: string;
   showcaseSubtitle?: string;
   href?: string;
   description: string;
   interestsMeWhy?: string;
   wowFactor?: string;
+  demoCaption?: string;
   demoGifUrl?: string;
   demoVideoUrl?: string;
   specifications: Record<string, unknown>;
@@ -59,6 +76,7 @@ export interface ProjectData {
   sequenceDiagram: string;
   diagrams?: ProjectDiagramConfig[];
   terminalDemo?: ProjectTerminalDemoConfig;
+  sectionPagerSfx?: ProjectSectionPagerSfxConfig;
 }
 
 export interface Accolade {
@@ -77,9 +95,22 @@ export type DrawerProps = MuiDrawerProps & {
   drawerWidth?: number | string;
 };
 
+export interface CommandPaletteAction {
+  id: string;
+  label: string;
+  subtitle?: string;
+  group?: string;
+  keywords?: string[];
+  href?: string;
+  onSelect?: () => void;
+}
+
 export interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
   drawerWidth?: number;
   mode?: PaletteMode;
   toggleColorMode?: () => void;
+  commandPaletteActions?: CommandPaletteAction[];
+  commandPaletteTitle?: string;
+  commandPalettePlaceholder?: string;
 }

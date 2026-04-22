@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   output: "export",
   basePath,
   assetPrefix: basePath,
+  experimental: {
+    optimizePackageImports: ["mermaid", "pdfjs-dist", "dnaviz"],
+  },
   images: {
     unoptimized: true,
   },

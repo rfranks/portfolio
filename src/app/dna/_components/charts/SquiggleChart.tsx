@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
 import {
   LineChart,
@@ -9,9 +10,8 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
-import { squiggle } from "dnaviz";
-
 import { Sequence } from "../../_types/types";
+import { useDnaVizMetric } from "../../_utils/dnavizLoader";
 import { getSequenceStrokeStyle } from "../../_utils/sequenceUtils";
 import { dnaChartTooltipProps } from "./tooltipStyles";
 
@@ -22,25 +22,34 @@ export type SquiggleChartProps = {
 
 export function SquiggleChart({ sequences = [], bpRange }: SquiggleChartProps) {
   const theme = useTheme();
+  const squiggle = useDnaVizMetric("squiggle");
 
-  const data: Record<"x" | string, number>[] = [];
+  const data = useMemo<Record<"x" | string, number>[]>(() => {
+    if (!squiggle) {
+      return [];
+    }
 
-  for (let i = 0; i < (sequences?.length || 0); i++) {
-    const sequence = sequences?.[i];
-    const [xx, yy] = squiggle(
-      sequence?.sequence.substring(bpRange?.[0] || 0, bpRange?.[1] || sequence.sequence.length) ||
-        "",
-    );
+    const nextData: Record<"x" | string, number>[] = [];
 
-    xx.forEach(
-      (x, index) =>
-        (data[index] = {
-          ...data[index],
-          x,
-          [sequence!.description]: yy[index],
-        }),
-    );
-  }
+    for (let i = 0; i < (sequences?.length || 0); i++) {
+      const sequence = sequences?.[i];
+      const [xx, yy] = squiggle(
+        sequence?.sequence.substring(bpRange?.[0] || 0, bpRange?.[1] || sequence.sequence.length) ||
+          "",
+      );
+
+      xx.forEach(
+        (x, index) =>
+          (nextData[index] = {
+            ...nextData[index],
+            x,
+            [sequence!.description]: yy[index],
+          }),
+      );
+    }
+
+    return nextData;
+  }, [bpRange, sequences, squiggle]);
 
   return (
     <ResponsiveContainer width="95%" minHeight={420}>

@@ -1,6 +1,16 @@
-import * as pdfjs from "pdfjs-dist";
+type PdfJsModule = typeof import("pdfjs-dist");
+
+let pdfJsPromise: Promise<PdfJsModule> | null = null;
+
+async function loadPdfJs(): Promise<PdfJsModule> {
+  if (!pdfJsPromise) {
+    pdfJsPromise = import("pdfjs-dist");
+  }
+  return pdfJsPromise;
+}
 
 export async function pdfToMarkdown(file: File): Promise<string> {
+  const pdfjs = await loadPdfJs();
   const reader = new FileReader();
   const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 

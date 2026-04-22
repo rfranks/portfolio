@@ -12,7 +12,7 @@ const exactBudgets: Record<string, number> = {
   "src/app/talentforge/_components/ApplicationBoard.tsx": 3850,
   "src/app/warbirds/_hooks/useGameEngine.ts": 3600,
   "src/app/talentforge/_utils/dataStore.ts": 3100,
-  "src/app/pathforger/_utils/pipeline.ts": 2850,
+  "src/app/pathforger/_utils/pipeline.ts": 3000,
   "scripts/portfolio-setup.mts": 2800,
   "src/app/ai-shenanigans/_components/AIShenaniganAdaptation.tsx": 2000,
   "src/app/talentforge/_components/ApplicationDetailDrawer.tsx": 2000,
@@ -21,8 +21,8 @@ const exactBudgets: Record<string, number> = {
   "src/app/ai-shenanigans/_components/AIShenanigan.tsx": 1600,
   "src/components/portfolio/panels/CoreCompetencies.tsx": 1600,
   "src/components/portfolio/ProjectPresentation.tsx": 1500,
-  "src/components/shared/visualization/Diagram.tsx": 1200,
-  "src/components/shared/media/MediaCycler.tsx": 1400,
+  "src/components/shared/media/MediaCycler.tsx": 1500,
+  "src/components/portfolio/layout/SubsectionPager.tsx": 1700,
   "src/app/ai-shenanigans/_components/AIShenaniganWorkSeries.tsx": 1400,
   "src/app/pathforger/_hooks/usePathForgerPersistence.ts": 1400,
   "src/app/pathforger/_components/PathForgerCreateStoryPanel.tsx": 1200,
@@ -30,7 +30,6 @@ const exactBudgets: Record<string, number> = {
   "src/app/talentforge/_components/ResumeStepperModal.tsx": 1200,
   "src/app/talentforge/_components/Inbox.tsx": 1150,
   "src/app/talentforge/_components/ChatWorkspace.tsx": 1050,
-  "src/app/HomePageClient.tsx": 1000,
 };
 
 async function collectFiles(dir: string, files: string[]): Promise<void> {

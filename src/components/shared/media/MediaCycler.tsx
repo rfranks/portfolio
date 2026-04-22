@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import Close from "@mui/icons-material/Close";
@@ -18,82 +17,16 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
-import type { TypographyProps } from "@mui/material/Typography";
+import ImageContent from "../content/ImageContent";
 import MarkdownContent from "../content/MarkdownContent";
-import PDFContent from "../content/PDFContent";
-import type { DiagramProps } from "../visualization";
-import DiagramLightBox from "./DiagramLightBox";
 import ImageLightbox from "./ImageLightbox";
 import VideoLightbox from "./VideoLightbox";
+import type { MediaCyclerItem, MediaCyclerMediaType } from "./mediaCyclerTypes";
+import { resolveMediaCyclerMediaType } from "./mediaCyclerTypes";
+export type { MediaCyclerItem } from "./mediaCyclerTypes";
 
-type MediaCyclerMediaType =
-  | "image"
-  | "video"
-  | "pdf"
-  | "markdown"
-  | "diagram"
-  | "custom"
-  | "project"
-  | "projectPresentation"
-  | "recognition"
-  | "recommendation";
-
-export type MediaCyclerItem = {
-  key: string;
-  title: string;
-  titleIcon?: React.ReactNode;
-  titleIconAriaLabel?: string;
-  titleIconSx?: SxProps<Theme>;
-  titleVariant?: TypographyProps["variant"];
-  titleSx?: SxProps<Theme>;
-  description?: string;
-  mediaUrl: string;
-  mediaType?: MediaCyclerMediaType;
-  type?: MediaCyclerMediaType;
-  mediaAlt?: string;
-  mediaLightboxTitle?: string;
-  lightboxSubtitle?: string;
-  lightboxCaption?: string;
-  mediaCaption?: string;
-  mediaSource?: string;
-  mediaSourceHref?: string;
-  customContent?: React.ReactNode;
-  customContentSx?: SxProps<Theme>;
-  markdownContent?: string;
-  markdownPath?: string;
-  markdownSx?: SxProps<Theme>;
-  diagramProps?: Omit<DiagramProps, "diagram" | "id">;
-  diagramSx?: SxProps<Theme>;
-  pdfContainerSx?: SxProps<Theme>;
-  pdfFrameSx?: SxProps<Theme>;
-  pdfPreviewSx?: SxProps<Theme>;
-  pdfObjectSx?: SxProps<Theme>;
-  pdfIframeSx?: SxProps<Theme>;
-  pdfShowOpenLink?: boolean;
-  pdfOpenLinkLabel?: string;
-  pdfOpenLinkHref?: string;
-  pdfOpenLinkDescription?: React.ReactNode;
-  onSelect?: () => void;
-  onMediaActivate?: () => void;
-  onMediaLoaded?: () => void;
-  panelRef?: React.Ref<HTMLDivElement>;
-  panelSx?: SxProps<Theme>;
-  assetFrameSx?: SxProps<Theme>;
-  imageWidth?: number;
-  imageHeight?: number;
-  imageClassName?: string;
-  imageStyle?: React.CSSProperties;
-  previewVideoClassName?: string;
-  previewVideoSx?: SxProps<Theme>;
-  videoRef?: React.Ref<HTMLVideoElement>;
-  controls?: boolean;
-  autoPlay?: boolean;
-  playsInline?: boolean;
-  loop?: boolean;
-  muted?: boolean;
-  videoProps?: Omit<React.ComponentPropsWithoutRef<"video">, "src" | "children">;
-  extraContent?: React.ReactNode;
-};
+const LazyPDFContent = React.lazy(() => import("../content/PDFContent"));
+const LazyDiagramLightBox = React.lazy(() => import("./DiagramLightBox"));
 
 type MediaCyclerProps = {
   items: MediaCyclerItem[];
@@ -169,35 +102,67 @@ const createMediaKeyDownHandler =
     }
   };
 
-export default function MediaCycler({
+type MediaRendererRegistry = Record<MediaCyclerMediaType, () => React.ReactNode>;
+
+function buildMediaRendererRegistry(params: {
+  renderImage: () => React.ReactNode;
+  renderVideo: () => React.ReactNode;
+  renderPdf: () => React.ReactNode;
+  renderDiagram: () => React.ReactNode;
+  renderCustom: () => React.ReactNode;
+  renderMarkdown: () => React.ReactNode;
+}): MediaRendererRegistry {
+  return {
+    image: params.renderImage,
+    video: params.renderVideo,
+    pdf: params.renderPdf,
+    diagram: params.renderDiagram,
+    custom: params.renderCustom,
+    project: params.renderCustom,
+    projectPresentation: params.renderCustom,
+    recognition: params.renderCustom,
+    recommendation: params.renderCustom,
+    markdown: params.renderMarkdown,
+  };
+}
+
+type MediaCyclerControllerArgs = {
+  items: MediaCyclerItem[];
+  singlePanel: boolean;
+  singlePanelActiveKey?: string;
+  disableTransition: boolean;
+  transitionMs: number;
+  loopNavigation: boolean;
+  loopFromBeginning: boolean;
+  loppFromBeginniner: boolean;
+  disableChevronPrevious?: boolean;
+  disableChevronNext?: boolean;
+  hideDisabledNextChevron: boolean;
+  disableLoopNavigation: boolean;
+  onChevronPrevious?: () => void;
+  onChevronNext?: () => void;
+  onLoopNavigation?: () => void;
+  allowSwipe: boolean;
+};
+
+function useMediaCyclerController({
   items,
-  spacing = 2,
-  stackSx,
-  singlePanel = false,
+  singlePanel,
   singlePanelActiveKey,
-  transitionMs = 260,
-  disableTransition = false,
-  showChevronNavigation = false,
-  loopNavigation = false,
-  loopNavigationLabel = "Loop media cycle",
-  loopNavigationIcon = "loop",
-  disableLoopNavigation = false,
-  loopFromBeginning = false,
-  loppFromBeginniner = false,
-  compactMetadataOnSmallScreens = false,
-  showExpandIcon = true,
+  disableTransition,
+  transitionMs,
+  loopNavigation,
+  loopFromBeginning,
+  loppFromBeginniner,
   disableChevronPrevious,
   disableChevronNext,
-  hideDisabledNextChevron = false,
+  hideDisabledNextChevron,
+  disableLoopNavigation,
   onChevronPrevious,
   onChevronNext,
   onLoopNavigation,
-  smallScreenInfoBlurb,
-  navigationControlSx,
-  expandControlSx,
-  showCompactInfoButton = true,
-  allowSwipe = false,
-}: MediaCyclerProps) {
+  allowSwipe,
+}: MediaCyclerControllerArgs) {
   const resolveActiveItem = React.useCallback(() => {
     if (items.length === 0) {
       return null;
@@ -215,6 +180,7 @@ export default function MediaCycler({
   const [isVisible, setIsVisible] = React.useState(true);
   const [transitionDirection, setTransitionDirection] = React.useState<"left" | "right">("right");
   const [metadataDialogItemKey, setMetadataDialogItemKey] = React.useState<string | null>(null);
+  const [markdownByKey, setMarkdownByKey] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
     if (!singlePanel) {
@@ -258,9 +224,6 @@ export default function MediaCycler({
   }, [disableTransition, items, renderedItem, resolveActiveItem, singlePanel, transitionMs]);
 
   const activeKey = renderedItem?.key ?? null;
-  const stackSxArray = toSxArray(stackSx);
-  const navigationControlSxArray = toSxArray(navigationControlSx);
-  const expandControlSxArray = toSxArray(expandControlSx);
   const activeIndex = activeKey == null ? -1 : items.findIndex((item) => item.key === activeKey);
   const hasMultipleItems = items.length > 1;
   const loopFromFirstToLast = loopFromBeginning || loppFromBeginniner;
@@ -415,15 +378,9 @@ export default function MediaCycler({
     swipeRef.current = null;
   }, []);
 
-  const metadataDialogItem =
-    metadataDialogItemKey == null
-      ? null
-      : items.find((item) => item.key === metadataDialogItemKey) || null;
-  const [markdownByKey, setMarkdownByKey] = React.useState<Record<string, string>>({});
-
   React.useEffect(() => {
     const markdownItems = items.filter(
-      (item) => (item.mediaType ?? item.type) === "markdown" && item.markdownPath?.trim(),
+      (item) => resolveMediaCyclerMediaType(item) === "markdown" && item.markdownPath?.trim(),
     );
 
     if (markdownItems.length === 0) {
@@ -475,8 +432,107 @@ export default function MediaCycler({
     };
   }, [items]);
 
+  const metadataDialogItem =
+    metadataDialogItemKey == null
+      ? null
+      : items.find((item) => item.key === metadataDialogItemKey) || null;
+
+  return {
+    renderedItem,
+    isVisible,
+    transitionDirection,
+    metadataDialogItemKey,
+    setMetadataDialogItemKey,
+    metadataDialogItem,
+    markdownByKey,
+    previousDisabled,
+    nextDisabled,
+    showLoopAction,
+    loopDisabled,
+    hideNextChevron,
+    handleChevronPrevious,
+    handleChevronNext,
+    handleLoopNavigation,
+    handleSwipeStart,
+    handleSwipeMove,
+    handleSwipeEnd,
+    handleSwipeCancel,
+  };
+}
+
+export default function MediaCycler({
+  items,
+  spacing = 2,
+  stackSx,
+  singlePanel = false,
+  singlePanelActiveKey,
+  transitionMs = 260,
+  disableTransition = false,
+  showChevronNavigation = false,
+  loopNavigation = false,
+  loopNavigationLabel = "Loop media cycle",
+  loopNavigationIcon = "loop",
+  disableLoopNavigation = false,
+  loopFromBeginning = false,
+  loppFromBeginniner = false,
+  compactMetadataOnSmallScreens = false,
+  showExpandIcon = true,
+  disableChevronPrevious,
+  disableChevronNext,
+  hideDisabledNextChevron = false,
+  onChevronPrevious,
+  onChevronNext,
+  onLoopNavigation,
+  smallScreenInfoBlurb,
+  navigationControlSx,
+  expandControlSx,
+  showCompactInfoButton = true,
+  allowSwipe = false,
+}: MediaCyclerProps) {
+  const stackSxArray = toSxArray(stackSx);
+  const navigationControlSxArray = toSxArray(navigationControlSx);
+  const expandControlSxArray = toSxArray(expandControlSx);
+  const {
+    renderedItem,
+    isVisible,
+    transitionDirection,
+    metadataDialogItem,
+    setMetadataDialogItemKey,
+    markdownByKey,
+    previousDisabled,
+    nextDisabled,
+    showLoopAction,
+    loopDisabled,
+    hideNextChevron,
+    handleChevronPrevious,
+    handleChevronNext,
+    handleLoopNavigation,
+    handleSwipeStart,
+    handleSwipeMove,
+    handleSwipeEnd,
+    handleSwipeCancel,
+  } = useMediaCyclerController({
+    items,
+    singlePanel,
+    singlePanelActiveKey,
+    disableTransition,
+    transitionMs,
+    loopNavigation,
+    loopFromBeginning,
+    loppFromBeginniner,
+    disableChevronPrevious,
+    disableChevronNext,
+    hideDisabledNextChevron,
+    disableLoopNavigation,
+    onChevronPrevious,
+    onChevronNext,
+    onLoopNavigation,
+    allowSwipe,
+  });
+
   const renderItem = (item: MediaCyclerItem, navigationOverlay?: React.ReactNode) => {
-    const resolvedMediaType = item.mediaType ?? item.type ?? "markdown";
+    const resolvedMediaType = resolveMediaCyclerMediaType(item);
+    const mediaUrl = item.mediaUrl ?? "";
     const isDiagramItem = resolvedMediaType === "diagram";
     const canActivate = Boolean(item.onMediaActivate);
     const hasTitle = item.title.trim().length > 0;
@@ -502,9 +558,9 @@ export default function MediaCycler({
     const inlineMetadataDisplay = compactMetadata ? { xs: "none", md: "block" } : "block";
     const resolvedMarkdownContent =
       resolvedMediaType === "markdown"
-        ? ((item.markdownContent ?? markdownByKey[item.key] ?? item.mediaUrl ?? "") as string)
+        ? ((item.markdownContent ?? markdownByKey[item.key] ?? mediaUrl) as string)
         : "";
-    const pdfUrl = item.mediaUrl;
+    const pdfUrl = mediaUrl;
     const itemIndex = items.findIndex((cycleItem) => cycleItem.key === item.key);
     const previousDiagramItem = (() => {
       if (!isDiagramItem || itemIndex < 0) {
@@ -513,7 +569,7 @@ export default function MediaCycler({
 
       for (let index = itemIndex - 1; index >= 0; index -= 1) {
         const candidate = items[index];
-        const candidateMediaType = candidate.mediaType ?? candidate.type ?? "markdown";
+        const candidateMediaType = resolveMediaCyclerMediaType(candidate);
         if (candidateMediaType === "diagram") {
           return candidate;
         }
@@ -522,7 +578,7 @@ export default function MediaCycler({
       if (loopNavigation) {
         for (let index = items.length - 1; index > itemIndex; index -= 1) {
           const candidate = items[index];
-          const candidateMediaType = candidate.mediaType ?? candidate.type ?? "markdown";
+          const candidateMediaType = resolveMediaCyclerMediaType(candidate);
           if (candidateMediaType === "diagram") {
             return candidate;
           }
@@ -538,7 +594,7 @@ export default function MediaCycler({
 
       for (let index = itemIndex + 1; index < items.length; index += 1) {
         const candidate = items[index];
-        const candidateMediaType = candidate.mediaType ?? candidate.type ?? "markdown";
+        const candidateMediaType = resolveMediaCyclerMediaType(candidate);
         if (candidateMediaType === "diagram") {
           return candidate;
         }
@@ -547,7 +603,7 @@ export default function MediaCycler({
       if (loopNavigation) {
         for (let index = 0; index < itemIndex; index += 1) {
           const candidate = items[index];
-          const candidateMediaType = candidate.mediaType ?? candidate.type ?? "markdown";
+          const candidateMediaType = resolveMediaCyclerMediaType(candidate);
           if (candidateMediaType === "diagram") {
             return candidate;
           }
@@ -674,324 +730,339 @@ export default function MediaCycler({
             ...assetFrameSxArray,
           ]}
         >
-          {resolvedMediaType === "image" ? (
-            <Box
-              role={canActivate ? "button" : undefined}
-              tabIndex={canActivate ? 0 : -1}
-              aria-label={canActivate ? `Activate ${item.title}` : undefined}
-              onClick={item.onMediaActivate}
-              onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
-              sx={{
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: canActivate ? "pointer" : "default",
-              }}
-            >
-              <Image
-                src={item.mediaUrl}
-                alt={imageAlt}
-                width={item.imageWidth || 1200}
-                height={item.imageHeight || 900}
-                onLoad={item.onMediaLoaded}
-                className={item.imageClassName}
-                style={item.imageStyle}
-              />
-              {showExpandIcon ? (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 10,
-                    right: 10,
-                    zIndex: 2,
-                  }}
-                >
-                  <ImageLightbox
-                    src={item.mediaUrl}
-                    alt={imageAlt}
-                    title={lightboxTitle}
-                    caption={item.lightboxCaption || item.mediaCaption || item.mediaSource}
-                    stopEventPropagation
-                    triggerSx={{
-                      all: "unset",
-                      display: "inline-flex",
-                      cursor: "zoom-in",
+          {(() => {
+            const renderImage = () => (
+              <Box
+                sx={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                }}
+              >
+                <ImageContent
+                  src={mediaUrl}
+                  alt={imageAlt}
+                  width={item.imageWidth}
+                  height={item.imageHeight}
+                  onLoad={item.onMediaLoaded}
+                  className={item.imageClassName}
+                  style={item.imageStyle}
+                  onMediaActivate={item.onMediaActivate}
+                />
+                {showExpandIcon ? (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      zIndex: 2,
                     }}
                   >
-                    <Box
-                      component="span"
-                      sx={[
-                        (theme) => ({
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: 40,
-                          height: 40,
-                          borderRadius: "50%",
-                          border: "1px solid",
-                          borderColor: alpha(theme.palette.common.white, 0.32),
-                          color: theme.palette.common.white,
-                          bgcolor: alpha(theme.palette.grey[900], 0.58),
-                          "&:hover": {
-                            bgcolor: alpha(theme.palette.grey[900], 0.76),
-                          },
-                        }),
-                        ...expandControlSxArray,
-                      ]}
-                    >
-                      <OpenInFull fontSize="small" />
-                    </Box>
-                  </ImageLightbox>
-                </Box>
-              ) : null}
-            </Box>
-          ) : resolvedMediaType === "video" ? (
-            <Box
-              role={canActivate ? "button" : undefined}
-              tabIndex={canActivate ? 0 : -1}
-              aria-label={canActivate ? `Activate ${item.title}` : undefined}
-              onClick={item.onMediaActivate}
-              onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
-              sx={{
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: canActivate ? "pointer" : "default",
-              }}
-            >
-              <VideoLightbox
-                ref={item.videoRef}
-                src={item.mediaUrl}
-                title={lightboxTitle}
-                caption={item.lightboxCaption || item.mediaCaption}
-                controls={item.controls}
-                autoPlay={item.autoPlay}
-                playsInline={item.playsInline}
-                loop={item.loop}
-                muted={item.muted}
-                stopEventPropagation={canActivate}
-                showExpandButton={showExpandIcon}
-                expandButtonSx={expandControlSx}
-                previewVideoClassName={item.previewVideoClassName}
-                previewVideoSx={previewVideoSxArray}
-                onLoadedData={item.onMediaLoaded}
-                {...item.videoProps}
-              />
-            </Box>
-          ) : resolvedMediaType === "pdf" ? (
-            <Box
-              role={canActivate ? "button" : undefined}
-              tabIndex={canActivate ? 0 : -1}
-              aria-label={canActivate ? `Activate ${item.title}` : undefined}
-              onClick={item.onMediaActivate}
-              onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
-              sx={{
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "stretch",
-                justifyContent: "center",
-                cursor: canActivate ? "pointer" : "default",
-              }}
-            >
-              <PDFContent
-                src={pdfUrl}
-                title={lightboxTitle}
-                onLoad={item.onMediaLoaded}
-                previewSx={[{ height: "100%" }, ...pdfPreviewSxArray]}
-                containerSx={pdfContainerSxArray}
-                frameSx={pdfFrameSxArray}
-                objectSx={pdfObjectSxArray}
-                iframeSx={pdfIframeSxArray}
-                showOpenLink={item.pdfShowOpenLink ?? false}
-                openLinkLabel={item.pdfOpenLinkLabel}
-                openLinkHref={item.pdfOpenLinkHref}
-                openLinkDescription={item.pdfOpenLinkDescription}
-              />
-              {showExpandIcon ? (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 10,
-                    right: 10,
-                    zIndex: 2,
-                  }}
-                >
-                  <Box
-                    component="a"
-                    href={pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Open full document: ${lightboxTitle}`}
-                    onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
-                      event.stopPropagation();
-                    }}
-                    sx={[
-                      {
+                    <ImageLightbox
+                      src={mediaUrl}
+                      alt={imageAlt}
+                      title={lightboxTitle}
+                      caption={item.lightboxCaption || item.mediaCaption || item.mediaSource}
+                      stopEventPropagation
+                      triggerSx={{
                         all: "unset",
                         display: "inline-flex",
-                        cursor: "pointer",
-                      },
-                    ]}
+                        cursor: "zoom-in",
+                      }}
+                    >
+                      <Box
+                        component="span"
+                        sx={[
+                          (theme) => ({
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            border: "1px solid",
+                            borderColor: alpha(theme.palette.common.white, 0.32),
+                            color: theme.palette.common.white,
+                            bgcolor: alpha(theme.palette.grey[900], 0.58),
+                            "&:hover": {
+                              bgcolor: alpha(theme.palette.grey[900], 0.76),
+                            },
+                          }),
+                          ...expandControlSxArray,
+                        ]}
+                      >
+                        <OpenInFull fontSize="small" />
+                      </Box>
+                    </ImageLightbox>
+                  </Box>
+                ) : null}
+              </Box>
+            );
+
+            const renderVideo = () => (
+              <Box
+                role={canActivate ? "button" : undefined}
+                tabIndex={canActivate ? 0 : -1}
+                aria-label={canActivate ? `Activate ${item.title}` : undefined}
+                onClick={item.onMediaActivate}
+                onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+                sx={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: canActivate ? "pointer" : "default",
+                }}
+              >
+                <VideoLightbox
+                  ref={item.videoRef}
+                  src={mediaUrl}
+                  title={lightboxTitle}
+                  caption={item.lightboxCaption || item.mediaCaption}
+                  controls={item.controls}
+                  autoPlay={item.autoPlay}
+                  playsInline={item.playsInline}
+                  loop={item.loop}
+                  muted={item.muted}
+                  stopEventPropagation={canActivate}
+                  showExpandButton={showExpandIcon}
+                  expandButtonSx={expandControlSx}
+                  previewVideoClassName={item.previewVideoClassName}
+                  previewVideoSx={previewVideoSxArray}
+                  onLoadedData={item.onMediaLoaded}
+                  {...item.videoProps}
+                />
+              </Box>
+            );
+
+            const renderPdf = () => (
+              <Box
+                role={canActivate ? "button" : undefined}
+                tabIndex={canActivate ? 0 : -1}
+                aria-label={canActivate ? `Activate ${item.title}` : undefined}
+                onClick={item.onMediaActivate}
+                onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+                sx={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "stretch",
+                  justifyContent: "center",
+                  cursor: canActivate ? "pointer" : "default",
+                }}
+              >
+                <React.Suspense fallback={<Box sx={{ width: "100%", height: "100%" }} />}>
+                  <LazyPDFContent
+                    src={pdfUrl}
+                    title={lightboxTitle}
+                    onLoad={item.onMediaLoaded}
+                    previewSx={[{ height: "100%" }, ...pdfPreviewSxArray]}
+                    containerSx={pdfContainerSxArray}
+                    frameSx={pdfFrameSxArray}
+                    objectSx={pdfObjectSxArray}
+                    iframeSx={pdfIframeSxArray}
+                    showOpenLink={item.pdfShowOpenLink ?? false}
+                    openLinkLabel={item.pdfOpenLinkLabel}
+                    openLinkHref={item.pdfOpenLinkHref}
+                    openLinkDescription={item.pdfOpenLinkDescription}
+                  />
+                </React.Suspense>
+                {showExpandIcon ? (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      zIndex: 2,
+                    }}
                   >
                     <Box
-                      component="span"
+                      component="a"
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Open full document: ${lightboxTitle}`}
+                      onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
+                        event.stopPropagation();
+                      }}
                       sx={[
-                        (theme) => ({
+                        {
+                          all: "unset",
                           display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: 40,
-                          height: 40,
-                          borderRadius: "50%",
-                          border: "1px solid",
-                          borderColor: alpha(theme.palette.common.white, 0.32),
-                          color: theme.palette.common.white,
-                          bgcolor: alpha(theme.palette.grey[900], 0.58),
-                          "&:hover": {
-                            bgcolor: alpha(theme.palette.grey[900], 0.76),
-                          },
-                        }),
-                        ...expandControlSxArray,
+                          cursor: "pointer",
+                        },
                       ]}
                     >
-                      <OpenInFull fontSize="small" />
+                      <Box
+                        component="span"
+                        sx={[
+                          (theme) => ({
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            border: "1px solid",
+                            borderColor: alpha(theme.palette.common.white, 0.32),
+                            color: theme.palette.common.white,
+                            bgcolor: alpha(theme.palette.grey[900], 0.58),
+                            "&:hover": {
+                              bgcolor: alpha(theme.palette.grey[900], 0.76),
+                            },
+                          }),
+                          ...expandControlSxArray,
+                        ]}
+                      >
+                        <OpenInFull fontSize="small" />
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-              ) : null}
-            </Box>
-          ) : resolvedMediaType === "diagram" ? (
-            <Box
-              role={canActivate ? "button" : undefined}
-              tabIndex={canActivate ? 0 : -1}
-              aria-label={canActivate ? `Activate ${item.title}` : undefined}
-              onClick={item.onMediaActivate}
-              onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
-              sx={{
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                minHeight: 0,
-                cursor: canActivate ? "pointer" : "default",
-              }}
-            >
-              <DiagramLightBox
-                diagram={item.mediaUrl}
-                title={item.diagramProps?.title ?? item.title}
-                subtitle={item.lightboxSubtitle}
-                caption={item.lightboxCaption || item.mediaCaption || item.mediaSource}
-                showExpandButton={showExpandIcon}
-                expandButtonSx={expandControlSx}
-                stopEventPropagation={canActivate}
-                containerSx={[
-                  {
-                    width: "100%",
-                    height: "100%",
-                    minHeight: 0,
-                    overflow: "hidden",
-                    "& [id$='-container']": {
-                      width: "100% !important",
-                      height: "100% !important",
-                      minHeight: 0,
-                    },
-                    "& .diagram-mermaid svg": {
-                      maxWidth: "100%",
-                      height: "auto",
-                    },
-                  },
-                  ...diagramSxArray,
-                ]}
-                diagramProps={{
-                  ...item.diagramProps,
-                  title: item.diagramProps?.title ?? item.title,
-                  height: item.diagramProps?.height ?? "100%",
-                  width: item.diagramProps?.width ?? "100%",
-                  showToolbar: item.diagramProps?.showToolbar ?? true,
-                  showGridDots:
-                    item.diagramProps?.showGridDots ?? item.diagramProps?.showDots ?? false,
-                  showDots: item.diagramProps?.showDots ?? false,
-                }}
-              />
-            </Box>
-          ) : resolvedMediaType === "custom" ||
-            resolvedMediaType === "project" ||
-            resolvedMediaType === "projectPresentation" ||
-            resolvedMediaType === "recognition" ||
-            resolvedMediaType === "recommendation" ? (
-            <Box
-              role={canActivate ? "button" : undefined}
-              tabIndex={canActivate ? 0 : -1}
-              aria-label={canActivate ? `Activate ${item.title}` : undefined}
-              onClick={item.onMediaActivate}
-              onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
-              sx={{
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                minHeight: 0,
-                cursor: canActivate ? "pointer" : "default",
-              }}
-            >
-              <Box
-                sx={[
-                  {
-                    width: "100%",
-                    height: "100%",
-                    minHeight: 0,
-                  },
-                  ...customContentSxArray,
-                ]}
-              >
-                {item.customContent}
+                ) : null}
               </Box>
-            </Box>
-          ) : (
-            <Box
-              role={canActivate ? "button" : undefined}
-              tabIndex={canActivate ? 0 : -1}
-              aria-label={canActivate ? `Activate ${item.title}` : undefined}
-              onClick={item.onMediaActivate}
-              onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
-              sx={{
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                minHeight: 0,
-                cursor: canActivate ? "pointer" : "default",
-              }}
-            >
+            );
+
+            const renderDiagram = () => (
               <Box
-                sx={(theme) => ({
+                role={canActivate ? "button" : undefined}
+                tabIndex={canActivate ? 0 : -1}
+                aria-label={canActivate ? `Activate ${item.title}` : undefined}
+                onClick={item.onMediaActivate}
+                onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+                sx={{
+                  position: "relative",
                   width: "100%",
                   height: "100%",
                   minHeight: 0,
-                  overflow: "auto",
-                  borderRadius: "18px",
-                  border: "1px solid",
-                  borderColor: "var(--fabric-surface-border)",
-                  bgcolor:
-                    theme.palette.mode === "light"
-                      ? alpha(theme.palette.common.white, 0.7)
-                      : "rgba(15,23,42,0.35)",
-                  p: 2,
-                })}
+                  cursor: canActivate ? "pointer" : "default",
+                }}
               >
-                <MarkdownContent
-                  content={resolvedMarkdownContent}
-                  variant="body2"
-                  sx={[{ "& p": { mb: 1.1 } }, ...markdownSxArray]}
-                />
+                <React.Suspense fallback={<Box sx={{ width: "100%", height: "100%" }} />}>
+                  <LazyDiagramLightBox
+                    diagram={mediaUrl}
+                    title={item.diagramProps?.title ?? item.title}
+                    subtitle={item.lightboxSubtitle}
+                    caption={item.lightboxCaption || item.mediaCaption || item.mediaSource}
+                    showExpandButton={showExpandIcon}
+                    expandButtonSx={expandControlSx}
+                    stopEventPropagation={canActivate}
+                    containerSx={[
+                      {
+                        width: "100%",
+                        height: "100%",
+                        minHeight: 0,
+                        overflow: "hidden",
+                        "& [id$='-container']": {
+                          width: "100% !important",
+                          height: "100% !important",
+                          minHeight: 0,
+                        },
+                        "& .diagram-mermaid svg": {
+                          maxWidth: "100%",
+                          height: "auto",
+                        },
+                      },
+                      ...diagramSxArray,
+                    ]}
+                    diagramProps={{
+                      ...item.diagramProps,
+                      title: item.diagramProps?.title ?? item.title,
+                      height: item.diagramProps?.height ?? "100%",
+                      width: item.diagramProps?.width ?? "100%",
+                      showToolbar: item.diagramProps?.showToolbar ?? true,
+                      showGridDots:
+                        item.diagramProps?.showGridDots ?? item.diagramProps?.showDots ?? false,
+                      showDots: item.diagramProps?.showDots ?? false,
+                    }}
+                  />
+                </React.Suspense>
               </Box>
-            </Box>
-          )}
+            );
+
+            const renderCustom = () => (
+              <Box
+                role={canActivate ? "button" : undefined}
+                tabIndex={canActivate ? 0 : -1}
+                aria-label={canActivate ? `Activate ${item.title}` : undefined}
+                onClick={item.onMediaActivate}
+                onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+                sx={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  minHeight: 0,
+                  cursor: canActivate ? "pointer" : "default",
+                }}
+              >
+                <Box
+                  sx={[
+                    {
+                      width: "100%",
+                      height: "100%",
+                      minHeight: 0,
+                    },
+                    ...customContentSxArray,
+                  ]}
+                >
+                  {item.customContent}
+                </Box>
+              </Box>
+            );
+
+            const renderMarkdown = () => (
+              <Box
+                role={canActivate ? "button" : undefined}
+                tabIndex={canActivate ? 0 : -1}
+                aria-label={canActivate ? `Activate ${item.title}` : undefined}
+                onClick={item.onMediaActivate}
+                onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+                sx={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  minHeight: 0,
+                  cursor: canActivate ? "pointer" : "default",
+                }}
+              >
+                <Box
+                  sx={(theme) => ({
+                    width: "100%",
+                    height: "100%",
+                    minHeight: 0,
+                    overflow: "auto",
+                    borderRadius: "18px",
+                    border: "1px solid",
+                    borderColor: "var(--fabric-surface-border)",
+                    bgcolor:
+                      theme.palette.mode === "light"
+                        ? alpha(theme.palette.common.white, 0.7)
+                        : "rgba(15,23,42,0.35)",
+                    p: 2,
+                  })}
+                >
+                  <MarkdownContent
+                    content={resolvedMarkdownContent}
+                    variant="body2"
+                    sx={[{ "& p": { mb: 1.1 } }, ...markdownSxArray]}
+                  />
+                </Box>
+              </Box>
+            );
+
+            const rendererRegistry = buildMediaRendererRegistry({
+              renderImage,
+              renderVideo,
+              renderPdf,
+              renderDiagram,
+              renderCustom,
+              renderMarkdown,
+            });
+            const renderMedia = rendererRegistry[resolvedMediaType];
+            return renderMedia();
+          })()}
           {navigationOverlay}
         </Box>
         {renderSource(item.mediaSource, item.mediaSourceHref) ? (
@@ -1084,6 +1155,7 @@ export default function MediaCycler({
     showChevronNavigation && renderedItem ? (
       <Box
         sx={{
+          display: { xs: "none", md: "block" },
           position: "absolute",
           inset: 0,
           pointerEvents: "none",

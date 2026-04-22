@@ -1072,7 +1072,7 @@ function DefaultAIShenanigan({
     stylizedMediaItem,
     movieMediaItem,
     alternateMovieMediaItem,
-  ].filter((item): item is MediaCyclerItem => Boolean(item));
+  ].filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   const activeMediaItem: MediaCyclerItem | null = (() => {
     if (stage === "alternateMovie" && alternateMovieMediaItem) {

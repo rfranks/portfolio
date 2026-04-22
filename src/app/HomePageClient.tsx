@@ -42,6 +42,7 @@ import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import getFabricTheme from "@/themes/fabricTheme";
+import type { CommandPaletteAction } from "@/types/components/portfolio";
 
 const SECTION_TRANSITION_MS = 320;
 const sectionSlideInFromRight = keyframes`
@@ -279,6 +280,17 @@ export default function HomePageClient() {
     },
     [tocSections, updateHashForSection],
   );
+
+  const homeCommandPaletteActions = useMemo<CommandPaletteAction[]>(() => {
+    return tocSections.map((section) => ({
+      id: `home-section-${section.id}`,
+      label: `Switch Section: ${section.label}`,
+      subtitle: "Jump to this portfolio section",
+      group: "Home Sections",
+      keywords: ["home", "section", section.id, section.label, "jump", "switch"],
+      onSelect: () => navigateToSection(section.id),
+    }));
+  }, [navigateToSection, tocSections]);
 
   const handleTocClick = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     event.preventDefault();
@@ -520,7 +532,15 @@ export default function HomePageClient() {
         >
           {navigation.forkRibbon.label}
         </Box>
-        <AppBar open={open} drawerWidth={drawerWidth} mode={mode} toggleColorMode={toggleColorMode}>
+        <AppBar
+          open={open}
+          drawerWidth={drawerWidth}
+          mode={mode}
+          toggleColorMode={toggleColorMode}
+          commandPaletteActions={homeCommandPaletteActions}
+          commandPaletteTitle="Portfolio Command Palette"
+          commandPalettePlaceholder="Search sections, apps, or projects..."
+        >
           <IconButton
             edge="start"
             color="inherit"

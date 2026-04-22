@@ -1,14 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import Accordion from "@mui/material/Accordion";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import AccordionSummary from "@mui/material/AccordionSummary";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Box from "@mui/material/Box";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
@@ -17,43 +10,38 @@ import SubsectionPager, {
   type SubsectionPagerItem,
 } from "@/components/portfolio/layout/SubsectionPager";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import CoreCompetencies, {
-  type CompetencyCategory,
-} from "@/components/portfolio/panels/CoreCompetencies";
-import {
-  ArchitectureDiagramsSlide,
-  DemoSlide,
-  MarkdownContent,
-  MediaCycler,
-  PanelFrame,
-  VideoLightbox,
-} from "@/components/shared";
-import type { MediaCyclerItem } from "@/components/shared";
+import type { CompetencyCategory } from "@/components/portfolio/panels/CoreCompetencies";
+import { type MediaCyclerItem, PanelFrame } from "@/components/shared";
+import { MarkdownContent } from "@/components/shared/content";
 import type {
   ProjectData,
   ProjectDiagramConfig,
   ProjectDiagramVisualConfig,
+  ProjectSectionPagerSfxValue,
+  ProjectPresentationSectionKey,
 } from "@/types/components/portfolio";
 import { withBasePath } from "@/utils/basePath";
+import { createLogger } from "@/utils/observability/logger";
+import { markStart, measureAfterNextPaint } from "@/utils/observability/perf";
+import { resolvePresentationBehavior } from "./project-presentation/presentationConfig";
+import { useDeepLinkState } from "./project-presentation/hooks/useDeepLinkState";
+import { usePresentationSections } from "./project-presentation/hooks/usePresentationSections";
+import { useSectionAudio } from "./project-presentation/hooks/useSectionAudio";
+import ArchitectureSection from "./project-presentation/sections/ArchitectureSection";
+import DemoSection, {
+  type ResolvedProjectTerminalDemo,
+} from "./project-presentation/sections/DemoSection";
+import OverviewSection from "./project-presentation/sections/OverviewSection";
+import SpecificationsSection from "./project-presentation/sections/SpecificationsSection";
+import TechnologiesSection from "./project-presentation/sections/TechnologiesSection";
+import WhyThisInterestsSection from "./project-presentation/sections/WhyThisInterestsSection";
+
 export type { ProjectData, Technology } from "@/types/components/portfolio";
 
 interface ProjectPresentationProps {
   project: ProjectData;
 }
 
-type ProjectSection = {
-  key: "overview" | "why" | "demo" | "technologies" | "specifications" | "diagrams";
-  title: string;
-  subtitle: string;
-  icon: ReactNode;
-};
-
-type ProjectTerminalDemoConfig = {
-  title?: string;
-  subtitle?: string;
-  caption?: string;
-  videoUrl?: string;
-};
 type ProjectDiagramEntry = {
   key: string;
   title: string;
@@ -79,6 +67,7 @@ type TechnologyDomainConfig = {
 };
 
 const buildSectionLabel = (index: number, title: string) => `${index + 1}. ${title}`;
+
 const sectionEmojiIcon = (emoji: string) => (
   <Typography
     component="span"
@@ -93,6 +82,7 @@ const sectionEmojiIcon = (emoji: string) => (
     {emoji}
   </Typography>
 );
+
 type ResolvedDiagramVisual = {
   iconNode?: ReactNode;
   imageSrc?: string;
@@ -175,6 +165,44 @@ const TECHNOLOGY_DOMAIN_CONFIG: Record<TechnologyDomainKey, TechnologyDomainConf
   },
 };
 
+const DEFAULT_SECTION_PAGER_SFX: Record<ProjectPresentationSectionKey, string> = {
+  overview: "/audio/click_001.mp3",
+  why: "/audio/question_001.mp3",
+  demo: "/audio/select_001.ogg",
+  technologies: "/audio/switch_001.ogg",
+  specifications: "/audio/tick_002.mp3",
+  diagrams: "/audio/switch_007.ogg",
+};
+
+const RANDOM_SECTION_PAGER_SFX_POOL = [
+  "/audio/click_001.mp3",
+  "/audio/question_001.mp3",
+  "/audio/select_001.ogg",
+  "/audio/switch_001.ogg",
+  "/audio/tick_002.mp3",
+  "/audio/switch_007.ogg",
+] as const;
+
+const pickRandomSectionPagerSfx = (): string =>
+  RANDOM_SECTION_PAGER_SFX_POOL[Math.floor(Math.random() * RANDOM_SECTION_PAGER_SFX_POOL.length)] ??
+  DEFAULT_SECTION_PAGER_SFX.overview;
+
+const presentationPerfLogger = createLogger("presentation-perf");
+
+const resolveSectionPagerSfxPath = (
+  configured: ProjectSectionPagerSfxValue | undefined,
+  fallback: string,
+): string => {
+  const normalized = configured?.trim();
+  if (!normalized) {
+    return fallback;
+  }
+  if (normalized === "random") {
+    return pickRandomSectionPagerSfx();
+  }
+  return normalized;
+};
+
 const normalizeTechnologyName = (technologyName: string) => technologyName.toLowerCase();
 
 const classifyTechnologyDomain = (technologyName: string): TechnologyDomainKey => {
@@ -255,7 +283,90 @@ const resolveTechnologyEmoji = (technologyName: string, configuredEmoji?: string
   return "✨";
 };
 
+const resolveTerminalDemo = (project: ProjectData): ResolvedProjectTerminalDemo | null => {
+  const configured = project.terminalDemo;
+  const configuredMediaUrl = configured?.mediaUrl?.trim();
+  const fallbackVideoUrl = project.demoVideoUrl?.trim();
+  const fallbackImageUrl = project.demoGifUrl?.trim();
+  const fallbackMediaType: "video" | "image" | null = fallbackVideoUrl
+    ? "video"
+    : fallbackImageUrl
+      ? "image"
+      : null;
+  const mediaType = configured?.mediaType ?? fallbackMediaType;
+
+  if (!mediaType) {
+    return null;
+  }
+
+  const mediaUrl =
+    configuredMediaUrl ||
+    (mediaType === "video" ? fallbackVideoUrl : fallbackImageUrl) ||
+    fallbackVideoUrl ||
+    fallbackImageUrl;
+
+  if (!mediaUrl) {
+    return null;
+  }
+
+  return {
+    title: configured?.title?.trim() || `${project.project} Demo`,
+    subtitle: configured?.subtitle?.trim(),
+    caption: configured?.caption?.trim() || project.demoCaption?.trim() || "",
+    mediaType,
+    mediaUrl,
+    mediaAlt: configured?.mediaAlt?.trim() || `${project.project} demo`,
+  };
+};
+
 export default function ProjectPresentation({ project }: ProjectPresentationProps) {
+  const projectMenuIdBase = useMemo(
+    () => project.project.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    [project.project],
+  );
+  const presentationBehavior = useMemo(() => resolvePresentationBehavior(project), [project]);
+  const useSharedOverviewSlide = presentationBehavior.useSharedOverviewSlide;
+  const useSharedDemoSlide = presentationBehavior.useSharedDemoSlide;
+  const useSharedArchitectureDiagramsSlide =
+    presentationBehavior.useSharedArchitectureDiagramsSlide;
+  const isPodcastsLayout = presentationBehavior.demoLayout === "podcasts";
+  const useWhyThisInterestsSlide =
+    presentationBehavior.enableWhyThisInterestsSection &&
+    (project.interestsMeWhy?.trim().length ?? 0) > 0;
+  const projectSlug = useMemo(() => {
+    const hrefSlug = project.href?.trim().replace(/^\/+|\/+$/g, "");
+    if (hrefSlug) {
+      return hrefSlug.toLowerCase();
+    }
+    return projectMenuIdBase.toLowerCase();
+  }, [project.href, projectMenuIdBase]);
+  const sectionPagerSfxPaths = useMemo(
+    () => ({
+      overview: resolveSectionPagerSfxPath(
+        project.sectionPagerSfx?.overview,
+        DEFAULT_SECTION_PAGER_SFX.overview,
+      ),
+      why: resolveSectionPagerSfxPath(project.sectionPagerSfx?.why, DEFAULT_SECTION_PAGER_SFX.why),
+      demo: resolveSectionPagerSfxPath(
+        project.sectionPagerSfx?.demo,
+        DEFAULT_SECTION_PAGER_SFX.demo,
+      ),
+      technologies: resolveSectionPagerSfxPath(
+        project.sectionPagerSfx?.technologies,
+        DEFAULT_SECTION_PAGER_SFX.technologies,
+      ),
+      specifications: resolveSectionPagerSfxPath(
+        project.sectionPagerSfx?.specifications,
+        DEFAULT_SECTION_PAGER_SFX.specifications,
+      ),
+      diagrams: resolveSectionPagerSfxPath(
+        project.sectionPagerSfx?.diagrams,
+        DEFAULT_SECTION_PAGER_SFX.diagrams,
+      ),
+    }),
+    [project.sectionPagerSfx],
+  );
+
   const diagramEntries = useMemo<ProjectDiagramEntry[]>(() => {
     const configuredDiagrams = Array.isArray(project.diagrams) ? project.diagrams : undefined;
     if (configuredDiagrams && configuredDiagrams.length > 0) {
@@ -312,6 +423,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
 
     return fallbackDiagrams.filter((entry) => entry.diagram.length > 0);
   }, [project]);
+
   const [activeDiagramKey, setActiveDiagramKey] = useState<string | undefined>(
     diagramEntries[0]?.key,
   );
@@ -320,6 +432,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
     return index >= 0 ? index : 0;
   }, [activeDiagramKey, diagramEntries]);
   const hasMultipleArchitectureDiagrams = diagramEntries.length > 1;
+
   const diagramPagerItems = useMemo<SubsectionPagerItem[]>(
     () =>
       diagramEntries.map((entry, index) => {
@@ -347,6 +460,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
       }),
     [diagramEntries],
   );
+
   const handleSelectArchitectureDiagram = useCallback((key: string) => {
     setActiveDiagramKey(key);
   }, []);
@@ -364,37 +478,15 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
     const nextIndex = (activeDiagramIndex + 1) % diagramEntries.length;
     setActiveDiagramKey(diagramEntries[nextIndex]?.key);
   }, [activeDiagramIndex, diagramEntries]);
-  const useSharedArchitectureDiagramsSlide = /podcast/i.test(project.project);
-  const useSharedDemoSlide = /podcast/i.test(project.project);
-  const useWhyThisInterestsSlide =
-    /podcast/i.test(project.project) && (project.interestsMeWhy?.trim().length ?? 0) > 0;
-  const isAiPatientListPodcasts = /ai patient list podcasts/i.test(project.project);
-  const projectTerminalDemo = useMemo(() => {
-    const configured = (project as { terminalDemo?: ProjectTerminalDemoConfig } | undefined)
-      ?.terminalDemo;
-    const fallbackVideoUrl = project.demoVideoUrl?.trim();
-    const videoUrl = configured?.videoUrl?.trim() || fallbackVideoUrl || "";
-    if (!videoUrl) {
-      return null;
-    }
 
-    const title = configured?.title?.trim() || `${project.project} Demo`;
-    const subtitle = configured?.subtitle?.trim() || "";
-    const caption = configured?.caption?.trim() || "";
+  const projectTerminalDemo = useMemo(() => resolveTerminalDemo(project), [project]);
 
-    return {
-      title,
-      subtitle,
-      caption,
-      videoUrl,
-    };
-  }, [project]);
   const demoCaptionSlotSx = useMemo<SxProps<Theme>>(
     () => ({
-      mt: isAiPatientListPodcasts ? 0 : 0.75,
+      mt: isPodcastsLayout ? 0 : 0.75,
       flexShrink: 0,
       width: "100%",
-      minHeight: isAiPatientListPodcasts ? { xs: 44, md: 58 } : { xs: 40, md: 52 },
+      minHeight: isPodcastsLayout ? { xs: 44, md: 58 } : { xs: 40, md: 52 },
       display: "flex",
       alignItems: "flex-start",
       justifyContent: "flex-start",
@@ -402,22 +494,22 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
       pt: 0,
       pb: 0,
     }),
-    [isAiPatientListPodcasts],
+    [isPodcastsLayout],
   );
   const demoCaptionTextSx = useMemo<SxProps<Theme>>(
     () => ({
       width: "100%",
-      fontSize: isAiPatientListPodcasts
+      fontSize: isPodcastsLayout
         ? { xs: "1.02rem", md: "1.12rem", lg: "1.18rem" }
         : { xs: "0.96rem", md: "1.06rem", lg: "1.12rem" },
       fontWeight: 500,
-      lineHeight: isAiPatientListPodcasts ? 1.45 : 1.45,
+      lineHeight: 1.45,
       textAlign: "left",
       color: (theme) =>
-        isAiPatientListPodcasts
+        isPodcastsLayout
           ? alpha(theme.palette.common.white, 0.96)
           : alpha(theme.palette.common.white, 0.9),
-      ...(isAiPatientListPodcasts
+      ...(isPodcastsLayout
         ? {
             display: "block",
             overflow: "visible",
@@ -429,23 +521,21 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
             overflow: "hidden",
           }),
     }),
-    [isAiPatientListPodcasts],
+    [isPodcastsLayout],
   );
   const sharedDemoVideoMaxHeight = useMemo(
     () =>
-      isAiPatientListPodcasts
+      isPodcastsLayout
         ? { xs: 450, sm: 510, md: 570, lg: 630 }
         : { xs: 300, sm: 340, md: 380, lg: 420 },
-    [isAiPatientListPodcasts],
+    [isPodcastsLayout],
   );
+
   const projectArchitectureMenuId = useMemo(
-    () =>
-      `project-architecture-diagram-selector-${project.project
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")}`,
-    [project.project],
+    () => `project-architecture-diagram-selector-${projectMenuIdBase}`,
+    [projectMenuIdBase],
   );
+
   const overviewMarkdownContent = useMemo(() => {
     const markdownSections: string[] = [];
 
@@ -475,50 +565,52 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
 
     return markdownSections.filter(Boolean).join("\n\n");
   }, [project.description, project.specifications, project.technologiesUsed, project.wowFactor]);
-  const overviewItems = useMemo<MediaCyclerItem[]>(() => {
-    const items: MediaCyclerItem[] = [];
 
-    items.push({
-      key: "overview-details",
-      title: "",
-      mediaType: "custom",
-      mediaUrl: "",
-      customContent: (
-        <MarkdownContent
-          content={overviewMarkdownContent}
-          variant="body1"
-          sx={{
-            "& p": { mb: 1.25, lineHeight: 1.55 },
-            "& h3": { mt: 1.2, mb: 0.6, fontSize: "1.02rem", fontWeight: 700 },
-            "& ul": { my: 0.4, pl: 2.3 },
-            "& li": { mb: 0.35 },
-          }}
-        />
-      ),
-      panelSx: {
-        minHeight: 0,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
+  const overviewItems = useMemo<MediaCyclerItem[]>(() => {
+    const items: MediaCyclerItem[] = [
+      {
+        key: "overview-details",
+        title: "",
+        mediaType: "custom",
+        mediaUrl: "",
+        customContent: (
+          <MarkdownContent
+            content={overviewMarkdownContent}
+            variant="body1"
+            sx={{
+              "& p": { mb: 1.25, lineHeight: 1.55 },
+              "& h3": { mt: 1.2, mb: 0.6, fontSize: "1.02rem", fontWeight: 700 },
+              "& ul": { my: 0.4, pl: 2.3 },
+              "& li": { mb: 0.35 },
+            }}
+          />
+        ),
+        panelSx: {
+          minHeight: 0,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+        },
+        assetFrameSx: {
+          width: "100%",
+          minHeight: 0,
+          height: "100%",
+        },
+        customContentSx: {
+          width: "100%",
+          height: "100%",
+          minHeight: 0,
+          overflowY: "auto",
+          overflowX: "hidden",
+          overscrollBehavior: "contain",
+          pr: 0.4,
+        },
       },
-      assetFrameSx: {
-        width: "100%",
-        minHeight: 0,
-        height: "100%",
-      },
-      customContentSx: {
-        width: "100%",
-        height: "100%",
-        minHeight: 0,
-        overflowY: "auto",
-        overflowX: "hidden",
-        overscrollBehavior: "contain",
-        pr: 0.4,
-      },
-    });
+    ];
 
     return items;
   }, [overviewMarkdownContent]);
+
   const demoItems = useMemo<MediaCyclerItem[]>(() => {
     const items: MediaCyclerItem[] = [];
 
@@ -593,12 +685,14 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
 
     return items;
   }, [project.demoGifUrl, project.demoVideoUrl, project.project]);
+
   const [activeOverviewMediaKey, setActiveOverviewMediaKey] = useState<string | undefined>(
     overviewItems[0]?.key,
   );
   const [activeDemoMediaKey, setActiveDemoMediaKey] = useState<string | undefined>(
     demoItems[0]?.key,
   );
+
   const technologyDomainBuckets = useMemo(() => {
     const grouped = project.technologiesUsed.reduce<
       Record<TechnologyDomainKey, ProjectData["technologiesUsed"]>
@@ -636,6 +730,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
       })
       .filter((domain): domain is NonNullable<typeof domain> => Boolean(domain));
   }, [project.technologiesUsed]);
+
   const technologyCompetencyCategories = useMemo<CompetencyCategory[]>(
     () =>
       technologyDomainBuckets.map((domain) => ({
@@ -651,6 +746,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
       })),
     [technologyDomainBuckets],
   );
+
   const projectPresentationNavigationControlSx: SxProps<Theme> = (theme) => ({
     color: theme.palette.common.black,
     borderColor: theme.palette.common.black,
@@ -664,6 +760,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
       bgcolor: alpha(theme.palette.common.white, 0.8),
     },
   });
+
   const projectPresentationExpandControlSx: SxProps<Theme> = (theme) => ({
     color: theme.palette.common.black,
     borderColor: theme.palette.common.black,
@@ -677,70 +774,69 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
       bgcolor: alpha(theme.palette.common.white, 0.8),
     },
   });
+
   const diagramItems = useMemo<MediaCyclerItem[]>(
     () =>
-      diagramEntries.map((entry) => {
-        return {
-          key: entry.key,
-          title: "",
-          mediaType: "diagram",
-          mediaUrl: entry.diagram,
-          mediaLightboxTitle: entry.title,
-          lightboxSubtitle: entry.shortText || undefined,
-          onSelect: () => {
-            setActiveDiagramKey(entry.key);
-          },
-          panelSx: {
-            display: "flex",
-            flexDirection: "column",
-            minHeight: 0,
-            height: "100%",
-            flex: "1 1 auto",
-          },
-          assetFrameSx: {
-            width: "100%",
-            minHeight: 0,
-            height: "100%",
-            flex: "1 1 auto",
-            display: "flex",
-            overflow: "hidden",
-          },
-          diagramProps: {
-            title: entry.title,
-            type: entry.type,
-            height: "100%",
-            width: "100%",
-            showToolbar: true,
-            showGridDots: true,
-            autoFitPadding: entry.autoFitPadding ?? 14,
-            autoFitScaleMultiplier: entry.autoFitScaleMultiplier ?? 1,
-            autoFitOffsetX: entry.autoFitOffsetX ?? 0,
-            autoFitOffsetY: entry.autoFitOffsetY ?? 0,
-          },
-          extraContent: entry.description ? (
-            <Typography
-              component="div"
-              variant="body2"
-              sx={{
-                mt: 0.75,
-                width: "100%",
-                minHeight: { xs: 40, md: 52 },
-                fontSize: { xs: "0.96rem", md: "1.06rem", lg: "1.12rem" },
-                fontWeight: 500,
-                lineHeight: 1.45,
-                textAlign: "left",
-                color: (theme) => alpha(theme.palette.common.white, 0.9),
-                display: "-webkit-box",
-                WebkitLineClamp: { xs: 2, md: 3 },
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {entry.description}
-            </Typography>
-          ) : undefined,
-        };
-      }),
+      diagramEntries.map((entry) => ({
+        key: entry.key,
+        title: "",
+        mediaType: "diagram",
+        mediaUrl: entry.diagram,
+        mediaLightboxTitle: entry.title,
+        lightboxSubtitle: entry.shortText || undefined,
+        onSelect: () => {
+          setActiveDiagramKey(entry.key);
+        },
+        panelSx: {
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+          height: "100%",
+          flex: "1 1 auto",
+        },
+        assetFrameSx: {
+          width: "100%",
+          minHeight: 0,
+          height: "100%",
+          flex: "1 1 auto",
+          display: "flex",
+          overflow: "hidden",
+        },
+        diagramProps: {
+          title: entry.title,
+          type: entry.type,
+          height: "100%",
+          width: "100%",
+          showToolbar: true,
+          showGridDots: true,
+          autoFitPadding: entry.autoFitPadding ?? 14,
+          autoFitScaleMultiplier: entry.autoFitScaleMultiplier ?? 1,
+          autoFitOffsetX: entry.autoFitOffsetX ?? 0,
+          autoFitOffsetY: entry.autoFitOffsetY ?? 0,
+        },
+        extraContent: entry.description ? (
+          <Typography
+            component="div"
+            variant="body2"
+            sx={{
+              mt: 0.75,
+              width: "100%",
+              minHeight: { xs: 40, md: 52 },
+              fontSize: { xs: "0.96rem", md: "1.06rem", lg: "1.12rem" },
+              fontWeight: 500,
+              lineHeight: 1.45,
+              textAlign: "left",
+              color: (theme) => alpha(theme.palette.common.white, 0.9),
+              display: "-webkit-box",
+              WebkitLineClamp: { xs: 2, md: 3 },
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {entry.description}
+          </Typography>
+        ) : undefined,
+      })),
     [diagramEntries],
   );
 
@@ -754,106 +850,226 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
     setActiveDemoMediaKey(demoItems[0]?.key);
   }, [demoItems]);
 
-  const sections = useMemo<ProjectSection[]>(() => {
-    const nextSections: ProjectSection[] = [
-      {
-        key: "overview",
-        title: "Overview",
-        subtitle: "Project narrative and implementation snapshot",
-        icon: sectionEmojiIcon("🔎"),
-      },
-      ...(useWhyThisInterestsSlide
-        ? [
-            {
-              key: "why" as const,
-              title: "Why This Interests Me",
-              subtitle: "Personal engineering motivation",
-              icon: sectionEmojiIcon("❓"),
-            },
-          ]
-        : []),
-      ...(demoItems.length > 0
-        ? [
-            {
-              key: "demo" as const,
-              title: "Demo",
-              subtitle: "Visual walkthrough",
-              icon: sectionEmojiIcon("🎬"),
-            },
-          ]
-        : []),
-      {
-        key: "technologies",
-        title: "Technologies",
-        subtitle: "Stack and tools used",
-        icon: sectionEmojiIcon("🤖"),
-      },
-      {
-        key: "specifications",
-        title: "Specifications",
-        subtitle: "Structure and implementation details",
-        icon: sectionEmojiIcon("📐"),
-      },
-    ];
+  const {
+    sections,
+    activeSection,
+    activeSectionKey,
+    hasMultipleSections,
+    setActiveSectionKey,
+    handlePreviousSection,
+    handleNextSection,
+  } = usePresentationSections({
+    useWhyThisInterestsSlide,
+    hasDemoSection: demoItems.length > 0,
+    hasDiagramsSection: diagramItems.length > 0,
+  });
+  const pendingInteractionMarkRef = useRef<{
+    markName: string;
+    interactionType: "section" | "diagram";
+    from: string | undefined;
+    to: string | undefined;
+  } | null>(null);
 
-    if (diagramItems.length > 0) {
-      nextSections.push({
-        key: "diagrams",
-        title: "Architecture",
-        subtitle: "Diagram walkthrough",
-        icon: sectionEmojiIcon("🚧"),
-      });
-    }
-
-    return nextSections;
-  }, [demoItems.length, diagramItems.length, useWhyThisInterestsSlide]);
-
-  const [activeSectionKey, setActiveSectionKey] = useState<ProjectSection["key"]>(
-    sections[0]?.key ?? "overview",
+  const sectionIconByKey = useMemo<Record<ProjectPresentationSectionKey, ReactNode>>(
+    () => ({
+      overview: sectionEmojiIcon("🔎"),
+      why: sectionEmojiIcon("❓"),
+      demo: sectionEmojiIcon("🎬"),
+      technologies: sectionEmojiIcon("🤖"),
+      specifications: sectionEmojiIcon("📐"),
+      diagrams: sectionEmojiIcon("🏗"),
+    }),
+    [],
   );
+  const sectionsWithIcons = useMemo(
+    () =>
+      sections.map((section) => ({
+        ...section,
+        icon: sectionIconByKey[section.key],
+      })),
+    [sectionIconByKey, sections],
+  );
+  const activeSectionWithIcon = useMemo(
+    () => sectionsWithIcons.find((section) => section.key === activeSection?.key) ?? null,
+    [activeSection?.key, sectionsWithIcons],
+  );
+
+  const { deepLinkInitialized, copyDeepLinkSucceeded, handleCopyDeepLink } = useDeepLinkState({
+    projectSlug,
+    sections,
+    diagramEntries,
+    activeSectionKey,
+    setActiveSectionKey,
+    activeDiagramKey,
+    setActiveDiagramKey,
+  });
+
+  useSectionAudio({
+    projectSlug,
+    activeSectionKey,
+    deepLinkInitialized,
+    sectionPagerSfxPaths,
+  });
+
+  const startInteractionMeasure = useCallback(
+    ({
+      interactionType,
+      from,
+      to,
+    }: {
+      interactionType: "section" | "diagram";
+      from: string | undefined;
+      to: string | undefined;
+    }) => {
+      const markName = `project-presentation:${projectSlug}:${interactionType}:${Math.round(performance.now())}`;
+      pendingInteractionMarkRef.current = { markName, interactionType, from, to };
+      markStart(markName);
+    },
+    [projectSlug],
+  );
+
+  const handleSelectSection = useCallback(
+    (key: ProjectPresentationSectionKey) => {
+      if (key === activeSectionKey) {
+        return;
+      }
+      startInteractionMeasure({
+        interactionType: "section",
+        from: activeSectionKey,
+        to: key,
+      });
+      setActiveSectionKey(key);
+    },
+    [activeSectionKey, setActiveSectionKey, startInteractionMeasure],
+  );
+
+  const handlePreviousSectionMeasured = useCallback(() => {
+    if (!sections.length) {
+      return;
+    }
+    const currentIndex = Math.max(
+      0,
+      sections.findIndex((section) => section.key === activeSectionKey),
+    );
+    const previousIndex = currentIndex <= 0 ? sections.length - 1 : currentIndex - 1;
+    const previousSectionKey = sections[previousIndex]?.key;
+    startInteractionMeasure({
+      interactionType: "section",
+      from: activeSectionKey,
+      to: previousSectionKey,
+    });
+    handlePreviousSection();
+  }, [activeSectionKey, handlePreviousSection, sections, startInteractionMeasure]);
+
+  const handleNextSectionMeasured = useCallback(() => {
+    if (!sections.length) {
+      return;
+    }
+    const currentIndex = Math.max(
+      0,
+      sections.findIndex((section) => section.key === activeSectionKey),
+    );
+    const nextIndex = currentIndex >= sections.length - 1 ? 0 : currentIndex + 1;
+    const nextSectionKey = sections[nextIndex]?.key;
+    startInteractionMeasure({
+      interactionType: "section",
+      from: activeSectionKey,
+      to: nextSectionKey,
+    });
+    handleNextSection();
+  }, [activeSectionKey, handleNextSection, sections, startInteractionMeasure]);
+
+  const handleSelectArchitectureDiagramMeasured = useCallback(
+    (key: string) => {
+      if (key === activeDiagramKey) {
+        return;
+      }
+      startInteractionMeasure({
+        interactionType: "diagram",
+        from: activeDiagramKey,
+        to: key,
+      });
+      handleSelectArchitectureDiagram(key);
+    },
+    [activeDiagramKey, handleSelectArchitectureDiagram, startInteractionMeasure],
+  );
+
+  const handlePreviousArchitectureDiagramMeasured = useCallback(() => {
+    if (!diagramEntries.length) {
+      return;
+    }
+    const previousIndex = (activeDiagramIndex - 1 + diagramEntries.length) % diagramEntries.length;
+    const nextDiagramKey = diagramEntries[previousIndex]?.key;
+    startInteractionMeasure({
+      interactionType: "diagram",
+      from: activeDiagramKey,
+      to: nextDiagramKey,
+    });
+    handlePreviousArchitectureDiagram();
+  }, [
+    activeDiagramIndex,
+    activeDiagramKey,
+    diagramEntries,
+    handlePreviousArchitectureDiagram,
+    startInteractionMeasure,
+  ]);
+
+  const handleNextArchitectureDiagramMeasured = useCallback(() => {
+    if (!diagramEntries.length) {
+      return;
+    }
+    const nextIndex = (activeDiagramIndex + 1) % diagramEntries.length;
+    const nextDiagramKey = diagramEntries[nextIndex]?.key;
+    startInteractionMeasure({
+      interactionType: "diagram",
+      from: activeDiagramKey,
+      to: nextDiagramKey,
+    });
+    handleNextArchitectureDiagram();
+  }, [
+    activeDiagramIndex,
+    activeDiagramKey,
+    diagramEntries,
+    handleNextArchitectureDiagram,
+    startInteractionMeasure,
+  ]);
 
   useEffect(() => {
-    if (!sections.some((section) => section.key === activeSectionKey)) {
-      setActiveSectionKey(sections[0]?.key ?? "overview");
-    }
-  }, [activeSectionKey, sections]);
+    const renderMarkName = `project-presentation:render:${projectSlug}:${activeSectionKey}:${activeSectionKey === "diagrams" ? (activeDiagramKey ?? "none") : "section"}`;
+    markStart(renderMarkName);
+    return measureAfterNextPaint(renderMarkName, (durationMs) => {
+      presentationPerfLogger.debug("Project presentation render", {
+        project: projectSlug,
+        section: activeSectionKey,
+        diagram: activeSectionKey === "diagrams" ? (activeDiagramKey ?? null) : null,
+        durationMs: durationMs === null ? null : Math.round(durationMs),
+      });
+    });
+  }, [activeDiagramKey, activeSectionKey, projectSlug]);
 
-  const activeSectionIndex = Math.max(
-    0,
-    sections.findIndex((section) => section.key === activeSectionKey),
-  );
-  const activeSection = sections[activeSectionIndex] ?? sections[0];
-  const hasMultipleSections = sections.length > 1;
-
-  const handlePreviousSection = () => {
-    if (!hasMultipleSections) {
+  useEffect(() => {
+    const pendingMark = pendingInteractionMarkRef.current;
+    if (!pendingMark) {
       return;
     }
 
-    if (activeSectionIndex <= 0) {
-      setActiveSectionKey(sections[sections.length - 1]?.key ?? sections[0]!.key);
-      return;
-    }
-
-    setActiveSectionKey(sections[activeSectionIndex - 1]!.key);
-  };
-
-  const handleNextSection = () => {
-    if (!hasMultipleSections) {
-      return;
-    }
-
-    if (activeSectionIndex >= sections.length - 1) {
-      setActiveSectionKey(sections[0]!.key);
-      return;
-    }
-
-    setActiveSectionKey(sections[activeSectionIndex + 1]!.key);
-  };
+    pendingInteractionMarkRef.current = null;
+    return measureAfterNextPaint(pendingMark.markName, (durationMs) => {
+      presentationPerfLogger.info("Project presentation interaction latency", {
+        project: projectSlug,
+        interactionType: pendingMark.interactionType,
+        from: pendingMark.from ?? null,
+        to: pendingMark.to ?? null,
+        activeSection: activeSectionKey,
+        activeDiagram: activeDiagramKey ?? null,
+        durationMs: durationMs === null ? null : Math.round(durationMs),
+      });
+    });
+  }, [activeDiagramKey, activeSectionKey, projectSlug]);
 
   const pagerItems = useMemo<SubsectionPagerItem[]>(
     () =>
-      sections.map((section, index) => ({
+      sectionsWithIcons.map((section, index) => ({
         key: section.key,
         title: section.title,
         selectedTitle: section.title,
@@ -862,431 +1078,74 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
         optionSubtitle: section.subtitle,
         optionIcon: section.icon,
       })),
-    [sections],
-  );
-
-  const renderSpecification = (value: unknown): ReactNode => {
-    if (Array.isArray(value)) {
-      return (
-        <List dense>
-          {value.map((item, index) => (
-            <ListItem key={index}>{renderSpecification(item)}</ListItem>
-          ))}
-        </List>
-      );
-    }
-
-    if (typeof value === "object" && value !== null) {
-      return Object.entries(value as Record<string, unknown>).map(([childKey, childValue]) => (
-        <Accordion key={childKey} sx={{ backgroundColor: "transparent" }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1">{childKey}</Typography>
-          </AccordionSummary>
-          <AccordionDetails>{renderSpecification(childValue)}</AccordionDetails>
-        </Accordion>
-      ));
-    }
-
-    return <MarkdownContent content={String(value)} sx={{ "& p": { mb: 0 } }} />;
-  };
-
-  const renderOverview = () => (
-    <Box
-      sx={{
-        px: { xs: 1.5, md: 2 },
-        py: { xs: 1.5, md: 2 },
-        minHeight: 0,
-        height: "100%",
-        overflow: "hidden",
-      }}
-    >
-      {useSharedDemoSlide ? (
-        <DemoSlide
-          title=""
-          subtitle=""
-          contentSx={{
-            minHeight: 0,
-            height: "100%",
-            overflowY: "auto",
-            overflowX: "hidden",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <MediaCycler
-            items={overviewItems.map((item) => ({
-              ...item,
-              onSelect: () => {
-                setActiveOverviewMediaKey(item.key);
-              },
-            }))}
-            singlePanel
-            singlePanelActiveKey={activeOverviewMediaKey}
-            allowSwipe
-            showChevronNavigation={overviewItems.length > 1}
-            loopNavigation={overviewItems.length > 1}
-            navigationControlSx={projectPresentationNavigationControlSx}
-            expandControlSx={projectPresentationExpandControlSx}
-            stackSx={{ minHeight: 0, height: "100%" }}
-          />
-        </DemoSlide>
-      ) : (
-        <MediaCycler
-          items={overviewItems.map((item) => ({
-            ...item,
-            onSelect: () => {
-              setActiveOverviewMediaKey(item.key);
-            },
-          }))}
-          singlePanel
-          singlePanelActiveKey={activeOverviewMediaKey}
-          allowSwipe
-          showChevronNavigation={overviewItems.length > 1}
-          loopNavigation={overviewItems.length > 1}
-          navigationControlSx={projectPresentationNavigationControlSx}
-          expandControlSx={projectPresentationExpandControlSx}
-          stackSx={{ minHeight: 0, height: "100%" }}
-        />
-      )}
-    </Box>
-  );
-
-  const renderTechnologies = () => {
-    return (
-      <Box
-        sx={{
-          px: { xs: 1.5, md: 2 },
-          py: { xs: 1.5, md: 2 },
-          minHeight: 0,
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        <CoreCompetencies
-          embedded
-          categoriesOverride={technologyCompetencyCategories}
-          menuIdPrefix={`${project.project.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-technologies`}
-        />
-      </Box>
-    );
-  };
-
-  const renderWhyThisInterests = () => (
-    <Box
-      sx={{
-        px: { xs: 1.5, md: 2 },
-        py: { xs: 1.5, md: 2 },
-        minHeight: 0,
-        height: "100%",
-        overflow: "hidden",
-      }}
-    >
-      <DemoSlide
-        title=""
-        subtitle=""
-        contentSx={{
-          minHeight: 0,
-          height: "100%",
-          overflow: "auto",
-          pr: 0.3,
-        }}
-      >
-        <MarkdownContent
-          content={project.interestsMeWhy ?? ""}
-          variant="body1"
-          sx={{
-            "& p": { mb: 1.2, lineHeight: 1.6 },
-            "& p:last-of-type": { mb: 0 },
-          }}
-        />
-      </DemoSlide>
-    </Box>
-  );
-
-  const renderDemo = () => (
-    <Box
-      sx={{
-        px: { xs: 1.5, md: 2 },
-        py: { xs: 1.5, md: 2 },
-        minHeight: 0,
-        height: "100%",
-        overflow: "hidden",
-      }}
-    >
-      {useSharedDemoSlide && projectTerminalDemo ? (
-        <Box sx={{ minHeight: 0, height: "100%", display: "flex", flexDirection: "column" }}>
-          <DemoSlide
-            title=""
-            subtitle=""
-            caption={projectTerminalDemo.caption}
-            contentSx={{
-              minHeight: 0,
-              flex: isAiPatientListPodcasts ? "0 0 auto" : "1 1 auto",
-              display: "flex",
-              alignItems: isAiPatientListPodcasts ? "flex-start" : "center",
-              justifyContent: isAiPatientListPodcasts ? "flex-start" : "center",
-              overflow: isAiPatientListPodcasts ? "visible" : "hidden",
-            }}
-            captionSlotSx={demoCaptionSlotSx}
-            captionTextSx={demoCaptionTextSx}
-          >
-            <VideoLightbox
-              src={withBasePath(projectTerminalDemo.videoUrl)}
-              title={projectTerminalDemo.title}
-              caption={projectTerminalDemo.caption}
-              controls
-              playsInline
-              preload="metadata"
-              triggerSx={{
-                width: "100%",
-                height: "auto",
-                maxHeight: sharedDemoVideoMaxHeight,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flex: "0 0 auto",
-              }}
-              previewVideoSx={{
-                width: "100%",
-                maxWidth: "100%",
-                height: "auto",
-                maxHeight: sharedDemoVideoMaxHeight,
-                objectFit: "contain",
-                borderRadius: "16px",
-              }}
-              expandButtonSx={projectPresentationExpandControlSx}
-            />
-          </DemoSlide>
-        </Box>
-      ) : demoItems.length > 0 ? (
-        <MediaCycler
-          items={demoItems.map((item) => ({
-            ...item,
-            onSelect: () => {
-              setActiveDemoMediaKey(item.key);
-            },
-          }))}
-          singlePanel
-          singlePanelActiveKey={activeDemoMediaKey}
-          allowSwipe
-          showChevronNavigation={demoItems.length > 1}
-          loopNavigation={demoItems.length > 1}
-          navigationControlSx={projectPresentationNavigationControlSx}
-          expandControlSx={projectPresentationExpandControlSx}
-          stackSx={{ minHeight: 0, height: "100%" }}
-        />
-      ) : null}
-    </Box>
-  );
-
-  const renderSpecifications = () => (
-    <Box
-      sx={{
-        px: { xs: 1.5, md: 2 },
-        py: { xs: 1.5, md: 2 },
-        minHeight: 0,
-        height: "100%",
-        overflow: "hidden",
-      }}
-    >
-      {useSharedDemoSlide ? (
-        <DemoSlide
-          title=""
-          subtitle=""
-          contentSx={{
-            minHeight: 0,
-            height: "100%",
-            overflow: "auto",
-          }}
-        >
-          <Box sx={{ minHeight: 0, overflow: "hidden" }}>
-            {Object.entries(project.specifications).map(([key, value]) => (
-              <Accordion key={key} sx={{ backgroundColor: "transparent", my: 0.5 }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1">{key}</Typography>
-                </AccordionSummary>
-                <AccordionDetails>{renderSpecification(value)}</AccordionDetails>
-              </Accordion>
-            ))}
-          </Box>
-        </DemoSlide>
-      ) : (
-        <Box sx={{ minHeight: 0, overflow: "hidden" }}>
-          {Object.entries(project.specifications).map(([key, value]) => (
-            <Accordion key={key} sx={{ backgroundColor: "transparent", my: 0.5 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{key}</Typography>
-              </AccordionSummary>
-              <AccordionDetails>{renderSpecification(value)}</AccordionDetails>
-            </Accordion>
-          ))}
-        </Box>
-      )}
-    </Box>
-  );
-
-  const renderDiagrams = () => (
-    <Box
-      sx={{
-        minHeight: 0,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        px: { xs: 1.5, md: 2 },
-        py: { xs: 1.5, md: 2 },
-        overflow: "hidden",
-      }}
-    >
-      {useSharedArchitectureDiagramsSlide ? (
-        <ArchitectureDiagramsSlide
-          activeDiagramKey={activeDiagramKey}
-          diagramPagerItems={diagramPagerItems}
-          diagramItems={diagramItems}
-          suppressMediaHeading
-          hasMultipleDiagrams={hasMultipleArchitectureDiagrams}
-          onSelectDiagram={handleSelectArchitectureDiagram}
-          onPreviousDiagram={handlePreviousArchitectureDiagram}
-          onNextDiagram={handleNextArchitectureDiagram}
-          rootSx={{
-            minHeight: 0,
-            height: "100%",
-            flex: "1 1 auto",
-          }}
-          panelSx={{
-            width: "100%",
-            maxWidth: "1200px",
-            minHeight: 0,
-            height: "100%",
-            flex: "1 1 auto",
-            mx: "auto",
-            p: 0,
-            borderColor: "transparent",
-            bgcolor: "transparent",
-            backgroundImage: "none",
-            boxShadow: "none",
-          }}
-          menuId={projectArchitectureMenuId}
-          previousAriaLabel="Previous architecture diagram"
-          nextAriaLabel="Next architecture diagram"
-          selectorAriaLabel="Open architecture diagram selector"
-          selectedValueAsTitle
-          selectedVisualSize={34}
-          fallbackTitle="Architecture Diagram"
-          topRailSx={{
-            mx: 0,
-            mt: 0,
-            position: "relative",
-            zIndex: 6,
-            color: (theme) => alpha(theme.palette.common.white, 0.84),
-            bgcolor: "transparent !important",
-            backgroundColor: "transparent !important",
-            backgroundImage: "none !important",
-            borderBottom: "0 !important",
-            borderColor: "transparent !important",
-            backdropFilter: "none !important",
-            filter: "none !important",
-            boxShadow: "none !important",
-            "& .MuiTypography-root": {
-              color: (theme) => `${alpha(theme.palette.common.white, 0.84)} !important`,
-            },
-            "& .MuiChip-root": {
-              color: (theme) => `${alpha(theme.palette.common.white, 0.84)} !important`,
-            },
-            "& .MuiIconButton-root, & .MuiSvgIcon-root": {
-              color: (theme) => `${alpha(theme.palette.common.white, 0.84)} !important`,
-            },
-          }}
-          contentSx={{
-            minHeight: 0,
-            flex: "1 1 auto",
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            pt: 0,
-            pb: 0,
-          }}
-          hostSx={{
-            px: { xs: 1, md: 1.5 },
-            pt: { xs: 0.75, md: 1 },
-            pb: { xs: 1, md: 1.5 },
-            minHeight: 0,
-            flex: "1 1 auto",
-            "& .MuiToolbar-root": {
-              border: "1px solid rgba(96, 165, 250, 0.22)",
-              borderBottom: 0,
-              borderTopLeftRadius: "14px",
-              borderTopRightRadius: "14px",
-              background:
-                "linear-gradient(180deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.9)), rgba(15, 23, 42, 0.92)",
-              color: "#dbeafe",
-            },
-            "& .MuiIconButton-root": {
-              color: "#dbeafe",
-            },
-            "& .MuiIconButton-root.Mui-disabled": {
-              color: "rgba(148, 163, 184, 0.38)",
-            },
-            "& .MuiDivider-root": {
-              borderColor: "rgba(96, 165, 250, 0.24)",
-            },
-            "& [id$='-container']": {
-              width: "100% !important",
-              borderColor: "rgba(96, 165, 250, 0.24)",
-              borderRadius: "14px",
-              overflow: "hidden",
-            },
-            "& .diagram-mermaid": {
-              width: "100%",
-            },
-            "& .diagram-mermaid svg": {
-              display: "block",
-              width: "100%",
-              maxWidth: "100%",
-              height: "auto",
-            },
-          }}
-          mediaCyclerShowChevronNavigation={false}
-          mediaCyclerLoopNavigation={false}
-          mediaCyclerAllowSwipe={false}
-          mediaCyclerNavigationControlSx={projectPresentationNavigationControlSx}
-          mediaCyclerExpandControlSx={projectPresentationExpandControlSx}
-          mediaCyclerStackSx={{ minHeight: 0, height: "100%" }}
-        />
-      ) : (
-        <Box sx={{ minHeight: 0, flex: "1 1 auto" }}>
-          <MediaCycler
-            items={diagramItems}
-            singlePanel
-            singlePanelActiveKey={activeDiagramKey}
-            allowSwipe
-            showChevronNavigation
-            loopNavigation={diagramItems.length > 1}
-            navigationControlSx={projectPresentationNavigationControlSx}
-            stackSx={{ minHeight: 0, height: "100%" }}
-          />
-        </Box>
-      )}
-    </Box>
+    [sectionsWithIcons],
   );
 
   const renderActiveSection = () => {
     switch (activeSectionKey) {
       case "overview":
-        return renderOverview();
+        return (
+          <OverviewSection
+            useSharedOverviewSlide={useSharedOverviewSlide}
+            overviewItems={overviewItems}
+            activeOverviewMediaKey={activeOverviewMediaKey}
+            onSelectOverviewMediaKey={setActiveOverviewMediaKey}
+            navigationControlSx={projectPresentationNavigationControlSx}
+            expandControlSx={projectPresentationExpandControlSx}
+          />
+        );
       case "why":
-        return renderWhyThisInterests();
+        return <WhyThisInterestsSection content={project.interestsMeWhy ?? ""} />;
       case "demo":
-        return renderDemo();
+        return (
+          <DemoSection
+            useSharedDemoSlide={useSharedDemoSlide}
+            isPodcastsLayout={isPodcastsLayout}
+            terminalDemo={projectTerminalDemo}
+            demoItems={demoItems}
+            activeDemoMediaKey={activeDemoMediaKey}
+            onSelectDemoMediaKey={setActiveDemoMediaKey}
+            navigationControlSx={projectPresentationNavigationControlSx}
+            expandControlSx={projectPresentationExpandControlSx}
+            sharedDemoVideoMaxHeight={sharedDemoVideoMaxHeight}
+            captionSlotSx={demoCaptionSlotSx}
+            captionTextSx={demoCaptionTextSx}
+          />
+        );
       case "technologies":
-        return renderTechnologies();
+        return (
+          <TechnologiesSection
+            menuIdPrefix={projectMenuIdBase}
+            categories={technologyCompetencyCategories}
+          />
+        );
       case "specifications":
-        return renderSpecifications();
+        return (
+          <SpecificationsSection
+            specifications={project.specifications}
+            useSharedDemoSlide={useSharedDemoSlide}
+          />
+        );
       case "diagrams":
-        return renderDiagrams();
+        return (
+          <ArchitectureSection
+            useSharedArchitectureDiagramsSlide={useSharedArchitectureDiagramsSlide}
+            activeDiagramKey={activeDiagramKey}
+            diagramPagerItems={diagramPagerItems}
+            diagramItems={diagramItems}
+            hasMultipleArchitectureDiagrams={hasMultipleArchitectureDiagrams}
+            onSelectArchitectureDiagram={handleSelectArchitectureDiagramMeasured}
+            onPreviousArchitectureDiagram={handlePreviousArchitectureDiagramMeasured}
+            onNextArchitectureDiagram={handleNextArchitectureDiagramMeasured}
+            projectArchitectureMenuId={projectArchitectureMenuId}
+            navigationControlSx={projectPresentationNavigationControlSx}
+            expandControlSx={projectPresentationExpandControlSx}
+            onCopyDeepLink={handleCopyDeepLink}
+            copyDeepLinkSucceeded={copyDeepLinkSucceeded}
+          />
+        );
       default:
-        return renderOverview();
+        return null;
     }
   };
 
@@ -1323,6 +1182,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
                 selectedEmojiFontSize="2.66rem"
                 optionVisualSize={42.5}
                 optionEmojiFontSize="1.465rem"
+                selectedEmojiAnimation="random"
                 iconFrameStyle="none"
                 previousAriaLabel="Previous project section"
                 nextAriaLabel="Next project section"
@@ -1330,19 +1190,19 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
                 previousButtonSx={{
                   ml: { xs: 1, md: 1.25 },
                 }}
-                onSelect={(key) => setActiveSectionKey(key as ProjectSection["key"])}
-                onPrevious={handlePreviousSection}
-                onNext={handleNextSection}
+                onSelect={(key) => handleSelectSection(key as ProjectPresentationSectionKey)}
+                onPrevious={handlePreviousSectionMeasured}
+                onNext={handleNextSectionMeasured}
               />
             </Box>
           ) : (
             <Box sx={{ px: { xs: 2.5, md: 3 }, py: 1.25 }}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                {activeSection?.icon}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {activeSectionWithIcon?.icon}
                 <Typography variant="h6" sx={{ fontWeight: 800 }}>
                   {activeSection?.title ?? "Overview"}
                 </Typography>
-              </Stack>
+              </Box>
             </Box>
           )
         }
