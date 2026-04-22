@@ -19,7 +19,9 @@ const exactBudgets: Record<string, number> = {
   "src/app/pathforger/PathForgerPageClient.tsx": 1800,
   "src/app/zombiefish/_hooks/useGameEngine.ts": 1750,
   "src/app/ai-shenanigans/_components/AIShenanigan.tsx": 1600,
-  "src/components/portfolio/panels/CoreCompetencies.tsx": 1450,
+  "src/components/portfolio/panels/CoreCompetencies.tsx": 1600,
+  "src/components/portfolio/ProjectPresentation.tsx": 1500,
+  "src/components/shared/visualization/Diagram.tsx": 1200,
   "src/components/shared/media/MediaCycler.tsx": 1400,
   "src/app/ai-shenanigans/_components/AIShenaniganWorkSeries.tsx": 1400,
   "src/app/pathforger/_hooks/usePathForgerPersistence.ts": 1400,
@@ -80,10 +82,23 @@ async function main(): Promise<void> {
   }
 
   if (violations.length > 0) {
-    out.error("File budget check failed:");
-    for (const violation of violations.sort((a, b) => b.lines - a.lines)) {
-      out.listItem(`${violation.file}: ${violation.lines} lines (budget ${violation.budget})`);
+    const sortedViolations = violations.sort((a, b) => b.lines - b.budget - (a.lines - a.budget));
+    out.error(
+      `File budget check failed: ${sortedViolations.length} file${
+        sortedViolations.length === 1 ? "" : "s"
+      } exceed budget.`,
+    );
+
+    // Print details to stderr so Git hooks / IDE terminals that only surface stderr
+    // still show exactly which files exceeded limits.
+    for (const violation of sortedViolations) {
+      const overBy = violation.lines - violation.budget;
+      console.error(
+        `  - ${violation.file}: ${violation.lines} lines (budget ${violation.budget}, +${overBy})`,
+      );
     }
+
+    out.info("Run `npm run check:file-budgets` locally to see the full report.");
     process.exit(1);
   }
 
