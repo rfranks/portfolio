@@ -403,20 +403,28 @@ export function useBlackjackPage() {
     handRefs.current[index] = node;
   }, []);
 
-  const scrollToSlide = React.useCallback((targetIndex: number) => {
-    const slideCount = BLACKJACK_CAROUSEL_SLIDES.length;
-    const normalizedIndex = ((targetIndex % slideCount) + slideCount) % slideCount;
-    const targetId = BLACKJACK_CAROUSEL_SLIDES[normalizedIndex]?.id;
-    if (!targetId) {
-      return;
-    }
-
-    slideRefs.current[targetId]?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "start",
-    });
+  const resolveSlideLeft = React.useCallback((index: number, root: HTMLElement) => {
+    const slideId = BLACKJACK_CAROUSEL_SLIDES[index]?.id;
+    const slideNode = slideId ? slideRefs.current[slideId] : null;
+    return slideNode?.offsetLeft ?? index * root.clientWidth;
   }, []);
+
+  const scrollToSlide = React.useCallback(
+    (targetIndex: number) => {
+      const root = pageRef.current;
+      const slideCount = BLACKJACK_CAROUSEL_SLIDES.length;
+      if (!root) {
+        return;
+      }
+
+      const normalizedIndex = ((targetIndex % slideCount) + slideCount) % slideCount;
+      root.scrollTo({
+        left: resolveSlideLeft(normalizedIndex, root),
+        behavior: "smooth",
+      });
+    },
+    [resolveSlideLeft],
+  );
 
   const handleCycleSlides = React.useCallback(
     (direction: -1 | 1) => {
@@ -453,40 +461,47 @@ export function useBlackjackPage() {
       return;
     }
 
-    const observedSlides = BLACKJACK_CAROUSEL_SLIDES.map(({ id }) => slideRefs.current[id]).filter(
-      (slide): slide is HTMLElement => Boolean(slide),
-    );
+    let rafId: number | null = null;
 
-    if (observedSlides.length === 0) {
-      return;
-    }
+    const syncActiveIndexFromScroll = () => {
+      const scrollLeft = root.scrollLeft;
+      let closestIndex = 0;
+      let closestDistance = Number.POSITIVE_INFINITY;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-        if (!visibleEntry) {
-          return;
+      for (let index = 0; index < BLACKJACK_CAROUSEL_SLIDES.length; index += 1) {
+        const slideLeft = resolveSlideLeft(index, root);
+        const distance = Math.abs(scrollLeft - slideLeft);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
         }
+      }
 
-        const nextIndex = BLACKJACK_CAROUSEL_SLIDES.findIndex(
-          (slide) => slide.id === visibleEntry.target.id,
-        );
-        if (nextIndex >= 0) {
-          setActiveSlideIndex(nextIndex);
-        }
-      },
-      {
-        root,
-        threshold: [0.35, 0.6, 0.85],
-      },
-    );
+      setActiveSlideIndex(closestIndex);
+    };
 
-    observedSlides.forEach((slide) => observer.observe(slide));
-    return () => observer.disconnect();
-  }, []);
+    const handleScroll = () => {
+      if (rafId !== null) {
+        return;
+      }
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        syncActiveIndexFromScroll();
+      });
+    };
+
+    syncActiveIndexFromScroll();
+    root.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+
+    return () => {
+      root.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, [resolveSlideLeft]);
 
   React.useEffect(() => {
     const hands = engineState?.player?.hands ?? [];

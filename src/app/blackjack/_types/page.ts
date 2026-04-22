@@ -6,7 +6,31 @@ export type BlackjackCarouselSlideId =
   | "terminal-demo"
   | "architecture-diagrams";
 
-export type BlackjackDiagramConfig = Pick<DiagramProps, "diagram" | "height" | "title" | "type">;
+export type BlackjackDiagramVisualType = "material" | "emoji" | "image";
+
+export type BlackjackDiagramVisualConfig = {
+  type: BlackjackDiagramVisualType;
+  icon?: string;
+  src?: string;
+  alt?: string;
+};
+
+export type BlackjackDiagramConfig = Pick<
+  DiagramProps,
+  | "diagram"
+  | "height"
+  | "title"
+  | "type"
+  | "autoFitPadding"
+  | "autoFitScaleMultiplier"
+  | "autoFitOffsetX"
+  | "autoFitOffsetY"
+> & {
+  shortText?: string;
+  description?: string;
+  selectorOptionVisual?: BlackjackDiagramVisualConfig;
+  selectorSelectedVisual?: BlackjackDiagramVisualConfig;
+};
 
 export type WinningChipFx = {
   id: string;

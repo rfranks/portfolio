@@ -27,6 +27,13 @@ export interface DiagramProps {
   width?: string | number;
   showDots?: boolean;
   showToolbar?: boolean;
+  alwaysShowToolbar?: boolean;
+  toolbarActions?: React.ReactNode;
+  autoFitOnRender?: boolean;
+  autoFitPadding?: number;
+  autoFitScaleMultiplier?: number;
+  autoFitOffsetX?: number;
+  autoFitOffsetY?: number;
 }
 
 export interface TimelineEvent {

@@ -1,15 +1,71 @@
 "use client";
 
 import * as React from "react";
-import { MarkdownContent, MediaCycler } from "@/components/shared";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
+import { renderNavigationIcon } from "@/components/portfolio/layout/navigationIcons";
+import SubsectionPager, {
+  type SubsectionPagerItem,
+} from "@/components/portfolio/layout/SubsectionPager";
+import { MarkdownContent, MediaCycler, PortfolioPanelShell } from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import BlackjackCarouselNav from "./_components/BlackjackCarouselNav";
 import BlackjackGameSlide from "./_components/BlackjackGameSlide";
 import { useBlackjackPage } from "./_hooks/useBlackjackPage";
-import type { BlackjackDiagramConfig } from "./_types/page";
+import type { BlackjackDiagramConfig, BlackjackDiagramVisualConfig } from "./_types/page";
 import "./page.css";
+
+type ResolvedDiagramVisual = {
+  iconNode?: React.ReactNode;
+  imageSrc?: string;
+  imageAlt?: string;
+};
+
+const hasResolvedDiagramVisual = (visual: ResolvedDiagramVisual) =>
+  Boolean(visual.imageSrc || visual.iconNode);
+
+const resolveDiagramVisual = (
+  visual: BlackjackDiagramVisualConfig | undefined,
+  fallbackLabel: string,
+): ResolvedDiagramVisual => {
+  if (!visual) {
+    return {};
+  }
+
+  if (visual.type === "image") {
+    const source = visual.src?.trim();
+    if (!source) {
+      return {};
+    }
+    return {
+      imageSrc: withBasePath(source),
+      imageAlt: visual.alt?.trim() || `${fallbackLabel} diagram visual`,
+    };
+  }
+
+  if (visual.type === "emoji") {
+    const icon = visual.icon?.trim();
+    if (!icon) {
+      return {};
+    }
+    return {
+      iconNode: renderNavigationIcon(
+        { iconType: "emoji", icon },
+        { fallbackIconKey: "casino", emojiSize: "1rem" },
+      ),
+    };
+  }
+
+  return {
+    iconNode: renderNavigationIcon(
+      { iconType: "material", icon: visual.icon?.trim() || "casino" },
+      { fallbackIconKey: "casino", fontSize: "small" },
+    ),
+  };
+};
 
 export default function BlackjackPage() {
   const { projects } = useResumeData();
@@ -38,13 +94,49 @@ export default function BlackjackPage() {
   const [activeDiagramKey, setActiveDiagramKey] = React.useState<string | undefined>(
     normalizedBlackjackDiagrams[0]?.key,
   );
+  const activeDiagramIndex = React.useMemo(() => {
+    const index = normalizedBlackjackDiagrams.findIndex(
+      (diagram) => diagram.key === activeDiagramKey,
+    );
+    return index >= 0 ? index : 0;
+  }, [activeDiagramKey, normalizedBlackjackDiagrams]);
+  const hasMultipleDiagrams = normalizedBlackjackDiagrams.length > 1;
+  const diagramPagerItems = React.useMemo<SubsectionPagerItem[]>(
+    () =>
+      normalizedBlackjackDiagrams.map((diagram, index) => {
+        const optionVisual = resolveDiagramVisual(diagram.selectorOptionVisual, diagram.title);
+        const selectedVisualCandidate = resolveDiagramVisual(
+          diagram.selectorSelectedVisual ?? diagram.selectorOptionVisual,
+          diagram.title,
+        );
+        const selectedVisual = hasResolvedDiagramVisual(selectedVisualCandidate)
+          ? selectedVisualCandidate
+          : optionVisual;
+
+        return {
+          key: diagram.key,
+          title: diagram.title,
+          selectedTitle: diagram.title,
+          selectedImageSrc: selectedVisual.imageSrc,
+          selectedImageAlt: selectedVisual.imageAlt,
+          selectedIcon: selectedVisual.iconNode,
+          optionTitle: `${index + 1}. ${diagram.title}`,
+          optionSubtitle: diagram.shortText?.trim() || undefined,
+          optionImageSrc: optionVisual.imageSrc,
+          optionImageAlt: optionVisual.imageAlt,
+          optionIcon: optionVisual.iconNode,
+        };
+      }),
+    [normalizedBlackjackDiagrams],
+  );
   const blackjackDiagramItems = React.useMemo<MediaCyclerItem[]>(
     () =>
       normalizedBlackjackDiagrams.map((diagram) => ({
         key: diagram.key,
-        title: diagram.title,
-        description: "Mermaid architecture view",
-        mediaType: "diagram",
+        title: "",
+        mediaLightboxTitle: diagram.title,
+        lightboxSubtitle: diagram.shortText?.trim() || undefined,
+        type: "diagram",
         mediaUrl: diagram.diagram,
         onSelect: () => {
           setActiveDiagramKey(diagram.key);
@@ -52,20 +144,24 @@ export default function BlackjackPage() {
         panelSx: {
           display: "flex",
           flexDirection: "column",
-          gap: 0.75,
           minWidth: 0,
           width: "100%",
-          p: 2,
-          border: "1px solid rgba(148, 163, 184, 0.18)",
-          borderRadius: "20px",
-          background:
-            "linear-gradient(180deg, rgba(30, 41, 59, 0.62), rgba(15, 23, 42, 0.48)), rgba(15, 23, 42, 0.42)",
-          boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 28px rgba(2, 8, 23, 0.16)",
+          minHeight: 0,
+          height: "100%",
+          flex: "1 1 auto",
+          p: 0,
+          overflow: "visible",
+          border: 0,
+          borderRadius: 0,
+          background: "transparent",
+          boxShadow: "none",
         },
         assetFrameSx: {
           width: "100%",
-          minHeight: { xs: 300, md: 420 },
-          height: { xs: 300, md: 420 },
+          minHeight: 0,
+          height: { xs: "calc(100% - 78px)", md: "calc(100% - 90px)" },
+          flex: "0 1 auto",
+          overflow: "hidden",
         },
         diagramProps: {
           title: diagram.title,
@@ -74,10 +170,60 @@ export default function BlackjackPage() {
           width: "100%",
           showToolbar: true,
           showDots: false,
+          autoFitPadding: diagram.autoFitPadding ?? 14,
+          autoFitScaleMultiplier: diagram.autoFitScaleMultiplier ?? 1,
+          autoFitOffsetX: diagram.autoFitOffsetX ?? 0,
+          autoFitOffsetY: diagram.autoFitOffsetY ?? 0,
         },
+        extraContent: diagram.description?.trim() ? (
+          <Typography
+            component="div"
+            variant="body2"
+            sx={{
+              mt: 0.75,
+              flexShrink: 0,
+              width: "100%",
+              minHeight: { xs: 40, md: 52 },
+              fontSize: { xs: "0.96rem", md: "1.06rem", lg: "1.12rem" },
+              fontWeight: 500,
+              lineHeight: 1.45,
+              color: (theme) => alpha(theme.palette.common.white, 0.9),
+              display: "-webkit-box",
+              WebkitLineClamp: { xs: 2, md: 3 },
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {diagram.description.trim()}
+          </Typography>
+        ) : undefined,
       })),
     [normalizedBlackjackDiagrams],
   );
+
+  const handleSelectDiagram = React.useCallback((key: string) => {
+    setActiveDiagramKey(key);
+  }, []);
+
+  const handlePreviousDiagram = React.useCallback(() => {
+    if (normalizedBlackjackDiagrams.length === 0) {
+      return;
+    }
+
+    const previousIndex =
+      (activeDiagramIndex - 1 + normalizedBlackjackDiagrams.length) %
+      normalizedBlackjackDiagrams.length;
+    setActiveDiagramKey(normalizedBlackjackDiagrams[previousIndex]?.key);
+  }, [activeDiagramIndex, normalizedBlackjackDiagrams]);
+
+  const handleNextDiagram = React.useCallback(() => {
+    if (normalizedBlackjackDiagrams.length === 0) {
+      return;
+    }
+
+    const nextIndex = (activeDiagramIndex + 1) % normalizedBlackjackDiagrams.length;
+    setActiveDiagramKey(normalizedBlackjackDiagrams[nextIndex]?.key);
+  }, [activeDiagramIndex, normalizedBlackjackDiagrams]);
 
   React.useEffect(() => {
     setActiveDiagramKey(normalizedBlackjackDiagrams[0]?.key);
@@ -174,29 +320,125 @@ export default function BlackjackPage() {
         />
       </section>
 
-      {blackjackDiagramItems.length ? (
-        <section
-          id="architecture-diagrams"
-          ref={(node) => blackjack.setSlideRef("architecture-diagrams", node)}
-          className="blackjack-panel blackjack-demo-panel blackjack-diagrams-panel blackjack-carousel-slide"
+      <section
+        id="architecture-diagrams"
+        ref={(node) => blackjack.setSlideRef("architecture-diagrams", node)}
+        className="blackjack-diagrams-panel blackjack-carousel-slide"
+      >
+        <PortfolioPanelShell
+          panelClassName="mx-auto"
+          panelSx={{
+            width: "100%",
+            maxWidth: "1200px",
+            minHeight: 0,
+            height: "100%",
+            flex: "1 1 auto",
+            display: "flex",
+            flexDirection: "column",
+            mx: "auto",
+            overflow: "hidden",
+            p: 0,
+            mb: 0,
+            borderColor: "transparent",
+            bgcolor: "transparent",
+            backgroundImage: "none",
+            boxShadow: "none",
+          }}
+          topRail={
+            hasMultipleDiagrams ? (
+              <SubsectionPager
+                menuId="blackjack-architecture-diagram-selector"
+                items={diagramPagerItems}
+                currentKey={activeDiagramKey}
+                selectedValueAsTitle
+                selectedVisualSize={34}
+                previousAriaLabel="Previous architecture diagram"
+                nextAriaLabel="Next architecture diagram"
+                selectorAriaLabel="Open architecture diagram selector"
+                onSelect={handleSelectDiagram}
+                onPrevious={handlePreviousDiagram}
+                onNext={handleNextDiagram}
+              />
+            ) : (
+              <Box sx={{ px: { xs: 2.5, md: 3 }, py: 1.25 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                  Architecture Diagram
+                </Typography>
+              </Box>
+            )
+          }
+          useNegativeTopRailMargins={false}
+          topRailSx={{
+            mx: 0,
+            mt: 0,
+            position: "relative",
+            zIndex: 6,
+            color: (theme) => alpha(theme.palette.common.white, 0.84),
+            bgcolor: "transparent !important",
+            backgroundColor: "transparent !important",
+            backgroundImage: "none !important",
+            borderBottom: "0 !important",
+            borderColor: "transparent !important",
+            backdropFilter: "none !important",
+            filter: "none !important",
+            boxShadow: "none !important",
+            "& .MuiTypography-root": {
+              color: (theme) => `${alpha(theme.palette.common.white, 0.84)} !important`,
+            },
+            "& .MuiChip-root": {
+              color: (theme) => `${alpha(theme.palette.common.white, 0.84)} !important`,
+            },
+            "& .MuiIconButton-root, & .MuiSvgIcon-root": {
+              color: (theme) => `${alpha(theme.palette.common.white, 0.84)} !important`,
+            },
+          }}
+          contentSx={{
+            minHeight: 0,
+            flex: "1 1 auto",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            pt: 0,
+            pb: 0,
+          }}
         >
-          <h2 className="blackjack-panel-title">Architecture Diagrams</h2>
-          <p className="blackjack-panel-subtitle">
-            Go engine, WASM message bridge, render state, and UI flow
-          </p>
-          <div className="blackjack-diagram-host">
-            <MediaCycler
-              items={blackjackDiagramItems}
-              singlePanel
-              singlePanelActiveKey={activeDiagramKey}
-              showChevronNavigation
-              loopNavigation={blackjackDiagramItems.length > 1}
-              loopNavigationLabel="Loop architecture diagrams"
-              stackSx={{ minHeight: { xs: 300, md: 420 } }}
-            />
-          </div>
-        </section>
-      ) : null}
+          <Box
+            className="blackjack-diagram-host"
+            sx={{
+              px: { xs: 1, md: 1.5 },
+              pt: { xs: 0.75, md: 1 },
+              pb: { xs: 1, md: 1.5 },
+              minHeight: 0,
+              flex: "1 1 auto",
+            }}
+          >
+            {blackjackDiagramItems.length > 0 ? (
+              <MediaCycler
+                items={blackjackDiagramItems}
+                singlePanel
+                singlePanelActiveKey={activeDiagramKey}
+                showChevronNavigation={false}
+                loopNavigation={false}
+                stackSx={{ minHeight: 0, height: "100%" }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  minHeight: 0,
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Architecture diagrams are not available for this project yet.
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </PortfolioPanelShell>
+      </section>
 
       <BlackjackCarouselNav
         activeSlideIndex={blackjack.activeSlideIndex}

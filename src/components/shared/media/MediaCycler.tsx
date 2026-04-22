@@ -22,9 +22,21 @@ import type { TypographyProps } from "@mui/material/Typography";
 import MarkdownContent from "../content/MarkdownContent";
 import PDFContent from "../content/PDFContent";
 import type { DiagramProps } from "../visualization";
-import { Diagram } from "../visualization";
+import DiagramLightBox from "./DiagramLightBox";
 import ImageLightbox from "./ImageLightbox";
 import VideoLightbox from "./VideoLightbox";
+
+type MediaCyclerMediaType =
+  | "image"
+  | "video"
+  | "pdf"
+  | "markdown"
+  | "diagram"
+  | "custom"
+  | "project"
+  | "projectPresentation"
+  | "recognition"
+  | "recommendation";
 
 export type MediaCyclerItem = {
   key: string;
@@ -36,19 +48,11 @@ export type MediaCyclerItem = {
   titleSx?: SxProps<Theme>;
   description?: string;
   mediaUrl: string;
-  mediaType:
-    | "image"
-    | "video"
-    | "pdf"
-    | "markdown"
-    | "diagram"
-    | "custom"
-    | "project"
-    | "projectPresentation"
-    | "recognition"
-    | "recommendation";
+  mediaType?: MediaCyclerMediaType;
+  type?: MediaCyclerMediaType;
   mediaAlt?: string;
   mediaLightboxTitle?: string;
+  lightboxSubtitle?: string;
   lightboxCaption?: string;
   mediaCaption?: string;
   mediaSource?: string;
@@ -419,7 +423,7 @@ export default function MediaCycler({
 
   React.useEffect(() => {
     const markdownItems = items.filter(
-      (item) => item.mediaType === "markdown" && item.markdownPath?.trim(),
+      (item) => (item.mediaType ?? item.type) === "markdown" && item.markdownPath?.trim(),
     );
 
     if (markdownItems.length === 0) {
@@ -472,6 +476,8 @@ export default function MediaCycler({
   }, [items]);
 
   const renderItem = (item: MediaCyclerItem, navigationOverlay?: React.ReactNode) => {
+    const resolvedMediaType = item.mediaType ?? item.type ?? "markdown";
+    const isDiagramItem = resolvedMediaType === "diagram";
     const canActivate = Boolean(item.onMediaActivate);
     const hasTitle = item.title.trim().length > 0;
     const imageAlt = item.mediaAlt || item.title;
@@ -495,10 +501,63 @@ export default function MediaCycler({
       compactMetadataOnSmallScreens && (hasMetadata || hasSmallScreenInfoBlurb);
     const inlineMetadataDisplay = compactMetadata ? { xs: "none", md: "block" } : "block";
     const resolvedMarkdownContent =
-      item.mediaType === "markdown"
+      resolvedMediaType === "markdown"
         ? ((item.markdownContent ?? markdownByKey[item.key] ?? item.mediaUrl ?? "") as string)
         : "";
     const pdfUrl = item.mediaUrl;
+    const itemIndex = items.findIndex((cycleItem) => cycleItem.key === item.key);
+    const previousDiagramItem = (() => {
+      if (!isDiagramItem || itemIndex < 0) {
+        return null;
+      }
+
+      for (let index = itemIndex - 1; index >= 0; index -= 1) {
+        const candidate = items[index];
+        const candidateMediaType = candidate.mediaType ?? candidate.type ?? "markdown";
+        if (candidateMediaType === "diagram") {
+          return candidate;
+        }
+      }
+
+      if (loopNavigation) {
+        for (let index = items.length - 1; index > itemIndex; index -= 1) {
+          const candidate = items[index];
+          const candidateMediaType = candidate.mediaType ?? candidate.type ?? "markdown";
+          if (candidateMediaType === "diagram") {
+            return candidate;
+          }
+        }
+      }
+
+      return null;
+    })();
+    const nextDiagramItem = (() => {
+      if (!isDiagramItem || itemIndex < 0) {
+        return null;
+      }
+
+      for (let index = itemIndex + 1; index < items.length; index += 1) {
+        const candidate = items[index];
+        const candidateMediaType = candidate.mediaType ?? candidate.type ?? "markdown";
+        if (candidateMediaType === "diagram") {
+          return candidate;
+        }
+      }
+
+      if (loopNavigation) {
+        for (let index = 0; index < itemIndex; index += 1) {
+          const candidate = items[index];
+          const candidateMediaType = candidate.mediaType ?? candidate.type ?? "markdown";
+          if (candidateMediaType === "diagram") {
+            return candidate;
+          }
+        }
+      }
+
+      return null;
+    })();
+    const canGoBackToPreviousDiagram = Boolean(previousDiagramItem?.onSelect);
+    const canAdvanceToNextDiagram = Boolean(nextDiagramItem?.onSelect);
 
     return (
       <Box
@@ -615,7 +674,7 @@ export default function MediaCycler({
             ...assetFrameSxArray,
           ]}
         >
-          {item.mediaType === "image" ? (
+          {resolvedMediaType === "image" ? (
             <Box
               role={canActivate ? "button" : undefined}
               tabIndex={canActivate ? 0 : -1}
@@ -689,7 +748,7 @@ export default function MediaCycler({
                 </Box>
               ) : null}
             </Box>
-          ) : item.mediaType === "video" ? (
+          ) : resolvedMediaType === "video" ? (
             <Box
               role={canActivate ? "button" : undefined}
               tabIndex={canActivate ? 0 : -1}
@@ -725,7 +784,7 @@ export default function MediaCycler({
                 {...item.videoProps}
               />
             </Box>
-          ) : item.mediaType === "pdf" ? (
+          ) : resolvedMediaType === "pdf" ? (
             <Box
               role={canActivate ? "button" : undefined}
               tabIndex={canActivate ? 0 : -1}
@@ -809,7 +868,7 @@ export default function MediaCycler({
                 </Box>
               ) : null}
             </Box>
-          ) : item.mediaType === "diagram" ? (
+          ) : resolvedMediaType === "diagram" ? (
             <Box
               role={canActivate ? "button" : undefined}
               tabIndex={canActivate ? 0 : -1}
@@ -824,8 +883,15 @@ export default function MediaCycler({
                 cursor: canActivate ? "pointer" : "default",
               }}
             >
-              <Box
-                sx={[
+              <DiagramLightBox
+                diagram={item.mediaUrl}
+                title={item.diagramProps?.title ?? item.title}
+                subtitle={item.lightboxSubtitle}
+                caption={item.lightboxCaption || item.mediaCaption || item.mediaSource}
+                showExpandButton={showExpandIcon}
+                expandButtonSx={expandControlSx}
+                stopEventPropagation={canActivate}
+                containerSx={[
                   {
                     width: "100%",
                     height: "100%",
@@ -836,33 +902,28 @@ export default function MediaCycler({
                       height: "100% !important",
                       minHeight: 0,
                     },
-                    "& .mermaid svg": {
+                    "& .diagram-mermaid svg": {
                       maxWidth: "100%",
                       height: "auto",
                     },
                   },
                   ...diagramSxArray,
                 ]}
-              >
-                <Diagram
-                  diagram={item.mediaUrl}
-                  title={item.diagramProps?.title ?? item.title}
-                  type={item.diagramProps?.type}
-                  orientation={item.diagramProps?.orientation}
-                  syntax={item.diagramProps?.syntax}
-                  steps={item.diagramProps?.steps}
-                  height={item.diagramProps?.height ?? "100%"}
-                  width={item.diagramProps?.width ?? "100%"}
-                  showToolbar={item.diagramProps?.showToolbar ?? true}
-                  showDots={item.diagramProps?.showDots ?? false}
-                />
-              </Box>
+                diagramProps={{
+                  ...item.diagramProps,
+                  title: item.diagramProps?.title ?? item.title,
+                  height: item.diagramProps?.height ?? "100%",
+                  width: item.diagramProps?.width ?? "100%",
+                  showToolbar: item.diagramProps?.showToolbar ?? true,
+                  showDots: item.diagramProps?.showDots ?? false,
+                }}
+              />
             </Box>
-          ) : item.mediaType === "custom" ||
-            item.mediaType === "project" ||
-            item.mediaType === "projectPresentation" ||
-            item.mediaType === "recognition" ||
-            item.mediaType === "recommendation" ? (
+          ) : resolvedMediaType === "custom" ||
+            resolvedMediaType === "project" ||
+            resolvedMediaType === "projectPresentation" ||
+            resolvedMediaType === "recognition" ||
+            resolvedMediaType === "recommendation" ? (
             <Box
               role={canActivate ? "button" : undefined}
               tabIndex={canActivate ? 0 : -1}
@@ -931,7 +992,6 @@ export default function MediaCycler({
           )}
           {navigationOverlay}
         </Box>
-
         {renderSource(item.mediaSource, item.mediaSourceHref) ? (
           <Box sx={{ display: inlineMetadataDisplay }}>
             {renderSource(item.mediaSource, item.mediaSourceHref)}
@@ -950,6 +1010,82 @@ export default function MediaCycler({
           </Typography>
         ) : null}
         {item.extraContent}
+        {isDiagramItem ? (
+          <Box
+            sx={{
+              mt: 0.85,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 0.75,
+            }}
+          >
+            <Link
+              component="button"
+              type="button"
+              underline="hover"
+              color={canGoBackToPreviousDiagram ? "primary.main" : "text.disabled"}
+              aria-disabled={!canGoBackToPreviousDiagram}
+              tabIndex={canGoBackToPreviousDiagram ? 0 : -1}
+              onClick={() => {
+                if (!canGoBackToPreviousDiagram) {
+                  return;
+                }
+                previousDiagramItem?.onSelect?.();
+              }}
+              sx={{
+                p: 0,
+                border: 0,
+                background: "none",
+                fontSize: "0.84rem",
+                lineHeight: 1.2,
+                fontWeight: 700,
+                cursor: canGoBackToPreviousDiagram ? "pointer" : "default",
+                pointerEvents: canGoBackToPreviousDiagram ? "auto" : "none",
+              }}
+            >
+              {"<"} Back
+            </Link>
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  fontWeight: 700,
+                  letterSpacing: "0.01em",
+                }}
+              >
+                More
+              </Typography>
+              <Link
+                component="button"
+                type="button"
+                underline="hover"
+                color={canAdvanceToNextDiagram ? "primary.main" : "text.disabled"}
+                aria-disabled={!canAdvanceToNextDiagram}
+                tabIndex={canAdvanceToNextDiagram ? 0 : -1}
+                onClick={() => {
+                  if (!canAdvanceToNextDiagram) {
+                    return;
+                  }
+                  nextDiagramItem?.onSelect?.();
+                }}
+                sx={{
+                  p: 0,
+                  border: 0,
+                  background: "none",
+                  fontSize: "0.84rem",
+                  lineHeight: 1.2,
+                  fontWeight: 700,
+                  cursor: canAdvanceToNextDiagram ? "pointer" : "default",
+                  pointerEvents: canAdvanceToNextDiagram ? "auto" : "none",
+                }}
+              >
+                Next {">"}
+              </Link>
+            </Box>
+          </Box>
+        ) : null}
       </Box>
     );
   };

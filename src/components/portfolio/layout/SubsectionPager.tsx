@@ -8,7 +8,7 @@ import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
+import { alpha, type Theme } from "@mui/material/styles";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import MoreVert from "@mui/icons-material/MoreVert";
@@ -46,13 +46,50 @@ type SubsectionPagerProps = {
 };
 
 const formatLabel = (index: number, title: string) => `${index + 1}. ${title}`;
+const getTitleModeColor = (theme: Theme) =>
+  theme.palette.mode === "dark"
+    ? alpha(theme.palette.common.white, 0.82)
+    : alpha(theme.palette.text.primary, 0.72);
+const getPagerIconButtonSx =
+  (selectedValueAsTitle: boolean, includeRightMargin = false) =>
+  (theme: Theme) => ({
+    ...(includeRightMargin ? { mr: 1.25 } : undefined),
+    color: selectedValueAsTitle ? getTitleModeColor(theme) : theme.palette.text.secondary,
+    border: "1px solid",
+    borderColor: selectedValueAsTitle
+      ? alpha(theme.palette.common.white, 0.28)
+      : alpha(theme.palette.divider, 0.95),
+    bgcolor: selectedValueAsTitle
+      ? alpha(theme.palette.common.white, 0.03)
+      : alpha(theme.palette.background.paper, 0.9),
+    boxShadow: "none",
+    backdropFilter: "none",
+    transition: "background-color 180ms ease, border-color 180ms ease, transform 180ms ease",
+    "&:hover": {
+      bgcolor: selectedValueAsTitle
+        ? alpha(theme.palette.common.white, 0.12)
+        : alpha(theme.palette.action.hover, 0.9),
+      borderColor: selectedValueAsTitle
+        ? alpha(theme.palette.common.white, 0.52)
+        : alpha(theme.palette.text.secondary, 0.55),
+      transform: "translateY(-1px)",
+    },
+    "&.Mui-focusVisible": {
+      bgcolor: selectedValueAsTitle
+        ? alpha(theme.palette.common.white, 0.16)
+        : alpha(theme.palette.action.focus, 0.95),
+      borderColor: selectedValueAsTitle
+        ? alpha(theme.palette.common.white, 0.56)
+        : alpha(theme.palette.text.secondary, 0.6),
+    },
+  });
 
 export default function SubsectionPager({
   items,
   currentKey,
   selectedValueAsTitle = false,
   selectedVisualSize = 24,
-  selectedIconFontSize = "0.95rem",
+  selectedIconFontSize,
   menuId,
   previousAriaLabel,
   nextAriaLabel,
@@ -92,43 +129,67 @@ export default function SubsectionPager({
     currentItem.optionLabel ??
     currentItem.title;
   const selectedTitle = selectedTitleSource?.trim() || currentItem.title;
-  const selectedVisual = currentItem.selectedImageSrc ? (
+  const selectedEmojiFontSize = `${Math.max(16, Math.round(selectedVisualSize * 0.78))}px`;
+  const optionVisualSize = 52;
+  const optionEmojiFontSize = `${Math.max(24, Math.round(optionVisualSize * 0.74))}px`;
+  const selectedImageSrc = currentItem.selectedImageSrc ?? currentItem.optionImageSrc;
+  const selectedImageAlt =
+    currentItem.selectedImageAlt ?? currentItem.optionImageAlt ?? `${currentItem.title} icon`;
+  const selectedIcon = currentItem.selectedIcon ?? currentItem.optionIcon;
+  const selectedVisual = selectedImageSrc ? (
     <Box
+      className="subsection-pager-selected-visual"
       component="img"
-      src={currentItem.selectedImageSrc}
-      alt={currentItem.selectedImageAlt || `${currentItem.title} icon`}
+      src={selectedImageSrc}
+      alt={selectedImageAlt}
       sx={{
         width: selectedVisualSize,
         height: selectedVisualSize,
-        borderRadius: "50%",
-        objectFit: "cover",
+        borderRadius: 1.5,
+        objectFit: "contain",
         border: "1px solid",
-        borderColor: "divider",
-        bgcolor: "background.paper",
+        borderColor: (theme) =>
+          selectedValueAsTitle ? alpha(theme.palette.common.white, 0.3) : theme.palette.divider,
+        bgcolor: (theme) =>
+          selectedValueAsTitle
+            ? alpha(theme.palette.common.white, 0.06)
+            : theme.palette.background.paper,
+        p: 0.2,
         flexShrink: 0,
+        transition: "transform 180ms ease, border-color 180ms ease, background-color 180ms ease",
       }}
     />
-  ) : currentItem.selectedIcon ? (
+  ) : selectedIcon ? (
     <Box
+      className="subsection-pager-selected-visual"
       aria-hidden="true"
       sx={{
         width: selectedVisualSize,
         height: selectedVisualSize,
-        borderRadius: "50%",
+        borderRadius: 1.5,
         border: "1px solid",
-        borderColor: "divider",
-        bgcolor: "background.paper",
+        borderColor: (theme) =>
+          selectedValueAsTitle ? alpha(theme.palette.common.white, 0.3) : theme.palette.divider,
+        bgcolor: (theme) =>
+          selectedValueAsTitle
+            ? alpha(theme.palette.common.white, 0.06)
+            : theme.palette.background.paper,
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "text.secondary",
+        color: selectedValueAsTitle ? "currentColor" : "text.secondary",
         flexShrink: 0,
         "& .MuiSvgIcon-root": {
-          fontSize: selectedIconFontSize,
+          fontSize: selectedIconFontSize ?? "1rem",
         },
+        "& .MuiTypography-root": {
+          fontSize: selectedEmojiFontSize,
+          lineHeight: 1,
+        },
+        transition: "transform 180ms ease, border-color 180ms ease, background-color 180ms ease",
       }}
     >
-      {currentItem.selectedIcon}
+      {selectedIcon}
     </Box>
   ) : null;
 
@@ -164,22 +225,7 @@ export default function SubsectionPager({
             size="small"
             aria-label={previousAriaLabel}
             onClick={onPrevious}
-            sx={
-              selectedValueAsTitle
-                ? (theme) => ({
-                    color:
-                      theme.palette.mode === "dark"
-                        ? alpha(theme.palette.common.white, 0.9)
-                        : theme.palette.text.primary,
-                    bgcolor: "transparent",
-                    boxShadow: "none",
-                    backdropFilter: "none",
-                    "&:hover": {
-                      bgcolor: "transparent",
-                    },
-                  })
-                : undefined
-            }
+            sx={getPagerIconButtonSx(selectedValueAsTitle)}
           >
             <ChevronLeft fontSize="small" />
           </IconButton>
@@ -212,9 +258,7 @@ export default function SubsectionPager({
                       : { xs: "1.12rem", md: "1.24rem" },
                     lineHeight: selectedValueAsTitle ? 1.12 : 1.2,
                     fontWeight: 800,
-                    color: selectedValueAsTitle
-                      ? (theme) => alpha(theme.palette.common.white, 0.96)
-                      : undefined,
+                    color: selectedValueAsTitle ? (theme) => getTitleModeColor(theme) : undefined,
                   }}
                 >
                   {formatLabel(currentIndex, selectedTitle)}
@@ -230,13 +274,37 @@ export default function SubsectionPager({
               justifySelf: "stretch",
               ...(selectedValueAsTitle
                 ? {
-                    borderColor: "transparent",
-                    color: "common.white",
-                    bgcolor: "transparent",
-                    boxShadow: "none",
-                    backdropFilter: "none",
+                    border: "0 !important",
+                    borderColor: "transparent !important",
+                    color: "text.secondary",
+                    bgcolor: "transparent !important",
+                    backgroundColor: "transparent !important",
+                    backgroundImage: "none !important",
+                    boxShadow: "none !important",
+                    backdropFilter: "none !important",
+                    filter: "none !important",
+                    borderRadius: 1.5,
+                    transition: "background-color 180ms ease, transform 180ms ease",
+                    "&.MuiChip-outlined": {
+                      border: "0 !important",
+                    },
                     "&:hover": {
-                      bgcolor: "transparent",
+                      bgcolor: "rgba(255,255,255,0.08) !important",
+                      backgroundColor: "rgba(255,255,255,0.08) !important",
+                      transform: "translateY(-1px)",
+                    },
+                    "&:hover .subsection-pager-selected-visual": {
+                      borderColor: "rgba(255,255,255,0.52)",
+                      backgroundColor: "rgba(255,255,255,0.14)",
+                      transform: "translateY(-1px) scale(1.04)",
+                    },
+                    "&.Mui-focusVisible": {
+                      bgcolor: "rgba(255,255,255,0.12) !important",
+                      backgroundColor: "rgba(255,255,255,0.12) !important",
+                    },
+                    "&.Mui-focusVisible .subsection-pager-selected-visual": {
+                      borderColor: "rgba(255,255,255,0.52)",
+                      backgroundColor: "rgba(255,255,255,0.14)",
                     },
                   }
                 : undefined),
@@ -252,22 +320,7 @@ export default function SubsectionPager({
             size="small"
             aria-label={nextAriaLabel}
             onClick={onNext}
-            sx={
-              selectedValueAsTitle
-                ? (theme) => ({
-                    color:
-                      theme.palette.mode === "dark"
-                        ? alpha(theme.palette.common.white, 0.9)
-                        : theme.palette.text.primary,
-                    bgcolor: "transparent",
-                    boxShadow: "none",
-                    backdropFilter: "none",
-                    "&:hover": {
-                      bgcolor: "transparent",
-                    },
-                  })
-                : undefined
-            }
+            sx={getPagerIconButtonSx(selectedValueAsTitle)}
           >
             <ChevronRight fontSize="small" />
           </IconButton>
@@ -278,23 +331,7 @@ export default function SubsectionPager({
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? menuId : undefined}
-            sx={
-              selectedValueAsTitle
-                ? (theme) => ({
-                    mr: 1.25,
-                    color:
-                      theme.palette.mode === "dark"
-                        ? alpha(theme.palette.common.white, 0.9)
-                        : theme.palette.text.primary,
-                    bgcolor: "transparent",
-                    boxShadow: "none",
-                    backdropFilter: "none",
-                    "&:hover": {
-                      bgcolor: "transparent",
-                    },
-                  })
-                : { mr: 1.25 }
-            }
+            sx={getPagerIconButtonSx(selectedValueAsTitle, true)}
           >
             <MoreVert fontSize="small" />
           </IconButton>
@@ -337,8 +374,8 @@ export default function SubsectionPager({
                 src={item.optionImageSrc}
                 alt={item.optionImageAlt || `${item.title} logo`}
                 sx={{
-                  width: 52,
-                  height: 52,
+                  width: optionVisualSize,
+                  height: optionVisualSize,
                   mt: 0.1,
                   borderRadius: 1.5,
                   objectFit: "contain",
@@ -352,8 +389,8 @@ export default function SubsectionPager({
               <Box
                 aria-hidden="true"
                 sx={{
-                  width: 52,
-                  height: 52,
+                  width: optionVisualSize,
+                  height: optionVisualSize,
                   mt: 0.1,
                   borderRadius: 1.5,
                   border: "1px solid",
@@ -363,6 +400,13 @@ export default function SubsectionPager({
                   alignItems: "center",
                   justifyContent: "center",
                   color: "text.secondary",
+                  "& .MuiSvgIcon-root": {
+                    fontSize: "1.55rem",
+                  },
+                  "& .MuiTypography-root": {
+                    fontSize: optionEmojiFontSize,
+                    lineHeight: 1,
+                  },
                 }}
               >
                 {item.optionIcon}
