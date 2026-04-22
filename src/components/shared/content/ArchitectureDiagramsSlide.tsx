@@ -232,7 +232,6 @@ export default function ArchitectureDiagramsSlide({
                     aria-label={copyLinkAriaLabel}
                     onClick={onCopyLink}
                     sx={(theme) => ({
-                      display: { xs: "none", md: "inline-flex" },
                       mr: 1.25,
                       color:
                         theme.palette.mode === "dark"

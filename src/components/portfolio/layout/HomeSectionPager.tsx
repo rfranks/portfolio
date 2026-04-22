@@ -117,12 +117,9 @@ export default function HomeSectionPager({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: {
-              xs: "minmax(0, 1fr)",
-              md: "auto minmax(0, 1fr) auto auto",
-            },
+            gridTemplateColumns: "auto minmax(0, 1fr) auto auto",
             alignItems: "center",
-            gap: { xs: 0, md: 1 },
+            gap: 1,
           }}
         >
           <IconButton
@@ -135,7 +132,6 @@ export default function HomeSectionPager({
               }
             }}
             sx={{
-              display: { xs: "none", md: "inline-flex" },
               p: 0.45,
               color: "inherit",
               borderRadius: "999px",
@@ -222,7 +218,6 @@ export default function HomeSectionPager({
               }
             }}
             sx={{
-              display: { xs: "none", md: "inline-flex" },
               p: 0.45,
               color: "inherit",
               borderRadius: "999px",
@@ -246,7 +241,6 @@ export default function HomeSectionPager({
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? "home-section-selector-menu" : undefined}
             sx={{
-              display: { xs: "none", md: "inline-flex" },
               p: 0.45,
               color: "inherit",
               borderRadius: "999px",

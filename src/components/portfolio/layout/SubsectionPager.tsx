@@ -1365,19 +1365,16 @@ export default function SubsectionPager({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: {
-              xs: "minmax(0, 1fr)",
-              md: "auto minmax(0, 1fr) auto auto",
-            },
+            gridTemplateColumns: "auto minmax(0, 1fr) auto auto",
             alignItems: "center",
-            gap: { xs: 0, md: 1 },
+            gap: 1,
           }}
         >
           <IconButton
             size="small"
             aria-label={previousAriaLabel}
             onClick={onPrevious}
-            sx={[{ display: { xs: "none", md: "inline-flex" } }, ...previousButtonMergedSxArray]}
+            sx={previousButtonMergedSxArray}
           >
             <ChevronLeft fontSize="small" />
           </IconButton>
@@ -1487,15 +1484,12 @@ export default function SubsectionPager({
             size="small"
             aria-label={nextAriaLabel}
             onClick={onNext}
-            sx={[
-              { display: { xs: "none", md: "inline-flex" } },
-              getPagerIconButtonSx(
-                selectedValueAsTitle,
-                false,
-                borderlessIconButtons,
-                flatIconButtons,
-              ),
-            ]}
+            sx={getPagerIconButtonSx(
+              selectedValueAsTitle,
+              false,
+              borderlessIconButtons,
+              flatIconButtons,
+            )}
           >
             <ChevronRight fontSize="small" />
           </IconButton>
@@ -1506,15 +1500,12 @@ export default function SubsectionPager({
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? menuId : undefined}
-            sx={[
-              { display: { xs: "none", md: "inline-flex" } },
-              getPagerIconButtonSx(
-                selectedValueAsTitle,
-                true,
-                borderlessIconButtons,
-                flatIconButtons,
-              ),
-            ]}
+            sx={getPagerIconButtonSx(
+              selectedValueAsTitle,
+              true,
+              borderlessIconButtons,
+              flatIconButtons,
+            )}
           >
             <MoreVert fontSize="small" />
           </IconButton>

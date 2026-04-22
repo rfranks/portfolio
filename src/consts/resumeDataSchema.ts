@@ -392,6 +392,7 @@ const projectEntrySchema = z
     description: nonEmptyString,
     href: nonEmptyString,
     type: z.enum(["personal", "work", "presentation"]),
+    presentationOrigin: z.enum(["personal", "work"]).optional(),
     interestsMeWhy: nonEmptyString,
     wowFactor: nonEmptyString.optional(),
     demoCaption: nonEmptyString.optional(),
@@ -411,6 +412,22 @@ const projectEntrySchema = z
     sectionPagerSfx: projectSectionPagerSfxSchema.optional(),
   })
   .superRefine((project, ctx) => {
+    if (project.type === "presentation" && !project.presentationOrigin) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["presentationOrigin"],
+        message: "Presentation projects must declare presentationOrigin ('work' or 'personal').",
+      });
+    }
+
+    if (project.type !== "presentation" && project.presentationOrigin) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["presentationOrigin"],
+        message: "presentationOrigin is only allowed when type is 'presentation'.",
+      });
+    }
+
     const legacyDiagramFields = [
       project.blockDiagram,
       project.componentDiagram,

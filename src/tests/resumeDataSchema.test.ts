@@ -275,6 +275,30 @@ describe("resumeDataSchema hardening and edge cases", () => {
     }, /projects\.0\.type/i);
   });
 
+  it("requires presentationOrigin for presentation projects", () => {
+    expectSchemaFailure((input) => {
+      const project = (input.projects as Array<Record<string, unknown>>).find(
+        (entry) => entry.type === "presentation",
+      );
+      if (!project) {
+        throw new Error("No presentation project available for test.");
+      }
+      delete project.presentationOrigin;
+    }, /presentationOrigin/i);
+  });
+
+  it("rejects presentationOrigin on non-presentation projects", () => {
+    expectSchemaFailure((input) => {
+      const project = (input.projects as Array<Record<string, unknown>>).find(
+        (entry) => entry.type !== "presentation",
+      );
+      if (!project) {
+        throw new Error("No non-presentation project available for test.");
+      }
+      project.presentationOrigin = "work";
+    }, /presentationOrigin/i);
+  });
+
   it("rejects diagrams that omit shortText", () => {
     expectSchemaFailure((input) => {
       const project = getProjectWithDiagrams(input);

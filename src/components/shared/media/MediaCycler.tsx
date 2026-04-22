@@ -1155,7 +1155,6 @@ export default function MediaCycler({
     showChevronNavigation && renderedItem ? (
       <Box
         sx={{
-          display: { xs: "none", md: "block" },
           position: "absolute",
           inset: 0,
           pointerEvents: "none",

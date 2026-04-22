@@ -60,6 +60,7 @@ export type ProjectSectionPagerSfxConfig = Partial<
 export interface ProjectData {
   project: string;
   type?: "personal" | "work" | "presentation";
+  presentationOrigin?: "personal" | "work";
   showcaseHeading?: string;
   showcaseSubtitle?: string;
   href?: string;

@@ -48,8 +48,16 @@ type CardsFanVisual = {
 type ProjectVisual = ImageVisual | CardsFanVisual;
 type ProjectEntry = ResumeData["projects"][number];
 type ProjectsSection = ResumeData["projectsSection"];
+type PresentationOrigin = "work" | "personal";
 
-function getProjectTypeChip(projectType: string): {
+function normalizePresentationOrigin(value: unknown): PresentationOrigin | undefined {
+  return value === "work" || value === "personal" ? value : undefined;
+}
+
+function getProjectTypeChip(
+  projectType: string,
+  presentationOrigin?: "work" | "personal",
+): {
   label: string;
   color: "primary" | "secondary" | "default";
 } {
@@ -57,6 +65,12 @@ function getProjectTypeChip(projectType: string): {
     return { label: "Work", color: "primary" };
   }
   if (projectType === "presentation") {
+    if (presentationOrigin === "work") {
+      return { label: "Work Presentation", color: "primary" };
+    }
+    if (presentationOrigin === "personal") {
+      return { label: "Personal Presentation", color: "secondary" };
+    }
     return { label: "Presentation", color: "default" };
   }
   return { label: "Personal", color: "secondary" };
@@ -163,7 +177,10 @@ function renderProjectContent(
   project: ProjectEntry,
   sectionLabels: Pick<ProjectsSection, "interestHeading" | "accoladesHeading" | "launchLabel">,
 ) {
-  const typeChip = getProjectTypeChip(project.type);
+  const typeChip = getProjectTypeChip(
+    project.type,
+    normalizePresentationOrigin(project.presentationOrigin),
+  );
   return (
     <Box
       className="relative overflow-hidden rounded-[24px] p-4 md:p-5"
@@ -307,7 +324,10 @@ export default function ProjectsGrid({ topRail }: ProjectsGridProps) {
       sortedProjects.map((project) => {
         const optionImageSrc = getProjectOptionImage(project);
         const optionSubtitle = getProjectOptionShortText(project);
-        const typeChip = getProjectTypeChip(project.type);
+        const typeChip = getProjectTypeChip(
+          project.type,
+          normalizePresentationOrigin(project.presentationOrigin),
+        );
         return {
           key: project.href,
           title: project.name,
