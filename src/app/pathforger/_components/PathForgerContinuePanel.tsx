@@ -254,11 +254,13 @@ export default function PathForgerContinuePanel(props: PathForgerContinuePanelPr
                               variant="outlined"
                               sx={{
                                 width: "100%",
+                                height: {
+                                  xs: "clamp(132px, 42vw, 220px)",
+                                  md: "clamp(180px, 32vh, 320px)",
+                                },
                                 borderRadius: 1.25,
                                 overflow: "hidden",
                                 position: "relative",
-                                aspectRatio: "16 / 9",
-                                minHeight: { xs: 120, md: 132 },
                                 bgcolor: "background.paper",
                               }}
                             >
