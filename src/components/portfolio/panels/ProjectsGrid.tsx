@@ -6,13 +6,17 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import type { ResumeData } from "@/consts/resumeData";
-import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import SubsectionPager, {
   type SubsectionPagerItem,
 } from "@/components/portfolio/layout/SubsectionPager";
 import AccoladesCarousel from "@/components/portfolio/panels/AccoladesCarousel";
 import Chip from "@/components/fabric/Chip";
-import { ImageLightbox, MarkdownContent, MediaCycler } from "@/components/shared";
+import {
+  ImageLightbox,
+  MarkdownContent,
+  MediaCycler,
+  PortfolioPanelShell,
+} from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
@@ -359,35 +363,28 @@ export default function ProjectsGrid({ topRail }: ProjectsGridProps) {
   }, [activeProjectIndex, hasMultipleProjectItems, projectItems]);
 
   return (
-    <PortfolioPanel
-      className="relative overflow-hidden"
-      sx={{
+    <PortfolioPanelShell
+      panelClassName="relative overflow-hidden"
+      topRail={topRail}
+      topRailSx={{ position: "relative", zIndex: 6 }}
+      contentSx={{
         minHeight: 0,
-        height: "100%",
+        flex: "1 1 auto",
+        overflow: "hidden",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      {topRail ? (
-        <Box
-          sx={{
-            flexShrink: 0,
-            mx: -2,
-            mt: -2,
-            mb: 0,
-            bgcolor: "background.paper",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-            backdropFilter: "blur(8px)",
-            borderTopLeftRadius: "var(--fabric-radius-xl)",
-            borderTopRightRadius: "var(--fabric-radius-xl)",
-            position: "relative",
-            zIndex: 6,
-          }}
-        >
-          {topRail}
-        </Box>
-      ) : null}
+      <Box
+      className="relative overflow-hidden"
+      sx={{
+        minHeight: 0,
+        flex: "1 1 auto",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
       <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-36 overflow-hidden md:block">
         {projectsSection.marks.map((mark, index) =>
           mark.kind === "image" ? (
@@ -433,6 +430,7 @@ export default function ProjectsGrid({ topRail }: ProjectsGridProps) {
           }}
         />
       </Box>
-    </PortfolioPanel>
+      </Box>
+    </PortfolioPanelShell>
   );
 }

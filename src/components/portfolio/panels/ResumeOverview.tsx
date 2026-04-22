@@ -4,8 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
-import { ImageLightbox } from "@/components/shared";
-import { MarkdownContent } from "@/components/shared";
+import { ImageLightbox, MarkdownContent, PanelFrame } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import IconButton from "@mui/material/IconButton";
@@ -51,32 +50,88 @@ export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
           overflow: "hidden",
         }}
       >
-        {topRail ? (
-          <Box
-            sx={{
-              flexShrink: 0,
-              position: "relative",
-              zIndex: 6,
-              bgcolor: "background.paper",
-              borderBottom: "1px solid",
-              borderColor: "divider",
-              backdropFilter: "blur(8px)",
-              borderTopLeftRadius: "var(--fabric-radius-xl)",
-              borderTopRightRadius: "var(--fabric-radius-xl)",
-            }}
-          >
-            {topRail}
-          </Box>
-        ) : null}
-        <Box
-          sx={{
+        <PanelFrame
+          topRail={topRail}
+          useNegativeTopRailMargins={false}
+          rootSx={{
+            minHeight: 0,
+            height: "100%",
+            flex: "1 1 auto",
+            overflow: "hidden",
+          }}
+          topRailSx={{
+            mx: 0,
+            mt: 0,
+            position: "relative",
+            zIndex: 6,
+          }}
+          contentSx={{
             minHeight: 0,
             flex: "1 1 auto",
             overflowY: "auto",
             display: "flex",
             flexDirection: "column",
             pt: 0,
-            pb: { xs: 8, md: 9 },
+            pb: { xs: 2, md: 2.5 },
+          }}
+          footer={
+            <Stack
+              direction="row"
+              spacing={2}
+              justifyContent="center"
+              useFlexGap
+              flexWrap="wrap"
+              className="w-full"
+              sx={{ flexShrink: 0 }}
+            >
+              <IconButton
+                color="primary"
+                href={`mailto:${summary.contact.email}`}
+                className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+              >
+                <AlternateEmail />
+              </IconButton>
+              <IconButton
+                color="primary"
+                href={summary.contact.linkedin}
+                target="_blank"
+                rel="noopener"
+                className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+              >
+                <LinkedIn />
+              </IconButton>
+              {summary.contact.github.map((url) => (
+                <Tooltip
+                  title={url.substring(url.lastIndexOf("/") + 1)}
+                  key={url}
+                  arrow
+                >
+                  <IconButton
+                    key={url}
+                    color="default"
+                    href={url}
+                    target="_blank"
+                    rel="noopener"
+                    className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+                  >
+                    <GitHub />
+                  </IconButton>
+                </Tooltip>
+              ))}
+              <Button
+                variant="text"
+                href={withBasePath(summary.resumeUrl)}
+                download
+                className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+              >
+                Resume
+              </Button>
+            </Stack>
+          }
+          footerSx={{
+            px: { xs: 2, md: 3.5 },
+            pb: { xs: 2.5, md: 3.5 },
+            py: 1,
           }}
         >
           <Box
@@ -240,75 +295,7 @@ export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
               </Stack>
             </Stack>
           </Box>
-        </Box>
-        <Box
-          component="footer"
-          sx={{
-            flexShrink: 0,
-            zIndex: 5,
-            mt: "auto",
-            px: { xs: 2, md: 3.5 },
-            pb: { xs: 2.5, md: 3.5 },
-            py: 1,
-            bgcolor: "background.paper",
-            borderTop: "1px solid",
-            borderColor: "divider",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <Stack
-            direction="row"
-            spacing={2}
-            justifyContent="center"
-            useFlexGap
-            flexWrap="wrap"
-            className="w-full"
-            sx={{ flexShrink: 0 }}
-          >
-            <IconButton
-              color="primary"
-              href={`mailto:${summary.contact.email}`}
-              className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
-            >
-              <AlternateEmail />
-            </IconButton>
-            <IconButton
-              color="primary"
-              href={summary.contact.linkedin}
-              target="_blank"
-              rel="noopener"
-              className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
-            >
-              <LinkedIn />
-            </IconButton>
-            {summary.contact.github.map((url) => (
-              <Tooltip
-                title={url.substring(url.lastIndexOf("/") + 1)}
-                key={url}
-                arrow
-              >
-                <IconButton
-                  key={url}
-                  color="default"
-                  href={url}
-                  target="_blank"
-                  rel="noopener"
-                  className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
-                >
-                  <GitHub />
-                </IconButton>
-              </Tooltip>
-            ))}
-            <Button
-              variant="text"
-              href={withBasePath(summary.resumeUrl)}
-              download
-              className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
-            >
-              Resume
-            </Button>
-          </Stack>
-        </Box>
+        </PanelFrame>
       </Box>
     </Hero>
   );

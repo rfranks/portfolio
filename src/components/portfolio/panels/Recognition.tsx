@@ -12,13 +12,13 @@ import { useTheme } from "@mui/material/styles";
 import Close from "@mui/icons-material/Close";
 import AccountCircleOutlined from "@mui/icons-material/AccountCircleOutlined";
 import type { ResumeData } from "@/consts/resumeData";
-import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import SubsectionPager from "@/components/portfolio/layout/SubsectionPager";
 import {
   EmojiGlyph,
   ImageLightbox,
   MarkdownContent,
   MediaCycler,
+  PortfolioPanelShell,
 } from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
@@ -366,46 +366,22 @@ export default function Recognition({ topRail }: RecognitionProps) {
   }, [activeRecommendationIndex, hasMultipleRecommendationItems, recommendationItems]);
 
   return (
-    <PortfolioPanel
-      sx={{
-        minHeight: 0,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
-    >
-      {topRail ? (
-        <Box
-          sx={{
-            flexShrink: 0,
-            mx: -2,
-            mt: -2,
-            mb: 0,
-            bgcolor: "background.paper",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-            backdropFilter: "blur(8px)",
-            borderTopLeftRadius: "var(--fabric-radius-xl)",
-            borderTopRightRadius: "var(--fabric-radius-xl)",
-          }}
-        >
-          {topRail}
-        </Box>
-      ) : null}
-        <Box
-          sx={{
-            minHeight: 0,
-            flex: "1 1 auto",
-            display: "grid",
-            gap: 2,
-            pt: 0.5,
-            gridTemplateRows: {
-              xs: "minmax(120px, 150px) minmax(0, 1fr)",
-              md: "minmax(130px, 165px) minmax(0, 1fr)",
-            },
-          }}
-        >
+    <>
+      <PortfolioPanelShell
+        topRail={topRail}
+        topRailSx={{ position: "relative", zIndex: 6 }}
+        contentSx={{
+          minHeight: 0,
+          flex: "1 1 auto",
+          display: "grid",
+          gap: 2,
+          pt: 0.5,
+          gridTemplateRows: {
+            xs: "minmax(120px, 150px) minmax(0, 1fr)",
+            md: "minmax(130px, 165px) minmax(0, 1fr)",
+          },
+        }}
+      >
         <Box
           sx={{
             minHeight: 0,
@@ -453,7 +429,6 @@ export default function Recognition({ topRail }: RecognitionProps) {
             />
           </Box>
         </Box>
-
         <Box
           sx={{
             minHeight: 0,
@@ -493,7 +468,7 @@ export default function Recognition({ topRail }: RecognitionProps) {
             />
           </Box>
         </Box>
-      </Box>
+      </PortfolioPanelShell>
       <Dialog
         open={Boolean(dialogRecommendation) && isSmDown}
         onClose={() => setDialogRecommendationIndex(null)}
@@ -518,6 +493,6 @@ export default function Recognition({ topRail }: RecognitionProps) {
             : null}
         </DialogContent>
       </Dialog>
-    </PortfolioPanel>
+    </>
   );
 }

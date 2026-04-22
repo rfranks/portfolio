@@ -1,8 +1,12 @@
 import resumeDataSnapshot from "../../public/personal/data/resumeData.json";
+import { parseResumeDataWithSchema } from "@/consts/resumeDataSchema";
 
 export const resumeDataPath = "/personal/data/resumeData.json";
 
-const resumeData = resumeDataSnapshot;
+const resumeData = parseResumeDataWithSchema(
+  resumeDataSnapshot,
+  "bundled resumeData snapshot",
+) as typeof resumeDataSnapshot;
 export type ResumeData = typeof resumeDataSnapshot;
 
 let resumeDataFetchPromise: Promise<ResumeData> | null = null;
@@ -34,7 +38,11 @@ export async function fetchResumeData(options?: {
     throw new Error(`Failed to load resume data: ${response.status}`);
   }
 
-  return (await response.json()) as ResumeData;
+  const payload = await response.json();
+  return parseResumeDataWithSchema(
+    payload,
+    `resumeData response from ${resolveResumeDataUrl(options?.baseUrl)}`,
+  ) as ResumeData;
 }
 
 export async function fetchResumeDataCached(options?: {

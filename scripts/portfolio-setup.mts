@@ -6,6 +6,7 @@ import process from "node:process";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
+import { parseResumeDataWithSchema } from "../src/consts/resumeDataSchema";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -139,6 +140,8 @@ type RecommendationEntry = {
   text: string;
 };
 
+type RecognitionSnippetEntry = string | { text: string; glyph?: string };
+
 type CompetencySkillEntry = {
   label: string;
   description: string;
@@ -191,7 +194,7 @@ type SummaryData = {
 };
 
 type RecognitionData = {
-  snippets?: string[];
+  snippets?: RecognitionSnippetEntry[];
   recommendations?: RecommendationEntry[];
   [key: string]: unknown;
 };
@@ -694,9 +697,70 @@ async function readJson<T = JsonRecord>(filePath: string): Promise<T> {
   return JSON.parse(raw) as T;
 }
 
-async function writeJson(filePath: string, data: unknown): Promise<void> {
+async function createJsonBackup(filePath: string): Promise<string> {
+  const backupDir = path.join(path.dirname(filePath), ".backups");
+  await ensureDir(backupDir);
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const backupPath = path.join(
+    backupDir,
+    `${path.basename(filePath, path.extname(filePath))}.${timestamp}${path.extname(filePath)}`,
+  );
+  await fs.copyFile(filePath, backupPath);
+  return backupPath;
+}
+
+async function writeJson(
+  filePath: string,
+  data: unknown,
+  options?: { createBackup?: boolean },
+): Promise<void> {
+  if (options?.createBackup) {
+    await createJsonBackup(filePath);
+  }
+
   const json = `${JSON.stringify(data, null, 2)}\n`;
-  await fs.writeFile(filePath, json, "utf8");
+  const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
+  await fs.writeFile(tempPath, json, "utf8");
+  await fs.rename(tempPath, filePath);
+}
+
+async function readValidatedResumeData(): Promise<ResumeData> {
+  const raw = await readJson<unknown>(resumeDataPath);
+  return parseResumeDataWithSchema(raw, resumeDataPath) as ResumeData;
+}
+
+function validateResumeDataOrThrow(data: ResumeData): ResumeData {
+  return parseResumeDataWithSchema(data, resumeDataPath) as ResumeData;
+}
+
+function normalizeProjectEntry(nextProject: ProjectEntry): ProjectEntry {
+  const name = String(nextProject.name || "").trim();
+  const href = withLeadingSlash(String(nextProject.href || "").trim());
+
+  if (!name) {
+    throw new Error("Project name is required.");
+  }
+  if (!href || href === "/") {
+    throw new Error(`Project '${name}' must include a non-root href.`);
+  }
+
+  return {
+    ...nextProject,
+    name,
+    href,
+  };
+}
+
+function validateProjectsOrThrow(projects: ProjectEntry[]): void {
+  const hrefs = new Set<string>();
+  for (const project of projects) {
+    const normalized = normalizeProjectEntry(project);
+    if (hrefs.has(normalized.href)) {
+      throw new Error(`Duplicate project href detected: ${normalized.href}`);
+    }
+    hrefs.add(normalized.href);
+  }
 }
 
 async function walkFiles(baseDir: string): Promise<string[]> {
@@ -982,12 +1046,13 @@ function projectWatermarkFromPath(
 }
 
 function upsertProject(projects: ProjectEntry[], nextProject: ProjectEntry): void {
-  const index = projects.findIndex((item) => item.href === nextProject.href);
+  const normalizedProject = normalizeProjectEntry(nextProject);
+  const index = projects.findIndex((item) => item.href === normalizedProject.href);
   if (index === -1) {
-    projects.push(nextProject);
+    projects.push(normalizedProject);
     return;
   }
-  projects[index] = nextProject;
+  projects[index] = normalizedProject;
 }
 
 function upsertShenanigan(
@@ -1006,6 +1071,9 @@ function ensureNavigationItems(
   resumeData: JsonRecord,
   projectRoutes: NavigationRoute[],
 ): void {
+  const existingNavigation = isPlainObject(resumeData.navigation)
+    ? resumeData.navigation
+    : {};
   const base = [{ label: "Home", href: "/", icon: "home" }];
   const shenanigans = {
     label: "AI Shenanigans",
@@ -1019,7 +1087,7 @@ function ensureNavigationItems(
   }));
 
   resumeData.navigation = {
-    ...(resumeData.navigation || {}),
+    ...existingNavigation,
     drawerItems: [...base, ...projectItems, shenanigans],
   };
 }
@@ -1206,6 +1274,28 @@ function defaultEducationTemplate(): EducationEntry {
 
 function defaultRecognitionSnippetTemplate(): string {
   return "Recognized for delivering high-quality product engineering with speed and consistency.";
+}
+
+function normalizeRecognitionSnippet(
+  snippet: RecognitionSnippetEntry,
+): { text: string; glyph?: string } {
+  if (typeof snippet === "string") {
+    return { text: snippet };
+  }
+
+  return {
+    text: snippet.text,
+    glyph: snippet.glyph,
+  };
+}
+
+function formatRecognitionSnippetPreview(snippet: RecognitionSnippetEntry): string {
+  const normalized = normalizeRecognitionSnippet(snippet);
+  const previewText =
+    normalized.text.length > 80
+      ? `${normalized.text.slice(0, 80)}...`
+      : normalized.text;
+  return normalized.glyph ? `${normalized.glyph} ${previewText}` : previewText;
 }
 
 function defaultRecommendationTemplate(): RecommendationEntry {
@@ -1726,12 +1816,28 @@ async function promptEducationEntry(
 
 async function promptRecognitionSnippet(
   rl: WizardReadline,
-  current = "",
-): Promise<string> {
-  return askText(rl, "Recognition snippet", {
-    defaultValue: current || defaultRecognitionSnippetTemplate(),
+  current: RecognitionSnippetEntry = "",
+): Promise<RecognitionSnippetEntry> {
+  const normalized = normalizeRecognitionSnippet(current);
+  const text = await askText(rl, "Recognition snippet text", {
+    defaultValue: normalized.text || defaultRecognitionSnippetTemplate(),
     required: true,
   });
+
+  const glyph = await askText(rl, "Optional glyph (emoji/icon text)", {
+    defaultValue: normalized.glyph || "",
+    required: false,
+  });
+
+  const trimmedGlyph = glyph.trim();
+  if (trimmedGlyph) {
+    return {
+      text,
+      glyph: trimmedGlyph,
+    };
+  }
+
+  return text;
 }
 
 async function promptRecommendationEntry(
@@ -2159,7 +2265,7 @@ async function runInitMode(): Promise<void> {
       return;
     }
 
-    const resumeData = await readJson<ResumeData>(resumeDataPath);
+    const resumeData = await readValidatedResumeData();
 
     const fullName = await askText(rl, "Your name", {
       defaultValue: "Your Name",
@@ -2348,7 +2454,9 @@ async function runInitMode(): Promise<void> {
       ],
     };
 
-    await writeJson(resumeDataPath, resumeData);
+    validateProjectsOrThrow(newProjects);
+    const validatedResumeData = validateResumeDataOrThrow(resumeData);
+    await writeJson(resumeDataPath, validatedResumeData, { createBackup: true });
 
     writeLine();
     writeSuccess("Init complete.");
@@ -2368,7 +2476,7 @@ async function runUpdateMode(): Promise<void> {
   const rl = readline.createInterface({ input, output });
   try {
     writeSection("Portfolio updater");
-    const resumeData = await readJson<ResumeData>(resumeDataPath);
+    const resumeData = await readValidatedResumeData();
     const projects: ProjectEntry[] = Array.isArray(resumeData.projects)
       ? (resumeData.projects as ProjectEntry[])
       : [];
@@ -2394,8 +2502,10 @@ async function runUpdateMode(): Promise<void> {
     )
       ? (competenciesData.categories as CompetencyCategoryEntry[])
       : [];
-    const recognitionSnippets: string[] = Array.isArray(recognition.snippets)
-      ? (recognition.snippets as string[])
+    const recognitionSnippets: RecognitionSnippetEntry[] = Array.isArray(
+      recognition.snippets,
+    )
+      ? (recognition.snippets as RecognitionSnippetEntry[])
       : [];
     const recommendations: RecommendationEntry[] = Array.isArray(
       recognition.recommendations,
@@ -2655,11 +2765,10 @@ async function runUpdateMode(): Promise<void> {
             const index = await chooseIndex(
               rl,
               "Select recognition snippet",
-              recognitionSnippets.map((snippet, idx) => {
-                const preview =
-                  snippet.length > 80 ? `${snippet.slice(0, 80)}...` : snippet;
-                return `${idx + 1}. ${preview}`;
-              }),
+              recognitionSnippets.map(
+                (snippet, idx) =>
+                  `${idx + 1}. ${formatRecognitionSnippetPreview(snippet)}`,
+              ),
             );
             recognitionSnippets[index] = await promptRecognitionSnippet(
               rl,
@@ -2676,11 +2785,10 @@ async function runUpdateMode(): Promise<void> {
             const index = await chooseIndex(
               rl,
               "Select recognition snippet to remove",
-              recognitionSnippets.map((snippet, idx) => {
-                const preview =
-                  snippet.length > 80 ? `${snippet.slice(0, 80)}...` : snippet;
-                return `${idx + 1}. ${preview}`;
-              }),
+              recognitionSnippets.map(
+                (snippet, idx) =>
+                  `${idx + 1}. ${formatRecognitionSnippetPreview(snippet)}`,
+              ),
             );
             recognitionSnippets.splice(index, 1);
             writeSuccess("Recognition snippet removed.");
@@ -2839,7 +2947,9 @@ async function runUpdateMode(): Promise<void> {
     }));
     ensureNavigationItems(resumeData, navRoutes);
 
-    await writeJson(resumeDataPath, resumeData);
+    validateProjectsOrThrow(projects);
+    const validatedResumeData = validateResumeDataOrThrow(resumeData);
+    await writeJson(resumeDataPath, validatedResumeData, { createBackup: true });
 
     writeLine();
     writeSuccess("Update complete.");

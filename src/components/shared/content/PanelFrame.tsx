@@ -2,7 +2,7 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import type { SxProps, Theme } from "@mui/material/styles";
 
-type PanelFrameProps = {
+export type PanelFrameProps = {
   topRail?: React.ReactNode;
   footer?: React.ReactNode;
   children: React.ReactNode;
@@ -18,7 +18,7 @@ const toSxArray = (value?: SxProps<Theme>) =>
   Array.isArray(value) ? value : value ? [value] : [];
 
 const PANEL_RAIL_OFFSET_X = -2;
-const PANEL_RAIL_OFFSET_Y = -2.5;
+const PANEL_RAIL_OFFSET_Y = -2;
 
 export default function PanelFrame({
   topRail,
