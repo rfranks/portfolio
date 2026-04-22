@@ -43,7 +43,11 @@ import {
   pitchCacheStorageKey,
   pitchPanelBorderRadius,
 } from "@/app/pathforger/_consts/consts";
-import { getPathForgerOpenAIKey, setPathForgerOpenAIKey } from "@/app/pathforger/_utils/openAIKey";
+import {
+  getPathForgerOpenAIKey,
+  getPathForgerOpenAIKeyForInterstitial,
+  setPathForgerOpenAIKey,
+} from "@/app/pathforger/_utils/openAIKey";
 import {
   runPathForgerOutcomeImageStage,
   runPathForgerPathLedgerUpdateStage,
@@ -61,6 +65,22 @@ type BranchRevealState = Record<PathForgerBranchChoice, boolean>;
 type BranchRevealTickState = Record<PathForgerBranchChoice, number>;
 type ForgedOutcomesState = Partial<Record<PathForgerBranchChoice, string>>;
 type ForgedOutcomeImagesState = Partial<Record<PathForgerBranchChoice, PathForgerGeneratedImage>>;
+
+const OPENAI_AUTH_ERROR_MARKERS = [
+  "missing bearer or basic authentication",
+  "missing bearer",
+  "invalid api key",
+  "incorrect api key",
+] as const;
+
+function isOpenAIAuthFailureMessage(message: string): boolean {
+  const normalized = message.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  return OPENAI_AUTH_ERROR_MARKERS.some((marker) => normalized.includes(marker));
+}
 
 export default function PathForgerPageClient() {
   const { portfolioApps } = useResumeData();
@@ -497,6 +517,20 @@ export default function PathForgerPageClient() {
       window.removeEventListener("resize", handleResize);
     };
   }, [pitchModalOpen, updatePitchSelectionOutline]);
+
+  React.useEffect(() => {
+    if (!errorMessage || !isOpenAIAuthFailureMessage(errorMessage)) {
+      return;
+    }
+
+    setApiKeyReady(false);
+    setKeyError(
+      "OpenAI API key is missing or invalid. Please enter a valid key to continue PathForger.",
+    );
+    setDraftKey(getPathForgerOpenAIKeyForInterstitial().trim());
+    setLoadedModelOptions(false);
+    setModelOptions(defaultModelOptions);
+  }, [errorMessage, setLoadedModelOptions, setModelOptions]);
 
   React.useEffect(() => {
     if (!createStoryPanelOpen || chapterModalOpen || continueModalOpen || chapterOutcomeModalOpen) {
@@ -1576,6 +1610,7 @@ export default function PathForgerPageClient() {
           onStart: handlePitchModalOk,
           isRunning,
           activeRunAction,
+          errorMessage,
         }}
         imagePromptEditorDialog={{
           open: Boolean(editingImagePromptType),

@@ -248,7 +248,7 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
       currentPathLedgerMarkdown?: string;
       resetBranchSelection?: boolean;
     },
-  ) => {
+  ): Promise<boolean> => {
     setErrorMessage("");
     clearStatusMessages();
     chapterImageGenerationRunIdRef.current += 1;
@@ -259,13 +259,13 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
     if (!apiKey) {
       setErrorMessage("OpenAI API key is required.");
       setApiKeyReady(false);
-      return;
+      return false;
     }
 
     const onboardingPayload = buildOnboardingPayload();
     if (!onboardingPayload.premise.trim()) {
       setErrorMessage("Please provide a premise to start the story pipeline.");
-      return;
+      return false;
     }
 
     const chapterNumber = options?.chapterNumber ?? 1;
@@ -514,10 +514,13 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
           setIsGeneratingChapterImages(false);
         }
       })();
+
+      return true;
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Chapter package generation failed.",
       );
+      return false;
     } finally {
       if (!backgroundImagesStarted) {
         clearStatusMessages();
@@ -554,8 +557,6 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
   };
 
   const handlePitchModalOk = async () => {
-    setPitchModalOpen(false);
-
     const pitchSource = visiblePitches ?? result?.pitches ?? null;
     if (!pitchSource) {
       setErrorMessage("Unable to resolve pitches. Please click Create it! again.");
@@ -563,8 +564,13 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
     }
 
     const currentPitchSelection = resolveCurrentPitchSelection(pitchSource);
-
-    await handleGenerateChapterPackageForPitch(currentPitchSelection, pitchSource);
+    const generated = await handleGenerateChapterPackageForPitch(
+      currentPitchSelection,
+      pitchSource,
+    );
+    if (generated) {
+      setPitchModalOpen(false);
+    }
   };
 
   const handleRunPipeline = async () => {

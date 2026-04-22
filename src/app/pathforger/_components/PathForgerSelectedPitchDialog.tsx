@@ -1,5 +1,6 @@
 import * as React from "react";
 import {
+  Alert,
   Box,
   Button,
   Dialog,
@@ -52,6 +53,7 @@ type PathForgerSelectedPitchDialogProps = {
   onStart: () => void | Promise<void>;
   isRunning: boolean;
   activeRunAction: ActiveRunAction;
+  errorMessage?: string;
 };
 
 export default function PathForgerSelectedPitchDialog(props: PathForgerSelectedPitchDialogProps) {
@@ -70,12 +72,18 @@ export default function PathForgerSelectedPitchDialog(props: PathForgerSelectedP
     onStart,
     isRunning,
     activeRunAction,
+    errorMessage,
   } = props;
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>Select Your Adventure</DialogTitle>
       <DialogContent dividers>
+        {errorMessage ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errorMessage}
+          </Alert>
+        ) : null}
         {visiblePitches ? (
           <>
             <Typography variant="subtitle1" sx={{ mb: 0.5 }}>

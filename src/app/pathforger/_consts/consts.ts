@@ -3,13 +3,13 @@ import type { PathForgerBranchChoice, PathForgerImageType } from "@/app/pathforg
 export const DEV_MODE = process.env.NODE_ENV === "development";
 
 export const DEFAULT_TEXT_MODEL_ID = "gpt-4.1-mini";
-export const DEFAULT_IMAGE_MODEL_ID = "gpt-image-1-mini";
+export const DEFAULT_IMAGE_MODEL_ID = "gpt-5.2";
 export const DEFAULT_ONE_OFF_MODEL_ID = DEFAULT_TEXT_MODEL_ID;
 
 export const defaultModelOptions = [
   "gpt-5.2",
-  "gpt-image-1-mini",
   "gpt-image-1",
+  "gpt-image-1-mini",
   "gpt-4.1",
   "gpt-4.1-mini",
 ];

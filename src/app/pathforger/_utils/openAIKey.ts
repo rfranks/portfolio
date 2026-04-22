@@ -12,6 +12,20 @@ export function getPathForgerOpenAIKey(): string {
   });
 }
 
+export function getPathForgerOpenAIKeyForInterstitial(): string {
+  const requireExplicitPathForgerKey = process.env.NODE_ENV === "development";
+  return getAppOpenAIKey(
+    {
+      primaryStorageKey: STORAGE_KEY,
+      fallbackStorageKeys: STORAGE_FALLBACK_KEYS,
+    },
+    {
+      includeFallbackStorageKeys: !requireExplicitPathForgerKey,
+      includeEnvFallback: !requireExplicitPathForgerKey,
+    },
+  );
+}
+
 export function setPathForgerOpenAIKey(value: string): void {
   setAppOpenAIKey(value, { primaryStorageKey: STORAGE_KEY });
 }

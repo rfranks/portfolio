@@ -1,6 +1,8 @@
 import * as React from "react";
 import {
   DEFAULT_IMAGE_MODEL_ID,
+  DEFAULT_ONE_OFF_MODEL_ID,
+  DEFAULT_TEXT_MODEL_ID,
   DEV_MODE,
   imageTypeOrder,
   pathForgerSampleImageByType,
@@ -9,7 +11,10 @@ import {
   pitchCacheStorageKey,
 } from "@/app/pathforger/_consts/consts";
 import { withBasePath } from "@/utils/basePath";
-import { getPathForgerOpenAIKey } from "@/app/pathforger/_utils/openAIKey";
+import {
+  getPathForgerOpenAIKey,
+  getPathForgerOpenAIKeyForInterstitial,
+} from "@/app/pathforger/_utils/openAIKey";
 import { isPathForgerPitchResult } from "@/app/pathforger/_utils/pitchHelpers";
 import { runPathForgerImageStage } from "@/app/pathforger/_utils/pipeline";
 import type {
@@ -102,6 +107,37 @@ const adventureLengthValues = [
   "Very long",
 ] as const;
 const romanceModeValues = ["No romance", "Optional romance", "Romance-forward"] as const;
+
+function isImageModelId(value: string): boolean {
+  return /^gpt-image/i.test(value.trim());
+}
+
+function sanitizeDefaultModel(value: string): string {
+  const normalized = value.trim();
+  if (!normalized || isImageModelId(normalized)) {
+    return DEFAULT_ONE_OFF_MODEL_ID;
+  }
+
+  return normalized;
+}
+
+function sanitizeTextModel(value: string): string {
+  const normalized = value.trim();
+  if (!normalized || isImageModelId(normalized)) {
+    return DEFAULT_TEXT_MODEL_ID;
+  }
+
+  return normalized;
+}
+
+function sanitizeImageModel(value: string): string {
+  const normalized = value.trim();
+  if (!normalized || isImageModelId(normalized)) {
+    return DEFAULT_IMAGE_MODEL_ID;
+  }
+
+  return normalized;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -241,7 +277,10 @@ async function loadDevSampleStorageArtifactIfNeeded(): Promise<void> {
         persisted.form.imageModel === "gpt-4.1" &&
         persisted.form.defaultModel === "gpt-4.1-mini" &&
         persisted.form.textModel === "gpt-4.1-mini";
-      if (!legacyDefaultImageModel) {
+      const unavailableDevSampleImageModel =
+        persisted.form.imageModel === "gpt-image-1-mini" ||
+        persisted.form.imageModel === "gpt-image-1";
+      if (!legacyDefaultImageModel && !unavailableDevSampleImageModel) {
         return;
       }
 
@@ -534,7 +573,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
     let isCancelled = false;
 
     const hydratePersistedState = async () => {
-      const key = getPathForgerOpenAIKey();
+      const key = getPathForgerOpenAIKeyForInterstitial();
       if (isCancelled) {
         return;
       }
@@ -617,13 +656,13 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
                 setSelectedBranch(form.selectedBranch);
               }
               if (typeof form.defaultModel === "string") {
-                setDefaultModel(form.defaultModel);
+                setDefaultModel(sanitizeDefaultModel(form.defaultModel));
               }
               if (typeof form.textModel === "string") {
-                setTextModel(form.textModel);
+                setTextModel(sanitizeTextModel(form.textModel));
               }
               if (typeof form.imageModel === "string") {
-                setImageModel(form.imageModel);
+                setImageModel(sanitizeImageModel(form.imageModel));
               }
               const nextRenderImages = sanitizeRenderImages(form.renderImages);
               if (nextRenderImages) {

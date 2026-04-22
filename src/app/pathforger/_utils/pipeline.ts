@@ -1,7 +1,7 @@
 import { toJSONSchema, z } from "zod";
 import { withBasePath } from "@/utils/basePath";
 import { fetchText } from "@/utils/network/httpClient";
-import { requestOpenAIJsonRaw, requestOpenAIResponses } from "@/utils/openai/client";
+import { requestOpenAIJsonRaw } from "@/utils/openai/client";
 import {
   KnowledgeDocFile,
   OpenAIErrorPayload,
@@ -53,7 +53,9 @@ import {
 } from "../_schemas/pipeline";
 
 const DEFAULT_TEXT_MODEL = "gpt-4.1-mini";
-const DEFAULT_IMAGE_MODEL = "gpt-image-1-mini";
+const DEFAULT_IMAGE_MODEL = "gpt-5.2";
+const RESPONSES_IMAGE_FALLBACK_MODELS = [DEFAULT_IMAGE_MODEL, "gpt-4.1-mini"] as const;
+const RESPONSES_TEXT_FALLBACK_MODELS = [DEFAULT_TEXT_MODEL, "gpt-5.2", "gpt-4.1"] as const;
 const TARGET_IMAGE_SIZE = "1024x1024";
 const MAX_PARALLEL_IMAGE_CALLS = 6;
 const IMAGE_RATE_LIMIT_MAX_RETRIES = 3;
@@ -77,12 +79,31 @@ function isImageModelId(modelId: string): boolean {
   return /^gpt-image/i.test(modelId.trim());
 }
 
+function resolveImageModelFallbackCandidates(model: string): string[] {
+  const normalized = model.trim().toLowerCase();
+  return RESPONSES_IMAGE_FALLBACK_MODELS.filter(
+    (candidate) => candidate.trim().toLowerCase() !== normalized,
+  );
+}
+
+function resolveTextModelFallbackCandidates(model: string): string[] {
+  const normalized = model.trim().toLowerCase();
+  return RESPONSES_TEXT_FALLBACK_MODELS.filter((candidate) => {
+    const trimmed = candidate.trim();
+    if (!trimmed || isImageModelId(trimmed)) {
+      return false;
+    }
+
+    return trimmed.toLowerCase() !== normalized;
+  });
+}
+
 function resolveTextModel(
   explicitModel: string | undefined,
   defaultModel: string | undefined,
 ): string {
   const explicit = explicitModel?.trim() ?? "";
-  if (explicit.length > 0) {
+  if (explicit.length > 0 && !isImageModelId(explicit)) {
     return explicit;
   }
 
@@ -99,7 +120,7 @@ function resolveImageModel(
   defaultModel: string | undefined,
 ): string {
   const explicit = explicitModel?.trim() ?? "";
-  if (explicit.length > 0) {
+  if (explicit.length > 0 && isImageModelId(explicit)) {
     return explicit;
   }
 
@@ -1475,27 +1496,87 @@ async function requestTextStage<TSchema extends z.ZodTypeAny>(params: {
   userPrompt: string;
   schema: TSchema;
 }): Promise<z.infer<TSchema>> {
-  let data: Record<string, unknown>;
-  try {
-    data = (await requestOpenAIResponses(params.apiKey, {
-      model: params.model,
-      input: [
-        {
-          role: "system",
-          content: [{ type: "input_text", text: params.systemPrompt }],
-        },
-        {
-          role: "user",
-          content: [{ type: "input_text", text: params.userPrompt }],
-        },
-      ],
-    })) as Record<string, unknown>;
-  } catch (error) {
-    const message =
-      error instanceof Error && error.message.trim().length > 0
-        ? error.message
-        : "PathForger text stage failed.";
-    throw new Error(message);
+  const requestBodyForModel = (model: string) => ({
+    model,
+    input: [
+      {
+        role: "system",
+        content: [{ type: "input_text", text: params.systemPrompt }],
+      },
+      {
+        role: "user",
+        content: [{ type: "input_text", text: params.userPrompt }],
+      },
+    ],
+  });
+
+  const shouldRetryWithTextModelFallback = (
+    status: number,
+    payload: Record<string, unknown>,
+    message: string,
+  ): boolean => {
+    if (status < 400 || status >= 500) {
+      return false;
+    }
+
+    const normalized = message.trim().toLowerCase();
+    if (
+      normalized.includes("model not found") ||
+      normalized.includes("requested model") ||
+      normalized.includes("unsupported model") ||
+      normalized.includes("unknown model") ||
+      normalized.includes("not supported with the responses api") ||
+      normalized.includes("unsupported with the responses api")
+    ) {
+      return true;
+    }
+
+    const errorObj = payload.error;
+    if (!errorObj || typeof errorObj !== "object") {
+      return false;
+    }
+
+    const errorRecord = errorObj as Record<string, unknown>;
+    const errorParam = typeof errorRecord.param === "string" ? errorRecord.param.trim() : "";
+    const errorCode = typeof errorRecord.code === "string" ? errorRecord.code.trim() : "";
+    return errorParam.toLowerCase() === "model" || errorCode.toLowerCase() === "model_not_found";
+  };
+
+  const runTextRequest = async (
+    model: string,
+  ): Promise<{ response: Response; data: Record<string, unknown> }> => {
+    return requestOpenAIJsonRaw<Record<string, unknown>>({
+      apiKey: params.apiKey,
+      path: "/responses",
+      method: "POST",
+      body: requestBodyForModel(model),
+    });
+  };
+
+  const requestedModel = params.model.trim() || DEFAULT_TEXT_MODEL;
+  let data: Record<string, unknown> | null = null;
+  let lastFailureMessage = "";
+
+  const modelAttemptOrder = [requestedModel, ...resolveTextModelFallbackCandidates(requestedModel)];
+  for (const model of modelAttemptOrder) {
+    const { response, data: payload } = await runTextRequest(model);
+    if (response.ok) {
+      data = payload;
+      break;
+    }
+
+    const message = extractErrorMessage(payload);
+    const resolvedMessage =
+      message.length > 0 ? message : `PathForger text stage failed (${response.status}).`;
+    lastFailureMessage = resolvedMessage;
+
+    if (!shouldRetryWithTextModelFallback(response.status, payload, resolvedMessage)) {
+      throw new Error(resolvedMessage);
+    }
+  }
+
+  if (!data) {
+    throw new Error(lastFailureMessage || "PathForger text stage failed.");
   }
 
   const text = extractTextFromResponse(data);
@@ -1667,6 +1748,34 @@ function buildStyleAdherenceRequirements(params: {
   return rules;
 }
 
+function shouldRetryWithFallbackImageModel(params: {
+  status: number;
+  payload: Record<string, unknown>;
+  errorMessage: string;
+}): boolean {
+  if (params.status < 400 || params.status >= 500) {
+    return false;
+  }
+
+  const normalizedMessage = params.errorMessage.trim().toLowerCase();
+  if (normalizedMessage.includes("model not found")) {
+    return true;
+  }
+
+  const errorObj = params.payload.error;
+  if (!errorObj || typeof errorObj !== "object") {
+    return false;
+  }
+
+  const errorRecord = errorObj as Record<string, unknown>;
+  const errorParam = typeof errorRecord.param === "string" ? errorRecord.param.trim() : "";
+  if (errorParam.toLowerCase() === "model") {
+    return true;
+  }
+
+  return false;
+}
+
 async function requestImageAsset(params: {
   apiKey: string;
   model: string;
@@ -1731,60 +1840,16 @@ async function requestImageAsset(params: {
     });
   }
 
-  const baseRequestBody = {
-    model: params.model,
-    input: [
-      {
-        role: "system",
-        content: [
-          {
-            type: "input_text",
-            text: [
-              "You are PathForger's image renderer.",
-              "Produce one polished image that follows the user prompt exactly.",
-              "If a headshot reference image is provided, preserve identity cues while following the requested visual style.",
-              "Return only the image result.",
-            ].join("\n"),
-          },
-        ],
-      },
-      {
-        role: "user",
-        content: userContent,
-      },
-    ],
-  };
-
-  const requestWithPreferredToolOptions = {
-    ...baseRequestBody,
-    tools: [{ type: "image_generation", size: TARGET_IMAGE_SIZE }],
-    tool_choice: { type: "image_generation" },
-  };
-
-  const requestWithMinimalToolOptions = {
-    ...baseRequestBody,
-    tools: [{ type: "image_generation", size: TARGET_IMAGE_SIZE }],
-  };
-
-  const requestWithBareToolOptions = {
-    ...baseRequestBody,
-    tools: [{ type: "image_generation" }],
-  };
-
-  const runRequest = async (body: Record<string, unknown>) => {
-    return requestOpenAIJsonRaw<Record<string, unknown>>({
-      apiKey: params.apiKey,
-      path: "/responses",
-      method: "POST",
-      body,
-    });
-  };
-
   const runRequestWithRateLimitRetry = async (body: Record<string, unknown>) => {
     let attempt = 0;
 
     while (true) {
-      const result = await runRequest(body);
+      const result = await requestOpenAIJsonRaw<Record<string, unknown>>({
+        apiKey: params.apiKey,
+        path: "/responses",
+        method: "POST",
+        body,
+      });
       const message = extractErrorMessage(result.data);
       if (
         !isRateLimitResponse(result.response.status, result.data, message) ||
@@ -1799,21 +1864,88 @@ async function requestImageAsset(params: {
     }
   };
 
-  let { response, data } = await runRequestWithRateLimitRetry(
-    requestWithPreferredToolOptions as unknown as Record<string, unknown>,
-  );
+  const runWithModel = async (model: string) => {
+    const baseRequestBody = {
+      model,
+      input: [
+        {
+          role: "system",
+          content: [
+            {
+              type: "input_text",
+              text: [
+                "You are PathForger's image renderer.",
+                "Produce one polished image that follows the user prompt exactly.",
+                "If a headshot reference image is provided, preserve identity cues while following the requested visual style.",
+                "Return only the image result.",
+              ].join("\n"),
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: userContent,
+        },
+      ],
+    };
 
-  const firstAttemptMessage = extractErrorMessage(data);
-  if (shouldRetryWithMinimalToolOptions(response.status, firstAttemptMessage)) {
-    ({ response, data } = await runRequestWithRateLimitRetry(
-      requestWithMinimalToolOptions as unknown as Record<string, unknown>,
-    ));
+    const requestWithPreferredToolOptions = {
+      ...baseRequestBody,
+      tools: [{ type: "image_generation", size: TARGET_IMAGE_SIZE }],
+      tool_choice: { type: "image_generation" },
+    };
 
-    const secondAttemptMessage = extractErrorMessage(data);
-    if (shouldRetryWithMinimalToolOptions(response.status, secondAttemptMessage)) {
+    const requestWithMinimalToolOptions = {
+      ...baseRequestBody,
+      tools: [{ type: "image_generation", size: TARGET_IMAGE_SIZE }],
+    };
+
+    const requestWithBareToolOptions = {
+      ...baseRequestBody,
+      tools: [{ type: "image_generation" }],
+    };
+
+    let { response, data } = await runRequestWithRateLimitRetry(
+      requestWithPreferredToolOptions as unknown as Record<string, unknown>,
+    );
+
+    const firstAttemptMessage = extractErrorMessage(data);
+    if (shouldRetryWithMinimalToolOptions(response.status, firstAttemptMessage)) {
       ({ response, data } = await runRequestWithRateLimitRetry(
-        requestWithBareToolOptions as unknown as Record<string, unknown>,
+        requestWithMinimalToolOptions as unknown as Record<string, unknown>,
       ));
+
+      const secondAttemptMessage = extractErrorMessage(data);
+      if (shouldRetryWithMinimalToolOptions(response.status, secondAttemptMessage)) {
+        ({ response, data } = await runRequestWithRateLimitRetry(
+          requestWithBareToolOptions as unknown as Record<string, unknown>,
+        ));
+      }
+    }
+
+    return { response, data };
+  };
+
+  const requestedModel = params.model.trim() || DEFAULT_IMAGE_MODEL;
+  let resolvedModel = requestedModel;
+  let { response, data } = await runWithModel(resolvedModel);
+
+  const firstModelError = extractErrorMessage(data);
+  if (
+    !response.ok &&
+    shouldRetryWithFallbackImageModel({
+      status: response.status,
+      payload: data,
+      errorMessage: firstModelError,
+    })
+  ) {
+    const fallbackCandidates = resolveImageModelFallbackCandidates(resolvedModel);
+    for (const fallbackModel of fallbackCandidates) {
+      resolvedModel = fallbackModel;
+      ({ response, data } = await runWithModel(resolvedModel));
+      if (response.ok) {
+        break;
+      }
     }
   }
 
@@ -1834,7 +1966,7 @@ async function requestImageAsset(params: {
   return {
     imageDataUrl: `data:${image.mimeType};base64,${image.base64}`,
     responseId: typeof data.id === "string" ? data.id : null,
-    model: params.model,
+    model: resolvedModel,
   };
 }
 
@@ -2011,7 +2143,7 @@ export async function runPathForgerCoverFromPitchStage(
   imageModel: string;
 }> {
   const input = runCoverFromPitchStageInputSchema.parse(rawInput);
-  const imageModel = resolveImageModel(input.imageModel, input.defaultModel);
+  const requestedImageModel = resolveImageModel(input.imageModel, input.defaultModel);
   const prompt = buildCoverPromptFromPitch({
     onboarding: input.onboarding,
     pitchResult: input.pitchResult,
@@ -2025,7 +2157,7 @@ export async function runPathForgerCoverFromPitchStage(
 
   const imageAsset = await requestImageAsset({
     apiKey: input.apiKey,
-    model: imageModel,
+    model: requestedImageModel,
     prompt,
     imageType: "cover",
     selfieDataUrl: input.selfieDataUrl,
@@ -2047,7 +2179,7 @@ export async function runPathForgerCoverFromPitchStage(
       prompt,
       ...imageAsset,
     },
-    imageModel,
+    imageModel: imageAsset.model || requestedImageModel,
   };
 }
 
@@ -2415,7 +2547,7 @@ export async function runPathForgerImageStage(
     ...renderImageDefaults,
     ...(input.renderImages ?? {}),
   };
-  const imageModel = resolveImageModel(input.imageModel, input.defaultModel);
+  const requestedImageModel = resolveImageModel(input.imageModel, input.defaultModel);
   const resolvedImagePrompts = {
     ...input.imagePrompts,
   };
@@ -2453,16 +2585,20 @@ export async function runPathForgerImageStage(
     jobs: imageJobs,
     apiKey: input.apiKey,
     onboarding: input.onboarding,
-    imageModel,
+    imageModel: requestedImageModel,
     selfieDataUrl: input.selfieDataUrl,
     onProgress,
     onImageUpdate,
   });
 
+  const resolvedImageModel =
+    Object.values(images).find((image): image is PathForgerGeneratedImage => Boolean(image))
+      ?.model || requestedImageModel;
+
   return {
     images,
     imageErrors,
-    imageModel,
+    imageModel: resolvedImageModel,
     resolvedImagePrompts,
   };
 }
@@ -2478,7 +2614,7 @@ export async function runPathForgerOutcomeImageStage(
   imageModel: string;
 }> {
   const input = runOutcomeImageStageInputSchema.parse(rawInput);
-  const imageModel = resolveImageModel(input.imageModel, input.defaultModel);
+  const requestedImageModel = resolveImageModel(input.imageModel, input.defaultModel);
   const imageType = input.branch === "A" ? "outcomeA" : "outcomeB";
   const overridePrompt = input.imagePromptOverrides?.[imageType];
   const prompt =
@@ -2513,7 +2649,7 @@ export async function runPathForgerOutcomeImageStage(
 
   const imageAsset = await requestImageAsset({
     apiKey: input.apiKey,
-    model: imageModel,
+    model: requestedImageModel,
     prompt: outcomePrompt,
     imageType,
     selfieDataUrl: input.selfieDataUrl,
@@ -2536,7 +2672,7 @@ export async function runPathForgerOutcomeImageStage(
       prompt: outcomePrompt,
       ...imageAsset,
     },
-    imageModel,
+    imageModel: imageAsset.model || requestedImageModel,
   };
 }
 

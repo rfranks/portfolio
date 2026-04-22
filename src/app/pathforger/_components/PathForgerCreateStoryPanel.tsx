@@ -596,7 +596,7 @@ export default function PathForgerCreateStoryPanel(props: PathForgerCreateStoryP
             overflowX: "hidden",
           }}
         >
-          {statusIsRunning && coverImage ? (
+          {statusIsRunning ? (
             <Paper
               variant="outlined"
               sx={{
@@ -607,24 +607,6 @@ export default function PathForgerCreateStoryPanel(props: PathForgerCreateStoryP
               }}
             >
               <Stack spacing={1.1} alignItems="center">
-                <ImageLightbox
-                  src={coverImage.imageDataUrl}
-                  alt="Cover preview"
-                  title={coverImageTitle || "Story Cover"}
-                  caption={coverImageCaption || "Book cover concept art"}
-                  kenBurnsImageSx={kenBurnsImageSx}
-                  previewImageSx={{
-                    height:
-                      dynamicCoverHeightPx !== null
-                        ? `${dynamicCoverHeightPx}px`
-                        : { xs: 220, md: 280 },
-                    maxHeight:
-                      dynamicCoverHeightPx !== null
-                        ? `${dynamicCoverHeightPx}px`
-                        : { xs: 220, md: 280 },
-                    borderRadius: 1,
-                  }}
-                />
                 {activeRunAction === "forgePath" ? (
                   <Box
                     component="img"

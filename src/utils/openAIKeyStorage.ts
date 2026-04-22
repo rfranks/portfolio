@@ -5,6 +5,11 @@ export interface AppOpenAIKeyStorageConfig {
   fallbackStorageKeys?: string[];
 }
 
+export interface AppOpenAIKeyReadOptions {
+  includeFallbackStorageKeys?: boolean;
+  includeEnvFallback?: boolean;
+}
+
 function readFromBrowserStorage(key: string): string {
   if (typeof window === "undefined") {
     return "";
@@ -25,8 +30,16 @@ function writeToBrowserStorage(key: string, value: string): void {
   window.sessionStorage.setItem(key, trimmed);
 }
 
-export function getAppOpenAIKey(config: AppOpenAIKeyStorageConfig): string {
-  const keys = [config.primaryStorageKey, ...(config.fallbackStorageKeys ?? [])];
+export function getAppOpenAIKey(
+  config: AppOpenAIKeyStorageConfig,
+  options?: AppOpenAIKeyReadOptions,
+): string {
+  const includeFallbackStorageKeys = options?.includeFallbackStorageKeys ?? true;
+  const includeEnvFallback = options?.includeEnvFallback ?? true;
+  const keys = [
+    config.primaryStorageKey,
+    ...(includeFallbackStorageKeys ? (config.fallbackStorageKeys ?? []) : []),
+  ];
 
   for (const key of keys) {
     const stored = readFromBrowserStorage(key);
@@ -35,7 +48,7 @@ export function getAppOpenAIKey(config: AppOpenAIKeyStorageConfig): string {
     }
   }
 
-  return (process.env.NEXT_PUBLIC_OPENAI_API_KEY ?? "").trim();
+  return includeEnvFallback ? (process.env.NEXT_PUBLIC_OPENAI_API_KEY ?? "").trim() : "";
 }
 
 export function setAppOpenAIKey(value: string, config: AppOpenAIKeyStorageConfig): void {

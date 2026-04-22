@@ -69,7 +69,7 @@
       "selectedBranch": "",
       "defaultModel": "gpt-4.1-mini",
       "textModel": "gpt-4.1-mini",
-      "imageModel": "gpt-image-1-mini",
+      "imageModel": "gpt-5.2",
       "renderImages": {
         "cover": true,
         "chapterSpread": true,
