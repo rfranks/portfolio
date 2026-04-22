@@ -5,6 +5,7 @@ A cross-platform blackjack engine written in Go. The core business rules are sha
 ## Running the game
 
 ### Terminal
+
 1. Change into this directory:
    ```bash
    cd go/blackjack
@@ -21,25 +22,33 @@ A cross-platform blackjack engine written in Go. The core business rules are sha
    ```
 
 ### Web via Next.js
+
 1. Compile the Go code to WebAssembly:
+
    ```bash
    cd go/blackjack
    make wasm
    ```
+
    This writes:
    - `public/apps/blackjack/wasm/main.wasm`
    - `public/apps/blackjack/js/wasm_exec.js`
-   
+
    The helper `main.js` in `public/apps/blackjack/js/` bootstraps the WASM module.
+
    > Alternatively, compile directly without using the `Makefile`:
+   >
    > ```bash
    > GOOS=js GOARCH=wasm go build -o ../../public/apps/blackjack/wasm/main.wasm
    > cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../../public/apps/blackjack/js/wasm_exec.js
    > ```
+   >
    > Optional one-off override (for generated export output):
+   >
    > ```bash
    > make wasm BLACKJACK_ASSET_ROOT=../../out/apps/blackjack
    > ```
+
 2. Launch the Next.js dev server from the repository root:
    ```bash
    npm install
@@ -48,17 +57,21 @@ A cross-platform blackjack engine written in Go. The core business rules are sha
 3. Open <http://localhost:3000/blackjack> in a browser to play.
 
 ### Visual Studio Code
+
 The repository ships with a `.vscode/launch.json` that exposes two handy run targets:
+
 - **Launch BlackJack** – debug the terminal version (press `F5`).
 - **Build Blackjack Wasm** – compile `main.wasm` and refresh `wasm_exec.js` in `public/apps/blackjack/`.
 
 ## Technologies
+
 - **Go 1.19** – core language for rules and game engine.
 - **WebAssembly** – enables the Go engine to execute in the browser.
 - **Next.js 15 / React / TypeScript** – host the web UI.
 - **`github.com/mattn/go-tty`** – tiny dependency for terminal input.
 
 The Go module is intentionally small:
+
 ```go
 module blackjack
 
@@ -74,6 +87,7 @@ require (
 ```
 
 ## UI abstraction
+
 The engine does not talk directly to any UI. Instead it defines a tiny interface and two implementations:
 
 ```go
@@ -96,6 +110,7 @@ classDiagram
 This separation means the same bullet‑proof rules (`cards`, `dealer`, `rules`, etc.) drive both the CLI and WASM builds. Only the view layer changes.
 
 ## Why Go → WASM?
+
 - **Single source of truth.** Validators and gameplay rules live once in Go and are reused across CLI, server, and browser.
 - **Deterministic, CPU‑friendly kernels.** Compiled Go can outperform ad‑hoc JS for number‑crunching tasks like shuffle logic or side‑bet math.
 - **Portability.** The generated `main.wasm` can be integrity‑pinned and served from any static host.
@@ -106,6 +121,7 @@ This separation means the same bullet‑proof rules (`cards`, `dealer`, `rules`,
 These same advantages translate to EHR work: FHIR parsers, rules engines, or de‑identification routines can run unchanged on the server, in a CLI tool, or directly in a browser for air‑gapped environments.
 
 ## Example flow
+
 ```mermaid
 flowchart TD
     subgraph Go
@@ -119,6 +135,7 @@ flowchart TD
 ```
 
 ## Game flow
+
 ```mermaid
 stateDiagram-v2
     [*] --> Deal
@@ -130,7 +147,9 @@ stateDiagram-v2
 ```
 
 ## Testing
+
 Run the Go unit tests from this directory:
+
 ```bash
 go test ./...
 ```

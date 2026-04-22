@@ -28,10 +28,7 @@ export function useGameAssets(): {
 
     const build = (folder: string, names: string[]) =>
       Object.fromEntries(
-        names.map((name) => [
-          name,
-          loadImg(`/assets/fish/PNG/${folder}/${name}.png`),
-        ]),
+        names.map((name) => [name, loadImg(`/assets/fish/PNG/${folder}/${name}.png`)]),
       );
 
     // FISH FRAMES FROM SPRITESHEET
@@ -66,17 +63,7 @@ export function useGameAssets(): {
               canvas.width = FISH_SIZE;
               canvas.height = FISH_SIZE;
               const ctx = canvas.getContext("2d");
-              ctx?.drawImage(
-                sheet,
-                sx,
-                sy,
-                FISH_SIZE,
-                FISH_SIZE,
-                0,
-                0,
-                FISH_SIZE,
-                FISH_SIZE,
-              );
+              ctx?.drawImage(sheet, sx, sy, FISH_SIZE, FISH_SIZE, 0, 0, FISH_SIZE, FISH_SIZE);
               const img = new window.Image();
               img.src = canvas.toDataURL();
               return img;
@@ -105,23 +92,14 @@ export function useGameAssets(): {
       "red",
     ];
     assetRefs.current.fishImgs = Object.fromEntries(
-      fishTypes.map((name) => [
-        name,
-        loadImg(`/assets/fish/PNG/Objects/Fish/fish_${name}.png`),
-      ]),
+      fishTypes.map((name) => [name, loadImg(`/assets/fish/PNG/Objects/Fish/fish_${name}.png`)]),
     );
 
     // FLASH OVERLAY
-    assetRefs.current.fishFlashImg = loadImg(
-      "/assets/smoke/PNG/Flash/flash00.png",
-    );
+    assetRefs.current.fishFlashImg = loadImg("/assets/smoke/PNG/Flash/flash00.png");
 
     // OBJECTS
-    assetRefs.current.bubbleImgs = build("Objects/Bubbles", [
-      "bubble_a",
-      "bubble_b",
-      "bubble_c",
-    ]);
+    assetRefs.current.bubbleImgs = build("Objects/Bubbles", ["bubble_a", "bubble_b", "bubble_c"]);
 
     assetRefs.current.seaGrassImgs = build("Objects/SeaGrass", [
       "seaweed_grass_a",
@@ -162,20 +140,14 @@ export function useGameAssets(): {
       "terrain_dirt_b",
       "terrain_dirt_c",
       "terrain_dirt_d",
-      ...topLetters.flatMap((l) => [
-        `terrain_dirt_top_${l}`,
-        `terrain_dirt_top_${l}_outline`,
-      ]),
+      ...topLetters.flatMap((l) => [`terrain_dirt_top_${l}`, `terrain_dirt_top_${l}_outline`]),
     ];
     const sandNames = [
       "terrain_sand_a",
       "terrain_sand_b",
       "terrain_sand_c",
       "terrain_sand_d",
-      ...topLetters.flatMap((l) => [
-        `terrain_sand_top_${l}`,
-        `terrain_sand_top_${l}_outline`,
-      ]),
+      ...topLetters.flatMap((l) => [`terrain_sand_top_${l}`, `terrain_sand_top_${l}_outline`]),
     ];
 
     const waterNames = ["water_terrain", "water_terrain_top"];
@@ -190,26 +162,18 @@ export function useGameAssets(): {
         `/assets/fish/PNG/HUDText/hud_number_${n}.png`,
       );
     }
-    assetRefs.current.digitImgs[":"] = loadImg(
-      "/assets/fish/PNG/HUDText/hud_colon.png",
-    );
+    assetRefs.current.digitImgs[":"] = loadImg("/assets/fish/PNG/HUDText/hud_colon.png");
 
     // LETTER IMAGES
     assetRefs.current.letterImgs = {};
     for (let c = 65; c <= 90; c++) {
       const ch = String.fromCharCode(c);
-      assetRefs.current.letterImgs[ch] = loadImg(
-        `/assets/tappyplane/PNG/Letters/letter${ch}.png`,
-      );
+      assetRefs.current.letterImgs[ch] = loadImg(`/assets/tappyplane/PNG/Letters/letter${ch}.png`);
     }
 
     assetRefs.current.dotImg = loadImg("/assets/fish/PNG/HUDText/hud_dot.png");
-    assetRefs.current.pctImg = loadImg(
-      "/assets/fish/PNG/HUDText/hud_percent.png",
-    );
-    assetRefs.current.plusImg = loadImg(
-      "/assets/fish/PNG/HUDText/hud_plus.png",
-    );
+    assetRefs.current.pctImg = loadImg("/assets/fish/PNG/HUDText/hud_percent.png");
+    assetRefs.current.plusImg = loadImg("/assets/fish/PNG/HUDText/hud_plus.png");
 
     // Generate a simple minus sign dynamically since assets lack one
     const minusCanvas = document.createElement("canvas");
@@ -227,10 +191,7 @@ export function useGameAssets(): {
     assetRefs.current.minusImg = minusImg;
   }, []);
 
-  const get = useCallback<AssetMgr["get"]>(
-    (key: string) => assetRefs.current[key],
-    [],
-  );
+  const get = useCallback<AssetMgr["get"]>((key: string) => assetRefs.current[key], []);
   const getImg = useCallback<AssetMgr["getImg"]>(
     (key: string) => assetRefs.current[key] ?? undefined,
     [],

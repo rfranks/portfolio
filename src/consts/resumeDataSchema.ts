@@ -121,6 +121,7 @@ const aiShenanigansSchema = z
 
 export const resumeDataSchema = z
   .object({
+    schemaVersion: z.number().int().positive().optional(),
     summary: summarySchema,
     projects: z.array(projectEntrySchema),
     experience: z.array(experienceEntrySchema).optional(),
@@ -153,4 +154,3 @@ export function parseResumeDataWithSchema(
   }
   return parsed.data;
 }
-

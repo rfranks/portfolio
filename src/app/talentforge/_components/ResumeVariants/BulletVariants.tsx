@@ -49,11 +49,7 @@ export default function BulletVariants({ setContent }: Props) {
           onChange={(e) => setBulletText(e.target.value)}
           multiline
         />
-        <Button
-          variant="contained"
-          onClick={generateVariants}
-          disabled={!bulletText || loading}
-        >
+        <Button variant="contained" onClick={generateVariants} disabled={!bulletText || loading}>
           Generate Variants
         </Button>
         {variants.map((v, idx) => (
@@ -68,4 +64,3 @@ export default function BulletVariants({ setContent }: Props) {
     </RequireAIKey>
   );
 }
-

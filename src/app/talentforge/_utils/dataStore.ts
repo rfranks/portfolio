@@ -29,10 +29,7 @@ import type {
   LinkedInProfileSnapshot,
   ApplicationActivity,
 } from "@/types";
-import {
-  OFFER_DECISION_DEFAULT_STATUS,
-  OFFER_DECISION_STATUSES,
-} from "@/types";
+import { OFFER_DECISION_DEFAULT_STATUS, OFFER_DECISION_STATUSES } from "@/types";
 import { AUTO_REPLY_TEMPLATES } from "@/app/talentforge/_utils/autoReply/templates";
 import type { PromptContext, TalentForgeGoalTag } from "./promptTypes";
 import { STATUSES } from "./keyboard";
@@ -135,20 +132,12 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   customPromptTiles: "customPromptTiles",
 } as const;
 
-const STORAGE_KEY_TO_STORE_KEY: Record<string, keyof StoreSchema> =
-  Object.fromEntries(
-    Object.entries(KEYS).map(([storeKey, storageKey]) => [
-      storageKey,
-      storeKey as keyof StoreSchema,
-    ]),
-  ) as Record<string, keyof StoreSchema>;
+const STORAGE_KEY_TO_STORE_KEY: Record<string, keyof StoreSchema> = Object.fromEntries(
+  Object.entries(KEYS).map(([storeKey, storageKey]) => [storageKey, storeKey as keyof StoreSchema]),
+) as Record<string, keyof StoreSchema>;
 
 const LEGACY_GOALS_KEY = "talentforge-goal-selections";
-const KNOWN_GOAL_TAGS: readonly TalentForgeGoalTag[] = [
-  "resume",
-  "networking",
-  "search",
-];
+const KNOWN_GOAL_TAGS: readonly TalentForgeGoalTag[] = ["resume", "networking", "search"];
 const LEGACY_GOAL_SELECTIONS_VERSION = 1;
 
 const KNOWN_PROMPT_CONTEXTS: readonly PromptContext[] = [
@@ -169,9 +158,7 @@ const CUSTOM_PLACEHOLDER_TYPES: readonly CustomPromptPlaceholderType[] = [
   "goals",
 ];
 
-const DEFAULT_PROMPT_TILE_IDS = new Set(
-  Object.keys(PROMPT_TILES).map((id) => id.toLowerCase()),
-);
+const DEFAULT_PROMPT_TILE_IDS = new Set(Object.keys(PROMPT_TILES).map((id) => id.toLowerCase()));
 
 // Version constants per entity so tests and other modules can reference them.
 export const USER_VERSION = 1;
@@ -254,9 +241,7 @@ function sanitizePlaceholder(value: unknown): CustomPromptPlaceholder | null {
     return null;
   }
   const helperText =
-    typeof candidate.helperText === "string"
-      ? candidate.helperText.trim() || undefined
-      : undefined;
+    typeof candidate.helperText === "string" ? candidate.helperText.trim() || undefined : undefined;
   const required = candidate.required === false ? false : true;
   return {
     id,
@@ -293,9 +278,7 @@ function sanitizeCustomPromptTileInput(
     contexts.push("resume");
   }
 
-  const rawPlaceholders = Array.isArray(tile.placeholders)
-    ? tile.placeholders
-    : [];
+  const rawPlaceholders = Array.isArray(tile.placeholders) ? tile.placeholders : [];
   const placeholders: CustomPromptPlaceholder[] = [];
   const seen = new Set<string>();
   for (const raw of rawPlaceholders) {
@@ -320,9 +303,7 @@ function sanitizeCustomPromptTileInput(
 
   const now = new Date().toISOString();
   const createdAt =
-    typeof tile.createdAt === "string"
-      ? tile.createdAt
-      : (previous?.createdAt ?? now);
+    typeof tile.createdAt === "string" ? tile.createdAt : (previous?.createdAt ?? now);
 
   const updatedAt = typeof tile.updatedAt === "string" ? tile.updatedAt : now;
 
@@ -440,35 +421,18 @@ function migrateOpenAI(data: unknown, version: number): string | undefined {
   });
 }
 
-function migrateConnectorTokens(
-  data: unknown,
-  version: number,
-): Record<string, ConnectorToken> {
-  return migrate<Record<string, ConnectorToken>>(
-    data,
-    version,
-    CONNECTOR_TOKENS_VERSION,
-    {
-      0: (d) =>
-        d && typeof d === "object" ? (d as Record<string, ConnectorToken>) : {},
-    },
-  );
+function migrateConnectorTokens(data: unknown, version: number): Record<string, ConnectorToken> {
+  return migrate<Record<string, ConnectorToken>>(data, version, CONNECTOR_TOKENS_VERSION, {
+    0: (d) => (d && typeof d === "object" ? (d as Record<string, ConnectorToken>) : {}),
+  });
 }
 
 function isConnectorSyncStatus(value: unknown): value is ConnectorSyncStatus {
-  return (
-    value === "idle" ||
-    value === "syncing" ||
-    value === "success" ||
-    value === "error"
-  );
+  return value === "idle" || value === "syncing" || value === "success" || value === "error";
 }
 
 function normalizeConnectorSyncState(value: unknown): ConnectorSyncState {
-  const base =
-    value && typeof value === "object"
-      ? (value as Partial<ConnectorSyncState>)
-      : {};
+  const base = value && typeof value === "object" ? (value as Partial<ConnectorSyncState>) : {};
   const state: ConnectorSyncState = {
     status: isConnectorSyncStatus(base.status) ? base.status : "idle",
   };
@@ -487,26 +451,16 @@ function normalizeConnectorSyncState(value: unknown): ConnectorSyncState {
 function normalizeConnectorSyncSnapshot(value: unknown): ConnectorSyncSnapshot {
   if (!value || typeof value !== "object") return {};
   const snapshot: ConnectorSyncSnapshot = {};
-  for (const [connector, details] of Object.entries(
-    value as Record<string, unknown>,
-  )) {
+  for (const [connector, details] of Object.entries(value as Record<string, unknown>)) {
     snapshot[connector] = normalizeConnectorSyncState(details);
   }
   return snapshot;
 }
 
-function migrateConnectorSyncSnapshot(
-  data: unknown,
-  version: number,
-): ConnectorSyncSnapshot {
-  return migrate<ConnectorSyncSnapshot>(
-    data,
-    version,
-    CONNECTOR_SYNC_SNAPSHOT_VERSION,
-    {
-      0: normalizeConnectorSyncSnapshot,
-    },
-  );
+function migrateConnectorSyncSnapshot(data: unknown, version: number): ConnectorSyncSnapshot {
+  return migrate<ConnectorSyncSnapshot>(data, version, CONNECTOR_SYNC_SNAPSHOT_VERSION, {
+    0: normalizeConnectorSyncSnapshot,
+  });
 }
 
 function normalizeJobListings(value: unknown): JobListing[] {
@@ -540,15 +494,12 @@ function normalizeJobListings(value: unknown): JobListing[] {
   return listings;
 }
 
-function normalizeLinkedInProfileSnapshot(
-  value: unknown,
-): LinkedInProfileSnapshot {
+function normalizeLinkedInProfileSnapshot(value: unknown): LinkedInProfileSnapshot {
   if (!value || typeof value !== "object") {
     return { listings: [] };
   }
 
-  const candidate = value as Partial<LinkedInProfileSnapshot> &
-    Record<string, unknown>;
+  const candidate = value as Partial<LinkedInProfileSnapshot> & Record<string, unknown>;
   const snapshot: LinkedInProfileSnapshot = {
     listings: normalizeJobListings(candidate.listings),
   };
@@ -564,11 +515,7 @@ function normalizeLinkedInProfileSnapshot(
   if (profileCandidate && typeof profileCandidate === "object") {
     const raw = profileCandidate as Partial<LinkedInProfileDetails>;
     const { id, firstName, lastName } = raw;
-    if (
-      typeof id === "string" &&
-      typeof firstName === "string" &&
-      typeof lastName === "string"
-    ) {
+    if (typeof id === "string" && typeof firstName === "string" && typeof lastName === "string") {
       const profile: NonNullable<LinkedInProfileSnapshot["profile"]> = {
         id,
         firstName,
@@ -596,41 +543,22 @@ function normalizeLinkedInProfileSnapshot(
   return snapshot;
 }
 
-function migrateLinkedInProfileSnapshot(
-  data: unknown,
-  version: number,
-): LinkedInProfileSnapshot {
-  return migrate<LinkedInProfileSnapshot>(
-    data,
-    version,
-    LINKEDIN_PROFILE_SNAPSHOT_VERSION,
-    {
-      0: normalizeLinkedInProfileSnapshot,
-    },
-  );
+function migrateLinkedInProfileSnapshot(data: unknown, version: number): LinkedInProfileSnapshot {
+  return migrate<LinkedInProfileSnapshot>(data, version, LINKEDIN_PROFILE_SNAPSHOT_VERSION, {
+    0: normalizeLinkedInProfileSnapshot,
+  });
 }
 
-function migrateAutoReplyTemplates(
-  data: unknown,
-  version: number,
-): Record<string, string> {
-  return migrate<Record<string, string>>(
-    data,
-    version,
-    AUTO_REPLY_TEMPLATES_VERSION,
-    {
-      0: (d) =>
-        d && typeof d === "object"
-          ? (d as Record<string, string>)
-          : (AUTO_REPLY_TEMPLATES as Record<string, string>),
-    },
-  );
+function migrateAutoReplyTemplates(data: unknown, version: number): Record<string, string> {
+  return migrate<Record<string, string>>(data, version, AUTO_REPLY_TEMPLATES_VERSION, {
+    0: (d) =>
+      d && typeof d === "object"
+        ? (d as Record<string, string>)
+        : (AUTO_REPLY_TEMPLATES as Record<string, string>),
+  });
 }
 
-function migrateCurrentCompensation(
-  data: unknown,
-  version: number,
-): CurrentCompensation {
+function migrateCurrentCompensation(data: unknown, version: number): CurrentCompensation {
   return migrate<CurrentCompensation>(data, version, CURRENT_COMP_VERSION, {
     0: (d) =>
       d && typeof d === "object"
@@ -672,8 +600,7 @@ function normalizeIsoTimestamp(value: unknown): string | undefined {
 
 function isDecisionStatus(value: unknown): value is OfferDecisionStatus {
   return (
-    typeof value === "string" &&
-    (OFFER_DECISION_STATUSES as readonly string[]).includes(value)
+    typeof value === "string" && (OFFER_DECISION_STATUSES as readonly string[]).includes(value)
   );
 }
 
@@ -682,14 +609,10 @@ function normalizeDecisionValue(value: unknown): OfferDecision {
     return createDefaultDecision();
   }
   const raw = value as Partial<OfferDecision>;
-  const status = isDecisionStatus(raw.status)
-    ? raw.status
-    : OFFER_DECISION_DEFAULT_STATUS;
+  const status = isDecisionStatus(raw.status) ? raw.status : OFFER_DECISION_DEFAULT_STATUS;
   const decidedAt = normalizeIsoTimestamp(raw.decidedAt);
   const notes =
-    typeof raw.notes === "string" && raw.notes.trim().length > 0
-      ? raw.notes.trim()
-      : undefined;
+    typeof raw.notes === "string" && raw.notes.trim().length > 0 ? raw.notes.trim() : undefined;
   const decision: OfferDecision = { status };
   if (decidedAt) {
     decision.decidedAt = decidedAt;
@@ -704,16 +627,12 @@ function mergeDecision(
   current: OfferDecision | undefined,
   updates: Partial<OfferDecision> | undefined,
 ): OfferDecision {
-  const base = current
-    ? normalizeDecisionValue(current)
-    : createDefaultDecision();
+  const base = current ? normalizeDecisionValue(current) : createDefaultDecision();
   if (!updates || typeof updates !== "object") {
     return base;
   }
   if (Object.prototype.hasOwnProperty.call(updates, "status")) {
-    base.status = isDecisionStatus(updates.status)
-      ? updates.status
-      : OFFER_DECISION_DEFAULT_STATUS;
+    base.status = isDecisionStatus(updates.status) ? updates.status : OFFER_DECISION_DEFAULT_STATUS;
   }
   if (Object.prototype.hasOwnProperty.call(updates, "decidedAt")) {
     const normalized = normalizeIsoTimestamp(updates.decidedAt);
@@ -724,8 +643,7 @@ function mergeDecision(
     }
   }
   if (Object.prototype.hasOwnProperty.call(updates, "notes")) {
-    const trimmed =
-      typeof updates.notes === "string" ? updates.notes.trim() : "";
+    const trimmed = typeof updates.notes === "string" ? updates.notes.trim() : "";
     if (trimmed) {
       base.notes = trimmed;
     } else {
@@ -735,10 +653,7 @@ function mergeDecision(
   return base;
 }
 
-function decisionsEqual(
-  a: OfferDecision | undefined,
-  b: OfferDecision | undefined,
-): boolean {
+function decisionsEqual(a: OfferDecision | undefined, b: OfferDecision | undefined): boolean {
   if (!a && !b) {
     return true;
   }
@@ -800,9 +715,7 @@ function ensureOfferDecision(
   offer: Offer,
   fallback?: OfferDecision,
 ): { offer: Offer; changed: boolean } {
-  const fallbackNormalized = fallback
-    ? normalizeDecisionValue(fallback)
-    : undefined;
+  const fallbackNormalized = fallback ? normalizeDecisionValue(fallback) : undefined;
   const targetDecision =
     fallbackNormalized ??
     (offer.decision ? normalizeDecisionValue(offer.decision) : undefined) ??
@@ -823,13 +736,9 @@ function ensureApplicationDecision(app: JobApplication): {
   application: JobApplication;
   changed: boolean;
 } {
-  const current = app.decision
-    ? normalizeDecisionValue(app.decision)
-    : undefined;
+  const current = app.decision ? normalizeDecisionValue(app.decision) : undefined;
   const offerDecision =
-    app.offer && app.offer.decision
-      ? normalizeDecisionValue(app.offer.decision)
-      : undefined;
+    app.offer && app.offer.decision ? normalizeDecisionValue(app.offer.decision) : undefined;
   const decision = current ?? offerDecision ?? createDefaultDecision();
   let changed =
     !app.decision ||
@@ -838,8 +747,10 @@ function ensureApplicationDecision(app: JobApplication): {
     app.decision.notes !== decision.notes;
   let nextOffer = app.offer;
   if (app.offer) {
-    const { offer: normalizedOffer, changed: offerChanged } =
-      ensureOfferDecision(app.offer, decision);
+    const { offer: normalizedOffer, changed: offerChanged } = ensureOfferDecision(
+      app.offer,
+      decision,
+    );
     if (offerChanged) {
       nextOffer = normalizedOffer;
       changed = true;
@@ -918,9 +829,7 @@ function normalizePipelineLayoutPreferences(
     }
   });
 
-  const collapsedCandidates = Array.isArray(value?.collapsed)
-    ? value?.collapsed
-    : [];
+  const collapsedCandidates = Array.isArray(value?.collapsed) ? value?.collapsed : [];
   const collapsedSet = new Set<ApplicationStatus>();
   for (const entry of collapsedCandidates) {
     if (typeof entry !== "string") continue;
@@ -938,29 +847,19 @@ function normalizePipelineLayoutPreferences(
   };
 }
 
-function migratePipelineLayout(
-  data: unknown,
-  version: number,
-): PipelineLayoutPreferences {
-  const migrated = migrate<PipelineLayoutPreferences>(
-    data,
-    version,
-    PIPELINE_LAYOUT_VERSION,
-    {
-      0: (value) =>
-        normalizePipelineLayoutPreferences(
-          value && typeof value === "object"
-            ? (value as Partial<PipelineLayoutPreferences>)
-            : undefined,
-        ),
-    },
-  );
+function migratePipelineLayout(data: unknown, version: number): PipelineLayoutPreferences {
+  const migrated = migrate<PipelineLayoutPreferences>(data, version, PIPELINE_LAYOUT_VERSION, {
+    0: (value) =>
+      normalizePipelineLayoutPreferences(
+        value && typeof value === "object"
+          ? (value as Partial<PipelineLayoutPreferences>)
+          : undefined,
+      ),
+  });
   return normalizePipelineLayoutPreferences(migrated);
 }
 
-function migrateCustomPromptTiles(
-  data: unknown,
-): CustomPromptTile[] {
+function migrateCustomPromptTiles(data: unknown): CustomPromptTile[] {
   if (!Array.isArray(data)) {
     return [];
   }
@@ -1022,18 +921,14 @@ function sanitizeNegotiationLibraryEntry(
     typeof candidate.id === "string" && candidate.id.trim().length > 0
       ? candidate.id.trim()
       : undefined;
-  const hasConflict = providedId
-    ? existing.some((entry) => entry.id === providedId)
-    : false;
+  const hasConflict = providedId ? existing.some((entry) => entry.id === providedId) : false;
   const id = hasConflict || !providedId ? uuid() : providedId;
   const createdAt =
-    typeof candidate.createdAt === "string" &&
-    !Number.isNaN(Date.parse(candidate.createdAt))
+    typeof candidate.createdAt === "string" && !Number.isNaN(Date.parse(candidate.createdAt))
       ? candidate.createdAt
       : now;
   const updatedAt =
-    typeof candidate.updatedAt === "string" &&
-    !Number.isNaN(Date.parse(candidate.updatedAt))
+    typeof candidate.updatedAt === "string" && !Number.isNaN(Date.parse(candidate.updatedAt))
       ? candidate.updatedAt
       : createdAt;
   return {
@@ -1045,30 +940,22 @@ function sanitizeNegotiationLibraryEntry(
   };
 }
 
-function migrateNegotiationLibrary(
-  data: unknown,
-  version: number,
-): NegotiationLibraryEntry[] {
-  return migrate<NegotiationLibraryEntry[]>(
-    data,
-    version,
-    NEGOTIATION_LIBRARY_VERSION,
-    {
-      0: (value) => {
-        if (!Array.isArray(value)) {
-          return [];
+function migrateNegotiationLibrary(data: unknown, version: number): NegotiationLibraryEntry[] {
+  return migrate<NegotiationLibraryEntry[]>(data, version, NEGOTIATION_LIBRARY_VERSION, {
+    0: (value) => {
+      if (!Array.isArray(value)) {
+        return [];
+      }
+      const migrated: NegotiationLibraryEntry[] = [];
+      for (const entry of value) {
+        const sanitized = sanitizeNegotiationLibraryEntry(entry, migrated);
+        if (sanitized) {
+          migrated.push(sanitized);
         }
-        const migrated: NegotiationLibraryEntry[] = [];
-        for (const entry of value) {
-          const sanitized = sanitizeNegotiationLibraryEntry(entry, migrated);
-          if (sanitized) {
-            migrated.push(sanitized);
-          }
-        }
-        return migrated;
-      },
+      }
+      return migrated;
     },
-  );
+  });
 }
 
 const MIGRATORS: {
@@ -1113,15 +1000,8 @@ const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
   customPromptTiles: [],
 } as const;
 
-function load<K extends keyof StoreSchema>(
-  key: K,
-  fallback: StoreSchema[K],
-): StoreSchema[K] {
-  const value = loadItem<StoreSchema[K]>(
-    KEYS[key],
-    VERSION[key],
-    MIGRATORS[key],
-  );
+function load<K extends keyof StoreSchema>(key: K, fallback: StoreSchema[K]): StoreSchema[K] {
+  const value = loadItem<StoreSchema[K]>(KEYS[key], VERSION[key], MIGRATORS[key]);
   if (value !== undefined) {
     const schema = storeSchemas[key];
     const parsed = schema.safeParse(value, key);
@@ -1137,10 +1017,7 @@ function load<K extends keyof StoreSchema>(
   return fallback;
 }
 
-function save<K extends keyof StoreSchema>(
-  key: K,
-  value: StoreSchema[K],
-): void {
+function save<K extends keyof StoreSchema>(key: K, value: StoreSchema[K]): void {
   saveItem(KEYS[key], value, VERSION[key]);
 }
 
@@ -1175,9 +1052,7 @@ function migrateLegacyOffers(data: unknown): Offer[] {
   return (data as LegacyOffer[]).map((o) => ({
     id: o.id,
     application: {} as ApplicationRecord,
-    compensation: [
-      { type: "note", amount: 0, notes: o.compensation } as OfferComp,
-    ],
+    compensation: [{ type: "note", amount: 0, notes: o.compensation } as OfferComp],
     summary: o.result ? [o.result] : [],
   }));
 }
@@ -1239,10 +1114,7 @@ export function saveCurrentCompensation(comp: CurrentCompensation): void {
 }
 
 export function getPipelineLayoutPreferences(): PipelineLayoutPreferences {
-  const stored = load(
-    "pipelineLayout",
-    createDefaultPipelineLayoutPreferences(),
-  );
+  const stored = load("pipelineLayout", createDefaultPipelineLayoutPreferences());
   return normalizePipelineLayoutPreferences(stored);
 }
 
@@ -1401,9 +1273,7 @@ export function updateNegotiationLibraryEntry(
   return current;
 }
 
-export function deleteNegotiationLibraryEntry(
-  id: string,
-): NegotiationLibraryEntry[] {
+export function deleteNegotiationLibraryEntry(id: string): NegotiationLibraryEntry[] {
   const current = getNegotiationLibrary();
   const updated = current.filter((entry) => entry.id !== id);
   if (updated.length !== current.length) {
@@ -1422,21 +1292,14 @@ function saveCustomPromptTiles(tiles: CustomPromptTile[]): void {
   save("customPromptTiles", tiles);
 }
 
-export function getCustomPromptTileById(
-  id: string,
-): CustomPromptTile | undefined {
+export function getCustomPromptTileById(id: string): CustomPromptTile | undefined {
   return getCustomPromptTiles().find((tile) => tile.id === id);
 }
 
-export function addCustomPromptTile(
-  tile: CustomPromptTileInput,
-): CustomPromptTile[] {
+export function addCustomPromptTile(tile: CustomPromptTileInput): CustomPromptTile[] {
   const current = getCustomPromptTiles();
-  const rawId =
-    typeof tile.id === "string" && tile.id.trim() ? tile.id.trim() : "";
-  const previous = rawId
-    ? current.find((entry) => entry.id === rawId)
-    : undefined;
+  const rawId = typeof tile.id === "string" && tile.id.trim() ? tile.id.trim() : "";
+  const previous = rawId ? current.find((entry) => entry.id === rawId) : undefined;
   const baseId = rawId || uuid();
   const normalizedId = ensureCustomPromptId(baseId, current, previous?.id);
   const sanitized = sanitizeCustomPromptTileInput(tile, normalizedId, previous);
@@ -1449,9 +1312,7 @@ export function addCustomPromptTile(
   return updated;
 }
 
-export function updateCustomPromptTile(
-  tile: CustomPromptTileInput,
-): CustomPromptTile[] {
+export function updateCustomPromptTile(tile: CustomPromptTileInput): CustomPromptTile[] {
   const current = getCustomPromptTiles();
   if (!tile.id) {
     return current;
@@ -1464,9 +1325,7 @@ export function updateCustomPromptTile(
   if (!sanitized) {
     return current;
   }
-  const updated = current.map((entry) =>
-    entry.id === sanitized.id ? sanitized : entry,
-  );
+  const updated = current.map((entry) => (entry.id === sanitized.id ? sanitized : entry));
   saveCustomPromptTiles(updated);
   return updated;
 }
@@ -1480,15 +1339,10 @@ export function deleteCustomPromptTile(id: string): CustomPromptTile[] {
 
 // Auto reply templates
 export function getAutoReplyTemplates(): Record<string, string> {
-  return load(
-    "autoReplyTemplates",
-    AUTO_REPLY_TEMPLATES as Record<string, string>,
-  );
+  return load("autoReplyTemplates", AUTO_REPLY_TEMPLATES as Record<string, string>);
 }
 
-export function saveAutoReplyTemplates(
-  templates: Record<string, string>,
-): void {
+export function saveAutoReplyTemplates(templates: Record<string, string>): void {
   save("autoReplyTemplates", templates);
 }
 
@@ -1513,13 +1367,8 @@ export function addMessageReply(id: string, reply: MessageReply): Message[] {
   save("messages", updated);
   return updated;
 }
-export function updateMessageStatus(
-  id: string,
-  status: "unread" | "read",
-): Message[] {
-  const updated = getMessages().map((m) =>
-    m.id === id ? { ...m, status } : m,
-  );
+export function updateMessageStatus(id: string, status: "unread" | "read"): Message[] {
+  const updated = getMessages().map((m) => (m.id === id ? { ...m, status } : m));
   save("messages", updated);
   return updated;
 }
@@ -1537,10 +1386,7 @@ export function deleteThread(id: string): Message[] {
 export function addThreadReply(id: string, reply: MessageReply): Message[] {
   return addMessageReply(id, reply);
 }
-export function updateThreadStatus(
-  id: string,
-  status: "unread" | "read",
-): Message[] {
+export function updateThreadStatus(id: string, status: "unread" | "read"): Message[] {
   return updateMessageStatus(id, status);
 }
 
@@ -1560,9 +1406,7 @@ export function getOffers(): Offer[] {
               .filter(Boolean)
           : [];
       const normalizedSummaryOffer = { ...offer, summary: summaryLines };
-      const { offer: withDecision, changed } = ensureOfferDecision(
-        normalizedSummaryOffer,
-      );
+      const { offer: withDecision, changed } = ensureOfferDecision(normalizedSummaryOffer);
       if (changed) {
         return withDecision;
       }
@@ -1588,9 +1432,7 @@ export function addOffer(offer: Offer): Offer[] {
 }
 export function updateOffer(offer: Offer): Offer[] {
   const { offer: normalized } = ensureOfferDecision(offer);
-  const updated = getOffers().map((o) =>
-    o.id === normalized.id ? normalized : o,
-  );
+  const updated = getOffers().map((o) => (o.id === normalized.id ? normalized : o));
   save("offers", updated);
   return updated;
 }
@@ -1625,11 +1467,9 @@ function normalizeOfferHistoryEntries(
 
     const entry = item as Partial<OfferHistoryEntry>;
     const hasId = typeof entry.id === "string" && entry.id.length > 0;
-    const hasCreatedAt =
-      typeof entry.createdAt === "string" && entry.createdAt.length > 0;
+    const hasCreatedAt = typeof entry.createdAt === "string" && entry.createdAt.length > 0;
     const hasSourceLabel =
-      typeof entry.sourceLabel === "string" &&
-      entry.sourceLabel.trim().length > 0;
+      typeof entry.sourceLabel === "string" && entry.sourceLabel.trim().length > 0;
     const hasContent = typeof entry.content === "string";
 
     if (hasId && hasCreatedAt && hasSourceLabel && hasContent) {
@@ -1640,9 +1480,7 @@ function normalizeOfferHistoryEntries(
     changed = true;
     normalized.push({
       id: hasId ? (entry.id as string) : uuid(),
-      createdAt: hasCreatedAt
-        ? (entry.createdAt as string)
-        : new Date().toISOString(),
+      createdAt: hasCreatedAt ? (entry.createdAt as string) : new Date().toISOString(),
       sourceLabel: hasSourceLabel
         ? (entry.sourceLabel as string).trim()
         : `Offer note ${index + 1}`,
@@ -1655,9 +1493,10 @@ function normalizeOfferHistoryEntries(
     : { entries: history as OfferHistoryEntry[], changed: false };
 }
 
-function normalizeScreenRoleAnalysisValue(
-  value: JobApplication["screenRoleAnalysis"] | unknown,
-): { analysis?: ScreenRoleAnalysis; changed: boolean } {
+function normalizeScreenRoleAnalysisValue(value: JobApplication["screenRoleAnalysis"] | unknown): {
+  analysis?: ScreenRoleAnalysis;
+  changed: boolean;
+} {
   if (typeof value === "undefined") {
     return { analysis: undefined, changed: false };
   }
@@ -1669,8 +1508,7 @@ function normalizeScreenRoleAnalysisValue(
   const summaryRaw = source.summary;
   const hasSummary = typeof summaryRaw === "string";
   const trimmedSummary = hasSummary ? summaryRaw.trim() : undefined;
-  let changed =
-    Boolean(summaryRaw) && (!hasSummary || trimmedSummary !== summaryRaw);
+  let changed = Boolean(summaryRaw) && (!hasSummary || trimmedSummary !== summaryRaw);
 
   const issuesRaw = source.issues;
   const issues: ScreenRoleAnalysis["issues"] = [];
@@ -1684,11 +1522,8 @@ function normalizeScreenRoleAnalysisValue(
       const severityValue = record.severity;
       const messageValue = record.message;
       const severity =
-        severityValue === "red" || severityValue === "yellow"
-          ? severityValue
-          : undefined;
-      const trimmedMessage =
-        typeof messageValue === "string" ? messageValue.trim() : undefined;
+        severityValue === "red" || severityValue === "yellow" ? severityValue : undefined;
+      const trimmedMessage = typeof messageValue === "string" ? messageValue.trim() : undefined;
       if (severity && trimmedMessage) {
         issues.push({ severity, message: trimmedMessage });
         if (severityValue !== severity || messageValue !== trimmedMessage) {
@@ -1717,9 +1552,7 @@ function normalizeScreenRoleAnalysisValue(
 const ACTIVITY_OUTCOME_SUCCESS: ApplicationActivity["outcome"] = "success";
 const ACTIVITY_OUTCOME_ERROR: ApplicationActivity["outcome"] = "error";
 
-const isValidActivityOutcome = (
-  value: unknown,
-): value is ApplicationActivity["outcome"] =>
+const isValidActivityOutcome = (value: unknown): value is ApplicationActivity["outcome"] =>
   value === ACTIVITY_OUTCOME_SUCCESS || value === ACTIVITY_OUTCOME_ERROR;
 
 function normalizeActivityEntry(
@@ -1730,34 +1563,23 @@ function normalizeActivityEntry(
   const fallbackTileId = `tile-${index + 1}`;
 
   const base: Partial<ApplicationActivity> =
-    value && typeof value === "object"
-      ? (value as Partial<ApplicationActivity>)
-      : {};
+    value && typeof value === "object" ? (value as Partial<ApplicationActivity>) : {};
 
   const originalId = typeof base.id === "string" ? base.id : undefined;
   const trimmedId = originalId?.trim();
-  const originalTileId =
-    typeof base.tileId === "string" ? base.tileId : undefined;
+  const originalTileId = typeof base.tileId === "string" ? base.tileId : undefined;
   const trimmedTileId = originalTileId?.trim();
-  const originalSummary =
-    typeof base.summary === "string" ? base.summary : undefined;
+  const originalSummary = typeof base.summary === "string" ? base.summary : undefined;
   const trimmedSummary = originalSummary?.trim();
-  const originalTimestamp =
-    typeof base.createdAt === "string" ? base.createdAt : undefined;
+  const originalTimestamp = typeof base.createdAt === "string" ? base.createdAt : undefined;
   const trimmedTimestamp = originalTimestamp?.trim();
-  const parsedTimestamp = trimmedTimestamp
-    ? new Date(trimmedTimestamp)
-    : new Date(NaN);
+  const parsedTimestamp = trimmedTimestamp ? new Date(trimmedTimestamp) : new Date(NaN);
   const isoFromRaw = !Number.isNaN(parsedTimestamp.getTime())
     ? parsedTimestamp.toISOString()
     : undefined;
-  const originalOutcome = isValidActivityOutcome(base.outcome)
-    ? base.outcome
-    : undefined;
+  const originalOutcome = isValidActivityOutcome(base.outcome) ? base.outcome : undefined;
   const originalGeneratedContentId =
-    typeof base.generatedContentId === "string"
-      ? base.generatedContentId
-      : undefined;
+    typeof base.generatedContentId === "string" ? base.generatedContentId : undefined;
   const trimmedGeneratedContentId = originalGeneratedContentId?.trim();
   const originalError = typeof base.error === "string" ? base.error : undefined;
   const trimmedError = originalError?.trim();
@@ -1766,9 +1588,7 @@ function normalizeActivityEntry(
   const normalizedTileId =
     trimmedTileId && trimmedTileId.length > 0 ? trimmedTileId : fallbackTileId;
   const normalizedSummary =
-    trimmedSummary && trimmedSummary.length > 0
-      ? trimmedSummary
-      : fallbackSummary;
+    trimmedSummary && trimmedSummary.length > 0 ? trimmedSummary : fallbackSummary;
   const normalizedTimestamp = isoFromRaw ?? new Date().toISOString();
   const normalizedOutcome = originalOutcome ?? ACTIVITY_OUTCOME_SUCCESS;
   const normalizedGeneratedContentId =
@@ -1788,9 +1608,7 @@ function normalizeActivityEntry(
     createdAt: normalizedTimestamp,
     summary: normalizedSummary,
     outcome: normalizedOutcome,
-    ...(normalizedGeneratedContentId
-      ? { generatedContentId: normalizedGeneratedContentId }
-      : {}),
+    ...(normalizedGeneratedContentId ? { generatedContentId: normalizedGeneratedContentId } : {}),
     ...(normalizedError ? { error: normalizedError } : {}),
   };
 
@@ -1800,8 +1618,7 @@ function normalizeActivityEntry(
     normalizedSummary !== (originalSummary ?? fallbackSummary) ||
     normalizedTimestamp !== (originalTimestamp ?? normalizedTimestamp) ||
     normalizedOutcome !== (originalOutcome ?? ACTIVITY_OUTCOME_SUCCESS) ||
-    normalizedGeneratedContentId !==
-      (originalGeneratedContentId ?? normalizedGeneratedContentId) ||
+    normalizedGeneratedContentId !== (originalGeneratedContentId ?? normalizedGeneratedContentId) ||
     normalizedError !==
       (normalizedOutcome === ACTIVITY_OUTCOME_ERROR
         ? (originalError ?? normalizedError)
@@ -1820,10 +1637,7 @@ function normalizeActivities(value: JobApplication["activities"] | unknown): {
 
   let changed = false;
   const normalized = value.map((entry, index) => {
-    const { activity, changed: entryChanged } = normalizeActivityEntry(
-      entry,
-      index,
-    );
+    const { activity, changed: entryChanged } = normalizeActivityEntry(entry, index);
     if (entryChanged) {
       changed = true;
     }
@@ -1860,15 +1674,13 @@ function normalizeDueAt(value: unknown): string | undefined {
   return parsed.toISOString();
 }
 
-function normalizeReminderFields(value: {
-  nextAction?: unknown;
-  dueAt?: unknown;
-}): { values: ReminderFields; changed: boolean } {
+function normalizeReminderFields(value: { nextAction?: unknown; dueAt?: unknown }): {
+  values: ReminderFields;
+  changed: boolean;
+} {
   const normalized: ReminderFields = {};
-  const originalNextAction =
-    typeof value.nextAction === "string" ? value.nextAction : undefined;
-  const originalDueAt =
-    typeof value.dueAt === "string" ? value.dueAt : undefined;
+  const originalNextAction = typeof value.nextAction === "string" ? value.nextAction : undefined;
+  const originalDueAt = typeof value.dueAt === "string" ? value.dueAt : undefined;
 
   const normalizedNextAction = normalizeNextAction(value.nextAction);
   const normalizedDueAt = normalizeDueAt(value.dueAt);
@@ -1885,21 +1697,16 @@ function normalizeReminderFields(value: {
     normalized.dueAt = undefined;
   }
 
-  const changed =
-    normalizedNextAction !== originalNextAction ||
-    normalizedDueAt !== originalDueAt;
+  const changed = normalizedNextAction !== originalNextAction || normalizedDueAt !== originalDueAt;
 
   return { values: normalized, changed };
 }
 
-function normalizeAttachmentEntry(
-  value: unknown,
-): ApplicationAttachment | null {
+function normalizeAttachmentEntry(value: unknown): ApplicationAttachment | null {
   if (!value || typeof value !== "object") {
     return null;
   }
-  const candidate = value as Partial<ApplicationAttachment> &
-    Record<string, unknown>;
+  const candidate = value as Partial<ApplicationAttachment> & Record<string, unknown>;
 
   const rawId =
     typeof candidate.id === "string" && candidate.id.trim().length > 0
@@ -1910,16 +1717,12 @@ function normalizeAttachmentEntry(
       ? candidate.name.trim()
       : undefined;
   const rawMime =
-    typeof candidate.mimeType === "string" &&
-    candidate.mimeType.trim().length > 0
+    typeof candidate.mimeType === "string" && candidate.mimeType.trim().length > 0
       ? candidate.mimeType.trim()
       : "application/octet-stream";
   const base64Value =
-    typeof candidate["base64"] === "string"
-      ? (candidate["base64"] as string)
-      : undefined;
-  const rawContent =
-    typeof candidate.content === "string" ? candidate.content : base64Value;
+    typeof candidate["base64"] === "string" ? (candidate["base64"] as string) : undefined;
+  const rawContent = typeof candidate.content === "string" ? candidate.content : base64Value;
 
   if (!rawName || !rawContent) {
     return null;
@@ -1954,8 +1757,7 @@ function normalizeAttachments(value: unknown): {
     }
     attachments.push(normalized);
     if (entry && typeof entry === "object") {
-      const candidate = entry as Partial<ApplicationAttachment> &
-        Record<string, unknown>;
+      const candidate = entry as Partial<ApplicationAttachment> & Record<string, unknown>;
       const rawId =
         typeof candidate.id === "string" && candidate.id.trim().length > 0
           ? candidate.id.trim()
@@ -1965,14 +1767,11 @@ function normalizeAttachments(value: unknown): {
           ? candidate.name.trim()
           : undefined;
       const rawMime =
-        typeof candidate.mimeType === "string" &&
-        candidate.mimeType.trim().length > 0
+        typeof candidate.mimeType === "string" && candidate.mimeType.trim().length > 0
           ? candidate.mimeType.trim()
           : undefined;
       const candidateBase64 =
-        typeof candidate["base64"] === "string"
-          ? (candidate["base64"] as string)
-          : undefined;
+        typeof candidate["base64"] === "string" ? (candidate["base64"] as string) : undefined;
       const rawContent =
         typeof candidate.content === "string"
           ? candidate.content.replace(/\s+/g, "")
@@ -2090,9 +1889,7 @@ function migrateApplicationAttachments(data: unknown): JobApplication[] {
     }
     const record = entry as JobApplication & { attachments?: unknown };
     const hasArray = Array.isArray(record.attachments);
-    const { attachments, changed: attachmentsChanged } = normalizeAttachments(
-      record.attachments,
-    );
+    const { attachments, changed: attachmentsChanged } = normalizeAttachments(record.attachments);
     if (attachmentsChanged || !hasArray) {
       changed = true;
       return { ...record, attachments } as JobApplication;
@@ -2113,9 +1910,7 @@ function migrateApplicationActivities(data: unknown): JobApplication[] {
     }
     const record = entry as JobApplication & { activities?: unknown };
     const hasArray = Array.isArray(record.activities);
-    const { activities, changed: activitiesChanged } = normalizeActivities(
-      record.activities,
-    );
+    const { activities, changed: activitiesChanged } = normalizeActivities(record.activities);
     if (activitiesChanged || !hasArray) {
       changed = true;
       return { ...record, activities } as JobApplication;
@@ -2135,8 +1930,9 @@ function migrateScreenRoleAnalysis(data: unknown): JobApplication[] {
       return entry as JobApplication;
     }
     const record = entry as JobApplication & { screenRoleAnalysis?: unknown };
-    const { analysis, changed: analysisChanged } =
-      normalizeScreenRoleAnalysisValue(record.screenRoleAnalysis);
+    const { analysis, changed: analysisChanged } = normalizeScreenRoleAnalysisValue(
+      record.screenRoleAnalysis,
+    );
     if (analysisChanged) {
       changed = true;
       if (analysis) {
@@ -2151,9 +1947,7 @@ function migrateScreenRoleAnalysis(data: unknown): JobApplication[] {
   return changed ? migrated : (data as JobApplication[]);
 }
 
-function normalizeApplicationUpdates(
-  updates: Partial<JobApplication>,
-): Partial<JobApplication> {
+function normalizeApplicationUpdates(updates: Partial<JobApplication>): Partial<JobApplication> {
   const needsNormalization =
     Object.prototype.hasOwnProperty.call(updates, "offerHistory") ||
     Object.prototype.hasOwnProperty.call(updates, "nextAction") ||
@@ -2167,9 +1961,7 @@ function normalizeApplicationUpdates(
 
   const normalized: Partial<JobApplication> = { ...updates };
   if (Object.prototype.hasOwnProperty.call(updates, "offerHistory")) {
-    normalized.offerHistory = normalizeOfferHistoryEntries(
-      updates.offerHistory,
-    ).entries;
+    normalized.offerHistory = normalizeOfferHistoryEntries(updates.offerHistory).entries;
   }
   if (Object.prototype.hasOwnProperty.call(updates, "nextAction")) {
     normalized.nextAction = normalizeNextAction(updates.nextAction);
@@ -2178,9 +1970,7 @@ function normalizeApplicationUpdates(
     normalized.dueAt = normalizeDueAt(updates.dueAt);
   }
   if (Object.prototype.hasOwnProperty.call(updates, "attachments")) {
-    normalized.attachments = normalizeAttachments(
-      updates.attachments,
-    ).attachments;
+    normalized.attachments = normalizeAttachments(updates.attachments).attachments;
   }
   if (Object.prototype.hasOwnProperty.call(updates, "activities")) {
     normalized.activities = normalizeActivities(updates.activities).activities;
@@ -2198,8 +1988,7 @@ function applyApplicationUpdates(
   updates: Partial<JobApplication>,
 ): JobApplication {
   const normalizedUpdates = normalizeApplicationUpdates(updates);
-  const hasNormalizedChanges =
-    normalizedUpdates && Object.keys(normalizedUpdates).length > 0;
+  const hasNormalizedChanges = normalizedUpdates && Object.keys(normalizedUpdates).length > 0;
   let nextApp = app;
   if (hasNormalizedChanges) {
     const {
@@ -2211,15 +2000,11 @@ function applyApplicationUpdates(
     if (Object.keys(otherUpdates).length > 0) {
       nextApp = { ...nextApp, ...otherUpdates } as JobApplication;
     }
-    if (
-      Object.prototype.hasOwnProperty.call(normalizedUpdates, "attachments")
-    ) {
+    if (Object.prototype.hasOwnProperty.call(normalizedUpdates, "attachments")) {
       const nextAttachments = Array.isArray(attachmentUpdates)
         ? (attachmentUpdates as ApplicationAttachment[])
         : [];
-      const currentAttachments = Array.isArray(nextApp.attachments)
-        ? nextApp.attachments
-        : [];
+      const currentAttachments = Array.isArray(nextApp.attachments) ? nextApp.attachments : [];
       if (!attachmentsEqual(currentAttachments, nextAttachments)) {
         nextApp = {
           ...nextApp,
@@ -2231,19 +2016,12 @@ function applyApplicationUpdates(
       const nextActivities = Array.isArray(activityUpdates)
         ? (activityUpdates as ApplicationActivity[])
         : [];
-      const currentActivities = Array.isArray(nextApp.activities)
-        ? nextApp.activities
-        : [];
+      const currentActivities = Array.isArray(nextApp.activities) ? nextApp.activities : [];
       if (!activitiesEqual(currentActivities, nextActivities)) {
         nextApp = { ...nextApp, activities: nextActivities } as JobApplication;
       }
     }
-    if (
-      Object.prototype.hasOwnProperty.call(
-        normalizedUpdates,
-        "screenRoleAnalysis",
-      )
-    ) {
+    if (Object.prototype.hasOwnProperty.call(normalizedUpdates, "screenRoleAnalysis")) {
       if (typeof screenRoleAnalysisUpdate === "undefined") {
         if ("screenRoleAnalysis" in nextApp) {
           const clone = { ...nextApp } as Partial<JobApplication>;
@@ -2259,10 +2037,7 @@ function applyApplicationUpdates(
     }
   }
 
-  const hasDecisionUpdate = Object.prototype.hasOwnProperty.call(
-    updates,
-    "decision",
-  );
+  const hasDecisionUpdate = Object.prototype.hasOwnProperty.call(updates, "decision");
   let decisionFallback: OfferDecision | undefined =
     nextApp.decision ?? app.decision ?? app.offer?.decision;
   if (hasDecisionUpdate) {
@@ -2280,10 +2055,7 @@ function applyApplicationUpdates(
   if (hasOfferUpdate) {
     const rawOffer = updates.offer;
     if (rawOffer && typeof rawOffer === "object") {
-      const { offer: normalizedOffer } = ensureOfferDecision(
-        rawOffer as Offer,
-        decisionFallback,
-      );
+      const { offer: normalizedOffer } = ensureOfferDecision(rawOffer as Offer, decisionFallback);
       if (!offersEqual(nextApp.offer, normalizedOffer)) {
         nextApp = { ...nextApp, offer: normalizedOffer } as JobApplication;
       }
@@ -2318,16 +2090,13 @@ export function getJobApplications(): JobApplication[] {
       nextApp = { ...app, offer: { ...app.offer, summary: summaryLines } };
     }
 
-    const { entries, changed } = normalizeOfferHistoryEntries(
-      nextApp.offerHistory,
-    );
+    const { entries, changed } = normalizeOfferHistoryEntries(nextApp.offerHistory);
     if (changed) {
       migrated = true;
       nextApp = { ...nextApp, offerHistory: entries };
     }
 
-    const { values: reminderValues, changed: reminderChanged } =
-      normalizeReminderFields(nextApp);
+    const { values: reminderValues, changed: reminderChanged } = normalizeReminderFields(nextApp);
     if (reminderChanged) {
       migrated = true;
       nextApp = { ...nextApp, ...reminderValues };
@@ -2355,8 +2124,9 @@ export function getJobApplications(): JobApplication[] {
     }
 
     const hasActivityArray = Array.isArray(nextApp.activities);
-    const { activities: normalizedActivities, changed: activitiesChanged } =
-      normalizeActivities(nextApp.activities);
+    const { activities: normalizedActivities, changed: activitiesChanged } = normalizeActivities(
+      nextApp.activities,
+    );
     if (activitiesChanged || !hasActivityArray) {
       migrated = true;
       nextApp = { ...nextApp, activities: normalizedActivities };
@@ -2376,30 +2146,25 @@ export function getJobApplications(): JobApplication[] {
   return updated;
 }
 export function addJobApplication(app: JobApplication): JobApplication[] {
-  const { entries: offerHistory } = normalizeOfferHistoryEntries(
-    app.offerHistory,
-  );
+  const { entries: offerHistory } = normalizeOfferHistoryEntries(app.offerHistory);
   const { values: reminderValues } = normalizeReminderFields(app);
   const { attachments } = normalizeAttachments(app.attachments);
   const { activities } = normalizeActivities(app.activities);
-  const { analysis: normalizedScreenRoleAnalysis } =
-    normalizeScreenRoleAnalysisValue(app.screenRoleAnalysis);
+  const { analysis: normalizedScreenRoleAnalysis } = normalizeScreenRoleAnalysisValue(
+    app.screenRoleAnalysis,
+  );
   const withHistory = {
     ...app,
     ...reminderValues,
     attachments,
     activities,
-    history: [
-      ...(app.history ?? []),
-      { status: app.status, changedAt: new Date().toISOString() },
-    ],
+    history: [...(app.history ?? []), { status: app.status, changedAt: new Date().toISOString() }],
     offerHistory,
   } as JobApplication;
   if (normalizedScreenRoleAnalysis) {
     withHistory.screenRoleAnalysis = normalizedScreenRoleAnalysis;
   } else {
-    delete (withHistory as { screenRoleAnalysis?: ScreenRoleAnalysis })
-      .screenRoleAnalysis;
+    delete (withHistory as { screenRoleAnalysis?: ScreenRoleAnalysis }).screenRoleAnalysis;
   }
   const { application: normalized } = ensureApplicationDecision(withHistory);
   const updated = [...getJobApplications(), normalized];
@@ -2436,10 +2201,7 @@ function applyStatusUpdate(
   const hasReasonOption = Object.prototype.hasOwnProperty.call(opts, "reason");
   const rawReason = hasReasonOption ? (opts.reason ?? "") : undefined;
   const trimmedReason = rawReason?.trim();
-  const hasChangedAtOption = Object.prototype.hasOwnProperty.call(
-    opts,
-    "changedAt",
-  );
+  const hasChangedAtOption = Object.prototype.hasOwnProperty.call(opts, "changedAt");
   const changedAtValue = hasChangedAtOption ? opts.changedAt : undefined;
 
   const parseChangedAt = (value?: string) => {
@@ -2451,11 +2213,7 @@ function applyStatusUpdate(
   const history = [...(app.history || [])];
   const lastEntry = history[history.length - 1];
 
-  if (
-    lastEntry &&
-    lastEntry.status === status &&
-    (hasReasonOption || hasChangedAtOption)
-  ) {
+  if (lastEntry && lastEntry.status === status && (hasReasonOption || hasChangedAtOption)) {
     const updatedEntry: StatusChange = {
       ...lastEntry,
       status,
@@ -2474,9 +2232,7 @@ function applyStatusUpdate(
     return { ...app, status, history };
   }
 
-  const baseDate = hasChangedAtOption
-    ? parseChangedAt(changedAtValue)
-    : new Date();
+  const baseDate = hasChangedAtOption ? parseChangedAt(changedAtValue) : new Date();
   const entry: StatusChange = {
     status,
     changedAt: baseDate.toISOString(),
@@ -2562,9 +2318,7 @@ export function addRecruiter(recruiter: RecruiterEntry): RecruiterEntry[] {
 }
 
 export function updateRecruiter(recruiter: RecruiterEntry): RecruiterEntry[] {
-  const updated = getRecruiters().map((r) =>
-    r.id === recruiter.id ? recruiter : r,
-  );
+  const updated = getRecruiters().map((r) => (r.id === recruiter.id ? recruiter : r));
   save("recruiters", updated);
   return updated;
 }
@@ -2575,10 +2329,7 @@ export function deleteRecruiter(id: string): RecruiterEntry[] {
   return updated;
 }
 
-export function linkThreadToApplication(
-  threadId: string,
-  applicationId?: string,
-): Message[] {
+export function linkThreadToApplication(threadId: string, applicationId?: string): Message[] {
   const messages = getMessages().map((m) =>
     m.id === threadId ? { ...m, applicationId: applicationId || undefined } : m,
   );
@@ -2586,13 +2337,8 @@ export function linkThreadToApplication(
   return messages;
 }
 
-export function linkThreadToRecruiter(
-  threadId: string,
-  recruiterId: string,
-): Message[] {
-  const messages = getMessages().map((m) =>
-    m.id === threadId ? { ...m, recruiterId } : m,
-  );
+export function linkThreadToRecruiter(threadId: string, recruiterId: string): Message[] {
+  const messages = getMessages().map((m) => (m.id === threadId ? { ...m, recruiterId } : m));
   save("messages", messages);
 
   const recruiters = getRecruiters();
@@ -2639,16 +2385,11 @@ function getConnectorTokens(): ConnectorTokenMap {
   return load("connectorTokens", {});
 }
 
-export function getConnectorToken(
-  connector: string,
-): ConnectorToken | undefined {
+export function getConnectorToken(connector: string): ConnectorToken | undefined {
   return getConnectorTokens()[connector];
 }
 
-export function saveConnectorToken(
-  connector: string,
-  token: ConnectorToken,
-): void {
+export function saveConnectorToken(connector: string, token: ConnectorToken): void {
   const tokens = getConnectorTokens();
   tokens[connector] = token;
   save("connectorTokens", tokens);
@@ -2664,9 +2405,7 @@ export function getConnectorSyncSnapshot(): ConnectorSyncSnapshot {
   return load("connectorSyncSnapshot", {});
 }
 
-export function saveConnectorSyncSnapshot(
-  snapshot: ConnectorSyncSnapshot,
-): void {
+export function saveConnectorSyncSnapshot(snapshot: ConnectorSyncSnapshot): void {
   save("connectorSyncSnapshot", snapshot);
 }
 
@@ -2674,9 +2413,7 @@ export function getLinkedInProfileSnapshot(): LinkedInProfileSnapshot {
   return load("linkedinProfileSnapshot", { listings: [] });
 }
 
-export function saveLinkedInProfileSnapshot(
-  snapshot: LinkedInProfileSnapshot,
-): void {
+export function saveLinkedInProfileSnapshot(snapshot: LinkedInProfileSnapshot): void {
   save("linkedinProfileSnapshot", snapshot);
 }
 
@@ -2761,9 +2498,7 @@ function migrateSnapshot(
           ? (legacyGoalsEntry as { data?: unknown; version?: number })
           : { data: legacyGoalsEntry, version: LEGACY_GOAL_SELECTIONS_VERSION };
       const version =
-        typeof payload.version === "number"
-          ? payload.version
-          : LEGACY_GOAL_SELECTIONS_VERSION;
+        typeof payload.version === "number" ? payload.version : LEGACY_GOAL_SELECTIONS_VERSION;
       const migratedGoals = migrateGoals(payload.data, version);
       migrated[KEYS.goals] = { version: GOALS_VERSION, data: migratedGoals };
       delete migrated[LEGACY_GOALS_KEY];
@@ -2868,15 +2603,11 @@ export function importFromJson(json: string): void {
         "data" in (value as Record<string, unknown>)
           ? (value as { version?: number; data?: unknown })
           : { version: 0, data: value };
-      const storedVersion =
-        payload && typeof payload.version === "number" ? payload.version : 0;
+      const storedVersion = payload && typeof payload.version === "number" ? payload.version : 0;
       const rawData = (payload as { data?: unknown }).data;
       try {
         const migrated = MIGRATORS[storeKey](rawData, storedVersion);
-        const parsedValue = storeSchemas[storeKey].safeParse(
-          migrated,
-          storeKey,
-        );
+        const parsedValue = storeSchemas[storeKey].safeParse(migrated, storeKey);
         if (!parsedValue.success) {
           errors.push(`${storageKey}: ${parsedValue.errors.join(", ")}`);
           continue;
@@ -2884,9 +2615,7 @@ export function importFromJson(json: string): void {
         save(storeKey, parsedValue.data);
       } catch (error) {
         errors.push(
-          `${storageKey}: ${
-            error instanceof Error ? error.message : "unable to import entry"
-          }`,
+          `${storageKey}: ${error instanceof Error ? error.message : "unable to import entry"}`,
         );
       }
     }

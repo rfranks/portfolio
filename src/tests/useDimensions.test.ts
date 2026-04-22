@@ -6,7 +6,7 @@ jest.mock("@mui/material/styles", () => ({
   }),
 }));
 
-import { useDimensions } from "@/hooks/useDimensions";
+import { useDimensions } from "@/hooks/html/useDimensions";
 
 jest.useFakeTimers();
 
@@ -32,7 +32,9 @@ describe("useDimensions cleanup", () => {
     };
     g.window = { addEventListener, removeEventListener };
 
-    const ref = { current: { offsetWidth: 100, offsetHeight: 100 } } as React.RefObject<HTMLElement>;
+    const ref = {
+      current: { offsetWidth: 100, offsetHeight: 100 },
+    } as React.RefObject<HTMLElement>;
 
     const setSpy = jest.fn();
     const originalUseState = React.useState;
@@ -110,11 +112,9 @@ describe("useDimensions resize updates", () => {
       return originalUseState(init);
     });
 
-    jest
-      .spyOn(React, "useEffect")
-      .mockImplementation((effect: () => void | (() => void)) => {
-        effect();
-      });
+    jest.spyOn(React, "useEffect").mockImplementation((effect: () => void | (() => void)) => {
+      effect();
+    });
 
     useDimensions(ref);
     setSpy.mockClear();
@@ -125,9 +125,7 @@ describe("useDimensions resize updates", () => {
     listeners["resize"]?.();
     jest.advanceTimersByTime(100);
 
-    expect(setSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ width: 200, height: 150 }),
-    );
+    expect(setSpy).toHaveBeenCalledWith(expect.objectContaining({ width: 200, height: 150 }));
   });
 });
 
@@ -172,17 +170,13 @@ describe("useDimensions breakpoints", () => {
       return originalUseState(init);
     });
 
-    jest
-      .spyOn(React, "useEffect")
-      .mockImplementation((effect: () => void | (() => void)) => {
-        effect();
-      });
+    jest.spyOn(React, "useEffect").mockImplementation((effect: () => void | (() => void)) => {
+      effect();
+    });
 
     useDimensions(ref);
 
-    expect(setSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ breakpoint: expected }),
-    );
+    expect(setSpy).toHaveBeenCalledWith(expect.objectContaining({ breakpoint: expected }));
   });
 });
 
@@ -266,18 +260,14 @@ describe("useDimensions visibility polling", () => {
       return originalUseState(init);
     });
 
-    jest
-      .spyOn(React, "useEffect")
-      .mockImplementation((effect: () => void | (() => void)) => {
-        effect();
-      });
+    jest.spyOn(React, "useEffect").mockImplementation((effect: () => void | (() => void)) => {
+      effect();
+    });
 
     useDimensions(ref);
 
-    (ref.current as unknown as { offsetWidth: number; offsetHeight: number }).offsetWidth =
-      100;
-    (ref.current as unknown as { offsetWidth: number; offsetHeight: number }).offsetHeight =
-      100;
+    (ref.current as unknown as { offsetWidth: number; offsetHeight: number }).offsetWidth = 100;
+    (ref.current as unknown as { offsetWidth: number; offsetHeight: number }).offsetHeight = 100;
 
     jest.advanceTimersByTime(20);
     expect(clearIntervalSpy).toHaveBeenCalledTimes(1);

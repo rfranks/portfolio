@@ -39,10 +39,7 @@ export function useAmbience(
 
   const playRandomClip = React.useCallback(() => {
     if (audioRefsRef.current.length === 0) return;
-    const audioRef =
-      audioRefsRef.current[
-        Math.floor(Math.random() * audioRefsRef.current.length)
-      ];
+    const audioRef = audioRefsRef.current[Math.floor(Math.random() * audioRefsRef.current.length)];
     rewindAndPlayAudio(audioRef, {
       volume: randomInRange(minVolume, maxVolume),
     });

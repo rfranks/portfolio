@@ -19,10 +19,7 @@ export default function BlackjackGameModeChip({
   className,
   allowWhenLocked = false,
 }: BlackjackGameModeChipProps) {
-  const chipClassName = [
-    getGameModeChipClass(engineState.gameMode),
-    className,
-  ]
+  const chipClassName = [getGameModeChipClass(engineState.gameMode), className]
     .filter(Boolean)
     .join(" ");
   const isInteractive = engineState.canToggleGameMode || allowWhenLocked;
@@ -50,9 +47,7 @@ export default function BlackjackGameModeChip({
         height={20}
       />
       <span className="blackjack-game-mode-chip-label">Mode</span>
-      <span className="blackjack-game-mode-chip-value">
-        {engineState.gameModeLabel}
-      </span>
+      <span className="blackjack-game-mode-chip-value">{engineState.gameModeLabel}</span>
     </button>
   );
 }

@@ -13,11 +13,7 @@ export interface JobListing {
   source: string;
 }
 
-export type ApplicationStatus =
-  | "applied"
-  | "interview"
-  | "offer"
-  | "rejected";
+export type ApplicationStatus = "applied" | "interview" | "offer" | "rejected";
 
 export interface StatusChange {
   /** Status the application transitioned to. */

@@ -1,11 +1,57 @@
 import { toJSONSchema, z } from "zod";
 import { withBasePath } from "@/utils/basePath";
-import { KnowledgeDocFile, OpenAIErrorPayload, OpenAIInputContentPart, PathForgerBranchChoice, PathForgerChapterResult, PathForgerGeneratedImage, PathForgerImageStageUpdate, PathForgerImageType, PathForgerOnboardingInput, PathForgerPipelineProgress, PathForgerPipelineResult, PathForgerPitchResult, RunPathForgerChapterStageInput, RunPathForgerCoverFromPitchStageInput, RunPathForgerImageStageInput, RunPathForgerOutcomeImageStageInput, RunPathForgerPathLedgerUpdateStageInput, RunPathForgerPipelineInput, RunPathForgerPitchStageInput, RunPathForgerPremiseStageInput, RunPathForgerProtagonistNameStageInput, RunPathForgerToneStageInput, RunPathForgerVisualStyleStageInput } from "../_types/pipeline";
+import { fetchText } from "@/utils/network/httpClient";
+import { requestOpenAIJsonRaw, requestOpenAIResponses } from "@/utils/openai/client";
+import {
+  KnowledgeDocFile,
+  OpenAIErrorPayload,
+  OpenAIInputContentPart,
+  PathForgerBranchChoice,
+  PathForgerChapterResult,
+  PathForgerGeneratedImage,
+  PathForgerImageStageUpdate,
+  PathForgerImageType,
+  PathForgerOnboardingInput,
+  PathForgerPipelineProgress,
+  PathForgerPipelineResult,
+  PathForgerPitchResult,
+  RunPathForgerChapterStageInput,
+  RunPathForgerCoverFromPitchStageInput,
+  RunPathForgerImageStageInput,
+  RunPathForgerOutcomeImageStageInput,
+  RunPathForgerPathLedgerUpdateStageInput,
+  RunPathForgerPipelineInput,
+  RunPathForgerPitchStageInput,
+  RunPathForgerPremiseStageInput,
+  RunPathForgerProtagonistNameStageInput,
+  RunPathForgerToneStageInput,
+  RunPathForgerVisualStyleStageInput,
+} from "../_types/pipeline";
 import { KNOWLEDGE_DOC_FILES } from "../_consts/knowledge";
 import { PathForgerPitchChoice } from "../_types/pitch";
-import { imagePromptSetSchema, pathForgerChapterCoreResultSchema, pathForgerChapterResultSchema, pathForgerPitchResultSchema, pathLedgerUpdateResultSchema, premiseResultSchema, protagonistNameResultSchema, runChapterStageInputSchema, runCoverFromPitchStageInputSchema, runImageStageInputSchema, runOutcomeImageStageInputSchema, runPathLedgerUpdateStageInputSchema, runPipelineInputSchema, runPitchStageInputSchema, runPremiseStageInputSchema, runProtagonistNameStageInputSchema, runToneStageInputSchema, runVisualStyleStageInputSchema, toneResultSchema, visualStyleResultSchema } from "../_schemas/pipeline";
+import {
+  imagePromptSetSchema,
+  pathForgerChapterCoreResultSchema,
+  pathForgerChapterResultSchema,
+  pathForgerPitchResultSchema,
+  pathLedgerUpdateResultSchema,
+  premiseResultSchema,
+  protagonistNameResultSchema,
+  runChapterStageInputSchema,
+  runCoverFromPitchStageInputSchema,
+  runImageStageInputSchema,
+  runOutcomeImageStageInputSchema,
+  runPathLedgerUpdateStageInputSchema,
+  runPipelineInputSchema,
+  runPitchStageInputSchema,
+  runPremiseStageInputSchema,
+  runProtagonistNameStageInputSchema,
+  runToneStageInputSchema,
+  runVisualStyleStageInputSchema,
+  toneResultSchema,
+  visualStyleResultSchema,
+} from "../_schemas/pipeline";
 
-const RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_TEXT_MODEL = "gpt-4.1-mini";
 const DEFAULT_IMAGE_MODEL = "gpt-image-1-mini";
 const TARGET_IMAGE_SIZE = "1024x1024";
@@ -178,22 +224,18 @@ function writeKnowledgeToSessionCache(knowledge: PathForgerKnowledge): void {
       version: PATHFORGER_KNOWLEDGE_CACHE_VERSION,
       knowledge,
     };
-    window.sessionStorage.setItem(
-      PATHFORGER_KNOWLEDGE_CACHE_KEY,
-      JSON.stringify(payload),
-    );
+    window.sessionStorage.setItem(PATHFORGER_KNOWLEDGE_CACHE_KEY, JSON.stringify(payload));
   } catch {
     // Ignore storage failures (private mode/quota).
   }
 }
 
 async function readStaticText(path: string): Promise<string> {
-  const response = await fetch(withBasePath(path), { cache: "force-cache" });
-  if (!response.ok) {
-    throw new Error(`Failed to load ${path} (${response.status}).`);
-  }
-
-  return (await response.text()).trim();
+  const { data } = await fetchText(withBasePath(path), {
+    method: "GET",
+    cache: "force-cache",
+  });
+  return data.trim();
 }
 
 async function loadPathForgerKnowledge(): Promise<PathForgerKnowledge> {
@@ -242,8 +284,7 @@ async function loadPathForgerKnowledge(): Promise<PathForgerKnowledge> {
 async function loadPathForgerKnowledgeForStage(
   onProgress?: (progress: PathForgerPipelineProgress) => void,
 ): Promise<PathForgerKnowledge> {
-  const shouldAnnounceLoading =
-    !knowledgeCache && !knowledgePromise && !hasKnowledgeSessionCache();
+  const shouldAnnounceLoading = !knowledgeCache && !knowledgePromise && !hasKnowledgeSessionCache();
   if (shouldAnnounceLoading) {
     onProgress?.({
       stage: "loadingKnowledge",
@@ -332,11 +373,7 @@ function isRateLimitResponse(
   return lower.includes("rate limit");
 }
 
-function resolveRateLimitDelayMs(
-  response: Response,
-  message: string,
-  attempt: number,
-): number {
+function resolveRateLimitDelayMs(response: Response, message: string, attempt: number): number {
   const headerDelayMs = parseRetryAfterMs(response.headers.get("retry-after"));
   if (headerDelayMs !== null) {
     return Math.max(500, headerDelayMs);
@@ -349,8 +386,7 @@ function resolveRateLimitDelayMs(
     const numeric = Number(retryInMatch[1]);
     if (Number.isFinite(numeric) && numeric > 0) {
       const unit = (retryInMatch[2] ?? "s").toLowerCase();
-      const multiplier =
-        unit.startsWith("ms") || unit.startsWith("millisecond") ? 1 : 1_000;
+      const multiplier = unit.startsWith("ms") || unit.startsWith("millisecond") ? 1 : 1_000;
       return Math.max(500, Math.ceil(numeric * multiplier));
     }
   }
@@ -366,10 +402,7 @@ function extractTextFromResponse(payload: unknown): string {
   }
 
   const value = payload as Record<string, unknown>;
-  if (
-    typeof value.output_text === "string" &&
-    value.output_text.trim().length > 0
-  ) {
+  if (typeof value.output_text === "string" && value.output_text.trim().length > 0) {
     return value.output_text.trim();
   }
 
@@ -454,10 +487,7 @@ function injectRiskHudEmojis(markdown: string): string {
           continue;
         }
 
-        const labelPattern = new RegExp(
-          `\\b${label.replace(/\s+/g, "\\s+")}\\b`,
-          "i",
-        );
+        const labelPattern = new RegExp(`\\b${label.replace(/\s+/g, "\\s+")}\\b`, "i");
         if (labelPattern.test(nextLine)) {
           nextLine = nextLine.replace(labelPattern, `${emoji} $&`);
         }
@@ -489,9 +519,7 @@ function toRiskHudLineItems(markdown: string): string {
     "gi",
   );
 
-  const matches = Array.from(markdown.matchAll(markerChunkPattern)).map(
-    (match) => match[0].trim(),
-  );
+  const matches = Array.from(markdown.matchAll(markerChunkPattern)).map((match) => match[0].trim());
   if (matches.length === 0) {
     return markdown.trim();
   }
@@ -559,33 +587,23 @@ function stripChapterChoicesTail(markdown: string): string {
       return true;
     }
 
-    if (
-      new RegExp(`^\\s*#{1,6}\\s*${sectionKeywordPattern}\\b`, "i").test(line)
-    ) {
+    if (new RegExp(`^\\s*#{1,6}\\s*${sectionKeywordPattern}\\b`, "i").test(line)) {
       return true;
     }
 
-    if (
-      new RegExp(
-        `^\\s*(?:[-+*]\\s*)?${sectionKeywordPattern}\\s*(?:[:—–-]|$)`,
-        "i",
-      ).test(line)
-    ) {
+    if (new RegExp(`^\\s*(?:[-+*]\\s*)?${sectionKeywordPattern}\\s*(?:[:—–-]|$)`, "i").test(line)) {
       return true;
     }
 
     return false;
   });
 
-  const narrative =
-    cutIndex < 0 ? markdown.trim() : lines.slice(0, cutIndex).join("\n").trim();
+  const narrative = cutIndex < 0 ? markdown.trim() : lines.slice(0, cutIndex).join("\n").trim();
 
   return narrative.replace(/\n\s*(?:[-*_]\s*){3,}\s*$/g, "").trim();
 }
 
-function normalizeChoiceRiskHud<T extends { riskHudMarkdown: string }>(
-  choices: T[],
-): T[] {
+function normalizeChoiceRiskHud<T extends { riskHudMarkdown: string }>(choices: T[]): T[] {
   return choices.map((choice) => ({
     ...choice,
     riskHudMarkdown: sanitizeRiskHudMarkdown(choice.riskHudMarkdown),
@@ -605,9 +623,7 @@ function extractCoverTitleHintFromPrompt(prompt: string): string | null {
     }
   }
 
-  const quotedTitle = prompt.match(
-    /(?:title|book title)\s*[:\-]?\s*["“]([^"”\n]{2,120})["”]/i,
-  );
+  const quotedTitle = prompt.match(/(?:title|book title)\s*[:\-]?\s*["“]([^"”\n]{2,120})["”]/i);
   if (quotedTitle?.[1]?.trim()) {
     return quotedTitle[1].trim();
   }
@@ -638,28 +654,21 @@ function buildCoverPromptFromPitch(input: {
   pitchResult: PathForgerPitchResult;
   selectedPitch: PathForgerPitchChoice;
 }): string {
-  const selectedPitch = input.pitchResult.pitches.find(
-    (pitch) => pitch.id === input.selectedPitch,
-  );
+  const selectedPitch = input.pitchResult.pitches.find((pitch) => pitch.id === input.selectedPitch);
 
   if (!selectedPitch) {
     throw new Error(`Unable to resolve selected pitch: ${input.selectedPitch}`);
   }
 
-  const selectedPitchTitle = normalizePitchTitle(
-    selectedPitch.title,
-    `Pitch ${selectedPitch.id}`,
-  );
+  const selectedPitchTitle = normalizePitchTitle(selectedPitch.title, `Pitch ${selectedPitch.id}`);
   const fallbackAdventureTitle = input.pitchResult.adventureTitle.trim();
-  const coverTitle =
-    selectedPitchTitle.length > 0 ? selectedPitchTitle : fallbackAdventureTitle;
+  const coverTitle = selectedPitchTitle.length > 0 ? selectedPitchTitle : fallbackAdventureTitle;
 
   return buildCoverPromptFromTitle({
     onboarding: input.onboarding,
     coverTitle,
     teaserMarkdown: selectedPitch.markdown,
-    contextTitle:
-      fallbackAdventureTitle.length > 0 ? fallbackAdventureTitle : undefined,
+    contextTitle: fallbackAdventureTitle.length > 0 ? fallbackAdventureTitle : undefined,
   });
 }
 
@@ -670,9 +679,7 @@ function buildCoverPromptFromTitle(input: {
   contextTitle?: string;
 }): string {
   const sanitizedCoverTitle = input.coverTitle.trim();
-  const teaser = input.teaserMarkdown
-    ? markdownToPlainText(input.teaserMarkdown, 260)
-    : "";
+  const teaser = input.teaserMarkdown ? markdownToPlainText(input.teaserMarkdown, 260) : "";
   const contextTitle = input.contextTitle?.trim() ?? "";
 
   return [
@@ -700,9 +707,7 @@ function resolvePitchDisplayTitle(input: {
   pitchResult: PathForgerPitchResult;
   selectedPitch: PathForgerPitchChoice;
 }): string {
-  const selectedPitch = input.pitchResult.pitches.find(
-    (pitch) => pitch.id === input.selectedPitch,
-  );
+  const selectedPitch = input.pitchResult.pitches.find((pitch) => pitch.id === input.selectedPitch);
   const title = selectedPitch
     ? normalizePitchTitle(selectedPitch.title, `Pitch ${input.selectedPitch}`)
     : "";
@@ -730,13 +735,9 @@ function clampTitleLength(value: string, maxChars: number): string {
 }
 
 function normalizePitchTitle(rawTitle: string, fallbackTitle: string): string {
-  const titleWithoutParens = rawTitle
-    .replace(/\([^)]*\)/g, " ")
-    .replace(/\[[^\]]*\]/g, " ");
+  const titleWithoutParens = rawTitle.replace(/\([^)]*\)/g, " ").replace(/\[[^\]]*\]/g, " ");
 
-  const firstPartOnly = titleWithoutParens
-    .split(/[:|]/)[0]
-    ?.split(/\s+[—–-]\s+/)[0];
+  const firstPartOnly = titleWithoutParens.split(/[:|]/)[0]?.split(/\s+[—–-]\s+/)[0];
 
   const normalized = (firstPartOnly ?? titleWithoutParens)
     .replace(/[`*_#]/g, " ")
@@ -745,10 +746,7 @@ function normalizePitchTitle(rawTitle: string, fallbackTitle: string): string {
     .replace(/\s+/g, " ")
     .trim();
 
-  const words = normalized
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, MAX_PITCH_TITLE_WORDS);
+  const words = normalized.split(/\s+/).filter(Boolean).slice(0, MAX_PITCH_TITLE_WORDS);
   const byWords = words.join(" ").trim();
   const byChars = clampTitleLength(byWords, MAX_PITCH_TITLE_CHARS);
   const clean = byChars.replace(/\s+/g, " ").trim();
@@ -759,9 +757,7 @@ function normalizePitchTitle(rawTitle: string, fallbackTitle: string): string {
   return fallbackTitle;
 }
 
-function normalizePitchResultTitles(
-  pitchResult: PathForgerPitchResult,
-): PathForgerPitchResult {
+function normalizePitchResultTitles(pitchResult: PathForgerPitchResult): PathForgerPitchResult {
   const usedTitles = new Set<string>();
   const pitches = pitchResult.pitches.map((pitch) => {
     const fallback = `Pitch ${pitch.id}`;
@@ -770,10 +766,7 @@ function normalizePitchResultTitles(
     const dedupeKey = title.toLowerCase();
     if (usedTitles.has(dedupeKey)) {
       const suffix = pitch.id;
-      const base = clampTitleLength(
-        title,
-        Math.max(8, MAX_PITCH_TITLE_CHARS - suffix.length - 1),
-      );
+      const base = clampTitleLength(title, Math.max(8, MAX_PITCH_TITLE_CHARS - suffix.length - 1));
       title = `${base} ${suffix}`.trim();
     }
 
@@ -805,9 +798,7 @@ function buildKnowledgeSection(
   knowledge: PathForgerKnowledge,
   selectedDocs: readonly KnowledgeDocFile[],
 ): string {
-  return selectedDocs
-    .map((docName) => `## ${docName}\n${knowledge.docs[docName]}`)
-    .join("\n\n");
+  return selectedDocs.map((docName) => `## ${docName}\n${knowledge.docs[docName]}`).join("\n\n");
 }
 
 const PITCH_STAGE_DOCS: readonly KnowledgeDocFile[] = [
@@ -877,9 +868,7 @@ function buildPitchUserPrompt(onboarding: PathForgerOnboardingInput): string {
   ].join("\n");
 }
 
-function buildProtagonistNameSystemPrompt(
-  knowledge: PathForgerKnowledge,
-): string {
+function buildProtagonistNameSystemPrompt(knowledge: PathForgerKnowledge): string {
   return [
     "You are PathForger's story setup assistant.",
     "Generate exactly one memorable protagonist name based on the onboarding payload.",
@@ -902,8 +891,7 @@ function buildProtagonistNameUserPrompt(
     randomnessSeed?: string;
   },
 ): string {
-  const forbiddenList =
-    options?.forbiddenNames?.filter((name) => name.trim().length > 0) ?? [];
+  const forbiddenList = options?.forbiddenNames?.filter((name) => name.trim().length > 0) ?? [];
 
   return [
     "Generate one protagonist name for this adventure setup.",
@@ -980,9 +968,7 @@ function buildToneSystemPrompt(knowledge: PathForgerKnowledge): string {
   ].join("\n");
 }
 
-function buildVisualStyleUserPrompt(
-  onboarding: PathForgerOnboardingInput,
-): string {
+function buildVisualStyleUserPrompt(onboarding: PathForgerOnboardingInput): string {
   return [
     "Generate one short visual style phrase for this adventure setup.",
     "Treat the selected age rating as a hard style/content constraint.",
@@ -1134,9 +1120,7 @@ function buildChapterCoreSystemPrompt(knowledge: PathForgerKnowledge): string {
   ].join("\n");
 }
 
-function buildPathLedgerUpdateSystemPrompt(
-  knowledge: PathForgerKnowledge,
-): string {
+function buildPathLedgerUpdateSystemPrompt(knowledge: PathForgerKnowledge): string {
   return [
     "You are PathForger's continuity ledger engine.",
     "Update the path ledger after a newly chosen branch and resolved outcome.",
@@ -1178,9 +1162,7 @@ function pickNameFromCandidates(params: {
     ),
   );
 
-  const allowed = unique.filter(
-    (candidate) => !params.forbiddenNames.has(candidate.toLowerCase()),
-  );
+  const allowed = unique.filter((candidate) => !params.forbiddenNames.has(candidate.toLowerCase()));
 
   if (allowed.length === 0) {
     return null;
@@ -1209,9 +1191,7 @@ function buildChapterLengthRule(
   return "- chapterMarkdown length: medium chapter, roughly 700-1200 words.";
 }
 
-function buildChapterAgeRatingRule(
-  ageRating: PathForgerOnboardingInput["ageRating"],
-): string[] {
+function buildChapterAgeRatingRule(ageRating: PathForgerOnboardingInput["ageRating"]): string[] {
   const normalized = ageRating.trim().toUpperCase();
 
   if (normalized === "G") {
@@ -1286,18 +1266,12 @@ function buildChapterUserPrompt(params: {
   );
 
   if (!selectedPitch) {
-    throw new Error(
-      `Unable to resolve selected pitch: ${params.selectedPitch}`,
-    );
+    throw new Error(`Unable to resolve selected pitch: ${params.selectedPitch}`);
   }
 
   const chapterNumber = params.chapterNumber ?? 1;
-  const chapterLengthRule = buildChapterLengthRule(
-    params.onboarding.adventureLength,
-  );
-  const chapterAgeRatingRules = buildChapterAgeRatingRule(
-    params.onboarding.ageRating,
-  );
+  const chapterLengthRule = buildChapterLengthRule(params.onboarding.adventureLength);
+  const chapterAgeRatingRules = buildChapterAgeRatingRule(params.onboarding.ageRating);
   const chapterStyleTextRules = buildChapterStyleTextRules(params.onboarding);
 
   return [
@@ -1384,18 +1358,12 @@ function buildChapterCoreUserPrompt(params: {
   );
 
   if (!selectedPitch) {
-    throw new Error(
-      `Unable to resolve selected pitch: ${params.selectedPitch}`,
-    );
+    throw new Error(`Unable to resolve selected pitch: ${params.selectedPitch}`);
   }
 
   const chapterNumber = params.chapterNumber ?? 1;
-  const chapterLengthRule = buildChapterLengthRule(
-    params.onboarding.adventureLength,
-  );
-  const chapterAgeRatingRules = buildChapterAgeRatingRule(
-    params.onboarding.ageRating,
-  );
+  const chapterLengthRule = buildChapterLengthRule(params.onboarding.adventureLength);
+  const chapterAgeRatingRules = buildChapterAgeRatingRule(params.onboarding.ageRating);
   const chapterStyleTextRules = buildChapterStyleTextRules(params.onboarding);
 
   return [
@@ -1467,9 +1435,7 @@ function buildChapterCoreUserPrompt(params: {
   ].join("\n");
 }
 
-function buildPathLedgerUpdateUserPrompt(
-  params: RunPathForgerPathLedgerUpdateStageInput,
-): string {
+function buildPathLedgerUpdateUserPrompt(params: RunPathForgerPathLedgerUpdateStageInput): string {
   return [
     "Update Path Ledger markdown for the latest resolved branch.",
     "",
@@ -1509,13 +1475,9 @@ async function requestTextStage<TSchema extends z.ZodTypeAny>(params: {
   userPrompt: string;
   schema: TSchema;
 }): Promise<z.infer<TSchema>> {
-  const response = await fetch(RESPONSES_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${params.apiKey}`,
-    },
-    body: JSON.stringify({
+  let data: Record<string, unknown>;
+  try {
+    data = (await requestOpenAIResponses(params.apiKey, {
       model: params.model,
       input: [
         {
@@ -1527,19 +1489,13 @@ async function requestTextStage<TSchema extends z.ZodTypeAny>(params: {
           content: [{ type: "input_text", text: params.userPrompt }],
         },
       ],
-    }),
-  });
-
-  const data = (await response.json().catch(() => ({}))) as Record<
-    string,
-    unknown
-  >;
-
-  if (!response.ok) {
-    const apiMessage = extractErrorMessage(data);
-    throw new Error(
-      apiMessage || `PathForger text stage failed (${response.status}).`,
-    );
+    })) as Record<string, unknown>;
+  } catch (error) {
+    const message =
+      error instanceof Error && error.message.trim().length > 0
+        ? error.message
+        : "PathForger text stage failed.";
+    throw new Error(message);
   }
 
   const text = extractTextFromResponse(data);
@@ -1562,9 +1518,7 @@ function parseImageCandidate(raw: string): ExtractedImage | null {
     return null;
   }
 
-  const dataUrlMatch = value.match(
-    /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/,
-  );
+  const dataUrlMatch = value.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
   if (dataUrlMatch) {
     return {
       mimeType: dataUrlMatch[1],
@@ -1635,10 +1589,7 @@ function extractImageBase64(payload: unknown): ExtractedImage | null {
   );
 }
 
-function shouldRetryWithMinimalToolOptions(
-  status: number,
-  apiMessage: string,
-): boolean {
+function shouldRetryWithMinimalToolOptions(status: number, apiMessage: string): boolean {
   if (status !== 400 || !apiMessage) {
     return false;
   }
@@ -1651,9 +1602,7 @@ function shouldRetryWithMinimalToolOptions(
   );
 }
 
-function buildImageTypePromptRequirements(
-  imageType: PathForgerImageType,
-): string[] {
+function buildImageTypePromptRequirements(imageType: PathForgerImageType): string[] {
   if (imageType === "choicePreviewA" || imageType === "choicePreviewB") {
     const optionLabel = imageType === "choicePreviewA" ? "A" : "B";
     return [
@@ -1731,9 +1680,7 @@ async function requestImageAsset(params: {
   ageRatingHint?: string;
 }): Promise<Omit<PathForgerGeneratedImage, "prompt">> {
   const coverTitleHint =
-    params.imageType === "cover"
-      ? extractCoverTitleHintFromPrompt(params.prompt)
-      : null;
+    params.imageType === "cover" ? extractCoverTitleHintFromPrompt(params.prompt) : null;
   const coverPromptRequirements =
     params.imageType === "cover"
       ? [
@@ -1747,9 +1694,7 @@ async function requestImageAsset(params: {
           "Do not output warped, mirrored, misspelled, tiny, or illegible title text.",
         ]
       : [];
-  const imageTypeRequirements = buildImageTypePromptRequirements(
-    params.imageType,
-  );
+  const imageTypeRequirements = buildImageTypePromptRequirements(params.imageType);
   const styleRequirements = buildStyleAdherenceRequirements({
     styleHint: params.styleHint,
     toneHint: params.toneHint,
@@ -1827,25 +1772,15 @@ async function requestImageAsset(params: {
   };
 
   const runRequest = async (body: Record<string, unknown>) => {
-    const response = await fetch(RESPONSES_URL, {
+    return requestOpenAIJsonRaw<Record<string, unknown>>({
+      apiKey: params.apiKey,
+      path: "/responses",
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${params.apiKey}`,
-      },
-      body: JSON.stringify(body),
+      body,
     });
-
-    const data = (await response.json().catch(() => ({}))) as Record<
-      string,
-      unknown
-    >;
-    return { response, data };
   };
 
-  const runRequestWithRateLimitRetry = async (
-    body: Record<string, unknown>,
-  ) => {
+  const runRequestWithRateLimitRetry = async (body: Record<string, unknown>) => {
     let attempt = 0;
 
     while (true) {
@@ -1875,9 +1810,7 @@ async function requestImageAsset(params: {
     ));
 
     const secondAttemptMessage = extractErrorMessage(data);
-    if (
-      shouldRetryWithMinimalToolOptions(response.status, secondAttemptMessage)
-    ) {
+    if (shouldRetryWithMinimalToolOptions(response.status, secondAttemptMessage)) {
       ({ response, data } = await runRequestWithRateLimitRetry(
         requestWithBareToolOptions as unknown as Record<string, unknown>,
       ));
@@ -1935,8 +1868,7 @@ async function runImageJobsParallel(params: {
   images: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>>;
   imageErrors: Partial<Record<PathForgerImageType, string>>;
 }> {
-  const images: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>> =
-    {};
+  const images: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>> = {};
   const imageErrors: Partial<Record<PathForgerImageType, string>> = {};
 
   if (params.jobs.length === 0) {
@@ -1945,10 +1877,7 @@ async function runImageJobsParallel(params: {
 
   let nextJobIndex = 0;
   let completed = 0;
-  const workerCount = Math.max(
-    1,
-    Math.min(MAX_PARALLEL_IMAGE_CALLS, params.jobs.length),
-  );
+  const workerCount = Math.max(1, Math.min(MAX_PARALLEL_IMAGE_CALLS, params.jobs.length));
   const inFlight = new Set<Promise<void>>();
 
   const runOneJob = async (
@@ -1990,8 +1919,7 @@ async function runImageJobsParallel(params: {
         total: params.jobs.length,
       });
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Image generation failed.";
+      const errorMessage = error instanceof Error ? error.message : "Image generation failed.";
       imageErrors[job.type] = errorMessage;
       params.onImageUpdate?.({
         type: job.type,
@@ -2138,9 +2066,7 @@ export async function runPathForgerProtagonistNameStage(
   });
   const systemPrompt = buildProtagonistNameSystemPrompt(knowledge);
   const forbiddenSet = new Set(
-    (input.forbiddenNames ?? [])
-      .map((name) => name.trim().toLowerCase())
-      .filter(Boolean),
+    (input.forbiddenNames ?? []).map((name) => name.trim().toLowerCase()).filter(Boolean),
   );
   const baseSeed = input.randomnessSeed?.trim().length
     ? input.randomnessSeed.trim()
@@ -2505,19 +2431,14 @@ export async function runPathForgerImageStage(
 
   for (const type of orderedImageTypes) {
     const overridePrompt = input.imagePromptOverrides?.[type];
-    if (
-      typeof overridePrompt === "string" &&
-      overridePrompt.trim().length > 0
-    ) {
+    if (typeof overridePrompt === "string" && overridePrompt.trim().length > 0) {
       resolvedImagePrompts[type] = overridePrompt.trim();
     }
   }
 
   if (renderImages.cover) {
     const coverTitle =
-      input.coverTitle?.trim() ||
-      extractCoverTitleHintFromPrompt(resolvedImagePrompts.cover) ||
-      "";
+      input.coverTitle?.trim() || extractCoverTitleHintFromPrompt(resolvedImagePrompts.cover) || "";
     if (coverTitle.length > 0) {
       resolvedImagePrompts.cover = buildCoverPromptFromTitle({
         onboarding: input.onboarding,
@@ -2565,9 +2486,7 @@ export async function runPathForgerOutcomeImageStage(
       ? overridePrompt.trim()
       : input.imagePrompts[imageType];
   const choicePreviewPrompt =
-    input.branch === "A"
-      ? input.imagePrompts.choicePreviewA
-      : input.imagePrompts.choicePreviewB;
+    input.branch === "A" ? input.imagePrompts.choicePreviewA : input.imagePrompts.choicePreviewB;
   const outcomeNarrative = markdownToPlainText(input.outcomeMarkdown, 1200);
   const outcomePrompt = [
     prompt,
@@ -2649,8 +2568,7 @@ export async function runPathForgerPipeline(
   });
   const normalizedPitches = normalizePitchResultTitles(pitches);
 
-  const selectedPitch =
-    input.selectedPitch ?? normalizedPitches.recommendedPitch;
+  const selectedPitch = input.selectedPitch ?? normalizedPitches.recommendedPitch;
   const selectedPitchTitle = resolvePitchDisplayTitle({
     pitchResult: normalizedPitches,
     selectedPitch,

@@ -1,15 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  Button,
-  Grid,
-  Stack,
-  TextField,
-  Typography,
-  MenuItem,
-} from "@mui/material";
+import { Box, Button, Grid, Stack, TextField, Typography, MenuItem } from "@mui/material";
 
 import RequireAIKey from "../RequireAIKey";
 import { askOpenAI } from "@/app/talentforge/_utils/utils";
@@ -50,9 +42,7 @@ export default function PromptTileGrid({
   initialValues = {},
   contexts,
 }: PromptTileGridProps) {
-  const [values, setValues] = useState<
-    Record<string, Record<string, string>>
-  >(initialValues);
+  const [values, setValues] = useState<Record<string, Record<string, string>>>(initialValues);
   useEffect(() => {
     setValues(initialValues);
   }, [initialValues]);
@@ -108,9 +98,7 @@ export default function PromptTileGrid({
           return {
             value: "",
             ok,
-            error: ok
-              ? undefined
-              : `Select a resume for ${placeholder.label}.`,
+            error: ok ? undefined : `Select a resume for ${placeholder.label}.`,
           };
         }
         return { value: formatResumeForPrompt(resume), ok: true };
@@ -122,9 +110,7 @@ export default function PromptTileGrid({
           return {
             value: "",
             ok,
-            error: ok
-              ? undefined
-              : `Choose a job application for ${placeholder.label}.`,
+            error: ok ? undefined : `Choose a job application for ${placeholder.label}.`,
           };
         }
         return { value: formatJobApplicationForPrompt(application), ok: true };
@@ -136,9 +122,7 @@ export default function PromptTileGrid({
           return {
             value: "",
             ok,
-            error: ok
-              ? undefined
-              : `Select an offer for ${placeholder.label}.`,
+            error: ok ? undefined : `Select an offer for ${placeholder.label}.`,
           };
         }
         return { value: formatOfferForPrompt(offer), ok: true };
@@ -160,9 +144,7 @@ export default function PromptTileGrid({
         return {
           value,
           ok,
-          error: ok
-            ? undefined
-            : "Update your profile details to use this placeholder.",
+          error: ok ? undefined : "Update your profile details to use this placeholder.",
         };
       }
       case "goals": {
@@ -171,9 +153,7 @@ export default function PromptTileGrid({
         return {
           value,
           ok,
-          error: ok
-            ? undefined
-            : "Select at least one goal to use this placeholder.",
+          error: ok ? undefined : "Select at least one goal to use this placeholder.",
         };
       }
       default:
@@ -181,10 +161,7 @@ export default function PromptTileGrid({
     }
   };
 
-  const renderCustomPlaceholderInput = (
-    tileId: string,
-    placeholder: CustomPromptPlaceholder,
-  ) => {
+  const renderCustomPlaceholderInput = (tileId: string, placeholder: CustomPromptPlaceholder) => {
     const stored = values[tileId]?.[placeholder.id] || "";
     const helperText = placeholder.helperText || undefined;
     switch (placeholder.type) {
@@ -194,9 +171,7 @@ export default function PromptTileGrid({
             key={placeholder.id}
             label={placeholder.label}
             value={stored}
-            onChange={(event) =>
-              handleChange(tileId, placeholder.id, event.target.value)
-            }
+            onChange={(event) => handleChange(tileId, placeholder.id, event.target.value)}
             fullWidth
             size="small"
             helperText={helperText}
@@ -208,9 +183,7 @@ export default function PromptTileGrid({
             key={placeholder.id}
             label={placeholder.label}
             value={stored}
-            onChange={(event) =>
-              handleChange(tileId, placeholder.id, event.target.value)
-            }
+            onChange={(event) => handleChange(tileId, placeholder.id, event.target.value)}
             fullWidth
             multiline
             minRows={3}
@@ -232,9 +205,7 @@ export default function PromptTileGrid({
             select
             label={placeholder.label}
             value={stored}
-            onChange={(event) =>
-              handleChange(tileId, placeholder.id, event.target.value)
-            }
+            onChange={(event) => handleChange(tileId, placeholder.id, event.target.value)}
             fullWidth
             helperText={helperText}
             size="small"
@@ -260,9 +231,7 @@ export default function PromptTileGrid({
             select
             label={placeholder.label}
             value={stored}
-            onChange={(event) =>
-              handleChange(tileId, placeholder.id, event.target.value)
-            }
+            onChange={(event) => handleChange(tileId, placeholder.id, event.target.value)}
             fullWidth
             helperText={helperText}
             size="small"
@@ -288,9 +257,7 @@ export default function PromptTileGrid({
             select
             label={placeholder.label}
             value={stored}
-            onChange={(event) =>
-              handleChange(tileId, placeholder.id, event.target.value)
-            }
+            onChange={(event) => handleChange(tileId, placeholder.id, event.target.value)}
             fullWidth
             helperText={helperText}
             size="small"
@@ -375,10 +342,7 @@ export default function PromptTileGrid({
         }
         let prompt = tile.fullPrompt;
         customTile.placeholders.forEach((placeholder, index) => {
-          prompt = prompt.replaceAll(
-            `{{${placeholder.id}}}`,
-            resolved[index].value,
-          );
+          prompt = prompt.replaceAll(`{{${placeholder.id}}}`, resolved[index].value);
         });
         const res = await askOpenAI({
           context: "",
@@ -449,9 +413,7 @@ export default function PromptTileGrid({
                         select
                         size="small"
                         value={values[tile.id]?.[name] || ""}
-                        onChange={(e) =>
-                          handleChange(tile.id, name, e.target.value)
-                        }
+                        onChange={(e) => handleChange(tile.id, name, e.target.value)}
                       >
                         {resumes.map((r) => (
                           <MenuItem key={r.id} value={r.id}>
@@ -464,9 +426,7 @@ export default function PromptTileGrid({
                         key={name}
                         label={name}
                         value={values[tile.id]?.[name] || ""}
-                        onChange={(e) =>
-                          handleChange(tile.id, name, e.target.value)
-                        }
+                        onChange={(e) => handleChange(tile.id, name, e.target.value)}
                         multiline
                         minRows={4}
                         maxRows={10}
@@ -478,9 +438,7 @@ export default function PromptTileGrid({
                         label={name}
                         size="small"
                         value={values[tile.id]?.[name] || ""}
-                        onChange={(e) =>
-                          handleChange(tile.id, name, e.target.value)
-                        }
+                        onChange={(e) => handleChange(tile.id, name, e.target.value)}
                       />
                     ),
                   );
@@ -493,10 +451,7 @@ export default function PromptTileGrid({
                   {loading[tile.id] ? "Running..." : "Run"}
                 </Button>
                 {responses[tile.id] && (
-                  <Typography
-                    variant="body2"
-                    sx={{ whiteSpace: "pre-wrap" }}
-                  >
+                  <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
                     {responses[tile.id]}
                   </Typography>
                 )}

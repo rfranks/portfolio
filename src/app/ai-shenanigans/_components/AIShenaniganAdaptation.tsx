@@ -97,9 +97,7 @@ export default function AIShenaniganAdaptation({
   const [showManuscriptArrow, setShowManuscriptArrow] = useState(false);
   const [showTrailerArrow, setShowTrailerArrow] = useState(false);
   const [showEpisodesArrow, setShowEpisodesArrow] = useState(false);
-  const [transitioningTo, setTransitioningTo] = useState<RevealStage | null>(
-    null,
-  );
+  const [transitioningTo, setTransitioningTo] = useState<RevealStage | null>(null);
   const manuscriptTimeoutRef = useRef<number | null>(null);
   const trailerTimeoutRef = useRef<number | null>(null);
   const episodesTimeoutRef = useRef<number | null>(null);
@@ -132,8 +130,7 @@ export default function AIShenaniganAdaptation({
     border: "1px solid",
     borderColor: "var(--fabric-surface-border)",
     backgroundColor: "var(--fabric-surface-1)",
-    backgroundImage:
-      "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
+    backgroundImage: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
     boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
     backdropFilter: "blur(var(--fabric-blur-sm))",
   } as const;
@@ -387,11 +384,7 @@ export default function AIShenaniganAdaptation({
     }
 
     return (
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        sx={{ mt: 1.5, display: "block" }}
-      >
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: "block" }}>
         Source:{" "}
         {href ? (
           <Link
@@ -435,8 +428,7 @@ export default function AIShenaniganAdaptation({
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           transform: `rotate(${rightsStampAngle}deg)`,
-          boxShadow:
-            "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
+          boxShadow: "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
           textShadow: "0 1px 0 rgba(255,255,255,0.3)",
           opacity: 0.92,
         }}
@@ -473,10 +465,7 @@ export default function AIShenaniganAdaptation({
     );
   };
 
-  const renderMobilePanelHeader = (
-    subtitle: string,
-    source?: string,
-  ) => {
+  const renderMobilePanelHeader = (subtitle: string, source?: string) => {
     if (!isSmDown) {
       return null;
     }
@@ -485,21 +474,12 @@ export default function AIShenaniganAdaptation({
 
     return (
       <Box sx={{ mb: 1.25 }}>
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="flex-start"
-          justifyContent="space-between"
-        >
+        <Stack direction="row" spacing={1} alignItems="flex-start" justifyContent="space-between">
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography variant="h6" sx={{ lineHeight: 1.15 }}>
               {title}
             </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 0.35, lineHeight: 1.3 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35, lineHeight: 1.3 }}>
               {subtitleLine}
             </Typography>
           </Box>
@@ -673,12 +653,7 @@ export default function AIShenaniganAdaptation({
   };
 
   const handleChronologySelect = (
-    target:
-      | "book"
-      | "manuscript"
-      | "trailer"
-      | "episodes"
-      | `episode-${number}`,
+    target: "book" | "manuscript" | "trailer" | "episodes" | `episode-${number}`,
   ) => {
     if (transitioningTo !== null) {
       return;
@@ -692,18 +667,12 @@ export default function AIShenaniganAdaptation({
     setBookCoverLoaded(true);
     setShowManuscriptArrow(target !== "book");
     setManuscriptVisible(target !== "book");
-    const targetsEpisodes =
-      target === "episodes" || target.startsWith("episode-");
-    const targetsTrailer =
-      hasTrailer && (target === "trailer" || targetsEpisodes);
-    setShowTrailerArrow(
-      hasTrailer && target !== "book" && target !== "manuscript",
-    );
+    const targetsEpisodes = target === "episodes" || target.startsWith("episode-");
+    const targetsTrailer = hasTrailer && (target === "trailer" || targetsEpisodes);
+    setShowTrailerArrow(hasTrailer && target !== "book" && target !== "manuscript");
     setTrailerVisible(targetsTrailer);
     setShowEpisodesArrow(
-      hasTrailer
-        ? targetsEpisodes
-        : target === "episodes" || target.startsWith("episode-"),
+      hasTrailer ? targetsEpisodes : target === "episodes" || target.startsWith("episode-"),
     );
     setEpisodesVisible(targetsEpisodes);
 
@@ -712,10 +681,7 @@ export default function AIShenaniganAdaptation({
       setRevealedEpisodeCount(0);
       stopMediaVideos();
       window.requestAnimationFrame(() => {
-        scrollRevealIntoView(
-          bookCoverRef.current || bookSectionRef.current,
-          bookFooterRef.current,
-        );
+        scrollRevealIntoView(bookCoverRef.current || bookSectionRef.current, bookFooterRef.current);
       });
       return;
     }
@@ -725,10 +691,7 @@ export default function AIShenaniganAdaptation({
       setRevealedEpisodeCount(0);
       stopMediaVideos();
       window.requestAnimationFrame(() => {
-        scrollRevealIntoView(
-          manuscriptSectionRef.current,
-          manuscriptFooterRef.current,
-        );
+        scrollRevealIntoView(manuscriptSectionRef.current, manuscriptFooterRef.current);
       });
       return;
     }
@@ -746,10 +709,7 @@ export default function AIShenaniganAdaptation({
       setRevealedEpisodeCount(0);
       stopMediaVideos();
       window.requestAnimationFrame(() => {
-        scrollRevealIntoView(
-          episodesSectionRef.current,
-          episodesFooterRef.current,
-        );
+        scrollRevealIntoView(episodesSectionRef.current, episodesFooterRef.current);
       });
       return;
     }
@@ -821,54 +781,49 @@ export default function AIShenaniganAdaptation({
       const hasNextChip = chipPosition < displayedIndices.length - 1;
 
       return (
-      <Box
-        key={`${scope}-${item.key}`}
-        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-      >
-        <Chip
-          label={item.label}
-          color={item.active ? "primary" : "default"}
-          variant={item.active ? "filled" : "outlined"}
-          size="small"
-          clickable={item.reached}
-          onClick={
-            item.reached ? () => handleChronologySelect(item.key) : undefined
-          }
-          sx={
-            item.reached
-              ? undefined
-              : {
-                  borderStyle: "dashed",
-                  borderColor: "rgba(148,163,184,0.55)",
-                  color: "rgba(148,163,184,0.88)",
-                  backgroundColor: "rgba(148,163,184,0.06)",
-                  "& .MuiChip-label": {
-                    fontStyle: "italic",
-                  },
-                }
-          }
-        />
-        {hasNextChip && (
-          <Typography
-            aria-hidden="true"
-            sx={{
-              fontSize: "1rem",
-              fontWeight: 800,
-              lineHeight: 1,
-              color: useCondensedChronology
-                ? "text.disabled"
-                : item.active
-                  ? "primary.main"
-                  : "text.disabled",
-              transform: "translateY(-1px)",
-              transition: "color 180ms ease",
-              userSelect: "none",
-            }}
-          >
-            {useCondensedChronology ? "..." : "→"}
-          </Typography>
-        )}
-      </Box>
+        <Box key={`${scope}-${item.key}`} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Chip
+            label={item.label}
+            color={item.active ? "primary" : "default"}
+            variant={item.active ? "filled" : "outlined"}
+            size="small"
+            clickable={item.reached}
+            onClick={item.reached ? () => handleChronologySelect(item.key) : undefined}
+            sx={
+              item.reached
+                ? undefined
+                : {
+                    borderStyle: "dashed",
+                    borderColor: "rgba(148,163,184,0.55)",
+                    color: "rgba(148,163,184,0.88)",
+                    backgroundColor: "rgba(148,163,184,0.06)",
+                    "& .MuiChip-label": {
+                      fontStyle: "italic",
+                    },
+                  }
+            }
+          />
+          {hasNextChip && (
+            <Typography
+              aria-hidden="true"
+              sx={{
+                fontSize: "1rem",
+                fontWeight: 800,
+                lineHeight: 1,
+                color: useCondensedChronology
+                  ? "text.disabled"
+                  : item.active
+                    ? "primary.main"
+                    : "text.disabled",
+                transform: "translateY(-1px)",
+                transition: "color 180ms ease",
+                userSelect: "none",
+              }}
+            >
+              {useCondensedChronology ? "..." : "→"}
+            </Typography>
+          )}
+        </Box>
       );
     });
   };
@@ -894,10 +849,7 @@ export default function AIShenaniganAdaptation({
     }
 
     const rafId = window.requestAnimationFrame(() => {
-      scrollRevealIntoView(
-        bookCoverRef.current || bookSectionRef.current,
-        bookFooterRef.current,
-      );
+      scrollRevealIntoView(bookCoverRef.current || bookSectionRef.current, bookFooterRef.current);
     });
 
     return () => {
@@ -906,12 +858,7 @@ export default function AIShenaniganAdaptation({
   }, [bookCoverLoaded, bookVisible, scrollRevealIntoView]);
 
   useEffect(() => {
-    if (
-      !pendingTrailerReveal ||
-      !trailerVisible ||
-      stage !== "trailer" ||
-      !trailerLoaded
-    ) {
+    if (!pendingTrailerReveal || !trailerVisible || stage !== "trailer" || !trailerLoaded) {
       return;
     }
 
@@ -926,13 +873,7 @@ export default function AIShenaniganAdaptation({
     return () => {
       window.cancelAnimationFrame(rafId);
     };
-  }, [
-    pendingTrailerReveal,
-    trailerVisible,
-    stage,
-    trailerLoaded,
-    scrollRevealIntoView,
-  ]);
+  }, [pendingTrailerReveal, trailerVisible, stage, trailerLoaded, scrollRevealIntoView]);
 
   useEffect(() => {
     return () => {
@@ -994,10 +935,7 @@ export default function AIShenaniganAdaptation({
       setTransitioningTo(null);
       manuscriptTimeoutRef.current = null;
       window.requestAnimationFrame(() => {
-        scrollRevealIntoView(
-          manuscriptSectionRef.current,
-          manuscriptFooterRef.current,
-        );
+        scrollRevealIntoView(manuscriptSectionRef.current, manuscriptFooterRef.current);
       });
     }, ARROW_REVEAL_MS);
   };
@@ -1033,10 +971,7 @@ export default function AIShenaniganAdaptation({
       setTransitioningTo(null);
       episodesTimeoutRef.current = null;
       window.requestAnimationFrame(() => {
-        scrollRevealIntoView(
-          episodesSectionRef.current,
-          episodesFooterRef.current,
-        );
+        scrollRevealIntoView(episodesSectionRef.current, episodesFooterRef.current);
       });
     }, ARROW_REVEAL_MS);
   };
@@ -1074,9 +1009,7 @@ export default function AIShenaniganAdaptation({
   };
 
   const activeEpisodeIndex =
-    stage === "episodes" && revealedEpisodeCount > 0
-      ? revealedEpisodeCount - 1
-      : -1;
+    stage === "episodes" && revealedEpisodeCount > 0 ? revealedEpisodeCount - 1 : -1;
 
   return (
     <AIShenaniganPanel className="overflow-hidden">
@@ -1296,9 +1229,7 @@ export default function AIShenaniganAdaptation({
                 md: hasVisibleMedia ? 0 : "0px",
               },
               opacity: hasVisibleMedia ? 1 : 0,
-              transform: hasVisibleMedia
-                ? "translate3d(0, 0, 0)"
-                : "translate3d(28px, 0, 0)",
+              transform: hasVisibleMedia ? "translate3d(0, 0, 0)" : "translate3d(28px, 0, 0)",
               pointerEvents: hasVisibleMedia ? "auto" : "none",
               order: { xs: 1, md: 1 },
               transition:
@@ -1307,22 +1238,18 @@ export default function AIShenaniganAdaptation({
           >
             {bookVisible && stage === "book" && (
               <Box ref={bookSectionRef} sx={mediaPanelSx}>
-                {isSmDown
-                  ? renderMobilePanelHeader("Book cover", bookSource)
-                  : (
-                    <>
-                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                        Book cover
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 2 }}
-                      >
-                        Start with the originating book-side artifact.
-                      </Typography>
-                    </>
-                  )}
+                {isSmDown ? (
+                  renderMobilePanelHeader("Book cover", bookSource)
+                ) : (
+                  <>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Book cover
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Start with the originating book-side artifact.
+                    </Typography>
+                  </>
+                )}
                 <Box
                   ref={bookCoverRef}
                   sx={{
@@ -1416,8 +1343,7 @@ export default function AIShenaniganAdaptation({
                         },
                         imageWidth: 1400,
                         imageHeight: 900,
-                        imageClassName:
-                          "rounded-[22px] bg-black/10 object-contain",
+                        imageClassName: "rounded-[22px] bg-black/10 object-contain",
                         imageStyle: {
                           width: "100%",
                           height: "auto",
@@ -1435,30 +1361,23 @@ export default function AIShenaniganAdaptation({
 
             {manuscriptVisible && stage === "manuscript" && (
               <Box ref={manuscriptSectionRef} sx={mediaPanelSx}>
-                {isSmDown
-                  ? renderMobilePanelHeader("Manuscript", manuscriptSource)
-                  : (
-                    <>
-                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                        Manuscript
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 2 }}
-                      >
-                        The book-side narrative source before adaptation.
-                      </Typography>
-                    </>
-                  )}
+                {isSmDown ? (
+                  renderMobilePanelHeader("Manuscript", manuscriptSource)
+                ) : (
+                  <>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Manuscript
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      The book-side narrative source before adaptation.
+                    </Typography>
+                  </>
+                )}
                 {renderPdfFrame(
                   manuscriptPdf,
                   `${title} manuscript`,
                   () => {
-                    scrollRevealIntoView(
-                      manuscriptSectionRef.current,
-                      manuscriptFooterRef.current,
-                    );
+                    scrollRevealIntoView(manuscriptSectionRef.current, manuscriptFooterRef.current);
                   },
                   () => {
                     if (transitioningTo) {
@@ -1518,23 +1437,18 @@ export default function AIShenaniganAdaptation({
 
             {trailerVisible && trailerMovie && stage === "trailer" && (
               <Box ref={trailerSectionRef} sx={mediaPanelSx}>
-                {isSmDown
-                  ? renderMobilePanelHeader("Trailer", trailerSource)
-                  : (
-                    <>
-                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                        Trailer
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 2 }}
-                      >
-                        Preview the adaptation trailer before opening the full
-                        episodes draft.
-                      </Typography>
-                    </>
-                  )}
+                {isSmDown ? (
+                  renderMobilePanelHeader("Trailer", trailerSource)
+                ) : (
+                  <>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Trailer
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Preview the adaptation trailer before opening the full episodes draft.
+                    </Typography>
+                  </>
+                )}
                 <MediaCycler
                   spacing={0}
                   singlePanel
@@ -1632,32 +1546,25 @@ export default function AIShenaniganAdaptation({
 
             {episodesVisible && stage === "episodes" && activeEpisodeIndex < 0 && (
               <Box ref={episodesSectionRef} sx={mediaPanelSx}>
-                {isSmDown
-                  ? renderMobilePanelHeader("Episodes Draft", episodesSource)
-                  : (
-                    <>
-                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                        Episodes Draft
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 2 }}
-                      >
-                        Reveal the episodic adaptation plan first, then step through
-                        each episode concept one at a time.
-                      </Typography>
-                    </>
-                  )}
+                {isSmDown ? (
+                  renderMobilePanelHeader("Episodes Draft", episodesSource)
+                ) : (
+                  <>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Episodes Draft
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Reveal the episodic adaptation plan first, then step through each episode
+                      concept one at a time.
+                    </Typography>
+                  </>
+                )}
                 {hasEpisodesPdf &&
                   renderPdfFrame(
                     episodesPdf,
                     `${title} episodes`,
                     () => {
-                      scrollRevealIntoView(
-                        episodesSectionRef.current,
-                        episodesFooterRef.current,
-                      );
+                      scrollRevealIntoView(episodesSectionRef.current, episodesFooterRef.current);
                     },
                     () => {
                       if (transitioningTo) {
@@ -1727,23 +1634,21 @@ export default function AIShenaniganAdaptation({
                     backgroundColor: "rgba(15,23,42,0.24)",
                   }}
                 >
-                  {isSmDown
-                    ? renderMobilePanelHeader(
+                  {isSmDown ? (
+                    renderMobilePanelHeader(
                       getEpisodeChronologyLabel(episodeMedia[activeEpisodeIndex]),
                       episodeMedia[activeEpisodeIndex].source,
                     )
-                    : (
-                      <>
-                        <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                          {getEpisodeChronologyLabel(
-                            episodeMedia[activeEpisodeIndex],
-                          )}
-                        </Typography>
-                        <Typography variant="body1" sx={{ mb: 1, fontWeight: 700 }}>
-                          {episodeMedia[activeEpisodeIndex].title}
-                        </Typography>
-                      </>
-                    )}
+                  ) : (
+                    <>
+                      <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                        {getEpisodeChronologyLabel(episodeMedia[activeEpisodeIndex])}
+                      </Typography>
+                      <Typography variant="body1" sx={{ mb: 1, fontWeight: 700 }}>
+                        {episodeMedia[activeEpisodeIndex].title}
+                      </Typography>
+                    </>
+                  )}
                   <MediaCycler
                     spacing={0}
                     singlePanel
@@ -1760,9 +1665,7 @@ export default function AIShenaniganAdaptation({
                       }
 
                       if (activeEpisodeIndex > 0) {
-                        handleChronologySelect(
-                          `episode-${activeEpisodeIndex - 1}`,
-                        );
+                        handleChronologySelect(`episode-${activeEpisodeIndex - 1}`);
                         return;
                       }
 
@@ -1779,8 +1682,7 @@ export default function AIShenaniganAdaptation({
                     }}
                     disableChevronPrevious={transitioningTo !== null}
                     disableChevronNext={
-                      transitioningTo !== null ||
-                      activeEpisodeIndex >= episodeMedia.length - 1
+                      transitioningTo !== null || activeEpisodeIndex >= episodeMedia.length - 1
                     }
                     loopNavigation={
                       activeEpisodeIndex === episodeMedia.length - 1 &&
@@ -1802,9 +1704,7 @@ export default function AIShenaniganAdaptation({
                         title: isSmDown ? title : "",
                         description: undefined,
                         mediaType: "video",
-                        mediaUrl: withBasePath(
-                          episodeMedia[activeEpisodeIndex].src,
-                        ),
+                        mediaUrl: withBasePath(episodeMedia[activeEpisodeIndex].src),
                         mediaLightboxTitle: `${title} ${episodeMedia[activeEpisodeIndex].title}`,
                         mediaCaption: episodeMedia[activeEpisodeIndex].caption,
                         mediaSource: episodeMedia[activeEpisodeIndex].source,
@@ -1825,17 +1725,14 @@ export default function AIShenaniganAdaptation({
                             return;
                           }
 
-                          const hasNextEpisodeToReveal =
-                            revealedEpisodeCount < episodeMedia.length;
+                          const hasNextEpisodeToReveal = revealedEpisodeCount < episodeMedia.length;
 
                           if (hasNextEpisodeToReveal) {
                             handleRevealNextEpisode();
                             return;
                           }
 
-                          handleChronologySelect(
-                            `episode-${activeEpisodeIndex}`,
-                          );
+                          handleChronologySelect(`episode-${activeEpisodeIndex}`);
                         },
                         panelSx: {
                           height: "100%",

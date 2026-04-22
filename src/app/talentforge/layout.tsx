@@ -11,18 +11,11 @@ import { useColorModePreference } from "@/hooks/useColorModePreference";
 import ErrorBoundary from "@/app/talentforge/_components/ErrorBoundary";
 import ToastProvider from "@/app/talentforge/_components/ToastProvider";
 
-export default function TalentForgeLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function TalentForgeLayout({ children }: { children: React.ReactNode }) {
   const { mode, toggleColorMode, isReady } = useColorModePreference({
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
   });
-  const theme = React.useMemo(
-    () => getTalentforgeTheme(mode),
-    [mode],
-  );
+  const theme = React.useMemo(() => getTalentforgeTheme(mode), [mode]);
 
   const navItems = [
     { label: "Dashboard", href: "/talentforge" },
@@ -42,11 +35,7 @@ export default function TalentForgeLayout({
           <CssBaseline enableColorScheme />
           <ToastProvider>
             <ErrorBoundary>
-              <LayoutShell
-                navItems={navItems}
-                mode={mode}
-                toggleColorMode={toggleColorMode}
-              >
+              <LayoutShell navItems={navItems} mode={mode} toggleColorMode={toggleColorMode}>
                 {children}
               </LayoutShell>
             </ErrorBoundary>

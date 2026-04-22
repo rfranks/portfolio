@@ -17,6 +17,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
+import { requestOpenAIModels } from "@/utils/openai/client";
 import PathForgerDialogController from "@/app/pathforger/_components/PathForgerDialogController";
 import PathForgerPanelController from "@/app/pathforger/_components/PathForgerPanelController";
 import PathForgerSnackbar from "@/app/pathforger/_components/PathForgerSnackbar";
@@ -42,10 +43,7 @@ import {
   pitchCacheStorageKey,
   pitchPanelBorderRadius,
 } from "@/app/pathforger/_consts/consts";
-import {
-  getPathForgerOpenAIKey,
-  setPathForgerOpenAIKey,
-} from "@/app/pathforger/_utils/openAIKey";
+import { getPathForgerOpenAIKey, setPathForgerOpenAIKey } from "@/app/pathforger/_utils/openAIKey";
 import {
   runPathForgerOutcomeImageStage,
   runPathForgerPathLedgerUpdateStage,
@@ -62,9 +60,7 @@ import { PathForgerPitchChoice } from "./_types/pitch";
 type BranchRevealState = Record<PathForgerBranchChoice, boolean>;
 type BranchRevealTickState = Record<PathForgerBranchChoice, number>;
 type ForgedOutcomesState = Partial<Record<PathForgerBranchChoice, string>>;
-type ForgedOutcomeImagesState = Partial<
-  Record<PathForgerBranchChoice, PathForgerGeneratedImage>
->;
+type ForgedOutcomeImagesState = Partial<Record<PathForgerBranchChoice, PathForgerGeneratedImage>>;
 
 export default function PathForgerPageClient() {
   const { portfolioApps } = useResumeData();
@@ -178,27 +174,22 @@ export default function PathForgerPageClient() {
   const [pitchModalOpen, setPitchModalOpen] = React.useState(false);
   const [controlsModalOpen, setControlsModalOpen] = React.useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
-  const [renderImageCallsModalOpen, setRenderImageCallsModalOpen] =
-    React.useState(false);
+  const [renderImageCallsModalOpen, setRenderImageCallsModalOpen] = React.useState(false);
   const [chapterModalOpen, setChapterModalOpen] = React.useState(false);
   const [continueModalOpen, setContinueModalOpen] = React.useState(false);
-  const [chapterOutcomeModalOpen, setChapterOutcomeModalOpen] =
-    React.useState(false);
+  const [chapterOutcomeModalOpen, setChapterOutcomeModalOpen] = React.useState(false);
   const [createStoryPanelOpen, setCreateStoryPanelOpen] = React.useState(false);
-  const [hasCreateStoryFormBeenShown, setHasCreateStoryFormBeenShown] =
-    React.useState(false);
+  const [hasCreateStoryFormBeenShown, setHasCreateStoryFormBeenShown] = React.useState(false);
   const [pathLedgerModalOpen, setPathLedgerModalOpen] = React.useState(false);
   const [journeyTabValue, setJourneyTabValue] = React.useState("");
-  const [lastForgedLedgerTransition, setLastForgedLedgerTransition] =
-    React.useState<{
-      chapterNumber: number;
-      previousMarkdown: string;
-      nextMarkdown: string;
-    } | null>(null);
+  const [lastForgedLedgerTransition, setLastForgedLedgerTransition] = React.useState<{
+    chapterNumber: number;
+    previousMarkdown: string;
+    nextMarkdown: string;
+  } | null>(null);
 
   const chapterModalBodyScrollRef = React.useRef<HTMLDivElement | null>(null);
-  const [chapterModalReachedEnd, setChapterModalReachedEnd] =
-    React.useState(false);
+  const [chapterModalReachedEnd, setChapterModalReachedEnd] = React.useState(false);
 
   const continueOptionsScrollRef = React.useRef<HTMLDivElement | null>(null);
   const continueOptionPanelRefs = React.useRef<
@@ -206,9 +197,9 @@ export default function PathForgerPageClient() {
   >({});
 
   const pitchListContainerRef = React.useRef<HTMLDivElement | null>(null);
-  const pitchCardRefs = React.useRef<
-    Partial<Record<PathForgerPitchChoice, HTMLDivElement | null>>
-  >({});
+  const pitchCardRefs = React.useRef<Partial<Record<PathForgerPitchChoice, HTMLDivElement | null>>>(
+    {},
+  );
   const [pitchSelectionOutline, setPitchSelectionOutline] = React.useState({
     top: 0,
     height: 0,
@@ -328,24 +319,16 @@ export default function PathForgerPageClient() {
     }
 
     if (visiblePitches) {
-      const selectedPitchId =
-        visibleSelectedPitch || visiblePitches.recommendedPitch;
+      const selectedPitchId = visibleSelectedPitch || visiblePitches.recommendedPitch;
       const selectedPitchTitle =
-        visiblePitches.pitches
-          .find((pitch) => pitch.id === selectedPitchId)
-          ?.title?.trim() || "";
+        visiblePitches.pitches.find((pitch) => pitch.id === selectedPitchId)?.title?.trim() || "";
       if (selectedPitchTitle) {
         return selectedPitchTitle;
       }
     }
 
     return "Story Cover";
-  }, [
-    activePitchForModal?.title,
-    chapterModalPitchTitle,
-    visiblePitches,
-    visibleSelectedPitch,
-  ]);
+  }, [activePitchForModal?.title, chapterModalPitchTitle, visiblePitches, visibleSelectedPitch]);
 
   const getImagePromptForType = React.useCallback(
     (type: PathForgerImageType) => {
@@ -361,9 +344,7 @@ export default function PathForgerPageClient() {
 
   const updatePitchSelectionOutline = React.useCallback(() => {
     if (!pitchModalOpen || !visiblePitches) {
-      setPitchSelectionOutline((prev) =>
-        prev.opacity === 0 ? prev : { ...prev, opacity: 0 },
-      );
+      setPitchSelectionOutline((prev) => (prev.opacity === 0 ? prev : { ...prev, opacity: 0 }));
       return;
     }
 
@@ -373,9 +354,7 @@ export default function PathForgerPageClient() {
     const activeCard = pitchCardRefs.current[activePitchId];
 
     if (!container || !activeCard) {
-      setPitchSelectionOutline((prev) =>
-        prev.opacity === 0 ? prev : { ...prev, opacity: 0 },
-      );
+      setPitchSelectionOutline((prev) => (prev.opacity === 0 ? prev : { ...prev, opacity: 0 }));
       return;
     }
 
@@ -392,20 +371,17 @@ export default function PathForgerPageClient() {
     updatePitchSelectionOutline();
   }, [updatePitchSelectionOutline]);
 
-  const playUiSound = React.useCallback(
-    (audioRef: React.RefObject<HTMLAudioElement | null>) => {
-      const audio = audioRef.current;
-      if (!audio) {
-        return;
-      }
+  const playUiSound = React.useCallback((audioRef: React.RefObject<HTMLAudioElement | null>) => {
+    const audio = audioRef.current;
+    if (!audio) {
+      return;
+    }
 
-      audio.currentTime = 0;
-      void audio.play().catch(() => {
-        // Ignore autoplay-blocked audio failures.
-      });
-    },
-    [],
-  );
+    audio.currentTime = 0;
+    void audio.play().catch(() => {
+      // Ignore autoplay-blocked audio failures.
+    });
+  }, []);
 
   const loadOpenAIModelOptions = React.useCallback(async () => {
     if (loadingModelOptions) {
@@ -420,20 +396,11 @@ export default function PathForgerPageClient() {
 
     setLoadingModelOptions(true);
     try {
-      const response = await fetch("https://api.openai.com/v1/models", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      });
-
-      const payload = (await response.json()) as {
+      const payload = (await requestOpenAIModels(apiKey, {
+        retries: 1,
+      })) as {
         data?: Array<{ id?: unknown }>;
       };
-
-      if (!response.ok) {
-        throw new Error("Unable to load model list from OpenAI.");
-      }
 
       const ids = Array.isArray(payload.data)
         ? payload.data
@@ -442,9 +409,7 @@ export default function PathForgerPageClient() {
         : [];
 
       const nextOptions =
-        ids.length > 0
-          ? sortModelIds([...ids, ...defaultModelOptions])
-          : defaultModelOptions;
+        ids.length > 0 ? sortModelIds([...ids, ...defaultModelOptions]) : defaultModelOptions;
       setModelOptions(nextOptions);
       setLoadedModelOptions(true);
     } catch {
@@ -468,12 +433,8 @@ export default function PathForgerPageClient() {
     }
 
     optionRevealAudioRef.current = new Audio(withBasePath("/audio/whoosh.ogg"));
-    optionSelectAudioRef.current = new Audio(
-      withBasePath("/audio/select_004.ogg"),
-    );
-    forgeSuccessAudioRef.current = new Audio(
-      withBasePath("/audio/confirmation_001.ogg"),
-    );
+    optionSelectAudioRef.current = new Audio(withBasePath("/audio/select_004.ogg"));
+    forgeSuccessAudioRef.current = new Audio(withBasePath("/audio/confirmation_001.ogg"));
     wandActionAudioRef.current = new Audio(withBasePath("/audio/powerUp8.ogg"));
     if (wandActionAudioRef.current) {
       wandActionAudioRef.current.volume = 0.6;
@@ -513,8 +474,7 @@ export default function PathForgerPageClient() {
         return;
       }
 
-      const nearBottom =
-        node.scrollTop + node.clientHeight >= node.scrollHeight - 10;
+      const nearBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 10;
       setChapterModalReachedEnd(nearBottom);
     });
 
@@ -539,22 +499,12 @@ export default function PathForgerPageClient() {
   }, [pitchModalOpen, updatePitchSelectionOutline]);
 
   React.useEffect(() => {
-    if (
-      !createStoryPanelOpen ||
-      chapterModalOpen ||
-      continueModalOpen ||
-      chapterOutcomeModalOpen
-    ) {
+    if (!createStoryPanelOpen || chapterModalOpen || continueModalOpen || chapterOutcomeModalOpen) {
       return;
     }
 
     setHasCreateStoryFormBeenShown((prev) => (prev ? prev : true));
-  }, [
-    chapterModalOpen,
-    chapterOutcomeModalOpen,
-    continueModalOpen,
-    createStoryPanelOpen,
-  ]);
+  }, [chapterModalOpen, chapterOutcomeModalOpen, continueModalOpen, createStoryPanelOpen]);
 
   React.useEffect(() => {
     if (typeof window === "undefined" || !pitchOnlyResult) {
@@ -562,10 +512,7 @@ export default function PathForgerPageClient() {
     }
 
     try {
-      window.localStorage.setItem(
-        pitchCacheStorageKey,
-        JSON.stringify(pitchOnlyResult),
-      );
+      window.localStorage.setItem(pitchCacheStorageKey, JSON.stringify(pitchOnlyResult));
     } catch {
       // Ignore storage write failures.
     }
@@ -581,12 +528,7 @@ export default function PathForgerPageClient() {
     }
 
     clearPitchCacheAndState();
-  }, [
-    clearPitchCacheAndState,
-    createStoryInputSignature,
-    pitchInputSignature,
-    pitchOnlyResult,
-  ]);
+  }, [clearPitchCacheAndState, createStoryInputSignature, pitchInputSignature, pitchOnlyResult]);
 
   React.useEffect(() => {
     document.title = portfolioApps.pathforger.documentTitle;
@@ -627,9 +569,7 @@ export default function PathForgerPageClient() {
 
   const handleToggleImageType = (type: PathForgerImageType) => {
     setRenderImages(
-      (
-        prev: Record<PathForgerImageType, boolean>,
-      ): Record<PathForgerImageType, boolean> => ({
+      (prev: Record<PathForgerImageType, boolean>): Record<PathForgerImageType, boolean> => ({
         ...prev,
         [type]: !prev[type],
       }),
@@ -658,9 +598,7 @@ export default function PathForgerPageClient() {
     setImagePromptEditorValue("");
   };
 
-  const handleSelfieChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleSelfieChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
       setSelfieDataUrl(undefined);
@@ -669,16 +607,12 @@ export default function PathForgerPageClient() {
     }
 
     if (!file.type.startsWith("image/")) {
-      setErrorMessage(
-        "Please choose an image file for the protagonist reference.",
-      );
+      setErrorMessage("Please choose an image file for the protagonist reference.");
       return;
     }
 
     if (file.size > 6 * 1024 * 1024) {
-      setErrorMessage(
-        "Reference image is too large. Please use a file under 6MB.",
-      );
+      setErrorMessage("Reference image is too large. Please use a file under 6MB.");
       return;
     }
 
@@ -697,9 +631,7 @@ export default function PathForgerPageClient() {
       reader.onerror = () => reject(new Error("Unable to load image."));
       reader.readAsDataURL(file);
     }).catch((error) => {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Unable to load image.",
-      );
+      setErrorMessage(error instanceof Error ? error.message : "Unable to load image.");
       return "";
     });
 
@@ -1032,12 +964,7 @@ export default function PathForgerPageClient() {
 
     previousGenreRef.current = genre;
     setPendingGenreAutoRegenerate(true);
-  }, [
-    genre,
-    hasCreateStoryFormBeenShown,
-    previousGenreRef,
-    setPendingGenreAutoRegenerate,
-  ]);
+  }, [genre, hasCreateStoryFormBeenShown, previousGenreRef, setPendingGenreAutoRegenerate]);
 
   React.useEffect(() => {
     if (!hasCreateStoryFormBeenShown) {
@@ -1129,12 +1056,9 @@ export default function PathForgerPageClient() {
     setChapterModalOpen((prev) => !prev);
   };
 
-  const handleChapterModalBodyScroll = (
-    event: React.UIEvent<HTMLDivElement, UIEvent>,
-  ) => {
+  const handleChapterModalBodyScroll = (event: React.UIEvent<HTMLDivElement, UIEvent>) => {
     const node = event.currentTarget;
-    const nearBottom =
-      node.scrollTop + node.clientHeight >= node.scrollHeight - 10;
+    const nearBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 10;
     if (nearBottom) {
       setChapterModalReachedEnd(true);
     }
@@ -1151,36 +1075,33 @@ export default function PathForgerPageClient() {
     setContinueModalOpen(true);
   };
 
-  const scrollContinueOptionPanelIntoView = React.useCallback(
-    (branch: PathForgerBranchChoice) => {
-      const scrollContainer = continueOptionsScrollRef.current;
-      const optionPanel = continueOptionPanelRefs.current[branch];
+  const scrollContinueOptionPanelIntoView = React.useCallback((branch: PathForgerBranchChoice) => {
+    const scrollContainer = continueOptionsScrollRef.current;
+    const optionPanel = continueOptionPanelRefs.current[branch];
 
-      if (!scrollContainer || !optionPanel) {
-        return;
-      }
+    if (!scrollContainer || !optionPanel) {
+      return;
+    }
 
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const panelRect = optionPanel.getBoundingClientRect();
-      const padding = 12;
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const panelRect = optionPanel.getBoundingClientRect();
+    const padding = 12;
 
-      if (panelRect.top < containerRect.top + padding) {
-        scrollContainer.scrollBy({
-          top: panelRect.top - containerRect.top - padding,
-          behavior: "smooth",
-        });
-        return;
-      }
+    if (panelRect.top < containerRect.top + padding) {
+      scrollContainer.scrollBy({
+        top: panelRect.top - containerRect.top - padding,
+        behavior: "smooth",
+      });
+      return;
+    }
 
-      if (panelRect.bottom > containerRect.bottom - padding) {
-        scrollContainer.scrollBy({
-          top: panelRect.bottom - containerRect.bottom + padding,
-          behavior: "smooth",
-        });
-      }
-    },
-    [],
-  );
+    if (panelRect.bottom > containerRect.bottom - padding) {
+      scrollContainer.scrollBy({
+        top: panelRect.bottom - containerRect.bottom + padding,
+        behavior: "smooth",
+      });
+    }
+  }, []);
 
   const handleSelectOptionPanel = (branch: PathForgerBranchChoice) => {
     const isFirstReveal = !revealedOptionBranches[branch];
@@ -1217,19 +1138,14 @@ export default function PathForgerPageClient() {
     clearStatusMessages();
 
     const branchToForge = activeOptionBranch;
-    const outcomeType: PathForgerImageType =
-      branchToForge === "A" ? "outcomeA" : "outcomeB";
-    const selectedChoice = visibleChapter.choices.find(
-      (choice) => choice.id === branchToForge,
-    );
+    const outcomeType: PathForgerImageType = branchToForge === "A" ? "outcomeA" : "outcomeB";
+    const selectedChoice = visibleChapter.choices.find((choice) => choice.id === branchToForge);
     if (!selectedChoice) {
       setErrorMessage(`Unable to resolve Option ${branchToForge} details.`);
       return;
     }
     const branchOutcomeMarkdown =
-      branchToForge === "A"
-        ? visibleChapter.outcomeAMarkdown
-        : visibleChapter.outcomeBMarkdown;
+      branchToForge === "A" ? visibleChapter.outcomeAMarkdown : visibleChapter.outcomeBMarkdown;
     const previousPathLedgerMarkdown = visibleChapter.pathLedgerMarkdown;
 
     setIsRunning(true);
@@ -1250,9 +1166,7 @@ export default function PathForgerPageClient() {
           ...prev,
           [branchToForge]: existingOutcomeImage,
         }));
-      } else if (
-        (renderImages as Record<PathForgerImageType, boolean>)[outcomeType]
-      ) {
+      } else if ((renderImages as Record<PathForgerImageType, boolean>)[outcomeType]) {
         const apiKey = getPathForgerOpenAIKey().trim();
         if (!apiKey) {
           setErrorMessage("OpenAI API key is required.");
@@ -1368,9 +1282,7 @@ export default function PathForgerPageClient() {
       setContinueModalOpen(false);
       setChapterOutcomeModalOpen(true);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Forge my path failed.",
-      );
+      setErrorMessage(error instanceof Error ? error.message : "Forge my path failed.");
     } finally {
       clearStatusMessages();
       setIsRunning(false);
@@ -1392,16 +1304,13 @@ export default function PathForgerPageClient() {
   }, [beginNextChapterLedgerPlayback, handleGenerateNextChapter]);
 
   const hasVisibleForgedOutcome =
-    Boolean(activeOptionBranch) &&
-    Boolean(forgedOutcomes[activeOptionBranch || "A"]?.trim());
+    Boolean(activeOptionBranch) && Boolean(forgedOutcomes[activeOptionBranch || "A"]?.trim());
   const showMainCreateSpinnerWithJourneyPlayback =
     showMainCreateSpinner || nextChapterLedgerPlayback.active;
   const showCreateStoryPanelForPlayback = nextChapterLedgerPlayback.active;
-  const showCreateStoryPanel =
-    createStoryPanelOpen || showCreateStoryPanelForPlayback;
+  const showCreateStoryPanel = createStoryPanelOpen || showCreateStoryPanelForPlayback;
   const createStoryPanelHidden =
-    (hideCreateStoryPanel && !showCreateStoryPanelForPlayback) ||
-    !showCreateStoryPanel;
+    (hideCreateStoryPanel && !showCreateStoryPanelForPlayback) || !showCreateStoryPanel;
 
   if (!ready) {
     return null;
@@ -1464,12 +1373,8 @@ export default function PathForgerPageClient() {
                 coverImageTitle: activeStoryTitle,
                 coverImageCaption: "By You",
                 showPitchSelectionAnimation,
-                pitchLoadingGifSrc: withBasePath(
-                  "/apps/pathforger/pitch-loading.gif",
-                ),
-                chapterLoadingGifSrc: withBasePath(
-                  "/apps/pathforger/chapter-loading.gif",
-                ),
+                pitchLoadingGifSrc: withBasePath("/apps/pathforger/pitch-loading.gif"),
+                chapterLoadingGifSrc: withBasePath("/apps/pathforger/chapter-loading.gif"),
                 pathForgingGifSrc: withBasePath("/apps/pathforger/path-forging.gif"),
                 nextChapterLedgerPlayback,
                 onLedgerPlaybackPrevious: moveToPreviousPlaybackEntry,
@@ -1486,8 +1391,7 @@ export default function PathForgerPageClient() {
                 statusIsRunning,
                 protagonistPreference,
                 onProtagonistPreferenceChange: setProtagonistPreference,
-                onGenerateProtagonistName:
-                  generation.handleGenerateProtagonistName,
+                onGenerateProtagonistName: generation.handleGenerateProtagonistName,
                 genre,
                 onGenreChange: setGenre,
                 adventureLength,
@@ -1531,8 +1435,7 @@ export default function PathForgerPageClient() {
                 statusIsRunning,
                 pathForgingGifSrc: withBasePath("/apps/pathforger/path-forging.gif"),
                 showOptionSelection: Boolean(visibleChapter),
-                continuePromptMarkdown:
-                  visibleChapter?.continuePromptMarkdown ?? "",
+                continuePromptMarkdown: visibleChapter?.continuePromptMarkdown ?? "",
                 optionBranchOrder,
                 branchChoiceA,
                 branchChoiceB,
@@ -1546,8 +1449,7 @@ export default function PathForgerPageClient() {
                 onSelectOptionPanel: handleSelectOptionPanel,
                 onForgeMyPath: handleForgeMyPath,
                 activeRunAction,
-                forgeDisabled:
-                  statusIsRunning || !visibleChapter || !activeOptionBranch,
+                forgeDisabled: statusIsRunning || !visibleChapter || !activeOptionBranch,
                 kenBurnsImageSx,
               }}
               outcomePanel={{
@@ -1565,8 +1467,7 @@ export default function PathForgerPageClient() {
                   : "",
                 statusIsRunning,
                 onOpenJourney: () => setPathLedgerModalOpen(true),
-                onGenerateNextChapter:
-                  handleGenerateNextChapterWithJourneyPlayback,
+                onGenerateNextChapter: handleGenerateNextChapterWithJourneyPlayback,
                 canGenerateNextChapter: Boolean(
                   visibleChapter &&
                   activeOptionBranch &&
@@ -1590,9 +1491,7 @@ export default function PathForgerPageClient() {
               }}
             />
 
-            {errorMessage ? (
-              <Alert severity="error">{errorMessage}</Alert>
-            ) : null}
+            {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
           </Stack>
         </Container>
 

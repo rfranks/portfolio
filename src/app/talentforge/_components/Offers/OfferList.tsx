@@ -92,10 +92,7 @@ export default function OfferList({ refreshKey, onSelect }: OfferListProps) {
 
   if (offers.length === 0) {
     return (
-      <EmptyState
-        message="No offers"
-        helperText="Save offer details to compare compensation."
-      />
+      <EmptyState message="No offers" helperText="Save offer details to compare compensation." />
     );
   }
 
@@ -127,9 +124,7 @@ export default function OfferList({ refreshKey, onSelect }: OfferListProps) {
                 primary={`Offer ${index + 1}`}
                 secondary={
                   offer.summary?.join(", ") ||
-                  offer.compensation
-                    .map((c) => `${c.type}: ${c.amount}`)
-                    .join(", ")
+                  offer.compensation.map((c) => `${c.type}: ${c.amount}`).join(", ")
                 }
               />
             </ListItemButton>
@@ -169,4 +164,3 @@ export default function OfferList({ refreshKey, onSelect }: OfferListProps) {
     </Box>
   );
 }
-

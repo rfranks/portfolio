@@ -1,23 +1,11 @@
 import Image from "next/image";
-import {
-  Card,
-  CardActions,
-  CardContent,
-  Button,
-  Typography,
-  Box,
-  Link,
-} from "@mui/material";
+import { Card, CardActions, CardContent, Button, Typography, Box, Link } from "@mui/material";
 import type { Accolade } from "@/types/components/portfolio";
 import { ImageLightbox } from "@/components/shared";
 import { withBasePath } from "@/utils/basePath";
 export type { Accolade } from "@/types/components/portfolio";
 
-export default function AccoladesCarousel({
-  accolades,
-}: {
-  accolades: Accolade[];
-}) {
+export default function AccoladesCarousel({ accolades }: { accolades: Accolade[] }) {
   return (
     <Box
       sx={{
@@ -58,21 +46,12 @@ export default function AccoladesCarousel({
               {acc.name}
             </Typography>
             <Typography variant="subtitle2" color="text.secondary">
-              <Link
-                href={acc.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                color="inherit"
-              >
+              <Link href={acc.sourceUrl} target="_blank" rel="noopener noreferrer" color="inherit">
                 {acc.source}
               </Link>
             </Typography>
             {acc.date && (
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                display="block"
-              >
+              <Typography variant="caption" color="text.secondary" display="block">
                 {acc.date}
               </Typography>
             )}
@@ -100,12 +79,7 @@ export default function AccoladesCarousel({
                 </Button>
               )}
               {acc.githubUrl && (
-                <Button
-                  size="small"
-                  href={acc.githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <Button size="small" href={acc.githubUrl} target="_blank" rel="noopener noreferrer">
                   GitHub
                 </Button>
               )}

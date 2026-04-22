@@ -1,12 +1,9 @@
 export type DNAIconProps = {
-    height?:number;
-    width?: number;
-}
+  height?: number;
+  width?: number;
+};
 
-export default function DNAIcon({
-    height = 96,
-    width = 96,
-}: DNAIconProps) {
+export default function DNAIcon({ height = 96, width = 96 }: DNAIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -15,7 +12,7 @@ export default function DNAIcon({
       width={`${width}`}
       height={`${height}`}
       viewBox="0 0 224 224"
-      style={{fill: "#000000"}}
+      style={{ fill: "#000000" }}
     >
       <g
         fill="none"
@@ -31,7 +28,7 @@ export default function DNAIcon({
         font-weight="none"
         font-size="none"
         text-anchor="none"
-        style={{mixBlendMode: "normal"}}
+        style={{ mixBlendMode: "normal" }}
       >
         <path d="M0,224v-224h224v224z" fill="none"></path>
         <g id="Layer_1">

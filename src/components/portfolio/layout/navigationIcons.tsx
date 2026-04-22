@@ -50,8 +50,7 @@ const materialIconMap = {
 
 type MaterialIconKey = keyof typeof materialIconMap;
 
-const isMaterialIconKey = (value: string): value is MaterialIconKey =>
-  value in materialIconMap;
+const isMaterialIconKey = (value: string): value is MaterialIconKey => value in materialIconMap;
 
 export function renderNavigationIcon(
   iconConfig: NavigationIconConfig | undefined,
@@ -61,23 +60,15 @@ export function renderNavigationIcon(
   const iconType = iconConfig?.iconType ?? "material";
 
   if (iconType === "emoji" && iconValue) {
-    return (
-      <EmojiGlyph
-        glyph={iconValue}
-        size={options?.emojiSize ?? "1rem"}
-      />
-    );
+    return <EmojiGlyph glyph={iconValue} size={options?.emojiSize ?? "1rem"} />;
   }
 
   const fallbackKeyCandidate = (options?.fallbackIconKey ?? "home").trim();
   const fallbackKey: MaterialIconKey = isMaterialIconKey(fallbackKeyCandidate)
     ? fallbackKeyCandidate
     : "home";
-  const materialKey: MaterialIconKey = isMaterialIconKey(iconValue)
-    ? iconValue
-    : fallbackKey;
+  const materialKey: MaterialIconKey = isMaterialIconKey(iconValue) ? iconValue : fallbackKey;
   const IconComponent = materialIconMap[materialKey];
 
   return <IconComponent fontSize={options?.fontSize ?? "small"} />;
 }
-

@@ -119,15 +119,11 @@ export async function pdfToText(file: File): Promise<string> {
   const buffer = await fileReadPromise;
   const pdfData = new Uint8Array(buffer);
 
-  const readPages = async (
-    options: { disableWorker: boolean },
-  ): Promise<string[][]> => {
-    const doc = await pdfjs
-      .getDocument({
-        data: pdfData,
-        disableWorker: options.disableWorker,
-      } as unknown as Parameters<typeof pdfjs.getDocument>[0])
-      .promise;
+  const readPages = async (options: { disableWorker: boolean }): Promise<string[][]> => {
+    const doc = await pdfjs.getDocument({
+      data: pdfData,
+      disableWorker: options.disableWorker,
+    } as unknown as Parameters<typeof pdfjs.getDocument>[0]).promise;
     const numPages = doc.numPages;
     const pages: string[][] = [];
 
@@ -167,14 +163,10 @@ export async function pdfToText(file: File): Promise<string> {
       const pages = await readPages({ disableWorker: false });
       return cleanPdfText(pages);
     } catch (fallbackError) {
-      const fallbackMessage =
-        fallbackError instanceof Error ? fallbackError.message : "";
-      const primaryMessage =
-        primaryError instanceof Error ? primaryError.message : "";
+      const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : "";
+      const primaryMessage = primaryError instanceof Error ? primaryError.message : "";
       throw new Error(
-        fallbackMessage ||
-          primaryMessage ||
-          "Unable to parse PDF resume in this browser.",
+        fallbackMessage || primaryMessage || "Unable to parse PDF resume in this browser.",
       );
     }
   }
@@ -256,9 +248,7 @@ function arrayBufferFromUint8(data: Uint8Array): ArrayBuffer {
 
 async function inflateDocxSegment(data: Uint8Array): Promise<Uint8Array> {
   if (typeof DecompressionStream === "undefined") {
-    throw new Error(
-      "DOCX parsing requires a browser that supports the DecompressionStream API."
-    );
+    throw new Error("DOCX parsing requires a browser that supports the DecompressionStream API.");
   }
 
   let decompressor: DecompressionStream;
@@ -277,9 +267,7 @@ async function inflateDocxSegment(data: Uint8Array): Promise<Uint8Array> {
     return new Uint8Array(buffer);
   } catch (error) {
     const message =
-      error instanceof Error
-        ? error.message
-        : "Unable to decompress the DOCX document contents.";
+      error instanceof Error ? error.message : "Unable to decompress the DOCX document contents.";
     throw new Error(message);
   }
 }
@@ -369,8 +357,7 @@ export async function fileToText(file: File): Promise<ResumeTextResult> {
   if (file.type === "application/pdf" || name.endsWith(".pdf")) {
     text = await pdfToText(file);
   } else if (
-    file.type ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
     name.endsWith(".docx")
   ) {
     text = await docxToText(file);

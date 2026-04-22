@@ -1,11 +1,7 @@
 import type { ApplicationStatus, StatusChange } from "./job";
 import type { ParsedResume } from "./resume";
 
-export const OFFER_DECISION_STATUSES = [
-  "undecided",
-  "accepted",
-  "declined",
-] as const;
+export const OFFER_DECISION_STATUSES = ["undecided", "accepted", "declined"] as const;
 
 export type OfferDecisionStatus = (typeof OFFER_DECISION_STATUSES)[number];
 
@@ -52,8 +48,7 @@ export interface NegotiationLibraryEntry {
 
 export const APPLICATION_ACTIVITY_OUTCOMES = ["success", "error"] as const;
 
-export type ApplicationActivityOutcome =
-  (typeof APPLICATION_ACTIVITY_OUTCOMES)[number];
+export type ApplicationActivityOutcome = (typeof APPLICATION_ACTIVITY_OUTCOMES)[number];
 
 export interface ApplicationActivity {
   /** Unique identifier for this activity entry. */
@@ -294,4 +289,3 @@ export interface OfferComp {
   /** Optional additional details about the component. */
   notes?: string;
 }
-

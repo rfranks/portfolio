@@ -11,8 +11,7 @@ export const PROTEINS = {
     isEssential: false,
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "A nonpolar, aliphatic amino acid used in protein biosynthesis.",
+    description: "A nonpolar, aliphatic amino acid used in protein biosynthesis.",
   },
   R: {
     abbrevName: "Arg",
@@ -25,8 +24,7 @@ export const PROTEINS = {
     essentialNotes: "essential in infants and certain disease states",
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "A positively charged, polar amino acid important for the immune system.",
+    description: "A positively charged, polar amino acid important for the immune system.",
     polar: true,
   },
   N: {
@@ -53,8 +51,7 @@ export const PROTEINS = {
     isEssential: false,
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "A negatively charged amino acid involved in the citric acid cycle.",
+    description: "A negatively charged amino acid involved in the citric acid cycle.",
     polar: true,
   },
   C: {
@@ -68,8 +65,7 @@ export const PROTEINS = {
     isEssential: "conditionally",
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "A semi-essential, sulfur-containing amino acid important for protein structure.",
+    description: "A semi-essential, sulfur-containing amino acid important for protein structure.",
     polar: true,
   },
   Q: {
@@ -110,23 +106,20 @@ export const PROTEINS = {
     isEssential: false,
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "The simplest possible amino acid, involved in the synthesis of proteins.",
+    description: "The simplest possible amino acid, involved in the synthesis of proteins.",
   },
   H: {
     abbrevName: "His",
     charCode: "H",
     charge: "neutral/pos",
-    chargeNotes:
-      "can be positive under certain conditions, depending on its environment",
+    chargeNotes: "can be positive under certain conditions, depending on its environment",
     fullName: "Histidine",
     codons: ["CAT", "CAC"],
     chemicalFormula: "C6H9N3O2",
     isEssential: true,
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "An essential amino acid that plays a role in growth and tissue repair.",
+    description: "An essential amino acid that plays a role in growth and tissue repair.",
     polar: true,
   },
   I: {
@@ -139,8 +132,7 @@ export const PROTEINS = {
     isEssential: true,
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "An essential amino acid important for energy production and immune function.",
+    description: "An essential amino acid important for energy production and immune function.",
   },
   L: {
     abbrevName: "Leu",
@@ -152,8 +144,7 @@ export const PROTEINS = {
     isEssential: true,
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "An essential amino acid critical for protein synthesis and muscle repair.",
+    description: "An essential amino acid critical for protein synthesis and muscle repair.",
   },
   K: {
     abbrevName: "Lys",
@@ -179,8 +170,7 @@ export const PROTEINS = {
     isEssential: true,
     isStartCodon: true,
     isStopCodon: false,
-    description:
-      "An essential amino acid that serves as the start codon for protein synthesis.",
+    description: "An essential amino acid that serves as the start codon for protein synthesis.",
   },
   F: {
     abbrevName: "Phen",
@@ -231,8 +221,7 @@ export const PROTEINS = {
     chemicalFormula: "C4H9NO3",
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "An essential amino acid important for protein balance in the body.",
+    description: "An essential amino acid important for protein balance in the body.",
     polar: true,
   },
   W: {
@@ -245,8 +234,7 @@ export const PROTEINS = {
     isEssential: true,
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "An essential amino acid that the body uses to produce serotonin.",
+    description: "An essential amino acid that the body uses to produce serotonin.",
   },
   Y: {
     abbrevName: "Tyr",
@@ -260,8 +248,7 @@ export const PROTEINS = {
     essentialNotes: "essential only if phenylalanine is deficient",
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "A non-essential amino acid important for the production of neurotransmitters.",
+    description: "A non-essential amino acid important for the production of neurotransmitters.",
     polar: true,
   },
   V: {
@@ -274,8 +261,7 @@ export const PROTEINS = {
     isEssential: true,
     isStartCodon: false,
     isStopCodon: false,
-    description:
-      "An essential amino acid important for muscle growth and tissue repair.",
+    description: "An essential amino acid important for muscle growth and tissue repair.",
   },
   "": {
     abbrevName: "STOP",

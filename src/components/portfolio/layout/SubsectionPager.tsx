@@ -61,9 +61,7 @@ export default function SubsectionPager({
   onPrevious,
   onNext,
 }: SubsectionPagerProps) {
-  const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(
-    null,
-  );
+  const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(null);
   const selectorOpen = Boolean(selectorAnchorEl);
   const currentIndex = useMemo(() => {
     const matchedIndex = items.findIndex((item) => item.key === currentKey);
@@ -373,9 +371,7 @@ export default function SubsectionPager({
             <Box
               sx={{
                 minWidth: 0,
-                ...(item.optionImageSrc || item.optionIcon
-                  ? { gridColumn: 2 }
-                  : undefined),
+                ...(item.optionImageSrc || item.optionIcon ? { gridColumn: 2 } : undefined),
               }}
             >
               <Box

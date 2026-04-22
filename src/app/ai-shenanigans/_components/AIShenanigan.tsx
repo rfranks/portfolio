@@ -134,12 +134,7 @@ type AIShenaniganProps = {
   songLyricsSourceHref?: string;
 };
 
-type RevealStage =
-  | "intro"
-  | "realistic"
-  | "stylized"
-  | "movie"
-  | "alternateMovie";
+type RevealStage = "intro" | "realistic" | "stylized" | "movie" | "alternateMovie";
 const REVEAL_TRANSITION_MS = 0;
 
 export default function AIShenanigan(props: AIShenaniganProps) {
@@ -210,22 +205,12 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         rawCaption={props.rawCaption || props.realisticCaption}
         analyzedImage={props.analyzedImage || props.stylizedRendering || ""}
         analyzedSource={props.analyzedSource || props.stylizedSource}
-        analyzedSourceHref={
-          props.analyzedSourceHref || props.stylizedSourceHref
-        }
+        analyzedSourceHref={props.analyzedSourceHref || props.stylizedSourceHref}
         analyzedCaption={props.analyzedCaption || props.stylizedCaption}
-        palmLineAnalysisImage={
-          props.palmLineAnalysisImage || props.movieRendering || ""
-        }
-        palmLineAnalysisSource={
-          props.palmLineAnalysisSource || props.movieSource
-        }
-        palmLineAnalysisSourceHref={
-          props.palmLineAnalysisSourceHref || props.movieSourceHref
-        }
-        palmLineAnalysisCaption={
-          props.palmLineAnalysisCaption || props.movieCaption
-        }
+        palmLineAnalysisImage={props.palmLineAnalysisImage || props.movieRendering || ""}
+        palmLineAnalysisSource={props.palmLineAnalysisSource || props.movieSource}
+        palmLineAnalysisSourceHref={props.palmLineAnalysisSourceHref || props.movieSourceHref}
+        palmLineAnalysisCaption={props.palmLineAnalysisCaption || props.movieCaption}
         palmReadingTitle={props.palmReadingTitle}
         palmReadingText={props.palmReadingText || props.blurb}
         palmReadingMarkdownPath={props.palmReadingMarkdownPath}
@@ -245,9 +230,7 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         rightsNotice={props.rightsNotice}
         songAlbumImage={props.songAlbumImage || props.realisticImage}
         songAlbumSource={props.songAlbumSource || props.realisticSource}
-        songAlbumSourceHref={
-          props.songAlbumSourceHref || props.realisticSourceHref
-        }
+        songAlbumSourceHref={props.songAlbumSourceHref || props.realisticSourceHref}
         songAlbumCaption={props.songAlbumCaption || props.realisticCaption}
         songAudio={props.songAudio || ""}
         songAudioSource={props.songAudioSource}
@@ -301,9 +284,7 @@ function DefaultAIShenanigan({
   const [stylizedVisible, setStylizedVisible] = useState(false);
   const [movieVisible, setMovieVisible] = useState(false);
   const [alternateMovieVisible, setAlternateMovieVisible] = useState(false);
-  const [transitioningTo, setTransitioningTo] = useState<RevealStage | null>(
-    null,
-  );
+  const [transitioningTo, setTransitioningTo] = useState<RevealStage | null>(null);
   const realisticSectionRef = useRef<HTMLDivElement | null>(null);
   const stylizedSectionRef = useRef<HTMLDivElement | null>(null);
   const motionSectionRef = useRef<HTMLDivElement | null>(null);
@@ -320,18 +301,12 @@ function DefaultAIShenanigan({
   const hasStylized = Boolean(stylizedRendering);
   const primaryMovieRendering = movieRendering || movieRendering2 || null;
   const primaryMovieSource = movieRendering ? movieSource : movieSource2;
-  const primaryMovieSourceHref = movieRendering
-    ? movieSourceHref
-    : movieSourceHref2;
+  const primaryMovieSourceHref = movieRendering ? movieSourceHref : movieSourceHref2;
   const primaryMovieCaption = movieRendering ? movieCaption : movieCaption2;
-  const secondaryMovieRendering =
-    movieRendering && movieRendering2 ? movieRendering2 : null;
-  const secondaryMovieSource =
-    movieRendering && movieRendering2 ? movieSource2 : undefined;
-  const secondaryMovieSourceHref =
-    movieRendering && movieRendering2 ? movieSourceHref2 : undefined;
-  const secondaryMovieCaption =
-    movieRendering && movieRendering2 ? movieCaption2 : undefined;
+  const secondaryMovieRendering = movieRendering && movieRendering2 ? movieRendering2 : null;
+  const secondaryMovieSource = movieRendering && movieRendering2 ? movieSource2 : undefined;
+  const secondaryMovieSourceHref = movieRendering && movieRendering2 ? movieSourceHref2 : undefined;
+  const secondaryMovieCaption = movieRendering && movieRendering2 ? movieCaption2 : undefined;
   const hasMovie = Boolean(primaryMovieRendering);
   const hasAlternateMovie = Boolean(secondaryMovieRendering);
   const isPortrait = orientation === "portrait";
@@ -350,8 +325,7 @@ function DefaultAIShenanigan({
     border: "1px solid",
     borderColor: "var(--fabric-surface-border)",
     backgroundColor: "var(--fabric-surface-1)",
-    backgroundImage:
-      "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
+    backgroundImage: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
     boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
     backdropFilter: "blur(var(--fabric-blur-sm))",
   } as const;
@@ -448,17 +422,14 @@ function DefaultAIShenanigan({
     }
   };
 
-  const stopVideo = useCallback(
-    (videoRef: { current: HTMLVideoElement | null }) => {
-      if (!videoRef.current) {
-        return;
-      }
-      videoRef.current.pause();
-      videoRef.current.muted = false;
-      videoRef.current.currentTime = 0;
-    },
-    [],
-  );
+  const stopVideo = useCallback((videoRef: { current: HTMLVideoElement | null }) => {
+    if (!videoRef.current) {
+      return;
+    }
+    videoRef.current.pause();
+    videoRef.current.muted = false;
+    videoRef.current.currentTime = 0;
+  }, []);
 
   const stopMotionVideo = useCallback(() => {
     stopVideo(motionVideoRef);
@@ -549,8 +520,7 @@ function DefaultAIShenanigan({
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           transform: `rotate(${rightsStampAngle}deg)`,
-          boxShadow:
-            "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
+          boxShadow: "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
           textShadow: "0 1px 0 rgba(255,255,255,0.3)",
           opacity: 0.92,
         }}
@@ -587,10 +557,7 @@ function DefaultAIShenanigan({
       );
     }
 
-    if (
-      (stage === "realistic" && !hasStylized && hasMovie) ||
-      (stage === "stylized" && hasMovie)
-    ) {
+    if ((stage === "realistic" && !hasStylized && hasMovie) || (stage === "stylized" && hasMovie)) {
       return (
         <Button
           variant="contained"
@@ -699,61 +666,59 @@ function DefaultAIShenanigan({
       const hasNextChip = chipPosition < displayedIndices.length - 1;
 
       return (
-      <Box
-        key={`${scope}-${item.key}`}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-        }}
-      >
-        <Chip
-          label={item.label}
-          color={item.active ? "primary" : "default"}
-          variant={item.active ? "filled" : "outlined"}
-          size="small"
-          clickable={item.reached}
-          onClick={
-            item.reached ? () => handleChronologySelect(item.key) : undefined
-          }
-          sx={
-            item.reached
-              ? undefined
-              : {
-                  borderStyle: "dashed",
-                  borderColor: "rgba(148,163,184,0.55)",
-                  color: "rgba(148,163,184,0.88)",
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === "light"
-                      ? alpha(theme.palette.grey[500], 0.08)
-                      : "rgba(148,163,184,0.06)",
-                  "& .MuiChip-label": {
-                    fontStyle: "italic",
-                  },
-                }
-          }
-        />
-        {hasNextChip && (
-          <Typography
-            aria-hidden="true"
-            sx={{
-              fontSize: "1rem",
-              fontWeight: 800,
-              lineHeight: 1,
-              color: useCondensedChronology
-                ? "text.disabled"
-                : item.active
-                  ? "primary.main"
-                  : "text.disabled",
-              transform: "translateY(-1px)",
-              transition: "color 180ms ease",
-              userSelect: "none",
-            }}
-          >
-            {useCondensedChronology ? "..." : "→"}
-          </Typography>
-        )}
-      </Box>
+        <Box
+          key={`${scope}-${item.key}`}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <Chip
+            label={item.label}
+            color={item.active ? "primary" : "default"}
+            variant={item.active ? "filled" : "outlined"}
+            size="small"
+            clickable={item.reached}
+            onClick={item.reached ? () => handleChronologySelect(item.key) : undefined}
+            sx={
+              item.reached
+                ? undefined
+                : {
+                    borderStyle: "dashed",
+                    borderColor: "rgba(148,163,184,0.55)",
+                    color: "rgba(148,163,184,0.88)",
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === "light"
+                        ? alpha(theme.palette.grey[500], 0.08)
+                        : "rgba(148,163,184,0.06)",
+                    "& .MuiChip-label": {
+                      fontStyle: "italic",
+                    },
+                  }
+            }
+          />
+          {hasNextChip && (
+            <Typography
+              aria-hidden="true"
+              sx={{
+                fontSize: "1rem",
+                fontWeight: 800,
+                lineHeight: 1,
+                color: useCondensedChronology
+                  ? "text.disabled"
+                  : item.active
+                    ? "primary.main"
+                    : "text.disabled",
+                transform: "translateY(-1px)",
+                transition: "color 180ms ease",
+                userSelect: "none",
+              }}
+            >
+              {useCondensedChronology ? "..." : "→"}
+            </Typography>
+          )}
+        </Box>
       );
     });
   };
@@ -781,12 +746,8 @@ function DefaultAIShenanigan({
       return;
     }
 
-    const video = isAlternateMovieStage
-      ? alternateMotionVideoRef.current
-      : motionVideoRef.current;
-    const inactiveVideoRef = isAlternateMovieStage
-      ? motionVideoRef
-      : alternateMotionVideoRef;
+    const video = isAlternateMovieStage ? alternateMotionVideoRef.current : motionVideoRef.current;
+    const inactiveVideoRef = isAlternateMovieStage ? motionVideoRef : alternateMotionVideoRef;
     stopVideo(inactiveVideoRef);
 
     if (!video) {
@@ -1045,8 +1006,7 @@ function DefaultAIShenanigan({
           controls: true,
           autoPlay: true,
           playsInline: true,
-          previewVideoClassName:
-            "block w-full rounded-[22px] bg-black/10 object-contain",
+          previewVideoClassName: "block w-full rounded-[22px] bg-black/10 object-contain",
           previewVideoSx: {
             width: "100%",
             height: "100%",
@@ -1069,10 +1029,7 @@ function DefaultAIShenanigan({
           key: "alternateMovie",
           title: isSmDown ? title : "Alternate motion rendering",
           description: isSmDown
-            ? buildMobilePanelSubtext(
-                "Alternate motion rendering",
-                secondaryMovieSource,
-              )
+            ? buildMobilePanelSubtext("Alternate motion rendering", secondaryMovieSource)
             : undefined,
           mediaType: "video",
           mediaUrl: withBasePath(secondaryMovieRendering),
@@ -1094,8 +1051,7 @@ function DefaultAIShenanigan({
           controls: true,
           autoPlay: true,
           playsInline: true,
-          previewVideoClassName:
-            "block w-full rounded-[22px] bg-black/10 object-contain",
+          previewVideoClassName: "block w-full rounded-[22px] bg-black/10 object-contain",
           previewVideoSx: {
             width: "100%",
             height: "100%",
@@ -1135,24 +1091,15 @@ function DefaultAIShenanigan({
       return realisticMediaItem;
     }
 
-    return (
-      alternateMovieMediaItem ||
-      movieMediaItem ||
-      stylizedMediaItem ||
-      realisticMediaItem
-    );
+    return alternateMovieMediaItem || movieMediaItem || stylizedMediaItem || realisticMediaItem;
   })();
 
   const activeMediaKey = activeMediaItem?.key;
   const activeMediaIndex =
-    activeMediaKey == null
-      ? -1
-      : mediaItems.findIndex((item) => item.key === activeMediaKey);
+    activeMediaKey == null ? -1 : mediaItems.findIndex((item) => item.key === activeMediaKey);
   const hasPreviousMedia = activeMediaIndex > 0;
-  const hasNextRevealedMedia =
-    activeMediaIndex >= 0 && activeMediaIndex < mediaItems.length - 1;
-  const isAtFinalMedia =
-    activeMediaIndex >= 0 && activeMediaIndex === mediaItems.length - 1;
+  const hasNextRevealedMedia = activeMediaIndex >= 0 && activeMediaIndex < mediaItems.length - 1;
+  const isAtFinalMedia = activeMediaIndex >= 0 && activeMediaIndex === mediaItems.length - 1;
   const enableLoopNavigation = true;
   const canRevealNextFromCurrent =
     (stage === "realistic" &&
@@ -1161,10 +1108,8 @@ function DefaultAIShenanigan({
     (stage === "movie" && hasAlternateMovie && !alternateMovieVisible);
   const disableChevronPrevious = transitioningTo !== null || !hasPreviousMedia;
   const disableChevronNext =
-    transitioningTo !== null ||
-    (!hasNextRevealedMedia && !canRevealNextFromCurrent);
-  const showLoopNavigation =
-    enableLoopNavigation && isAtFinalMedia && !canRevealNextFromCurrent;
+    transitioningTo !== null || (!hasNextRevealedMedia && !canRevealNextFromCurrent);
+  const showLoopNavigation = enableLoopNavigation && isAtFinalMedia && !canRevealNextFromCurrent;
 
   const handleChevronPrevious = () => {
     if (disableChevronPrevious || activeMediaIndex <= 0) {
@@ -1260,9 +1205,7 @@ function DefaultAIShenanigan({
                   md: hasVisibleMedia ? 0 : "0px",
                 },
                 opacity: hasVisibleMedia ? 1 : 0,
-                transform: hasVisibleMedia
-                  ? "translate3d(0, 0, 0)"
-                  : "translate3d(28px, 0, 0)",
+                transform: hasVisibleMedia ? "translate3d(0, 0, 0)" : "translate3d(28px, 0, 0)",
                 pointerEvents: hasVisibleMedia ? "auto" : "none",
                 order: { xs: 1, md: 1 },
                 transition:
@@ -1308,7 +1251,10 @@ function DefaultAIShenanigan({
               width: { xs: "100%", md: "auto" },
               maxWidth: { xs: "100%", md: hasVisibleMedia ? desktopInfoPanelMaxWidth : "100%" },
               minWidth: 0,
-              flex: { xs: "0 0 auto", md: hasVisibleMedia ? `0 1 ${desktopInfoPanelBasis}` : "1 1 100%" },
+              flex: {
+                xs: "0 0 auto",
+                md: hasVisibleMedia ? `0 1 ${desktopInfoPanelBasis}` : "1 1 100%",
+              },
               flexBasis: {
                 md: hasVisibleMedia ? desktopInfoPanelBasis : "100%",
               },
@@ -1427,17 +1373,15 @@ function DefaultAIShenanigan({
                       }}
                     >
                       <Box>
-                        {stage !== "intro" &&
-                          renderNextAction() &&
-                          !isSmallScreen && (
-                            <IconButton
-                              aria-label="Start over"
-                              onClick={resetReveal}
-                              sx={restartActionSx}
-                            >
-                              <Loop fontSize="small" />
-                            </IconButton>
-                          )}
+                        {stage !== "intro" && renderNextAction() && !isSmallScreen && (
+                          <IconButton
+                            aria-label="Start over"
+                            onClick={resetReveal}
+                            sx={restartActionSx}
+                          >
+                            <Loop fontSize="small" />
+                          </IconButton>
+                        )}
                       </Box>
                       <Box
                         sx={{

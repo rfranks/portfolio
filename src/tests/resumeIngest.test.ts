@@ -16,12 +16,12 @@ describe("cleanPdfText", () => {
   });
 
   test("collapses duplicate spaces and joins broken lines", () => {
-    const pages = [["Summary", "Experienced developer", "with focus on web", "Skills  React  Node"]];
+    const pages = [
+      ["Summary", "Experienced developer", "with focus on web", "Skills  React  Node"],
+    ];
 
     const result = cleanPdfText(pages);
-    expect(result).toBe(
-      "Summary\nExperienced developer with focus on web\nSkills React Node",
-    );
+    expect(result).toBe("Summary\nExperienced developer with focus on web\nSkills React Node");
   });
 
   test("handles single-page input", () => {
@@ -96,4 +96,3 @@ describe("parseResumeText", () => {
     expect(result.skills).toEqual(["JavaScript", "TypeScript"]);
   });
 });
-

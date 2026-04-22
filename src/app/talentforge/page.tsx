@@ -29,9 +29,7 @@ export default function TalentForgePage() {
   }
 
   if (step < TOTAL_ONBOARDING_STEPS) {
-    return (
-      <OnboardingStepper onComplete={() => setStep(TOTAL_ONBOARDING_STEPS)} />
-    );
+    return <OnboardingStepper onComplete={() => setStep(TOTAL_ONBOARDING_STEPS)} />;
   }
 
   return (

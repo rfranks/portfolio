@@ -32,9 +32,7 @@ export const Thinking: React.FC<ThinkingProps> = ({
       <div className="thinking-effect" data-text={text}>
         {text}
       </div>
-      {showIndicator && (
-        <CircularProgress {...indicatorProps} role={"progressbar"} />
-      )}
+      {showIndicator && <CircularProgress {...indicatorProps} role={"progressbar"} />}
     </>
   );
 };

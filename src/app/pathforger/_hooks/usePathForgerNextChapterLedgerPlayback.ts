@@ -18,10 +18,7 @@ type ActiveRunAction =
   | "forgePath"
   | null;
 
-type NextChapterLedgerPlaybackPhase =
-  | "idle"
-  | "playing"
-  | "completed";
+type NextChapterLedgerPlaybackPhase = "idle" | "playing" | "completed";
 
 type LedgerTransition = {
   chapterNumber: number;
@@ -62,11 +59,8 @@ export function usePathForgerNextChapterLedgerPlayback(
     entryDurationMs = 10000,
   } = args;
 
-  const [phase, setPhase] =
-    React.useState<NextChapterLedgerPlaybackPhase>("idle");
-  const [entries, setEntries] = React.useState<JourneyLedgerPlaybackEntry[]>(
-    [],
-  );
+  const [phase, setPhase] = React.useState<NextChapterLedgerPlaybackPhase>("idle");
+  const [entries, setEntries] = React.useState<JourneyLedgerPlaybackEntry[]>([]);
   const [index, setIndex] = React.useState(0);
   const [targetChapter, setTargetChapter] = React.useState<number | null>(null);
   const playbackTimerRef = React.useRef<number | null>(null);
@@ -205,14 +199,7 @@ export function usePathForgerNextChapterLedgerPlayback(
 
     resetPlayback();
     onOpenChapterModal();
-  }, [
-    activeRunAction,
-    onOpenChapterModal,
-    phase,
-    resetPlayback,
-    targetChapter,
-    visibleChapter,
-  ]);
+  }, [activeRunAction, onOpenChapterModal, phase, resetPlayback, targetChapter, visibleChapter]);
 
   React.useEffect(() => {
     if (phase !== "completed") {
@@ -230,14 +217,7 @@ export function usePathForgerNextChapterLedgerPlayback(
     // Chapter generation ended without reaching the expected chapter:
     // clear playback state to avoid leaving the panel pinned.
     resetPlayback();
-  }, [
-    activeRunAction,
-    isRunning,
-    phase,
-    resetPlayback,
-    targetChapter,
-    visibleChapter,
-  ]);
+  }, [activeRunAction, isRunning, phase, resetPlayback, targetChapter, visibleChapter]);
 
   React.useEffect(() => {
     if (phase !== "playing") {
@@ -250,10 +230,7 @@ export function usePathForgerNextChapterLedgerPlayback(
     // Allow a short window for nextChapter state to flip to running before
     // deciding this run was abandoned.
     const abandonTimer = window.setTimeout(() => {
-      if (
-        latestActiveRunActionRef.current === "nextChapter" ||
-        latestIsRunningRef.current
-      ) {
+      if (latestActiveRunActionRef.current === "nextChapter" || latestIsRunningRef.current) {
         return;
       }
       resetPlayback();
@@ -262,14 +239,7 @@ export function usePathForgerNextChapterLedgerPlayback(
     return () => {
       window.clearTimeout(abandonTimer);
     };
-  }, [
-    activeRunAction,
-    isRunning,
-    phase,
-    resetPlayback,
-    targetChapter,
-    visibleChapter,
-  ]);
+  }, [activeRunAction, isRunning, phase, resetPlayback, targetChapter, visibleChapter]);
 
   const playbackViewModel: JourneyLedgerPlaybackViewModel = React.useMemo(() => {
     if (phase === "idle") {
@@ -298,15 +268,7 @@ export function usePathForgerNextChapterLedgerPlayback(
       canGoNext: total > 0 && currentIndex < total - 1,
       isLastEntry,
     };
-  }, [
-    activeRunAction,
-    entries,
-    index,
-    isRunning,
-    phase,
-    targetChapter,
-    visibleChapter,
-  ]);
+  }, [activeRunAction, entries, index, isRunning, phase, targetChapter, visibleChapter]);
 
   return {
     nextChapterLedgerPlayback: playbackViewModel,

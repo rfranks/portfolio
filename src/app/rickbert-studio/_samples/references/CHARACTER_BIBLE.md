@@ -1,11 +1,13 @@
 # CHARACTER_BIBLE — Rickbert Comic Universe
 
 ## Purpose
+
 This document defines the **canonical character designs, personalities, and headshot-identification rules** for the Rickbert comic universe.
 
 **You will receive headshots.** Use the identification traits below to correctly match each photo to the correct character and keep designs consistent across all panels and strips.
 
 **Consistency rules**
+
 - Treat these descriptions as **ground truth**.
 - Once a character is identified from a headshot, preserve their **signature features** (hair silhouette, glasses, facial hair, posture, wardrobe shorthand).
 - Keep each character’s **speaking style** consistent (short, readable dialogue).
@@ -19,6 +21,7 @@ This document defines the **canonical character designs, personalities, and head
 **Comic function:** truth-teller / engineer reality.
 
 ### Headshot identification (photo traits)
+
 - Middle-aged man
 - Short dark brown hair (neatly combed)
 - Light-colored eyes
@@ -28,12 +31,14 @@ This document defines the **canonical character designs, personalities, and head
 - Looks like the “main character” photo you supplied first
 
 ### How to cartoon him
+
 - Convert hair into a **spiky office-comic silhouette**
 - Add **round glasses** (signature)
 - Simplify goatee and expression into clean cartoon shapes
 - Office-casual: **white shirt or polo**, sometimes tie for classic office shorthand
 
 ### Speaking style
+
 Concise, deadpan, confident, slightly superior.
 
 ---
@@ -45,6 +50,7 @@ Concise, deadpan, confident, slightly superior.
 **Comic function:** compresses hard problems into simple demands.
 
 ### Headshot identification (photo traits)
+
 - Younger adult man
 - Very light blond/platinum hair
 - Short trimmed beard
@@ -52,11 +58,13 @@ Concise, deadpan, confident, slightly superior.
 - Often a light/cream zip-up or clean casual in the headshot
 
 ### How to cartoon him
+
 - Clean, calm facial expression
 - “Manager silhouette” posture (arms folded, relaxed authority)
 - Less spiky hair; more neat and modern than Rickbert
 
 ### Speaking style
+
 Polished, understated, weaponized calm.
 
 ---
@@ -68,6 +76,7 @@ Polished, understated, weaponized calm.
 **Comic function:** product truth-bomb; politely dismantles bad ideas.
 
 ### Headshot identification (photo traits)
+
 - Adult woman
 - Blonde hair (light golden)
 - Bright, wide smile
@@ -76,12 +85,14 @@ Polished, understated, weaponized calm.
 - Headshot is close-up, friendly, energetic
 
 ### How to cartoon her
+
 - Friendly but formidable expression
 - Calm open-hand gesture while delivering uncomfortable truth
 - Product props: tablet, notepad, sticky-note board
 - She should look pleasant even when landing a knockout
 
 ### Speaking style
+
 Upbeat, polite, sharply practical.
 
 ---
@@ -93,6 +104,7 @@ Upbeat, polite, sharply practical.
 **Comic function:** sells future tense as present tense; turns prototypes into “ready” with confidence.
 
 ### Headshot identification (photo traits)
+
 - Adult woman
 - Long brunette hair (dark brown)
 - Bright smile
@@ -100,11 +112,13 @@ Upbeat, polite, sharply practical.
 - Polished look, executive vibe
 
 ### How to cartoon her
+
 - Confident posture; “boardroom-ready” silhouette
 - Sales props: phone, pipeline chart, contract folder
 - Expression: charming + dangerous optimism
 
 ### Speaking style
+
 Polished, elegant, persuasive, calmly forceful.
 
 ---
@@ -116,6 +130,7 @@ Polished, elegant, persuasive, calmly forceful.
 **Comic function:** executive amplifier; turns prototypes into destiny.
 
 ### Headshot identification (photo traits)
+
 - Young adult man
 - Short brown hair, clean-cut
 - Bright smile
@@ -123,11 +138,13 @@ Polished, elegant, persuasive, calmly forceful.
 - Looks like a “profile card / app screenshot” rather than a studio headshot
 
 ### How to cartoon him
+
 - Founder posture: standing, gesturing, excited
 - Props: slide deck, vision board, keynote clicker
 - Big “vision” energy
 
 ### Speaking style
+
 Big-picture, inspirational, grand, earnest.
 
 ---
@@ -139,6 +156,7 @@ Big-picture, inspirational, grand, earnest.
 **Comic function:** cheerful kill-switch; ruins momentum calmly from paradise.
 
 ### Headshot identification (photo traits)
+
 - Adult man
 - Modern haircut (sides close, top styled up)
 - Big friendly grin
@@ -147,10 +165,12 @@ Big-picture, inspirational, grand, earnest.
 - Looks energetic and mischievous
 
 ### How to cartoon him
+
 - Usually appears on a monitor/video-call tile
 - Tropical background: palms/ocean/sunlight
 - Headset optional
 - Calm smile while delivering fatal compliance reality
 
 ### Speaking style
+
 Gentle, slightly elegant, calm—then devastating.

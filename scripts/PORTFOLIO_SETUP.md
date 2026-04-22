@@ -4,11 +4,14 @@ This repo now uses exactly two setup commands:
 
 - `npm run init`
 - `npm run update`
+- `npm run validate:resume`
 
 ## `npm run init`
+
 Use right after forking.
 
 What it does:
+
 - Clears personalized assets from `public/apps/` and `public/personal/*` content folders.
 - Replaces `public/favicon.ico` with `public/favicon.ico.default` (generic favicon).
 - Runs an interactive wizard to:
@@ -18,9 +21,11 @@ What it does:
   - optionally generate route skeletons in `src/app/<slug>/`.
 
 ## `npm run update`
+
 Use any time after init.
 
 What it does:
+
 - Interactive edit wizard (no destructive reset) for:
   - add/replace projects,
   - add/replace AI shenanigans,
@@ -32,7 +37,30 @@ What it does:
   - move assets into `public/apps/<slug>/...` buckets (`images`, `videos`, `js`, `wasm`, etc.) with optional resume data path ref updates,
   - edit summary/contact basics.
 
+### Optional flags for `init` and `update`
+
+- `--dry-run` (or `-n`): preview changes without writing files.
+- `--no-diff`: suppress diff preview output before save.
+
+Examples:
+
+- `npm run update -- --dry-run`
+- `npm run init -- --dry-run --no-diff`
+
+## `npm run validate:resume`
+
+Validates `public/personal/data/resumeData.json` against the runtime schema and checks:
+
+- project href uniqueness,
+- nav warnings (for example, Home no longer first in `navigation.drawerItems`).
+
+Optional strict mode:
+
+- `npm run validate:resume -- --strict-assets`
+- Enables local asset file existence checks under `public/`.
+
 ## Scoped Asset Rules
+
 The wizard intentionally limits asset pick-lists to scoped folders:
 
 - Project assets:

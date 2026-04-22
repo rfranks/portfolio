@@ -12,9 +12,7 @@ export function formatResumeForPrompt(resume: ResumeEntry): string {
   return resume.content || "";
 }
 
-export function formatJobApplicationForPrompt(
-  application: JobApplication,
-): string {
+export function formatJobApplicationForPrompt(application: JobApplication): string {
   const lines: string[] = [];
   lines.push(`Role: ${application.role.title}`);
   lines.push(`Company: ${application.role.company}`);
@@ -69,9 +67,7 @@ export function formatOfferForPrompt(offer: Offer): string {
   return lines.join("\n");
 }
 
-export function formatCurrentCompensationForPrompt(
-  compensation: CurrentCompensation,
-): string {
+export function formatCurrentCompensationForPrompt(compensation: CurrentCompensation): string {
   const parts: string[] = [];
   if (compensation.salary) {
     parts.push(`Salary: ${compensation.salary}`);
@@ -85,9 +81,7 @@ export function formatCurrentCompensationForPrompt(
   return parts.join("\n");
 }
 
-export function formatUserProfileForPrompt(
-  profile: UserProfile | undefined,
-): string {
+export function formatUserProfileForPrompt(profile: UserProfile | undefined): string {
   if (!profile) return "";
   const parts: string[] = [];
   if (profile.name) {
@@ -98,9 +92,7 @@ export function formatUserProfileForPrompt(
   }
   if (profile.firstName || profile.lastName) {
     parts.push(
-      `Preferred Name: ${[profile.firstName, profile.lastName]
-        .filter(Boolean)
-        .join(" ")}`,
+      `Preferred Name: ${[profile.firstName, profile.lastName].filter(Boolean).join(" ")}`,
     );
   }
   return parts.join("\n");

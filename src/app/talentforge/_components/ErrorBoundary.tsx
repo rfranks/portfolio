@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Component, ReactNode, useEffect, useState } from 'react';
-import { Box, Button, Typography } from '@mui/material';
-import { usePathname } from 'next/navigation';
+import { Component, ReactNode, useEffect, useState } from "react";
+import { Box, Button, Typography } from "@mui/material";
+import { usePathname } from "next/navigation";
 
 interface BoundaryProps {
   children: ReactNode;
@@ -20,7 +20,7 @@ class InnerErrorBoundary extends Component<BoundaryProps, BoundaryState> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error', error, info);
+    console.error("ErrorBoundary caught an error", error, info);
   }
 
   reset = () => this.setState({ hasError: false });
@@ -28,7 +28,7 @@ class InnerErrorBoundary extends Component<BoundaryProps, BoundaryState> {
   render() {
     if (this.state.hasError) {
       return (
-        <Box role="alert" sx={{ p: 3, textAlign: 'center' }}>
+        <Box role="alert" sx={{ p: 3, textAlign: "center" }}>
           <Typography variant="h6" gutterBottom>
             Oops! Something went wrong.
           </Typography>
@@ -58,4 +58,3 @@ export default function ErrorBoundary({ children }: BoundaryProps) {
 
   return <InnerErrorBoundary key={key}>{children}</InnerErrorBoundary>;
 }
-

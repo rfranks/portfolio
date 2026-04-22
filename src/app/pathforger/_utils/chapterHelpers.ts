@@ -43,11 +43,7 @@ export function extractChapterTitle(markdown: string): string {
     const chapterLabelOnly = line.match(/^chapter\s+\d+$/i);
     if (chapterLabelOnly) {
       const nextLine = lines[index + 1]?.trim() ?? "";
-      if (
-        nextLine.length > 0 &&
-        !/^chapter\s+\d+/i.test(nextLine) &&
-        nextLine.length <= 120
-      ) {
+      if (nextLine.length > 0 && !/^chapter\s+\d+/i.test(nextLine) && nextLine.length <= 120) {
         return `${line} — ${nextLine}`;
       }
       return line;
@@ -90,8 +86,7 @@ export function stripLeadingDuplicateChapterHeadings(params: {
     const matchesSubtitle = subtitleNorm.length > 0 && lineNorm === subtitleNorm;
     const matchesChapterLabel =
       chapterLabelNorm.length > 0 &&
-      (lineNorm === chapterLabelNorm ||
-        lineNorm.startsWith(`${chapterLabelNorm} `));
+      (lineNorm === chapterLabelNorm || lineNorm.startsWith(`${chapterLabelNorm} `));
 
     if (matchesSubtitle || matchesChapterLabel) {
       lines.splice(index, 1);

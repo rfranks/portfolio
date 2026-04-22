@@ -6,9 +6,10 @@ import {
   setOpenAIKey as setStoredOpenAIKey,
 } from "@/contexts/OpenAIKeyContext";
 import {
-  AUTO_REPLY_TEMPLATES,
-  type AutoReplyTemplate,
-} from "./autoReply/templates";
+  extractTextFromOpenAIChatContent,
+  requestOpenAIChatCompletions,
+} from "@/utils/openai/client";
+import { AUTO_REPLY_TEMPLATES, type AutoReplyTemplate } from "./autoReply/templates";
 
 export { AUTO_REPLY_TEMPLATES };
 export type { AutoReplyTemplate };
@@ -50,58 +51,14 @@ export const hasOpenAIKey = () => hasStoredOpenAIKey();
 
 export const ensureOpenAIKey = () => ensureStoredOpenAIKey();
 
-export async function autoReply(
-  messages: AutoReplyMessage[],
-): Promise<string> {
+export async function autoReply(messages: AutoReplyMessage[]): Promise<string> {
   const apiKey = ensureStoredOpenAIKey();
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      temperature: 0.7,
-      top_p: 0.9,
-      messages,
-    }),
+  const data = await requestOpenAIChatCompletions(apiKey, {
+    model: "gpt-3.5-turbo",
+    temperature: 0.7,
+    top_p: 0.9,
+    messages,
   });
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    throw new Error(
-      `OpenAI request failed: ${response.status} ${errorText}`.trim(),
-    );
-  }
-
-  interface OpenAIChatResponse {
-    choices?: Array<{ message?: { content?: unknown } }>;
-  }
-  let data: OpenAIChatResponse;
-  try {
-    data = (await response.json()) as OpenAIChatResponse;
-  } catch {
-    throw new Error("Failed to parse OpenAI response");
-  }
   const content = data?.choices?.[0]?.message?.content;
-  if (Array.isArray(content)) {
-    return (
-      content
-        .map((c: unknown) => {
-          if (typeof c === "string") return c;
-          if (typeof c === "object" && c !== null && "text" in c) {
-            return (c as { text?: string }).text || "";
-          }
-          return "";
-        })
-        .join("") || ""
-    );
-  }
-  if (typeof content === "string") {
-    return content.trim();
-  }
-  if (typeof content === "object" && content !== null && "text" in content) {
-    return ((content as { text?: string }).text || "").trim();
-  }
-  return "";
+  return extractTextFromOpenAIChatContent(content).trim();
 }

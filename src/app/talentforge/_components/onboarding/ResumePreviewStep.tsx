@@ -56,13 +56,12 @@ export default function ResumePreviewStep({ onNext, onBack }: StepProps) {
   return (
     <Stack spacing={2} aria-label="Review uploaded resume">
       <Typography variant="body1">
-        Confirm that we captured the correct resume details. You can re-upload
-        if something looks off.
+        Confirm that we captured the correct resume details. You can re-upload if something looks
+        off.
       </Typography>
       {!hasResume ? (
         <Alert severity="warning" role="status">
-          No resume has been imported yet. Go back to upload one before
-          continuing.
+          No resume has been imported yet. Go back to upload one before continuing.
         </Alert>
       ) : (
         <Paper variant="outlined" sx={{ p: 2 }} aria-live="polite">
@@ -99,12 +98,7 @@ export default function ResumePreviewStep({ onNext, onBack }: StepProps) {
             Back
           </Button>
         )}
-        <Button
-          variant="contained"
-          onClick={onNext}
-          disabled={!hasResume}
-          aria-label="Continue"
-        >
+        <Button variant="contained" onClick={onNext} disabled={!hasResume} aria-label="Continue">
           Looks good
         </Button>
       </Stack>

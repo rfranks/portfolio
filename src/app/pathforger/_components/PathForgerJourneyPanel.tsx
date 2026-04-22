@@ -1,12 +1,5 @@
 import * as React from "react";
-import {
-  Box,
-  Button,
-  IconButton,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, IconButton, Paper, Stack, Typography } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { MarkdownContent } from "@/components/shared";
 import PathForgerJourneyLedgerCarousel from "@/app/pathforger/_components/PathForgerJourneyLedgerCarousel";
@@ -27,9 +20,7 @@ type PathForgerJourneyPanelProps = {
   journeySnapshotFields: JourneyLedgerField[];
 };
 
-export default function PathForgerJourneyPanel(
-  props: PathForgerJourneyPanelProps,
-) {
+export default function PathForgerJourneyPanel(props: PathForgerJourneyPanelProps) {
   const { open, onClose, pathLedgerMarkdown } = props;
 
   const carouselEntries = React.useMemo(
@@ -50,8 +41,7 @@ export default function PathForgerJourneyPanel(
   }, [open, pathLedgerMarkdown]);
 
   const total = carouselEntries.length;
-  const currentIndex =
-    total > 0 ? Math.min(carouselIndex, Math.max(total - 1, 0)) : 0;
+  const currentIndex = total > 0 ? Math.min(carouselIndex, Math.max(total - 1, 0)) : 0;
   const currentEntry = total > 0 ? carouselEntries[currentIndex] : null;
   const isLastEntry = total > 0 && currentIndex >= total - 1;
   const canGoPrevious = total > 0 && currentIndex > 0;

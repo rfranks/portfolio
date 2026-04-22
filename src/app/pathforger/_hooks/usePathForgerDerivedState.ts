@@ -95,21 +95,14 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
     }
 
     const resolvedPitchChoice =
-      selectedPitch === "auto"
-        ? visiblePitches.recommendedPitch
-        : selectedPitch;
+      selectedPitch === "auto" ? visiblePitches.recommendedPitch : selectedPitch;
     const coverKey = buildPitchCoverCacheKey({
       pitchResult: visiblePitches,
       selectedPitch: resolvedPitchChoice,
     });
 
     return coverImageByPitchKey[coverKey];
-  }, [
-    coverImageByPitchKey,
-    result?.images?.cover,
-    selectedPitch,
-    visiblePitches,
-  ]);
+  }, [coverImageByPitchKey, result?.images?.cover, selectedPitch, visiblePitches]);
 
   const chapterSpreadImage = result?.images?.chapterSpread;
 
@@ -124,8 +117,7 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
   );
 
   const chapterModalTitle = visibleChapter
-    ? visibleChapter.chapterTitle?.trim() ||
-      extractChapterTitle(visibleChapter.chapterMarkdown)
+    ? visibleChapter.chapterTitle?.trim() || extractChapterTitle(visibleChapter.chapterMarkdown)
     : "";
 
   const chapterModalBodyMarkdown = React.useMemo(() => {
@@ -152,9 +144,7 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
     }
 
     return (
-      visiblePitches.pitches.find(
-        (pitch) => pitch.id === visibleSelectedPitch,
-      ) ??
+      visiblePitches.pitches.find((pitch) => pitch.id === visibleSelectedPitch) ??
       visiblePitches.pitches[0] ??
       null
     );
@@ -189,10 +179,7 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
   const journeySnapshotFields = React.useMemo(
     () =>
       journeyLedgerView.fields.filter(
-        (field) =>
-          field.key === "chapter" ||
-          field.key === "location" ||
-          field.key === "status",
+        (field) => field.key === "chapter" || field.key === "location" || field.key === "status",
       ),
     [journeyLedgerView.fields],
   );
@@ -200,10 +187,7 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
   const journeyDetailFields = React.useMemo(
     () =>
       journeyLedgerView.fields.filter(
-        (field) =>
-          field.key !== "chapter" &&
-          field.key !== "location" &&
-          field.key !== "status",
+        (field) => field.key !== "chapter" && field.key !== "location" && field.key !== "status",
       ),
     [journeyLedgerView.fields],
   );
@@ -232,8 +216,7 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
   }, [journeyDetailFields, journeySnapshotFields]);
 
   const activeJourneyPanel = React.useMemo(
-    () =>
-      journeyTabPanels.find((panel) => panel.id === journeyTabValue) ?? null,
+    () => journeyTabPanels.find((panel) => panel.id === journeyTabValue) ?? null,
     [journeyTabPanels, journeyTabValue],
   );
 
@@ -249,18 +232,11 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
       return;
     }
 
-    const hasSelected = journeyTabPanels.some(
-      (panel) => panel.id === journeyTabValue,
-    );
+    const hasSelected = journeyTabPanels.some((panel) => panel.id === journeyTabValue);
     if (!hasSelected) {
       setJourneyTabValue(journeyTabPanels[0].id);
     }
-  }, [
-    journeyTabPanels,
-    journeyTabValue,
-    pathLedgerModalOpen,
-    setJourneyTabValue,
-  ]);
+  }, [journeyTabPanels, journeyTabValue, pathLedgerModalOpen, setJourneyTabValue]);
 
   const outcomeModalChoiceLabel = React.useMemo(() => {
     if (!visibleChapter || !activeOptionBranch) {
@@ -268,9 +244,7 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
     }
 
     return (
-      visibleChapter.choices
-        .find((choice) => choice.id === activeOptionBranch)
-        ?.label?.trim() ?? ""
+      visibleChapter.choices.find((choice) => choice.id === activeOptionBranch)?.label?.trim() ?? ""
     );
   }, [activeOptionBranch, visibleChapter]);
 
@@ -282,8 +256,7 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
       activeRunAction === "style" ||
       activeRunAction === "tone");
   const showMainCreateSpinner = statusIsRunning && !isFieldWandRun;
-  const hideCreateStoryPanel =
-    chapterModalOpen || continueModalOpen || chapterOutcomeModalOpen;
+  const hideCreateStoryPanel = chapterModalOpen || continueModalOpen || chapterOutcomeModalOpen;
   const statusSnackbarOpen = statusIsRunning || Boolean(progressMessage);
   const statusSnackbarMessage = progressMessage.trim();
   const statusSnackbarText = statusIsRunning
@@ -293,8 +266,7 @@ export function usePathForgerDerivedState(args: UsePathForgerDerivedStateArgs) {
     : statusSnackbarMessage;
   const showPitchSelectionAnimation =
     statusIsRunning &&
-    statusSnackbarText.trim().toLowerCase() ===
-      "generating a selection of potential stories...";
+    statusSnackbarText.trim().toLowerCase() === "generating a selection of potential stories...";
 
   return {
     visiblePitches,

@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import {
-  Box,
-  Button,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, MenuItem, Stack, TextField, Typography } from "@mui/material";
 
 import { askOpenAI } from "@/app/talentforge/_utils/utils";
 import { getResumes } from "@/app/talentforge/_utils/dataStore";
@@ -33,8 +26,7 @@ export default function CoverLetter() {
     const context = `Resume:\n${resume.content}\n\nJob Description:\n${jobDescription}`;
     const response = await askOpenAI({
       context,
-      user:
-        "Write a professional cover letter with exactly three paragraphs, using the resume to highlight relevant experience.",
+      user: "Write a professional cover letter with exactly three paragraphs, using the resume to highlight relevant experience.",
       system:
         "You are an assistant that crafts polished three-paragraph cover letters based on a resume and job description.",
       chatHistory: [],
@@ -87,8 +79,7 @@ export default function CoverLetter() {
                 variant="outlined"
                 disabled={!coverLetter}
                 onClick={() =>
-                  coverRef.current &&
-                  exportElementToPdf(coverRef.current, "cover-letter.pdf")
+                  coverRef.current && exportElementToPdf(coverRef.current, "cover-letter.pdf")
                 }
                 aria-label="Export cover letter"
               >
@@ -97,9 +88,7 @@ export default function CoverLetter() {
             </Stack>
             {coverLetter && (
               <Box ref={coverRef}>
-                <Typography sx={{ whiteSpace: "pre-wrap" }}>
-                  {coverLetter}
-                </Typography>
+                <Typography sx={{ whiteSpace: "pre-wrap" }}>{coverLetter}</Typography>
               </Box>
             )}
           </Stack>
@@ -108,4 +97,3 @@ export default function CoverLetter() {
     </RequireAIKey>
   );
 }
-

@@ -12,26 +12,22 @@ export type ChipDecoratedValueProps = {
   valueClassName?: string;
 };
 
-const ChipDecoratedValue = React.forwardRef<
-  HTMLSpanElement,
-  ChipDecoratedValueProps
->(function ChipDecoratedValue(
-  { chipSrc, children, className, id, valueClassName },
-  ref,
-) {
-  return (
-    <span ref={ref} id={id} className={className}>
-      <Image
-        className="blackjack-chip-adornment"
-        src={withBasePath(chipSrc)}
-        alt=""
-        aria-hidden="true"
-        width={20}
-        height={20}
-      />
-      <span className={valueClassName}>{children}</span>
-    </span>
-  );
-});
+const ChipDecoratedValue = React.forwardRef<HTMLSpanElement, ChipDecoratedValueProps>(
+  function ChipDecoratedValue({ chipSrc, children, className, id, valueClassName }, ref) {
+    return (
+      <span ref={ref} id={id} className={className}>
+        <Image
+          className="blackjack-chip-adornment"
+          src={withBasePath(chipSrc)}
+          alt=""
+          aria-hidden="true"
+          width={20}
+          height={20}
+        />
+        <span className={valueClassName}>{children}</span>
+      </span>
+    );
+  },
+);
 
 export default ChipDecoratedValue;

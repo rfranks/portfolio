@@ -9,8 +9,7 @@ import { withBasePath } from "@/utils/basePath";
 export function useGameAudio(): AudioMgr {
   // Load audio clips via <audio> elements
   const audios = useMemo<Record<string, HTMLAudioElement>>(() => {
-    if (typeof Audio === "undefined")
-      return {} as Record<string, HTMLAudioElement>;
+    if (typeof Audio === "undefined") return {} as Record<string, HTMLAudioElement>;
 
     const create = (src: string, loop = false) => {
       const audio = document.createElement("audio");

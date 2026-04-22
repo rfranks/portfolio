@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Box,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, MenuItem, Select, SelectChangeEvent, Stack, Typography } from "@mui/material";
 import { v4 as uuid } from "uuid";
 import type { ApplicationStatus, JobApplication } from "@/types";
 import {
@@ -18,12 +11,7 @@ import {
 } from "@/app/talentforge/_utils/dataStore";
 import { fetchAllListings } from "@/app/talentforge/_utils/jobAggregator";
 
-const STATUS_OPTIONS: ApplicationStatus[] = [
-  "applied",
-  "interview",
-  "offer",
-  "rejected",
-];
+const STATUS_OPTIONS: ApplicationStatus[] = ["applied", "interview", "offer", "rejected"];
 
 export default function JobApplications() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
@@ -40,9 +28,7 @@ export default function JobApplications() {
             applicant: { id: "", name: "", email: "" },
             role: { ...listing, id: uuid() },
             status: "applied",
-            history: [
-              { status: "applied", changedAt: new Date().toISOString() },
-            ],
+            history: [{ status: "applied", changedAt: new Date().toISOString() }],
           });
         });
         setApplications(apps);
@@ -52,14 +38,8 @@ export default function JobApplications() {
     }
   }, []);
 
-  const handleStatusChange = (
-    id: string,
-    event: SelectChangeEvent<ApplicationStatus>,
-  ) => {
-    const updated = updateJobApplicationStatus(
-      id,
-      event.target.value as ApplicationStatus,
-    );
+  const handleStatusChange = (id: string, event: SelectChangeEvent<ApplicationStatus>) => {
+    const updated = updateJobApplicationStatus(id, event.target.value as ApplicationStatus);
     setApplications(updated);
   };
 
@@ -70,10 +50,7 @@ export default function JobApplications() {
       </Typography>
       <Stack spacing={2}>
         {applications.map((app) => (
-          <Box
-            key={app.id}
-            sx={{ display: "flex", alignItems: "center", gap: 2 }}
-          >
+          <Box key={app.id} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Box sx={{ flexGrow: 1 }}>
               <Typography fontWeight="bold">{app.role.title}</Typography>
               <Typography variant="body2" color="text.secondary">
@@ -98,4 +75,3 @@ export default function JobApplications() {
     </Box>
   );
 }
-

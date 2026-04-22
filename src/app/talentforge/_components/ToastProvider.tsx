@@ -1,19 +1,7 @@
 "use client";
 
-import {
-  Alert,
-  AlertColor,
-  Button,
-  Snackbar,
-  type SnackbarCloseReason,
-} from "@mui/material";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import { Alert, AlertColor, Button, Snackbar, type SnackbarCloseReason } from "@mui/material";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 interface ToastOptions {
   message: string;
@@ -73,10 +61,7 @@ export default function ToastProvider({ children }: ToastProviderProps) {
     action?.();
   }, [hideToast, toast]);
 
-  const contextValue = useMemo(
-    () => ({ showToast, hideToast }),
-    [showToast, hideToast],
-  );
+  const contextValue = useMemo(() => ({ showToast, hideToast }), [showToast, hideToast]);
 
   return (
     <ToastContext.Provider value={contextValue}>

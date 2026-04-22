@@ -27,13 +27,16 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 export function ComicPanel({ panel, rect }: ComicPanelProps) {
-  const panelText = `${panel.sceneText} ${panel.props.map((prop) => prop.name).join(" ")}`.toLowerCase();
+  const panelText =
+    `${panel.sceneText} ${panel.props.map((prop) => prop.name).join(" ")}`.toLowerCase();
   const hasRemoteWindow = /remote|bali|video|monitor|window/.test(panelText);
   const hasHanz = /hanz|harold|device/.test(panelText);
   const hasNameplate = /nameplate/.test(panelText);
   const hasNameTag = /name tag|nametag/.test(panelText);
 
-  const nonRemoteCharacters = panel.characters.filter((character) => character.name !== "Alvin" || !hasRemoteWindow);
+  const nonRemoteCharacters = panel.characters.filter(
+    (character) => character.name !== "Alvin" || !hasRemoteWindow,
+  );
   const anchors = new Map<string, { x: number; y: number }>();
 
   const yBase = rect.height * 0.72;
@@ -43,13 +46,23 @@ export function ComicPanel({ panel, rect }: ComicPanelProps) {
     anchors.set(character.name, { x, y: yBase - 58 });
   });
 
-  if (hasRemoteWindow || panel.characters.some((character) => character.name === "Alvin" && character.isRemote)) {
+  if (
+    hasRemoteWindow ||
+    panel.characters.some((character) => character.name === "Alvin" && character.isRemote)
+  ) {
     anchors.set("Alvin", { x: rect.width * 0.78, y: rect.height * 0.24 });
   }
 
   return (
     <Group x={rect.x} y={rect.y}>
-      <Rect width={rect.width} height={rect.height} fill="#fff" stroke="#111" strokeWidth={2} cornerRadius={4} />
+      <Rect
+        width={rect.width}
+        height={rect.height}
+        fill="#fff"
+        stroke="#111"
+        strokeWidth={2}
+        cornerRadius={4}
+      />
       <Group x={8} y={8}>
         <OfficeBackground width={rect.width - 16} height={rect.height - 16} />
 
@@ -77,7 +90,8 @@ export function ComicPanel({ panel, rect }: ComicPanelProps) {
           const spacing = (rect.width - 16) / (nonRemoteCharacters.length + 1);
           const x = spacing * (index + 1);
           const scenePose =
-            character.name === "Rickbert" && /palm-to-face|palm to face|facepalm/.test(panel.sceneText.toLowerCase())
+            character.name === "Rickbert" &&
+            /palm-to-face|palm to face|facepalm/.test(panel.sceneText.toLowerCase())
               ? "palmFace"
               : character.pose;
 
@@ -94,7 +108,9 @@ export function ComicPanel({ panel, rect }: ComicPanelProps) {
           );
         })}
 
-        {hasHanz && <DeviceSprite x={(rect.width - 16) * 0.38} y={(rect.height - 16) * 0.67} label="Hanz" />}
+        {hasHanz && (
+          <DeviceSprite x={(rect.width - 16) * 0.38} y={(rect.height - 16) * 0.67} label="Hanz" />
+        )}
 
         {hasNameplate && (
           <DeskNameplate
@@ -104,13 +120,15 @@ export function ComicPanel({ panel, rect }: ComicPanelProps) {
           />
         )}
 
-        {hasNameTag && <NameTag x={(rect.width - 16) * 0.12} y={(rect.height - 16) * 0.7} text="RICKBERT" />}
+        {hasNameTag && (
+          <NameTag x={(rect.width - 16) * 0.12} y={(rect.height - 16) * 0.7} text="RICKBERT" />
+        )}
 
         {panel.props
           .filter(
             (prop) =>
               prop.kind === "prop" &&
-              !/hanz|device|nameplate|name tag|remote|window/i.test(prop.name)
+              !/hanz|device|nameplate|name tag|remote|window/i.test(prop.name),
           )
           .slice(0, 2)
           .map((prop, index) => (
@@ -132,7 +150,14 @@ export function ComicPanel({ panel, rect }: ComicPanelProps) {
           const bubbleY = 18 + index * 64;
 
           if (line.isSilent) {
-            return <ThoughtBubble key={`${line.raw}-${index}`} text="..." x={bubbleX + 48} y={bubbleY + 30} />;
+            return (
+              <ThoughtBubble
+                key={`${line.raw}-${index}`}
+                text="..."
+                x={bubbleX + 48}
+                y={bubbleY + 30}
+              />
+            );
           }
 
           return (

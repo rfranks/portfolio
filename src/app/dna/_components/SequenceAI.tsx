@@ -10,10 +10,7 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 
 import { OpenAIKeyInterstitialContent } from "@/components/shared";
-import {
-  getOpenAIKeySnapshot,
-  setOpenAIKey,
-} from "@/contexts/OpenAIKeyContext";
+import { getOpenAIKeySnapshot, setOpenAIKey } from "@/contexts/OpenAIKeyContext";
 import type { Sequence } from "../_types/types";
 import { withBasePath } from "@/utils/basePath";
 import {
@@ -62,19 +59,14 @@ function formatElapsedTime(totalSeconds: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-export default function SequenceAI({
-  activeSequences,
-  sequences,
-}: SequenceAIProps) {
+export default function SequenceAI({ activeSequences, sequences }: SequenceAIProps) {
   const [apiKeyReady, setApiKeyReady] = React.useState(false);
   const [draftKey, setDraftKey] = React.useState("");
   const [keyError, setKeyError] = React.useState("");
   const [submittingKey, setSubmittingKey] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
-  const [response, setResponse] = React.useState<SequenceAnalysisOutput | null>(
-    null,
-  );
+  const [response, setResponse] = React.useState<SequenceAnalysisOutput | null>(null);
   const [explainResponse, setExplainResponse] =
     React.useState<SequenceAnalysisExplainOutput | null>(null);
   const [typedExplainChars, setTypedExplainChars] = React.useState(0);
@@ -95,10 +87,7 @@ export default function SequenceAI({
     }
   }, [apiKeyReady]);
 
-  const allSequences = React.useMemo(
-    () => Object.values(sequences),
-    [sequences],
-  );
+  const allSequences = React.useMemo(() => Object.values(sequences), [sequences]);
   const requestSequences = React.useMemo(() => {
     if (activeSequences.length === 1) {
       return activeSequences;
@@ -137,11 +126,7 @@ export default function SequenceAI({
       return [];
     }
 
-    return [
-      explainResponse.title,
-      explainResponse.explanation,
-      ...explainResponse.steps,
-    ];
+    return [explainResponse.title, explainResponse.explanation, ...explainResponse.steps];
   }, [explainResponse]);
   const responseSegments = React.useMemo(() => {
     if (!response) {
@@ -157,14 +142,8 @@ export default function SequenceAI({
       response.summary,
     ];
   }, [response]);
-  const totalExplainChars = React.useMemo(
-    () => totalChars(explainSegments),
-    [explainSegments],
-  );
-  const totalResponseChars = React.useMemo(
-    () => totalChars(responseSegments),
-    [responseSegments],
-  );
+  const totalExplainChars = React.useMemo(() => totalChars(explainSegments), [explainSegments]);
+  const totalResponseChars = React.useMemo(() => totalChars(responseSegments), [responseSegments]);
 
   React.useEffect(() => {
     if (!explainResponse) {
@@ -201,10 +180,7 @@ export default function SequenceAI({
           return current;
         }
 
-        return Math.min(
-          current + TYPEWRITER_CHARS_PER_TICK,
-          totalResponseChars,
-        );
+        return Math.min(current + TYPEWRITER_CHARS_PER_TICK, totalResponseChars);
       });
     }, TYPEWRITER_INTERVAL_MS);
 
@@ -224,14 +200,11 @@ export default function SequenceAI({
   const typedExplainSteps = typedExplainSegments.slice(2).filter(Boolean);
   const typedComparison = typedResponseSegments[0] || "";
   const characteristicOffset = 1;
-  const differentiatorOffset =
-    characteristicOffset + (response?.characteristics.length || 0);
-  const implicationOffset =
-    differentiatorOffset + (response?.differentiators.length || 0);
+  const differentiatorOffset = characteristicOffset + (response?.characteristics.length || 0);
+  const implicationOffset = differentiatorOffset + (response?.differentiators.length || 0);
   const relationshipOffset =
     implicationOffset + (response?.sequenceAnalysisImplications.length || 0);
-  const summaryOffset =
-    relationshipOffset + (response?.evolutionaryRelationships.length || 0);
+  const summaryOffset = relationshipOffset + (response?.evolutionaryRelationships.length || 0);
   const typedCharacteristics = typedResponseSegments
     .slice(characteristicOffset, differentiatorOffset)
     .filter(Boolean);
@@ -245,10 +218,8 @@ export default function SequenceAI({
     .slice(relationshipOffset, summaryOffset)
     .filter(Boolean);
   const typedSummary = typedResponseSegments[summaryOffset] || "";
-  const isExplainTyping =
-    Boolean(explainResponse) && typedExplainChars < totalExplainChars;
-  const isResponseTyping =
-    Boolean(response) && typedResponseChars < totalResponseChars;
+  const isExplainTyping = Boolean(explainResponse) && typedExplainChars < totalExplainChars;
+  const isResponseTyping = Boolean(response) && typedResponseChars < totalResponseChars;
 
   const handleKeySubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -320,11 +291,7 @@ export default function SequenceAI({
         return;
       }
 
-      setError(
-        nextError instanceof Error
-          ? nextError.message
-          : "Failed to get an AI response.",
-      );
+      setError(nextError instanceof Error ? nextError.message : "Failed to get an AI response.");
     } finally {
       if (requestIdRef.current === requestId) {
         setLoading(false);
@@ -390,19 +357,13 @@ export default function SequenceAI({
         </Typography>
         {!isSingleSequence && activeSequences.length !== 1 ? (
           <Typography color="text.secondary" sx={{ mt: 1 }}>
-            Select exactly one active sequence if you want single-sequence FASTA
-            analysis. Otherwise GeneBoard compares all loaded sequences.
+            Select exactly one active sequence if you want single-sequence FASTA analysis. Otherwise
+            GeneBoard compares all loaded sequences.
           </Typography>
         ) : null}
       </Box>
-      <Box
-        sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}
-      >
-        <Button
-          variant="contained"
-          onClick={handleAskAI}
-          disabled={!hasSequences || loading}
-        >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+        <Button variant="contained" onClick={handleAskAI} disabled={!hasSequences || loading}>
           {loading ? (
             <>
               <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} />
@@ -413,9 +374,7 @@ export default function SequenceAI({
           )}
         </Button>
         {!hasSequences ? (
-          <Typography color="text.secondary">
-            Add at least one sequence to analyze.
-          </Typography>
+          <Typography color="text.secondary">Add at least one sequence to analyze.</Typography>
         ) : null}
       </Box>
       {error ? <Alert severity="error">{error}</Alert> : null}
@@ -439,9 +398,7 @@ export default function SequenceAI({
               ))}
             </Box>
           </Box>
-          {isExplainTyping ? (
-            <Typography color="text.secondary">Thinking...</Typography>
-          ) : null}
+          {isExplainTyping ? <Typography color="text.secondary">Thinking...</Typography> : null}
         </Box>
       ) : null}
       {response ? (
@@ -510,9 +467,7 @@ export default function SequenceAI({
             </Typography>
             <Typography>{typedSummary}</Typography>
           </Box>
-          {isResponseTyping ? (
-            <Typography color="text.secondary">Thinking...</Typography>
-          ) : null}
+          {isResponseTyping ? <Typography color="text.secondary">Thinking...</Typography> : null}
         </Box>
       ) : null}
     </Paper>

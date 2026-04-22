@@ -17,8 +17,8 @@ interface StepProps {
 }
 
 export default function ConnectorMockStep({ onNext, onBack }: StepProps) {
-  const [token, setToken] = useState<ConnectorToken | null>(() =>
-    getConnectorToken("mock") ?? null,
+  const [token, setToken] = useState<ConnectorToken | null>(
+    () => getConnectorToken("mock") ?? null,
   );
 
   const handleConnect = () => {
@@ -35,8 +35,8 @@ export default function ConnectorMockStep({ onNext, onBack }: StepProps) {
   return (
     <Stack spacing={2} aria-label="Sync mock connector">
       <Typography variant="body1">
-        Sync the mock connector to simulate pulling recruiter conversations and
-        offers into TalentForge.
+        Sync the mock connector to simulate pulling recruiter conversations and offers into
+        TalentForge.
       </Typography>
       <Typography aria-live="polite">
         {token
@@ -63,16 +63,10 @@ export default function ConnectorMockStep({ onNext, onBack }: StepProps) {
             Back
           </Button>
         )}
-        <Button
-          variant="contained"
-          onClick={onNext}
-          disabled={!token}
-          aria-label="Continue"
-        >
+        <Button variant="contained" onClick={onNext} disabled={!token} aria-label="Continue">
           Continue
         </Button>
       </Stack>
     </Stack>
   );
 }
-

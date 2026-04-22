@@ -54,8 +54,7 @@ export default function SequenceDisplay({
 
   const basePairHeight = showProteins ? 48 : 30;
   const basePairHorizontalPadding = 8;
-  const basePairWidth =
-    (showBinary ? 19.953 : 9.977) + basePairHorizontalPadding;
+  const basePairWidth = (showBinary ? 19.953 : 9.977) + basePairHorizontalPadding;
   const defaultViewportHeight = 280;
   const [viewportWidth, setViewportWidth] = useState<number>(0);
   const [viewportHeight, setViewportHeight] = useState<number>(0);
@@ -95,16 +94,12 @@ export default function SequenceDisplay({
   const basePairsPerRow = Math.max(
     1,
     Math.floor(
-      (viewportWidth || (showBinary ? 54 * basePairWidth : 111 * basePairWidth)) /
-        basePairWidth
-    )
+      (viewportWidth || (showBinary ? 54 * basePairWidth : 111 * basePairWidth)) / basePairWidth,
+    ),
   );
 
   const bull = (
-    <Box
-      component="span"
-      sx={{ display: "inline-block", mx: "2px", transform: "scale(0.8)" }}
-    >
+    <Box component="span" sx={{ display: "inline-block", mx: "2px", transform: "scale(0.8)" }}>
       •
     </Box>
   );
@@ -114,7 +109,7 @@ export default function SequenceDisplay({
     index: number,
     protein: Protein,
     sequenceDescription: string,
-    sequenceValue: string
+    sequenceValue: string,
   ) => {
     const isHoveredProteinBase =
       hoveredProtein?.sequenceDescription === sequenceDescription &&
@@ -126,8 +121,7 @@ export default function SequenceDisplay({
       hoveredBase.baseIndex === index;
     const isHoveredProteinStart =
       isHoveredProteinBase && index === hoveredProtein.codonEndIndex - 2;
-    const isHoveredProteinEnd =
-      isHoveredProteinBase && index === hoveredProtein.codonEndIndex;
+    const isHoveredProteinEnd = isHoveredProteinBase && index === hoveredProtein.codonEndIndex;
     const currentCodon =
       showProteins && (index + 1) % 3 === 0
         ? sequenceValue.substring(index - 2, index + 1).toUpperCase()
@@ -146,7 +140,7 @@ export default function SequenceDisplay({
                 ? !showColorsMaxBasePairs &&
                   isMaxBase(
                     sequences!.map((sequence) => sequence.sequence[index]).join(""),
-                    base as Base
+                    base as Base,
                   ) &&
                   (sequences?.length || 0) > 1
                   ? "transparent"
@@ -166,17 +160,11 @@ export default function SequenceDisplay({
           boxSizing: "border-box",
           textAlign: "center",
           border: "2px solid transparent",
-          borderTopColor:
-            isHoveredProteinBase ? theme.palette.warning.dark : "transparent",
-          borderBottomColor:
-            isHoveredProteinBase ? theme.palette.warning.dark : "transparent",
-          borderLeftColor:
-            isHoveredProteinStart ? theme.palette.warning.dark : "transparent",
-          borderRightColor:
-            isHoveredProteinEnd ? theme.palette.warning.dark : "transparent",
-          boxShadow: isHoveredBase
-            ? `inset 0 0 0 2px ${theme.palette.warning.dark}`
-            : "none",
+          borderTopColor: isHoveredProteinBase ? theme.palette.warning.dark : "transparent",
+          borderBottomColor: isHoveredProteinBase ? theme.palette.warning.dark : "transparent",
+          borderLeftColor: isHoveredProteinStart ? theme.palette.warning.dark : "transparent",
+          borderRightColor: isHoveredProteinEnd ? theme.palette.warning.dark : "transparent",
+          boxShadow: isHoveredBase ? `inset 0 0 0 2px ${theme.palette.warning.dark}` : "none",
           borderRadius: isHoveredBase ? "4px" : 0,
           outline:
             !isHoveredProteinBase && !validBase(base)
@@ -200,8 +188,8 @@ export default function SequenceDisplay({
             ? baseTo2bit(base.toUpperCase())
             : base.toUpperCase()
           : showBinary
-          ? "  "
-          : " "}
+            ? "  "
+            : " "}
         {showProteins && (index + 1) % 3 === 0 && (
           <Box
             sx={{
@@ -232,11 +220,7 @@ export default function SequenceDisplay({
                 <Box>{protein?.abbrevName}</Box>,
                 <Card variant="outlined" sx={{ minWidth: 275, zIndex: 9999 }}>
                   <CardContent>
-                    <Typography
-                      sx={{ fontSize: 14 }}
-                      color="text.secondary"
-                      gutterBottom
-                    >
+                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
                       Protein
                     </Typography>
                     <Typography variant="h5" component="div">
@@ -252,28 +236,23 @@ export default function SequenceDisplay({
                             sx={{
                               display: "inline-block",
                               fontWeight:
-                                protein.codons.length === 1 ||
-                                codon.toUpperCase() === currentCodon
+                                protein.codons.length === 1 || codon.toUpperCase() === currentCodon
                                   ? 700
                                   : 400,
                               border:
-                                protein.codons.length === 1 ||
-                                codon.toUpperCase() === currentCodon
+                                protein.codons.length === 1 || codon.toUpperCase() === currentCodon
                                   ? `1px solid ${theme.palette.warning.dark}`
                                   : "1px solid transparent",
                               borderRadius:
-                                protein.codons.length === 1 ||
-                                codon.toUpperCase() === currentCodon
+                                protein.codons.length === 1 || codon.toUpperCase() === currentCodon
                                   ? "999px"
                                   : 0,
                               px:
-                                protein.codons.length === 1 ||
-                                codon.toUpperCase() === currentCodon
+                                protein.codons.length === 1 || codon.toUpperCase() === currentCodon
                                   ? 0.75
                                   : 0,
                               py:
-                                protein.codons.length === 1 ||
-                                codon.toUpperCase() === currentCodon
+                                protein.codons.length === 1 || codon.toUpperCase() === currentCodon
                                   ? 0.125
                                   : 0,
                             }}
@@ -296,7 +275,7 @@ export default function SequenceDisplay({
                     </CardActions> */}
                 </Card>,
                 index,
-                "bottom"
+                "bottom",
               )
             ) : (
               <Box>{protein?.abbrevName || "Oops"}</Box>
@@ -311,7 +290,7 @@ export default function SequenceDisplay({
     content: ReactElement,
     title: ReactElement,
     index: number,
-    placement: TooltipProps["placement"] = "top"
+    placement: TooltipProps["placement"] = "top",
   ) => (
     <Tooltip
       key={index}
@@ -325,22 +304,19 @@ export default function SequenceDisplay({
             {
               name: "offset",
               options: {
-                offset:
-                  placement === "bottom"
-                    ? [0, 2]
-                    : [0, 12],
+                offset: placement === "bottom" ? [0, 2] : [0, 12],
               },
             },
           ],
         },
       }}
       sx={{
-        "& [data-popper-placement=\"bottom\"]": {
+        '& [data-popper-placement="bottom"]': {
           mt: "4px !important",
         },
-        "& [data-popper-placement=\"top\"]": {
+        '& [data-popper-placement="top"]': {
           mb: "24px !important",
-        }
+        },
       }}
     >
       {content}
@@ -352,28 +328,21 @@ export default function SequenceDisplay({
   const sequenceCount = Math.max(1, sequences?.length || 1);
   const visibleSequenceSets = Math.max(
     1,
-    Math.floor(availableViewportHeight / (basePairHeight * sequenceCount))
+    Math.floor(availableViewportHeight / (basePairHeight * sequenceCount)),
   );
   const pageCount = Math.max(
     1,
     Math.ceil(
-      ((maxBasePair || 1) - minBasePair + 1) /
-        (1.0 * basePairsPerRow * visibleSequenceSets)
-    )
+      ((maxBasePair || 1) - minBasePair + 1) / (1.0 * basePairsPerRow * visibleSequenceSets),
+    ),
   );
 
   useEffect(() => {
     setPage((currentPage) => Math.min(currentPage, pageCount));
   }, [pageCount]);
 
-  const startingBP = Math.max(
-    (page - 1) * visibleSequenceSets * basePairsPerRow,
-    minBasePair - 1
-  );
-  const endingBP = Math.min(
-    startingBP + visibleSequenceSets * basePairsPerRow,
-    maxBasePair || 1
-  );
+  const startingBP = Math.max((page - 1) * visibleSequenceSets * basePairsPerRow, minBasePair - 1);
+  const endingBP = Math.min(startingBP + visibleSequenceSets * basePairsPerRow, maxBasePair || 1);
 
   const renderedSequences = [];
 
@@ -411,35 +380,31 @@ export default function SequenceDisplay({
                           i + index,
                           proteinChain[Math.floor((index + i) / 3)],
                           sequence.description,
-                          sequence.sequence
+                          sequence.sequence,
                         ),
                         <>
                           <Typography>
                             {`bp # ${startingBP + i + index + 1} / ${
                               sequence?.sequence.length
-                            } => ${base} ${
-                              showBinary ? "(" + baseTo2bit(base) + ")" : ""
-                            }`}
+                            } => ${base} ${showBinary ? "(" + baseTo2bit(base) + ")" : ""}`}
                           </Typography>
-                          <Typography sx={{ fontWeight: 600 }}>
-                            {sequence.description}
-                          </Typography>
+                          <Typography sx={{ fontWeight: 600 }}>{sequence.description}</Typography>
                         </>,
-                        index
+                        index,
                       )
                     : renderBase(
                         base,
                         index + i,
                         proteinChain[Math.floor((index + i) / 3)],
                         sequence.description,
-                        sequence.sequence
-                      )
+                        sequence.sequence,
+                      ),
                 )}
             </Box>
             {index === sequences.length - 1 ? <Divider sx={{ my: 1 }} /> : null}
           </Grid>
         );
-      })
+      }),
     );
   }
 

@@ -69,11 +69,7 @@ function buildAssistiveSummary(
     parts.push(`average dwell ${averageLabel}`);
   }
   if (thresholdLabel) {
-    parts.push(
-      metric.slaBreached
-        ? `exceeds SLA of ${thresholdLabel}`
-        : `SLA ${thresholdLabel}`,
-    );
+    parts.push(metric.slaBreached ? `exceeds SLA of ${thresholdLabel}` : `SLA ${thresholdLabel}`);
   }
   return parts.join(". ");
 }
@@ -192,10 +188,7 @@ export function calculateStageMetrics(
       label: metric.label,
       currentCount: metric.currentCount,
       reachedCount: metric.reachedCount,
-      conversionRate:
-        applications.length > 0
-          ? metric.reachedCount / applications.length
-          : null,
+      conversionRate: applications.length > 0 ? metric.reachedCount / applications.length : null,
       averageDurationDays,
       slaBreached,
     };
@@ -212,14 +205,10 @@ export interface StageMetricDisplay {
 
 export function getMetricDisplay(metric: StageMetric): StageMetricDisplay {
   const averageLabel =
-    metric.averageDurationDays !== null
-      ? formatDuration(metric.averageDurationDays)
-      : null;
+    metric.averageDurationDays !== null ? formatDuration(metric.averageDurationDays) : null;
   const thresholdLabel = getThresholdLabel(metric.status);
   const conversionLabel =
-    metric.conversionRate === null
-      ? "—"
-      : percentFormatter.format(metric.conversionRate);
+    metric.conversionRate === null ? "—" : percentFormatter.format(metric.conversionRate);
   const assistiveText = buildAssistiveSummary(
     metric,
     conversionLabel,

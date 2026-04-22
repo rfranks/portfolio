@@ -25,10 +25,12 @@ import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 
 type RecommendationEntry = ResumeData["recognition"]["recommendations"][number];
-type RecognitionSnippetEntry = {
-  text: string;
-  glyph?: string;
-} | string;
+type RecognitionSnippetEntry =
+  | {
+      text: string;
+      glyph?: string;
+    }
+  | string;
 
 function normalizeSnippet(snippet: RecognitionSnippetEntry): {
   text: string;
@@ -152,7 +154,11 @@ function renderRecommendationContent(
             />
           </ImageLightbox>
         ) : rec.imageSrcUrl ? (
-          <Avatar alt={rec.name} src={withBasePath(rec.imageSrcUrl)} sx={{ width: 48, height: 48 }} />
+          <Avatar
+            alt={rec.name}
+            src={withBasePath(rec.imageSrcUrl)}
+            sx={{ width: 48, height: 48 }}
+          />
         ) : (
           <Avatar
             alt={rec.name}
@@ -231,12 +237,12 @@ export default function Recognition({ topRail }: RecognitionProps) {
   const [activeSnippetKey, setActiveSnippetKey] = React.useState<string | undefined>(
     snippets[0] ? "snippet-1" : undefined,
   );
-  const [activeRecommendationKey, setActiveRecommendationKey] = React.useState<
-    string | undefined
-  >(recommendations[0] ? `recommendation-${recommendations[0].name}-0` : undefined);
-  const [dialogRecommendationIndex, setDialogRecommendationIndex] = React.useState<
-    number | null
-  >(null);
+  const [activeRecommendationKey, setActiveRecommendationKey] = React.useState<string | undefined>(
+    recommendations[0] ? `recommendation-${recommendations[0].name}-0` : undefined,
+  );
+  const [dialogRecommendationIndex, setDialogRecommendationIndex] = React.useState<number | null>(
+    null,
+  );
 
   React.useEffect(() => {
     setActiveSnippetKey(snippets[0] ? "snippet-1" : undefined);
@@ -339,9 +345,7 @@ export default function Recognition({ topRail }: RecognitionProps) {
   const hasMultipleSnippetItems = snippetItems.length > 1;
   const hasMultipleRecommendationItems = recommendationItems.length > 1;
   const dialogRecommendation =
-    dialogRecommendationIndex == null
-      ? null
-      : recommendations[dialogRecommendationIndex] ?? null;
+    dialogRecommendationIndex == null ? null : (recommendations[dialogRecommendationIndex] ?? null);
 
   const handlePreviousRecommendation = React.useCallback(() => {
     if (!hasMultipleRecommendationItems) {

@@ -45,13 +45,7 @@ type AIShenaniganPalmReadingProps = {
   palmReadingSourceHref?: string;
 };
 
-const STAGE_ORDER: RevealStage[] = [
-  "intro",
-  "raw",
-  "analyzed",
-  "lines",
-  "reading",
-];
+const STAGE_ORDER: RevealStage[] = ["intro", "raw", "analyzed", "lines", "reading"];
 
 export default function AIShenaniganPalmReading({
   rank,
@@ -104,8 +98,7 @@ export default function AIShenaniganPalmReading({
     border: "1px solid",
     borderColor: "var(--fabric-surface-border)",
     backgroundColor: "var(--fabric-surface-1)",
-    backgroundImage:
-      "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
+    backgroundImage: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
     boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
     backdropFilter: "blur(var(--fabric-blur-sm))",
   } as const;
@@ -189,9 +182,7 @@ export default function AIShenaniganPalmReading({
           signal: controller.signal,
         });
         if (!response.ok) {
-          throw new Error(
-            `Failed to load markdown: ${response.status} ${response.statusText}`,
-          );
+          throw new Error(`Failed to load markdown: ${response.status} ${response.statusText}`);
         }
         const text = await response.text();
         setMarkdownContent(text);
@@ -217,8 +208,7 @@ export default function AIShenaniganPalmReading({
   }, [palmReadingMarkdownPath]);
 
   const effectiveReadingContent = markdownContent ?? palmReadingText ?? "";
-  const isChatGptGptLink = (href?: string) =>
-    Boolean(href && href.includes("chatgpt.com/g/"));
+  const isChatGptGptLink = (href?: string) => Boolean(href && href.includes("chatgpt.com/g/"));
   const isStageReadyForScroll = useCallback(
     (candidate: Exclude<RevealStage, "intro">): boolean => {
       if (candidate === "raw") {
@@ -241,21 +231,18 @@ export default function AIShenaniganPalmReading({
       isMarkdownLoading,
     ],
   );
-  const getStageRef = useCallback(
-    (candidate: Exclude<RevealStage, "intro">) => {
-      if (candidate === "raw") {
-        return rawPanelRef;
-      }
-      if (candidate === "analyzed") {
-        return analyzedPanelRef;
-      }
-      if (candidate === "lines") {
-        return linesPanelRef;
-      }
-      return readingPanelRef;
-    },
-    [],
-  );
+  const getStageRef = useCallback((candidate: Exclude<RevealStage, "intro">) => {
+    if (candidate === "raw") {
+      return rawPanelRef;
+    }
+    if (candidate === "analyzed") {
+      return analyzedPanelRef;
+    }
+    if (candidate === "lines") {
+      return linesPanelRef;
+    }
+    return readingPanelRef;
+  }, []);
   const navigateToStage = (nextStage: RevealStage) => {
     if (nextStage === "intro") {
       setPendingScrollStage(null);
@@ -308,11 +295,7 @@ export default function AIShenaniganPalmReading({
 
     return (
       <Box sx={{ mt: 1.5 }}>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ display: "block" }}
-        >
+        <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
           Source:{" "}
           {href ? (
             <Link
@@ -329,11 +312,7 @@ export default function AIShenaniganPalmReading({
           )}
         </Typography>
         {isChatGptGptLink(href) && (
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: "block", mt: 0.25 }}
-          >
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
             Requires ChatGPT Pro subscription.
           </Typography>
         )}
@@ -366,8 +345,7 @@ export default function AIShenaniganPalmReading({
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           transform: `rotate(${rightsStampAngle}deg)`,
-          boxShadow:
-            "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
+          boxShadow: "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
           textShadow: "0 1px 0 rgba(255,255,255,0.3)",
           opacity: 0.92,
         }}
@@ -537,9 +515,7 @@ export default function AIShenaniganPalmReading({
                           <Button
                             variant="contained"
                             onClick={() => navigateToStage(nextStage!)}
-                            endIcon={
-                              <EmojiGlyph glyph={nextAction.glyph} slot="end" />
-                            }
+                            endIcon={<EmojiGlyph glyph={nextAction.glyph} slot="end" />}
                           >
                             {nextAction.label}
                           </Button>
@@ -577,9 +553,7 @@ export default function AIShenaniganPalmReading({
                 md: hasVisibleMedia ? "calc(100% - 340px)" : "0px",
               },
               opacity: hasVisibleMedia ? 1 : 0,
-              transform: hasVisibleMedia
-                ? "translate3d(0, 0, 0)"
-                : "translate3d(28px, 0, 0)",
+              transform: hasVisibleMedia ? "translate3d(0, 0, 0)" : "translate3d(28px, 0, 0)",
               overflow: "hidden",
               pointerEvents: hasVisibleMedia ? "auto" : "none",
               transition:
@@ -678,10 +652,7 @@ export default function AIShenaniganPalmReading({
                     onError={() => setLinesMediaLoaded(true)}
                   />
                 </ImageLightbox>
-                {renderSource(
-                  palmLineAnalysisSource,
-                  palmLineAnalysisSourceHref,
-                )}
+                {renderSource(palmLineAnalysisSource, palmLineAnalysisSourceHref)}
                 {palmLineAnalysisCaption && (
                   <Typography
                     variant="body2"
@@ -705,8 +676,7 @@ export default function AIShenaniganPalmReading({
                     borderRadius: "16px",
                     border: "1px solid",
                     borderColor: "var(--fabric-surface-border)",
-                    backgroundColor: (theme) =>
-                      alpha(theme.palette.background.paper, 0.4),
+                    backgroundColor: (theme) => alpha(theme.palette.background.paper, 0.4),
                   }}
                 >
                   {effectiveReadingContent ? (

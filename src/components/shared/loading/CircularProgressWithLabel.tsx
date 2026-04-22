@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Box,
-  CircularProgress,
-  CircularProgressProps,
-  Typography,
-} from "@mui/material";
+import { Box, CircularProgress, CircularProgressProps, Typography } from "@mui/material";
 
 export interface CircularProgressWithLabelProps extends CircularProgressProps {
   /**
@@ -14,9 +9,7 @@ export interface CircularProgressWithLabelProps extends CircularProgressProps {
   value: number;
 }
 
-export default function CircularProgressWithLabel(
-  props: CircularProgressWithLabelProps,
-) {
+export default function CircularProgressWithLabel(props: CircularProgressWithLabelProps) {
   return (
     <Box sx={{ position: "relative", display: "inline-flex" }}>
       <CircularProgress variant="determinate" {...props} />

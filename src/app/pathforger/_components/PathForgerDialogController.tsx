@@ -7,21 +7,11 @@ import PathForgerRenderImageCallsDialog from "@/app/pathforger/_components/PathF
 import PathForgerSelectedPitchDialog from "@/app/pathforger/_components/PathForgerSelectedPitchDialog";
 import PathForgerSettingsDialog from "@/app/pathforger/_components/PathForgerSettingsDialog";
 
-type ControlsDialogProps = React.ComponentProps<
-  typeof PathForgerControlsDialog
->;
-type SettingsDialogProps = React.ComponentProps<
-  typeof PathForgerSettingsDialog
->;
-type RenderImageCallsDialogProps = React.ComponentProps<
-  typeof PathForgerRenderImageCallsDialog
->;
-type SelectedPitchDialogProps = React.ComponentProps<
-  typeof PathForgerSelectedPitchDialog
->;
-type ImagePromptEditorDialogProps = React.ComponentProps<
-  typeof PathForgerImagePromptEditorDialog
->;
+type ControlsDialogProps = React.ComponentProps<typeof PathForgerControlsDialog>;
+type SettingsDialogProps = React.ComponentProps<typeof PathForgerSettingsDialog>;
+type RenderImageCallsDialogProps = React.ComponentProps<typeof PathForgerRenderImageCallsDialog>;
+type SelectedPitchDialogProps = React.ComponentProps<typeof PathForgerSelectedPitchDialog>;
+type ImagePromptEditorDialogProps = React.ComponentProps<typeof PathForgerImagePromptEditorDialog>;
 
 export interface PathForgerDialogControllerProps {
   controlsDialog: ControlsDialogProps;

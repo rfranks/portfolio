@@ -1,15 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  Box,
-  Button,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, MenuItem, Select, SelectChangeEvent, Stack, Typography } from "@mui/material";
 
 import { PROMPT_TILES } from "@/app/talentforge/_consts/promptTiles";
 import { askOpenAI } from "@/app/talentforge/_utils/utils";
@@ -60,9 +52,7 @@ export default function ChatAssistant() {
         <Stack spacing={2}>
           <Select
             value={selectedTile}
-            onChange={(e: SelectChangeEvent<string>) =>
-              setSelectedTile(e.target.value as string)
-            }
+            onChange={(e: SelectChangeEvent<string>) => setSelectedTile(e.target.value as string)}
             displayEmpty
             fullWidth
           >
@@ -75,18 +65,13 @@ export default function ChatAssistant() {
               </MenuItem>
             ))}
           </Select>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={!selectedTile}
-          >
+          <Button variant="contained" onClick={handleSubmit} disabled={!selectedTile}>
             Send
           </Button>
           <Button
             variant="outlined"
             onClick={() =>
-              chatRef.current &&
-              exportElementToPdf(chatRef.current, "chat-history.pdf")
+              chatRef.current && exportElementToPdf(chatRef.current, "chat-history.pdf")
             }
             disabled={chatHistory.length === 0}
           >
@@ -114,7 +99,7 @@ export default function ChatAssistant() {
                       {chat.message}
                     </Typography>
                   </Box>
-                )
+                ),
             )}
           </Stack>
         </Stack>
@@ -122,4 +107,3 @@ export default function ChatAssistant() {
     </RequireAIKey>
   );
 }
-

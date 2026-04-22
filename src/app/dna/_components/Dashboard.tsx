@@ -51,31 +51,21 @@ export interface DashboardProps {
   toggleColorMode?: () => void;
 }
 
-export default function Dashboard({
-  mode = "dark",
-  toggleColorMode,
-}: DashboardProps) {
+export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardProps) {
   const [activeSequences, setActiveSequences] = useState<Sequence[]>([]);
   const [bpRange, setBpRange] = useState<number[] | null>(null);
   const [chartMethod, setChartMethod] = useState<ChartMethod>("sequence");
   const [open, setOpen] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<"table" | "visualization" | "ai">(
-    "table",
-  );
-  const [isAddSequenceModalOpen, setIsAddSequenceModalOpen] =
-    useState<boolean>(false);
-  const [playInterval, setPlayInterval] = useState<ReturnType<
-    typeof setInterval
-  > | null>(null);
+  const [activeTab, setActiveTab] = useState<"table" | "visualization" | "ai">("table");
+  const [isAddSequenceModalOpen, setIsAddSequenceModalOpen] = useState<boolean>(false);
+  const [playInterval, setPlayInterval] = useState<ReturnType<typeof setInterval> | null>(null);
   const [sequences, setSequences] = useState<Record<string, Sequence>>({});
 
   const playRef = useRef<HTMLButtonElement | null>(null);
 
   const firstActiveSequence = activeSequences?.[0];
   const maxBasePair = bpRange?.[1] || firstActiveSequence?.sequence.length || 1;
-  const activeSequenceTitle = activeSequences
-    .map((seq) => seq?.description)
-    .join(", ");
+  const activeSequenceTitle = activeSequences.map((seq) => seq?.description).join(", ");
   const truncatedActiveSequenceTitle =
     activeSequenceTitle.length > 50
       ? `${activeSequenceTitle.slice(0, 47)}...`
@@ -95,10 +85,7 @@ export default function Dashboard({
     setIsAddSequenceModalOpen(false);
   }
 
-  function getUniqueSequenceLabel(
-    existingLabels: string[],
-    baseLabel: string,
-  ): string {
+  function getUniqueSequenceLabel(existingLabels: string[], baseLabel: string): string {
     if (!existingLabels.includes(baseLabel)) {
       return baseLabel;
     }
@@ -155,9 +142,7 @@ export default function Dashboard({
       );
 
       setBpRange(
-        nextActiveSequences.length > 0
-          ? [1, nextActiveSequences[0].sequence.length]
-          : null,
+        nextActiveSequences.length > 0 ? [1, nextActiveSequences[0].sequence.length] : null,
       );
 
       return nextActiveSequences;
@@ -232,13 +217,7 @@ export default function Dashboard({
               />
             </Paper>
             {truncatedActiveSequenceTitle.length > 0 ? (
-              <Typography
-                component="h1"
-                variant="h6"
-                color="inherit"
-                noWrap
-                sx={{ minWidth: 0 }}
-              >
+              <Typography component="h1" variant="h6" color="inherit" noWrap sx={{ minWidth: 0 }}>
                 {`for ${truncatedActiveSequenceTitle}`}
               </Typography>
             ) : null}
@@ -256,11 +235,7 @@ export default function Dashboard({
                 }}
                 disabled={!playInterval}
               >
-                <Badge
-                  badgeContent={playInterval ? maxBasePair : 0}
-                  color="secondary"
-                  max={10000}
-                >
+                <Badge badgeContent={playInterval ? maxBasePair : 0} color="secondary" max={10000}>
                   <PauseCircle />
                 </Badge>
               </IconButton>
@@ -271,25 +246,16 @@ export default function Dashboard({
                   display: playInterval ? "none" : undefined,
                 }}
                 onClick={() => {
-                  if (
-                    maxBasePair === firstActiveSequence.sequence?.length &&
-                    playInterval
-                  ) {
+                  if (maxBasePair === firstActiveSequence.sequence?.length && playInterval) {
                     clearInterval(playInterval);
                     setPlayInterval(null);
                   } else if (playInterval) {
                     setBpRange([
                       1,
-                      Math.min(
-                        maxBasePair + 10,
-                        firstActiveSequence.sequence.length,
-                      ),
+                      Math.min(maxBasePair + 10, firstActiveSequence.sequence.length),
                     ]);
                   } else {
-                    setBpRange([
-                      1,
-                      Math.min(2, firstActiveSequence.sequence.length),
-                    ]);
+                    setBpRange([1, Math.min(2, firstActiveSequence.sequence.length)]);
 
                     setPlayInterval(
                       setInterval(() => {
@@ -325,30 +291,20 @@ export default function Dashboard({
                   maxWidth: "calc(20% - 6px)",
                 },
               }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Active Sequence"
-                />
-              )}
+              renderInput={(params) => <TextField {...params} label="Active Sequence" />}
               value={activeSequences.map((seq) => {
                 return {
                   label: seq?.description || "",
                   id: seq?.description || "",
                 };
               })}
-              onChange={(
-                _,
-                newValue: { label: string; id: string }[] | null,
-              ) => {
+              onChange={(_, newValue: { label: string; id: string }[] | null) => {
                 if (newValue) {
                   const ids = newValue?.map((value) => value.id);
 
                   setBpRange([1, sequences?.[ids[0]]?.sequence.length]);
                   setActiveSequences([
-                    ...Object.values(sequences).filter((seq) =>
-                      ids.includes(seq.description),
-                    ),
+                    ...Object.values(sequences).filter((seq) => ids.includes(seq.description)),
                   ]);
                 } else {
                   setActiveSequences([]);
@@ -480,9 +436,7 @@ export default function Dashboard({
           <Container className="flex shrink-0 flex-wrap items-center justify-between gap-4 px-4 py-1">
             <Tabs
               value={activeTab}
-              onChange={(_, value: "table" | "visualization" | "ai") =>
-                setActiveTab(value)
-              }
+              onChange={(_, value: "table" | "visualization" | "ai") => setActiveTab(value)}
               aria-label="gene dashboard tabs"
               sx={{
                 minHeight: 40,
@@ -521,14 +475,11 @@ export default function Dashboard({
                         setActiveSequences([...activeSequences, seq]);
 
                         if (
-                          activeSequences
-                            .map((seq) => seq.description)
-                            .includes(seq.description)
+                          activeSequences.map((seq) => seq.description).includes(seq.description)
                         ) {
                           setActiveSequences([
                             ...activeSequences.filter(
-                              (activeSequence) =>
-                                activeSequence.description !== seq.description,
+                              (activeSequence) => activeSequence.description !== seq.description,
                             ),
                           ]);
                         }
@@ -539,8 +490,7 @@ export default function Dashboard({
                   ) : (
                     <Paper className="p-4 sm:p-6">
                       <Typography color="text.secondary">
-                        No sequences added yet. Use Add to open the add sequence
-                        modal.
+                        No sequences added yet. Use Add to open the add sequence modal.
                       </Typography>
                     </Paper>
                   )}
@@ -563,8 +513,7 @@ export default function Dashboard({
                 ) : (
                   <Paper className="w-full p-4 sm:p-6">
                     <Typography color="text.secondary">
-                      Select one or more sequences from the table to view
-                      visualizations.
+                      Select one or more sequences from the table to view visualizations.
                     </Typography>
                   </Paper>
                 )}
@@ -572,10 +521,7 @@ export default function Dashboard({
             )}
             {activeTab === "ai" && (
               <Box className="flex min-w-0 items-start overflow-visible">
-                <SequenceAI
-                  activeSequences={activeSequences}
-                  sequences={sequences}
-                />
+                <SequenceAI activeSequences={activeSequences} sequences={sequences} />
               </Box>
             )}
           </Box>

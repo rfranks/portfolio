@@ -13,10 +13,7 @@ interface WorkspaceProps {
   onSaveResumeVariant?: (text: string) => void;
 }
 
-export default function Workspace({
-  onInsertIntoThread,
-  onSaveResumeVariant,
-}: WorkspaceProps) {
+export default function Workspace({ onInsertIntoThread, onSaveResumeVariant }: WorkspaceProps) {
   const [output, setOutput] = useState("");
 
   const handleCopy = () => {
@@ -98,4 +95,3 @@ export default function Workspace({
     </ErrorBoundary>
   );
 }
-

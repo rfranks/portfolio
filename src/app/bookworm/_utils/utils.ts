@@ -2,9 +2,13 @@
 
 import { ChatMessage } from "@/types";
 import { aiBufferSize } from "@/app/bookworm/_consts/consts";
+import {
+  extractTextFromOpenAIChatContent,
+  requestOpenAIChatCompletions,
+} from "@/utils/openai/client";
 import { pdfToMarkdown } from "@/utils/pdfToMarkdown";
 
-let apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY || "";
+let apiKey = (process.env.NEXT_PUBLIC_OPENAI_API_KEY || "").trim();
 
 export const setOpenAIKey = (key: string) => {
   apiKey = key;
@@ -13,44 +17,19 @@ export const setOpenAIKey = (key: string) => {
 export const hasOpenAIKey = () => apiKey.trim().length > 0;
 
 const requestCompletion = async (systemMessage: string) => {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      temperature: 0.5,
-      top_p: 0.8,
-      messages: [
-        {
-          role: "system",
-          content: systemMessage,
-        },
-      ],
-    }),
+  const data = await requestOpenAIChatCompletions(apiKey, {
+    model: "gpt-3.5-turbo",
+    temperature: 0.5,
+    top_p: 0.8,
+    messages: [
+      {
+        role: "system",
+        content: systemMessage,
+      },
+    ],
   });
-
-  const data = await response.json();
   const content = data?.choices?.[0]?.message?.content;
-
-  // `content` can be a string (old API) or an array of text segments (new API)
-  if (Array.isArray(content)) {
-    return (
-      content
-        .map((c: unknown) => {
-          if (typeof c === "string") return c;
-          if (typeof c === "object" && c !== null && "text" in c) {
-            return (c as { text?: string }).text || "";
-          }
-          return "";
-        })
-        .join("") || ""
-    );
-  }
-
-  return content || "";
+  return extractTextFromOpenAIChatContent(content) || "";
 };
 
 export const askOpenAI = async ({
@@ -83,9 +62,7 @@ export const askOpenAI = async ({
       : null,
     {
       role: "assistant" as "user" | "assistant",
-      message: logMessagesToChatHistory
-        ? "I'm thinking..."
-        : "Processing PDF...",
+      message: logMessagesToChatHistory ? "I'm thinking..." : "Processing PDF...",
       hasMore: true,
     },
   ];
@@ -101,8 +78,7 @@ export const askOpenAI = async ({
     const rest = context.substring(Math.min(aiBufferSize, context.length));
     context = context.substring(0, Math.min(aiBufferSize, context.length));
 
-    const systemMessage =
-      `Question: ${user}\n\n` + system.replaceAll("{{context}}", context);
+    const systemMessage = `Question: ${user}\n\n` + system.replaceAll("{{context}}", context);
     responseText = await requestCompletion(systemMessage);
 
     newChatHistory[newChatIndex] = {
@@ -110,7 +86,7 @@ export const askOpenAI = async ({
       message:
         newChatHistory?.[newChatIndex]?.message.replaceAll(
           logMessagesToChatHistory ? "I'm thinking..." : "Processing PDF...",
-          ""
+          "",
         ) +
         (initialContext.length > aiBufferSize
           ? responseText

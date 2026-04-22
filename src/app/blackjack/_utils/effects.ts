@@ -5,10 +5,7 @@ import {
   CHIP_RED_WHITE_SRC,
   CHIP_WHITE_BLUE_SRC,
 } from "../_consts/blackjack";
-import type {
-  BlackjackConfettiPiece,
-  WinningChipFx,
-} from "../_types/page";
+import type { BlackjackConfettiPiece, WinningChipFx } from "../_types/page";
 
 const WINNING_CHIP_SOURCES = [
   CHIP_BLUE_WHITE_SRC,
@@ -50,10 +47,7 @@ export function createWinningChipFx({
 
     return {
       id: `winning-chip-${Date.now()}-${index}`,
-      chipSrc:
-        WINNING_CHIP_SOURCES[
-          Math.floor(Math.random() * WINNING_CHIP_SOURCES.length)
-        ],
+      chipSrc: WINNING_CHIP_SOURCES[Math.floor(Math.random() * WINNING_CHIP_SOURCES.length)],
       startX,
       startY,
       deltaX,
@@ -82,9 +76,7 @@ export function createBlackjackConfettiPieces(pieceCount: number) {
       rotateStart: Math.random() * 180 - 90,
       rotateEnd: Math.random() * 900 - 450,
       color:
-        BLACKJACK_CONFETTI_COLORS[
-          Math.floor(Math.random() * BLACKJACK_CONFETTI_COLORS.length)
-        ],
+        BLACKJACK_CONFETTI_COLORS[Math.floor(Math.random() * BLACKJACK_CONFETTI_COLORS.length)],
       shape: Math.random() > 0.72 ? "circle" : "rect",
     } satisfies BlackjackConfettiPiece;
   });

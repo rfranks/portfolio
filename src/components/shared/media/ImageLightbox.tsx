@@ -61,12 +61,7 @@ export default function ImageLightbox(props: ImageLightboxProps) {
     [kenBurnsImageSx],
   );
   const triggerSxArray = React.useMemo(
-    () =>
-      triggerSx == null
-        ? []
-        : Array.isArray(triggerSx)
-          ? triggerSx
-          : [triggerSx],
+    () => (triggerSx == null ? [] : Array.isArray(triggerSx) ? triggerSx : [triggerSx]),
     [triggerSx],
   );
 
@@ -146,10 +141,7 @@ export default function ImageLightbox(props: ImageLightboxProps) {
             position: "relative",
             width: "100%",
             height: "100%",
-            bgcolor:
-              theme.palette.mode === "dark"
-                ? "rgba(0,0,0,0.96)"
-                : "rgba(11,18,30,0.92)",
+            bgcolor: theme.palette.mode === "dark" ? "rgba(0,0,0,0.96)" : "rgba(11,18,30,0.92)",
           })}
         >
           <Box

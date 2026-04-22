@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 /**
  * Prevents default drag behavior on images and other elements.
@@ -12,9 +12,9 @@ export function useDisableDrag() {
     const handleDragStart = (e: DragEvent) => {
       e.preventDefault();
     };
-    document.addEventListener('dragstart', handleDragStart);
+    document.addEventListener("dragstart", handleDragStart);
     return () => {
-      document.removeEventListener('dragstart', handleDragStart);
+      document.removeEventListener("dragstart", handleDragStart);
     };
   }, []);
 }

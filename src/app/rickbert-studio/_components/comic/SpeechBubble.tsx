@@ -22,7 +22,10 @@ export function SpeechBubble({
   const lineChars = Math.max(18, Math.floor(maxWidth / 9));
   const lines = wrapText(text, lineChars);
   const textValue = lines.join("\n");
-  const textWidth = Math.min(maxWidth - 20, Math.max(80, Math.max(...lines.map((line) => line.length)) * 7.1));
+  const textWidth = Math.min(
+    maxWidth - 20,
+    Math.max(80, Math.max(...lines.map((line) => line.length)) * 7.1),
+  );
   const lineHeight = 18;
   const bubbleWidth = textWidth + 20;
   const bubbleHeight = lines.length * lineHeight + 18;

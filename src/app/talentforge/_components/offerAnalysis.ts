@@ -41,12 +41,11 @@ export async function analyzeOfferWithAI({
     const response = await ask({
       context,
       user: prompt,
-      system:
-        [
-          "You analyze offers and produce structured response drafts.",
-          "Use the following offer and compensation details as context:",
-          "{{context}}",
-        ].join("\n\n"),
+      system: [
+        "You analyze offers and produce structured response drafts.",
+        "Use the following offer and compensation details as context:",
+        "{{context}}",
+      ].join("\n\n"),
       chatHistory: [],
       returnFirstResponse: true,
     });
@@ -100,4 +99,3 @@ export async function analyzeOfferWithAI({
     setLoading(false);
   }
 }
-

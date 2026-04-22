@@ -1,8 +1,5 @@
 import { PROMPT_TILES, type PromptTileDefinition } from "@/app/talentforge/_consts/promptTiles";
-import {
-  getCustomPromptTiles as loadCustomPromptTiles,
-  type CustomPromptTile,
-} from "./dataStore";
+import { getCustomPromptTiles as loadCustomPromptTiles, type CustomPromptTile } from "./dataStore";
 import type {
   PromptContext,
   PromptTileFilters,
@@ -10,10 +7,13 @@ import type {
   TalentForgeGoalTag,
 } from "./promptTypes";
 
-const TILE_METADATA: Record<keyof typeof PROMPT_TILES, {
-  contexts: PromptContext[];
-  recommendedGoalTags: TalentForgeGoalTag[];
-}> = {
+const TILE_METADATA: Record<
+  keyof typeof PROMPT_TILES,
+  {
+    contexts: PromptContext[];
+    recommendedGoalTags: TalentForgeGoalTag[];
+  }
+> = {
   resumeSummary: {
     contexts: ["resume"],
     recommendedGoalTags: ["resume"],
@@ -156,10 +156,9 @@ const TILE_METADATA: Record<keyof typeof PROMPT_TILES, {
   },
 };
 
-const registryEntries = Object.entries(PROMPT_TILES) as Array<[
-  keyof typeof PROMPT_TILES,
-  PromptTileDefinition,
-]>;
+const registryEntries = Object.entries(PROMPT_TILES) as Array<
+  [keyof typeof PROMPT_TILES, PromptTileDefinition]
+>;
 
 export const PROMPT_TILE_REGISTRY: Record<string, PromptTileWithMetadata> = Object.fromEntries(
   registryEntries.map(([id, definition]) => {
@@ -182,12 +181,7 @@ export const PROMPT_CONTEXT_LABELS: Record<PromptContext, string> = {
   jobSearch: "Job Search",
 };
 
-export const PROMPT_CONTEXT_ORDER: PromptContext[] = [
-  "resume",
-  "offers",
-  "messaging",
-  "jobSearch",
-];
+export const PROMPT_CONTEXT_ORDER: PromptContext[] = ["resume", "offers", "messaging", "jobSearch"];
 
 const CONTEXT_GOAL_TAG_MAP: Record<PromptContext, TalentForgeGoalTag> = {
   resume: "resume",
@@ -196,23 +190,17 @@ const CONTEXT_GOAL_TAG_MAP: Record<PromptContext, TalentForgeGoalTag> = {
   jobSearch: "search",
 };
 
-const toArray = <T,>(value?: T | T[]): T[] => {
+const toArray = <T>(value?: T | T[]): T[] => {
   if (value === undefined) {
     return [];
   }
   return Array.isArray(value) ? value : [value];
 };
 
-const matchesContexts = (
-  tile: PromptTileWithMetadata,
-  contexts: PromptContext[],
-) =>
+const matchesContexts = (tile: PromptTileWithMetadata, contexts: PromptContext[]) =>
   contexts.length === 0 || contexts.some((ctx) => tile.contexts.includes(ctx));
 
-const matchesGoalTags = (
-  tile: PromptTileWithMetadata,
-  goalTags: TalentForgeGoalTag[],
-) =>
+const matchesGoalTags = (tile: PromptTileWithMetadata, goalTags: TalentForgeGoalTag[]) =>
   goalTags.length === 0 || goalTags.some((tag) => tile.recommendedGoalTags.includes(tag));
 
 const deriveGoalTags = (contexts: PromptContext[]): TalentForgeGoalTag[] => {
@@ -261,9 +249,7 @@ export function getPromptTile(
   return tile;
 }
 
-export function getPromptTiles(
-  filters: PromptTileFilters = {},
-): PromptTileWithMetadata[] {
+export function getPromptTiles(filters: PromptTileFilters = {}): PromptTileWithMetadata[] {
   const contexts = toArray(filters.contexts);
   const goalTags = toArray(filters.goalTags);
 
@@ -277,10 +263,7 @@ export function getPromptTiles(
     return filters.ids
       .map((id) => lookup.get(id))
       .filter((tile): tile is PromptTileWithMetadata => Boolean(tile))
-      .filter(
-        (tile) =>
-          matchesContexts(tile, contexts) && matchesGoalTags(tile, goalTags),
-      );
+      .filter((tile) => matchesContexts(tile, contexts) && matchesGoalTags(tile, goalTags));
   }
 
   const combined = new Map<string, PromptTileWithMetadata>();

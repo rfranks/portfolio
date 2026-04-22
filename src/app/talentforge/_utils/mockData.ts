@@ -108,14 +108,12 @@ export const mockOffers: Offer[] = [
   },
 ];
 
-mockUserProfile.resumeVariants = mockResumes.map(
-  ({ content, parsed, tags, ...rv }) => {
-    void content;
-    void parsed;
-    void tags;
-    return { ...rv, content: "", parsed: { ...emptyParsed }, tags: [] };
-  },
-);
+mockUserProfile.resumeVariants = mockResumes.map(({ content, parsed, tags, ...rv }) => {
+  void content;
+  void parsed;
+  void tags;
+  return { ...rv, content: "", parsed: { ...emptyParsed }, tags: [] };
+});
 mockUserProfile.applications = mockApplications;
 
 const DEMO_DATA_KEY = "tf_demo_data_inserted";
@@ -142,4 +140,3 @@ export function insertMockData(): void {
 }
 
 export default insertMockData;
-

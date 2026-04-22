@@ -62,9 +62,7 @@ export class IndeedConnector {
       const location = listing.location.toLowerCase();
 
       return (
-        title.includes(lowerQuery) ||
-        company.includes(lowerQuery) ||
-        location.includes(lowerQuery)
+        title.includes(lowerQuery) || company.includes(lowerQuery) || location.includes(lowerQuery)
       );
     });
   }

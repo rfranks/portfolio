@@ -25,7 +25,7 @@ export const pauseAudio = (audioRef?: RefObject<HTMLAudioElement | null>) => {
 export const rewindAndPlayAudio = (
   audioRef?: RefObject<HTMLAudioElement | null>,
   srcOrOptions?: string | { loop?: boolean; volume?: number },
-  maybeOptions: { loop?: boolean; volume?: number } = {}
+  maybeOptions: { loop?: boolean; volume?: number } = {},
 ) => {
   if (!audioRef || !audioRef.current) return;
 
@@ -74,10 +74,7 @@ export const rewindAndPlayAudio = (
   const playPromise = audioRef.current.play();
   if (playPromise && typeof playPromise.catch === "function") {
     playPromise.catch((error: unknown) => {
-      if (
-        error instanceof DOMException &&
-        error.name === "AbortError"
-      ) {
+      if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
       console.warn("Audio playback failed:", error);

@@ -4,22 +4,21 @@ import {
   JourneyLedgerPlaybackEntry,
 } from "../_types/journeyLedger";
 
-const journeyLedgerFieldMeta: Record<string, { label: string; emoji: string }> =
-  {
-    chapter: { label: "Chapter", emoji: "📖" },
-    status: { label: "Status", emoji: "🩺" },
-    injuries: { label: "Injuries", emoji: "🩹" },
-    inventory: { label: "Inventory", emoji: "🎒" },
-    resources: { label: "Resources", emoji: "🧰" },
-    allies: { label: "Allies", emoji: "🤝" },
-    threats: { label: "Threats", emoji: "⚠️" },
-    majorChoices: { label: "Major Choices", emoji: "🧭" },
-    currentObjective: { label: "Current Objective", emoji: "🎯" },
-    location: { label: "Location", emoji: "🗺️" },
-    unresolvedMysteries: { label: "Unresolved Mysteries", emoji: "❓" },
-    clues: { label: "Clues", emoji: "🔎" },
-    state: { label: "State", emoji: "🛡️" },
-  };
+const journeyLedgerFieldMeta: Record<string, { label: string; emoji: string }> = {
+  chapter: { label: "Chapter", emoji: "📖" },
+  status: { label: "Status", emoji: "🩺" },
+  injuries: { label: "Injuries", emoji: "🩹" },
+  inventory: { label: "Inventory", emoji: "🎒" },
+  resources: { label: "Resources", emoji: "🧰" },
+  allies: { label: "Allies", emoji: "🤝" },
+  threats: { label: "Threats", emoji: "⚠️" },
+  majorChoices: { label: "Major Choices", emoji: "🧭" },
+  currentObjective: { label: "Current Objective", emoji: "🎯" },
+  location: { label: "Location", emoji: "🗺️" },
+  unresolvedMysteries: { label: "Unresolved Mysteries", emoji: "❓" },
+  clues: { label: "Clues", emoji: "🔎" },
+  state: { label: "State", emoji: "🛡️" },
+};
 
 const journeyLedgerFieldOrder = [
   "chapter",
@@ -178,8 +177,7 @@ export function splitJourneyLedgerValue(value: string): string[] {
       bracketDepth === 0 &&
       braceDepth === 0;
     const isSeparator =
-      outsideGrouping &&
-      (char === "," || char === ";" || char === "•" || char === "\n");
+      outsideGrouping && (char === "," || char === ";" || char === "•" || char === "\n");
 
     if (isSeparator) {
       const part = current.trim();
@@ -214,9 +212,7 @@ function sanitizeJourneyLedgerLine(raw: string): string {
 function toTitleCase(value: string): string {
   return value
     .split(/\s+/)
-    .map((part) =>
-      part.length > 0 ? `${part[0].toUpperCase()}${part.slice(1)}` : part,
-    )
+    .map((part) => (part.length > 0 ? `${part[0].toUpperCase()}${part.slice(1)}` : part))
     .join(" ");
 }
 
@@ -277,10 +273,7 @@ export function parseJourneyLedger(markdown: string): {
   const orderedKeys = [
     ...journeyLedgerFieldOrder,
     ...Array.from(byKey.keys()).filter(
-      (key) =>
-        !journeyLedgerFieldOrder.includes(
-          key as (typeof journeyLedgerFieldOrder)[number],
-        ),
+      (key) => !journeyLedgerFieldOrder.includes(key as (typeof journeyLedgerFieldOrder)[number]),
     ),
   ];
 
@@ -338,9 +331,7 @@ export function buildJourneyLedgerPlaybackEntries(args: {
 
   const orderedKeys = [
     ...nextFields.map((field) => field.key),
-    ...previousFields
-      .map((field) => field.key)
-      .filter((key) => !nextByKey.has(key)),
+    ...previousFields.map((field) => field.key).filter((key) => !nextByKey.has(key)),
   ].filter((key) => key !== "chapter");
 
   const entries = orderedKeys.map((key) => {
@@ -348,9 +339,7 @@ export function buildJourneyLedgerPlaybackEntries(args: {
     const nextField = nextByKey.get(key);
     const displayField = nextField ?? previousField;
 
-    const beforeItems = previousField
-      ? splitJourneyLedgerValue(previousField.value)
-      : [];
+    const beforeItems = previousField ? splitJourneyLedgerValue(previousField.value) : [];
     const afterItems = nextField ? splitJourneyLedgerValue(nextField.value) : [];
     const beforeNormalized = new Set(beforeItems.map(normalizeJourneyLedgerPart));
     const afterNormalized = new Set(afterItems.map(normalizeJourneyLedgerPart));
@@ -389,12 +378,8 @@ export function buildJourneyLedgerPlaybackEntries(args: {
     .map((field) => `${field.emoji} ${field.label}: ${field.value}`);
 
   if (snapshotBeforeItems.length > 0 || snapshotAfterItems.length > 0) {
-    const snapshotBeforeNormalized = new Set(
-      snapshotBeforeItems.map(normalizeJourneyLedgerPart),
-    );
-    const snapshotAfterNormalized = new Set(
-      snapshotAfterItems.map(normalizeJourneyLedgerPart),
-    );
+    const snapshotBeforeNormalized = new Set(snapshotBeforeItems.map(normalizeJourneyLedgerPart));
+    const snapshotAfterNormalized = new Set(snapshotAfterItems.map(normalizeJourneyLedgerPart));
     entries.unshift({
       key: "snapshot",
       label: "Journey Snapshot",

@@ -4,7 +4,7 @@
  */
 export interface AssetMgr {
   get: (
-    key: string
+    key: string,
   ) =>
     | HTMLImageElement
     | HTMLImageElement[]
@@ -13,7 +13,7 @@ export interface AssetMgr {
     | Record<string, HTMLImageElement[]>
     | undefined;
   getImg: (
-    key: string
+    key: string,
   ) =>
     | HTMLImageElement
     | HTMLImageElement[]

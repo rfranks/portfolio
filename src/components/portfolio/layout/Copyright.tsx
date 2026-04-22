@@ -7,12 +7,7 @@ export default function Copyright(props: CopyrightProps) {
   const thisYear = new Date().getFullYear();
 
   return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
+    <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {"Copyright © "}
       <Link color="inherit" href="https://rfranks.github.io/blasteroids">
         GeneBoard

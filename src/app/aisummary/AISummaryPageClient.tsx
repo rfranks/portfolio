@@ -7,9 +7,7 @@ interface AISummaryPageClientProps {
   project: ProjectData;
 }
 
-export default function AISummaryPageClient({
-  project,
-}: AISummaryPageClientProps) {
+export default function AISummaryPageClient({ project }: AISummaryPageClientProps) {
   return (
     <ProjectShowcasePage
       documentTitle="AISummary"

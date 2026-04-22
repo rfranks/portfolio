@@ -13,8 +13,5 @@ export function filterByText<T>(items: T[], text: string, fields: (keyof T)[]): 
 export function filterByTag<T extends { tags: string[] }>(items: T[], tag: string): T[] {
   if (!tag) return items;
   const query = tag.toLowerCase();
-  return items.filter((item) =>
-    item.tags?.some((t) => t.toLowerCase().includes(query)),
-  );
+  return items.filter((item) => item.tags?.some((t) => t.toLowerCase().includes(query)));
 }
-

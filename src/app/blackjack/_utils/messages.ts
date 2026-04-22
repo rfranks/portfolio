@@ -9,9 +9,7 @@ import {
   BlackjackUiAction,
 } from "../_types/messages";
 
-export function isBlackjackStateMessage(
-  value: unknown,
-): value is BlackjackStateMessage {
+export function isBlackjackStateMessage(value: unknown): value is BlackjackStateMessage {
   if (!value || typeof value !== "object") {
     return false;
   }
@@ -39,9 +37,7 @@ export function postBlackjackStart() {
   );
 }
 
-export function postBlackjackToggleGameMode(
-  direction: BlackjackGameModeDirection = "next",
-) {
+export function postBlackjackToggleGameMode(direction: BlackjackGameModeDirection = "next") {
   window.postMessage(
     {
       type: "blackjack/toggle-game-mode",

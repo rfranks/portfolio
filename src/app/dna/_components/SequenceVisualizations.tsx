@@ -25,13 +25,7 @@ import {
   Share,
 } from "@mui/icons-material";
 
-import {
-  BasepairHistogram,
-  GatesChart,
-  QiChart,
-  RandicChart,
-  SquiggleChart,
-} from "./charts";
+import { BasepairHistogram, GatesChart, QiChart, RandicChart, SquiggleChart } from "./charts";
 import { Title } from "@/components/shared";
 import { ChartMethod, Sequence } from "../_types/types";
 
@@ -51,8 +45,7 @@ export default function SequenceVisualizations({
   onChartMethodUpdate,
 }: SequenceVisualizationsProps) {
   const minBasePair = bpRange?.[0] || 1;
-  const maxBasePair =
-    bpRange?.[1] || activeSequences?.[0]?.sequence?.length || 1;
+  const maxBasePair = bpRange?.[1] || activeSequences?.[0]?.sequence?.length || 1;
 
   const [colorizeSequence, setColorizeSequence] = useState<boolean>(true);
   const [displaySequenceText, setDisplaySequenceText] = useState<boolean>(true);
@@ -68,9 +61,7 @@ export default function SequenceVisualizations({
       case "bpcontent":
         return "Basepair Content Histograms";
       case "squiggle":
-        return (activeSequences?.length || 0) > 1
-          ? "Squiggle Charts"
-          : "Squiggle Chart";
+        return (activeSequences?.length || 0) > 1 ? "Squiggle Charts" : "Squiggle Chart";
       case "gates":
         return "Gates Chart";
       case "qi":
@@ -78,9 +69,7 @@ export default function SequenceVisualizations({
       case "sequence":
         return (activeSequences?.length || 0) > 1 ? "Sequences" : "Sequence";
       case "randic":
-        return (activeSequences?.length || 0) > 1
-          ? "Randic Charts"
-          : "Randic Chart";
+        return (activeSequences?.length || 0) > 1 ? "Randic Charts" : "Randic Chart";
       default:
         return "";
     }
@@ -116,9 +105,7 @@ export default function SequenceVisualizations({
               <Title sx={{ color: "primary.main" }}>
                 {getChartMethodTitle(chartMethod)}
                 {`${
-                  activeSequences
-                    ?.map((sequence) => sequence.description)
-                    .join(", ").length
+                  activeSequences?.map((sequence) => sequence.description).join(", ").length
                     ? (chartMethod !== "" ? " for " : "") +
                       activeSequences
                         ?.map((sequence) => sequence.description)
@@ -130,10 +117,7 @@ export default function SequenceVisualizations({
             </Box>
           </Grid>
           <Grid item sx={{ flexGrow: 1, textAlign: "right" }}>
-            <FormControl
-              sx={{ m: 1, minWidth: 120, maxWidth: 360 }}
-              size="small"
-            >
+            <FormControl sx={{ m: 1, minWidth: 120, maxWidth: 360 }} size="small">
               <InputLabel id="chart-select-label">Visualization</InputLabel>
               <Select
                 labelId="chart-select-label"
@@ -192,15 +176,9 @@ export default function SequenceVisualizations({
         {chartMethod === "squiggle" && (
           <SquiggleChart sequences={activeSequences} bpRange={bpRange} />
         )}
-        {chartMethod === "gates" && (
-          <GatesChart sequences={activeSequences} bpRange={bpRange} />
-        )}
-        {chartMethod === "qi" && (
-          <QiChart sequences={activeSequences} bpRange={bpRange} />
-        )}
-        {chartMethod === "randic" && (
-          <RandicChart sequences={activeSequences} bpRange={bpRange} />
-        )}
+        {chartMethod === "gates" && <GatesChart sequences={activeSequences} bpRange={bpRange} />}
+        {chartMethod === "qi" && <QiChart sequences={activeSequences} bpRange={bpRange} />}
+        {chartMethod === "randic" && <RandicChart sequences={activeSequences} bpRange={bpRange} />}
         {chartMethod === "sequence" && (
           <Box className="flex min-h-full min-w-0 flex-col">
             <Box className="flex shrink-0 flex-wrap items-start">
@@ -278,11 +256,7 @@ export default function SequenceVisualizations({
                         setDisplaySequenceText(nextDisplaySequenceText);
                       }}
                     >
-                      {displaySequenceText ? (
-                        <FontDownload />
-                      ) : (
-                        <FontDownloadOff />
-                      )}
+                      {displaySequenceText ? <FontDownload /> : <FontDownloadOff />}
                     </IconButton>
                   </Tooltip>
                 </ButtonGroup>
@@ -304,8 +278,7 @@ export default function SequenceVisualizations({
                         navigator.clipboard.writeText(
                           activeSequence?.sequence.substring(
                             (bpRange?.[0] || 1) - 1,
-                            (bpRange?.[1] || activeSequence?.sequence.length) +
-                              1,
+                            (bpRange?.[1] || activeSequence?.sequence.length) + 1,
                           ) || "",
                         )
                       }
@@ -318,12 +291,8 @@ export default function SequenceVisualizations({
               </Box>
             </Box>
             <Box className="shrink-0">
-              <Typography className="inline-block p-2 font-semibold">
-                Type:
-              </Typography>
-              <Typography className="inline-block p-2">
-                {activeSequence?.type}
-              </Typography>
+              <Typography className="inline-block p-2 font-semibold">Type:</Typography>
+              <Typography className="inline-block p-2">{activeSequence?.type}</Typography>
             </Box>
             <Box className="flex min-h-0 min-w-0 flex-1 flex-col">
               <Divider />

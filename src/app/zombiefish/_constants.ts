@@ -8,12 +8,9 @@ import { BASE_PATH } from "@/utils/basePath";
 export const DEBUG_FPS_SCALE = false;
 
 // Cursor styles
-export const DEFAULT_CURSOR =
-  `url('${BASE_PATH}/assets/shooting-gallery/PNG/HUD/crosshair_blue_small.png') 16 16, auto`;
-export const SHOT_CURSOR =
-  `url('${BASE_PATH}/assets/shooting-gallery/PNG/HUD/crosshair_white_small.png') 16 16, auto`;
-export const TARGET_CURSOR =
-  `url('${BASE_PATH}/assets/shooting-gallery/PNG/HUD/crosshair_red_small.png') 16 16, auto`;
+export const DEFAULT_CURSOR = `url('${BASE_PATH}/assets/shooting-gallery/PNG/HUD/crosshair_blue_small.png') 16 16, auto`;
+export const SHOT_CURSOR = `url('${BASE_PATH}/assets/shooting-gallery/PNG/HUD/crosshair_white_small.png') 16 16, auto`;
+export const TARGET_CURSOR = `url('${BASE_PATH}/assets/shooting-gallery/PNG/HUD/crosshair_red_small.png') 16 16, auto`;
 
 // Background color representing the underwater environment
 export const SKY_COLOR = "#1d8fde";
@@ -42,4 +39,3 @@ export const MAX_SPECIAL_FISH = 3;
 // Time adjustments when hitting special fish (in seconds).
 export const TIME_BONUS_BROWN_FISH = 3;
 export const TIME_BONUS_GREY_LONG = 5;
-

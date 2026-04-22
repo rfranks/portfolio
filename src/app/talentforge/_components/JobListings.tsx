@@ -36,9 +36,7 @@ export default function JobListings() {
       applicant: { id: "", name: "", email: "" },
       role: { ...listing, id: uuid() },
       status: "applied",
-      history: [
-        { status: "applied", changedAt: new Date().toISOString() },
-      ],
+      history: [{ status: "applied", changedAt: new Date().toISOString() }],
     });
     setSaved((prev) => new Set(prev).add(listing.url));
   };

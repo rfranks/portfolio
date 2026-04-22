@@ -46,9 +46,7 @@ export default function OfferComparison() {
 
   const saveComparison = () => {
     const header = "| Aspect | Offer A | Offer B |\n| --- | --- | --- |";
-    const body = rows
-      .map((r) => `| ${r.label} | ${r.a || ""} | ${r.b || ""} |`)
-      .join("\n");
+    const body = rows.map((r) => `| ${r.label} | ${r.a || ""} | ${r.b || ""} |`).join("\n");
     const markdown = `${header}\n${body}\n`;
     const blob = new Blob([markdown], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
@@ -77,9 +75,7 @@ export default function OfferComparison() {
           <TextField
             label="Benefits"
             value={offerA.benefits}
-            onChange={(e) =>
-              setOfferA({ ...offerA, benefits: e.target.value })
-            }
+            onChange={(e) => setOfferA({ ...offerA, benefits: e.target.value })}
           />
           <TextField
             label="Equity"
@@ -104,9 +100,7 @@ export default function OfferComparison() {
           <TextField
             label="Benefits"
             value={offerB.benefits}
-            onChange={(e) =>
-              setOfferB({ ...offerB, benefits: e.target.value })
-            }
+            onChange={(e) => setOfferB({ ...offerB, benefits: e.target.value })}
           />
           <TextField
             label="Equity"
@@ -148,4 +142,3 @@ export default function OfferComparison() {
     </Box>
   );
 }
-

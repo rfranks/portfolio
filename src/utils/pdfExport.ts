@@ -11,10 +11,7 @@ type JsPdf = {
   };
 };
 
-export async function exportElementToPdf(
-  element: HTMLElement,
-  fileName = "export.pdf"
-) {
+export async function exportElementToPdf(element: HTMLElement, fileName = "export.pdf") {
   if (typeof window === "undefined") return;
   try {
     const { jsPDF } = (await eval("import('jspdf')")) as { jsPDF: JsPdf };

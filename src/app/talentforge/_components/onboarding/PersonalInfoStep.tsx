@@ -35,10 +35,7 @@ const deriveNameParts = (profile: UserProfile | undefined) => {
 export default function PersonalInfoStep({ onNext, onBack }: StepProps) {
   const initialProfile = useMemo(() => getUserProfile(), []);
   const [profileId] = useState(() => initialProfile?.id ?? uuid());
-  const initialNames = useMemo(
-    () => deriveNameParts(initialProfile),
-    [initialProfile],
-  );
+  const initialNames = useMemo(() => deriveNameParts(initialProfile), [initialProfile]);
   const [firstName, setFirstName] = useState(initialNames.firstName);
   const [lastName, setLastName] = useState(initialNames.lastName);
 
@@ -70,8 +67,8 @@ export default function PersonalInfoStep({ onNext, onBack }: StepProps) {
   return (
     <Stack spacing={2} aria-label="Provide your name">
       <Typography variant="body1">
-        We&apos;ll use your name to personalize prompt outputs like cover letters
-        and outreach messages.
+        We&apos;ll use your name to personalize prompt outputs like cover letters and outreach
+        messages.
       </Typography>
       <TextField
         label="First Name"

@@ -74,9 +74,7 @@ export default function ManageNegotiationLibraryModal({
           <Typography variant="body2">
             Rename or delete saved negotiation drafts that you no longer need.
           </Typography>
-          {!hasEntries && (
-            <Alert severity="info">No saved drafts yet.</Alert>
-          )}
+          {!hasEntries && <Alert severity="info">No saved drafts yet.</Alert>}
           {hasEntries && (
             <List disablePadding>
               {items.map((entry) => {
@@ -106,9 +104,7 @@ export default function ManageNegotiationLibraryModal({
                         fullWidth
                         error={value.trim().length === 0}
                         helperText={
-                          value.trim().length === 0
-                            ? "Enter a name to keep this draft"
-                            : undefined
+                          value.trim().length === 0 ? "Enter a name to keep this draft" : undefined
                         }
                       />
                       <Typography variant="caption" color="text.secondary">

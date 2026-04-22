@@ -30,15 +30,11 @@ import FileUploader from "./FileUploader";
 import TermsDialog from "./TermsDialog";
 
 export default function Hero() {
-  const [chatHistory, setChatHistoryState] = React.useState<
-    (ChatMessage | null)[]
-  >([]);
+  const [chatHistory, setChatHistoryState] = React.useState<(ChatMessage | null)[]>([]);
   const [pdfAsMarkdown, setPdfAsMarkdown] = React.useState<string>("");
   const [pdfSummary, setPdfSummary] = React.useState<string>("");
   const [userQuestion, setUserQuestion] = React.useState<string>("");
-  const [activeQuestionIndex, setActiveQuestionIndex] = React.useState<
-    number | null
-  >(0);
+  const [activeQuestionIndex, setActiveQuestionIndex] = React.useState<number | null>(0);
   const [pdfProgress, setPdfProgress] = React.useState<number | null>(null);
   const [openTerms, setOpenTerms] = React.useState<boolean>(false);
   const setChatHistory = (newChatHistory: typeof chatHistory) => {
@@ -50,8 +46,7 @@ export default function Hero() {
   const userQuestionInputRef = React.useRef<HTMLInputElement>(null);
 
   const askUserQuestion = async () => {
-    const context =
-      pdfAsMarkdown?.length > aiBufferSize ? pdfSummary : pdfAsMarkdown;
+    const context = pdfAsMarkdown?.length > aiBufferSize ? pdfSummary : pdfAsMarkdown;
 
     askOpenAI({
       context,
@@ -67,12 +62,9 @@ export default function Hero() {
 
   const setActiveQuestionIndexByOffset = (
     offset: number,
-    activeQuestionIndexFromParam?: number
+    activeQuestionIndexFromParam?: number,
   ) => {
-    if (
-      activeQuestionIndexFromParam === null ||
-      activeQuestionIndexFromParam === undefined
-    ) {
+    if (activeQuestionIndexFromParam === null || activeQuestionIndexFromParam === undefined) {
       activeQuestionIndexFromParam =
         activeQuestionIndex === null
           ? chatHistory.length - 1 + offset
@@ -93,10 +85,7 @@ export default function Hero() {
         userQuestionInputRef?.current?.focus();
       } else {
         setActiveQuestionIndex(nextActiveQuestionIndex);
-        setActiveQuestionIndexByOffset(
-          offset,
-          nextActiveQuestionIndex + offset
-        );
+        setActiveQuestionIndexByOffset(offset, nextActiveQuestionIndex + offset);
       }
     } else {
       setUserQuestion("");
@@ -106,8 +95,7 @@ export default function Hero() {
 
   React.useEffect(() => {
     if (chatParentRef.current) {
-      chatParentRef.current.scrollTop =
-        chatParentRef?.current?.scrollHeight || 0;
+      chatParentRef.current.scrollTop = chatParentRef?.current?.scrollHeight || 0;
     }
   });
 
@@ -165,8 +153,8 @@ export default function Hero() {
             color="text.secondary"
             sx={{ alignSelf: "center", width: { sm: "100%", md: "80%" } }}
           >
-            Introducing your AI-powered reading assistant designed to
-            revolutionize the way you interact with PDFs.
+            Introducing your AI-powered reading assistant designed to revolutionize the way you
+            interact with PDFs.
           </Typography>
           <Stack
             direction={{ xs: "column", sm: "row" }}
@@ -206,17 +194,9 @@ export default function Hero() {
               }}
             />
           </Stack>
-          <Typography
-            variant="caption"
-            textAlign="center"
-            sx={{ opacity: 0.8 }}
-          >
+          <Typography variant="caption" textAlign="center" sx={{ opacity: 0.8 }}>
             By using this site, you agree to our&nbsp;
-            <Link
-              onClick={() => setOpenTerms(true)}
-              color="primary"
-              sx={{ cursor: "pointer" }}
-            >
+            <Link onClick={() => setOpenTerms(true)} color="primary" sx={{ cursor: "pointer" }}>
               Terms & Conditions
             </Link>
             .
@@ -242,9 +222,7 @@ export default function Hero() {
             borderRadius: "10px",
             outline: "1px solid",
             outlineColor:
-              theme.palette.mode === "light"
-                ? alpha("#BFCCD9", 0.5)
-                : alpha("#9CCCFC", 0.1),
+              theme.palette.mode === "light" ? alpha("#BFCCD9", 0.5) : alpha("#9CCCFC", 0.1),
             boxShadow:
               theme.palette.mode === "light"
                 ? `0 0 12px 8px ${alpha("#9CCCFC", 0.2)}`
@@ -276,11 +254,7 @@ export default function Hero() {
                 })}
               >
                 {chat?.role === "assistant" ? (
-                  <Typography
-                    variant="h6"
-                    color="text.primary"
-                    sx={{ fontWeight: 600 }}
-                  >
+                  <Typography variant="h6" color="text.primary" sx={{ fontWeight: 600 }}>
                     <Typography
                       variant="h6"
                       component={"span"}
@@ -298,11 +272,7 @@ export default function Hero() {
                   </Typography>
                 ) : (
                   chat?.message && (
-                    <Typography
-                      variant="h6"
-                      color="text.primary"
-                      sx={{ fontWeight: 600 }}
-                    >
+                    <Typography variant="h6" color="text.primary" sx={{ fontWeight: 600 }}>
                       You...
                     </Typography>
                   )
@@ -312,8 +282,7 @@ export default function Hero() {
                   component="div"
                   sx={{
                     whiteSpace: "pre-wrap",
-                    color:
-                      chat?.role === "user" ? "text.primary" : "text.secondary",
+                    color: chat?.role === "user" ? "text.primary" : "text.secondary",
                   }}
                 >
                   <Markdown>{chat?.message}</Markdown>
@@ -325,10 +294,7 @@ export default function Hero() {
                   {chat?.message === "Processing PDF..." &&
                     chat?.hasMore &&
                     (pdfProgress !== null ? (
-                      <CircularProgressWithLabel
-                        value={pdfProgress}
-                        size={18}
-                      />
+                      <CircularProgressWithLabel value={pdfProgress} size={18} />
                     ) : (
                       <CircularProgress size={18} />
                     ))}

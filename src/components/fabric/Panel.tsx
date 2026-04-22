@@ -4,12 +4,7 @@ import type { PanelProps } from "@/types/components/fabric";
 
 import Surface from "./Surface";
 
-export default function Panel({
-  compact = false,
-  layer = 2,
-  sx,
-  ...props
-}: PanelProps) {
+export default function Panel({ compact = false, layer = 2, sx, ...props }: PanelProps) {
   const mergedSx = [
     {
       p: compact ? 2 : 3,
@@ -18,11 +13,5 @@ export default function Panel({
     ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
   ] as SxProps<Theme>;
 
-  return (
-    <Surface
-      layer={layer}
-      sx={mergedSx}
-      {...props}
-    />
-  );
+  return <Surface layer={layer} sx={mergedSx} {...props} />;
 }

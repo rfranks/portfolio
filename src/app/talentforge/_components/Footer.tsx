@@ -15,11 +15,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import {
-  Close,
-  GitHub as GitHubIcon,
-  LinkedIn as LinkedInIcon,
-} from "@mui/icons-material";
+import { Close, GitHub as GitHubIcon, LinkedIn as LinkedInIcon } from "@mui/icons-material";
 
 import TermsDialog from "./TermsDialog";
 
@@ -249,11 +245,7 @@ export default function Footer() {
           <Typography variant="body2" fontWeight={600}>
             Legal
           </Typography>
-          <Link
-            color="text.secondary"
-            sx={{ cursor: "pointer" }}
-            onClick={() => setOpen("terms")}
-          >
+          <Link color="text.secondary" sx={{ cursor: "pointer" }} onClick={() => setOpen("terms")}>
             Terms
           </Link>
           <Link color="text.secondary" href="#">
@@ -281,11 +273,7 @@ export default function Footer() {
           <Typography display="inline" sx={{ mx: 0.5, opacity: 0.5 }}>
             &nbsp;•&nbsp;
           </Typography>
-          <Link
-            color="text.secondary"
-            sx={{ cursor: "pointer" }}
-            onClick={() => setOpen("terms")}
-          >
+          <Link color="text.secondary" sx={{ cursor: "pointer" }} onClick={() => setOpen("terms")}>
             Terms of Service
           </Link>
           <Copyright />

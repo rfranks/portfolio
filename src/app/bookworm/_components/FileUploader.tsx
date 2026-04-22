@@ -7,8 +7,7 @@ import { Box, Button, Grid, Stack, Typography } from "@mui/material";
 import { FormField, FormFieldProps } from "./FormField";
 import { CloseOutlined } from "@mui/icons-material";
 
-export interface FileUploaderProps
-  extends Omit<FormFieldProps, "input" | "variant" | "onChange"> {
+export interface FileUploaderProps extends Omit<FormFieldProps, "input" | "variant" | "onChange"> {
   /**
    * The id for the `FileUploader`.
    *
@@ -48,11 +47,7 @@ export interface FileUploaderProps
    * on the `outputType` prop.
    */
   onChange?: (
-    value:
-      | File[]
-      | string
-      | { filename: string; type: string; content: string }
-      | undefined
+    value: File[] | string | { filename: string; type: string; content: string } | undefined,
   ) => void;
 
   /**
@@ -95,16 +90,14 @@ export default function FileUploader(props: FileUploaderProps) {
         let validFiles = [...value, ...newFiles];
         updatedFiles.forEach((file) => {
           if (validFiles.indexOf(file) > limit - 1) {
-            updatedErrors[
-              file.name
-            ] = `File not uploaded.  Maximum number of files exceeded. Must not be more than ${limit}.`;
+            updatedErrors[file.name] =
+              `File not uploaded.  Maximum number of files exceeded. Must not be more than ${limit}.`;
             validFiles = validFiles.filter((f) => f.name !== file.name);
           } else if (file.size > maxFileSize) {
-            updatedErrors[
-              file.name
-            ] = `File not uploaded.  Maximum file size exceeded. Must not be more than ${getFileSize(
-              maxFileSize
-            )}.`;
+            updatedErrors[file.name] =
+              `File not uploaded.  Maximum file size exceeded. Must not be more than ${getFileSize(
+                maxFileSize,
+              )}.`;
             validFiles = validFiles.filter((f) => f.name !== file.name);
           } else if (validFiles.indexOf(file) > -1) {
             updatedErrors[file.name] = "";
@@ -127,12 +120,12 @@ export default function FileUploader(props: FileUploaderProps) {
               outputType === "content"
                 ? e.target?.result?.toString()
                 : outputType === "files"
-                ? validFiles
-                : {
-                    filename: file.name,
-                    type: file.type,
-                    content: e.target?.result?.toString() || "",
-                  }
+                  ? validFiles
+                  : {
+                      filename: file.name,
+                      type: file.type,
+                      content: e.target?.result?.toString() || "",
+                    },
             );
 
           if (variant === "text") {
@@ -145,27 +138,18 @@ export default function FileUploader(props: FileUploaderProps) {
             outputType === "files"
               ? validFiles
               : outputType === "content"
-              ? ""
-              : {
-                  filename: validFiles[0]?.name || "",
-                  type: validFiles[0]?.type || "",
-                  content: "",
-                }
+                ? ""
+                : {
+                    filename: validFiles[0]?.name || "",
+                    type: validFiles[0]?.type || "",
+                    content: "",
+                  },
           );
         }
         // field.onChange(validFiles);
       }
     },
-    [
-      files,
-      limit,
-      maxFileSize,
-      fileErrors,
-      onChange,
-      outputType,
-      value,
-      variant,
-    ]
+    [files, limit, maxFileSize, fileErrors, onChange, outputType, value, variant],
   );
 
   const fileRemove = (file: File) => {
@@ -183,16 +167,14 @@ export default function FileUploader(props: FileUploaderProps) {
               filename: "",
               type: "",
               content: "",
-            }
+            },
       );
     }
   };
 
   // 👇 Calculates size in kilobytes or megabytes
   const getFileSize = (size: number) => {
-    return size < 1000000
-      ? `${Math.floor(size / 1000)} KB`
-      : `${(size / 1000000).toFixed(1)} MB`;
+    return size < 1000000 ? `${Math.floor(size / 1000)} KB` : `${(size / 1000000).toFixed(1)} MB`;
   };
 
   // 👇 Returns the text for the accept attribute
@@ -218,9 +200,7 @@ export default function FileUploader(props: FileUploaderProps) {
     });
 
     if (acceptsText.length > 1) {
-      acceptsText[acceptsText.length - 1] = `or ${
-        acceptsText[acceptsText.length - 1]
-      }`;
+      acceptsText[acceptsText.length - 1] = `or ${acceptsText[acceptsText.length - 1]}`;
     }
 
     return acceptsText.join(", ");
@@ -284,11 +264,7 @@ export default function FileUploader(props: FileUploaderProps) {
               >
                 <Box sx={{ p: 1 }}>Browse</Box>
               </Button>
-              <Box
-                ref={wrapperRef}
-                htmlFor={`${id}__input`}
-                component={"label"}
-              >
+              <Box ref={wrapperRef} htmlFor={`${id}__input`} component={"label"}>
                 <input
                   type="file"
                   id={`${id}__input`}
@@ -319,9 +295,7 @@ export default function FileUploader(props: FileUploaderProps) {
                       <Box display="flex">
                         <Box sx={{ ml: 1 }}>
                           <Typography variant="body1">{file.name}</Typography>
-                          <Typography variant="body2">
-                            {getFileSize(file.size)}
-                          </Typography>
+                          <Typography variant="body2">{getFileSize(file.size)}</Typography>
                           {fileErrors?.[file.name] && (
                             <Typography
                               variant="body2"

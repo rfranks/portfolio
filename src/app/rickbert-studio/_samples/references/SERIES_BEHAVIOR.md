@@ -1,14 +1,17 @@
 # SERIES_BEHAVIOR — Rickbert Strip Rules
 
 ## Purpose
+
 This document defines the **series-level rules** for how the Rickbert comic should behave across strips: **variety, panel rhythm, dialogue constraints, and default generation behavior**.
 
 ---
 
 ## Non-Repetition Requirement
+
 Do **not** reuse the same joke skeleton repeatedly. Rotate comedic engines to keep the series fresh.
 
 ### Approved comedic engines (rotate frequently)
+
 - **Literalism** (take a request absurdly literally)
 - **Corporate inversion** (the “best practice” is the wrong practice)
 - **Sales optimism vs engineering reality**
@@ -22,6 +25,7 @@ Do **not** reuse the same joke skeleton repeatedly. Rotate comedic engines to ke
 ---
 
 ## Panel Rhythm (3-panel strip default)
+
 - **Panel 1: Setup** (the ask / situation)
 - **Panel 2: Escalation or twist** (misalignment emerges)
 - **Panel 3: Punchline** (deadpan payoff / reaction)
@@ -31,6 +35,7 @@ Do **not** reuse the same joke skeleton repeatedly. Rotate comedic engines to ke
 ---
 
 ## Dialogue Constraints
+
 - Keep speech bubbles **short** (typically **1–12 words**)
 - Avoid jargon dumps
 - Avoid long explanations
@@ -40,6 +45,7 @@ Do **not** reuse the same joke skeleton repeatedly. Rotate comedic engines to ke
 ---
 
 ## User Request Handling (Default Behavior)
+
 When the user asks for a strip:
 
 1. **Pick a premise** (use the user’s premise if provided; otherwise choose from the default list below).
@@ -50,7 +56,9 @@ When the user asks for a strip:
 ---
 
 ## Default Starting Premises (if user doesn’t specify)
+
 Choose one:
+
 - Sales sold a prototype
 - CEO announces a vision
 - Compliance arrives from Bali

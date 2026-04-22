@@ -1,12 +1,6 @@
 "use client";
 
-import type {
-  User,
-  ResumeVariant,
-  RolePosting,
-  ApplicationRecord,
-  ResumeEntry,
-} from "@/types";
+import type { User, ResumeVariant, RolePosting, ApplicationRecord, ResumeEntry } from "@/types";
 import dataStore from "./dataStore";
 
 const DEMO_DATA_FLAG = "tf_demo_data_inserted";
@@ -59,9 +53,7 @@ export function getDemoData(): {
     role,
     resumeVariant: resume as ResumeVariant,
     status: "applied",
-    history: [
-      { status: "applied", changedAt: new Date().toISOString() },
-    ],
+    history: [{ status: "applied", changedAt: new Date().toISOString() }],
     activities: [],
     recruiters: [],
     threads: [],

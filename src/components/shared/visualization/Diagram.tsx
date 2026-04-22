@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  ReactNode,
-} from "react";
+import React, { useEffect, useRef, useState, useCallback, ReactNode } from "react";
 
 // libraries
 import { v4 as uuid } from "uuid";
@@ -68,7 +62,6 @@ ${type} ${type === "flowchart" || type === "graph" ? orientation : ""}${
 ${steps?.join("\n  ")}
 `;
 
-
   const diagramRef = useRef<HTMLElement>(null);
   const isVisible = useIsVisible(diagramRef);
 
@@ -111,7 +104,7 @@ ${steps?.join("\n  ")}
       setHistory(updated);
       setHistoryIndex(updated.length - 1);
     },
-    [history, historyIndex]
+    [history, historyIndex],
   );
 
   const applyTransformState = useCallback((st: TransformState) => {
@@ -145,7 +138,7 @@ ${steps?.join("\n  ")}
       setTranslateY(newY);
       pushHistory({ scale: newScale, translateX: newX, translateY: newY });
     },
-    [pushHistory]
+    [pushHistory],
   );
 
   const handleZoomIn = useCallback(() => {

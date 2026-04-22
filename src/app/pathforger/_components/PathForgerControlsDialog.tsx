@@ -38,15 +38,11 @@ type PathForgerControlsDialogProps = {
   onOpenRenderImageCalls: () => void;
   personalizedImages: boolean;
   onPersonalizedImagesChange: (checked: boolean) => void;
-  onSelfieChange: (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => void | Promise<void>;
+  onSelfieChange: (event: React.ChangeEvent<HTMLInputElement>) => void | Promise<void>;
   selfieName: string;
 };
 
-export default function PathForgerControlsDialog(
-  props: PathForgerControlsDialogProps,
-) {
+export default function PathForgerControlsDialog(props: PathForgerControlsDialogProps) {
   const {
     open,
     onClose,
@@ -100,9 +96,7 @@ export default function PathForgerControlsDialog(
               loading={loadingModelOptions}
               fallbackValue={textModelFallback}
               onChange={onTextModelChange}
-              helperText={
-                loadingModelOptions ? "Loading exhaustive model list..." : undefined
-              }
+              helperText={loadingModelOptions ? "Loading exhaustive model list..." : undefined}
               sx={{ mb: 1.5 }}
             />
             <TextField
@@ -110,9 +104,7 @@ export default function PathForgerControlsDialog(
               fullWidth
               label="Romance"
               value={romanceMode}
-              onChange={(event) =>
-                onRomanceModeChange(event.target.value as RomanceMode)
-              }
+              onChange={(event) => onRomanceModeChange(event.target.value as RomanceMode)}
             >
               <MenuItem value="No romance">No romance</MenuItem>
               <MenuItem value="Optional romance">Optional romance</MenuItem>
@@ -131,9 +123,7 @@ export default function PathForgerControlsDialog(
               loading={loadingModelOptions}
               fallbackValue={imageModelFallback}
               onChange={onImageModelChange}
-              helperText={
-                loadingModelOptions ? "Loading exhaustive model list..." : undefined
-              }
+              helperText={loadingModelOptions ? "Loading exhaustive model list..." : undefined}
               sx={{ mb: 0.75 }}
             />
             <Link
@@ -152,9 +142,7 @@ export default function PathForgerControlsDialog(
               control={
                 <Checkbox
                   checked={personalizedImages}
-                  onChange={(event) =>
-                    onPersonalizedImagesChange(event.target.checked)
-                  }
+                  onChange={(event) => onPersonalizedImagesChange(event.target.checked)}
                 />
               }
               label="Use personalized images (requires selfie/headshot)"

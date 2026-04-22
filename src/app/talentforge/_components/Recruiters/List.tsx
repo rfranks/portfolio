@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Stack,
-  Typography,
-  TextField,
-  Button,
-} from "@mui/material";
+import { Box, Stack, Typography, TextField, Button } from "@mui/material";
 import { useTalentForgeData } from "@/app/talentforge/_contexts/TalentForgeDataContext";
 import type { RecruiterEntry, Message } from "@/types";
 import Chip from "@/components/fabric/Chip";
@@ -70,20 +64,13 @@ export default function RecruiterList() {
             value={r.notes}
             onChange={(e) =>
               setRecruiters((rec) =>
-                rec.map((rr) =>
-                  rr.id === r.id ? { ...rr, notes: e.target.value } : rr,
-                ),
+                rec.map((rr) => (rr.id === r.id ? { ...rr, notes: e.target.value } : rr)),
               )
             }
             sx={{ mt: 1 }}
             fullWidth
           />
-          <Button
-            variant="contained"
-            size="small"
-            sx={{ mt: 1 }}
-            onClick={() => handleSave(r)}
-          >
+          <Button variant="contained" size="small" sx={{ mt: 1 }} onClick={() => handleSave(r)}>
             Save
           </Button>
           {r.threadIds.length > 0 && (
@@ -92,9 +79,7 @@ export default function RecruiterList() {
                 Threads:
               </Typography>
               {r.threadIds.map((threadId) => {
-                const threadMessage = messages.find(
-                  (message) => message.threadId === threadId,
-                );
+                const threadMessage = messages.find((message) => message.threadId === threadId);
                 const previewText = threadMessage?.body ?? `Thread ${threadId}`;
                 return (
                   <Typography key={threadId} variant="body2">

@@ -8,8 +8,7 @@ type PortfolioPanelShellProps = PanelFrameProps & {
   panelSx?: SxProps<Theme>;
 };
 
-const toSxArray = (value?: SxProps<Theme>) =>
-  Array.isArray(value) ? value : value ? [value] : [];
+const toSxArray = (value?: SxProps<Theme>) => (Array.isArray(value) ? value : value ? [value] : []);
 
 export default function PortfolioPanelShell({
   panelClassName,

@@ -22,19 +22,18 @@ export default function CompensationStep({ onNext, onBack }: StepProps) {
     setComp(existing);
   }, [dataStore]);
 
-  const handleChange = (field: "salary" | "benefits" | "stock") => (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setComp((c) => ({ ...c, [field]: event.target.value }));
-  };
+  const handleChange =
+    (field: "salary" | "benefits" | "stock") => (event: React.ChangeEvent<HTMLInputElement>) => {
+      setComp((c) => ({ ...c, [field]: event.target.value }));
+    };
 
   const hasValue = Object.values(comp).some((v) => v.trim() !== "");
 
   return (
     <Stack spacing={2} aria-label="Enter current compensation">
       <Typography variant="body2" tabIndex={0}>
-        This information is only used to negotiate better offers on your
-        behalf and compare them against your current compensation.
+        This information is only used to negotiate better offers on your behalf and compare them
+        against your current compensation.
       </Typography>
       <TextField
         label="Current Salary"
@@ -62,10 +61,10 @@ export default function CompensationStep({ onNext, onBack }: StepProps) {
         )}
         <Button
           variant="contained"
-        onClick={() => {
-          dataStore.saveCurrentCompensation(comp);
-          onNext();
-        }}
+          onClick={() => {
+            dataStore.saveCurrentCompensation(comp);
+            onNext();
+          }}
           disabled={!hasValue}
           aria-label="Next"
         >
@@ -75,4 +74,3 @@ export default function CompensationStep({ onNext, onBack }: StepProps) {
     </Stack>
   );
 }
-

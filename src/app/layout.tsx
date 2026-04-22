@@ -3,6 +3,7 @@ import "./globals.css";
 import ThemeRegistry from "../providers/ThemeRegistry";
 import { portfolioApps } from "@/consts/resumeData";
 import ResumeDataProvider from "@/providers/ResumeDataProvider";
+import NavigationTelemetry from "@/components/shared/monitoring/NavigationTelemetry";
 
 export const metadata: Metadata = {
   description: portfolioApps.site.description,
@@ -16,10 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script
-          src="https://cdn.jsdelivr.net/npm/pathseg@1.2.1/pathseg.js"
-          async
-        ></script>
+        <script src="https://cdn.jsdelivr.net/npm/pathseg@1.2.1/pathseg.js" async></script>
         <script
           src="https://cdn.jsdelivr.net/npm/poly-decomp@0.3.0/build/decomp.min.js"
           async
@@ -27,7 +25,10 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeRegistry>
-          <ResumeDataProvider>{children}</ResumeDataProvider>
+          <ResumeDataProvider>
+            <NavigationTelemetry />
+            {children}
+          </ResumeDataProvider>
         </ThemeRegistry>
       </body>
     </html>

@@ -8,6 +8,10 @@ import {
   setOpenAIKey as setStoredOpenAIKey,
 } from "@/contexts/OpenAIKeyContext";
 import type { OpenAIKeyValidity } from "@/contexts/OpenAIKeyContext";
+import {
+  extractTextFromOpenAIChatContent,
+  requestOpenAIChatCompletions,
+} from "@/utils/openai/client";
 import { pdfToMarkdown } from "@/utils/pdfToMarkdown";
 
 export const setOpenAIKey = (
@@ -27,46 +31,20 @@ export interface OpenAIKeyValidationResult {
   error?: string;
 }
 
-export const validateOpenAIKey = async (
-  key: string,
-): Promise<OpenAIKeyValidationResult> => {
+export const validateOpenAIKey = async (key: string): Promise<OpenAIKeyValidationResult> => {
   const trimmed = key.trim();
   if (!trimmed) {
     return { ok: false, error: "OpenAI API key is empty." };
   }
 
   try {
-    // Use the same endpoint/model family as app requests so validation
-    // behavior matches real runtime behavior.
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${trimmed}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: "ping" }],
-        max_tokens: 1,
-      }),
+    await requestOpenAIChatCompletions(trimmed, {
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: "ping" }],
+      max_tokens: 1,
     });
 
-    if (res.ok) {
-      return { ok: true, status: res.status };
-    }
-
-    let errorMessage = `OpenAI returned ${res.status}.`;
-    try {
-      const data = await res.json();
-      const apiMessage = data?.error?.message;
-      if (typeof apiMessage === "string" && apiMessage.trim()) {
-        errorMessage = apiMessage;
-      }
-    } catch {
-      // ignore parse failures and keep fallback error message
-    }
-
-    return { ok: false, status: res.status, error: errorMessage };
+    return { ok: true, status: 200 };
   } catch {
     return {
       ok: false,
@@ -87,49 +65,20 @@ export const hasValidOpenAIKey = async () => {
 };
 
 const requestCompletion = async (apiKey: string, systemMessage: string) => {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      temperature: 0.5,
-      top_p: 0.8,
-      messages: [
-        {
-          role: "system",
-          content: systemMessage,
-        },
-      ],
-    }),
+  const data = await requestOpenAIChatCompletions(apiKey, {
+    model: "gpt-3.5-turbo",
+    temperature: 0.5,
+    top_p: 0.8,
+    messages: [
+      {
+        role: "system",
+        content: systemMessage,
+      },
+    ],
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Request failed with status ${response.status}: ${errorText}`);
-  }
-
-  const data = await response.json();
   const content = data?.choices?.[0]?.message?.content;
-
-  // `content` can be a string (old API) or an array of text segments (new API)
-  if (Array.isArray(content)) {
-    return (
-      content
-        .map((c: unknown) => {
-          if (typeof c === "string") return c;
-          if (typeof c === "object" && c !== null && "text" in c) {
-            return (c as { text?: string }).text || "";
-          }
-          return "";
-        })
-        .join("") || ""
-    );
-  }
-
-  return content || "";
+  return extractTextFromOpenAIChatContent(content) || "";
 };
 
 export const askOpenAI = async ({
@@ -163,9 +112,7 @@ export const askOpenAI = async ({
       : null,
     {
       role: "assistant" as "user" | "assistant",
-      message: logMessagesToChatHistory
-        ? "I'm thinking..."
-        : "Processing PDF...",
+      message: logMessagesToChatHistory ? "I'm thinking..." : "Processing PDF...",
       hasMore: true,
     },
   ];
@@ -181,8 +128,7 @@ export const askOpenAI = async ({
     const rest = context.substring(Math.min(aiBufferSize, context.length));
     context = context.substring(0, Math.min(aiBufferSize, context.length));
 
-    const systemMessage =
-      `Question: ${user}\n\n` + system.replaceAll("{{context}}", context);
+    const systemMessage = `Question: ${user}\n\n` + system.replaceAll("{{context}}", context);
     responseText = await requestCompletion(apiKey, systemMessage);
 
     newChatHistory[newChatIndex] = {
@@ -190,7 +136,7 @@ export const askOpenAI = async ({
       message:
         newChatHistory?.[newChatIndex]?.message.replaceAll(
           logMessagesToChatHistory ? "I'm thinking..." : "Processing PDF...",
-          ""
+          "",
         ) +
         (initialContext.length > aiBufferSize
           ? responseText

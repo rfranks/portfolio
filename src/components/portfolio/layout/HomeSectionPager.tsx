@@ -10,11 +10,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
-import {
-  ChevronLeft,
-  ChevronRight,
-  MoreVert,
-} from "@mui/icons-material";
+import { ChevronLeft, ChevronRight, MoreVert } from "@mui/icons-material";
 import type { NavigationIconConfig } from "@/components/portfolio/layout/navigationIcons";
 import { renderNavigationIcon } from "@/components/portfolio/layout/navigationIcons";
 
@@ -29,10 +25,8 @@ type HomeSectionPagerProps = {
   onSelectSection: (sectionId: string) => void;
 };
 
-const formatSelectedLabel = (index: number, label: string) =>
-  `${toRoman(index + 1)}. ${label}`;
-const formatOptionLabel = (index: number, label: string) =>
-  `${toRoman(index + 1)}. ${label}`;
+const formatSelectedLabel = (index: number, label: string) => `${toRoman(index + 1)}. ${label}`;
+const formatOptionLabel = (index: number, label: string) => `${toRoman(index + 1)}. ${label}`;
 
 const toRoman = (value: number): string => {
   if (value <= 0) {
@@ -73,9 +67,7 @@ export default function HomeSectionPager({
   currentSectionId,
   onSelectSection,
 }: HomeSectionPagerProps) {
-  const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(
-    null,
-  );
+  const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(null);
 
   const currentIndex = useMemo(() => {
     const index = items.findIndex((item) => item.id === currentSectionId);
@@ -105,8 +97,7 @@ export default function HomeSectionPager({
 
   const previousItem = currentIndex > 0 ? items[currentIndex - 1] : null;
   const nextItem = currentIndex < items.length - 1 ? items[currentIndex + 1] : null;
-  const wrappedPreviousItem =
-    previousItem ?? (hasMultipleItems ? items[items.length - 1] : null);
+  const wrappedPreviousItem = previousItem ?? (hasMultipleItems ? items[items.length - 1] : null);
   const wrappedNextItem = nextItem ?? (hasMultipleItems ? items[0] : null);
 
   return (
@@ -202,10 +193,8 @@ export default function HomeSectionPager({
                 border: "0 !important",
               },
               "&:hover, &.Mui-focusVisible, &:active": {
-                bgcolor: (theme) =>
-                  `${alpha(theme.palette.common.white, 0.1)} !important`,
-                backgroundColor: (theme) =>
-                  `${alpha(theme.palette.common.white, 0.1)} !important`,
+                bgcolor: (theme) => `${alpha(theme.palette.common.white, 0.1)} !important`,
+                backgroundColor: (theme) => `${alpha(theme.palette.common.white, 0.1)} !important`,
                 boxShadow: "none !important",
                 backdropFilter: "none !important",
                 filter: "none !important",

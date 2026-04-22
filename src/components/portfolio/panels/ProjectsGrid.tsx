@@ -102,10 +102,7 @@ function renderVisual(visual: ProjectVisual, key: string) {
     const imageSrc = withBasePath(visual.src);
 
     return (
-      <Wrapper
-        key={key}
-        className={visual.containerClassName ?? visual.className ?? undefined}
-      >
+      <Wrapper key={key} className={visual.containerClassName ?? visual.className ?? undefined}>
         <ImageLightbox
           src={imageSrc}
           alt={visual.alt}
@@ -126,10 +123,7 @@ function renderVisual(visual: ProjectVisual, key: string) {
   }
 
   return (
-    <Box
-      key={key}
-      className={visual.containerClassName ?? visual.className ?? undefined}
-    >
+    <Box key={key} className={visual.containerClassName ?? visual.className ?? undefined}>
       {visual.cards.map((card) => (
         <ImageLightbox
           key={`${key}-${card.src}-${card.alt}`}
@@ -154,10 +148,7 @@ function renderVisual(visual: ProjectVisual, key: string) {
 
 function renderProjectContent(
   project: ProjectEntry,
-  sectionLabels: Pick<
-    ProjectsSection,
-    "interestHeading" | "accoladesHeading" | "launchLabel"
-  >,
+  sectionLabels: Pick<ProjectsSection, "interestHeading" | "accoladesHeading" | "launchLabel">,
 ) {
   return (
     <Box
@@ -174,10 +165,7 @@ function renderProjectContent(
       }}
     >
       {project.watermark
-        ? renderVisual(
-            project.watermark as ProjectVisual,
-            `${project.href}-watermark-cycle`,
-          )
+        ? renderVisual(project.watermark as ProjectVisual, `${project.href}-watermark-cycle`)
         : null}
       <Box sx={{ display: "flex", justifyContent: "flex-end", position: "relative", zIndex: 1 }}>
         <Chip
@@ -212,10 +200,7 @@ function renderProjectContent(
             <Typography variant="subtitle1" gutterBottom>
               {sectionLabels.interestHeading}
             </Typography>
-            <MarkdownContent
-              content={project.interestsMeWhy}
-              className="leading-6"
-            />
+            <MarkdownContent content={project.interestsMeWhy} className="leading-6" />
           </Box>
         ) : null}
         {project.accolades && project.accolades.length > 0 ? (
@@ -257,13 +242,12 @@ type ProjectsGridProps = {
 export default function ProjectsGrid({ topRail }: ProjectsGridProps) {
   const { projects, projectsSection } = useResumeData();
   const sortedProjects = React.useMemo(
-    () =>
-      [...projects].sort((left, right) => left.name.localeCompare(right.name)),
+    () => [...projects].sort((left, right) => left.name.localeCompare(right.name)),
     [projects],
   );
-  const [activeProjectKey, setActiveProjectKey] = React.useState<
-    string | undefined
-  >(sortedProjects[0]?.href);
+  const [activeProjectKey, setActiveProjectKey] = React.useState<string | undefined>(
+    sortedProjects[0]?.href,
+  );
 
   React.useEffect(() => {
     setActiveProjectKey(sortedProjects[0]?.href);
@@ -320,12 +304,8 @@ export default function ProjectsGrid({ topRail }: ProjectsGridProps) {
           optionImageAlt: `${project.name} preview`,
           selectedImageSrc: optionImageSrc,
           selectedImageAlt: `${project.name} preview`,
-          selectedIcon: optionImageSrc ? undefined : (
-            <AutoStoriesOutlined fontSize="small" />
-          ),
-          optionIcon: optionImageSrc ? undefined : (
-            <AutoStoriesOutlined fontSize="small" />
-          ),
+          selectedIcon: optionImageSrc ? undefined : <AutoStoriesOutlined fontSize="small" />,
+          optionIcon: optionImageSrc ? undefined : <AutoStoriesOutlined fontSize="small" />,
         };
       }),
     [sortedProjects],
@@ -376,60 +356,60 @@ export default function ProjectsGrid({ topRail }: ProjectsGridProps) {
       }}
     >
       <Box
-      className="relative overflow-hidden"
-      sx={{
-        minHeight: 0,
-        flex: "1 1 auto",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
-    >
-      <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-36 overflow-hidden md:block">
-        {projectsSection.marks.map((mark, index) =>
-          mark.kind === "image" ? (
-            <div
-              key={`${mark.src}-${index}`}
-              className={`absolute rounded-[28px] border border-white/10 bg-white/5 p-4 opacity-30 blur-[0.2px] transition-transform duration-500 ${mark.className ?? ""}`}
-            >
-              {renderVisual(mark as ImageVisual, `projects-mark-${index}`)}
-            </div>
-          ) : (
-            renderVisual(mark as CardsFanVisual, `projects-mark-${index}`)
-          ),
-        )}
-      </div>
-      {hasMultipleProjectItems ? (
-        <Box sx={{ py: 1.25 }}>
-          <SubsectionPager
-            menuId="project-item-selector-menu"
-            items={projectPickerItems}
-            currentKey={activeProjectKey}
-            selectedValueAsTitle
-            selectedVisualSize={38}
-            selectedIconFontSize="1.35rem"
-            previousAriaLabel="Previous project"
-            nextAriaLabel="Next project"
-            selectorAriaLabel="Open project selector"
-            onSelect={setActiveProjectKey}
-            onPrevious={handlePreviousProject}
-            onNext={handleNextProject}
+        className="relative overflow-hidden"
+        sx={{
+          minHeight: 0,
+          flex: "1 1 auto",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-36 overflow-hidden md:block">
+          {projectsSection.marks.map((mark, index) =>
+            mark.kind === "image" ? (
+              <div
+                key={`${mark.src}-${index}`}
+                className={`absolute rounded-[28px] border border-white/10 bg-white/5 p-4 opacity-30 blur-[0.2px] transition-transform duration-500 ${mark.className ?? ""}`}
+              >
+                {renderVisual(mark as ImageVisual, `projects-mark-${index}`)}
+              </div>
+            ) : (
+              renderVisual(mark as CardsFanVisual, `projects-mark-${index}`)
+            ),
+          )}
+        </div>
+        {hasMultipleProjectItems ? (
+          <Box sx={{ py: 1.25 }}>
+            <SubsectionPager
+              menuId="project-item-selector-menu"
+              items={projectPickerItems}
+              currentKey={activeProjectKey}
+              selectedValueAsTitle
+              selectedVisualSize={38}
+              selectedIconFontSize="1.35rem"
+              previousAriaLabel="Previous project"
+              nextAriaLabel="Next project"
+              selectorAriaLabel="Open project selector"
+              onSelect={setActiveProjectKey}
+              onPrevious={handlePreviousProject}
+              onNext={handleNextProject}
+            />
+          </Box>
+        ) : null}
+
+        <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden", pt: 0.5 }}>
+          <MediaCycler
+            items={projectItems}
+            singlePanel
+            singlePanelActiveKey={activeProjectKey}
+            showChevronNavigation={false}
+            stackSx={{
+              minHeight: 0,
+              height: "100%",
+            }}
           />
         </Box>
-      ) : null}
-
-      <Box sx={{ minHeight: 0, flex: "1 1 auto", overflow: "hidden", pt: 0.5 }}>
-        <MediaCycler
-          items={projectItems}
-          singlePanel
-          singlePanelActiveKey={activeProjectKey}
-          showChevronNavigation={false}
-          stackSx={{
-            minHeight: 0,
-            height: "100%",
-          }}
-        />
-      </Box>
       </Box>
     </PortfolioPanelShell>
   );

@@ -1,14 +1,13 @@
 /**
  * Audio manager passed into the engine for playing & stopping sounds.
  */
-export interface AudioMgr
-  extends Record<
-    string,
-    | (() => void)
-    | ((key: string) => void)
-    | ((key: string, options?: { loop?: boolean; volume?: number }) => void)
-    | ((keys: string[], options?: { loop?: boolean; volume?: number }) => void)
-  > {
+export interface AudioMgr extends Record<
+  string,
+  | (() => void)
+  | ((key: string) => void)
+  | ((key: string, options?: { loop?: boolean; volume?: number }) => void)
+  | ((keys: string[], options?: { loop?: boolean; volume?: number }) => void)
+> {
   /**
    * Play a sound by key.
    * @param key     Identifier matching your loaded audio asset.
@@ -21,10 +20,7 @@ export interface AudioMgr
    * @param keys    Ordered list of identifiers matching loaded audio assets.
    * @param options Optional looping/volume controls applied to each sound.
    */
-  playSequence: (
-    keys: string[],
-    options?: { loop?: boolean; volume?: number }
-  ) => void;
+  playSequence: (keys: string[], options?: { loop?: boolean; volume?: number }) => void;
 
   /**
    * Pause a sound by key.

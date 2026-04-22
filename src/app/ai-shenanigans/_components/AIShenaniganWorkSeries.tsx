@@ -34,9 +34,7 @@ type SeriesMediaPart = {
   caption?: string;
 };
 
-type RevealStep =
-  | { kind: "work"; index: number }
-  | { kind: "series"; index: number };
+type RevealStep = { kind: "work"; index: number } | { kind: "series"; index: number };
 
 type AIShenaniganWorkSeriesProps = {
   rank: number;
@@ -136,8 +134,7 @@ export default function AIShenaniganWorkSeries({
     border: "1px solid",
     borderColor: "var(--fabric-surface-border)",
     backgroundColor: "var(--fabric-surface-1)",
-    backgroundImage:
-      "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
+    backgroundImage: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
     boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
     backdropFilter: "blur(var(--fabric-blur-sm))",
   } as const;
@@ -293,8 +290,7 @@ export default function AIShenaniganWorkSeries({
     [clearScrollStabilizers, scrollPanelIntoView],
   );
 
-  const getWorkLabel = (index: number) =>
-    `${title} - Part ${index + 1} of ${totalWorkParts}`;
+  const getWorkLabel = (index: number) => `${title} - Part ${index + 1} of ${totalWorkParts}`;
   const getSeriesLabel = (index: number) =>
     `${title} - Series - Part ${index + 1} of ${totalSeriesParts}`;
 
@@ -327,11 +323,7 @@ export default function AIShenaniganWorkSeries({
     }
 
     return (
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        sx={{ mt: 1.5, display: "block" }}
-      >
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: "block" }}>
         Source:{" "}
         {href ? (
           <Link
@@ -375,8 +367,7 @@ export default function AIShenaniganWorkSeries({
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           transform: `rotate(${rightsStampAngle}deg)`,
-          boxShadow:
-            "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
+          boxShadow: "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
           textShadow: "0 1px 0 rgba(255,255,255,0.3)",
           opacity: 0.92,
         }}
@@ -413,10 +404,7 @@ export default function AIShenaniganWorkSeries({
     );
   };
 
-  const renderMobilePanelHeader = (
-    subtitle: string,
-    source?: string,
-  ) => {
+  const renderMobilePanelHeader = (subtitle: string, source?: string) => {
     if (!isSmDown) {
       return null;
     }
@@ -425,21 +413,12 @@ export default function AIShenaniganWorkSeries({
 
     return (
       <Box sx={{ mb: 1.25 }}>
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="flex-start"
-          justifyContent="space-between"
-        >
+        <Stack direction="row" spacing={1} alignItems="flex-start" justifyContent="space-between">
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography variant="h6" sx={{ lineHeight: 1.15 }}>
               {title}
             </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 0.35, lineHeight: 1.3 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35, lineHeight: 1.3 }}>
               {subtitleLine}
             </Typography>
           </Box>
@@ -677,10 +656,7 @@ export default function AIShenaniganWorkSeries({
       const hasNextChip = chipPosition < displayedIndices.length - 1;
 
       return (
-        <Box
-          key={`${scope}-${item.key}`}
-          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-        >
+        <Box key={`${scope}-${item.key}`} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Chip
             label={item.label}
             color={item.active ? "primary" : "default"}
@@ -843,10 +819,7 @@ export default function AIShenaniganWorkSeries({
       }}
       sx={mediaPanelSx}
     >
-      {renderMobilePanelHeader(
-        getWorkLabel(index),
-        part.source,
-      )}
+      {renderMobilePanelHeader(getWorkLabel(index), part.source)}
       {!isSmDown && (
         <>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
@@ -861,10 +834,7 @@ export default function AIShenaniganWorkSeries({
         part.src,
         `${title} ${getWorkLabel(index)}`,
         () => {
-          scrollRevealIntoView(
-            workCardRefs.current[index],
-            workFooterRefs.current[index],
-          );
+          scrollRevealIntoView(workCardRefs.current[index], workFooterRefs.current[index]);
         },
         index > 0 ? () => rewindToStep({ kind: "work", index: index - 1 }) : undefined,
         () => {
@@ -873,8 +843,7 @@ export default function AIShenaniganWorkSeries({
         transitioning !== null || index <= 0,
         transitioning !== null ||
           !(
-            (nextStep()?.kind === "work" &&
-              nextStep()?.index === index + 1) ||
+            (nextStep()?.kind === "work" && nextStep()?.index === index + 1) ||
             (nextStep()?.kind === "series" && index === totalWorkParts - 1)
           ),
         index === revealedWorkCount - 1 && nextStep() === null,
@@ -885,11 +854,7 @@ export default function AIShenaniganWorkSeries({
       )}
       {!isSmDown && renderSource(part.source, part.sourceHref)}
       {!isSmDown && part.caption && (
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ mt: part.source ? 0.75 : 1.5 }}
-        >
+        <Typography variant="body2" color="text.secondary" sx={{ mt: part.source ? 0.75 : 1.5 }}>
           {part.caption}
         </Typography>
       )}
@@ -953,21 +918,15 @@ export default function AIShenaniganWorkSeries({
             rewindToStep({ kind: "series", index: index + 1 });
           }
         }}
-        disableChevronPrevious={
-          transitioning !== null || (index === 0 && totalWorkParts === 0)
-        }
+        disableChevronPrevious={transitioning !== null || (index === 0 && totalWorkParts === 0)}
         disableChevronNext={
           transitioning !== null ||
           !(
             index < revealedSeriesCount - 1 ||
-            (index === revealedSeriesCount - 1 &&
-              nextStep()?.kind === "series")
+            (index === revealedSeriesCount - 1 && nextStep()?.kind === "series")
           )
         }
-        loopNavigation={
-          index === revealedSeriesCount - 1 &&
-          nextStep() === null
-        }
+        loopNavigation={index === revealedSeriesCount - 1 && nextStep() === null}
         onLoopNavigation={() => {
           if (totalWorkParts > 0) {
             rewindToStep({ kind: "work", index: 0 });
@@ -1005,10 +964,7 @@ export default function AIShenaniganWorkSeries({
             autoPlay: index === revealedSeriesCount - 1,
             playsInline: true,
             onMediaLoaded: () => {
-              scrollRevealIntoView(
-                seriesCardRefs.current[index],
-                seriesFooterRefs.current[index],
-              );
+              scrollRevealIntoView(seriesCardRefs.current[index], seriesFooterRefs.current[index]);
             },
             onMediaActivate: () => {
               if (transitioning) {
@@ -1041,8 +997,7 @@ export default function AIShenaniganWorkSeries({
               minHeight: 0,
               display: "flex",
             },
-            previewVideoClassName:
-              "block w-full rounded-[22px] bg-black/10 object-contain",
+            previewVideoClassName: "block w-full rounded-[22px] bg-black/10 object-contain",
             previewVideoSx: {
               aspectRatio: mediaAspectRatio,
               maxWidth: mediaMaxWidth,
@@ -1278,9 +1233,7 @@ export default function AIShenaniganWorkSeries({
                 md: hasVisibleMedia ? 0 : "0px",
               },
               opacity: hasVisibleMedia ? 1 : 0,
-              transform: hasVisibleMedia
-                ? "translate3d(0, 0, 0)"
-                : "translate3d(28px, 0, 0)",
+              transform: hasVisibleMedia ? "translate3d(0, 0, 0)" : "translate3d(28px, 0, 0)",
               pointerEvents: hasVisibleMedia ? "auto" : "none",
               order: { xs: 1, md: 1 },
               transition:
@@ -1293,10 +1246,7 @@ export default function AIShenaniganWorkSeries({
 
             {current?.kind === "series" &&
               normalizedSeriesParts[current.index] &&
-              renderSeriesPart(
-                normalizedSeriesParts[current.index],
-                current.index,
-              )}
+              renderSeriesPart(normalizedSeriesParts[current.index], current.index)}
           </Stack>
         </Stack>
       </Stack>

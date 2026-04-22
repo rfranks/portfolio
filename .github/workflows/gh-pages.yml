@@ -22,7 +22,7 @@ jobs:
           git lfs uninstall;
           rm -Rf .git;
           rm .gitattributes;
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -32,11 +32,17 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Local quality gate parity (same as pre-push / pre-pr)
+        run: npm run prepr
+
       - name: Build
         run: npm run build
         env:
           NEXT_PUBLIC_BASE_PATH: "/portfolio"
-      
+
+      - name: Bundle budget checks
+        run: npm run check:bundle-budget
+
       - uses: actions/setup-go@v3
         with:
           go-version: "1.18.0"
@@ -46,7 +52,6 @@ jobs:
           cd ./go/blackjack
           GOOS=js GOARCH=wasm go build -o ../../out/apps/blackjack/wasm/main.wasm
           cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../../out/apps/blackjack/js/
-
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3

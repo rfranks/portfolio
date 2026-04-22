@@ -69,24 +69,14 @@ export interface PathForgerGeneratedImage {
 
 export type PathForgerOnboardingInput = z.infer<typeof onboardingInputSchema>;
 export type RunPathForgerPipelineInput = z.infer<typeof runPipelineInputSchema>;
-export type RunPathForgerPitchStageInput = z.infer<
-  typeof runPitchStageInputSchema
->;
+export type RunPathForgerPitchStageInput = z.infer<typeof runPitchStageInputSchema>;
 export type RunPathForgerProtagonistNameStageInput = z.infer<
   typeof runProtagonistNameStageInputSchema
 >;
-export type RunPathForgerVisualStyleStageInput = z.infer<
-  typeof runVisualStyleStageInputSchema
->;
-export type RunPathForgerPremiseStageInput = z.infer<
-  typeof runPremiseStageInputSchema
->;
-export type RunPathForgerToneStageInput = z.infer<
-  typeof runToneStageInputSchema
->;
-export type RunPathForgerImageStageInput = z.infer<
-  typeof runImageStageInputSchema
->;
+export type RunPathForgerVisualStyleStageInput = z.infer<typeof runVisualStyleStageInputSchema>;
+export type RunPathForgerPremiseStageInput = z.infer<typeof runPremiseStageInputSchema>;
+export type RunPathForgerToneStageInput = z.infer<typeof runToneStageInputSchema>;
+export type RunPathForgerImageStageInput = z.infer<typeof runImageStageInputSchema>;
 export type RunPathForgerPathLedgerUpdateStageInput = z.infer<
   typeof runPathLedgerUpdateStageInputSchema
 >;
@@ -95,15 +85,9 @@ export type PathForgerPitchResult = z.infer<typeof pathForgerPitchResultSchema>;
 export type RunPathForgerCoverFromPitchStageInput = z.infer<
   typeof runCoverFromPitchStageInputSchema
 >;
-export type PathForgerChapterResult = z.infer<
-  typeof pathForgerChapterResultSchema
->;
-export type RunPathForgerChapterStageInput = z.infer<
-  typeof runChapterStageInputSchema
->;
-export type RunPathForgerOutcomeImageStageInput = z.infer<
-  typeof runOutcomeImageStageInputSchema
->;
+export type PathForgerChapterResult = z.infer<typeof pathForgerChapterResultSchema>;
+export type RunPathForgerChapterStageInput = z.infer<typeof runChapterStageInputSchema>;
+export type RunPathForgerOutcomeImageStageInput = z.infer<typeof runOutcomeImageStageInputSchema>;
 
 export interface PathForgerPipelineResult {
   pitches: PathForgerPitchResult;

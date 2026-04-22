@@ -10,12 +10,7 @@ import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { alpha } from "@mui/material/styles";
-import {
-  EmojiGlyph,
-  ImageLightbox,
-  MarkdownContent,
-  MediaCycler,
-} from "@/components/shared";
+import { EmojiGlyph, ImageLightbox, MarkdownContent, MediaCycler } from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
 import AIShenaniganPanel from "./AIShenaniganPanel";
 import { withBasePath } from "@/utils/basePath";
@@ -68,9 +63,7 @@ export default function AIShenaniganSongRecording({
   const [isLyricsLoading, setIsLyricsLoading] = useState(false);
   const [hasLyricsError, setHasLyricsError] = useState(false);
   const [songRevealed, setSongRevealed] = useState(false);
-  const [activeSongPanelKey, setActiveSongPanelKey] = useState<
-    "album" | "lyrics"
-  >("album");
+  const [activeSongPanelKey, setActiveSongPanelKey] = useState<"album" | "lyrics">("album");
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
   const pendingAudioSyncRef = useRef(false);
   const audioSnapshotRef = useRef({
@@ -123,8 +116,7 @@ export default function AIShenaniganSongRecording({
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           transform: `rotate(${rightsStampAngle}deg)`,
-          boxShadow:
-            "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
+          boxShadow: "0 0 0 2px rgba(255,255,255,0.22) inset, 0 10px 24px rgba(127,29,29,0.18)",
           textShadow: "0 1px 0 rgba(255,255,255,0.3)",
           opacity: 0.92,
         }}
@@ -194,11 +186,7 @@ export default function AIShenaniganSongRecording({
     }
 
     return (
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        sx={{ display: "block", mt: 1 }}
-      >
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
         Source:{" "}
         {href ? (
           <Link href={href} target="_blank" rel="noreferrer">
@@ -302,9 +290,7 @@ export default function AIShenaniganSongRecording({
     </Box>
   );
 
-  const songPanelOrder: ("album" | "lyrics")[] = hasLyricsPanel
-    ? ["album", "lyrics"]
-    : ["album"];
+  const songPanelOrder: ("album" | "lyrics")[] = hasLyricsPanel ? ["album", "lyrics"] : ["album"];
 
   const songPanelItems: MediaCyclerItem[] = (() => {
     const items: MediaCyclerItem[] = [
@@ -563,11 +549,7 @@ export default function AIShenaniganSongRecording({
                   {title}
                 </Typography>
                 {renderCredits()}
-                {!isInfoPanelMinimized && (
-                  <Typography color="text.secondary">
-                    {blurb}
-                  </Typography>
-                )}
+                {!isInfoPanelMinimized && <Typography color="text.secondary">{blurb}</Typography>}
                 {!songRevealed ? (
                   <Box
                     sx={{
@@ -598,11 +580,7 @@ export default function AIShenaniganSongRecording({
                 sx={{
                   minWidth: 0,
                   flex: {
-                    xs: hasVisibleMedia
-                      ? isSmDown
-                        ? "1 1 0px"
-                        : "1 1 0px"
-                      : "0 0 auto",
+                    xs: hasVisibleMedia ? (isSmDown ? "1 1 0px" : "1 1 0px") : "0 0 auto",
                     md: "1 1 0%",
                   },
                   width: { xs: "100%", md: 0 },
@@ -644,9 +622,7 @@ export default function AIShenaniganSongRecording({
                     showChevronNavigation={songPanelOrder.length > 1}
                     hideDisabledNextChevron
                     disableChevronPrevious={activeSongPanelIndex <= 0}
-                    disableChevronNext={
-                      activeSongPanelIndex >= songPanelOrder.length - 1
-                    }
+                    disableChevronNext={activeSongPanelIndex >= songPanelOrder.length - 1}
                     onChevronPrevious={() => {
                       if (activeSongPanelIndex <= 0) {
                         return;

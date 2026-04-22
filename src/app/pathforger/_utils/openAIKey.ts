@@ -1,16 +1,9 @@
 "use client";
 
-import {
-  getAppOpenAIKey,
-  hasAppOpenAIKey,
-  setAppOpenAIKey,
-} from "@/utils/openAIKeyStorage";
+import { getAppOpenAIKey, hasAppOpenAIKey, setAppOpenAIKey } from "@/utils/openAIKeyStorage";
 
 const STORAGE_KEY = "pathforger-openai-key";
-const STORAGE_FALLBACK_KEYS = [
-  "rickbert-openai-key",
-  "talentforge-openai-key",
-];
+const STORAGE_FALLBACK_KEYS = ["rickbert-openai-key", "talentforge-openai-key"];
 
 export function getPathForgerOpenAIKey(): string {
   return getAppOpenAIKey({

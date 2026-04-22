@@ -2,11 +2,8 @@ import { toJSONSchema, z } from "zod";
 
 import { ensureOpenAIKey } from "@/contexts/OpenAIKeyContext";
 import type { AIPrompt } from "@/types/ai/prompt";
-import {
-  sequenceListSchema,
-  sequenceSchema,
-  type Sequence,
-} from "../_types/types";
+import { requestOpenAIChatCompletions } from "@/utils/openai/client";
+import { sequenceListSchema, sequenceSchema, type Sequence } from "../_types/types";
 
 const fastaPayloadSchema = z.object({
   filename: z.string().min(1),
@@ -35,12 +32,8 @@ export const sequenceAnalysisExplainOutputSchema = z.object({
 });
 
 export type SequenceAnalysisInput = z.infer<typeof sequenceAnalysisInputSchema>;
-export type SequenceAnalysisOutput = z.infer<
-  typeof sequenceAnalysisOutputSchema
->;
-export type SequenceAnalysisExplainOutput = z.infer<
-  typeof sequenceAnalysisExplainOutputSchema
->;
+export type SequenceAnalysisOutput = z.infer<typeof sequenceAnalysisOutputSchema>;
+export type SequenceAnalysisExplainOutput = z.infer<typeof sequenceAnalysisExplainOutputSchema>;
 
 export const sequenceAnalysisPrompt: AIPrompt<
   typeof sequenceAnalysisInputSchema,
@@ -68,7 +61,7 @@ export const sequenceAnalysisPrompt: AIPrompt<
       "Use only evidence available from the supplied sequences.",
       "Highlight meaningful differences in composition, ambiguity, sequence length, and any obvious coding or structural contrasts.",
       "Do not invent biological provenance or certainty beyond what the data supports.",
-      'The response must cover these sections: Comparison of Nucleotide Sequences, Characteristics, Differentiators, Sequence Analysis Implications, Evolutionary Relationships, Summary.',
+      "The response must cover these sections: Comparison of Nucleotide Sequences, Characteristics, Differentiators, Sequence Analysis Implications, Evolutionary Relationships, Summary.",
     ].join("\n");
   },
 };
@@ -91,7 +84,7 @@ export const sequenceAnalysisExplainPrompt: AIPrompt<
       "Do not answer the biological question itself.",
       "Describe the reasoning approach, what evidence in the sequence data matters most, and how you would avoid overclaiming.",
       `The analysis target is ${scope}.`,
-      'Return a concise explanation suitable to show while the full answer is still being generated.',
+      "Return a concise explanation suitable to show while the full answer is still being generated.",
     ].join("\n");
   },
 };
@@ -120,9 +113,7 @@ function buildFasta(sequence: Sequence): z.infer<typeof fastaPayloadSchema> {
   };
 }
 
-export function buildSequenceAnalysisInput(
-  sequences: Sequence[],
-): SequenceAnalysisInput {
+export function buildSequenceAnalysisInput(sequences: Sequence[]): SequenceAnalysisInput {
   const parsedSequences = sequenceListSchema.parse(sequences);
 
   if (parsedSequences.length === 1) {
@@ -179,49 +170,31 @@ export async function runAIPrompt<
   const apiKey = ensureOpenAIKey();
   const input = prompt.inputSchema.parse(rawInput);
   const outputJsonSchema = toJSONSchema(prompt.outputSchema);
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-5-2025-08-07",
-      messages: [
-        {
-          role: "system",
-          content: [
-            "You are a careful bioinformatics assistant.",
-            "Return only valid JSON.",
-            "The JSON must satisfy the provided output schema exactly.",
-          ].join(" "),
-        },
-        {
-          role: "user",
-          content: [
-            prompt.promptText(input),
-            "",
-            "Input payload:",
-            JSON.stringify(input, null, 2),
-            "",
-            "Output JSON schema:",
-            JSON.stringify(outputJsonSchema, null, 2),
-          ].join("\n"),
-        },
-      ],
-    }),
+  const data = await requestOpenAIChatCompletions(apiKey, {
+    model: "gpt-5-2025-08-07",
+    messages: [
+      {
+        role: "system",
+        content: [
+          "You are a careful bioinformatics assistant.",
+          "Return only valid JSON.",
+          "The JSON must satisfy the provided output schema exactly.",
+        ].join(" "),
+      },
+      {
+        role: "user",
+        content: [
+          prompt.promptText(input),
+          "",
+          "Input payload:",
+          JSON.stringify(input, null, 2),
+          "",
+          "Output JSON schema:",
+          JSON.stringify(outputJsonSchema, null, 2),
+        ].join("\n"),
+      },
+    ],
   });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    throw new Error(
-      `OpenAI request failed: ${response.status} ${errorText}`.trim(),
-    );
-  }
-
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: unknown } }>;
-  };
   const content = extractTextContent(data?.choices?.[0]?.message?.content);
 
   if (!content) {

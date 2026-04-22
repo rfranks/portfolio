@@ -39,8 +39,7 @@ export default function getDnaTheme(mode: PaletteMode) {
       borderRadius: 10,
     },
     typography: {
-      fontFamily:
-        '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
     },
   });
 
@@ -49,33 +48,18 @@ export default function getDnaTheme(mode: PaletteMode) {
       MuiCssBaseline: {
         styleOverrides: {
           body: {
-            "--dna-surface-1": isDark
-              ? alpha("#0f172a", 0.88)
-              : alpha("#ffffff", 0.88),
-            "--dna-surface-2": isDark
-              ? alpha("#1f2937", 0.86)
-              : alpha("#ffffff", 0.96),
-            "--dna-surface-3": isDark
-              ? alpha("#334155", 0.92)
-              : "#ffffff",
-            "--dna-surface-border": alpha(
-              theme.palette.divider,
-              isDark ? 0.82 : 0.72
-            ),
-            "--dna-surface-border-strong": alpha(
-              theme.palette.primary.main,
-              isDark ? 0.42 : 0.22
-            ),
+            "--dna-surface-1": isDark ? alpha("#0f172a", 0.88) : alpha("#ffffff", 0.88),
+            "--dna-surface-2": isDark ? alpha("#1f2937", 0.86) : alpha("#ffffff", 0.96),
+            "--dna-surface-3": isDark ? alpha("#334155", 0.92) : "#ffffff",
+            "--dna-surface-border": alpha(theme.palette.divider, isDark ? 0.82 : 0.72),
+            "--dna-surface-border-strong": alpha(theme.palette.primary.main, isDark ? 0.42 : 0.22),
             "--dna-shadow-soft": isDark
               ? "0 16px 40px rgba(2, 8, 23, 0.42)"
               : "0 12px 32px rgba(21, 101, 192, 0.12)",
             "--dna-shadow-tight": isDark
               ? "0 8px 24px rgba(2, 8, 23, 0.34)"
               : "0 8px 20px rgba(21, 101, 192, 0.1)",
-            "--dna-inner-glow": alpha(
-              theme.palette.common.white,
-              isDark ? 0.06 : 0.78
-            ),
+            "--dna-inner-glow": alpha(theme.palette.common.white, isDark ? 0.06 : 0.78),
             "--fabric-bg-base": background.default,
             "--fabric-surface-1": "var(--dna-surface-1)",
             "--fabric-surface-2": "var(--dna-surface-2)",

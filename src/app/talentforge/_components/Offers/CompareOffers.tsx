@@ -58,15 +58,11 @@ const describeOffer = (offer: Offer) => {
   const roleTitle = offer.application?.role?.title;
   const company = offer.application?.role?.company;
   if (roleTitle || company) {
-    lines.push(
-      [roleTitle, company].filter(Boolean).join(" at ") || ""
-    );
+    lines.push([roleTitle, company].filter(Boolean).join(" at ") || "");
   }
   offer.compensation.forEach((comp) => {
     const amount = formatCurrency(comp.amount);
-    lines.push(
-      `${toTitleCase(comp.type)}: ${amount}${comp.notes ? ` (${comp.notes})` : ""}`,
-    );
+    lines.push(`${toTitleCase(comp.type)}: ${amount}${comp.notes ? ` (${comp.notes})` : ""}`);
   });
   (offer.summary || []).forEach((line) => {
     if (line.trim()) {
@@ -165,8 +161,7 @@ export default function CompareOffers() {
   }, [selectedOfferA, selectedOfferB]);
 
   const hasEnoughOffers = offers.length >= 2;
-  const offersMatch =
-    selectedOfferA && selectedOfferB && selectedOfferA.id === selectedOfferB.id;
+  const offersMatch = selectedOfferA && selectedOfferB && selectedOfferA.id === selectedOfferB.id;
   const canCompare =
     hasEnoughOffers && selectedOfferA && selectedOfferB && !offersMatch && !loading;
 
@@ -308,9 +303,7 @@ export default function CompareOffers() {
           <Alert severity="info">Add another offer to enable side-by-side comparison.</Alert>
         )}
 
-        {offersMatch && (
-          <Alert severity="warning">Select two different offers to compare.</Alert>
-        )}
+        {offersMatch && <Alert severity="warning">Select two different offers to compare.</Alert>}
 
         <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
           <Button variant="contained" onClick={handleCompare} disabled={!canCompare}>
@@ -347,8 +340,12 @@ export default function CompareOffers() {
                 <TableHead>
                   <TableRow>
                     <TableCell>Component</TableCell>
-                    <TableCell>{getOfferLabel(selectedOfferA, offers.indexOf(selectedOfferA))}</TableCell>
-                    <TableCell>{getOfferLabel(selectedOfferB, offers.indexOf(selectedOfferB))}</TableCell>
+                    <TableCell>
+                      {getOfferLabel(selectedOfferA, offers.indexOf(selectedOfferA))}
+                    </TableCell>
+                    <TableCell>
+                      {getOfferLabel(selectedOfferB, offers.indexOf(selectedOfferB))}
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -382,7 +379,10 @@ export default function CompareOffers() {
                   <List dense sx={{ listStyleType: "disc", pl: 2 }}>
                     {selectedOfferA.summary.map((line, idx) => (
                       <ListItem key={idx} sx={{ display: "list-item", py: 0 }}>
-                        <ListItemText primary={line} primaryTypographyProps={{ variant: "body2" }} />
+                        <ListItemText
+                          primary={line}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
                       </ListItem>
                     ))}
                   </List>
@@ -400,7 +400,10 @@ export default function CompareOffers() {
                   <List dense sx={{ listStyleType: "disc", pl: 2 }}>
                     {selectedOfferB.summary.map((line, idx) => (
                       <ListItem key={idx} sx={{ display: "list-item", py: 0 }}>
-                        <ListItemText primary={line} primaryTypographyProps={{ variant: "body2" }} />
+                        <ListItemText
+                          primary={line}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
                       </ListItem>
                     ))}
                   </List>

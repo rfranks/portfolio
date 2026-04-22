@@ -19,8 +19,7 @@ const Hero = styled(Box)<BoxProps>(({ theme }) => ({
     position: "absolute",
     inset: 0,
     borderRadius: "inherit",
-    background:
-      "linear-gradient(180deg, var(--fabric-inner-glow), transparent 36%)",
+    background: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 36%)",
     pointerEvents: "none",
   },
 }));

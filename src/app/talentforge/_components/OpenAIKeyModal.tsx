@@ -20,19 +20,13 @@ import { Close } from "@mui/icons-material";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 import { validateOpenAIKey } from "@/app/talentforge/_utils/utils";
 
-export interface OpenAIKeyModalProps
-  extends Omit<DialogProps, "open" | "onClose"> {
+export interface OpenAIKeyModalProps extends Omit<DialogProps, "open" | "onClose"> {
   open?: boolean;
   onClose?: () => void;
 }
 
-export default function OpenAIKeyModal({
-  open = false,
-  onClose,
-  ...props
-}: OpenAIKeyModalProps) {
-  const { key: storedKey, persist, setKey, setPersist, setValidity } =
-    useOpenAIKey();
+export default function OpenAIKeyModal({ open = false, onClose, ...props }: OpenAIKeyModalProps) {
+  const { key: storedKey, persist, setKey, setPersist, setValidity } = useOpenAIKey();
   const [draftKey, setDraftKey] = React.useState(storedKey);
 
   React.useEffect(() => {
@@ -55,9 +49,7 @@ export default function OpenAIKeyModal({
     handleClose();
   };
 
-  const handlePersistChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handlePersistChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.checked;
     setPersist(value);
   };
@@ -103,9 +95,9 @@ export default function OpenAIKeyModal({
       </DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ mb: 2 }}>
-          Your key is stored only in your browser and never sent to our servers.
-          By default it is kept for this session and cleared when you close the
-          tab. Enable persistence to save it across sessions. See our
+          Your key is stored only in your browser and never sent to our servers. By default it is
+          kept for this session and cleared when you close the tab. Enable persistence to save it
+          across sessions. See our
           <Link
             href="https://docs.talentforge.dev/openai-key"
             target="_blank"

@@ -15,10 +15,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
 import Tooltip from "@mui/material/Tooltip";
-import {
-  Menu,
-  ChevronLeft,
-} from "@mui/icons-material";
+import { Menu, ChevronLeft } from "@mui/icons-material";
 import AppBar from "@/components/portfolio/layout/AppBar";
 import Drawer from "@/components/portfolio/layout/Drawer";
 import ResumeOverview from "@/components/portfolio/panels/ResumeOverview";
@@ -37,10 +34,7 @@ import {
   renderNavigationIcon,
   type NavigationIconType,
 } from "@/components/portfolio/layout/navigationIcons";
-import {
-  GLOBAL_COLOR_MODE_STORAGE_KEY,
-  LEGACY_COLOR_MODE_STORAGE_KEYS,
-} from "@/consts/colorMode";
+import { GLOBAL_COLOR_MODE_STORAGE_KEY, LEGACY_COLOR_MODE_STORAGE_KEYS } from "@/consts/colorMode";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
@@ -101,9 +95,7 @@ type DrawerNavigationItem = {
   icon?: string;
   iconType?: NavigationIconType;
 };
-const normalizeNavigationIconType = (
-  iconType: unknown,
-): NavigationIconType =>
+const normalizeNavigationIconType = (iconType: unknown): NavigationIconType =>
   iconType === "emoji" ? "emoji" : "material";
 
 export default function HomePageClient() {
@@ -112,10 +104,7 @@ export default function HomePageClient() {
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
     legacyStorageKeys: LEGACY_COLOR_MODE_STORAGE_KEYS,
   });
-  const defaultTheme = useMemo(
-    () => getFabricTheme(mode),
-    [mode],
-  );
+  const defaultTheme = useMemo(() => getFabricTheme(mode), [mode]);
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
   const tocSections = useMemo<HomeSectionPagerItem[]>(() => {
@@ -173,12 +162,8 @@ export default function HomePageClient() {
       ...remainingDrawerItems,
     ];
   }, [navigation.drawerItems]);
-  const [activeSectionId, setActiveSectionId] = useState<string>(
-    tocSections[0]?.id ?? "hero",
-  );
-  const [displaySectionId, setDisplaySectionId] = useState<string>(
-    tocSections[0]?.id ?? "hero",
-  );
+  const [activeSectionId, setActiveSectionId] = useState<string>(tocSections[0]?.id ?? "hero");
+  const [displaySectionId, setDisplaySectionId] = useState<string>(tocSections[0]?.id ?? "hero");
   const [outgoingSectionId, setOutgoingSectionId] = useState<string | null>(null);
   const [sectionDirection, setSectionDirection] = useState<1 | -1>(1);
   const [isSectionTransitioning, setIsSectionTransitioning] = useState(false);
@@ -245,9 +230,7 @@ export default function HomePageClient() {
         return null;
       }
       const decodedHash = decodeURIComponent(rawHash);
-      return tocSections.some((section) => section.id === decodedHash)
-        ? decodedHash
-        : null;
+      return tocSections.some((section) => section.id === decodedHash) ? decodedHash : null;
     },
     [tocSections],
   );
@@ -297,28 +280,22 @@ export default function HomePageClient() {
     [tocSections, updateHashForSection],
   );
 
-  const handleTocClick = (
-    event: React.MouseEvent<HTMLAnchorElement>,
-    sectionId: string,
-  ) => {
+  const handleTocClick = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     event.preventDefault();
     navigateToSection(sectionId);
   };
 
-  const isInteractiveSectionSwipeTarget = useCallback(
-    (target: EventTarget | null) => {
-      if (!(target instanceof HTMLElement)) {
-        return false;
-      }
+  const isInteractiveSectionSwipeTarget = useCallback((target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
 
-      return Boolean(
-        target.closest(
-          "a,button,input,textarea,select,summary,[role='button'],[role='link'],[data-no-swipe='true']",
-        ),
-      );
-    },
-    [],
-  );
+    return Boolean(
+      target.closest(
+        "a,button,input,textarea,select,summary,[role='button'],[role='link'],[data-no-swipe='true']",
+      ),
+    );
+  }, []);
 
   const navigateRelativeSection = useCallback(
     (offset: number) => {
@@ -326,9 +303,7 @@ export default function HomePageClient() {
         return;
       }
 
-      const currentIndex = tocSections.findIndex(
-        (section) => section.id === activeSectionId,
-      );
+      const currentIndex = tocSections.findIndex((section) => section.id === activeSectionId);
       if (currentIndex < 0) {
         return;
       }
@@ -364,26 +339,23 @@ export default function HomePageClient() {
     [isInteractiveSectionSwipeTarget, isSectionTransitioning],
   );
 
-  const handleSectionSwipeMove = useCallback(
-    (event: React.TouchEvent<HTMLElement>) => {
-      const swipeState = sectionSwipeRef.current;
-      if (!swipeState || swipeState.blocked || event.touches.length !== 1) {
-        return;
-      }
+  const handleSectionSwipeMove = useCallback((event: React.TouchEvent<HTMLElement>) => {
+    const swipeState = sectionSwipeRef.current;
+    if (!swipeState || swipeState.blocked || event.touches.length !== 1) {
+      return;
+    }
 
-      const touch = event.touches[0];
-      swipeState.deltaX = touch.clientX - swipeState.startX;
-      swipeState.deltaY = touch.clientY - swipeState.startY;
+    const touch = event.touches[0];
+    swipeState.deltaX = touch.clientX - swipeState.startX;
+    swipeState.deltaY = touch.clientY - swipeState.startY;
 
-      if (
-        Math.abs(swipeState.deltaX) > 12 &&
-        Math.abs(swipeState.deltaX) > Math.abs(swipeState.deltaY)
-      ) {
-        event.preventDefault();
-      }
-    },
-    [],
-  );
+    if (
+      Math.abs(swipeState.deltaX) > 12 &&
+      Math.abs(swipeState.deltaX) > Math.abs(swipeState.deltaY)
+    ) {
+      event.preventDefault();
+    }
+  }, []);
 
   const handleSectionSwipeEnd = useCallback(() => {
     const swipeState = sectionSwipeRef.current;
@@ -420,36 +392,39 @@ export default function HomePageClient() {
     [activeSectionId, tocSections],
   );
 
-  const renderSectionContent = useCallback((sectionId: string) => {
-    const topRail = (
-      <HomeSectionPager
-        items={tocSections}
-        currentSectionId={sectionId}
-        onSelectSection={navigateToSection}
-      />
-    );
+  const renderSectionContent = useCallback(
+    (sectionId: string) => {
+      const topRail = (
+        <HomeSectionPager
+          items={tocSections}
+          currentSectionId={sectionId}
+          onSelectSection={navigateToSection}
+        />
+      );
 
-    switch (sectionId) {
-      case "hero":
-        return <ResumeOverview topRail={topRail} />;
-      case "education":
-        return <Education topRail={topRail} />;
-      case "experience":
-        return <ExperienceTimeline topRail={topRail} />;
-      case "competencies":
-        return <CoreCompetencies topRail={topRail} />;
-      case "projects":
-        return <ProjectsGrid topRail={topRail} />;
-      case "recognition":
-        return <Recognition topRail={topRail} />;
-      case "hobbies":
-        return <HobbiesCard topRail={topRail} />;
-      case "contact":
-        return <ContactCTA topRail={topRail} />;
-      default:
-        return <ResumeOverview topRail={topRail} />;
-    }
-  }, [navigateToSection, tocSections]);
+      switch (sectionId) {
+        case "hero":
+          return <ResumeOverview topRail={topRail} />;
+        case "education":
+          return <Education topRail={topRail} />;
+        case "experience":
+          return <ExperienceTimeline topRail={topRail} />;
+        case "competencies":
+          return <CoreCompetencies topRail={topRail} />;
+        case "projects":
+          return <ProjectsGrid topRail={topRail} />;
+        case "recognition":
+          return <Recognition topRail={topRail} />;
+        case "hobbies":
+          return <HobbiesCard topRail={topRail} />;
+        case "contact":
+          return <ContactCTA topRail={topRail} />;
+        default:
+          return <ResumeOverview topRail={topRail} />;
+      }
+    },
+    [navigateToSection, tocSections],
+  );
 
   useEffect(() => {
     if (!isReady) {
@@ -484,13 +459,7 @@ export default function HomePageClient() {
       setIsSectionTransitioning(false);
       sectionTransitionTimerRef.current = null;
     }, SECTION_TRANSITION_MS);
-  }, [
-    activeSectionId,
-    displaySectionId,
-    isReady,
-    sectionNavSfx,
-    tocSections,
-  ]);
+  }, [activeSectionId, displaySectionId, isReady, sectionNavSfx, tocSections]);
 
   useEffect(
     () => () => {
@@ -536,8 +505,7 @@ export default function HomePageClient() {
             fontWeight: 800,
             color: "#fff",
             borderRadius: "999px",
-            background:
-              "linear-gradient(90deg, rgba(17,24,39,0.96) 0%, rgba(31,41,55,0.98) 100%)",
+            background: "linear-gradient(90deg, rgba(17,24,39,0.96) 0%, rgba(31,41,55,0.98) 100%)",
             boxShadow: "0 10px 24px rgba(0,0,0,0.28)",
             borderTop: "1px solid rgba(255,255,255,0.16)",
             borderBottom: "1px solid rgba(255,255,255,0.16)",
@@ -545,20 +513,14 @@ export default function HomePageClient() {
             transformOrigin: "center",
             transition: "background 180ms ease, box-shadow 180ms ease",
             "&:hover": {
-              background:
-                "linear-gradient(90deg, rgba(30,41,59,0.98) 0%, rgba(15,23,42,1) 100%)",
+              background: "linear-gradient(90deg, rgba(30,41,59,0.98) 0%, rgba(15,23,42,1) 100%)",
               boxShadow: "0 14px 28px rgba(0,0,0,0.34)",
             },
           }}
         >
           {navigation.forkRibbon.label}
         </Box>
-        <AppBar
-          open={open}
-          drawerWidth={drawerWidth}
-          mode={mode}
-          toggleColorMode={toggleColorMode}
-        >
+        <AppBar open={open} drawerWidth={drawerWidth} mode={mode} toggleColorMode={toggleColorMode}>
           <IconButton
             edge="start"
             color="inherit"
@@ -793,9 +755,7 @@ export default function HomePageClient() {
                         }
                         sx={{
                           color:
-                            section.id === activeSection?.id
-                              ? "text.primary"
-                              : "text.secondary",
+                            section.id === activeSection?.id ? "text.primary" : "text.secondary",
                           fontWeight: section.id === activeSection?.id ? 700 : 400,
                           fontSize: "0.925rem",
                           lineHeight: 1.4,

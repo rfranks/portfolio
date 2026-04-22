@@ -14,8 +14,7 @@ export type PanelFrameProps = {
   useNegativeFooterMargins?: boolean;
 };
 
-const toSxArray = (value?: SxProps<Theme>) =>
-  Array.isArray(value) ? value : value ? [value] : [];
+const toSxArray = (value?: SxProps<Theme>) => (Array.isArray(value) ? value : value ? [value] : []);
 
 const PANEL_RAIL_OFFSET_X = -2;
 const PANEL_RAIL_OFFSET_Y = -2;
@@ -56,12 +55,8 @@ export default function PanelFrame({
     borderTop: "1px solid",
     borderColor: "divider",
     backdropFilter: "blur(8px)",
-    borderBottomLeftRadius: useNegativeFooterMargins
-      ? "var(--fabric-radius-xl)"
-      : 0,
-    borderBottomRightRadius: useNegativeFooterMargins
-      ? "var(--fabric-radius-xl)"
-      : 0,
+    borderBottomLeftRadius: useNegativeFooterMargins ? "var(--fabric-radius-xl)" : 0,
+    borderBottomRightRadius: useNegativeFooterMargins ? "var(--fabric-radius-xl)" : 0,
   };
 
   return (
@@ -77,9 +72,7 @@ export default function PanelFrame({
         ...toSxArray(rootSx),
       ]}
     >
-      {topRail ? (
-        <Box sx={[topRailDefaults, ...toSxArray(topRailSx)]}>{topRail}</Box>
-      ) : null}
+      {topRail ? <Box sx={[topRailDefaults, ...toSxArray(topRailSx)]}>{topRail}</Box> : null}
       <Box
         sx={[
           {

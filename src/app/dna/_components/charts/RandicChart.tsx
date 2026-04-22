@@ -28,10 +28,8 @@ export function RandicChart({ sequences = [], bpRange }: RandicChartProps) {
   for (let i = 0; i < (sequences?.length || 0); i++) {
     const sequence = sequences?.[i];
     const [xx, yy] = randic(
-      sequence?.sequence.substring(
-        bpRange?.[0] || 0,
-        bpRange?.[1] || sequence.sequence.length
-      ) || ""
+      sequence?.sequence.substring(bpRange?.[0] || 0, bpRange?.[1] || sequence.sequence.length) ||
+        "",
     );
 
     xx.forEach(
@@ -40,7 +38,7 @@ export function RandicChart({ sequences = [], bpRange }: RandicChartProps) {
           ...data[index],
           x,
           [sequence!.description]: yy[index],
-        })
+        }),
     );
   }
 
@@ -58,11 +56,7 @@ export function RandicChart({ sequences = [], bpRange }: RandicChartProps) {
         width={500}
       >
         <Legend align="center" verticalAlign="top" />
-        <XAxis
-          dataKey="x"
-          stroke={theme.palette.text.secondary}
-          style={theme.typography.body2}
-        >
+        <XAxis dataKey="x" stroke={theme.palette.text.secondary} style={theme.typography.body2}>
           <Label
             angle={0}
             position="bottom"
@@ -75,11 +69,7 @@ export function RandicChart({ sequences = [], bpRange }: RandicChartProps) {
             # of base pairs
           </Label>
         </XAxis>
-        <YAxis
-          yAxisId="left"
-          stroke={theme.palette.text.secondary}
-          style={theme.typography.body2}
-        >
+        <YAxis yAxisId="left" stroke={theme.palette.text.secondary} style={theme.typography.body2}>
           <Label
             angle={270}
             position="left"
@@ -100,29 +90,27 @@ export function RandicChart({ sequences = [], bpRange }: RandicChartProps) {
               ]
             }  (${value})`;
           }}
-          labelFormatter={(label) =>
-            `base pair #${Math.ceil(label) + 1}`
-          }
+          labelFormatter={(label) => `base pair #${Math.ceil(label) + 1}`}
           {...dnaChartTooltipProps}
         />
-        {sequences?.map((sequence, index) => (
+        {sequences?.map((sequence, index) =>
           (() => {
             const strokeStyle = getSequenceStrokeStyle(index);
 
             return (
-          <Line
-            key={`${sequence?.description}-${index}`}
-            yAxisId="left"
-            isAnimationActive={true}
-            dataKey={sequence?.description}
-            stroke={strokeStyle.stroke}
-            strokeWidth={strokeStyle.strokeWidth}
-            dot={false}
-            activeDot={{ r: 4 }}
-          />
+              <Line
+                key={`${sequence?.description}-${index}`}
+                yAxisId="left"
+                isAnimationActive={true}
+                dataKey={sequence?.description}
+                stroke={strokeStyle.stroke}
+                strokeWidth={strokeStyle.strokeWidth}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
             );
-          })()
-        ))}
+          })(),
+        )}
       </LineChart>
     </ResponsiveContainer>
   );

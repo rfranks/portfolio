@@ -22,10 +22,9 @@ export default function PetlyPage() {
         style={{ width: "100%", maxWidth: 800 }}
       />
       <Typography variant="body1" sx={{ mt: 2 }}>
-        Petly blended a Facebook-style experience for pet owners with full
-        veterinary health records—vaccinations, x-rays, visits, and invoices.
-        Built at IDEXX, the portal transformed boxy Liferay widgets into a
-        playful notebook of sticky notes, lists, and photos.
+        Petly blended a Facebook-style experience for pet owners with full veterinary health
+        records—vaccinations, x-rays, visits, and invoices. Built at IDEXX, the portal transformed
+        boxy Liferay widgets into a playful notebook of sticky notes, lists, and photos.
       </Typography>
     </Container>
   );

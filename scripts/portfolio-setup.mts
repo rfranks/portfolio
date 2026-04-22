@@ -7,17 +7,44 @@ import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
 import { parseResumeDataWithSchema } from "../src/consts/resumeDataSchema";
+import {
+  migrateResumeData,
+  LATEST_RESUME_DATA_SCHEMA_VERSION,
+} from "../src/utils/data/migrations/resumeDataMigrations";
+import {
+  buildSingleHunkDiffPreview,
+  normalizeProjectEntry,
+  parsePortfolioSetupArgs,
+  validateProjectsOrThrow,
+  type PortfolioSetupRuntimeOptions,
+} from "./portfolio-setup-utils";
+import {
+  deleteValueAtPath,
+  formatValueForDisplay,
+  getValueAtPath,
+  isPlainObject,
+  parseMetadataPath,
+  setValueAtPath,
+  type JsonRecord,
+} from "./lib/metadata-editor";
+import {
+  inferAppAssetBucket,
+  moveFileSafely,
+  replacePathReferencesInObject,
+  resolvePublicPath,
+  type AppAssetBucket,
+} from "./lib/asset-organizer";
+import { ensureDir, pathExists, readJson, writeJson as writeJsonFile } from "./lib/json-io";
+import { competencyOptionIconChoices, shenaniganTypeChoices } from "./lib/prompts";
+import {
+  createPortfolioSetupCommandRegistry,
+  runPortfolioSetupCommand,
+} from "./portfolio-setup/commands";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
-const resumeDataPath = path.join(
-  repoRoot,
-  "public",
-  "personal",
-  "data",
-  "resumeData.json",
-);
+const resumeDataPath = path.join(repoRoot, "public", "personal", "data", "resumeData.json");
 const publicDir = path.join(repoRoot, "public");
 const appsPublicDir = path.join(publicDir, "apps");
 const personalDir = path.join(publicDir, "personal");
@@ -31,14 +58,7 @@ const personalPdfsDir = path.join(personalDir, "pdfs");
 const faviconPath = path.join(publicDir, "favicon.ico");
 const faviconDefaultPath = path.join(publicDir, "favicon.ico.default");
 
-const imageExtensions = new Set([
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".webp",
-  ".gif",
-  ".svg",
-]);
+const imageExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]);
 const videoExtensions = new Set([".mp4", ".webm", ".mov", ".m4v"]);
 const audioExtensions = new Set([".mp3", ".wav", ".ogg", ".m4a"]);
 const pdfExtensions = new Set([".pdf"]);
@@ -47,9 +67,7 @@ const jsExtensions = new Set([".js", ".mjs", ".cjs"]);
 const wasmExtensions = new Set([".wasm"]);
 const dataExtensions = new Set([".json", ".csv", ".tsv", ".txt", ".xml"]);
 const supportsColor =
-  Boolean(output.isTTY) &&
-  !("NO_COLOR" in process.env) &&
-  process.env.TERM !== "dumb";
+  Boolean(output.isTTY) && !("NO_COLOR" in process.env) && process.env.TERM !== "dumb";
 
 const ansi = {
   reset: "\x1b[0m",
@@ -71,9 +89,11 @@ const uiIcons = {
   info: "ℹ️",
 };
 
+const usageMessage =
+  "Usage: node scripts/portfolio-setup.mjs <init|update> [--dry-run] [--no-diff]";
+
 type WizardReadline = ReturnType<typeof readline.createInterface>;
 type AnsiKey = keyof typeof ansi;
-type JsonRecord = Record<string, unknown>;
 
 type AskTextOptions = {
   defaultValue?: string;
@@ -162,17 +182,6 @@ type CompetenciesData = {
   skills?: string[];
   [key: string]: unknown;
 };
-
-type AppAssetBucket =
-  | "images"
-  | "videos"
-  | "audio"
-  | "pdfs"
-  | "markdown"
-  | "js"
-  | "wasm"
-  | "data"
-  | "assets";
 
 type AppAssetFolderMap = Record<AppAssetBucket, string>;
 
@@ -277,189 +286,6 @@ function withLeadingSlash(p: string): string {
   return p.startsWith("/") ? p : `/${p}`;
 }
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isNumericPathSegment(segment: string): boolean {
-  return /^\d+$/.test(segment);
-}
-
-function parseMetadataPath(pathInput: string): string[] {
-  return pathInput
-    .trim()
-    .replace(/\[(\d+)\]/g, ".$1")
-    .split(".")
-    .map((segment) => segment.trim())
-    .filter(Boolean);
-}
-
-function formatValueForDisplay(value: unknown): string {
-  if (value === undefined) {
-    return "undefined";
-  }
-  if (typeof value === "string") {
-    return value;
-  }
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
-}
-
-function getValueAtPath(root: unknown, segments: string[]): unknown {
-  let current: unknown = root;
-
-  for (const segment of segments) {
-    if (Array.isArray(current)) {
-      if (!isNumericPathSegment(segment)) {
-        return undefined;
-      }
-      const index = Number(segment);
-      current = current[index];
-      continue;
-    }
-
-    if (isPlainObject(current)) {
-      current = current[segment];
-      continue;
-    }
-
-    return undefined;
-  }
-
-  return current;
-}
-
-function setValueAtPath(root: JsonRecord, segments: string[], value: unknown): boolean {
-  if (!segments.length) {
-    return false;
-  }
-
-  let current: unknown = root;
-
-  for (let idx = 0; idx < segments.length - 1; idx += 1) {
-    const segment = segments[idx];
-    const nextSegment = segments[idx + 1];
-    const shouldCreateArray = isNumericPathSegment(nextSegment);
-
-    if (Array.isArray(current)) {
-      if (!isNumericPathSegment(segment)) {
-        return false;
-      }
-      const index = Number(segment);
-      const existing = current[index];
-      if (!isPlainObject(existing) && !Array.isArray(existing)) {
-        current[index] = shouldCreateArray ? [] : {};
-      }
-      current = current[index];
-      continue;
-    }
-
-    if (isPlainObject(current)) {
-      const existing = current[segment];
-      if (!isPlainObject(existing) && !Array.isArray(existing)) {
-        current[segment] = shouldCreateArray ? [] : {};
-      }
-      current = current[segment];
-      continue;
-    }
-
-    return false;
-  }
-
-  const last = segments[segments.length - 1];
-  if (Array.isArray(current)) {
-    if (!isNumericPathSegment(last)) {
-      return false;
-    }
-    current[Number(last)] = value;
-    return true;
-  }
-
-  if (isPlainObject(current)) {
-    current[last] = value;
-    return true;
-  }
-
-  return false;
-}
-
-function deleteValueAtPath(root: JsonRecord, segments: string[]): boolean {
-  if (!segments.length) {
-    return false;
-  }
-
-  let current: unknown = root;
-  for (let idx = 0; idx < segments.length - 1; idx += 1) {
-    const segment = segments[idx];
-    if (Array.isArray(current)) {
-      if (!isNumericPathSegment(segment)) {
-        return false;
-      }
-      current = current[Number(segment)];
-      continue;
-    }
-    if (isPlainObject(current)) {
-      current = current[segment];
-      continue;
-    }
-    return false;
-  }
-
-  const last = segments[segments.length - 1];
-  if (Array.isArray(current)) {
-    if (!isNumericPathSegment(last)) {
-      return false;
-    }
-    const index = Number(last);
-    if (index < 0 || index >= current.length) {
-      return false;
-    }
-    current.splice(index, 1);
-    return true;
-  }
-
-  if (isPlainObject(current)) {
-    if (!(last in current)) {
-      return false;
-    }
-    delete current[last];
-    return true;
-  }
-
-  return false;
-}
-
-function inferAppAssetBucket(ext: string): AppAssetBucket {
-  if (imageExtensions.has(ext)) {
-    return "images";
-  }
-  if (videoExtensions.has(ext)) {
-    return "videos";
-  }
-  if (audioExtensions.has(ext)) {
-    return "audio";
-  }
-  if (pdfExtensions.has(ext)) {
-    return "pdfs";
-  }
-  if (markdownExtensions.has(ext)) {
-    return "markdown";
-  }
-  if (jsExtensions.has(ext)) {
-    return "js";
-  }
-  if (wasmExtensions.has(ext)) {
-    return "wasm";
-  }
-  if (dataExtensions.has(ext)) {
-    return "data";
-  }
-  return "assets";
-}
-
 async function ensureScopedFoldersForAppAssets(slug: string): Promise<AppAssetFolderMap> {
   const appRoot = path.join(appsPublicDir, slug);
   const folders: AppAssetFolderMap = {
@@ -480,107 +306,6 @@ async function ensureScopedFoldersForAppAssets(slug: string): Promise<AppAssetFo
   }
 
   return folders;
-}
-
-function resolvePublicPath(inputPath: string): {
-  absPath: string;
-  relPath: string;
-  webPath: string;
-} | null {
-  const trimmed = inputPath.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  let absolutePath = trimmed;
-  if (!path.isAbsolute(trimmed)) {
-    const relativePath = toPosix(path.posix.normalize(trimmed.replace(/^\/+/, "")));
-    if (!relativePath || relativePath.startsWith("..")) {
-      return null;
-    }
-    absolutePath = path.resolve(publicDir, relativePath);
-  }
-
-  const normalizedAbs = path.resolve(absolutePath);
-  const publicRootWithSep = `${path.resolve(publicDir)}${path.sep}`;
-  if (
-    normalizedAbs !== path.resolve(publicDir) &&
-    !normalizedAbs.startsWith(publicRootWithSep)
-  ) {
-    return null;
-  }
-
-  const rel = toPosix(path.relative(publicDir, normalizedAbs));
-  if (!rel || rel.startsWith("..")) {
-    return null;
-  }
-
-  return {
-    absPath: normalizedAbs,
-    relPath: rel,
-    webPath: withLeadingSlash(rel),
-  };
-}
-
-async function moveFileSafely(sourcePath: string, destinationPath: string): Promise<void> {
-  try {
-    await fs.rename(sourcePath, destinationPath);
-    return;
-  } catch (error) {
-    const isCrossDevice =
-      isPlainObject(error) && "code" in error && error.code === "EXDEV";
-    if (!isCrossDevice) {
-      throw error;
-    }
-  }
-
-  await fs.copyFile(sourcePath, destinationPath);
-  await fs.rm(sourcePath);
-}
-
-function replacePathReferencesInObject(
-  value: unknown,
-  oldPath: string,
-  newPath: string,
-): number {
-  let replacements = 0;
-
-  if (typeof value === "string") {
-    return 0;
-  }
-
-  if (Array.isArray(value)) {
-    value.forEach((item, idx) => {
-      if (typeof item === "string") {
-        const occurrences = item.split(oldPath).length - 1;
-        if (occurrences > 0) {
-          value[idx] = item.split(oldPath).join(newPath);
-          replacements += occurrences;
-        }
-        return;
-      }
-      replacements += replacePathReferencesInObject(item, oldPath, newPath);
-    });
-    return replacements;
-  }
-
-  if (!isPlainObject(value)) {
-    return 0;
-  }
-
-  Object.entries(value).forEach(([key, child]) => {
-    if (typeof child === "string") {
-      const occurrences = child.split(oldPath).length - 1;
-      if (occurrences > 0) {
-        value[key] = child.split(oldPath).join(newPath);
-        replacements += occurrences;
-      }
-      return;
-    }
-    replacements += replacePathReferencesInObject(child, oldPath, newPath);
-  });
-
-  return replacements;
 }
 
 function defaultProjectDiagrams(projectName: string): {
@@ -613,154 +338,45 @@ function defaultProjectDiagrams(projectName: string): {
   };
 }
 
-const shenaniganTypeChoices = [
-  {
-    value: "default",
-    label: "Default (image -> stylized -> motion)",
-    description: "Example: a portrait transformed into style and then short motion.",
-  },
-  {
-    value: "book-to-limited-series",
-    label: "Book to Limited Series",
-    description: "Example: cover + manuscript + trailer + episode plan.",
-  },
-  {
-    value: "work-to-series-adaptation",
-    label: "Work to Series Adaptation",
-    description: "Example: source work and adaptation trailer/series artifacts.",
-  },
-  {
-    value: "palmylyzer-pro",
-    label: "Palm Analysis",
-    description: "Example: raw image + analysis image + line map + reading.",
-  },
-  {
-    value: "song-recording",
-    label: "Song Recording",
-    description: "Example: album cover + audio + lyrics markdown.",
-  },
-];
-
-const competencyOptionIconChoices: ChoiceOption<string>[] = [
-  {
-    label: "Auto awesome (AI/LLM)",
-    value: "auto-awesome",
-    description: "Best fit for AI/LLM and RAG systems.",
-  },
-  {
-    label: "Web (Frontend)",
-    value: "web",
-    description: "Frontend and UX-focused competency category.",
-  },
-  {
-    label: "DNS (Backend)",
-    value: "dns",
-    description: "Backend services and API category.",
-  },
-  {
-    label: "Cloud",
-    value: "cloud",
-    description: "Cloud platforms and DevOps workflows.",
-  },
-  {
-    label: "Hub (Data/Integration)",
-    value: "hub",
-    description: "Data, integration, and distributed connections.",
-  },
-  {
-    label: "Groups (Leadership)",
-    value: "groups",
-    description: "Leadership and team collaboration category.",
-  },
-  {
-    label: "Custom icon key",
-    value: "__custom__",
-    description: "Enter your own icon key string.",
-  },
-];
-
-async function pathExists(targetPath: string): Promise<boolean> {
-  try {
-    await fs.access(targetPath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function ensureDir(targetPath: string): Promise<void> {
-  await fs.mkdir(targetPath, { recursive: true });
-}
-
-async function readJson<T = JsonRecord>(filePath: string): Promise<T> {
-  const raw = await fs.readFile(filePath, "utf8");
-  return JSON.parse(raw) as T;
-}
-
-async function createJsonBackup(filePath: string): Promise<string> {
-  const backupDir = path.join(path.dirname(filePath), ".backups");
-  await ensureDir(backupDir);
-
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const backupPath = path.join(
-    backupDir,
-    `${path.basename(filePath, path.extname(filePath))}.${timestamp}${path.extname(filePath)}`,
-  );
-  await fs.copyFile(filePath, backupPath);
-  return backupPath;
+function toRepoRelativePath(filePath: string): string {
+  return toPosix(path.relative(repoRoot, filePath));
 }
 
 async function writeJson(
   filePath: string,
   data: unknown,
-  options?: { createBackup?: boolean },
+  options?: {
+    createBackup?: boolean;
+    dryRun?: boolean;
+    showDiff?: boolean;
+  },
 ): Promise<void> {
-  if (options?.createBackup) {
-    await createJsonBackup(filePath);
-  }
-
-  const json = `${JSON.stringify(data, null, 2)}\n`;
-  const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
-  await fs.writeFile(tempPath, json, "utf8");
-  await fs.rename(tempPath, filePath);
+  const fileLabel = toRepoRelativePath(filePath);
+  await writeJsonFile(filePath, data, {
+    createBackup: options?.createBackup,
+    dryRun: options?.dryRun,
+    showDiff: options?.showDiff,
+    fileLabel,
+    renderDiff: (currentContent, nextContent, label) =>
+      buildSingleHunkDiffPreview(currentContent, nextContent, label),
+    onInfo: (message) => writeInfo(message),
+    onWarning: (message) => writeWarning(message),
+    onSuccess: (message) => writeSuccess(message),
+  });
 }
 
 async function readValidatedResumeData(): Promise<ResumeData> {
   const raw = await readJson<unknown>(resumeDataPath);
-  return parseResumeDataWithSchema(raw, resumeDataPath) as ResumeData;
+  return parseResumeDataWithSchema(
+    migrateResumeData(raw as Record<string, unknown>),
+    resumeDataPath,
+  ) as ResumeData;
 }
 
 function validateResumeDataOrThrow(data: ResumeData): ResumeData {
-  return parseResumeDataWithSchema(data, resumeDataPath) as ResumeData;
-}
-
-function normalizeProjectEntry(nextProject: ProjectEntry): ProjectEntry {
-  const name = String(nextProject.name || "").trim();
-  const href = withLeadingSlash(String(nextProject.href || "").trim());
-
-  if (!name) {
-    throw new Error("Project name is required.");
-  }
-  if (!href || href === "/") {
-    throw new Error(`Project '${name}' must include a non-root href.`);
-  }
-
-  return {
-    ...nextProject,
-    name,
-    href,
-  };
-}
-
-function validateProjectsOrThrow(projects: ProjectEntry[]): void {
-  const hrefs = new Set<string>();
-  for (const project of projects) {
-    const normalized = normalizeProjectEntry(project);
-    if (hrefs.has(normalized.href)) {
-      throw new Error(`Duplicate project href detected: ${normalized.href}`);
-    }
-    hrefs.add(normalized.href);
-  }
+  const migrated = migrateResumeData(data as Record<string, unknown>);
+  migrated.schemaVersion = LATEST_RESUME_DATA_SCHEMA_VERSION;
+  return parseResumeDataWithSchema(migrated, resumeDataPath) as ResumeData;
 }
 
 async function walkFiles(baseDir: string): Promise<string[]> {
@@ -816,11 +432,7 @@ async function askText(
   }
 }
 
-async function askYesNo(
-  rl: WizardReadline,
-  prompt: string,
-  defaultYes = true,
-): Promise<boolean> {
+async function askYesNo(rl: WizardReadline, prompt: string, defaultYes = true): Promise<boolean> {
   const hint = defaultYes ? "Y/n" : "y/N";
   for (;;) {
     const answer = (
@@ -854,9 +466,7 @@ async function chooseOne<TValue>(
   options.forEach((option, idx) => {
     const number = idx + 1;
     const description = option.description ? ` — ${option.description}` : "";
-    writeLine(
-      `  ${paint(`${number}.`, "bold")} ${option.label}${paint(description, "dim")}`,
-    );
+    writeLine(`  ${paint(`${number}.`, "bold")} ${option.label}${paint(description, "dim")}`);
   });
 
   for (;;) {
@@ -874,11 +484,7 @@ async function chooseOne<TValue>(
   }
 }
 
-async function chooseIndex(
-  rl: WizardReadline,
-  prompt: string,
-  labels: string[],
-): Promise<number> {
+async function chooseIndex(rl: WizardReadline, prompt: string, labels: string[]): Promise<number> {
   writeLine();
   writeLine(paint(prompt, "bold", "cyan"));
   labels.forEach((label, idx) => {
@@ -919,18 +525,8 @@ async function ensureScopedFolderForShenanigan(slug: string): Promise<string> {
   return folder;
 }
 
-async function chooseScopedAsset(
-  rl: WizardReadline,
-  options: ScopedAssetOptions,
-): Promise<string> {
-  const {
-    title,
-    scopeAbsDir,
-    webBase,
-    extensions,
-    fallbackRelative,
-    optional = true,
-  } = options;
+async function chooseScopedAsset(rl: WizardReadline, options: ScopedAssetOptions): Promise<string> {
+  const { title, scopeAbsDir, webBase, extensions, fallbackRelative, optional = true } = options;
   await ensureDir(scopeAbsDir);
   const allFiles = await walkFiles(scopeAbsDir);
   const candidates = allFiles.filter((file) => matchesExtensions(file, extensions));
@@ -962,6 +558,7 @@ async function createProjectRouteSkeleton(
   rl: WizardReadline,
   slug: string,
   projectName: string,
+  runtimeOptions: PortfolioSetupRuntimeOptions,
 ): Promise<boolean> {
   const routeDir = path.join(repoRoot, "src", "app", slug);
   const projectFile = path.join(routeDir, "project.ts");
@@ -971,7 +568,11 @@ async function createProjectRouteSkeleton(
 
   const shouldOverwriteExisting =
     !(await pathExists(pageFile)) ||
-    (await askYesNo(rl, `Route /${slug} already exists. Overwrite page.tsx and project.ts?`, false));
+    (await askYesNo(
+      rl,
+      `Route /${slug} already exists. Overwrite page.tsx and project.ts?`,
+      false,
+    ));
 
   if (!shouldOverwriteExisting) {
     return false;
@@ -1005,8 +606,14 @@ export default function ${toPascalCase(slug)}Page() {
 }
 `;
 
+  if (runtimeOptions.dryRun) {
+    writeWarning(`Dry run enabled. Skipped writing route files for /${slug} (src/app/${slug}).`);
+    return true;
+  }
+
   await fs.writeFile(projectFile, projectTs, "utf8");
   await fs.writeFile(pageFile, pageTsx, "utf8");
+  writeSuccess(`Generated route skeleton for /${slug}.`);
   return true;
 }
 
@@ -1055,10 +662,7 @@ function upsertProject(projects: ProjectEntry[], nextProject: ProjectEntry): voi
   projects[index] = normalizedProject;
 }
 
-function upsertShenanigan(
-  items: ShenaniganEntry[],
-  shenanigan: ShenaniganEntry,
-): void {
+function upsertShenanigan(items: ShenaniganEntry[], shenanigan: ShenaniganEntry): void {
   const index = items.findIndex((item) => item.slug === shenanigan.slug);
   if (index === -1) {
     items.push(shenanigan);
@@ -1067,13 +671,8 @@ function upsertShenanigan(
   items[index] = shenanigan;
 }
 
-function ensureNavigationItems(
-  resumeData: JsonRecord,
-  projectRoutes: NavigationRoute[],
-): void {
-  const existingNavigation = isPlainObject(resumeData.navigation)
-    ? resumeData.navigation
-    : {};
+function ensureNavigationItems(resumeData: JsonRecord, projectRoutes: NavigationRoute[]): void {
+  const existingNavigation = isPlainObject(resumeData.navigation) ? resumeData.navigation : {};
   const base = [{ label: "Home", href: "/", icon: "home" }];
   const shenanigans = {
     label: "AI Shenanigans",
@@ -1276,9 +875,10 @@ function defaultRecognitionSnippetTemplate(): string {
   return "Recognized for delivering high-quality product engineering with speed and consistency.";
 }
 
-function normalizeRecognitionSnippet(
-  snippet: RecognitionSnippetEntry,
-): { text: string; glyph?: string } {
+function normalizeRecognitionSnippet(snippet: RecognitionSnippetEntry): {
+  text: string;
+  glyph?: string;
+} {
   if (typeof snippet === "string") {
     return { text: snippet };
   }
@@ -1292,9 +892,7 @@ function normalizeRecognitionSnippet(
 function formatRecognitionSnippetPreview(snippet: RecognitionSnippetEntry): string {
   const normalized = normalizeRecognitionSnippet(snippet);
   const previewText =
-    normalized.text.length > 80
-      ? `${normalized.text.slice(0, 80)}...`
-      : normalized.text;
+    normalized.text.length > 80 ? `${normalized.text.slice(0, 80)}...` : normalized.text;
   return normalized.glyph ? `${normalized.glyph} ${previewText}` : previewText;
 }
 
@@ -1325,9 +923,7 @@ function defaultCompetencyCategoryTemplate(): CompetencyCategoryEntry {
 }
 
 function serializeCompetencyItems(items: CompetencySkillEntry[]): string {
-  return (items || [])
-    .map((item) => `${item.label}::${item.description}`)
-    .join(" | ");
+  return (items || []).map((item) => `${item.label}::${item.description}`).join(" | ");
 }
 
 function parseCompetencyItems(inputValue: string): CompetencySkillEntry[] {
@@ -1375,8 +971,7 @@ async function promptProject(
   );
 
   const description = await askText(rl, "Short project description", {
-    defaultValue:
-      "Short summary of what this project does and why it is useful.",
+    defaultValue: "Short summary of what this project does and why it is useful.",
     required: true,
   });
 
@@ -1418,14 +1013,10 @@ async function promptProject(
     optional: true,
   });
 
-  const techInput = await askText(
-    rl,
-    "Technologies (comma-separated)",
-    {
-      defaultValue: "Next.js, React, TypeScript",
-      required: true,
-    },
-  );
+  const techInput = await askText(rl, "Technologies (comma-separated)", {
+    defaultValue: "Next.js, React, TypeScript",
+    required: true,
+  });
 
   const technologiesUsed = parseCommaList(techInput).map((nameValue) => ({
     name: nameValue,
@@ -1445,10 +1036,8 @@ async function promptProject(
     project: name,
     wowFactor: "Architecture + UX + execution",
     specifications: {
-      overview:
-        "Describe your architecture, major constraints, and tradeoffs here.",
-      status:
-        "Use this section to track scope, quality goals, and rollout notes.",
+      overview: "Describe your architecture, major constraints, and tradeoffs here.",
+      status: "Use this section to track scope, quality goals, and rollout notes.",
     },
     technologiesUsed,
     blockDiagram: diagrams.blockDiagram,
@@ -1456,11 +1045,7 @@ async function promptProject(
     sequenceDiagram: diagrams.sequenceDiagram,
   };
 
-  const generateRoute = await askYesNo(
-    rl,
-    `Generate route skeleton for ${href}?`,
-    true,
-  );
+  const generateRoute = await askYesNo(rl, `Generate route skeleton for ${href}?`, true);
 
   return { project, slug, name, generateRoute };
 }
@@ -1743,14 +1328,10 @@ async function promptExperienceEntry(
     defaultValue: base.end || "Present",
   });
 
-  const detailsInput = await askText(
-    rl,
-    "Details (separate items with |)",
-    {
-      defaultValue: (base.details || []).join(" | "),
-      required: true,
-    },
-  );
+  const detailsInput = await askText(rl, "Details (separate items with |)", {
+    defaultValue: (base.details || []).join(" | "),
+    required: true,
+  });
 
   const image = await askText(
     rl,
@@ -1799,8 +1380,7 @@ async function promptEducationEntry(
     rl,
     "Image path (example: /personal/images/personal/education-logo.png)",
     {
-      defaultValue:
-        base.image || "/personal/images/personal/education-logo.png",
+      defaultValue: base.image || "/personal/images/personal/education-logo.png",
       required: true,
     },
   );
@@ -1901,9 +1481,7 @@ async function promptCompetencyCategoryEntry(
 
   const defaultIconIndex = Math.max(
     0,
-    competencyOptionIconChoices.findIndex(
-      (choice) => choice.value === (base.icon || ""),
-    ),
+    competencyOptionIconChoices.findIndex((choice) => choice.value === (base.icon || "")),
   );
   const iconChoice = await chooseOne(
     rl,
@@ -1919,14 +1497,10 @@ async function promptCompetencyCategoryEntry(
         })
       : iconChoice.value;
 
-  const itemsInput = await askText(
-    rl,
-    "Skills (label::description separated with |)",
-    {
-      defaultValue: serializeCompetencyItems(base.items),
-      required: true,
-    },
-  );
+  const itemsInput = await askText(rl, "Skills (label::description separated with |)", {
+    defaultValue: serializeCompetencyItems(base.items),
+    required: true,
+  });
 
   return {
     ...base,
@@ -1938,10 +1512,7 @@ async function promptCompetencyCategoryEntry(
   };
 }
 
-async function promptMetadataValue(
-  rl: WizardReadline,
-  currentValue: unknown,
-): Promise<unknown> {
+async function promptMetadataValue(rl: WizardReadline, currentValue: unknown): Promise<unknown> {
   const currentType = Array.isArray(currentValue)
     ? "array"
     : currentValue === null
@@ -1961,12 +1532,8 @@ async function promptMetadataValue(
       { label: "Object (JSON)", value: "object" },
       { label: "Array (JSON)", value: "array" },
     ],
-    ["string", "number", "boolean", "null", "object", "array"].indexOf(
-      currentType,
-    ) >= 0
-      ? ["string", "number", "boolean", "null", "object", "array"].indexOf(
-        currentType,
-      )
+    ["string", "number", "boolean", "null", "object", "array"].indexOf(currentType) >= 0
+      ? ["string", "number", "boolean", "null", "object", "array"].indexOf(currentType)
       : 0,
   );
 
@@ -1979,8 +1546,7 @@ async function promptMetadataValue(
   if (valueType.value === "number") {
     for (;;) {
       const candidate = await askText(rl, "Number value", {
-        defaultValue:
-          typeof currentValue === "number" ? String(currentValue) : "0",
+        defaultValue: typeof currentValue === "number" ? String(currentValue) : "0",
         required: true,
       });
       const parsed = Number(candidate);
@@ -1993,11 +1559,7 @@ async function promptMetadataValue(
   }
 
   if (valueType.value === "boolean") {
-    return askYesNo(
-      rl,
-      "Boolean value",
-      typeof currentValue === "boolean" ? currentValue : false,
-    );
+    return askYesNo(rl, "Boolean value", typeof currentValue === "boolean" ? currentValue : false);
   }
 
   if (valueType.value === "null") {
@@ -2034,10 +1596,7 @@ async function promptMetadataValue(
   }
 }
 
-async function handleMetadataEditor(
-  rl: WizardReadline,
-  resumeData: ResumeData,
-): Promise<void> {
+async function handleMetadataEditor(rl: WizardReadline, resumeData: ResumeData): Promise<void> {
   const operation = await chooseOne(
     rl,
     "Metadata editor",
@@ -2072,11 +1631,9 @@ async function handleMetadataEditor(
       .join(", ")}`,
   );
 
-  const pathInput = await askText(
-    rl,
-    "Metadata path (e.g. summary.title or projects[0].href)",
-    { required: true },
-  );
+  const pathInput = await askText(rl, "Metadata path (e.g. summary.title or projects[0].href)", {
+    required: true,
+  });
   const segments = parseMetadataPath(pathInput);
 
   if (!segments.length) {
@@ -2119,11 +1676,7 @@ async function handleMetadataEditor(
   writeLine();
   writeInfo(`Current value at ${pathInput}:`);
   writeLine(formatValueForDisplay(currentValue));
-  const confirmDelete = await askYesNo(
-    rl,
-    `Delete value at ${pathInput}?`,
-    false,
-  );
+  const confirmDelete = await askYesNo(rl, `Delete value at ${pathInput}?`, false);
   if (!confirmDelete) {
     writeWarning("Delete canceled.");
     return;
@@ -2140,6 +1693,7 @@ async function handleMetadataEditor(
 async function handleAppAssetOrganizer(
   rl: WizardReadline,
   resumeData: ResumeData,
+  runtimeOptions: PortfolioSetupRuntimeOptions,
 ): Promise<void> {
   const slug = await askText(rl, "Target app slug (kebab-case)", {
     required: true,
@@ -2152,7 +1706,7 @@ async function handleAppAssetOrganizer(
     { required: true },
   );
 
-  const sourcePath = resolvePublicPath(sourceInput);
+  const sourcePath = resolvePublicPath(sourceInput, publicDir);
   if (!sourcePath) {
     writeError("Invalid source path. It must resolve inside public/.");
     return;
@@ -2170,7 +1724,16 @@ async function handleAppAssetOrganizer(
   }
 
   const ext = path.extname(sourcePath.absPath).toLowerCase();
-  const inferredBucket = inferAppAssetBucket(ext);
+  const inferredBucket = inferAppAssetBucket(ext, {
+    imageExtensions,
+    videoExtensions,
+    audioExtensions,
+    pdfExtensions,
+    markdownExtensions,
+    jsExtensions,
+    wasmExtensions,
+    dataExtensions,
+  });
   const bucketChoice = await chooseOne<AppAssetBucket | "auto">(
     rl,
     `Destination bucket for ${sourcePath.relPath}`,
@@ -2214,12 +1777,20 @@ async function handleAppAssetOrganizer(
       writeWarning("Move canceled.");
       return;
     }
-    await fs.rm(destinationAbsPath, { force: true });
+    if (!runtimeOptions.dryRun) {
+      await fs.rm(destinationAbsPath, { force: true });
+    }
   }
 
-  await ensureDir(path.dirname(destinationAbsPath));
-  await moveFileSafely(sourcePath.absPath, destinationAbsPath);
-  writeSuccess(`Moved ${sourcePath.relPath} -> ${destinationRelPath}`);
+  if (runtimeOptions.dryRun) {
+    writeWarning(
+      `Dry run enabled. Skipped file move ${sourcePath.relPath} -> ${destinationRelPath}.`,
+    );
+  } else {
+    await ensureDir(path.dirname(destinationAbsPath));
+    await moveFileSafely(sourcePath.absPath, destinationAbsPath);
+    writeSuccess(`Moved ${sourcePath.relPath} -> ${destinationRelPath}`);
+  }
 
   const shouldUpdateReferences = await askYesNo(
     rl,
@@ -2246,7 +1817,7 @@ async function handleAppAssetOrganizer(
   );
 }
 
-async function runInitMode(): Promise<void> {
+async function runInitMode(runtimeOptions: PortfolioSetupRuntimeOptions): Promise<void> {
   const rl = readline.createInterface({ input, output });
   try {
     writeSection("Portfolio initializer");
@@ -2254,11 +1825,7 @@ async function runInitMode(): Promise<void> {
       "This will clear public/apps and personal media/data folders, reset favicon, and rebuild starter resume/project data.",
     );
 
-    const confirmed = await askYesNo(
-      rl,
-      "Proceed with destructive init reset?",
-      false,
-    );
+    const confirmed = await askYesNo(rl, "Proceed with destructive init reset?", false);
 
     if (!confirmed) {
       writeWarning("Init canceled.");
@@ -2310,13 +1877,14 @@ async function runInitMode(): Promise<void> {
     );
 
     const projectCount = Math.max(0, Number.parseInt(projectCountInput, 10) || 0);
-    const shenaniganCount = Math.max(
-      0,
-      Number.parseInt(shenaniganCountInput, 10) || 0,
-    );
+    const shenaniganCount = Math.max(0, Number.parseInt(shenaniganCountInput, 10) || 0);
 
-    await clearInitAssets();
-    await replaceFaviconWithDefault();
+    if (runtimeOptions.dryRun) {
+      writeWarning("Dry run enabled. Skipping destructive asset reset and favicon replacement.");
+    } else {
+      await clearInitAssets();
+      await replaceFaviconWithDefault();
+    }
 
     const newProjects: ProjectEntry[] = [];
     const navRoutes: NavigationRoute[] = [];
@@ -2328,7 +1896,7 @@ async function runInitMode(): Promise<void> {
       navRoutes.push({ label: config.name, href: `/${config.slug}` });
 
       if (config.generateRoute) {
-        await createProjectRouteSkeleton(rl, config.slug, config.name);
+        await createProjectRouteSkeleton(rl, config.slug, config.name, runtimeOptions);
       }
     }
 
@@ -2346,8 +1914,7 @@ async function runInitMode(): Promise<void> {
         description: "A starter project entry created by init.",
         href: "/starter-project",
         type: "personal",
-        interestsMeWhy:
-          "Use this placeholder to map your own project story and architecture.",
+        interestsMeWhy: "Use this placeholder to map your own project story and architecture.",
         watermark: null,
         project: "Starter Project",
         specifications: {
@@ -2363,7 +1930,11 @@ async function runInitMode(): Promise<void> {
 
     if (!newShenanigans.length) {
       const fallbackSlug = "starter-shenanigan";
-      await ensureScopedFolderForShenanigan(fallbackSlug);
+      if (!runtimeOptions.dryRun) {
+        await ensureScopedFolderForShenanigan(fallbackSlug);
+      } else {
+        writeWarning("Dry run enabled. Skipped creating starter shenanigan asset folder.");
+      }
       newShenanigans.push({
         type: "default",
         slug: fallbackSlug,
@@ -2371,12 +1942,9 @@ async function runInitMode(): Promise<void> {
         shortText: "Replace with your own AI media sequence.",
         blurb:
           "A starter shenanigan entry. Add real assets in public/personal/images/ai-shenanigans/starter-shenanigan and then run npm run update.",
-        realisticImage:
-          "/personal/images/ai-shenanigans/starter-shenanigan/realistic.png",
-        stylizedRendering:
-          "/personal/images/ai-shenanigans/starter-shenanigan/stylized.png",
-        movieRendering:
-          "/personal/images/ai-shenanigans/starter-shenanigan/movie.mp4",
+        realisticImage: "/personal/images/ai-shenanigans/starter-shenanigan/realistic.png",
+        stylizedRendering: "/personal/images/ai-shenanigans/starter-shenanigan/stylized.png",
+        movieRendering: "/personal/images/ai-shenanigans/starter-shenanigan/movie.mp4",
       });
     }
 
@@ -2437,9 +2005,7 @@ async function runInitMode(): Promise<void> {
     resumeData.experience = [defaultExperienceTemplate()];
     resumeData.education = [defaultEducationTemplate()];
     resumeData.recognition = {
-      snippets: [
-        "Customize this section with impact metrics, awards, or external recognition.",
-      ],
+      snippets: ["Customize this section with impact metrics, awards, or external recognition."],
       recommendations: [],
     };
 
@@ -2456,23 +2022,23 @@ async function runInitMode(): Promise<void> {
 
     validateProjectsOrThrow(newProjects);
     const validatedResumeData = validateResumeDataOrThrow(resumeData);
-    await writeJson(resumeDataPath, validatedResumeData, { createBackup: true });
+    await writeJson(resumeDataPath, validatedResumeData, {
+      createBackup: true,
+      dryRun: runtimeOptions.dryRun,
+      showDiff: runtimeOptions.showDiff,
+    });
 
     writeLine();
     writeSuccess("Init complete.");
-    writeInfo(
-      "Run npm run update any time to add/edit projects, shenanigans, and resume entries.",
-    );
+    writeInfo("Run npm run update any time to add/edit projects, shenanigans, and resume entries.");
     writeInfo("Hint: place app assets in public/apps/<slug>/(images|videos).");
-    writeInfo(
-      "Hint: place shenanigan assets in public/personal/images/ai-shenanigans/<slug>.",
-    );
+    writeInfo("Hint: place shenanigan assets in public/personal/images/ai-shenanigans/<slug>.");
   } finally {
     rl.close();
   }
 }
 
-async function runUpdateMode(): Promise<void> {
+async function runUpdateMode(runtimeOptions: PortfolioSetupRuntimeOptions): Promise<void> {
   const rl = readline.createInterface({ input, output });
   try {
     writeSection("Portfolio updater");
@@ -2491,25 +2057,21 @@ async function runUpdateMode(): Promise<void> {
       : [];
     const recognition: RecognitionData =
       resumeData.recognition && typeof resumeData.recognition === "object"
-      ? resumeData.recognition
-      : {};
+        ? resumeData.recognition
+        : {};
     const competenciesData: CompetenciesData =
       resumeData.competencies && typeof resumeData.competencies === "object"
-      ? resumeData.competencies
-      : {};
+        ? resumeData.competencies
+        : {};
     const competencyCategories: CompetencyCategoryEntry[] = Array.isArray(
       competenciesData.categories,
     )
       ? (competenciesData.categories as CompetencyCategoryEntry[])
       : [];
-    const recognitionSnippets: RecognitionSnippetEntry[] = Array.isArray(
-      recognition.snippets,
-    )
+    const recognitionSnippets: RecognitionSnippetEntry[] = Array.isArray(recognition.snippets)
       ? (recognition.snippets as RecognitionSnippetEntry[])
       : [];
-    const recommendations: RecommendationEntry[] = Array.isArray(
-      recognition.recommendations,
-    )
+    const recommendations: RecommendationEntry[] = Array.isArray(recognition.recommendations)
       ? (recognition.recommendations as RecommendationEntry[])
       : [];
 
@@ -2582,7 +2144,7 @@ async function runUpdateMode(): Promise<void> {
         const config = await promptProject(rl);
         upsertProject(projects, config.project);
         if (config.generateRoute) {
-          await createProjectRouteSkeleton(rl, config.slug, config.name);
+          await createProjectRouteSkeleton(rl, config.slug, config.name, runtimeOptions);
         }
         writeSuccess(`Saved project ${config.project.name}.`);
       }
@@ -2619,9 +2181,7 @@ async function runUpdateMode(): Promise<void> {
             const index = await chooseIndex(
               rl,
               "Select experience entry",
-              experience.map(
-                (item, idx) => `${idx + 1}. ${item.company} — ${item.position}`,
-              ),
+              experience.map((item, idx) => `${idx + 1}. ${item.company} — ${item.position}`),
             );
             experience[index] = await promptExperienceEntry(rl, experience[index]);
             writeSuccess("Experience entry updated.");
@@ -2635,9 +2195,7 @@ async function runUpdateMode(): Promise<void> {
             const index = await chooseIndex(
               rl,
               "Select experience entry to remove",
-              experience.map(
-                (item, idx) => `${idx + 1}. ${item.company} — ${item.position}`,
-              ),
+              experience.map((item, idx) => `${idx + 1}. ${item.company} — ${item.position}`),
             );
             experience.splice(index, 1);
             writeSuccess("Experience entry removed.");
@@ -2671,9 +2229,7 @@ async function runUpdateMode(): Promise<void> {
             const index = await chooseIndex(
               rl,
               "Select education entry",
-              education.map(
-                (item, idx) => `${idx + 1}. ${item.school} — ${item.degree}`,
-              ),
+              education.map((item, idx) => `${idx + 1}. ${item.school} — ${item.degree}`),
             );
             education[index] = await promptEducationEntry(rl, education[index]);
             writeSuccess("Education entry updated.");
@@ -2687,9 +2243,7 @@ async function runUpdateMode(): Promise<void> {
             const index = await chooseIndex(
               rl,
               "Select education entry to remove",
-              education.map(
-                (item, idx) => `${idx + 1}. ${item.school} — ${item.degree}`,
-              ),
+              education.map((item, idx) => `${idx + 1}. ${item.school} — ${item.degree}`),
             );
             education.splice(index, 1);
             writeSuccess("Education entry removed.");
@@ -2718,8 +2272,7 @@ async function runUpdateMode(): Promise<void> {
           required: true,
         });
         currentContact.linkedin = await askText(rl, "LinkedIn URL", {
-          defaultValue:
-            currentContact.linkedin || "https://www.linkedin.com/in/your-profile",
+          defaultValue: currentContact.linkedin || "https://www.linkedin.com/in/your-profile",
           required: true,
         });
         const github = await askText(rl, "GitHub URLs (comma-separated)", {
@@ -2766,8 +2319,7 @@ async function runUpdateMode(): Promise<void> {
               rl,
               "Select recognition snippet",
               recognitionSnippets.map(
-                (snippet, idx) =>
-                  `${idx + 1}. ${formatRecognitionSnippetPreview(snippet)}`,
+                (snippet, idx) => `${idx + 1}. ${formatRecognitionSnippetPreview(snippet)}`,
               ),
             );
             recognitionSnippets[index] = await promptRecognitionSnippet(
@@ -2786,8 +2338,7 @@ async function runUpdateMode(): Promise<void> {
               rl,
               "Select recognition snippet to remove",
               recognitionSnippets.map(
-                (snippet, idx) =>
-                  `${idx + 1}. ${formatRecognitionSnippetPreview(snippet)}`,
+                (snippet, idx) => `${idx + 1}. ${formatRecognitionSnippetPreview(snippet)}`,
               ),
             );
             recognitionSnippets.splice(index, 1);
@@ -2827,10 +2378,7 @@ async function runUpdateMode(): Promise<void> {
                   `${idx + 1}. ${item.name || "Unknown"} — ${item.title || "No title"} (${item.date || "No date"})`,
               ),
             );
-            recommendations[index] = await promptRecommendationEntry(
-              rl,
-              recommendations[index],
-            );
+            recommendations[index] = await promptRecommendationEntry(rl, recommendations[index]);
             writeSuccess("Recommendation updated.");
           }
         }
@@ -2880,8 +2428,7 @@ async function runUpdateMode(): Promise<void> {
               rl,
               "Select competency category",
               competencyCategories.map(
-                (item, idx) =>
-                  `${idx + 1}. ${item.title} (${item.items?.length || 0} skills)`,
+                (item, idx) => `${idx + 1}. ${item.title} (${item.items?.length || 0} skills)`,
               ),
             );
             competencyCategories[index] = await promptCompetencyCategoryEntry(
@@ -2900,8 +2447,7 @@ async function runUpdateMode(): Promise<void> {
               rl,
               "Select competency category to remove",
               competencyCategories.map(
-                (item, idx) =>
-                  `${idx + 1}. ${item.title} (${item.items?.length || 0} skills)`,
+                (item, idx) => `${idx + 1}. ${item.title} (${item.items?.length || 0} skills)`,
               ),
             );
             competencyCategories.splice(index, 1);
@@ -2915,7 +2461,7 @@ async function runUpdateMode(): Promise<void> {
       }
 
       if (action.value === "assets") {
-        await handleAppAssetOrganizer(rl, resumeData);
+        await handleAppAssetOrganizer(rl, resumeData, runtimeOptions);
       }
 
       if (action.value === "save") {
@@ -2949,25 +2495,38 @@ async function runUpdateMode(): Promise<void> {
 
     validateProjectsOrThrow(projects);
     const validatedResumeData = validateResumeDataOrThrow(resumeData);
-    await writeJson(resumeDataPath, validatedResumeData, { createBackup: true });
+    await writeJson(resumeDataPath, validatedResumeData, {
+      createBackup: true,
+      dryRun: runtimeOptions.dryRun,
+      showDiff: runtimeOptions.showDiff,
+    });
 
     writeLine();
     writeSuccess("Update complete.");
-    writeInfo(
-      "Hint: if asset pick-lists are empty, move files into scoped folders first.",
-    );
+    writeInfo("Hint: if asset pick-lists are empty, move files into scoped folders first.");
   } finally {
     rl.close();
   }
 }
 
 async function main(): Promise<void> {
-  const mode = (process.argv[2] || "").trim().toLowerCase();
+  const parsedArgs = parsePortfolioSetupArgs(process.argv.slice(2));
 
-  if (!mode || (mode !== "init" && mode !== "update")) {
-    writeError("Usage: node scripts/portfolio-setup.mjs <init|update>");
+  if (parsedArgs.usageError) {
+    writeError(parsedArgs.usageError);
+    writeError(usageMessage);
     process.exitCode = 1;
     return;
+  }
+
+  if (!parsedArgs.mode) {
+    writeError(usageMessage);
+    process.exitCode = 1;
+    return;
+  }
+
+  if (parsedArgs.options.dryRun) {
+    writeWarning("Dry run mode is active. No files will be written.");
   }
 
   if (!(await pathExists(resumeDataPath))) {
@@ -2976,12 +2535,18 @@ async function main(): Promise<void> {
     return;
   }
 
-  if (mode === "init") {
-    await runInitMode();
-    return;
-  }
+  const commandRegistry = createPortfolioSetupCommandRegistry({
+    runInitMode,
+    runUpdateMode,
+  });
 
-  await runUpdateMode();
+  await runPortfolioSetupCommand(
+    {
+      mode: parsedArgs.mode,
+      runtimeOptions: parsedArgs.options,
+    },
+    commandRegistry,
+  );
 }
 
 main().catch((error) => {

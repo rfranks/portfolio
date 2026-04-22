@@ -4,10 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 import { useToast } from "@/app/talentforge/_components/ToastProvider";
-import {
-  describeAskError,
-  type AskErrorInfo,
-} from "@/app/talentforge/_utils/errors";
+import { describeAskError, type AskErrorInfo } from "@/app/talentforge/_utils/errors";
 
 interface NotifyOptions {
   getToastMessage?: (message: string) => string;
@@ -18,12 +15,7 @@ interface NotifyOptions {
 type ErrorLike = unknown | AskErrorInfo;
 
 const resolveErrorInfo = (value: ErrorLike): AskErrorInfo => {
-  if (
-    value &&
-    typeof value === "object" &&
-    "message" in value &&
-    "isKeyIssue" in value
-  ) {
+  if (value && typeof value === "object" && "message" in value && "isKeyIssue" in value) {
     const info = value as AskErrorInfo;
     return { message: info.message, isKeyIssue: info.isKeyIssue };
   }
@@ -41,15 +33,13 @@ export default function useAIErrorHandler() {
         ? options.getToastMessage(info.message)
         : info.message;
 
-      const action = info.isKeyIssue
-        ? () => router.push("/talentforge/settings")
-        : options?.retry;
+      const action = info.isKeyIssue ? () => router.push("/talentforge/settings") : options?.retry;
 
       const actionLabel = info.isKeyIssue
         ? "Open settings"
         : options?.retry
-        ? options.retryLabel ?? "Retry"
-        : undefined;
+          ? (options.retryLabel ?? "Retry")
+          : undefined;
 
       if (toastMessage) {
         showToast({

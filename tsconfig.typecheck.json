@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "skipLibCheck": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "scripts/**/*.ts",
+    "scripts/**/*.mts"
+  ],
+  "exclude": ["node_modules", ".next", "out", "**/*.test.ts", "**/*.test.tsx", "src/tests/**"]
+}

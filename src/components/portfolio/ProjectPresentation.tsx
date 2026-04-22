@@ -22,11 +22,7 @@ import SubsectionPager, {
   type SubsectionPagerItem,
 } from "@/components/portfolio/layout/SubsectionPager";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import {
-  MarkdownContent,
-  MediaCycler,
-  PanelFrame,
-} from "@/components/shared";
+import { MarkdownContent, MediaCycler, PanelFrame } from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
 import type { ProjectData } from "@/types/components/portfolio";
 import { withBasePath } from "@/utils/basePath";
@@ -89,16 +85,10 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
       const technologyLines = topTechnologies.map((tech) =>
         tech.url ? `- [${tech.name}](${tech.url})` : `- ${tech.name}`,
       );
-      markdownSections.push(
-        "### Tech Snapshot",
-        technologyLines.join("\n"),
-      );
+      markdownSections.push("### Tech Snapshot", technologyLines.join("\n"));
     }
 
-    const specificationKeys = Object.keys(project.specifications || {}).slice(
-      0,
-      8,
-    );
+    const specificationKeys = Object.keys(project.specifications || {}).slice(0, 8);
     if (specificationKeys.length > 0) {
       markdownSections.push(
         "### Implementation Scope",
@@ -107,12 +97,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
     }
 
     return markdownSections.filter(Boolean).join("\n\n");
-  }, [
-    project.description,
-    project.specifications,
-    project.technologiesUsed,
-    project.wowFactor,
-  ]);
+  }, [project.description, project.specifications, project.technologiesUsed, project.wowFactor]);
   const overviewItems = useMemo<MediaCyclerItem[]>(() => {
     const items: MediaCyclerItem[] = [];
 
@@ -228,12 +213,12 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
 
     return items;
   }, [project.demoGifUrl, project.demoVideoUrl, project.project]);
-  const [activeOverviewMediaKey, setActiveOverviewMediaKey] = useState<
-    string | undefined
-  >(overviewItems[0]?.key);
-  const [activeDemoMediaKey, setActiveDemoMediaKey] = useState<
-    string | undefined
-  >(demoItems[0]?.key);
+  const [activeOverviewMediaKey, setActiveOverviewMediaKey] = useState<string | undefined>(
+    overviewItems[0]?.key,
+  );
+  const [activeDemoMediaKey, setActiveDemoMediaKey] = useState<string | undefined>(
+    demoItems[0]?.key,
+  );
   const projectPresentationNavigationControlSx: SxProps<Theme> = (theme) => ({
     color: theme.palette.common.black,
     borderColor: theme.palette.common.black,
@@ -414,21 +399,17 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
     }
 
     if (typeof value === "object" && value !== null) {
-      return Object.entries(value as Record<string, unknown>).map(
-        ([childKey, childValue]) => (
-          <Accordion key={childKey} sx={{ backgroundColor: "transparent" }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{childKey}</Typography>
-            </AccordionSummary>
-            <AccordionDetails>{renderSpecification(childValue)}</AccordionDetails>
-          </Accordion>
-        ),
-      );
+      return Object.entries(value as Record<string, unknown>).map(([childKey, childValue]) => (
+        <Accordion key={childKey} sx={{ backgroundColor: "transparent" }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1">{childKey}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>{renderSpecification(childValue)}</AccordionDetails>
+        </Accordion>
+      ));
     }
 
-    return (
-      <MarkdownContent content={String(value)} sx={{ "& p": { mb: 0 } }} />
-    );
+    return <MarkdownContent content={String(value)} sx={{ "& p": { mb: 0 } }} />;
   };
 
   const renderOverview = () => (
@@ -627,9 +608,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
                 previousAriaLabel="Previous project section"
                 nextAriaLabel="Next project section"
                 selectorAriaLabel="Open project section selector"
-                onSelect={(key) =>
-                  setActiveSectionKey(key as ProjectSection["key"])
-                }
+                onSelect={(key) => setActiveSectionKey(key as ProjectSection["key"])}
                 onPrevious={handlePreviousSection}
                 onNext={handleNextSection}
               />

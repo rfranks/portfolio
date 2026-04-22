@@ -83,8 +83,7 @@ function buildVoicing(chord: BGMChord, step: number) {
   });
 
   return rotated.map((midi, index) => {
-    const tightened =
-      index > 0 && midi - rotated[index - 1] > 8 ? midi - 12 : midi;
+    const tightened = index > 0 && midi - rotated[index - 1] > 8 ? midi - 12 : midi;
     return midiToFrequency(tightened);
   });
 }
@@ -119,8 +118,7 @@ export function useBGM(
     if (!contextRef.current) {
       const Ctor =
         window.AudioContext ||
-        (window as typeof window & { webkitAudioContext?: typeof AudioContext })
-          .webkitAudioContext;
+        (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!Ctor) {
         return null;
       }

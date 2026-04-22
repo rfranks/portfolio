@@ -144,11 +144,7 @@ export function getOutcomeStampAngle({
   totalLabel: string;
   outcomeLabel: string;
 }) {
-  const seed =
-    (index + 1) * 7 +
-    cardsLength * 5 +
-    totalLabel.length * 3 +
-    outcomeLabel.length * 3;
+  const seed = (index + 1) * 7 + cardsLength * 5 + totalLabel.length * 3 + outcomeLabel.length * 3;
   return (seed % 21) - 10;
 }
 
@@ -215,17 +211,13 @@ export function countRenderedCards(state: BlackjackRenderState | null) {
 
   const dealerCards = state.dealer.cards.length;
   const playerCards =
-    state.player?.hands.reduce((total, hand) => total + hand.cards.length, 0) ??
-    0;
+    state.player?.hands.reduce((total, hand) => total + hand.cards.length, 0) ?? 0;
 
   return dealerCards + playerCards;
 }
 
 export function getPlayerHasBlackjack(state: BlackjackRenderState | null) {
-  return (
-    state?.player?.hands.some((hand) => hand.outcomeLabel === "Blackjack!") ??
-    false
-  );
+  return state?.player?.hands.some((hand) => hand.outcomeLabel === "Blackjack!") ?? false;
 }
 
 function hashString(value: string) {
@@ -247,8 +239,7 @@ export function pickStatusEmojis(
   const neutralPool = ["🎲", "♠️", "🃏", "🤝", "🎰"];
 
   const pool =
-    summary.includes("Blackjack") ||
-    (badge === "Won!" && summary.includes("Blackjack"))
+    summary.includes("Blackjack") || (badge === "Won!" && summary.includes("Blackjack"))
       ? blackjackPool
       : tone === "win"
         ? winPool

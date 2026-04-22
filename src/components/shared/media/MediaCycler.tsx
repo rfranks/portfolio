@@ -87,10 +87,7 @@ export type MediaCyclerItem = {
   playsInline?: boolean;
   loop?: boolean;
   muted?: boolean;
-  videoProps?: Omit<
-    React.ComponentPropsWithoutRef<"video">,
-    "src" | "children"
-  >;
+  videoProps?: Omit<React.ComponentPropsWithoutRef<"video">, "src" | "children">;
   extraContent?: React.ReactNode;
 };
 
@@ -137,11 +134,7 @@ const renderSource = (label?: string, href?: string) => {
   }
 
   return (
-    <Typography
-      variant="caption"
-      color="text.secondary"
-      sx={{ mt: 1.5, display: "block" }}
-    >
+    <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: "block" }}>
       Source:{" "}
       {href ? (
         <Link
@@ -161,8 +154,7 @@ const renderSource = (label?: string, href?: string) => {
 };
 
 const createMediaKeyDownHandler =
-  (onMediaActivate?: () => void) =>
-  (event: React.KeyboardEvent<HTMLElement>) => {
+  (onMediaActivate?: () => void) => (event: React.KeyboardEvent<HTMLElement>) => {
     if (!onMediaActivate) {
       return;
     }
@@ -208,24 +200,17 @@ export default function MediaCycler({
     }
 
     if (singlePanelActiveKey) {
-      return (
-        items.find((item) => item.key === singlePanelActiveKey) ?? items[0]
-      );
+      return items.find((item) => item.key === singlePanelActiveKey) ?? items[0];
     }
 
     return items[0];
   }, [items, singlePanelActiveKey]);
 
   const initialItem = resolveActiveItem();
-  const [renderedItem, setRenderedItem] =
-    React.useState<MediaCyclerItem | null>(initialItem);
+  const [renderedItem, setRenderedItem] = React.useState<MediaCyclerItem | null>(initialItem);
   const [isVisible, setIsVisible] = React.useState(true);
-  const [transitionDirection, setTransitionDirection] = React.useState<
-    "left" | "right"
-  >("right");
-  const [metadataDialogItemKey, setMetadataDialogItemKey] = React.useState<
-    string | null
-  >(null);
+  const [transitionDirection, setTransitionDirection] = React.useState<"left" | "right">("right");
+  const [metadataDialogItemKey, setMetadataDialogItemKey] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!singlePanel) {
@@ -266,44 +251,29 @@ export default function MediaCycler({
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [
-    disableTransition,
-    items,
-    renderedItem,
-    resolveActiveItem,
-    singlePanel,
-    transitionMs,
-  ]);
+  }, [disableTransition, items, renderedItem, resolveActiveItem, singlePanel, transitionMs]);
 
   const activeKey = renderedItem?.key ?? null;
   const stackSxArray = toSxArray(stackSx);
   const navigationControlSxArray = toSxArray(navigationControlSx);
   const expandControlSxArray = toSxArray(expandControlSx);
-  const activeIndex =
-    activeKey == null ? -1 : items.findIndex((item) => item.key === activeKey);
+  const activeIndex = activeKey == null ? -1 : items.findIndex((item) => item.key === activeKey);
   const hasMultipleItems = items.length > 1;
   const loopFromFirstToLast = loopFromBeginning || loppFromBeginniner;
   const previousItem = activeIndex > 0 ? items[activeIndex - 1] : null;
   const nextItem = activeIndex >= 0 ? items[activeIndex + 1] || null : null;
-  const isAtFinalItem =
-    activeIndex >= 0 && activeIndex === Math.max(items.length - 1, 0);
+  const isAtFinalItem = activeIndex >= 0 && activeIndex === Math.max(items.length - 1, 0);
   const canWrapToFirst = loopNavigation && isAtFinalItem && hasMultipleItems;
   const canWrapToLast =
-    loopNavigation &&
-    loopFromFirstToLast &&
-    activeIndex === 0 &&
-    hasMultipleItems;
+    loopNavigation && loopFromFirstToLast && activeIndex === 0 && hasMultipleItems;
   const previousDisabledRaw =
-    disableChevronPrevious ??
-    (!previousItem || !Boolean(previousItem.onSelect));
-  const nextDisabledRaw =
-    disableChevronNext ?? (!nextItem || !Boolean(nextItem.onSelect));
+    disableChevronPrevious ?? (!previousItem || !Boolean(previousItem.onSelect));
+  const nextDisabledRaw = disableChevronNext ?? (!nextItem || !Boolean(nextItem.onSelect));
   const previousDisabled = previousDisabledRaw && !canWrapToLast;
   const nextDisabled = nextDisabledRaw && !canWrapToFirst;
   const showLoopAction = canWrapToFirst;
   const loopDisabled = disableLoopNavigation;
-  const hideNextChevron =
-    hideDisabledNextChevron && !showLoopAction && nextDisabled;
+  const hideNextChevron = hideDisabledNextChevron && !showLoopAction && nextDisabled;
   const swipeRef = React.useRef<{
     startX: number;
     startY: number;
@@ -445,9 +415,7 @@ export default function MediaCycler({
     metadataDialogItemKey == null
       ? null
       : items.find((item) => item.key === metadataDialogItemKey) || null;
-  const [markdownByKey, setMarkdownByKey] = React.useState<
-    Record<string, string>
-  >({});
+  const [markdownByKey, setMarkdownByKey] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
     const markdownItems = items.filter(
@@ -503,10 +471,7 @@ export default function MediaCycler({
     };
   }, [items]);
 
-  const renderItem = (
-    item: MediaCyclerItem,
-    navigationOverlay?: React.ReactNode,
-  ) => {
+  const renderItem = (item: MediaCyclerItem, navigationOverlay?: React.ReactNode) => {
     const canActivate = Boolean(item.onMediaActivate);
     const hasTitle = item.title.trim().length > 0;
     const imageAlt = item.mediaAlt || item.title;
@@ -528,15 +493,10 @@ export default function MediaCycler({
     const hasSmallScreenInfoBlurb = Boolean(smallScreenInfoBlurb?.trim());
     const compactMetadata =
       compactMetadataOnSmallScreens && (hasMetadata || hasSmallScreenInfoBlurb);
-    const inlineMetadataDisplay = compactMetadata
-      ? { xs: "none", md: "block" }
-      : "block";
+    const inlineMetadataDisplay = compactMetadata ? { xs: "none", md: "block" } : "block";
     const resolvedMarkdownContent =
       item.mediaType === "markdown"
-        ? (item.markdownContent ??
-          markdownByKey[item.key] ??
-          item.mediaUrl ??
-          "") as string
+        ? ((item.markdownContent ?? markdownByKey[item.key] ?? item.mediaUrl ?? "") as string)
         : "";
     const pdfUrl = item.mediaUrl;
 
@@ -694,11 +654,7 @@ export default function MediaCycler({
                     src={item.mediaUrl}
                     alt={imageAlt}
                     title={lightboxTitle}
-                    caption={
-                      item.lightboxCaption ||
-                      item.mediaCaption ||
-                      item.mediaSource
-                    }
+                    caption={item.lightboxCaption || item.mediaCaption || item.mediaSource}
                     stopEventPropagation
                     triggerSx={{
                       all: "unset",
@@ -968,10 +924,7 @@ export default function MediaCycler({
                 <MarkdownContent
                   content={resolvedMarkdownContent}
                   variant="body2"
-                  sx={[
-                    { "& p": { mb: 1.1 } },
-                    ...markdownSxArray,
-                  ]}
+                  sx={[{ "& p": { mb: 1.1 } }, ...markdownSxArray]}
                 />
               </Box>
             </Box>
@@ -1027,9 +980,7 @@ export default function MediaCycler({
                 border: "1px solid",
                 borderColor: alpha(theme.palette.common.white, 0.22),
                 color:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.grey[100]
-                    : theme.palette.grey[900],
+                  theme.palette.mode === "dark" ? theme.palette.grey[100] : theme.palette.grey[900],
                 bgcolor:
                   theme.palette.mode === "dark"
                     ? "rgba(2,6,23,0.65)"
@@ -1057,9 +1008,7 @@ export default function MediaCycler({
                 border: "1px solid",
                 borderColor: alpha(theme.palette.common.white, 0.22),
                 color:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.grey[100]
-                    : theme.palette.grey[900],
+                  theme.palette.mode === "dark" ? theme.palette.grey[100] : theme.palette.grey[900],
                 bgcolor:
                   theme.palette.mode === "dark"
                     ? "rgba(2,6,23,0.72)"
@@ -1098,9 +1047,7 @@ export default function MediaCycler({
                 border: "1px solid",
                 borderColor: alpha(theme.palette.common.white, 0.22),
                 color:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.grey[100]
-                    : theme.palette.grey[900],
+                  theme.palette.mode === "dark" ? theme.palette.grey[100] : theme.palette.grey[900],
                 bgcolor:
                   theme.palette.mode === "dark"
                     ? "rgba(2,6,23,0.65)"
@@ -1167,9 +1114,7 @@ export default function MediaCycler({
           maxWidth="xs"
         >
           <DialogTitle sx={{ pr: 6 }}>
-            {metadataDialogItem?.mediaLightboxTitle ||
-              metadataDialogItem?.title ||
-              "Media details"}
+            {metadataDialogItem?.mediaLightboxTitle || metadataDialogItem?.title || "Media details"}
             <IconButton
               aria-label="Close media details"
               onClick={() => setMetadataDialogItemKey(null)}
@@ -1189,10 +1134,7 @@ export default function MediaCycler({
                 color="text.secondary"
                 sx={{
                   mb:
-                    metadataDialogItem?.mediaSource ||
-                    metadataDialogItem?.mediaCaption
-                      ? 1.25
-                      : 0,
+                    metadataDialogItem?.mediaSource || metadataDialogItem?.mediaCaption ? 1.25 : 0,
                 }}
               >
                 {smallScreenInfoBlurb}
@@ -1253,9 +1195,7 @@ export default function MediaCycler({
         maxWidth="xs"
       >
         <DialogTitle sx={{ pr: 6 }}>
-          {metadataDialogItem?.mediaLightboxTitle ||
-            metadataDialogItem?.title ||
-            "Media details"}
+          {metadataDialogItem?.mediaLightboxTitle || metadataDialogItem?.title || "Media details"}
           <IconButton
             aria-label="Close media details"
             onClick={() => setMetadataDialogItemKey(null)}
@@ -1274,10 +1214,7 @@ export default function MediaCycler({
               variant="body2"
               color="text.secondary"
               sx={{
-                mb:
-                  metadataDialogItem?.mediaSource || metadataDialogItem?.mediaCaption
-                    ? 1.25
-                    : 0,
+                mb: metadataDialogItem?.mediaSource || metadataDialogItem?.mediaCaption ? 1.25 : 0,
               }}
             >
               {smallScreenInfoBlurb}

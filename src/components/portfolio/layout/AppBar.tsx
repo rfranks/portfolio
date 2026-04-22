@@ -59,9 +59,7 @@ export default function AppBar({
     <StyledAppBar open={open} drawerWidth={drawerWidth} {...other}>
       <Toolbar sx={{ pr: "24px" }}>
         {children}
-        {toggleColorMode && (
-          <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
-        )}
+        {toggleColorMode && <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />}
       </Toolbar>
     </StyledAppBar>
   );

@@ -10,13 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
-import {
-  ChevronLeft,
-  ChevronRight,
-  MoreVert,
-  InfoOutlined,
-  Close,
-} from "@mui/icons-material";
+import { ChevronLeft, ChevronRight, MoreVert, InfoOutlined, Close } from "@mui/icons-material";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 
@@ -44,10 +38,7 @@ type AIShenaniganPagerProps = {
   onSelectShenanigan: (index: number) => void;
 };
 
-const getPagerOptionImage = (
-  item: AIShenaniganPagerItem,
-  fallbackImage: string,
-) => {
+const getPagerOptionImage = (item: AIShenaniganPagerItem, fallbackImage: string) => {
   if (item.pagerOptionImage) {
     return item.pagerOptionImage;
   }
@@ -70,10 +61,8 @@ const getPagerOptionImage = (
   );
 };
 
-const formatPagerOptionLabel = (index: number, title: string) =>
-  `${index + 1}. ${title}`;
-const formatPagerSelectedLabel = (index: number, title: string) =>
-  `${index + 1}. ${title}`;
+const formatPagerOptionLabel = (index: number, title: string) => `${index + 1}. ${title}`;
+const formatPagerSelectedLabel = (index: number, title: string) => `${index + 1}. ${title}`;
 
 export default function AIShenaniganPager({
   currentIndex,
@@ -83,9 +72,7 @@ export default function AIShenaniganPager({
   onSelectShenanigan,
 }: AIShenaniganPagerProps) {
   const { summary } = useResumeData();
-  const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(
-    null,
-  );
+  const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
 
   if (!items.length) {
@@ -126,11 +113,7 @@ export default function AIShenaniganPager({
             gap: 1,
           }}
         >
-          <IconButton
-            aria-label="Previous shenanigan"
-            size="small"
-            onClick={onPrevious}
-          >
+          <IconButton aria-label="Previous shenanigan" size="small" onClick={onPrevious}>
             <ChevronLeft />
           </IconButton>
           <Chip

@@ -21,4 +21,3 @@ export function useDocumentTitle() {
 
   return { getDocumentTitle, setDocumentTitle };
 }
-

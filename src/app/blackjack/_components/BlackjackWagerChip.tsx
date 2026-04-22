@@ -29,10 +29,7 @@ export default function BlackjackWagerChip({
   showBorder = true,
 }: BlackjackWagerChipProps) {
   const selectedWager =
-    engineState.player?.selectedWager ??
-    fallbackWager ??
-    engineState.player?.hands[0]?.wager ??
-    25;
+    engineState.player?.selectedWager ?? fallbackWager ?? engineState.player?.hands[0]?.wager ?? 25;
   const canCycleWager = engineState.askingToDeal;
   const formattedWager = `$${selectedWager}`;
 
@@ -69,9 +66,7 @@ export default function BlackjackWagerChip({
             height={20}
           />
         ) : null}
-        {label ? (
-          <span className="blackjack-game-mode-chip-label">{label}</span>
-        ) : null}
+        {label ? <span className="blackjack-game-mode-chip-label">{label}</span> : null}
         <span className="blackjack-game-mode-chip-value">{formattedWager}</span>
       </button>
     );

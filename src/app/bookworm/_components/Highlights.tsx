@@ -37,14 +37,9 @@ export default function Highlights() {
       sx={(theme) => ({
         pt: { xs: 4, sm: 12 },
         pb: { xs: 8, sm: 16 },
-        color:
-          theme.palette.mode === "light"
-            ? "text.primary"
-            : "common.white",
+        color: theme.palette.mode === "light" ? "text.primary" : "common.white",
         bgcolor:
-          theme.palette.mode === "light"
-            ? alpha(theme.palette.primary.light, 0.08)
-            : "#06090a",
+          theme.palette.mode === "light" ? alpha(theme.palette.primary.light, 0.08) : "#06090a",
       })}
     >
       <Container
@@ -68,10 +63,7 @@ export default function Highlights() {
           <Typography
             variant="body1"
             sx={(theme) => ({
-              color:
-                theme.palette.mode === "light"
-                  ? "text.secondary"
-                  : "grey.400",
+              color: theme.palette.mode === "light" ? "text.secondary" : "grey.400",
             })}
           >
             <Typography
@@ -87,10 +79,9 @@ export default function Highlights() {
             >
               bookworm
             </Typography>{" "}
-            stands out with its advanced AI that not only summarizes PDFs but
-            also answers content-specific questions, offering an intuitive,
-            user-friendly interface that improves over time, making it an
-            essential tool for efficient document handling and deeper
+            stands out with its advanced AI that not only summarizes PDFs but also answers
+            content-specific questions, offering an intuitive, user-friendly interface that improves
+            over time, making it an essential tool for efficient document handling and deeper
             comprehension.
           </Typography>
         </Box>
@@ -126,10 +117,7 @@ export default function Highlights() {
                   <Typography
                     variant="body2"
                     sx={(theme) => ({
-                      color:
-                        theme.palette.mode === "light"
-                          ? "text.secondary"
-                          : "grey.400",
+                      color: theme.palette.mode === "light" ? "text.secondary" : "grey.400",
                     })}
                   >
                     {item.description}

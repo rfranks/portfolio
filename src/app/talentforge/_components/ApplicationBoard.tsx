@@ -42,12 +42,7 @@ import {
   UnfoldMore,
 } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
-import {
-  DndContext,
-  useDraggable,
-  useDroppable,
-  type DragEndEvent,
-} from "@dnd-kit/core";
+import { DndContext, useDraggable, useDroppable, type DragEndEvent } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
@@ -174,16 +169,13 @@ function arrayMove<T>(array: readonly T[], from: number, to: number): T[] {
   return next;
 }
 
-function normalizeScreenRoleAnalysisResponse(
-  value: unknown,
-): ScreenRoleAnalysis | null {
+function normalizeScreenRoleAnalysisResponse(value: unknown): ScreenRoleAnalysis | null {
   if (!value || typeof value !== "object") {
     return null;
   }
   const source = value as Record<string, unknown>;
   const summaryRaw = source.summary;
-  const trimmedSummary =
-    typeof summaryRaw === "string" ? summaryRaw.trim() : undefined;
+  const trimmedSummary = typeof summaryRaw === "string" ? summaryRaw.trim() : undefined;
   const issuesRaw = source.issues;
   const issues: ScreenRoleAnalysis["issues"] = [];
   if (Array.isArray(issuesRaw)) {
@@ -194,10 +186,8 @@ function normalizeScreenRoleAnalysisResponse(
       const record = entry as Record<string, unknown>;
       const severity = record.severity;
       const messageRaw = record.message;
-      const normalizedSeverity =
-        severity === "red" || severity === "yellow" ? severity : undefined;
-      const trimmedMessage =
-        typeof messageRaw === "string" ? messageRaw.trim() : undefined;
+      const normalizedSeverity = severity === "red" || severity === "yellow" ? severity : undefined;
+      const trimmedMessage = typeof messageRaw === "string" ? messageRaw.trim() : undefined;
       if (normalizedSeverity && trimmedMessage) {
         issues.push({ severity: normalizedSeverity, message: trimmedMessage });
       }
@@ -264,10 +254,7 @@ export async function loadListingsWhenEmpty({
     return { applications: apps, error: null, loading: false };
   } catch (error) {
     logger("Failed to fetch job listings", error);
-    const normalized =
-      error instanceof Error
-        ? error
-        : new Error("Failed to load job listings.");
+    const normalized = error instanceof Error ? error : new Error("Failed to load job listings.");
     return {
       applications: existingApplications,
       error: normalized,
@@ -299,11 +286,15 @@ function Column({
     id,
     data: { type: "status", status: id },
   });
-  const { attributes, listeners, setNodeRef: setHandleRef, isDragging } =
-    useDraggable({
-      id: `column-${id}`,
-      data: { type: "column", status: id },
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setHandleRef,
+    isDragging,
+  } = useDraggable({
+    id: `column-${id}`,
+    data: { type: "column", status: id },
+  });
 
   const accessibleLabelParts = [title];
   if (assistiveText) {
@@ -327,9 +318,7 @@ function Column({
         width: { xs: "100%", sm: 280, lg: 300 },
         minHeight: collapsed ? "auto" : 400,
         bgcolor: (theme) =>
-          highlight
-            ? alpha(theme.palette.error.main, 0.08)
-            : theme.palette.background.paper,
+          highlight ? alpha(theme.palette.error.main, 0.08) : theme.palette.background.paper,
         flexShrink: 0,
         opacity: isDragging ? 0.8 : 1,
         ...(highlight
@@ -372,11 +361,7 @@ function Column({
             aria-label={toggleLabel}
             aria-pressed={collapsed}
           >
-            {collapsed ? (
-              <UnfoldMore fontSize="small" />
-            ) : (
-              <UnfoldLess fontSize="small" />
-            )}
+            {collapsed ? <UnfoldMore fontSize="small" /> : <UnfoldLess fontSize="small" />}
           </IconButton>
         </Tooltip>
       </Stack>
@@ -412,27 +397,22 @@ function Card({
   onRunTile: (id: string, context: PromptContext) => void;
   onOpenWorkspace: (app: JobApplication) => void;
   onOpenDetails: (app: JobApplication) => void;
-  onToggleSelect: (
-    app: JobApplication,
-    checked: boolean,
-    options?: { range?: boolean },
-  ) => void;
+  onToggleSelect: (app: JobApplication, checked: boolean, options?: { range?: boolean }) => void;
   onQuickEditReminder: (app: JobApplication) => void;
   resumes: ResumeEntry[];
   onAssignResume: (appId: string, resumeId: string) => void;
   onSetInterviewDate: (appId: string, value: string) => void;
   onSetInterviewLocation: (appId: string, value: string) => void;
   onDownloadInvite: (app: JobApplication) => void;
-  onOpenMenu: (
-    event: React.MouseEvent<HTMLButtonElement>,
-    app: JobApplication,
-  ) => void;
+  onOpenMenu: (event: React.MouseEvent<HTMLButtonElement>, app: JobApplication) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   activeId: string | null;
   selected: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: app.id, data: { type: "card", status: app.status } });
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: app.id,
+    data: { type: "card", status: app.status },
+  });
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const style = {
     transform: transform ? CSS.Translate.toString(transform) : undefined,
@@ -448,8 +428,7 @@ function Card({
     .join(" ");
 
   const dueDate = app.dueAt ? new Date(app.dueAt) : null;
-  const hasValidDue =
-    dueDate instanceof Date && !Number.isNaN(dueDate.getTime());
+  const hasValidDue = dueDate instanceof Date && !Number.isNaN(dueDate.getTime());
   const isOverdue = hasValidDue ? dueDate.getTime() < Date.now() : false;
   const dueLabel = hasValidDue
     ? dueDate.toLocaleString(undefined, {
@@ -457,9 +436,7 @@ function Card({
         timeStyle: "short",
       })
     : "";
-  const dueChipLabel = hasValidDue
-    ? `${isOverdue ? "Overdue" : "Due"}: ${dueLabel}`
-    : "";
+  const dueChipLabel = hasValidDue ? `${isOverdue ? "Overdue" : "Due"}: ${dueLabel}` : "";
   const hasReminder = Boolean(app.nextAction) || hasValidDue;
   const interviewDateRaw =
     typeof app.interviewDateTime === "string" ? app.interviewDateTime.trim() : "";
@@ -467,21 +444,15 @@ function Card({
     Boolean(interviewDateRaw) && !Number.isNaN(new Date(interviewDateRaw).getTime());
 
   const decision = app.decision ?? app.offer?.decision;
-  const decisionStatus =
-    decision?.status ?? OFFER_DECISION_DEFAULT_STATUS;
+  const decisionStatus = decision?.status ?? OFFER_DECISION_DEFAULT_STATUS;
   const decisionLabel = formatDecisionStatus(decisionStatus);
   const decisionChipColor =
-    decisionStatus === "accepted"
-      ? "success"
-      : decisionStatus === "declined"
-        ? "error"
-        : "default";
+    decisionStatus === "accepted" ? "success" : decisionStatus === "declined" ? "error" : "default";
   const attachmentCount = app.attachments?.length ?? 0;
   const screenRoleAnalysis = app.screenRoleAnalysis;
   const screenRoleSummary = screenRoleAnalysis?.summary?.trim();
   const screenRoleIssues = screenRoleAnalysis?.issues ?? [];
-  const hasScreenRoleAnalysis =
-    Boolean(screenRoleSummary) || screenRoleIssues.length > 0;
+  const hasScreenRoleAnalysis = Boolean(screenRoleSummary) || screenRoleIssues.length > 0;
 
   const offerNegotiationTile = getPromptTile("offerNegotiation", {
     contexts: "offers",
@@ -490,9 +461,7 @@ function Card({
     contexts: "offers",
   });
 
-  const handlePointerDownCapture = (
-    event: React.PointerEvent<HTMLDivElement>,
-  ) => {
+  const handlePointerDownCapture = (event: React.PointerEvent<HTMLDivElement>) => {
     pointerStart.current = { x: event.clientX, y: event.clientY };
   };
 
@@ -520,13 +489,10 @@ function Card({
     onOpenDetails(app);
   };
 
-  const handleCheckboxChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.stopPropagation();
     const nativeEvent = event.nativeEvent as MouseEvent | KeyboardEvent;
-    const range =
-      typeof nativeEvent.shiftKey === "boolean" ? nativeEvent.shiftKey : false;
+    const range = typeof nativeEvent.shiftKey === "boolean" ? nativeEvent.shiftKey : false;
     onToggleSelect(app, event.target.checked, { range });
   };
 
@@ -549,20 +515,16 @@ function Card({
         borderRadius: 1,
         bgcolor: selected ? "action.selected" : "background.default",
         boxShadow: selected ? 3 : undefined,
-        '&:focus-visible': {
-          outline: '2px solid',
-          outlineColor: 'primary.main',
+        "&:focus-visible": {
+          outline: "2px solid",
+          outlineColor: "primary.main",
         },
         ...style,
       }}
     >
       <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mb: 0.5 }}>
         <Box sx={{ position: "relative" }}>
-          <Typography
-            component="span"
-            id={selectionLabelId}
-            sx={{ ...visuallyHidden }}
-          >
+          <Typography component="span" id={selectionLabelId} sx={{ ...visuallyHidden }}>
             {selectionLabel}
           </Typography>
           <Checkbox
@@ -620,30 +582,17 @@ function Card({
               )}
             </Stack>
           )}
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{ mt: 0.5, flexWrap: "wrap" }}
-            useFlexGap
-          >
+          <Stack direction="row" spacing={1} sx={{ mt: 0.5, flexWrap: "wrap" }} useFlexGap>
             <Chip
               label={`Decision: ${decisionLabel}`}
-              color={
-                decisionChipColor === "default"
-                  ? "default"
-                  : decisionChipColor
-              }
-              variant={
-                decisionChipColor === "default" ? "outlined" : "filled"
-              }
+              color={decisionChipColor === "default" ? "default" : decisionChipColor}
+              variant={decisionChipColor === "default" ? "outlined" : "filled"}
               size="small"
             />
             {attachmentCount > 0 && (
               <Chip
                 icon={<AttachFile fontSize="small" />}
-                label={`${attachmentCount} ${
-                  attachmentCount === 1 ? "attachment" : "attachments"
-                }`}
+                label={`${attachmentCount} ${attachmentCount === 1 ? "attachment" : "attachments"}`}
                 size="small"
                 variant="outlined"
               />
@@ -711,47 +660,46 @@ function Card({
           ))}
         </TextField>
       )}
-      {STATUSES.indexOf(app.status) >= STATUSES.indexOf("interview") &&
-        app.status !== "offer" && (
-          <Stack spacing={1} sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}>
+      {STATUSES.indexOf(app.status) >= STATUSES.indexOf("interview") && app.status !== "offer" && (
+        <Stack spacing={1} sx={{ mt: 1, mb: app.role.description ? 1 : 0 }}>
+          <TextField
+            type="datetime-local"
+            size="small"
+            label="Interview Time"
+            value={app.interviewDateTime || ""}
+            onChange={(e) => onSetInterviewDate(app.id, e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+          />
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            alignItems={{ xs: "stretch", sm: "flex-end" }}
+          >
             <TextField
-              type="datetime-local"
               size="small"
-              label="Interview Time"
-              value={app.interviewDateTime || ""}
-              onChange={(e) => onSetInterviewDate(app.id, e.target.value)}
-              InputLabelProps={{ shrink: true }}
+              label="Meeting URL/Location"
+              value={app.interviewLocation || ""}
+              onChange={(e) => onSetInterviewLocation(app.id, e.target.value)}
               fullWidth
+              sx={{ flexGrow: 1 }}
             />
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={1}
-              alignItems={{ xs: "stretch", sm: "flex-end" }}
+            <Button
+              size="small"
+              variant="outlined"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => onDownloadInvite(app)}
+              disabled={!hasValidInterviewTime}
+              sx={{
+                alignSelf: { xs: "stretch", sm: "flex-end" },
+                whiteSpace: "nowrap",
+              }}
             >
-              <TextField
-                size="small"
-                label="Meeting URL/Location"
-                value={app.interviewLocation || ""}
-                onChange={(e) => onSetInterviewLocation(app.id, e.target.value)}
-                fullWidth
-                sx={{ flexGrow: 1 }}
-              />
-              <Button
-                size="small"
-                variant="outlined"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => onDownloadInvite(app)}
-                disabled={!hasValidInterviewTime}
-                sx={{
-                  alignSelf: { xs: "stretch", sm: "flex-end" },
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Download invite
-              </Button>
-            </Stack>
+              Download invite
+            </Button>
           </Stack>
-        )}
+        </Stack>
+      )}
       <Stack direction="column" spacing={1} sx={{ mt: 1 }}>
         <Button
           size="small"
@@ -824,10 +772,7 @@ function Card({
               <List dense sx={{ mt: 1, listStyleType: "disc", pl: 2 }}>
                 {app.offer.summary.map((line, idx) => (
                   <ListItem key={idx} sx={{ display: "list-item", py: 0 }}>
-                    <ListItemText
-                      primary={line}
-                      primaryTypographyProps={{ variant: "body2" }}
-                    />
+                    <ListItemText primary={line} primaryTypographyProps={{ variant: "body2" }} />
                   </ListItem>
                 ))}
               </List>
@@ -866,15 +811,12 @@ export default function ApplicationBoard() {
   }
   const initialApplications = initialApplicationsRef.current ?? [];
 
-  const [applications, setApplications] = useState<JobApplication[]>(
-    initialApplications,
+  const [applications, setApplications] = useState<JobApplication[]>(initialApplications);
+  const [pipelineLayout, setPipelineLayout] = useState<PipelineLayoutPreferences>(() =>
+    getPipelineLayoutPreferences(),
   );
-  const [pipelineLayout, setPipelineLayout] =
-    useState<PipelineLayoutPreferences>(() => getPipelineLayoutPreferences());
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ApplicationFilters["status"]>(
-    "all",
-  );
+  const [statusFilter, setStatusFilter] = useState<ApplicationFilters["status"]>("all");
   const [companyFilter, setCompanyFilter] = useState("");
   const [recruiterFilter, setRecruiterFilter] = useState("");
   const [resumeFilter, setResumeFilter] = useState("");
@@ -899,29 +841,22 @@ export default function ApplicationBoard() {
       data?: { compensation?: OfferComp[]; summary?: string[] };
     }[]
   >([]);
-  const [drawerAnalysis, setDrawerAnalysis] =
-    useState<ScreenRoleAnalysis | null>(null);
-  const [drawerMode, setDrawerMode] = useState<
-    "chat" | "resumeCompare" | "offerUpload"
-  >("chat");
+  const [drawerAnalysis, setDrawerAnalysis] = useState<ScreenRoleAnalysis | null>(null);
+  const [drawerMode, setDrawerMode] = useState<"chat" | "resumeCompare" | "offerUpload">("chat");
   const [drawerApp, setDrawerApp] = useState<JobApplication | null>(null);
-  const [drawerDecisionStatus, setDrawerDecisionStatus] =
-    useState<OfferDecisionStatus>(OFFER_DECISION_DEFAULT_STATUS);
+  const [drawerDecisionStatus, setDrawerDecisionStatus] = useState<OfferDecisionStatus>(
+    OFFER_DECISION_DEFAULT_STATUS,
+  );
   const [drawerDecisionDate, setDrawerDecisionDate] = useState("");
   const [drawerDecisionNotes, setDrawerDecisionNotes] = useState("");
-  const [cardMenuAnchorEl, setCardMenuAnchorEl] =
-    useState<HTMLElement | null>(null);
+  const [cardMenuAnchorEl, setCardMenuAnchorEl] = useState<HTMLElement | null>(null);
   const [cardMenuApp, setCardMenuApp] = useState<JobApplication | null>(null);
   const cardMenuOpen = Boolean(cardMenuAnchorEl);
-  const cardMenuSummary =
-    cardMenuApp?.screenRoleAnalysis?.summary?.trim() ?? "";
-  const cardMenuIssuesCount =
-    cardMenuApp?.screenRoleAnalysis?.issues?.length ?? 0;
-  const cardMenuHasAnalysis =
-    Boolean(cardMenuSummary) || cardMenuIssuesCount > 0;
+  const cardMenuSummary = cardMenuApp?.screenRoleAnalysis?.summary?.trim() ?? "";
+  const cardMenuIssuesCount = cardMenuApp?.screenRoleAnalysis?.issues?.length ?? 0;
+  const cardMenuHasAnalysis = Boolean(cardMenuSummary) || cardMenuIssuesCount > 0;
   const cardMenuCanRefresh = Boolean(cardMenuApp?.role.description);
-  const [resumeCompareApp, setResumeCompareApp] =
-    useState<JobApplication | null>(null);
+  const [resumeCompareApp, setResumeCompareApp] = useState<JobApplication | null>(null);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [workspaceApp, setWorkspaceApp] = useState<JobApplication | null>(null);
   const [rejectReason, setRejectReason] = useState("");
@@ -940,14 +875,13 @@ export default function ApplicationBoard() {
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   const [editingHistoryId, setEditingHistoryId] = useState<string | null>(null);
   const [editingHistoryLabel, setEditingHistoryLabel] = useState("");
-  const [reminderEditorApp, setReminderEditorApp] =
-    useState<JobApplication | null>(null);
+  const [reminderEditorApp, setReminderEditorApp] = useState<JobApplication | null>(null);
   const [reminderNextAction, setReminderNextAction] = useState("");
   const [reminderDue, setReminderDue] = useState("");
-  const [negotiationLibrary, setNegotiationLibrary] =
-    useState<NegotiationLibraryEntry[]>(() => getNegotiationLibrary());
-  const [manageNegotiationLibraryOpen, setManageNegotiationLibraryOpen] =
-    useState(false);
+  const [negotiationLibrary, setNegotiationLibrary] = useState<NegotiationLibraryEntry[]>(() =>
+    getNegotiationLibrary(),
+  );
+  const [manageNegotiationLibraryOpen, setManageNegotiationLibraryOpen] = useState(false);
   const negotiationRef = useRef<HTMLDivElement | null>(null);
   const {
     downloadMarkdown: downloadNegotiationMarkdown,
@@ -962,21 +896,14 @@ export default function ApplicationBoard() {
   const handleAskError = useCallback(
     (
       error: unknown,
-      {
-        context,
-        retry,
-        retryLabel,
-      }: { context: string; retry?: () => void; retryLabel?: string },
+      { context, retry, retryLabel }: { context: string; retry?: () => void; retryLabel?: string },
     ) => {
       const info = notifyAIError(error, {
-        getToastMessage: (message) =>
-          context ? `${context} ${message}`.trim() : message,
+        getToastMessage: (message) => (context ? `${context} ${message}`.trim() : message),
         retry,
         retryLabel,
       });
-      const combined = context
-        ? `${context} ${info.message}`.trim()
-        : info.message;
+      const combined = context ? `${context} ${info.message}`.trim() : info.message;
       return { info, combined };
     },
     [notifyAIError],
@@ -986,9 +913,7 @@ export default function ApplicationBoard() {
     if (!selectedApplicationId) {
       return null;
     }
-    return (
-      applications.find((application) => application.id === selectedApplicationId) || null
-    );
+    return applications.find((application) => application.id === selectedApplicationId) || null;
   }, [applications, selectedApplicationId]);
 
   const drawerDecisionInitial = useMemo(() => {
@@ -1002,9 +927,7 @@ export default function ApplicationBoard() {
     const decision = drawerApp.decision ?? drawerApp.offer?.decision;
     return {
       status: decision?.status ?? OFFER_DECISION_DEFAULT_STATUS,
-      decidedAt: decision?.decidedAt
-        ? toDateTimeLocalValue(decision.decidedAt)
-        : "",
+      decidedAt: decision?.decidedAt ? toDateTimeLocalValue(decision.decidedAt) : "",
       notes: decision?.notes ?? "",
     };
   }, [drawerApp]);
@@ -1025,8 +948,7 @@ export default function ApplicationBoard() {
     return "";
   }, [drawerMessages, drawerTileId]);
 
-  const canSaveNegotiationDraft =
-    latestNegotiationDraft.length > 0 && !drawerLoading;
+  const canSaveNegotiationDraft = latestNegotiationDraft.length > 0 && !drawerLoading;
 
   const defaultNegotiationLabel = useMemo(() => {
     const trimmed = drawerTitle.trim();
@@ -1052,16 +974,13 @@ export default function ApplicationBoard() {
   const trimmedReminderAction = reminderNextAction.trim();
   const reminderDueIso = toIsoOrUndefined(reminderDue);
   const reminderDueError = Boolean(reminderDue) && !reminderDueIso;
-  const reminderHasActionChange =
-    trimmedReminderAction !== reminderInitialAction;
+  const reminderHasActionChange = trimmedReminderAction !== reminderInitialAction;
   const reminderHasDueChange = reminderDue !== reminderInitialDue;
   const reminderHasChanges = reminderHasActionChange || reminderHasDueChange;
-  const canSaveReminder =
-    Boolean(reminderEditorApp) && reminderHasChanges && !reminderDueError;
+  const canSaveReminder = Boolean(reminderEditorApp) && reminderHasChanges && !reminderDueError;
 
   const drawerDecisionDateIso = toIsoOrUndefined(drawerDecisionDate);
-  const drawerDecisionDateError =
-    Boolean(drawerDecisionDate) && !drawerDecisionDateIso;
+  const drawerDecisionDateError = Boolean(drawerDecisionDate) && !drawerDecisionDateIso;
   const drawerDecisionHasChanges =
     drawerDecisionStatus !== drawerDecisionInitial.status ||
     drawerDecisionDate !== drawerDecisionInitial.decidedAt ||
@@ -1133,13 +1052,16 @@ export default function ApplicationBoard() {
     }
   }, [selectedIds.length]);
 
-  const filters = useMemo<ApplicationFilters>(() => ({
-    searchText: searchQuery,
-    status: statusFilter,
-    company: companyFilter,
-    recruiterId: recruiterFilter,
-    resumeId: resumeFilter,
-  }), [searchQuery, statusFilter, companyFilter, recruiterFilter, resumeFilter]);
+  const filters = useMemo<ApplicationFilters>(
+    () => ({
+      searchText: searchQuery,
+      status: statusFilter,
+      company: companyFilter,
+      recruiterId: recruiterFilter,
+      resumeId: resumeFilter,
+    }),
+    [searchQuery, statusFilter, companyFilter, recruiterFilter, resumeFilter],
+  );
 
   const filteredApplications = useMemo(
     () => filterApplications(applications, filters),
@@ -1245,9 +1167,7 @@ export default function ApplicationBoard() {
             }
           >
             Failed to load job listings. Please try again.
-            {listingsError.message
-              ? ` (${listingsError.message})`
-              : ""}
+            {listingsError.message ? ` (${listingsError.message})` : ""}
           </Alert>
         ) : (
           <Stack spacing={1} alignItems="center">
@@ -1257,11 +1177,7 @@ export default function ApplicationBoard() {
             </Typography>
           </Stack>
         )}
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={2}
-          sx={{ width: "100%" }}
-        >
+        <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ width: "100%" }}>
           {statusOrder.map((status) => (
             <Surface
               key={status}
@@ -1304,8 +1220,7 @@ export default function ApplicationBoard() {
     setSelectedIds((prev) => {
       const idSet = new Set(prev);
       const isSelected = idSet.has(app.id);
-      const shouldSelect =
-        typeof checked === "boolean" ? checked : !isSelected;
+      const shouldSelect = typeof checked === "boolean" ? checked : !isSelected;
       shouldSelectValue = shouldSelect;
       const applyChange = (id: string) => {
         const currentlySelected = idSet.has(id);
@@ -1323,9 +1238,7 @@ export default function ApplicationBoard() {
         const endIndex = visibleAppIds.indexOf(app.id);
         if (startIndex !== -1 && endIndex !== -1) {
           const [start, end] =
-            startIndex < endIndex
-              ? [startIndex, endIndex]
-              : [endIndex, startIndex];
+            startIndex < endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
           visibleAppIds.slice(start, end + 1).forEach(applyChange);
         } else {
           applyChange(app.id);
@@ -1346,9 +1259,7 @@ export default function ApplicationBoard() {
     setLastSelectedId(app.id);
     if (changedIds.length > 0) {
       if (changedIds.length === 1) {
-        setLiveMessage(
-          `${title} ${shouldSelectValue ? "selected" : "deselected"}`,
-        );
+        setLiveMessage(`${title} ${shouldSelectValue ? "selected" : "deselected"}`);
       } else {
         setLiveMessage(
           shouldSelectValue
@@ -1378,9 +1289,7 @@ export default function ApplicationBoard() {
   const handleBulkResumeAssign = (resumeId?: string) => {
     if (selectedCount === 0) return;
     const countLabel = selectedCount === 1 ? "application" : "applications";
-    const resume = resumeId
-      ? resumes.find((entry) => entry.id === resumeId)
-      : undefined;
+    const resume = resumeId ? resumes.find((entry) => entry.id === resumeId) : undefined;
     if (resumeId && !resume) return;
     const updates: Partial<JobApplication> = resume
       ? { resumeVariant: resume }
@@ -1429,9 +1338,7 @@ export default function ApplicationBoard() {
       (typeof over.id === "string" ? (over.id as ApplicationStatus) : undefined);
 
     if (activeType === "column") {
-      const activeStatus = active.data.current?.status as
-        | ApplicationStatus
-        | undefined;
+      const activeStatus = active.data.current?.status as ApplicationStatus | undefined;
       if (!activeStatus || !overStatus || activeStatus === overStatus) {
         return;
       }
@@ -1443,9 +1350,7 @@ export default function ApplicationBoard() {
           return prev;
         }
         const nextOrder = arrayMove(prev.order, activeIndex, overIndex);
-        const collapsed = nextOrder.filter((status) =>
-          prev.collapsed.includes(status),
-        );
+        const collapsed = nextOrder.filter((status) => prev.collapsed.includes(status));
         announcement =
           activeIndex > overIndex
             ? `${formatStatusLabel(activeStatus)} column moved before ${formatStatusLabel(overStatus)}`
@@ -1470,10 +1375,7 @@ export default function ApplicationBoard() {
       return;
     }
 
-    const updated = updateJobApplicationStatus(
-      active.id as string,
-      targetStatus,
-    );
+    const updated = updateJobApplicationStatus(active.id as string, targetStatus);
     setApplications(updated);
     const movedApp = updated.find((a) => a.id === active.id);
     if (movedApp) {
@@ -1517,10 +1419,7 @@ export default function ApplicationBoard() {
     }
   };
 
-  const handleCardKeyDown = (
-    e: React.KeyboardEvent<HTMLDivElement>,
-    app: JobApplication,
-  ) => {
+  const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, app: JobApplication) => {
     if (e.key === " " && e.shiftKey) {
       e.preventDefault();
       handleToggleSelection(app, undefined, { range: true });
@@ -1594,10 +1493,7 @@ export default function ApplicationBoard() {
     applyReminderUpdates(appId, updates);
   };
 
-  const handleDetailAttachmentsUpdate = (
-    appId: string,
-    attachments: ApplicationAttachment[],
-  ) => {
+  const handleDetailAttachmentsUpdate = (appId: string, attachments: ApplicationAttachment[]) => {
     const previousCount =
       applications.find((entry) => entry.id === appId)?.attachments?.length ?? 0;
     const updated = updateJobApplication(appId, { attachments });
@@ -1612,8 +1508,7 @@ export default function ApplicationBoard() {
         setLiveMessage(`${added} ${label} to ${title}`);
       } else if (nextCount < previousCount) {
         const removed = previousCount - nextCount;
-        const label =
-          removed === 1 ? "attachment removed" : "attachments removed";
+        const label = removed === 1 ? "attachment removed" : "attachments removed";
         setLiveMessage(`${removed} ${label} from ${title}`);
       } else {
         setLiveMessage(`${title} attachments updated`);
@@ -1621,17 +1516,15 @@ export default function ApplicationBoard() {
     }
   };
 
-  const handleDetailRecruitersUpdate = (
-    appId: string,
-    recruiters: RecruiterEntry[],
-  ) => {
+  const handleDetailRecruitersUpdate = (appId: string, recruiters: RecruiterEntry[]) => {
     const updated = updateJobApplication(appId, { recruiters });
     setApplications(updated);
     const updatedApp = updated.find((entry) => entry.id === appId);
     if (updatedApp) {
-      const message = recruiters.length > 0
-        ? `${updatedApp.role.title} recruiter list updated`
-        : `${updatedApp.role.title} recruiters cleared`;
+      const message =
+        recruiters.length > 0
+          ? `${updatedApp.role.title} recruiter list updated`
+          : `${updatedApp.role.title} recruiters cleared`;
       setLiveMessage(message);
     }
   };
@@ -1664,15 +1557,11 @@ export default function ApplicationBoard() {
     setReminderDue("");
   };
 
-  const handleReminderNextActionChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleReminderNextActionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setReminderNextAction(event.target.value);
   };
 
-  const handleReminderDueChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleReminderDueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setReminderDue(event.target.value);
   };
 
@@ -1682,9 +1571,7 @@ export default function ApplicationBoard() {
     }
     const updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">> = {};
     if (reminderHasActionChange) {
-      updates.nextAction = trimmedReminderAction
-        ? trimmedReminderAction
-        : undefined;
+      updates.nextAction = trimmedReminderAction ? trimmedReminderAction : undefined;
     }
     if (reminderHasDueChange) {
       updates.dueAt = reminderDueIso;
@@ -1744,9 +1631,7 @@ export default function ApplicationBoard() {
     }
     const newResumeId = uuid();
     const roleTitle = workspaceApp.role.title || "Workspace Variant";
-    const companySuffix = workspaceApp.role.company
-      ? ` at ${workspaceApp.role.company}`
-      : "";
+    const companySuffix = workspaceApp.role.company ? ` at ${workspaceApp.role.company}` : "";
     const generatedTitle = `${baseResume.title} – ${roleTitle}`;
     const newResume: ResumeEntry = {
       ...baseResume,
@@ -1759,8 +1644,7 @@ export default function ApplicationBoard() {
     };
     const updatedResumes = data.addResume(newResume);
     setResumes(updatedResumes);
-    const storedResume =
-      updatedResumes.find((resume) => resume.id === newResumeId) || newResume;
+    const storedResume = updatedResumes.find((resume) => resume.id === newResumeId) || newResume;
     const updatedApps = updateJobApplication(workspaceApp.id, {
       resumeVariant: storedResume,
     });
@@ -1772,9 +1656,7 @@ export default function ApplicationBoard() {
     if (drawerApp?.id === refreshed.id) {
       setDrawerApp(refreshed);
     }
-    setLiveMessage(
-      `Saved resume variant ${storedResume.title} for ${workspaceApp.role.title}`,
-    );
+    setLiveMessage(`Saved resume variant ${storedResume.title} for ${workspaceApp.role.title}`);
   };
 
   const handleAdd = () => {
@@ -1799,10 +1681,7 @@ export default function ApplicationBoard() {
     setSource("Company Site");
   };
 
-  const syncApplicationReferences = (
-    updated: JobApplication[],
-    appId: string,
-  ) => {
+  const syncApplicationReferences = (updated: JobApplication[], appId: string) => {
     setApplications(updated);
     const refreshed = updated.find((application) => application.id === appId) ?? null;
     if (drawerApp?.id === appId) {
@@ -1820,11 +1699,7 @@ export default function ApplicationBoard() {
     return refreshed;
   };
 
-  const runTile = async (
-    tileId: string,
-    context: PromptContext,
-    app: JobApplication,
-  ) => {
+  const runTile = async (tileId: string, context: PromptContext, app: JobApplication) => {
     const tile = getPromptTile(tileId, { contexts: context });
     if (!tile) return;
     setWorkspaceOpen(false);
@@ -1876,9 +1751,7 @@ export default function ApplicationBoard() {
     if (tileId === "offerNegotiation") {
       setDrawerTitle(tile.display);
       setDrawerTileId(tile.id);
-      setDrawerMessages([
-        { role: "assistant", text: "Gathering market data..." },
-      ]);
+      setDrawerMessages([{ role: "assistant", text: "Gathering market data..." }]);
       setDrawerAnalysis(null);
       setDrawerOpen(true);
       setDrawerApp(app);
@@ -1888,10 +1761,8 @@ export default function ApplicationBoard() {
       const offerLines: string[] = [];
       app.offer?.compensation.forEach((c) =>
         offerLines.push(
-          `${c.type}: $${c.amount.toLocaleString()}${
-            c.notes ? ` (${c.notes})` : ""
-          }`
-        )
+          `${c.type}: $${c.amount.toLocaleString()}${c.notes ? ` (${c.notes})` : ""}`,
+        ),
       );
       app.offer?.summary?.forEach((s) => offerLines.push(s));
       const offerSummary = offerLines.join("\n");
@@ -1919,10 +1790,7 @@ export default function ApplicationBoard() {
           chatHistory: [],
         });
         const message = res?.message || "";
-        setDrawerMessages((prev) => [
-          ...prev,
-          { role: "assistant", text: message },
-        ]);
+        setDrawerMessages((prev) => [...prev, { role: "assistant", text: message }]);
         activityRecorder.recordSuccess();
       } catch (error) {
         const { info, combined } = handleAskError(error, {
@@ -1954,10 +1822,8 @@ export default function ApplicationBoard() {
       const offerLines: string[] = [];
       app.offer?.compensation.forEach((c) =>
         offerLines.push(
-          `${c.type}: $${c.amount.toLocaleString()}${
-            c.notes ? ` (${c.notes})` : ""
-          }`
-        )
+          `${c.type}: $${c.amount.toLocaleString()}${c.notes ? ` (${c.notes})` : ""}`,
+        ),
       );
       app.offer?.summary?.forEach((s) => offerLines.push(s));
       const offerText = offerLines.join("\n");
@@ -2005,9 +1871,7 @@ export default function ApplicationBoard() {
     setDrawerTitle(tile.display);
     setDrawerTileId(tile.id);
     setDrawerMessages([]);
-    setDrawerAnalysis(
-      tileId === "screenRole" ? app.screenRoleAnalysis ?? null : null,
-    );
+    setDrawerAnalysis(tileId === "screenRole" ? (app.screenRoleAnalysis ?? null) : null);
     setDrawerOpen(true);
     setDrawerApp(app);
     setDrawerPrompt("");
@@ -2069,10 +1933,7 @@ export default function ApplicationBoard() {
           setDrawerMessages([{ role: "assistant", text: message }]);
         }
       } else {
-        setDrawerMessages((prev) => [
-          ...prev,
-          { role: "assistant", text: message },
-        ]);
+        setDrawerMessages((prev) => [...prev, { role: "assistant", text: message }]);
       }
       activityRecorder.recordSuccess();
     } catch (error) {
@@ -2099,10 +1960,7 @@ export default function ApplicationBoard() {
     }
   };
 
-  const handleOpenCardMenu = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    app: JobApplication,
-  ) => {
+  const handleOpenCardMenu = (event: React.MouseEvent<HTMLButtonElement>, app: JobApplication) => {
     event.stopPropagation();
     setCardMenuAnchorEl(event.currentTarget);
     setCardMenuApp(app);
@@ -2190,8 +2048,7 @@ export default function ApplicationBoard() {
       },
     });
     setApplications(updated);
-    const refreshed =
-      updated.find((application) => application.id === appId) ?? null;
+    const refreshed = updated.find((application) => application.id === appId) ?? null;
     if (drawerApp?.id === appId) {
       setDrawerApp(refreshed);
     }
@@ -2207,21 +2064,15 @@ export default function ApplicationBoard() {
     return refreshed;
   };
 
-  const handleDrawerDecisionStatusChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleDrawerDecisionStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDrawerDecisionStatus(event.target.value as OfferDecisionStatus);
   };
 
-  const handleDrawerDecisionDateChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleDrawerDecisionDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDrawerDecisionDate(event.target.value);
   };
 
-  const handleDrawerDecisionNotesChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleDrawerDecisionNotesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDrawerDecisionNotes(event.target.value);
   };
 
@@ -2245,24 +2096,17 @@ export default function ApplicationBoard() {
 
   const handleOfferUpload = async (file: File) => {
     if (!drawerApp) return;
-    setDrawerMessages([
-      { role: "assistant", text: "Extracting text from offer..." },
-    ]);
+    setDrawerMessages([{ role: "assistant", text: "Extracting text from offer..." }]);
     setDrawerLoading(true);
     try {
-      const text =
-        file.type === "application/pdf"
-          ? await pdfToMarkdown(file)
-          : await file.text();
+      const text = file.type === "application/pdf" ? await pdfToMarkdown(file) : await file.text();
       setDrawerMessages((prev) => [
         ...prev,
         { role: "assistant", text: "Parsing offer details..." },
       ]);
       const offerTile = getPromptTile("offerDetails", { contexts: "offers" });
       if (!offerTile) {
-        setDrawerMessages([
-          { role: "assistant", text: "Offer analysis prompt unavailable." },
-        ]);
+        setDrawerMessages([{ role: "assistant", text: "Offer analysis prompt unavailable." }]);
         return;
       }
       const prompt = offerTile.fullPrompt.replace("{{offerText}}", text);
@@ -2274,8 +2118,7 @@ export default function ApplicationBoard() {
         chatHistory: [],
       });
       const message = res?.message || "";
-      let parsed: { compensation?: OfferComp[]; summary?: string[] | string } =
-        {};
+      let parsed: { compensation?: OfferComp[]; summary?: string[] | string } = {};
       try {
         parsed = JSON.parse(message);
       } catch {
@@ -2292,8 +2135,8 @@ export default function ApplicationBoard() {
         application: drawerApp,
         compensation: parsed.compensation || [],
         summary: summaryLines,
-        decision:
-          drawerApp.decision ?? drawerApp.offer?.decision ?? {
+        decision: drawerApp.decision ??
+          drawerApp.offer?.decision ?? {
             status: OFFER_DECISION_DEFAULT_STATUS,
           },
       };
@@ -2310,10 +2153,7 @@ export default function ApplicationBoard() {
         context: "Unable to analyze the offer.",
         retry: () => handleOfferUpload(file),
       });
-      setDrawerMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: combined },
-      ]);
+      setDrawerMessages((prev) => [...prev, { role: "assistant", text: combined }]);
       setLiveMessage(combined);
     } finally {
       setDrawerLoading(false);
@@ -2335,10 +2175,7 @@ export default function ApplicationBoard() {
   const handleResumeCompareSelect = async (resId: string) => {
     const resume = resumes.find((r) => r.id === resId);
     if (!resume || !resumeCompareApp) return;
-    setDrawerMessages((prev) => [
-      ...prev,
-      { role: "user", text: `Using resume: ${resume.title}` },
-    ]);
+    setDrawerMessages((prev) => [...prev, { role: "user", text: `Using resume: ${resume.title}` }]);
     const resumeTile = getPromptTile("resumeCompare", {
       contexts: ["resume", "jobSearch"],
     });
@@ -2365,19 +2202,13 @@ export default function ApplicationBoard() {
         chatHistory: [],
       });
       const message = res?.message || "";
-      setDrawerMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: message },
-      ]);
+      setDrawerMessages((prev) => [...prev, { role: "assistant", text: message }]);
     } catch (error) {
       const { combined } = handleAskError(error, {
         context: "Unable to compare the resume.",
         retry: () => handleResumeCompareSelect(resId),
       });
-      setDrawerMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: combined },
-      ]);
+      setDrawerMessages((prev) => [...prev, { role: "assistant", text: combined }]);
       setLiveMessage(combined);
     } finally {
       setDrawerLoading(false);
@@ -2578,9 +2409,7 @@ export default function ApplicationBoard() {
     handleResumesUpdated(getResumes());
   };
 
-  const handleOpenExportMenu = (
-    event: React.MouseEvent<HTMLButtonElement>,
-  ) => {
+  const handleOpenExportMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     setExportAnchorEl(event.currentTarget);
   };
 
@@ -2590,9 +2419,7 @@ export default function ApplicationBoard() {
 
   const createExportFileName = (extension: string) => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const base = filtersApplied
-      ? "job-applications-filtered"
-      : "job-applications";
+    const base = filtersApplied ? "job-applications-filtered" : "job-applications";
     return `${base}-${timestamp}.${extension}`;
   };
 
@@ -2643,406 +2470,105 @@ export default function ApplicationBoard() {
   return (
     <RequireAIKey>
       <>
-      <Box
-        sx={{
-          position: "absolute",
-          width: 1,
-          height: 1,
-          overflow: "hidden",
-          clip: "rect(0 0 0 0)",
-        }}
-        aria-live="polite"
-      >
-        {liveMessage}
-      </Box>
-      <Menu
-        anchorEl={cardMenuAnchorEl}
-        open={cardMenuOpen}
-        onClose={handleCloseCardMenu}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <MenuItem onClick={handleRefreshCardAnalysis} disabled={!cardMenuCanRefresh}>
-          Refresh analysis
-        </MenuItem>
-        <MenuItem
-          onClick={handleDismissCardAnalysis}
-          disabled={!cardMenuHasAnalysis}
+        <Box
+          sx={{
+            position: "absolute",
+            width: 1,
+            height: 1,
+            overflow: "hidden",
+            clip: "rect(0 0 0 0)",
+          }}
+          aria-live="polite"
         >
-          Dismiss analysis
-        </MenuItem>
-      </Menu>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={2}
-        sx={{ mb: 2 }}
-      >
-        <Button variant="contained" onClick={() => setDialogOpen(true)}>
-          Add Application
-        </Button>
-        <Button variant="outlined" onClick={() => setResumeModalOpen(true)}>
-          Upload Resume
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={() => setManageResumesOpen(true)}
+          {liveMessage}
+        </Box>
+        <Menu
+          anchorEl={cardMenuAnchorEl}
+          open={cardMenuOpen}
+          onClose={handleCloseCardMenu}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
         >
-          Manage Resumes
-        </Button>
-        {hasMultipleOffers && (
-          <Button
-            variant="outlined"
-            onClick={() => setCompareOffersOpen(true)}
-          >
-            Compare Offers
+          <MenuItem onClick={handleRefreshCardAnalysis} disabled={!cardMenuCanRefresh}>
+            Refresh analysis
+          </MenuItem>
+          <MenuItem onClick={handleDismissCardAnalysis} disabled={!cardMenuHasAnalysis}>
+            Dismiss analysis
+          </MenuItem>
+        </Menu>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
+          <Button variant="contained" onClick={() => setDialogOpen(true)}>
+            Add Application
           </Button>
-        )}
-        <Button
-          variant="outlined"
-          onClick={handleOpenExportMenu}
-          aria-controls={exportMenuOpen ? "application-export-menu" : undefined}
-          aria-haspopup="true"
-          aria-expanded={exportMenuOpen ? "true" : undefined}
-        >
-          Export
-        </Button>
-      </Stack>
-      <Menu
-        id="application-export-menu"
-        anchorEl={exportAnchorEl}
-        open={exportMenuOpen}
-        onClose={handleCloseExportMenu}
-        MenuListProps={{ "aria-label": "Export applications" }}
-      >
-        <MenuItem onClick={handleExportCsv}>Export CSV</MenuItem>
-        <MenuItem onClick={handleExportJson}>Export JSON</MenuItem>
-      </Menu>
-      <Surface
-        component="section"
-        aria-label="Filter applications"
-        layer={2}
-        sx={{ p: 2, mb: 2 }}
-      >
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={2}
-          useFlexGap
-          sx={{ flexWrap: "wrap" }}
-        >
-          <TextField
-            label="Search applications"
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            size="small"
-            sx={{
-              flexGrow: 1,
-              minWidth: { xs: "100%", md: 240 },
-              width: { xs: "100%", md: "auto" },
-            }}
-          />
-          <TextField
-            label="Status"
-            select
-            value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value as ApplicationFilters["status"])
-            }
-            size="small"
-            sx={{
-              minWidth: { xs: "100%", md: 180 },
-              width: { xs: "100%", md: "auto" },
-            }}
-          >
-            <MenuItem value="all">All statuses</MenuItem>
-            {statusOrder.map((status) => (
-              <MenuItem key={status} value={status}>
-                {formatStatusLabel(status)}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Company"
-            select
-            value={companyFilter}
-            onChange={(event) => setCompanyFilter(event.target.value)}
-            size="small"
-            sx={{
-              minWidth: { xs: "100%", md: 180 },
-              width: { xs: "100%", md: "auto" },
-            }}
-          >
-            <MenuItem value="">All companies</MenuItem>
-            {companies.map((company) => (
-              <MenuItem key={company} value={company}>
-                {company}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Recruiter"
-            select
-            value={recruiterFilter}
-            onChange={(event) => setRecruiterFilter(event.target.value)}
-            size="small"
-            sx={{
-              minWidth: { xs: "100%", md: 200 },
-              width: { xs: "100%", md: "auto" },
-            }}
-          >
-            <MenuItem value="">All recruiters</MenuItem>
-            {recruiterOptions.map((recruiter) => (
-              <MenuItem key={recruiter.id} value={recruiter.id}>
-                {recruiter.name}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Resume"
-            select
-            value={resumeFilter}
-            onChange={(event) => setResumeFilter(event.target.value)}
-            size="small"
-            sx={{
-              minWidth: { xs: "100%", md: 200 },
-              width: { xs: "100%", md: "auto" },
-            }}
-            disabled={resumes.length === 0}
-          >
-            <MenuItem value="">All resumes</MenuItem>
-            {resumes.map((resume) => (
-              <MenuItem key={resume.id} value={resume.id}>
-                {resume.title}
-              </MenuItem>
-            ))}
-          </TextField>
+          <Button variant="outlined" onClick={() => setResumeModalOpen(true)}>
+            Upload Resume
+          </Button>
+          <Button variant="outlined" onClick={() => setManageResumesOpen(true)}>
+            Manage Resumes
+          </Button>
+          {hasMultipleOffers && (
+            <Button variant="outlined" onClick={() => setCompareOffersOpen(true)}>
+              Compare Offers
+            </Button>
+          )}
           <Button
             variant="outlined"
-            onClick={handleClearFilters}
-            disabled={!filtersApplied}
-            sx={{
-              alignSelf: { xs: "stretch", md: "center" },
-              width: { xs: "100%", md: "auto" },
-            }}
+            onClick={handleOpenExportMenu}
+            aria-controls={exportMenuOpen ? "application-export-menu" : undefined}
+            aria-haspopup="true"
+            aria-expanded={exportMenuOpen ? "true" : undefined}
           >
-            Clear filters
+            Export
           </Button>
         </Stack>
-      </Surface>
-      <ResumeStepperModal
-        open={resumeModalOpen}
-        onClose={handleResumeModalClose}
-        onResumesUpdated={handleResumesUpdated}
-      />
-      <ManageResumesModal
-        open={manageResumesOpen}
-        onClose={handleManageModalClose}
-        onResumesUpdated={handleResumesUpdated}
-      />
-      <ManageNegotiationLibraryModal
-        open={manageNegotiationLibraryOpen}
-        entries={negotiationLibrary}
-        onClose={() => setManageNegotiationLibraryOpen(false)}
-        onRename={handleRenameNegotiationEntry}
-        onDelete={handleDeleteNegotiationEntry}
-      />
-      <Dialog
-        open={compareOffersOpen}
-        onClose={() => setCompareOffersOpen(false)}
-        fullWidth
-        maxWidth="lg"
-      >
-        <DialogTitle>Compare Offers</DialogTitle>
-        <DialogContent dividers>
-          <CompareOffers />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCompareOffersOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-      <DndContext onDragEnd={handleDragEnd}>
-        {!hasApplications ? (
-          <EmptyState
-            message="No applications yet"
-            helperText="Start tracking your job applications here."
-          />
-        ) : !hasMatches ? (
-          <EmptyState
-            message="No applications match your filters"
-            helperText="Try adjusting the search or filter selections."
-          />
-        ) : (
-          <Stack spacing={2} sx={{ pb: 2 }}>
-            <Surface
-              component="section"
-              aria-label="Application pipeline summary"
-              layer={2}
-              sx={{ p: 2 }}
-            >
-              <Stack
-                direction={{ xs: "column", md: "row" }}
-                spacing={2}
-                useFlexGap
-                sx={{ flexWrap: "wrap" }}
-              >
-                {statusOrder.map((status) => {
-                  const metric = metricsByStatus[status];
-                  if (!metric) {
-                    return null;
-                  }
-                  const {
-                    averageLabel,
-                    thresholdLabel,
-                    conversionLabel,
-                    assistiveText,
-                    countLabel,
-                  } = getMetricDisplay(metric);
-                  return (
-                    <Box
-                      key={status}
-                      role="group"
-                      aria-label={assistiveText}
-                      sx={{
-                        borderRadius: 1,
-                        border: "1px solid",
-                        borderColor: metric.slaBreached ? "error.main" : "divider",
-                        bgcolor: (theme) =>
-                          metric.slaBreached
-                            ? alpha(theme.palette.error.main, 0.08)
-                            : theme.palette.background.paper,
-                        minWidth: { xs: "100%", sm: 220 },
-                        p: 1.5,
-                      }}
-                    >
-                      <Typography variant="subtitle2" component="h3" gutterBottom>
-                        {metric.label}
-                      </Typography>
-                      <Typography variant="body2" component="p">
-                        {countLabel} in stage
-                      </Typography>
-                      <Typography variant="body2" component="p">
-                        Conversion {conversionLabel}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        component="p"
-                        color={metric.slaBreached ? "error.main" : "text.secondary"}
-                      >
-                        Avg dwell {averageLabel ?? "—"}
-                        {thresholdLabel ? ` (SLA ${thresholdLabel})` : ""}
-                      </Typography>
-                    </Box>
-                  );
-                })}
-              </Stack>
-            </Surface>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", md: "row" },
-                alignItems: { xs: "stretch", md: "flex-start" },
-                gap: 2,
-                overflowX: { xs: "visible", md: "auto" },
-              }}
-            >
-              {statusOrder.map((status) => {
-                const metric = metricsByStatus[status];
-                const metricDisplay = metric ? getMetricDisplay(metric) : null;
-                const columnApplications = filteredApplications.filter(
-                  (app) => app.status === status,
-                );
-                const isCollapsed = collapsedStatuses.has(status);
-                return (
-                  <Column
-                    key={status}
-                    id={status}
-                    title={formatStatusLabel(status)}
-                    highlight={metric?.slaBreached ?? false}
-                    assistiveText={metricDisplay?.assistiveText}
-                    collapsed={isCollapsed}
-                    onToggleCollapse={() => handleToggleColumnCollapse(status)}
-                    count={columnApplications.length}
-                  >
-                    {!isCollapsed &&
-                      columnApplications.map((app) => (
-                        <Card
-                          key={app.id}
-                          app={app}
-                          onRunTile={(id, context) => runTile(id, context, app)}
-                          onOpenWorkspace={handleOpenWorkspace}
-                          onOpenDetails={handleOpenDetails}
-                          onToggleSelect={handleToggleSelection}
-                          onQuickEditReminder={handleOpenReminderEditor}
-                          resumes={resumes}
-                          onAssignResume={handleAssignResume}
-                          onSetInterviewDate={handleInterviewDate}
-                          onSetInterviewLocation={handleInterviewLocation}
-                          onDownloadInvite={handleDownloadInterviewInvite}
-                          onOpenMenu={(event) => handleOpenCardMenu(event, app)}
-                          onKeyDown={(e) => handleCardKeyDown(e, app)}
-                          activeId={activeId}
-                          selected={selectedIdSet.has(app.id)}
-                        />
-                      ))}
-                  </Column>
-                );
-              })}
-            </Box>
-          </Stack>
-        )}
-      </DndContext>
-      {selectedCount > 0 && (
+        <Menu
+          id="application-export-menu"
+          anchorEl={exportAnchorEl}
+          open={exportMenuOpen}
+          onClose={handleCloseExportMenu}
+          MenuListProps={{ "aria-label": "Export applications" }}
+        >
+          <MenuItem onClick={handleExportCsv}>Export CSV</MenuItem>
+          <MenuItem onClick={handleExportJson}>Export JSON</MenuItem>
+        </Menu>
         <Surface
           component="section"
-          aria-label="Bulk application actions"
-          layer={3}
-          sx={{
-            position: "sticky",
-            bottom: 16,
-            mt: 3,
-            p: 2,
-            boxShadow: 6,
-            borderRadius: 2,
-            border: "1px solid",
-            borderColor: "divider",
-            zIndex: (theme) => theme.zIndex.appBar,
-          }}
+          aria-label="Filter applications"
+          layer={2}
+          sx={{ p: 2, mb: 2 }}
         >
           <Stack
             direction={{ xs: "column", md: "row" }}
             spacing={2}
-            alignItems={{ xs: "stretch", md: "center" }}
             useFlexGap
             sx={{ flexWrap: "wrap" }}
           >
-            <Typography variant="subtitle1">
-              {selectedCount}{" "}
-              {selectedCount === 1
-                ? "application selected"
-                : "applications selected"}
-            </Typography>
             <TextField
+              label="Search applications"
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              size="small"
+              sx={{
+                flexGrow: 1,
+                minWidth: { xs: "100%", md: 240 },
+                width: { xs: "100%", md: "auto" },
+              }}
+            />
+            <TextField
+              label="Status"
               select
-              label="Bulk status"
-              value=""
-              onChange={(event) => {
-                const value = event.target.value as ApplicationStatus | "";
-                if (value) {
-                  handleBulkStatusChange(value as ApplicationStatus);
-                }
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(event.target.value as ApplicationFilters["status"])
+              }
+              size="small"
+              sx={{
+                minWidth: { xs: "100%", md: 180 },
+                width: { xs: "100%", md: "auto" },
               }}
-              SelectProps={{
-                displayEmpty: true,
-                renderValue: (value) =>
-                  value
-                    ? formatStatusLabel(value as ApplicationStatus)
-                    : "Change status",
-              }}
-              sx={{ minWidth: { xs: "100%", md: 200 } }}
             >
-              <MenuItem value="" disabled>
-                Change status
-              </MenuItem>
+              <MenuItem value="all">All statuses</MenuItem>
               {statusOrder.map((status) => (
                 <MenuItem key={status} value={status}>
                   {formatStatusLabel(status)}
@@ -3050,446 +2576,700 @@ export default function ApplicationBoard() {
               ))}
             </TextField>
             <TextField
+              label="Company"
               select
-              label="Assign resume"
-              value=""
-              onChange={(event) => {
-                const value = event.target.value as string;
-                if (!value) return;
-                if (value === "__clear__") {
-                  handleBulkResumeAssign();
-                } else {
-                  handleBulkResumeAssign(value);
-                }
+              value={companyFilter}
+              onChange={(event) => setCompanyFilter(event.target.value)}
+              size="small"
+              sx={{
+                minWidth: { xs: "100%", md: 180 },
+                width: { xs: "100%", md: "auto" },
               }}
-              SelectProps={{
-                displayEmpty: true,
-                renderValue: (value) => {
-                  const typed = value as string;
-                  if (!typed) return "Assign resume";
-                  if (typed === "__clear__") return "Remove resume";
-                  const resume = resumes.find((entry) => entry.id === typed);
-                  return resume?.title ?? "Assign resume";
-                },
-              }}
-              sx={{ minWidth: { xs: "100%", md: 220 } }}
             >
-              <MenuItem value="" disabled>
-                Assign resume
-              </MenuItem>
-              <MenuItem value="__clear__">Remove resume</MenuItem>
+              <MenuItem value="">All companies</MenuItem>
+              {companies.map((company) => (
+                <MenuItem key={company} value={company}>
+                  {company}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="Recruiter"
+              select
+              value={recruiterFilter}
+              onChange={(event) => setRecruiterFilter(event.target.value)}
+              size="small"
+              sx={{
+                minWidth: { xs: "100%", md: 200 },
+                width: { xs: "100%", md: "auto" },
+              }}
+            >
+              <MenuItem value="">All recruiters</MenuItem>
+              {recruiterOptions.map((recruiter) => (
+                <MenuItem key={recruiter.id} value={recruiter.id}>
+                  {recruiter.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="Resume"
+              select
+              value={resumeFilter}
+              onChange={(event) => setResumeFilter(event.target.value)}
+              size="small"
+              sx={{
+                minWidth: { xs: "100%", md: 200 },
+                width: { xs: "100%", md: "auto" },
+              }}
+              disabled={resumes.length === 0}
+            >
+              <MenuItem value="">All resumes</MenuItem>
               {resumes.map((resume) => (
                 <MenuItem key={resume.id} value={resume.id}>
                   {resume.title}
                 </MenuItem>
               ))}
             </TextField>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={handleOpenBulkReject}
-                disabled={!canBulkReject}
-              >
-                Reject Selected
-              </Button>
-              <Button variant="text" onClick={handleClearSelection}>
-                Clear
-              </Button>
-            </Stack>
+            <Button
+              variant="outlined"
+              onClick={handleClearFilters}
+              disabled={!filtersApplied}
+              sx={{
+                alignSelf: { xs: "stretch", md: "center" },
+                width: { xs: "100%", md: "auto" },
+              }}
+            >
+              Clear filters
+            </Button>
           </Stack>
         </Surface>
-      )}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-        <DialogTitle>New Application</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Job Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              fullWidth
+        <ResumeStepperModal
+          open={resumeModalOpen}
+          onClose={handleResumeModalClose}
+          onResumesUpdated={handleResumesUpdated}
+        />
+        <ManageResumesModal
+          open={manageResumesOpen}
+          onClose={handleManageModalClose}
+          onResumesUpdated={handleResumesUpdated}
+        />
+        <ManageNegotiationLibraryModal
+          open={manageNegotiationLibraryOpen}
+          entries={negotiationLibrary}
+          onClose={() => setManageNegotiationLibraryOpen(false)}
+          onRename={handleRenameNegotiationEntry}
+          onDelete={handleDeleteNegotiationEntry}
+        />
+        <Dialog
+          open={compareOffersOpen}
+          onClose={() => setCompareOffersOpen(false)}
+          fullWidth
+          maxWidth="lg"
+        >
+          <DialogTitle>Compare Offers</DialogTitle>
+          <DialogContent dividers>
+            <CompareOffers />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setCompareOffersOpen(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+        <DndContext onDragEnd={handleDragEnd}>
+          {!hasApplications ? (
+            <EmptyState
+              message="No applications yet"
+              helperText="Start tracking your job applications here."
             />
-            <TextField
-              label="Company"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              fullWidth
+          ) : !hasMatches ? (
+            <EmptyState
+              message="No applications match your filters"
+              helperText="Try adjusting the search or filter selections."
             />
-            <TextField
-              label="Location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              fullWidth
-            />
-            <TextField
-              label="Source"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              select
-              fullWidth
-            >
-              {["LinkedIn", "Indeed", "Company Site"].map((s) => (
-                <MenuItem key={s} value={s}>
-                  {s}
-                </MenuItem>
-              ))}
-            </TextField>
-            {resumes.length > 0 && (
-              <TextField
-                label="Resume"
-                select
-                value={resumeId}
-                onChange={(e) => setResumeId(e.target.value)}
-                fullWidth
+          ) : (
+            <Stack spacing={2} sx={{ pb: 2 }}>
+              <Surface
+                component="section"
+                aria-label="Application pipeline summary"
+                layer={2}
+                sx={{ p: 2 }}
               >
-                {resumes.map((r) => (
-                  <MenuItem key={r.id} value={r.id}>
-                    {r.title}
+                <Stack
+                  direction={{ xs: "column", md: "row" }}
+                  spacing={2}
+                  useFlexGap
+                  sx={{ flexWrap: "wrap" }}
+                >
+                  {statusOrder.map((status) => {
+                    const metric = metricsByStatus[status];
+                    if (!metric) {
+                      return null;
+                    }
+                    const {
+                      averageLabel,
+                      thresholdLabel,
+                      conversionLabel,
+                      assistiveText,
+                      countLabel,
+                    } = getMetricDisplay(metric);
+                    return (
+                      <Box
+                        key={status}
+                        role="group"
+                        aria-label={assistiveText}
+                        sx={{
+                          borderRadius: 1,
+                          border: "1px solid",
+                          borderColor: metric.slaBreached ? "error.main" : "divider",
+                          bgcolor: (theme) =>
+                            metric.slaBreached
+                              ? alpha(theme.palette.error.main, 0.08)
+                              : theme.palette.background.paper,
+                          minWidth: { xs: "100%", sm: 220 },
+                          p: 1.5,
+                        }}
+                      >
+                        <Typography variant="subtitle2" component="h3" gutterBottom>
+                          {metric.label}
+                        </Typography>
+                        <Typography variant="body2" component="p">
+                          {countLabel} in stage
+                        </Typography>
+                        <Typography variant="body2" component="p">
+                          Conversion {conversionLabel}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          component="p"
+                          color={metric.slaBreached ? "error.main" : "text.secondary"}
+                        >
+                          Avg dwell {averageLabel ?? "—"}
+                          {thresholdLabel ? ` (SLA ${thresholdLabel})` : ""}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </Surface>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", md: "row" },
+                  alignItems: { xs: "stretch", md: "flex-start" },
+                  gap: 2,
+                  overflowX: { xs: "visible", md: "auto" },
+                }}
+              >
+                {statusOrder.map((status) => {
+                  const metric = metricsByStatus[status];
+                  const metricDisplay = metric ? getMetricDisplay(metric) : null;
+                  const columnApplications = filteredApplications.filter(
+                    (app) => app.status === status,
+                  );
+                  const isCollapsed = collapsedStatuses.has(status);
+                  return (
+                    <Column
+                      key={status}
+                      id={status}
+                      title={formatStatusLabel(status)}
+                      highlight={metric?.slaBreached ?? false}
+                      assistiveText={metricDisplay?.assistiveText}
+                      collapsed={isCollapsed}
+                      onToggleCollapse={() => handleToggleColumnCollapse(status)}
+                      count={columnApplications.length}
+                    >
+                      {!isCollapsed &&
+                        columnApplications.map((app) => (
+                          <Card
+                            key={app.id}
+                            app={app}
+                            onRunTile={(id, context) => runTile(id, context, app)}
+                            onOpenWorkspace={handleOpenWorkspace}
+                            onOpenDetails={handleOpenDetails}
+                            onToggleSelect={handleToggleSelection}
+                            onQuickEditReminder={handleOpenReminderEditor}
+                            resumes={resumes}
+                            onAssignResume={handleAssignResume}
+                            onSetInterviewDate={handleInterviewDate}
+                            onSetInterviewLocation={handleInterviewLocation}
+                            onDownloadInvite={handleDownloadInterviewInvite}
+                            onOpenMenu={(event) => handleOpenCardMenu(event, app)}
+                            onKeyDown={(e) => handleCardKeyDown(e, app)}
+                            activeId={activeId}
+                            selected={selectedIdSet.has(app.id)}
+                          />
+                        ))}
+                    </Column>
+                  );
+                })}
+              </Box>
+            </Stack>
+          )}
+        </DndContext>
+        {selectedCount > 0 && (
+          <Surface
+            component="section"
+            aria-label="Bulk application actions"
+            layer={3}
+            sx={{
+              position: "sticky",
+              bottom: 16,
+              mt: 3,
+              p: 2,
+              boxShadow: 6,
+              borderRadius: 2,
+              border: "1px solid",
+              borderColor: "divider",
+              zIndex: (theme) => theme.zIndex.appBar,
+            }}
+          >
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              spacing={2}
+              alignItems={{ xs: "stretch", md: "center" }}
+              useFlexGap
+              sx={{ flexWrap: "wrap" }}
+            >
+              <Typography variant="subtitle1">
+                {selectedCount}{" "}
+                {selectedCount === 1 ? "application selected" : "applications selected"}
+              </Typography>
+              <TextField
+                select
+                label="Bulk status"
+                value=""
+                onChange={(event) => {
+                  const value = event.target.value as ApplicationStatus | "";
+                  if (value) {
+                    handleBulkStatusChange(value as ApplicationStatus);
+                  }
+                }}
+                SelectProps={{
+                  displayEmpty: true,
+                  renderValue: (value) =>
+                    value ? formatStatusLabel(value as ApplicationStatus) : "Change status",
+                }}
+                sx={{ minWidth: { xs: "100%", md: 200 } }}
+              >
+                <MenuItem value="" disabled>
+                  Change status
+                </MenuItem>
+                {statusOrder.map((status) => (
+                  <MenuItem key={status} value={status}>
+                    {formatStatusLabel(status)}
                   </MenuItem>
                 ))}
               </TextField>
-            )}
-            <TextField
-              label="Job Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              fullWidth
-              multiline
-              minRows={4}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleAdd} disabled={!title || !company}>
-            Add
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={bulkRejectDialogOpen} onClose={handleCancelBulkReject}>
-        <DialogTitle>
-          Reject {selectedCount === 1
-            ? "selected application"
-            : `${selectedCount} selected applications`}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            This action will move every selected application to the rejected stage.
-            You can optionally provide a note that will be stored with each update.
-          </DialogContentText>
-          <TextField
-            label="Rejection reason (optional)"
-            value={bulkRejectReason}
-            onChange={(event) => setBulkRejectReason(event.target.value)}
-            fullWidth
-            multiline
-            minRows={3}
-            sx={{ mt: 2 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelBulkReject}>Cancel</Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleConfirmBulkReject}
-            disabled={!canBulkReject}
-          >
-            Reject
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={Boolean(reminderEditorApp)} onClose={handleCloseReminderEditor}>
-        <DialogTitle>Edit next action</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Next action"
-              value={reminderNextAction}
-              onChange={handleReminderNextActionChange}
-              fullWidth
-              multiline
-              minRows={2}
-              placeholder="Describe the next follow-up step"
-            />
-            <TextField
-              label="Due date"
-              type="datetime-local"
-              size="small"
-              value={reminderDue}
-              onChange={handleReminderDueChange}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              error={reminderDueError}
-              helperText={reminderDueError ? "Enter a valid date and time" : undefined}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseReminderEditor}>Cancel</Button>
-          <Button onClick={handleReminderReset} disabled={!reminderHasChanges}>
-            Reset
-          </Button>
-          <Button
-            onClick={handleReminderSave}
-            disabled={!canSaveReminder}
-            variant="contained"
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <ApplicationDetailDrawer
-        open={detailDrawerOpen && Boolean(selectedApplication)}
-        application={selectedApplication}
-        onClose={handleCloseDetails}
-        promptDrawerOpen={drawerOpen}
-        onUpdateStatus={handleDetailStatusUpdate}
-        onSaveAction={handleDetailActionUpdate}
-        onUpdateAttachments={handleDetailAttachmentsUpdate}
-        onSaveDecision={handleDetailDecisionSave}
-        onSetInterviewDate={handleInterviewDate}
-        onSetInterviewLocation={handleInterviewLocation}
-        onDownloadInterviewInvite={handleDownloadInterviewInvite}
-        onUpdateRecruiters={handleDetailRecruitersUpdate}
-      />
-      {drawerOpen && (
-        <Drawer
-          anchor="right"
-          variant="permanent"
-          sx={{
-            "& .MuiDrawer-paper": {
-              width: { xs: "100%", md: 420, lg: 520 },
-              maxWidth: "100vw",
-              p: 2,
-            },
-          }}
-        >
-          <IconButton
-            onClick={() => setDrawerOpen(false)}
-            sx={{ alignSelf: "flex-end" }}
-            size="small"
-          >
-            <Close />
-          </IconButton>
-          {drawerTileId === "screenRole" || drawerTileId === "offerNegotiation" ? (
-            <Accordion sx={{ mb: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography variant="h6">{drawerTitle}</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                  {drawerPrompt}
-                </Typography>
-              </AccordionDetails>
-            </Accordion>
-          ) : (
-            <Typography variant="h6" gutterBottom>
-              {drawerTitle}
-            </Typography>
-          )}
-          {drawerAnalysis ? (
-            <Box sx={{ mt: 2 }}>
-              {drawerAnalysis.issues.map((issue, idx) => (
-                <Stack
-                  key={idx}
-                  direction="row"
-                  spacing={1}
-                  alignItems="flex-start"
-                  sx={{ mb: 1 }}
-                >
-                  <Typography>
-                    {issue.severity === "red" ? "🚩" : "⚠️"}
-                  </Typography>
-                  <Typography variant="body2">{issue.message}</Typography>
-                </Stack>
-              ))}
-              {drawerAnalysis.summary && (
-                <Typography variant="body2" sx={{ mt: 2 }}>
-                  {drawerAnalysis.summary}
-                </Typography>
-              )}
-            </Box>
-          ) : (
-            <Stack spacing={2} sx={{ mt: 2 }}>
-              {drawerMode === "offerUpload" && (
-                <FileUploader
-                  accept=".pdf,.txt,.md"
-                  label="Upload Offer"
-                  variant="upload"
-                  outputType="files"
-                  onChange={(files) => {
-                    const f = (files as File[])[0];
-                    if (f) handleOfferUpload(f);
-                  }}
-                />
-              )}
-              {drawerApp && (drawerApp.status === "offer" || drawerApp.offer) && (
-                <Box>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Offer Decision
-                  </Typography>
-                  <Stack spacing={1.5}>
-                    <TextField
-                      label="Decision Status"
-                      select
-                      size="small"
-                      value={drawerDecisionStatus}
-                      onChange={handleDrawerDecisionStatusChange}
-                      fullWidth
-                    >
-                      {OFFER_DECISION_STATUSES.map((status) => (
-                        <MenuItem key={status} value={status}>
-                          {formatDecisionStatus(status)}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                    <TextField
-                      label="Decision Date"
-                      type="datetime-local"
-                      size="small"
-                      value={drawerDecisionDate}
-                      onChange={handleDrawerDecisionDateChange}
-                      InputLabelProps={{ shrink: true }}
-                      fullWidth
-                      error={drawerDecisionDateError}
-                      helperText={
-                        drawerDecisionDateError
-                          ? "Enter a valid date and time"
-                          : undefined
-                      }
-                    />
-                    <TextField
-                      label="Decision Notes"
-                      value={drawerDecisionNotes}
-                      onChange={handleDrawerDecisionNotesChange}
-                      fullWidth
-                      multiline
-                      minRows={2}
-                      placeholder="Add optional notes about this decision"
-                    />
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
-                      <Button
-                        variant="contained"
-                        onClick={handleDrawerDecisionSave}
-                        disabled={!canSaveDrawerDecision}
-                      >
-                        Save decision
-                      </Button>
-                      <Button
-                        variant="text"
-                        onClick={handleDrawerDecisionReset}
-                        disabled={!drawerDecisionHasChanges}
-                      >
-                        Reset
-                      </Button>
-                    </Stack>
-                  </Stack>
-                </Box>
-              )}
-              {drawerMessages.map((m, idx) => (
-                <Box
-                  key={idx}
-                  ref={
-                    drawerTileId === "offerNegotiation" &&
-                    m.role === "assistant" &&
-                    m.text
-                      ? negotiationRef
-                      : undefined
+              <TextField
+                select
+                label="Assign resume"
+                value=""
+                onChange={(event) => {
+                  const value = event.target.value as string;
+                  if (!value) return;
+                  if (value === "__clear__") {
+                    handleBulkResumeAssign();
+                  } else {
+                    handleBulkResumeAssign(value);
                   }
-                  sx={{
-                    alignSelf: m.role === "user" ? "flex-start" : "flex-end",
-                    bgcolor: m.role === "user" ? "grey.200" : "primary.main",
-                    color:
-                      m.role === "user"
-                        ? "text.primary"
-                        : "primary.contrastText",
-                    p: 1.5,
-                    borderRadius: 1,
-                    maxWidth: "100%",
-                  }}
+                }}
+                SelectProps={{
+                  displayEmpty: true,
+                  renderValue: (value) => {
+                    const typed = value as string;
+                    if (!typed) return "Assign resume";
+                    if (typed === "__clear__") return "Remove resume";
+                    const resume = resumes.find((entry) => entry.id === typed);
+                    return resume?.title ?? "Assign resume";
+                  },
+                }}
+                sx={{ minWidth: { xs: "100%", md: 220 } }}
+              >
+                <MenuItem value="" disabled>
+                  Assign resume
+                </MenuItem>
+                <MenuItem value="__clear__">Remove resume</MenuItem>
+                {resumes.map((resume) => (
+                  <MenuItem key={resume.id} value={resume.id}>
+                    {resume.title}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={handleOpenBulkReject}
+                  disabled={!canBulkReject}
                 >
-                  {m.text ? (
-                    <Box
-                      dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(
-                          marked.parse(m.text) as string
-                        ),
-                      }}
-                    />
-                  ) : m.data ? (
-                    <>
-                      {m.data.compensation &&
-                        m.data.compensation.length > 0 && (
+                  Reject Selected
+                </Button>
+                <Button variant="text" onClick={handleClearSelection}>
+                  Clear
+                </Button>
+              </Stack>
+            </Stack>
+          </Surface>
+        )}
+        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+          <DialogTitle>New Application</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField
+                label="Job Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="Company"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="Location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="Source"
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                select
+                fullWidth
+              >
+                {["LinkedIn", "Indeed", "Company Site"].map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {resumes.length > 0 && (
+                <TextField
+                  label="Resume"
+                  select
+                  value={resumeId}
+                  onChange={(e) => setResumeId(e.target.value)}
+                  fullWidth
+                >
+                  {resumes.map((r) => (
+                    <MenuItem key={r.id} value={r.id}>
+                      {r.title}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+              <TextField
+                label="Job Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                fullWidth
+                multiline
+                minRows={4}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAdd} disabled={!title || !company}>
+              Add
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog open={bulkRejectDialogOpen} onClose={handleCancelBulkReject}>
+          <DialogTitle>
+            Reject{" "}
+            {selectedCount === 1
+              ? "selected application"
+              : `${selectedCount} selected applications`}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              This action will move every selected application to the rejected stage. You can
+              optionally provide a note that will be stored with each update.
+            </DialogContentText>
+            <TextField
+              label="Rejection reason (optional)"
+              value={bulkRejectReason}
+              onChange={(event) => setBulkRejectReason(event.target.value)}
+              fullWidth
+              multiline
+              minRows={3}
+              sx={{ mt: 2 }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancelBulkReject}>Cancel</Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleConfirmBulkReject}
+              disabled={!canBulkReject}
+            >
+              Reject
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog open={Boolean(reminderEditorApp)} onClose={handleCloseReminderEditor}>
+          <DialogTitle>Edit next action</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField
+                label="Next action"
+                value={reminderNextAction}
+                onChange={handleReminderNextActionChange}
+                fullWidth
+                multiline
+                minRows={2}
+                placeholder="Describe the next follow-up step"
+              />
+              <TextField
+                label="Due date"
+                type="datetime-local"
+                size="small"
+                value={reminderDue}
+                onChange={handleReminderDueChange}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                error={reminderDueError}
+                helperText={reminderDueError ? "Enter a valid date and time" : undefined}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseReminderEditor}>Cancel</Button>
+            <Button onClick={handleReminderReset} disabled={!reminderHasChanges}>
+              Reset
+            </Button>
+            <Button onClick={handleReminderSave} disabled={!canSaveReminder} variant="contained">
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <ApplicationDetailDrawer
+          open={detailDrawerOpen && Boolean(selectedApplication)}
+          application={selectedApplication}
+          onClose={handleCloseDetails}
+          promptDrawerOpen={drawerOpen}
+          onUpdateStatus={handleDetailStatusUpdate}
+          onSaveAction={handleDetailActionUpdate}
+          onUpdateAttachments={handleDetailAttachmentsUpdate}
+          onSaveDecision={handleDetailDecisionSave}
+          onSetInterviewDate={handleInterviewDate}
+          onSetInterviewLocation={handleInterviewLocation}
+          onDownloadInterviewInvite={handleDownloadInterviewInvite}
+          onUpdateRecruiters={handleDetailRecruitersUpdate}
+        />
+        {drawerOpen && (
+          <Drawer
+            anchor="right"
+            variant="permanent"
+            sx={{
+              "& .MuiDrawer-paper": {
+                width: { xs: "100%", md: 420, lg: 520 },
+                maxWidth: "100vw",
+                p: 2,
+              },
+            }}
+          >
+            <IconButton
+              onClick={() => setDrawerOpen(false)}
+              sx={{ alignSelf: "flex-end" }}
+              size="small"
+            >
+              <Close />
+            </IconButton>
+            {drawerTileId === "screenRole" || drawerTileId === "offerNegotiation" ? (
+              <Accordion sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Typography variant="h6">{drawerTitle}</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                    {drawerPrompt}
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
+            ) : (
+              <Typography variant="h6" gutterBottom>
+                {drawerTitle}
+              </Typography>
+            )}
+            {drawerAnalysis ? (
+              <Box sx={{ mt: 2 }}>
+                {drawerAnalysis.issues.map((issue, idx) => (
+                  <Stack
+                    key={idx}
+                    direction="row"
+                    spacing={1}
+                    alignItems="flex-start"
+                    sx={{ mb: 1 }}
+                  >
+                    <Typography>{issue.severity === "red" ? "🚩" : "⚠️"}</Typography>
+                    <Typography variant="body2">{issue.message}</Typography>
+                  </Stack>
+                ))}
+                {drawerAnalysis.summary && (
+                  <Typography variant="body2" sx={{ mt: 2 }}>
+                    {drawerAnalysis.summary}
+                  </Typography>
+                )}
+              </Box>
+            ) : (
+              <Stack spacing={2} sx={{ mt: 2 }}>
+                {drawerMode === "offerUpload" && (
+                  <FileUploader
+                    accept=".pdf,.txt,.md"
+                    label="Upload Offer"
+                    variant="upload"
+                    outputType="files"
+                    onChange={(files) => {
+                      const f = (files as File[])[0];
+                      if (f) handleOfferUpload(f);
+                    }}
+                  />
+                )}
+                {drawerApp && (drawerApp.status === "offer" || drawerApp.offer) && (
+                  <Box>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Offer Decision
+                    </Typography>
+                    <Stack spacing={1.5}>
+                      <TextField
+                        label="Decision Status"
+                        select
+                        size="small"
+                        value={drawerDecisionStatus}
+                        onChange={handleDrawerDecisionStatusChange}
+                        fullWidth
+                      >
+                        {OFFER_DECISION_STATUSES.map((status) => (
+                          <MenuItem key={status} value={status}>
+                            {formatDecisionStatus(status)}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                      <TextField
+                        label="Decision Date"
+                        type="datetime-local"
+                        size="small"
+                        value={drawerDecisionDate}
+                        onChange={handleDrawerDecisionDateChange}
+                        InputLabelProps={{ shrink: true }}
+                        fullWidth
+                        error={drawerDecisionDateError}
+                        helperText={
+                          drawerDecisionDateError ? "Enter a valid date and time" : undefined
+                        }
+                      />
+                      <TextField
+                        label="Decision Notes"
+                        value={drawerDecisionNotes}
+                        onChange={handleDrawerDecisionNotesChange}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        placeholder="Add optional notes about this decision"
+                      />
+                      <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
+                        <Button
+                          variant="contained"
+                          onClick={handleDrawerDecisionSave}
+                          disabled={!canSaveDrawerDecision}
+                        >
+                          Save decision
+                        </Button>
+                        <Button
+                          variant="text"
+                          onClick={handleDrawerDecisionReset}
+                          disabled={!drawerDecisionHasChanges}
+                        >
+                          Reset
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </Box>
+                )}
+                {drawerMessages.map((m, idx) => (
+                  <Box
+                    key={idx}
+                    ref={
+                      drawerTileId === "offerNegotiation" && m.role === "assistant" && m.text
+                        ? negotiationRef
+                        : undefined
+                    }
+                    sx={{
+                      alignSelf: m.role === "user" ? "flex-start" : "flex-end",
+                      bgcolor: m.role === "user" ? "grey.200" : "primary.main",
+                      color: m.role === "user" ? "text.primary" : "primary.contrastText",
+                      p: 1.5,
+                      borderRadius: 1,
+                      maxWidth: "100%",
+                    }}
+                  >
+                    {m.text ? (
+                      <Box
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(marked.parse(m.text) as string),
+                        }}
+                      />
+                    ) : m.data ? (
+                      <>
+                        {m.data.compensation && m.data.compensation.length > 0 && (
                           <Stack spacing={0.5}>
                             {m.data.compensation.map((c) => (
                               <Typography key={c.type} variant="body2">
-                                {c.type.charAt(0).toUpperCase() +
-                                  c.type.slice(1)}
-                                : {"$"}
-                                {c.amount.toLocaleString()}{" "}
-                                {c.notes ? `(${c.notes})` : ""}
+                                {c.type.charAt(0).toUpperCase() + c.type.slice(1)}: {"$"}
+                                {c.amount.toLocaleString()} {c.notes ? `(${c.notes})` : ""}
                               </Typography>
                             ))}
                           </Stack>
                         )}
-                      {m.data.summary && (
-                        <List
-                          dense
-                          sx={{ mt: 1, listStyleType: "disc", pl: 2 }}
-                        >
-                          {m.data.summary.map((line, i) => (
-                            <ListItem key={i} sx={{ display: "list-item", py: 0 }}>
-                              <ListItemText
-                                primary={line}
-                                primaryTypographyProps={{ variant: "body2" }}
-                              />
-                            </ListItem>
-                          ))}
-                        </List>
-                      )}
-                    </>
-                  ) : null}
-                </Box>
-              ))}
-              {drawerTileId === "offerNegotiation" && !drawerLoading && (
-                <Stack spacing={1}>
-                  <NegotiationLibraryControls
-                    disabled={!canSaveNegotiationDraft}
-                    entries={negotiationLibrary}
-                    defaultLabel={defaultNegotiationLabel}
-                    onSaveNew={handleSaveNegotiationAsNew}
-                    onOverwrite={handleOverwriteNegotiationEntry}
-                    onInsert={handleInsertNegotiationEntry}
-                    onManage={() => setManageNegotiationLibraryOpen(true)}
-                  />
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleDownloadNegotiationPdf}
-                  >
-                    Download PDF
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleDownloadNegotiationMd}
-                  >
-                    Download MD
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleAttachOfferHistory}
-                    disabled={!drawerApp}
-                  >
-                    Attach to Offer History
-                  </Button>
-                </Stack>
-              )}
-              {drawerTileId === "offerNegotiation" &&
-                offerHistoryEntries.length > 0 && (
+                        {m.data.summary && (
+                          <List dense sx={{ mt: 1, listStyleType: "disc", pl: 2 }}>
+                            {m.data.summary.map((line, i) => (
+                              <ListItem key={i} sx={{ display: "list-item", py: 0 }}>
+                                <ListItemText
+                                  primary={line}
+                                  primaryTypographyProps={{ variant: "body2" }}
+                                />
+                              </ListItem>
+                            ))}
+                          </List>
+                        )}
+                      </>
+                    ) : null}
+                  </Box>
+                ))}
+                {drawerTileId === "offerNegotiation" && !drawerLoading && (
+                  <Stack spacing={1}>
+                    <NegotiationLibraryControls
+                      disabled={!canSaveNegotiationDraft}
+                      entries={negotiationLibrary}
+                      defaultLabel={defaultNegotiationLabel}
+                      onSaveNew={handleSaveNegotiationAsNew}
+                      onOverwrite={handleOverwriteNegotiationEntry}
+                      onInsert={handleInsertNegotiationEntry}
+                      onManage={() => setManageNegotiationLibraryOpen(true)}
+                    />
+                    <Button variant="outlined" fullWidth onClick={handleDownloadNegotiationPdf}>
+                      Download PDF
+                    </Button>
+                    <Button variant="outlined" fullWidth onClick={handleDownloadNegotiationMd}>
+                      Download MD
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      onClick={handleAttachOfferHistory}
+                      disabled={!drawerApp}
+                    >
+                      Attach to Offer History
+                    </Button>
+                  </Stack>
+                )}
+                {drawerTileId === "offerNegotiation" && offerHistoryEntries.length > 0 && (
                   <Box>
                     <Typography variant="subtitle1" gutterBottom>
                       Offer History
@@ -3497,9 +3277,7 @@ export default function ApplicationBoard() {
                     <List dense disablePadding sx={{ mt: 1 }}>
                       {offerHistoryEntries.map((entry) => {
                         const isEditing = editingHistoryId === entry.id;
-                        const timestamp = formatOfferHistoryTimestamp(
-                          entry.createdAt,
-                        );
+                        const timestamp = formatOfferHistoryTimestamp(entry.createdAt);
                         const disableSave = editingHistoryLabel.trim().length === 0;
                         return (
                           <ListItem
@@ -3532,16 +3310,11 @@ export default function ApplicationBoard() {
                                   size="small"
                                   label="Source label"
                                   value={editingHistoryLabel}
-                                  onChange={(event) =>
-                                    setEditingHistoryLabel(event.target.value)
-                                  }
+                                  onChange={(event) => setEditingHistoryLabel(event.target.value)}
                                   sx={{ flexGrow: 1 }}
                                 />
                               ) : (
-                                <Typography
-                                  variant="subtitle2"
-                                  sx={{ flexGrow: 1, minWidth: 160 }}
-                                >
+                                <Typography variant="subtitle2" sx={{ flexGrow: 1, minWidth: 160 }}>
                                   {entry.sourceLabel}
                                 </Typography>
                               )}
@@ -3594,11 +3367,7 @@ export default function ApplicationBoard() {
                               </Stack>
                             </Stack>
                             {isEditing && (
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                sx={{ mt: 1 }}
-                              >
+                              <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
                                 {timestamp}
                               </Typography>
                             )}
@@ -3615,110 +3384,106 @@ export default function ApplicationBoard() {
                     </List>
                   </Box>
                 )}
-              {drawerMode === "resumeCompare" && !drawerLoading && (
-                <TextField
-                  select
-                  label="Resume"
-                  value=""
-                  onChange={(e) => handleResumeCompareSelect(e.target.value)}
-                >
-                  {resumes.map((r) => (
-                    <MenuItem key={r.id} value={r.id}>
-                      {r.title}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              )}
-              {drawerLoading && (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-                  <CircularProgress size={24} />
-                </Box>
-              )}
-            </Stack>
-          )}
-          <Box sx={{ mt: 3 }}>
-            <TextField
-              label="Rejection Reason (optional)"
-              size="small"
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              fullWidth
-              multiline
-              minRows={2}
-              sx={{ mb: 1 }}
-            />
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => handleReject("drawer")}
-              disabled={!drawerApp || drawerApp.status === "rejected"}
-            >
-              Reject Application
-            </Button>
-          </Box>
-        </Drawer>
-      )}
-      {workspaceOpen && (
-        <Drawer
-          anchor="right"
-          variant="permanent"
-          sx={{
-            "& .MuiDrawer-paper": {
-              width: { xs: "100%", md: 420, lg: 520 },
-              maxWidth: "100vw",
-              p: 2,
-            },
-          }}
-        >
-          <IconButton
-            onClick={handleCloseWorkspace}
-            sx={{ alignSelf: "flex-end" }}
-            size="small"
-          >
-            <Close />
-          </IconButton>
-          <Typography variant="h6" gutterBottom>
-            {workspaceApp ? `${workspaceApp.role.title} Workspace` : "Workspace"}
-          </Typography>
-          {workspaceApp ? (
-            <Box sx={{ mt: 2 }}>
-              <ChatWorkspace
-                key={workspaceApp.id}
-                onInsertIntoInbox={handleWorkspaceInsertDraft}
-                onSaveResumeVariant={handleWorkspaceSaveResume}
-                initialJobDescription={workspaceApp.role.description}
-                initialResumeId={workspaceApp.resumeVariant?.id}
-                resumes={resumes}
+                {drawerMode === "resumeCompare" && !drawerLoading && (
+                  <TextField
+                    select
+                    label="Resume"
+                    value=""
+                    onChange={(e) => handleResumeCompareSelect(e.target.value)}
+                  >
+                    {resumes.map((r) => (
+                      <MenuItem key={r.id} value={r.id}>
+                        {r.title}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+                {drawerLoading && (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                )}
+              </Stack>
+            )}
+            <Box sx={{ mt: 3 }}>
+              <TextField
+                label="Rejection Reason (optional)"
+                size="small"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                fullWidth
+                multiline
+                minRows={2}
+                sx={{ mb: 1 }}
               />
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => handleReject("drawer")}
+                disabled={!drawerApp || drawerApp.status === "rejected"}
+              >
+                Reject Application
+              </Button>
             </Box>
-          ) : (
-            <Typography color="text.secondary" sx={{ mt: 2 }}>
-              Select an application to open the workspace.
+          </Drawer>
+        )}
+        {workspaceOpen && (
+          <Drawer
+            anchor="right"
+            variant="permanent"
+            sx={{
+              "& .MuiDrawer-paper": {
+                width: { xs: "100%", md: 420, lg: 520 },
+                maxWidth: "100vw",
+                p: 2,
+              },
+            }}
+          >
+            <IconButton onClick={handleCloseWorkspace} sx={{ alignSelf: "flex-end" }} size="small">
+              <Close />
+            </IconButton>
+            <Typography variant="h6" gutterBottom>
+              {workspaceApp ? `${workspaceApp.role.title} Workspace` : "Workspace"}
             </Typography>
-          )}
-          <Box sx={{ mt: 3 }}>
-            <TextField
-              label="Rejection Reason (optional)"
-              size="small"
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              fullWidth
-              multiline
-              minRows={2}
-              sx={{ mb: 1 }}
-            />
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => handleReject("workspace")}
-              disabled={!workspaceApp || workspaceApp.status === "rejected"}
-            >
-              Reject Application
-            </Button>
-          </Box>
-        </Drawer>
-      )}
-    </>
+            {workspaceApp ? (
+              <Box sx={{ mt: 2 }}>
+                <ChatWorkspace
+                  key={workspaceApp.id}
+                  onInsertIntoInbox={handleWorkspaceInsertDraft}
+                  onSaveResumeVariant={handleWorkspaceSaveResume}
+                  initialJobDescription={workspaceApp.role.description}
+                  initialResumeId={workspaceApp.resumeVariant?.id}
+                  resumes={resumes}
+                />
+              </Box>
+            ) : (
+              <Typography color="text.secondary" sx={{ mt: 2 }}>
+                Select an application to open the workspace.
+              </Typography>
+            )}
+            <Box sx={{ mt: 3 }}>
+              <TextField
+                label="Rejection Reason (optional)"
+                size="small"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                fullWidth
+                multiline
+                minRows={2}
+                sx={{ mb: 1 }}
+              />
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => handleReject("workspace")}
+                disabled={!workspaceApp || workspaceApp.status === "rejected"}
+              >
+                Reject Application
+              </Button>
+            </Box>
+          </Drawer>
+        )}
+      </>
     </RequireAIKey>
   );
 }

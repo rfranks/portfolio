@@ -7,9 +7,7 @@ import PathForgerCreateStoryPanel from "@/app/pathforger/_components/PathForgerC
 import PathForgerJourneyPanel from "@/app/pathforger/_components/PathForgerJourneyPanel";
 import PathForgerOutcomePanel from "@/app/pathforger/_components/PathForgerOutcomePanel";
 
-type CreateStoryPanelProps = React.ComponentProps<
-  typeof PathForgerCreateStoryPanel
->;
+type CreateStoryPanelProps = React.ComponentProps<typeof PathForgerCreateStoryPanel>;
 type ChapterPanelProps = React.ComponentProps<typeof PathForgerChapterPanel>;
 type ContinuePanelProps = React.ComponentProps<typeof PathForgerContinuePanel>;
 type OutcomePanelProps = React.ComponentProps<typeof PathForgerOutcomePanel>;

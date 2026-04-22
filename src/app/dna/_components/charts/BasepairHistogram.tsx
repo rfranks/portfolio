@@ -18,11 +18,7 @@ import {
 import Grid from "@mui/material/Grid";
 
 import { Sequence } from "../../_types/types";
-import {
-  baseToColor,
-  getBasepairCounts,
-  getSequenceColor,
-} from "../../_utils/sequenceUtils";
+import { baseToColor, getBasepairCounts, getSequenceColor } from "../../_utils/sequenceUtils";
 import { dnaChartTooltipProps } from "./tooltipStyles";
 
 export type BasepairHistogramProps = {
@@ -67,10 +63,10 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
       .map((seq) =>
         seq.sequence.substring(
           Math.max(minBasePair - 1, 0),
-          (bpRange?.[1] || seq.sequence.length) + 1
-        )
+          (bpRange?.[1] || seq.sequence.length) + 1,
+        ),
       )
-      .join("")
+      .join(""),
   );
 
   let totalBasePairs = 0;
@@ -79,8 +75,8 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
     const seqBPCounts = getBasepairCounts(
       seq.sequence.substring(
         Math.max(minBasePair - 1, 0),
-        (bpRange?.[1] || seq.sequence.length) + 1
-      )
+        (bpRange?.[1] || seq.sequence.length) + 1,
+      ),
     );
 
     seqBPCounts.forEach((seqBPCount, index) => {
@@ -127,10 +123,7 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
               label={"# of base pairs"}
             >
               {bpCounts.map((entry) => (
-                <Cell
-                  key={`${seq.description}-${entry.name}`}
-                  fill={baseToColor(entry.name)}
-                />
+                <Cell key={`${seq.description}-${entry.name}`} fill={baseToColor(entry.name)} />
               ))}
             </Bar>
           ))}
@@ -161,20 +154,12 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
           <Bar dataKey="A" stackId="a" fill={baseToColor("A")} />
           <Bar dataKey="C" stackId="a" fill={baseToColor("C")} />
           <Bar dataKey="G" stackId="a" fill={baseToColor("G")} />
-          {sequence.type === "DNA" && (
-            <Bar dataKey="T" stackId="a" fill={baseToColor("T")} />
-          )}
-          {sequence.type === "RNA" && (
-            <Bar dataKey="U" stackId="a" fill={baseToColor("U")} />
-          )}
+          {sequence.type === "DNA" && <Bar dataKey="T" stackId="a" fill={baseToColor("T")} />}
+          {sequence.type === "RNA" && <Bar dataKey="U" stackId="a" fill={baseToColor("U")} />}
         </BarChart>
       </Grid>
       <Grid item>
-        <RadarChart
-          data={bpCounts}
-          height={chartWidth * 0.4}
-          width={chartWidth * 0.4}
-        >
+        <RadarChart data={bpCounts} height={chartWidth * 0.4} width={chartWidth * 0.4}>
           <Tooltip cursor={{ fill: "transparent" }} {...dnaChartTooltipProps} />
           <PolarGrid />
           <PolarAngleAxis dataKey="name" />

@@ -89,10 +89,7 @@ class OpenAIKeyStore {
     }
   }
 
-  setKey(
-    key: string,
-    options?: { persist?: boolean; validity?: OpenAIKeyValidity },
-  ) {
+  setKey(key: string, options?: { persist?: boolean; validity?: OpenAIKeyValidity }) {
     const trimmed = key.trim();
     const partial: Partial<OpenAIKeyState> = { key: trimmed };
 
@@ -155,16 +152,8 @@ const store = new OpenAIKeyStore();
 
 const OpenAIKeyContext = React.createContext<OpenAIKeyStore | null>(null);
 
-export function OpenAIKeyProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}): React.ReactElement {
-  return (
-    <OpenAIKeyContext.Provider value={store}>
-      {children}
-    </OpenAIKeyContext.Provider>
-  );
+export function OpenAIKeyProvider({ children }: { children: React.ReactNode }): React.ReactElement {
+  return <OpenAIKeyContext.Provider value={store}>{children}</OpenAIKeyContext.Provider>;
 }
 
 export function useOpenAIKey() {
@@ -184,10 +173,7 @@ export function useOpenAIKey() {
       keyStore.setKey(value, options),
     [keyStore],
   );
-  const setPersist = React.useCallback(
-    (value: boolean) => keyStore.setPersist(value),
-    [keyStore],
-  );
+  const setPersist = React.useCallback((value: boolean) => keyStore.setPersist(value), [keyStore]);
   const setValidity = React.useCallback(
     (value: OpenAIKeyValidity) => keyStore.setValidity(value),
     [keyStore],
@@ -195,10 +181,7 @@ export function useOpenAIKey() {
   const clearKey = React.useCallback(() => keyStore.clearKey(), [keyStore]);
   const ensureKey = React.useCallback(() => keyStore.ensureKey(), [keyStore]);
   const hasKey = React.useMemo(() => state.key.trim().length > 0, [state.key]);
-  const reloadFromStorage = React.useCallback(
-    () => keyStore.reloadFromStorage(),
-    [keyStore],
-  );
+  const reloadFromStorage = React.useCallback(() => keyStore.reloadFromStorage(), [keyStore]);
 
   return {
     key: state.key,

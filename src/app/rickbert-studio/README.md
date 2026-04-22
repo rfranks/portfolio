@@ -3,11 +3,13 @@
 Rickbert Studio is a browser-based comic strip production app for the RICKBERT workplace series.
 
 It converts three inputs:
+
 - master system prompt
 - reference markdown docs
 - strip request/script
 
 Into five outputs:
+
 1. parsed internal comic spec
 2. checklist-based preflight validation report
 3. rendered comic strip on `react-konva`
@@ -31,9 +33,11 @@ Into five outputs:
 ## Architecture
 
 Implementation is isolated under:
+
 - `src/app/rickbert-studio`
 
 Primary folders:
+
 - `_app/`: app bootstrap (`RickbertStudioApp`)
 - `_components/studio/`: multi-pane shell UI and toolbar actions
 - `_schemas/` + `_models/`: Zod + TypeScript domain contracts

@@ -4,7 +4,7 @@ export function randomCloud(
   canvasWidth: number,
   canvasHeight: number,
   whitePuffImgs: HTMLImageElement[],
-  groundSpeed: () => number
+  groundSpeed: () => number,
 ): Cloud {
   const count = 3 + Math.floor(Math.random() * 3); // 3–5 puffs
   const y = 50 + Math.random() * (canvasHeight * 0.1);
@@ -31,12 +31,10 @@ export function randomMountain(
   rockImgs: HTMLImageElement[],
   groundSpeed: () => number,
   MOUNTAIN_SCALE_MIN: number,
-  MOUNTAIN_SCALE_MAX: number
+  MOUNTAIN_SCALE_MAX: number,
 ): Mountain {
   const img = rockImgs[Math.floor(Math.random() * rockImgs.length)];
-  const baseScale =
-    MOUNTAIN_SCALE_MIN +
-    Math.random() * (MOUNTAIN_SCALE_MAX - MOUNTAIN_SCALE_MIN);
+  const baseScale = MOUNTAIN_SCALE_MIN + Math.random() * (MOUNTAIN_SCALE_MAX - MOUNTAIN_SCALE_MIN);
 
   const sx = baseScale * (0.8 + Math.random() * 0.4) * 3;
   const sy = baseScale * 2;
@@ -63,7 +61,7 @@ export function randomMountainRange(
   rockImgs: HTMLImageElement[],
   groundSpeed: () => number,
   MOUNTAIN_SCALE_MIN: number,
-  MOUNTAIN_SCALE_MAX: number
+  MOUNTAIN_SCALE_MAX: number,
 ): Mountain[] {
   const count = 3 + Math.floor(Math.random() * 3);
   const startX = canvasWidth + Math.random() * 300;
@@ -75,7 +73,7 @@ export function randomMountainRange(
       rockImgs,
       groundSpeed,
       MOUNTAIN_SCALE_MIN,
-      MOUNTAIN_SCALE_MAX
+      MOUNTAIN_SCALE_MAX,
     );
     m.x = startX + i * spacing * (0.8 + Math.random() * 0.4);
     return m;
@@ -88,7 +86,7 @@ export function randomTree(
   canvasHeight: number,
   treeImgs: HTMLImageElement[],
   groundSpeed: () => number,
-  forcedScale?: number
+  forcedScale?: number,
 ): Tree {
   const img = treeImgs[Math.floor(Math.random() * treeImgs.length)];
   const scale = forcedScale ?? 0.5 + Math.random();
@@ -114,12 +112,10 @@ export function randomWater(
   groundY: number,
   WATER_MIN_SIZE: number,
   WATER_MAX_SIZE: number,
-  size?: number
+  size?: number,
 ): Water {
   const lakeSize =
-    size ??
-    WATER_MIN_SIZE +
-      Math.floor(Math.random() * (WATER_MAX_SIZE - WATER_MIN_SIZE + 1));
+    size ?? WATER_MIN_SIZE + Math.floor(Math.random() * (WATER_MAX_SIZE - WATER_MIN_SIZE + 1));
   return {
     x: canvasWidth + Math.random() * 200,
     y: groundY - 32,

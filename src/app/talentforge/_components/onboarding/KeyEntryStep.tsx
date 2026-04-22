@@ -1,13 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  Button,
-  CircularProgress,
-  InputAdornment,
-  Stack,
-  TextField,
-} from "@mui/material";
+import { Button, CircularProgress, InputAdornment, Stack, TextField } from "@mui/material";
 import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutline from "@mui/icons-material/ErrorOutline";
 import { validateOpenAIKey } from "@/app/talentforge/_utils/utils";
@@ -21,9 +15,7 @@ interface StepProps {
 export default function KeyEntryStep({ onNext }: StepProps) {
   const { key: storedKey, setKey: setStoredKey, setValidity } = useOpenAIKey();
   const [key, setKey] = useState(storedKey);
-  const [status, setStatus] = useState<
-    "idle" | "checking" | "success" | "error"
-  >("idle");
+  const [status, setStatus] = useState<"idle" | "checking" | "success" | "error">("idle");
 
   useEffect(() => {
     setKey(storedKey);
@@ -66,19 +58,13 @@ export default function KeyEntryStep({ onNext }: StepProps) {
   }, [key, setStoredKey, validateKey]);
 
   const adornment =
-    status === "checking"
-      ? (
-          <CircularProgress size={20} />
-        )
-      : status === "success"
-      ? (
-          <CheckCircleOutline color="success" />
-        )
-      : status === "error"
-      ? (
-          <ErrorOutline color="error" />
-        )
-      : null;
+    status === "checking" ? (
+      <CircularProgress size={20} />
+    ) : status === "success" ? (
+      <CheckCircleOutline color="success" />
+    ) : status === "error" ? (
+      <ErrorOutline color="error" />
+    ) : null;
 
   return (
     <Stack spacing={2} aria-label="API key entry">

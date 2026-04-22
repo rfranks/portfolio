@@ -4,10 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { hasOpenAIKey } from "@/app/talentforge/_utils/utils";
 
-const STORAGE_KEYS = [
-  "talentforge-openai-key",
-  "talentforge-openai-key-persist",
-];
+const STORAGE_KEYS = ["talentforge-openai-key", "talentforge-openai-key-persist"];
 
 export function useOpenAIKey() {
   const [hasKey, setHasKey] = useState<boolean | null>(null);

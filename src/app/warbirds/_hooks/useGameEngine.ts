@@ -73,7 +73,7 @@ import useScaledClock, {
   clockRef,
   setScaledTimeout,
   clearScaledTimeout,
-  advanceClock,  
+  advanceClock,
 } from "@/hooks/time/useScaledClock";
 import { AudioMgr } from "@/types/audio/audio";
 import { Puff } from "@/types/game/effects";
@@ -165,9 +165,7 @@ export function useGameEngine() {
     const id = setInterval(() => {
       const { deltaMs, scale } = clockRef.current;
       const fps = 1000 / deltaMs;
-      console.debug(
-        `[warbirds] fps: ${fps.toFixed(1)} scale: ${scale.toFixed(2)}`,
-      );
+      console.debug(`[warbirds] fps: ${fps.toFixed(1)} scale: ${scale.toFixed(2)}`);
     }, reportIntervalMs);
     return () => clearInterval(id);
   }, [reportIntervalMs]);
@@ -186,8 +184,7 @@ export function useGameEngine() {
       ui.ammo !== cur.ammo ||
       ui.crashed !== cur.crashed ||
       ui.frameCount !== cur.frameCount ||
-      JSON.stringify(ui.activePowerups) !==
-        JSON.stringify(cur.activePowerups) ||
+      JSON.stringify(ui.activePowerups) !== JSON.stringify(cur.activePowerups) ||
       ui.cursor !== cur.cursor ||
       ui.countdown !== cur.countdown ||
       ui.phase !== cur.phase
@@ -227,8 +224,7 @@ export function useGameEngine() {
 
   const changeScore = useCallback(
     (delta: number) => {
-      const doubleScore =
-        state.current.isActive("coin2x", state.current.frameCount) && delta > 0;
+      const doubleScore = state.current.isActive("coin2x", state.current.frameCount) && delta > 0;
       const final = doubleScore ? delta * 2 : delta;
 
       state.current.score += Math.max(final, 0);
@@ -240,9 +236,7 @@ export function useGameEngine() {
   const resetState = useCallback(() => {
     state.current = {
       ...initState(dims, assetMgr, audioMgr),
-      groundIndex: Math.floor(
-        Math.random() * (getImg("groundImgs") as HTMLImageElement[]).length,
-      ),
+      groundIndex: Math.floor(Math.random() * (getImg("groundImgs") as HTMLImageElement[]).length),
     };
   }, [dims, assetMgr, audioMgr, getImg]);
 
@@ -283,8 +277,7 @@ export function useGameEngine() {
       const ry = NAPALM_EXPLODE_RADIUS * 0.5; // vertical radius is half the horizontal
 
       const count =
-        NAPALM_DROP_MIN +
-        Math.floor(Math.random() * (NAPALM_DROP_MAX - NAPALM_DROP_MIN + 1));
+        NAPALM_DROP_MIN + Math.floor(Math.random() * (NAPALM_DROP_MAX - NAPALM_DROP_MIN + 1));
 
       for (let i = 0; i < count; i++) {
         const θ = Math.random() * Math.PI * 2;
@@ -312,8 +305,7 @@ export function useGameEngine() {
   const spawnCrashSmokeOne = useCallback(
     (x: number, y: number) => {
       const blackSmokeImgs = getImg("blackSmokeImgs") as HTMLImageElement[];
-      const img =
-        blackSmokeImgs[Math.floor(Math.random() * blackSmokeImgs.length)];
+      const img = blackSmokeImgs[Math.floor(Math.random() * blackSmokeImgs.length)];
       state.current.puffs.push({
         x: x - 16,
         y: y - 16,
@@ -366,41 +358,25 @@ export function useGameEngine() {
     [getImg, state],
   );
 
-  function makeRandomWater(
-    canvasWidth: number,
-    groundY: number,
-    size?: number,
-  ): Water {
-    return randomWater(
-      canvasWidth,
-      groundY,
-      WATER_MIN_SIZE,
-      WATER_MAX_SIZE,
-      size,
-    );
+  function makeRandomWater(canvasWidth: number, groundY: number, size?: number): Water {
+    return randomWater(canvasWidth, groundY, WATER_MIN_SIZE, WATER_MAX_SIZE, size);
   }
   const doSingleShot = useCallback(
     (sx: number, sy: number) => {
       play("shotSfx");
 
-      const powerupImgs = getImg("powerupImgs") as Record<
-        string,
-        HTMLImageElement
-      >;
+      const powerupImgs = getImg("powerupImgs") as Record<string, HTMLImageElement>;
       // flap on plane if clicked there
       let didFlap = false;
 
       let flapStrength = FLAP_STRENGTH;
 
       // first, your new anti‐powerups
-      if (state.current.isActive("heavy", state.current.frameCount))
-        flapStrength *= 0.5; // half as strong
-      if (state.current.isActive("sticky", state.current.frameCount))
-        flapStrength = 0; // no lift at all
+      if (state.current.isActive("heavy", state.current.frameCount)) flapStrength *= 0.5; // half as strong
+      if (state.current.isActive("sticky", state.current.frameCount)) flapStrength = 0; // no lift at all
 
       // then, wings still double whatever you have left
-      if (state.current.isActive("wings", state.current.frameCount))
-        flapStrength *= 2;
+      if (state.current.isActive("wings", state.current.frameCount)) flapStrength *= 2;
 
       const cx = PLANE_OFFSET_X + PLANE_WIDTH / 2;
       const cy = state.current.y + PLANE_HEIGHT / 2;
@@ -448,27 +424,18 @@ export function useGameEngine() {
       for (let i = 0; i < state.current.airships.length; i++) {
         const a = state.current.airships[i];
         const bob =
-          Math.sin(
-            state.current.frameCount * AIRSHIP_BOB_FREQUENCY + a.bobOffset,
-          ) * AIRSHIP_BOB_AMPLITUDE;
+          Math.sin(state.current.frameCount * AIRSHIP_BOB_FREQUENCY + a.bobOffset) *
+          AIRSHIP_BOB_AMPLITUDE;
         const ay = a.baseY + bob;
 
-        if (
-          sx >= a.x &&
-          sx <= a.x + AIRSHIP_SIZE &&
-          sy >= ay &&
-          sy <= ay + AIRSHIP_SIZE
-        ) {
+        if (sx >= a.x && sx <= a.x + AIRSHIP_SIZE && sy >= ay && sy <= ay + AIRSHIP_SIZE) {
           hit = true;
 
           state.current.airships.splice(i, 1);
 
           if (a.color === "green") {
             // drop a super powerup
-            const t =
-              SUPER_POWERUP_TYPES[
-                Math.floor(Math.random() * SUPER_POWERUP_TYPES.length)
-              ];
+            const t = SUPER_POWERUP_TYPES[Math.floor(Math.random() * SUPER_POWERUP_TYPES.length)];
             state.current.powerups.push({
               x: a.x,
               y: ay,
@@ -477,17 +444,10 @@ export function useGameEngine() {
             });
           } else {
             // red airship: spawn a napalm explosion
-            spawnNapalmEllipse(
-              a.x + AIRSHIP_SIZE / 2,
-              ay + AIRSHIP_SIZE / 2,
-              true,
-            );
+            spawnNapalmEllipse(a.x + AIRSHIP_SIZE / 2, ay + AIRSHIP_SIZE / 2, true);
 
             // and drop a negative powerup
-            const bad =
-              ANTI_POWERUP_TYPES[
-                Math.floor(Math.random() * ANTI_POWERUP_TYPES.length)
-              ];
+            const bad = ANTI_POWERUP_TYPES[Math.floor(Math.random() * ANTI_POWERUP_TYPES.length)];
             state.current.powerups.push({
               x: a.x,
               y: ay,
@@ -503,10 +463,7 @@ export function useGameEngine() {
       // DUCK SHOOTING
       for (let i = 0; i < state.current.ducks.length; i++) {
         const d = state.current.ducks[i];
-        const scale = state.current.isActive(
-          "megaducks",
-          state.current.frameCount,
-        )
+        const scale = state.current.isActive("megaducks", state.current.frameCount)
           ? DUCK_MAGNIFY_SCALE
           : state.current.isActive("ducksight", state.current.frameCount)
             ? DUCKSIGHT_MAGNIFY_SCALE
@@ -529,9 +486,7 @@ export function useGameEngine() {
           d.hit = true;
           d.fadeAge = 0;
           d.fadeMax = 60;
-          d.targetImg = (getImg("duckTargetImgs") as HTMLImageElement[])[
-            d.srcIdx
-          ];
+          d.targetImg = (getImg("duckTargetImgs") as HTMLImageElement[])[d.srcIdx];
 
           // update the next state
           state.current.floatingScores.push({
@@ -557,54 +512,26 @@ export function useGameEngine() {
       // POWERUP COLLECTION
       for (let i = 0; i < state.current.powerups.length; i++) {
         const p = state.current.powerups[i];
-        if (
-          !p.collected &&
-          sx >= p.x &&
-          sx <= p.x + 128 &&
-          sy >= p.y &&
-          sy <= p.y + 128
-        ) {
+        if (!p.collected && sx >= p.x && sx <= p.x + 128 && sy >= p.y && sy <= p.y + 128) {
           p.collected = true;
           if (["bomb"].includes(p.type)) {
             // bomb powerup is instant
             play("bombSfx");
 
-            state.current.activePowerups.bomb.expires =
-              state.current.frameCount + 1;
+            state.current.activePowerups.bomb.expires = state.current.frameCount + 1;
           } else if (ANTI_POWERUP_TYPES.includes(p.type as AntiPowerupType)) {
-            if (
-              ["sticky", "heavy", "windy", "turbulence", "blindfold"].includes(
-                p.type,
-              )
-            ) {
+            if (["sticky", "heavy", "windy", "turbulence", "blindfold"].includes(p.type)) {
               // sticky and heavy powerups expire at POWERUP_DURATION
               state.current.activePowerups[p.type].expires =
                 state.current.frameCount + POWERUP_DURATION;
               if (p.type === "turbulence") {
-                makeText(
-                  "Turbulence!",
-                  1,
-                  true,
-                  true,
-                  dims.width - 800,
-                  dims.height * 0.8,
-                  120,
-                );
+                makeText("Turbulence!", 1, true, true, dims.width - 800, dims.height * 0.8, 120);
               } else if (p.type === "blindfold") {
-                makeText(
-                  "Blinded!",
-                  1,
-                  true,
-                  true,
-                  dims.width - 800,
-                  dims.height * 0.8,
-                  120,
-                );
+                makeText("Blinded!", 1, true, true, dims.width - 800, dims.height * 0.8, 120);
               }
             } else {
               // other anti-powerups expire immediately
-              state.current.activePowerups[p.type].expires =
-                state.current.frameCount + 30;
+              state.current.activePowerups[p.type].expires = state.current.frameCount + 30;
             }
           } else if (p.type === "machineGuns") {
             state.current.activePowerups["machineGuns"].expires =
@@ -642,15 +569,7 @@ export function useGameEngine() {
 
             changeScore(-500);
 
-            makeText(
-              "Skull! Lose 500",
-              1,
-              true,
-              true,
-              dims.width - 800,
-              dims.height * 0.8,
-              120,
-            );
+            makeText("Skull! Lose 500", 1, true, true, dims.width - 800, dims.height * 0.8, 120);
           } else if (p.type === "gunjam") {
             state.current.activePowerups.gunjam.expires =
               state.current.frameCount + POWERUP_DURATION;
@@ -659,15 +578,7 @@ export function useGameEngine() {
 
             play("reloadSfx");
 
-            makeText(
-              "Gunjam Lose 25",
-              1,
-              true,
-              true,
-              dims.width - 800,
-              dims.height * 0.8,
-              120,
-            );
+            makeText("Gunjam Lose 25", 1, true, true, dims.width - 800, dims.height * 0.8, 120);
             state.current.ammo = 0;
           }
 
@@ -680,12 +591,7 @@ export function useGameEngine() {
       // MEDAL PICKING
       for (let i = 0; i < state.current.medals.length; i++) {
         const m = state.current.medals[i];
-        if (
-          sx >= m.x &&
-          sx <= m.x + MEDAL_SIZE &&
-          sy >= m.y &&
-          sy <= m.y + MEDAL_SIZE
-        ) {
+        if (sx >= m.x && sx <= m.x + MEDAL_SIZE && sy >= m.y && sy <= m.y + MEDAL_SIZE) {
           play("medalSfx");
 
           changeScore(MEDAL_SCORE);
@@ -780,9 +686,7 @@ export function useGameEngine() {
             const types: PowerupType[] = POWERUP_TYPES;
             let t =
               POWERUP_DEBUG.length > 0
-                ? POWERUP_DEBUG[
-                    Math.floor(Math.random() * POWERUP_DEBUG.length)
-                  ]
+                ? POWERUP_DEBUG[Math.floor(Math.random() * POWERUP_DEBUG.length)]
                 : types[Math.floor(Math.random() * types.length)];
 
             // increase the chance of an anti-powerup
@@ -794,10 +698,7 @@ export function useGameEngine() {
               !ANTI_POWERUP_TYPES.includes(t as AntiPowerupType) &&
               Math.random() < 0.5
             ) {
-              t =
-                ANTI_POWERUP_TYPES[
-                  Math.floor(Math.random() * ANTI_POWERUP_TYPES.length)
-                ];
+              t = ANTI_POWERUP_TYPES[Math.floor(Math.random() * ANTI_POWERUP_TYPES.length)];
             }
 
             state.current.powerups.push({
@@ -910,8 +811,7 @@ export function useGameEngine() {
   // ─── GAME INIT + SPLASH ──────────────────────────────────────────────
   // ─── SPLASH + PRELOAD ─────────────────────────────────────────────────────
   const startSplash = useCallback(() => {
-    if (animationFrameRef.current)
-      cancelAnimationFrame(animationFrameRef.current);
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
 
     state.current.countdownTimeouts.forEach(clearScaledTimeout);
     state.current.countdownTimeouts = [];
@@ -1027,8 +927,7 @@ export function useGameEngine() {
 
     const waterImgs = getImg("waterImgs") as HTMLImageElement[];
 
-    if (animationFrameRef.current)
-      cancelAnimationFrame(animationFrameRef.current);
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -1036,8 +935,7 @@ export function useGameEngine() {
 
     const { width, height } = dims;
     const { width: screenW, height: screenH } = screenDims;
-    const dpr =
-      typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
     const scaleX = screenW / width;
     const scaleY = screenH / height;
     canvas.width = screenW * dpr;
@@ -1072,10 +970,7 @@ export function useGameEngine() {
       if (enemyFlapNow) {
         state.current.enemyFlapTimer -= ENEMY_FLAP_INTERVAL;
       }
-      const blindActive = state.current.isActive(
-        "blindfold",
-        state.current.frameCount,
-      );
+      const blindActive = state.current.isActive("blindfold", state.current.frameCount);
       if (blindActive) {
         if (!blindfoldWasActive) {
           blindfoldPrevCursor = state.current.cursor;
@@ -1087,22 +982,14 @@ export function useGameEngine() {
         blindfoldWasActive = false;
       }
       // if shrink is active, scale enemies to 40%
-      const enemyScale = state.current.isActive(
-        "shrink",
-        state.current.frameCount,
-      )
-        ? 0.4
-        : 1;
+      const enemyScale = state.current.isActive("shrink", state.current.frameCount) ? 0.4 : 1;
       const gravityBase = (TEST_SLOW_FALL ? 0.5 * GRAVITY : GRAVITY) * scale;
       const gravity = state.current.isActive("freeze", state.current.frameCount)
         ? 0
         : state.current.isActive("hourglass", state.current.frameCount)
           ? gravityBase * 0.5
           : gravityBase;
-      const flapStrength = state.current.isActive(
-        "wings",
-        state.current.frameCount,
-      )
+      const flapStrength = state.current.isActive("wings", state.current.frameCount)
         ? FLAP_STRENGTH * 2
         : FLAP_STRENGTH;
 
@@ -1210,8 +1097,7 @@ export function useGameEngine() {
         const θ = Math.PI / 2 + (Math.random() - 0.5) * (Math.PI / 3); // 60° → 120°
         const speed =
           ARTILLERY_SHELL_SPEED_MIN +
-          Math.random() *
-            (ARTILLERY_SHELL_SPEED_MAX - ARTILLERY_SHELL_SPEED_MIN);
+          Math.random() * (ARTILLERY_SHELL_SPEED_MAX - ARTILLERY_SHELL_SPEED_MIN);
         state.current.artilleryShells.push({
           x: startX,
           y: -ARTILLERY_SHELL_SIZE,
@@ -1228,16 +1114,14 @@ export function useGameEngine() {
       ) {
         // pick a random altitude band (10–30% down from top)
         const altPct =
-          NAPALM_ALTITUDE_MIN +
-          Math.random() * (NAPALM_ALTITUDE_MAX - NAPALM_ALTITUDE_MIN);
+          NAPALM_ALTITUDE_MIN + Math.random() * (NAPALM_ALTITUDE_MAX - NAPALM_ALTITUDE_MIN);
         state.current.napalmMissiles.push({
           x: -NAPALM_MISSILE_SIZE / 2,
           y: height * altPct,
           vx: NAPALM_MISSILE_SPEED,
           life: Math.ceil((width + NAPALM_MISSILE_SIZE) / NAPALM_MISSILE_SPEED),
           dropsRemaining:
-            NAPALM_DROP_MIN +
-            Math.floor(Math.random() * (NAPALM_DROP_MAX - NAPALM_DROP_MIN + 1)),
+            NAPALM_DROP_MIN + Math.floor(Math.random() * (NAPALM_DROP_MAX - NAPALM_DROP_MIN + 1)),
           dropTimer: NAPALM_DROP_INTERVAL,
           img: getImg("napalmImg") as HTMLImageElement,
           tailFrame: 0,
@@ -1318,8 +1202,7 @@ export function useGameEngine() {
       state.current.planeFrameCounter += scale;
       if (state.current.planeFrameCounter >= 6) {
         state.current.planeFrameCounter = 0;
-        state.current.planeFrame =
-          (state.current.planeFrame + 1) % planeFrames.length;
+        state.current.planeFrame = (state.current.planeFrame + 1) % planeFrames.length;
       }
 
       // spawn enemy with dynamic rate
@@ -1360,9 +1243,7 @@ export function useGameEngine() {
           targetImg: hasStick
             ? (getImg("targetImgs") as HTMLImageElement[])[targetIdx]
             : undefined!,
-          targetType: hasStick
-            ? (`red${targetIdx + 1}` as "red1" | "red2" | "red3")
-            : undefined!,
+          targetType: hasStick ? (`red${targetIdx + 1}` as "red1" | "red2" | "red3") : undefined!,
           targetScore: hasStick ? targetScore : 0,
           targetFadeAge: 0,
           targetFadeMax: hasStick ? 60 : 0,
@@ -1442,22 +1323,16 @@ export function useGameEngine() {
 
       // maybe spawn an airship
       if (Math.random() < AIRSHIP_SPAWN_PROB) {
-        const color =
-          AIRSHIP_COLORS[Math.floor(Math.random() * AIRSHIP_COLORS.length)];
-        const altPct =
-          AIRSHIP_MIN_ALT + Math.random() * (AIRSHIP_MAX_ALT - AIRSHIP_MIN_ALT);
+        const color = AIRSHIP_COLORS[Math.floor(Math.random() * AIRSHIP_COLORS.length)];
+        const altPct = AIRSHIP_MIN_ALT + Math.random() * (AIRSHIP_MAX_ALT - AIRSHIP_MIN_ALT);
         const baseY = height * altPct;
-        const speed =
-          AIRSHIP_MIN_SPEED +
-          Math.random() * (AIRSHIP_MAX_SPEED - AIRSHIP_MIN_SPEED);
+        const speed = AIRSHIP_MIN_SPEED + Math.random() * (AIRSHIP_MAX_SPEED - AIRSHIP_MIN_SPEED);
 
         const startX = -AIRSHIP_SIZE * 3; // * 3 gives them a head start
         state.current.airships.push({
           x: startX,
           baseY,
-          frames: (
-            getImg("airshipFrames") as Record<string, HTMLImageElement[]>
-          )[color],
+          frames: (getImg("airshipFrames") as Record<string, HTMLImageElement[]>)[color],
           frameIndex: Math.floor(Math.random() * 3),
           frameCounter: 0,
           frameDuration: 10 * (1000 / 60),
@@ -1471,9 +1346,8 @@ export function useGameEngine() {
       state.current.airships = state.current.airships.filter((a) => {
         a.x += a.speed;
         const bob =
-          Math.sin(
-            state.current.frameCount * AIRSHIP_BOB_FREQUENCY + a.bobOffset,
-          ) * AIRSHIP_BOB_AMPLITUDE;
+          Math.sin(state.current.frameCount * AIRSHIP_BOB_FREQUENCY + a.bobOffset) *
+          AIRSHIP_BOB_AMPLITUDE;
         const drawY = a.baseY + bob;
 
         // advance propeller frame
@@ -1497,10 +1371,7 @@ export function useGameEngine() {
       ) {
         play("whooshSfx");
         state.current.whooshPlaying = true;
-      } else if (
-        state.current.airships.length === 0 &&
-        state.current.whooshPlaying
-      ) {
+      } else if (state.current.airships.length === 0 && state.current.whooshPlaying) {
         pause("whooshSfx");
         state.current.whooshPlaying = false;
       }
@@ -1519,25 +1390,14 @@ export function useGameEngine() {
       // draw bullet holes on background
       state.current.bulletHoles.forEach((h) => {
         ctx.globalAlpha = 1 - h.age / h.maxAge;
-        ctx.drawImage(
-          getImg("bulletHoleImg") as HTMLImageElement,
-          h.x - 16,
-          h.y - 16,
-          32,
-          32,
-        );
+        ctx.drawImage(getImg("bulletHoleImg") as HTMLImageElement, h.x - 16, h.y - 16, 32, 32);
         h.age += scale;
       });
-      state.current.bulletHoles = state.current.bulletHoles.filter(
-        (h) => h.age < h.maxAge,
-      );
+      state.current.bulletHoles = state.current.bulletHoles.filter((h) => h.age < h.maxAge);
       ctx.globalAlpha = 1;
 
       // update + draw enemies
-      const freezeActive = state.current.isActive(
-        "freeze",
-        state.current.frameCount,
-      );
+      const freezeActive = state.current.isActive("freeze", state.current.frameCount);
 
       state.current.enemies.forEach((e) => {
         const cx = e.x + ENEMY_WIDTH / 2;
@@ -1637,17 +1497,11 @@ export function useGameEngine() {
         }
 
         // if windy effect is active, add a little random jitter:
-        if (
-          !freezeActive &&
-          state.current.isActive("windy", state.current.frameCount)
-        ) {
+        if (!freezeActive && state.current.isActive("windy", state.current.frameCount)) {
           e.x += (Math.random() * 2 - 1) * SCRAMBLE_INTENSITY;
           e.y += (Math.random() * 2 - 1) * SCRAMBLE_INTENSITY;
           // optional: randomize their flapStrength too
-          e.flapStrength = -(
-            ENEMY_FLAP_BASE +
-            Math.random() * ENEMY_FLAP_RANDOM
-          );
+          e.flapStrength = -(ENEMY_FLAP_BASE + Math.random() * ENEMY_FLAP_RANDOM);
         }
 
         // move forward in the direction we’re facing:
@@ -1687,13 +1541,7 @@ export function useGameEngine() {
           const sh = e.stickImg.height * 0.5;
           ctx.save();
           ctx.rotate(Math.PI);
-          ctx.drawImage(
-            e.stickBroken ? e.brokenStickImg : e.stickImg,
-            -sw / 2,
-            -sh,
-            sw,
-            sh,
-          );
+          ctx.drawImage(e.stickBroken ? e.brokenStickImg : e.stickImg, -sw / 2, -sh, sw, sh);
           ctx.restore();
           // draw hanging target if not yet hit
           if (!e.targetHit) {
@@ -1781,10 +1629,7 @@ export function useGameEngine() {
         }
 
         // collision between player & any enemy ⇒ both go on fire & fall
-        if (
-          !state.current.isActive("ghost", state.current.frameCount) &&
-          !state.current.crashed
-        ) {
+        if (!state.current.isActive("ghost", state.current.frameCount) && !state.current.crashed) {
           state.current.enemies.forEach((e) => {
             const px = PLANE_OFFSET_X + PLANE_WIDTH / 2;
             const py = state.current.y + PLANE_HEIGHT / 2;
@@ -1799,13 +1644,10 @@ export function useGameEngine() {
               state.current.groundContactFrames = 0;
 
               e.alive = false;
-              const explosionImgs = getImg(
-                "explosionImgs",
-              ) as HTMLImageElement[];
+              const explosionImgs = getImg("explosionImgs") as HTMLImageElement[];
 
               // spawn enemy falling-on-fire
-              const randExpE =
-                explosionImgs[Math.floor(Math.random() * explosionImgs.length)];
+              const randExpE = explosionImgs[Math.floor(Math.random() * explosionImgs.length)];
               state.current.falling.push({
                 x: e.x,
                 y: e.y,
@@ -1813,8 +1655,7 @@ export function useGameEngine() {
                 img: randExpE,
               });
               // spawn player falling-on-fire
-              const randExpP =
-                explosionImgs[Math.floor(Math.random() * explosionImgs.length)];
+              const randExpP = explosionImgs[Math.floor(Math.random() * explosionImgs.length)];
               state.current.falling.push({
                 x: PLANE_OFFSET_X,
                 y: state.current.y,
@@ -1958,12 +1799,7 @@ export function useGameEngine() {
           }
 
           // collect when touching
-          const duckScale = state.current.isActive(
-            "megaducks",
-            state.current.frameCount,
-          )
-            ? 2.5
-            : 1;
+          const duckScale = state.current.isActive("megaducks", state.current.frameCount) ? 2.5 : 1;
           const wScaled = d.width * duckScale;
           const hScaled = d.height * duckScale;
           const offX = (wScaled - d.width) / 2;
@@ -2051,15 +1887,7 @@ export function useGameEngine() {
           changeScore(-100);
 
           // big warning
-          makeText(
-            "SHOOT PLANE TO FLY",
-            1.5,
-            true,
-            true,
-            100,
-            dims.height / 2,
-            60,
-          );
+          makeText("SHOOT PLANE TO FLY", 1.5, true, true, 100, dims.height / 2, 60);
 
           // little “OUCH” right above the plane
           makeText(
@@ -2072,9 +1900,7 @@ export function useGameEngine() {
             30,
           );
           // pick a random explosion frame and start the wiggle
-          state.current.ouchExplodeIdx = Math.floor(
-            Math.random() * explosionImgs.length,
-          );
+          state.current.ouchExplodeIdx = Math.floor(Math.random() * explosionImgs.length);
           state.current.ouchFrames = 30;
         }
       } else {
@@ -2082,13 +1908,7 @@ export function useGameEngine() {
       }
 
       for (let x = -state.current.groundOffset; x < width; x += tileW) {
-        ctx.drawImage(
-          groundImgs[state.current.groundIndex],
-          x,
-          groundY,
-          tileW,
-          50,
-        );
+        ctx.drawImage(groundImgs[state.current.groundIndex], x, groundY, tileW, 50);
       }
 
       // draw player plane with animated propeller
@@ -2122,8 +1942,7 @@ export function useGameEngine() {
         state.current.planeFrameCounter += scale;
         if (state.current.planeFrameCounter >= 6) {
           state.current.planeFrameCounter = 0;
-          state.current.planeFrame =
-            (state.current.planeFrame + 1) % planeFrames.length;
+          state.current.planeFrame = (state.current.planeFrame + 1) % planeFrames.length;
         }
         const frameImg = planeFrames[state.current.planeFrame];
         // apply wiggle offsets
@@ -2161,13 +1980,7 @@ export function useGameEngine() {
         if (state.current.isActive("ghost", state.current.frameCount)) {
           ctx.globalAlpha = 0.4; // faded
         }
-        ctx.drawImage(
-          frameImg,
-          -PLANE_WIDTH / 2,
-          -PLANE_HEIGHT / 2,
-          PLANE_WIDTH,
-          PLANE_HEIGHT,
-        );
+        ctx.drawImage(frameImg, -PLANE_WIDTH / 2, -PLANE_HEIGHT / 2, PLANE_WIDTH, PLANE_HEIGHT);
         // restore full opacity:
         ctx.globalAlpha = 1;
         ctx.restore();
@@ -2177,175 +1990,173 @@ export function useGameEngine() {
       }
 
       // ─── UPDATE & DRAW ARTILLERY SHELLS ────────────────────────────────
-      state.current.artilleryShells = state.current.artilleryShells.filter(
-        (shell) => {
-          // move
-          shell.x += shell.vx;
-          shell.y += shell.vy;
+      state.current.artilleryShells = state.current.artilleryShells.filter((shell) => {
+        // move
+        shell.x += shell.vx;
+        shell.y += shell.vy;
 
-          // compute heading
-          const angle = Math.atan2(shell.vy, shell.vx);
+        // compute heading
+        const angle = Math.atan2(shell.vy, shell.vx);
 
-          // preserve aspect ratio of your sprite (so tail isn't squeezed), and
-          // scale its height to ARTILLERY_SHELL_SIZE
-          const img = shell.img as HTMLImageElement;
-          const scale = ARTILLERY_SHELL_SIZE / img.naturalHeight;
-          const drawW = img.naturalWidth * scale;
-          const drawH = ARTILLERY_SHELL_SIZE;
+        // preserve aspect ratio of your sprite (so tail isn't squeezed), and
+        // scale its height to ARTILLERY_SHELL_SIZE
+        const img = shell.img as HTMLImageElement;
+        const scale = ARTILLERY_SHELL_SIZE / img.naturalHeight;
+        const drawW = img.naturalWidth * scale;
+        const drawH = ARTILLERY_SHELL_SIZE;
 
-          // pick a pivot so that you rotate around the *nose* of the shell.
-          // headPivotX is the fraction of the width (0=left edge; 1=right edge)
-          // where the bullet’s head lives. 0.8 is a good starting point for a
-          // tail that takes up ~20% of the sprite’s left side:
-          const headPivotX = 0.8;
-          const offsetX = drawW * headPivotX;
-          const offsetY = drawH / 2;
+        // pick a pivot so that you rotate around the *nose* of the shell.
+        // headPivotX is the fraction of the width (0=left edge; 1=right edge)
+        // where the bullet’s head lives. 0.8 is a good starting point for a
+        // tail that takes up ~20% of the sprite’s left side:
+        const headPivotX = 0.8;
+        const offsetX = drawW * headPivotX;
+        const offsetY = drawH / 2;
 
-          ctx.save();
-          // move the canvas origin to the shell’s center-point
-          ctx.translate(shell.x, shell.y);
-          // rotate so “right” points along the velocity vector
-          ctx.rotate(angle);
-          // draw the full sprite so that its nose sits at (0,0) in rotated space
-          ctx.drawImage(img, -offsetX, -offsetY, drawW, drawH);
-          ctx.restore();
+        ctx.save();
+        // move the canvas origin to the shell’s center-point
+        ctx.translate(shell.x, shell.y);
+        // rotate so “right” points along the velocity vector
+        ctx.rotate(angle);
+        // draw the full sprite so that its nose sits at (0,0) in rotated space
+        ctx.drawImage(img, -offsetX, -offsetY, drawW, drawH);
+        ctx.restore();
 
-          let removed = false;
+        let removed = false;
 
-          // 1) ground / water collision
-          if (shell.y >= groundY) {
-            const tileW = waterImgs[0].width * 0.5;
-            const hitWater = state.current.waters.some(
-              (w) => shell.x >= w.x && shell.x <= w.x + w.size * tileW,
+        // 1) ground / water collision
+        if (shell.y >= groundY) {
+          const tileW = waterImgs[0].width * 0.5;
+          const hitWater = state.current.waters.some(
+            (w) => shell.x >= w.x && shell.x <= w.x + w.size * tileW,
+          );
+          if (!hitWater) {
+            // explode on ground
+            explosionImgs.forEach((img, i) =>
+              setScaledTimeout(() => {
+                state.current.puffs.push({
+                  x: shell.x - 16,
+                  y: groundY - 16,
+                  img,
+                  vy: 0,
+                  age: 0,
+                  maxAge: 10,
+                  size: 32 * 3,
+                });
+              }, i * 50),
             );
-            if (!hitWater) {
-              // explode on ground
-              explosionImgs.forEach((img, i) =>
-                setScaledTimeout(() => {
-                  state.current.puffs.push({
-                    x: shell.x - 16,
-                    y: groundY - 16,
-                    img,
-                    vy: 0,
-                    age: 0,
-                    maxAge: 10,
-                    size: 32 * 3,
-                  });
-                }, i * 50),
-              );
-              play("artilleryExplodeSfx");
-            } else {
-              // hit water, so splash
-              play("artillerySplashSfx");
-            }
+            play("artilleryExplodeSfx");
+          } else {
+            // hit water, so splash
+            play("artillerySplashSfx");
+          }
+          removed = true;
+        }
+
+        // 2) enemy‐plane hits
+        state.current.enemies.forEach((e) => {
+          if (
+            !removed &&
+            e.alive &&
+            shell.x >= e.x &&
+            shell.x <= e.x + ENEMY_WIDTH &&
+            shell.y >= e.y &&
+            shell.y <= e.y + ENEMY_HEIGHT
+          ) {
+            e.alive = false;
+
+            // 1) Score + counter
+            const pts = SCORE_HIT + SCORE_ARTILLERY_BONUS;
+            changeScore(pts);
+            state.current.enemyCount++;
+
+            // 2) Floating score pop-up
+            state.current.floatingScores.push({
+              x: shell.x,
+              y: shell.y,
+              vy: -1,
+              amount: pts,
+              age: 0,
+              maxAge: 60,
+            });
+
+            // 3) Explosion effect & SFX
+            explosionImgs.forEach((img, i) =>
+              setScaledTimeout(() => {
+                state.current.puffs.push({
+                  x: e.x,
+                  y: e.y,
+                  img,
+                  vy: 0,
+                  age: 0,
+                  maxAge: 10,
+                  size: 32 * 3,
+                });
+              }, i * 50),
+            );
+            play("artilleryExplodeSfx");
+
             removed = true;
           }
+        });
 
-          // 2) enemy‐plane hits
-          state.current.enemies.forEach((e) => {
-            if (
-              !removed &&
-              e.alive &&
-              shell.x >= e.x &&
-              shell.x <= e.x + ENEMY_WIDTH &&
-              shell.y >= e.y &&
-              shell.y <= e.y + ENEMY_HEIGHT
-            ) {
-              e.alive = false;
+        const duckTargetImgs = getImg("duckTargetImgs") as HTMLImageElement[];
 
-              // 1) Score + counter
-              const pts = SCORE_HIT + SCORE_ARTILLERY_BONUS;
-              changeScore(pts);
-              state.current.enemyCount++;
+        // 3) duck hits
+        state.current.ducks.forEach((d) => {
+          if (
+            !removed &&
+            !d.hit &&
+            shell.x >= d.x &&
+            shell.x <= d.x + d.width &&
+            shell.y >= d.y &&
+            shell.y <= d.y + d.height
+          ) {
+            d.hit = true;
 
-              // 2) Floating score pop-up
-              state.current.floatingScores.push({
-                x: shell.x,
-                y: shell.y,
-                vy: -1,
-                amount: pts,
-                age: 0,
-                maxAge: 60,
-              });
+            //0)  initialize fade‐out exactly the same way as a click‐shot duck
+            d.fadeAge = 0;
+            d.fadeMax = 60;
+            d.targetImg = duckTargetImgs[d.srcIdx];
+            state.current.shotLakes.add(d.waterRef);
 
-              // 3) Explosion effect & SFX
-              explosionImgs.forEach((img, i) =>
-                setScaledTimeout(() => {
-                  state.current.puffs.push({
-                    x: e.x,
-                    y: e.y,
-                    img,
-                    vy: 0,
-                    age: 0,
-                    maxAge: 10,
-                    size: 32 * 3,
-                  });
-                }, i * 50),
-              );
-              play("artilleryExplodeSfx");
+            // 1) Score + counter
+            const pts = SCORE_DUCK + SCORE_ARTILLERY_BONUS;
+            changeScore(pts);
+            state.current.duckCount++;
 
-              removed = true;
-            }
-          });
+            // 2) Floating score pop-up
+            state.current.floatingScores.push({
+              x: shell.x,
+              y: shell.y,
+              vy: -1,
+              amount: pts,
+              age: 0,
+              maxAge: 60,
+            });
 
-          const duckTargetImgs = getImg("duckTargetImgs") as HTMLImageElement[];
+            // 3) Explosion effect & SFX
+            explosionImgs.forEach((img, i) =>
+              setScaledTimeout(() => {
+                state.current.puffs.push({
+                  x: d.x,
+                  y: d.y,
+                  img,
+                  vy: 0,
+                  age: 0,
+                  maxAge: 10,
+                  size: 32 * 3,
+                });
+              }, i * 50),
+            );
+            play("artilleryExplodeSfx");
 
-          // 3) duck hits
-          state.current.ducks.forEach((d) => {
-            if (
-              !removed &&
-              !d.hit &&
-              shell.x >= d.x &&
-              shell.x <= d.x + d.width &&
-              shell.y >= d.y &&
-              shell.y <= d.y + d.height
-            ) {
-              d.hit = true;
+            removed = true;
+          }
+        });
 
-              //0)  initialize fade‐out exactly the same way as a click‐shot duck
-              d.fadeAge = 0;
-              d.fadeMax = 60;
-              d.targetImg = duckTargetImgs[d.srcIdx];
-              state.current.shotLakes.add(d.waterRef);
-
-              // 1) Score + counter
-              const pts = SCORE_DUCK + SCORE_ARTILLERY_BONUS;
-              changeScore(pts);
-              state.current.duckCount++;
-
-              // 2) Floating score pop-up
-              state.current.floatingScores.push({
-                x: shell.x,
-                y: shell.y,
-                vy: -1,
-                amount: pts,
-                age: 0,
-                maxAge: 60,
-              });
-
-              // 3) Explosion effect & SFX
-              explosionImgs.forEach((img, i) =>
-                setScaledTimeout(() => {
-                  state.current.puffs.push({
-                    x: d.x,
-                    y: d.y,
-                    img,
-                    vy: 0,
-                    age: 0,
-                    maxAge: 10,
-                    size: 32 * 3,
-                  });
-                }, i * 50),
-              );
-              play("artilleryExplodeSfx");
-
-              removed = true;
-            }
-          });
-
-          return !removed && shell.y < height + ARTILLERY_SHELL_SIZE;
-        },
-      );
+        return !removed && shell.y < height + ARTILLERY_SHELL_SIZE;
+      });
 
       // ─── ARTILLERY SFX CONTROL ────────────────────────────────────────
       if (
@@ -2355,10 +2166,7 @@ export function useGameEngine() {
       ) {
         play("artillerySfx");
         state.current.artilleryPlaying = true;
-      } else if (
-        state.current.artilleryShells.length === 0 &&
-        state.current.artilleryPlaying
-      ) {
+      } else if (state.current.artilleryShells.length === 0 && state.current.artilleryPlaying) {
         pause("artillerySfx");
         state.current.artilleryPlaying = false;
       }
@@ -2370,107 +2178,99 @@ export function useGameEngine() {
 
       const fireImgs = getImg("fireImgs") as HTMLImageElement[];
       // ─── UPDATE & DRAW NAPALM MISSILES ────────────────────────────────
-      state.current.napalmMissiles = state.current.napalmMissiles.filter(
-        (m) => {
-          // move & life decrement…
-          m.x += m.vx * scale;
-          m.life -= scale;
+      state.current.napalmMissiles = state.current.napalmMissiles.filter((m) => {
+        // move & life decrement…
+        m.x += m.vx * scale;
+        m.life -= scale;
 
-          // tail anim…
-          m.tailCounter += scale;
-          if (m.tailCounter >= 5) {
-            m.tailCounter = 0;
-            m.tailFrame = ((m.tailFrame + 1) % fireImgs.length) as 0 | 1;
+        // tail anim…
+        m.tailCounter += scale;
+        if (m.tailCounter >= 5) {
+          m.tailCounter = 0;
+          m.tailFrame = ((m.tailFrame + 1) % fireImgs.length) as 0 | 1;
+        }
+        const tail = fireImgs[m.tailFrame];
+
+        // compute travel angle
+        const angle = Math.atan2(0, m.vx);
+
+        // back‐of‐missile + extra length:
+        const baseOffset = NAPALM_MISSILE_SIZE / 2;
+        const backOffset = baseOffset + NAPALM_FLAME_LENGTH;
+        const backX = m.x - Math.cos(angle) * backOffset;
+        const backY = m.y - Math.sin(angle) * backOffset;
+
+        ctx.save();
+        ctx.translate(backX, backY);
+        ctx.rotate(-Math.PI / 2);
+
+        ctx.drawImage(tail, -tail.width / 2, -tail.height / 2, tail.width, tail.height);
+
+        ctx.restore();
+
+        // draw the missile…
+        ctx.save();
+        ctx.translate(m.x, m.y);
+        ctx.rotate(angle);
+        ctx.drawImage(
+          m.img,
+          -NAPALM_MISSILE_SIZE / 2,
+          -NAPALM_MISSILE_SIZE / 2,
+          NAPALM_MISSILE_SIZE,
+          NAPALM_MISSILE_SIZE,
+        );
+        ctx.restore();
+
+        if (!NAPALM_EXPLODE_NOT_DROP) {
+          // original periodic drop
+          m.dropTimer -= scale;
+          if (m.dropTimer <= 0 && m.dropsRemaining > 0) {
+            state.current.napalmTiles.push({
+              x: m.x,
+              y: m.y,
+              vy: 0,
+              life: NAPALM_BURN_DURATION,
+              maxLife: NAPALM_BURN_DURATION,
+              killsPlayer: false,
+            });
+            m.dropsRemaining--;
+            m.dropTimer = NAPALM_DROP_INTERVAL;
           }
-          const tail = fireImgs[m.tailFrame];
-
-          // compute travel angle
-          const angle = Math.atan2(0, m.vx);
-
-          // back‐of‐missile + extra length:
-          const baseOffset = NAPALM_MISSILE_SIZE / 2;
-          const backOffset = baseOffset + NAPALM_FLAME_LENGTH;
-          const backX = m.x - Math.cos(angle) * backOffset;
-          const backY = m.y - Math.sin(angle) * backOffset;
-
-          ctx.save();
-          ctx.translate(backX, backY);
-          ctx.rotate(-Math.PI / 2);
-
-          ctx.drawImage(
-            tail,
-            -tail.width / 2,
-            -tail.height / 2,
-            tail.width,
-            tail.height,
-          );
-
-          ctx.restore();
-
-          // draw the missile…
-          ctx.save();
-          ctx.translate(m.x, m.y);
-          ctx.rotate(angle);
-          ctx.drawImage(
-            m.img,
-            -NAPALM_MISSILE_SIZE / 2,
-            -NAPALM_MISSILE_SIZE / 2,
-            NAPALM_MISSILE_SIZE,
-            NAPALM_MISSILE_SIZE,
-          );
-          ctx.restore();
-
-          if (!NAPALM_EXPLODE_NOT_DROP) {
-            // original periodic drop
-            m.dropTimer -= scale;
-            if (m.dropTimer <= 0 && m.dropsRemaining > 0) {
-              state.current.napalmTiles.push({
-                x: m.x,
-                y: m.y,
-                vy: 0,
-                life: NAPALM_BURN_DURATION,
-                maxLife: NAPALM_BURN_DURATION,
-                killsPlayer: false,
+          return m.life > 0 && m.x < width + NAPALM_MISSILE_SIZE;
+        } else {
+          // ─── check for explosion-on-impact or on-distance ───────────────────────
+          let impact = false;
+          for (const e of state.current.enemies) {
+            if (
+              e.alive &&
+              m.x >= e.x &&
+              m.x <= e.x + ENEMY_WIDTH &&
+              m.y >= e.y &&
+              m.y <= e.y + ENEMY_HEIGHT
+            ) {
+              impact = true;
+              e.alive = false; // kill the plane
+              changeScore(SCORE_HIT); // award points
+              state.current.floatingScores.push({
+                x: e.x + ENEMY_WIDTH / 2,
+                y: e.y + ENEMY_HEIGHT / 2,
+                vy: -1,
+                amount: SCORE_HIT,
+                age: 0,
+                maxAge: 60,
               });
-              m.dropsRemaining--;
-              m.dropTimer = NAPALM_DROP_INTERVAL;
+              break;
             }
-            return m.life > 0 && m.x < width + NAPALM_MISSILE_SIZE;
-          } else {
-            // ─── check for explosion-on-impact or on-distance ───────────────────────
-            let impact = false;
-            for (const e of state.current.enemies) {
-              if (
-                e.alive &&
-                m.x >= e.x &&
-                m.x <= e.x + ENEMY_WIDTH &&
-                m.y >= e.y &&
-                m.y <= e.y + ENEMY_HEIGHT
-              ) {
-                impact = true;
-                e.alive = false; // kill the plane
-                changeScore(SCORE_HIT); // award points
-                state.current.floatingScores.push({
-                  x: e.x + ENEMY_WIDTH / 2,
-                  y: e.y + ENEMY_HEIGHT / 2,
-                  vy: -1,
-                  amount: SCORE_HIT,
-                  age: 0,
-                  maxAge: 60,
-                });
-                break;
-              }
-            }
-
-            // explode once at a random X‐position or on impact
-            if (impact || m.x >= m.explodeX) {
-              spawnNapalmEllipse(m.x, m.y, false);
-              return false; // remove the missile once it’s done
-            }
-            return m.life > 0 && m.x < width + NAPALM_MISSILE_SIZE;
           }
-        },
-      );
+
+          // explode once at a random X‐position or on impact
+          if (impact || m.x >= m.explodeX) {
+            spawnNapalmEllipse(m.x, m.y, false);
+            return false; // remove the missile once it’s done
+          }
+          return m.life > 0 && m.x < width + NAPALM_MISSILE_SIZE;
+        }
+      });
 
       // ─── UPDATE & DRAW NAPALM FIRE TILES ─────────────────────────────
       const enemyNapalmExplosionsToDraw: { x: number; y: number }[] = [];
@@ -2491,11 +2291,7 @@ export function useGameEngine() {
         const landedInWater = state.current.waters.some((w) => {
           const startX = w.x;
           const endX = w.x + w.size * tileW;
-          return (
-            t.x >= startX &&
-            t.x <= endX &&
-            t.y + NAPALM_TILE_SIZE / 2 >= waterSurfaceY
-          );
+          return t.x >= startX && t.x <= endX && t.y + NAPALM_TILE_SIZE / 2 >= waterSurfaceY;
         });
 
         if (!landedOnGround && !landedInWater) {
@@ -2536,13 +2332,7 @@ export function useGameEngine() {
 
         // — DUCKS & ENEMIES & MEDALS TURN TO NAPALM TILES —
         state.current.ducks = state.current.ducks.filter((d) => {
-          if (
-            !d.hit &&
-            t.x >= d.x &&
-            t.x <= d.x + d.width &&
-            t.y >= d.y &&
-            t.y <= d.y + d.height
-          ) {
+          if (!d.hit && t.x >= d.x && t.x <= d.x + d.width && t.y >= d.y && t.y <= d.y + d.height) {
             // award duck score
             changeScore(SCORE_DUCK);
             state.current.floatingScores.push({
@@ -2603,12 +2393,7 @@ export function useGameEngine() {
         });
 
         state.current.medals = state.current.medals.filter((m) => {
-          if (
-            t.x >= m.x &&
-            t.x <= m.x + MEDAL_SIZE &&
-            t.y >= m.y &&
-            t.y <= m.y + MEDAL_SIZE
-          ) {
+          if (t.x >= m.x && t.x <= m.x + MEDAL_SIZE && t.y >= m.y && t.y <= m.y + MEDAL_SIZE) {
             // award medal score
             changeScore(MEDAL_SCORE);
             state.current.floatingScores.push({
@@ -2671,120 +2456,111 @@ export function useGameEngine() {
       });
 
       // ─── UPDATE & DRAW HOMING MISSILES ─────────────────────────────────
-      state.current.homingMissiles = state.current.homingMissiles.filter(
-        (m) => {
-          // track or fly straight
-          if (m.target) {
-            const tx = ("x" in m.target ? m.target.x : 0) + ENEMY_WIDTH / 2;
-            const ty = ("y" in m.target ? m.target.y : 0) + ENEMY_HEIGHT / 2;
-            const angle = Math.atan2(ty - m.y, tx - m.x);
-            m.vx = HOMING_MISSILE_SPEED * Math.cos(angle);
-            m.vy = HOMING_MISSILE_SPEED * Math.sin(angle);
-          } else {
-            m.vx = HOMING_MISSILE_SPEED;
-            m.vy = 0;
-          }
-          m.x += m.vx;
-          m.y += m.vy;
-          // tail anim
-          m.tailCounter += scale;
-          if (m.tailCounter >= 5) {
-            m.tailCounter = 0;
-            m.tailFrame = ((m.tailFrame + 1) % 2) as 0 | 1;
-          }
+      state.current.homingMissiles = state.current.homingMissiles.filter((m) => {
+        // track or fly straight
+        if (m.target) {
+          const tx = ("x" in m.target ? m.target.x : 0) + ENEMY_WIDTH / 2;
+          const ty = ("y" in m.target ? m.target.y : 0) + ENEMY_HEIGHT / 2;
+          const angle = Math.atan2(ty - m.y, tx - m.x);
+          m.vx = HOMING_MISSILE_SPEED * Math.cos(angle);
+          m.vy = HOMING_MISSILE_SPEED * Math.sin(angle);
+        } else {
+          m.vx = HOMING_MISSILE_SPEED;
+          m.vy = 0;
+        }
+        m.x += m.vx;
+        m.y += m.vy;
+        // tail anim
+        m.tailCounter += scale;
+        if (m.tailCounter >= 5) {
+          m.tailCounter = 0;
+          m.tailFrame = ((m.tailFrame + 1) % 2) as 0 | 1;
+        }
 
-          // draw tail **behind** missile along its velocity vector
-          const fimg = fireImgs[m.tailFrame];
-          // compute heading
-          const ang = Math.atan2(m.vy, m.vx);
-          // tail origin just behind the missile
-          const backX = m.x - Math.cos(ang) * (HOMING_MISSILE_SIZE / 2);
-          const backY = m.y - Math.sin(ang) * (HOMING_MISSILE_SIZE / 2);
-          ctx.save();
-          ctx.translate(backX, backY);
-          ctx.rotate(ang + Math.PI); // point fire opposite flight
-          // draw the fire sprite centered
-          ctx.drawImage(
-            fimg,
-            -fimg.width / 2,
-            -fimg.height / 2,
-            fimg.width,
-            fimg.height,
-          );
-          ctx.restore();
-          // draw missile
-          ctx.save();
-          ctx.translate(m.x, m.y);
-          ctx.rotate(Math.atan2(m.vy, m.vx));
-          ctx.drawImage(
-            m.img,
-            -HOMING_MISSILE_SIZE / 2,
-            -HOMING_MISSILE_SIZE / 2,
-            HOMING_MISSILE_SIZE,
-            HOMING_MISSILE_SIZE,
-          );
-          ctx.restore();
+        // draw tail **behind** missile along its velocity vector
+        const fimg = fireImgs[m.tailFrame];
+        // compute heading
+        const ang = Math.atan2(m.vy, m.vx);
+        // tail origin just behind the missile
+        const backX = m.x - Math.cos(ang) * (HOMING_MISSILE_SIZE / 2);
+        const backY = m.y - Math.sin(ang) * (HOMING_MISSILE_SIZE / 2);
+        ctx.save();
+        ctx.translate(backX, backY);
+        ctx.rotate(ang + Math.PI); // point fire opposite flight
+        // draw the fire sprite centered
+        ctx.drawImage(fimg, -fimg.width / 2, -fimg.height / 2, fimg.width, fimg.height);
+        ctx.restore();
+        // draw missile
+        ctx.save();
+        ctx.translate(m.x, m.y);
+        ctx.rotate(Math.atan2(m.vy, m.vx));
+        ctx.drawImage(
+          m.img,
+          -HOMING_MISSILE_SIZE / 2,
+          -HOMING_MISSILE_SIZE / 2,
+          HOMING_MISSILE_SIZE,
+          HOMING_MISSILE_SIZE,
+        );
+        ctx.restore();
 
-          // collision
-          for (const e of state.current.enemies) {
-            if (
-              e.alive &&
-              m.x >= e.x &&
-              m.x <= e.x + ENEMY_WIDTH &&
-              m.y >= e.y &&
-              m.y <= e.y + ENEMY_HEIGHT
-            ) {
-              e.alive = false;
-              play("homingExplSfx");
-
-              const amount = SCORE_HIT + SCORE_HOMING_BONUS;
-              changeScore(amount);
-
-              state.current.floatingScores.push({
-                x: m.x + PLANE_HEIGHT / 2,
-                y: m.y + PLANE_WIDTH / 2,
-                vy: -1,
-                amount,
-                age: 0,
-                maxAge: 60,
-              });
-
-              state.current.enemyCount++;
-
-              // spawn a little explosion
-              // 2) Fire explosion frames
-              const explosionSize = 32 * 3;
-              explosionImgs.forEach((img, idx) =>
-                setScaledTimeout(() => {
-                  state.current.puffs.push({
-                    x: m.x + PLANE_HEIGHT / 2,
-                    y: m.y + PLANE_WIDTH / 2,
-                    img,
-                    vy: 0,
-                    age: 0,
-                    maxAge: 10,
-                    size: explosionSize,
-                  });
-                }, idx * 50),
-              );
-
-              return false;
-            }
-          }
-          // lifetime out
-          m.life -= scale;
-          if (m.life <= 0) {
+        // collision
+        for (const e of state.current.enemies) {
+          if (
+            e.alive &&
+            m.x >= e.x &&
+            m.x <= e.x + ENEMY_WIDTH &&
+            m.y >= e.y &&
+            m.y <= e.y + ENEMY_HEIGHT
+          ) {
+            e.alive = false;
             play("homingExplSfx");
+
+            const amount = SCORE_HIT + SCORE_HOMING_BONUS;
+            changeScore(amount);
+
+            state.current.floatingScores.push({
+              x: m.x + PLANE_HEIGHT / 2,
+              y: m.y + PLANE_WIDTH / 2,
+              vy: -1,
+              amount,
+              age: 0,
+              maxAge: 60,
+            });
+
+            state.current.enemyCount++;
+
+            // spawn a little explosion
+            // 2) Fire explosion frames
+            const explosionSize = 32 * 3;
+            explosionImgs.forEach((img, idx) =>
+              setScaledTimeout(() => {
+                state.current.puffs.push({
+                  x: m.x + PLANE_HEIGHT / 2,
+                  y: m.y + PLANE_WIDTH / 2,
+                  img,
+                  vy: 0,
+                  age: 0,
+                  maxAge: 10,
+                  size: explosionSize,
+                });
+              }, idx * 50),
+            );
+
             return false;
           }
-          return true;
-        },
-      );
+        }
+        // lifetime out
+        m.life -= scale;
+        if (m.life <= 0) {
+          play("homingExplSfx");
+          return false;
+        }
+        return true;
+      });
 
       // missile thruster SFX on/off
       if (
-        (state.current.homingMissiles.length > 0 ||
-          state.current.napalmMissiles.length > 0) &&
+        (state.current.homingMissiles.length > 0 || state.current.napalmMissiles.length > 0) &&
         !state.current.missileThrusterPlaying
       ) {
         play("thrusterSfx");
@@ -2800,8 +2576,7 @@ export function useGameEngine() {
 
       // bomb: if just activated this frame:
       if (
-        state.current.activePowerups.bomb.expires ===
-          state.current.frameCount ||
+        state.current.activePowerups.bomb.expires === state.current.frameCount ||
         state.current.activePowerups.bomb.expires === state.current.frameCount
       ) {
         // explode all enemies:
@@ -2810,11 +2585,7 @@ export function useGameEngine() {
           // spawn a puff or explosion at e.x,e.y…
           for (let i = 0; i < SMOKE_TRAIL_COUNT; i++) {
             setScaledTimeout(
-              () =>
-                spawnCrashSmokeOne(
-                  e.x + ENEMY_WIDTH / 2,
-                  e.y + ENEMY_HEIGHT / 2,
-                ),
+              () => spawnCrashSmokeOne(e.x + ENEMY_WIDTH / 2, e.y + ENEMY_HEIGHT / 2),
               i * 50,
             );
           }
@@ -2920,13 +2691,7 @@ export function useGameEngine() {
         ctx.save();
         ctx.translate(b.x, b.y);
         ctx.rotate(Math.PI / 2);
-        ctx.drawImage(
-          img,
-          -img.width / 2,
-          -img.height / 2,
-          img.width,
-          img.height,
-        );
+        ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height);
         ctx.restore();
 
         state.current.enemies.forEach((e) => {
@@ -2979,13 +2744,7 @@ export function useGameEngine() {
         const alpha = 1 - fs.age / fs.maxAge;
         ctx.globalAlpha = alpha;
         // plus sign
-        ctx.drawImage(
-          getImg("plusImg") as HTMLImageElement,
-          fs.x - 16,
-          fs.y - 64,
-          32,
-          32,
-        );
+        ctx.drawImage(getImg("plusImg") as HTMLImageElement, fs.x - 16, fs.y - 64, 32, 32);
         // digits
         let dx = fs.x + 18;
         if (fs.amount != undefined) {
@@ -2993,37 +2752,19 @@ export function useGameEngine() {
             .toString()
             .split("")
             .forEach((ch) => {
-              const digitImgs = getImg("digitImgs") as Record<
-                string,
-                HTMLImageElement
-              >;
+              const digitImgs = getImg("digitImgs") as Record<string, HTMLImageElement>;
               const img = digitImgs[ch];
               if (img) {
-                ctx.drawImage(
-                  img,
-                  dx,
-                  fs.y - 64,
-                  SCORE_DIGIT_WIDTH,
-                  SCORE_DIGIT_HEIGHT,
-                );
+                ctx.drawImage(img, dx, fs.y - 64, SCORE_DIGIT_WIDTH, SCORE_DIGIT_HEIGHT);
                 dx += SCORE_DIGIT_WIDTH + 2;
               }
             });
         }
 
         if (state.current.isActive("coin2x", state.current.frameCount)) {
-          const powerupImgs = getImg("powerupImgs") as Record<
-            string,
-            HTMLImageElement
-          >;
+          const powerupImgs = getImg("powerupImgs") as Record<string, HTMLImageElement>;
           // after pushing +final, also push a little coin2x sprite
-          ctx.drawImage(
-            powerupImgs.coin2x,
-            dx,
-            fs.y - 64,
-            SCORE_DIGIT_HEIGHT,
-            SCORE_DIGIT_HEIGHT,
-          );
+          ctx.drawImage(powerupImgs.coin2x, dx, fs.y - 64, SCORE_DIGIT_HEIGHT, SCORE_DIGIT_HEIGHT);
         }
 
         // move & age
@@ -3055,9 +2796,7 @@ export function useGameEngine() {
 
           const duckImgs = getImg("duckImgs") as HTMLImageElement[];
           const duckTargetImgs = getImg("duckTargetImgs") as HTMLImageElement[];
-          const duckOutlineImgs = getImg(
-            "duckOutlineImgs",
-          ) as HTMLImageElement[];
+          const duckOutlineImgs = getImg("duckOutlineImgs") as HTMLImageElement[];
 
           // choose a random duck sprite and remember its index
           const srcIdx = Math.floor(Math.random() * duckImgs.length);
@@ -3106,21 +2845,14 @@ export function useGameEngine() {
         const tileH = img.height * 0.5;
         for (let i = 0; i < w.size; i++) {
           // draw each tile so it sits just above the ground
-          ctx.drawImage(
-            img,
-            w.x + i * tileW,
-            groundY - tileH + 100,
-            tileW,
-            tileH,
-          );
+          ctx.drawImage(img, w.x + i * tileW, groundY - tileH + 100, tileW, tileH);
         }
 
         // scroll along with the ground
         w.x -= state.current.groundSpeed();
 
         // remove once off–screen
-        if (w.x + w.size * tileW + width < 0)
-          state.current.waters.splice(idx, 1);
+        if (w.x + w.size * tileW + width < 0) state.current.waters.splice(idx, 1);
       });
 
       // --- reconciliation: ensure every lake has at least one duck ---
@@ -3134,12 +2866,8 @@ export function useGameEngine() {
           // only spawn a new duck if this lake has no live duck AND hasn’t been shot
           if (!hasDuck && !state.current.shotLakes.has(lake)) {
             const duckImgs = getImg("duckImgs") as HTMLImageElement[];
-            const duckTargetImgs = getImg(
-              "duckTargetImgs",
-            ) as HTMLImageElement[];
-            const duckOutlineImgs = getImg(
-              "duckOutlineImgs",
-            ) as HTMLImageElement[];
+            const duckTargetImgs = getImg("duckTargetImgs") as HTMLImageElement[];
+            const duckOutlineImgs = getImg("duckOutlineImgs") as HTMLImageElement[];
 
             const tileW = waterImgs[0].width * 0.5;
             const srcIdx = Math.floor(Math.random() * duckImgs.length);
@@ -3175,20 +2903,13 @@ export function useGameEngine() {
         // compute bobbed Y for floating ducks on water
         let drawY = d.y;
         // if the duck is on water, bob it up and down if not shot or supermagnet
-        if (
-          !d.hit &&
-          !state.current.isActive("supermag", state.current.frameCount)
-        ) {
-          const bob =
-            Math.sin(state.current.frameCount * 0.05 + d.bobPhase) * 5;
+        if (!d.hit && !state.current.isActive("supermag", state.current.frameCount)) {
+          const bob = Math.sin(state.current.frameCount * 0.05 + d.bobPhase) * 5;
           drawY += bob + 20;
         }
 
         // swimming logic (only if not shot) and not supermagnet
-        if (
-          !d.hit &&
-          !state.current.isActive("supermag", state.current.frameCount)
-        ) {
+        if (!d.hit && !state.current.isActive("supermag", state.current.frameCount)) {
           // recompute the lake’s current edges
           const tileW = waterImgs[0].width * 0.5;
           const left = d.waterRef.x;
@@ -3207,10 +2928,7 @@ export function useGameEngine() {
           }
         }
 
-        const isMega = state.current.isActive(
-          "megaducks",
-          state.current.frameCount,
-        );
+        const isMega = state.current.isActive("megaducks", state.current.frameCount);
         drawY = isMega ? drawY - 20 : drawY; // adjust Y for mega ducks
         const scale = isMega
           ? DUCK_MAGNIFY_SCALE
@@ -3246,23 +2964,14 @@ export function useGameEngine() {
           if (d.fadeAge! >= d.fadeMax!) state.current.ducks.splice(i, 1);
           ctx.globalAlpha = 1;
         } else {
-          const isSight = state.current.isActive(
-            "ducksight",
-            state.current.frameCount,
-          );
+          const isSight = state.current.isActive("ducksight", state.current.frameCount);
 
           // draw the swimming duck, flipped if dir<0
           ctx.save();
           if (d.dir < 0) {
             ctx.translate(dx + sw / 2, dy + sh / 2);
             ctx.scale(-1, 1);
-            ctx.drawImage(
-              isSight ? d.outlineImg : d.img,
-              -sw / 2,
-              -sh / 2,
-              sw,
-              sh,
-            );
+            ctx.drawImage(isSight ? d.outlineImg : d.img, -sw / 2, -sh / 2, sw, sh);
           } else {
             ctx.drawImage(isSight ? d.outlineImg : d.img, dx, dy, sw, sh);
           }
@@ -3278,9 +2987,7 @@ export function useGameEngine() {
       const sparkImgs = getImg("sparkImgs") as HTMLImageElement[];
       state.current.sparkEffects.forEach((spark) => {
         spark.age += scale;
-        spark.frameIndex = Math.floor(
-          (spark.age / spark.maxAge) * sparkImgs.length,
-        );
+        spark.frameIndex = Math.floor((spark.age / spark.maxAge) * sparkImgs.length);
 
         if (spark.frameIndex >= sparkImgs.length) {
           spark.frameIndex = sparkImgs.length - 1;
@@ -3336,15 +3043,9 @@ export function useGameEngine() {
 
       const scheduleDensityIncrease = () => {
         state.current.dynamicDensity += ENEMY_DENSITY_STEP;
-        densityTimeoutRef.current = setScaledTimeout(
-          scheduleDensityIncrease,
-          45000,
-        );
+        densityTimeoutRef.current = setScaledTimeout(scheduleDensityIncrease, 45000);
       };
-      densityTimeoutRef.current = setScaledTimeout(
-        scheduleDensityIncrease,
-        45000,
-      );
+      densityTimeoutRef.current = setScaledTimeout(scheduleDensityIncrease, 45000);
       return () => clearScaledTimeout(densityTimeoutRef.current);
     }
   }, [ui.phase, initLoop]);
@@ -3357,8 +3058,7 @@ export function useGameEngine() {
       if (!canvas || !ctx) return;
       const { width: screenW, height: screenH } = screenDims;
       const { width, height } = dims;
-      const dpr =
-        typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+      const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
       const scaleX = screenW / width;
       const scaleY = screenH / height;
       canvas.width = screenW * dpr;
@@ -3394,10 +3094,7 @@ export function useGameEngine() {
         const x = 100,
           y = dims.height / 2;
         for (let i = 0; i < 3; i++) {
-          setScaledTimeout(
-            () => makeText("RELOAD", 2, true, true, x, y, 30),
-            i * 200,
-          );
+          setScaledTimeout(() => makeText("RELOAD", 2, true, true, x, y, 30), i * 200);
         }
       }
       return;
@@ -3408,18 +3105,12 @@ export function useGameEngine() {
     const decrement = isSpray
       ? Math.min(SPRAY_DECREMENTS_AMMO ? SPRAY_COUNT : 1, state.current.ammo)
       : 1;
-    const newAmmo = state.current.isActive(
-      "infiniteAmmo",
-      state.current.frameCount,
-    )
+    const newAmmo = state.current.isActive("infiniteAmmo", state.current.frameCount)
       ? state.current.ammo
       : Math.max(0, state.current.ammo - decrement);
 
     state.current.ammo = newAmmo;
-    const blindActive = state.current.isActive(
-      "blindfold",
-      state.current.frameCount,
-    );
+    const blindActive = state.current.isActive("blindfold", state.current.frameCount);
     if (!blindActive) {
       state.current.cursor = SHOT_CURSOR;
 
@@ -3443,10 +3134,7 @@ export function useGameEngine() {
       for (let i = 0; i < SPRAY_COUNT; i++) {
         const dx = (Math.random() * 2 - 1) * SPRAY_SPREAD;
         const dy = (Math.random() * 2 - 1) * SPRAY_SPREAD;
-        setScaledTimeout(
-          () => doSingleShot(baseX + dx, baseY + dy),
-          i * SPRAY_INTERVAL,
-        );
+        setScaledTimeout(() => doSingleShot(baseX + dx, baseY + dy), i * SPRAY_INTERVAL);
       }
     } else {
       // single shot

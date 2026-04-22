@@ -1,10 +1,15 @@
 import resumeDataSnapshot from "../../public/personal/data/resumeData.json";
 import { parseResumeDataWithSchema } from "@/consts/resumeDataSchema";
+import { fetchJson } from "@/utils/network/httpClient";
+import {
+  migrateResumeData,
+  type ResumeDataMigrationPayload,
+} from "@/utils/data/migrations/resumeDataMigrations";
 
 export const resumeDataPath = "/personal/data/resumeData.json";
 
 const resumeData = parseResumeDataWithSchema(
-  resumeDataSnapshot,
+  migrateResumeData(resumeDataSnapshot as ResumeDataMigrationPayload),
   "bundled resumeData snapshot",
 ) as typeof resumeDataSnapshot;
 export type ResumeData = typeof resumeDataSnapshot;
@@ -30,17 +35,17 @@ export async function fetchResumeData(options?: {
   baseUrl?: string;
   cache?: RequestCache;
 }): Promise<ResumeData> {
-  const response = await fetch(resolveResumeDataUrl(options?.baseUrl), {
-    cache: options?.cache ?? "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to load resume data: ${response.status}`);
-  }
-
-  const payload = await response.json();
+  const { data: payload } = await fetchJson<ResumeDataMigrationPayload>(
+    resolveResumeDataUrl(options?.baseUrl),
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: options?.cache ?? "no-store",
+      retries: 1,
+    },
+  );
   return parseResumeDataWithSchema(
-    payload,
+    migrateResumeData(payload),
     `resumeData response from ${resolveResumeDataUrl(options?.baseUrl)}`,
   ) as ResumeData;
 }

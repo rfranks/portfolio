@@ -2,11 +2,7 @@
 
 import { v4 as uuid } from "uuid";
 
-import type {
-  ApplicationActivity,
-  ApplicationActivityOutcome,
-  JobApplication,
-} from "@/types";
+import type { ApplicationActivity, ApplicationActivityOutcome, JobApplication } from "@/types";
 import { updateJobApplication } from "./dataStore";
 
 const SUCCESS_OUTCOME: ApplicationActivityOutcome = "success";
@@ -97,9 +93,7 @@ export function createApplicationTileActivityRecorder(
     const timestamp = toIsoTimestamp(nowFactory);
     const trimmedId = extra.generatedContentId?.trim();
     const trimmedError =
-      outcome === ERROR_OUTCOME && typeof extra.error === "string"
-        ? extra.error.trim()
-        : undefined;
+      outcome === ERROR_OUTCOME && typeof extra.error === "string" ? extra.error.trim() : undefined;
 
     const activity: ApplicationActivity = {
       id: createId(),
@@ -118,8 +112,7 @@ export function createApplicationTileActivityRecorder(
     const updated = updateApplication(latestApplication.id, {
       activities: nextActivities,
     });
-    const refreshed =
-      updated.find((entry) => entry.id === latestApplication.id) ?? null;
+    const refreshed = updated.find((entry) => entry.id === latestApplication.id) ?? null;
     if (refreshed) {
       latestApplication = refreshed;
     } else {
@@ -135,8 +128,7 @@ export function createApplicationTileActivityRecorder(
   const buildSuccessSummary = (summary?: string) =>
     trimOrFallback(summary, `Generated ${tileLabel}`);
 
-  const buildErrorSummary = (summary?: string) =>
-    trimOrFallback(summary, `${tileLabel} failed`);
+  const buildErrorSummary = (summary?: string) => trimOrFallback(summary, `${tileLabel} failed`);
 
   return {
     recordSuccess(options) {

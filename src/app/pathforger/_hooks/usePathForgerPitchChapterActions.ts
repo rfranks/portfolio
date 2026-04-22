@@ -1,8 +1,5 @@
 import * as React from "react";
-import {
-  initialOptionRevealState,
-  initialOptionRevealTick,
-} from "@/app/pathforger/_consts/consts";
+import { initialOptionRevealState, initialOptionRevealTick } from "@/app/pathforger/_consts/consts";
 import { getPathForgerOpenAIKey } from "@/app/pathforger/_utils/openAIKey";
 import { buildPitchCoverCacheKey } from "@/app/pathforger/_utils/pitchHelpers";
 import {
@@ -38,12 +35,7 @@ type OnboardingPayload = {
   genre: string;
   tone: string;
   dangerLevel: "Forgiving" | "Risky" | "Deadly";
-  adventureLength:
-    | "Very short (1-2 lines)"
-    | "Short"
-    | "Medium"
-    | "Long"
-    | "Very long";
+  adventureLength: "Very short (1-2 lines)" | "Short" | "Medium" | "Long" | "Very long";
   protagonistPreference: string;
   premise: string;
   visualStyle: string;
@@ -81,22 +73,16 @@ type UsePathForgerPitchChapterActionsArgs = {
   setApiKeyReady: (value: boolean) => void;
   setErrorMessage: (value: string) => void;
   setIsGeneratingChapterImages: (value: boolean) => void;
-  setActiveOptionBranch: React.Dispatch<
-    React.SetStateAction<PathForgerBranchChoice | null>
-  >;
+  setActiveOptionBranch: React.Dispatch<React.SetStateAction<PathForgerBranchChoice | null>>;
   setRevealedOptionBranches: React.Dispatch<
     React.SetStateAction<Record<PathForgerBranchChoice, boolean>>
   >;
-  setOptionRevealTick: React.Dispatch<
-    React.SetStateAction<Record<PathForgerBranchChoice, number>>
-  >;
+  setOptionRevealTick: React.Dispatch<React.SetStateAction<Record<PathForgerBranchChoice, number>>>;
   setForgedOutcomes: React.Dispatch<
     React.SetStateAction<Partial<Record<PathForgerBranchChoice, string>>>
   >;
   setForgedOutcomeImages: React.Dispatch<
-    React.SetStateAction<
-      Partial<Record<PathForgerBranchChoice, PathForgerGeneratedImage>>
-    >
+    React.SetStateAction<Partial<Record<PathForgerBranchChoice, PathForgerGeneratedImage>>>
   >;
   setIsRunning: (value: boolean) => void;
   setActiveRunAction: (value: ActiveRunAction) => void;
@@ -104,31 +90,23 @@ type UsePathForgerPitchChapterActionsArgs = {
   setPitchInputSignature: (value: string | null) => void;
   setSelectedPitch: (value: "auto" | PathForgerPitchChoice) => void;
   setPitchModalOpen: (value: boolean) => void;
-  setChapterOnlyResult: React.Dispatch<
-    React.SetStateAction<PathForgerChapterResult | null>
-  >;
+  setChapterOnlyResult: React.Dispatch<React.SetStateAction<PathForgerChapterResult | null>>;
   setImagePromptDrafts: React.Dispatch<
     React.SetStateAction<Partial<Record<PathForgerImageType, string>>>
   >;
   setImagePromptOverrides: React.Dispatch<
     React.SetStateAction<Partial<Record<PathForgerImageType, string>>>
   >;
-  setSelectedBranch: React.Dispatch<
-    React.SetStateAction<"" | PathForgerBranchChoice>
-  >;
+  setSelectedBranch: React.Dispatch<React.SetStateAction<"" | PathForgerBranchChoice>>;
   setContinueModalOpen: (value: boolean) => void;
   setChapterOutcomeModalOpen: (value: boolean) => void;
-  setResult: React.Dispatch<
-    React.SetStateAction<PathForgerPipelineResult | null>
-  >;
+  setResult: React.Dispatch<React.SetStateAction<PathForgerPipelineResult | null>>;
   setCoverImageByPitchKey: React.Dispatch<
     React.SetStateAction<Record<string, PathForgerGeneratedImage>>
   >;
 };
 
-export function usePathForgerPitchChapterActions(
-  args: UsePathForgerPitchChapterActionsArgs,
-) {
+export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapterActionsArgs) {
   const {
     buildOnboardingPayload,
     resolvedDefaultModel,
@@ -175,13 +153,9 @@ export function usePathForgerPitchChapterActions(
     setCoverImageByPitchKey,
   } = args;
 
-  const resolveCurrentPitchSelection = (
-    pitches: PathForgerPitchResult,
-  ): PathForgerPitchChoice => {
+  const resolveCurrentPitchSelection = (pitches: PathForgerPitchResult): PathForgerPitchChoice => {
     const currentSelection = selectedPitchRef.current;
-    return currentSelection === "auto"
-      ? pitches.recommendedPitch
-      : currentSelection;
+    return currentSelection === "auto" ? pitches.recommendedPitch : currentSelection;
   };
 
   const resolvePitchTitle = (
@@ -249,16 +223,12 @@ export function usePathForgerPitchChapterActions(
 
       setPitchOnlyResult(pitchStageResult.pitches);
       setPitchInputSignature(createStoryInputSignature);
-      const resolvedPitchChoice = resolveCurrentPitchSelection(
-        pitchStageResult.pitches,
-      );
+      const resolvedPitchChoice = resolveCurrentPitchSelection(pitchStageResult.pitches);
       setSelectedPitch(resolvedPitchChoice);
       selectedPitchRef.current = resolvedPitchChoice;
       setPitchModalOpen(true);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Pitch generation failed.",
-      );
+      setErrorMessage(error instanceof Error ? error.message : "Pitch generation failed.");
     } finally {
       clearStatusMessages();
       setIsRunning(false);
@@ -300,11 +270,8 @@ export function usePathForgerPitchChapterActions(
 
     const chapterNumber = options?.chapterNumber ?? 1;
     const selectedPitchTitle = resolvePitchTitle(pitchSource, pitchChoice);
-    enqueueStatusMessage(
-      `Building Chapter ${chapterNumber} package for ${selectedPitchTitle}...`,
-    );
-    const selectedBranchForGeneration =
-      (options?.selectedBranch ?? selectedBranch) || undefined;
+    enqueueStatusMessage(`Building Chapter ${chapterNumber} package for ${selectedPitchTitle}...`);
+    const selectedBranchForGeneration = (options?.selectedBranch ?? selectedBranch) || undefined;
     const targetCoverKey = buildPitchCoverCacheKey({
       pitchResult: pitchSource,
       selectedPitch: pitchChoice,
@@ -317,9 +284,7 @@ export function usePathForgerPitchChapterActions(
       : "";
     const carriedCoverImage =
       coverImageByPitchKey[targetCoverKey] ??
-      (currentResultCoverKey === targetCoverKey
-        ? result?.images.cover
-        : undefined);
+      (currentResultCoverKey === targetCoverKey ? result?.images.cover : undefined);
     let resolvedCoverForPitch = carriedCoverImage;
     let backgroundImagesStarted = false;
 
@@ -337,8 +302,7 @@ export function usePathForgerPitchChapterActions(
     setResult(null);
     setChapterOnlyResult(null);
 
-    const shouldGenerateCoverFromPitch =
-      renderImages.cover && !resolvedCoverForPitch;
+    const shouldGenerateCoverFromPitch = renderImages.cover && !resolvedCoverForPitch;
     if (shouldGenerateCoverFromPitch) {
       const coverRunId = coverImageGenerationRunIdRef.current;
       void (async () => {
@@ -391,9 +355,7 @@ export function usePathForgerPitchChapterActions(
                   imageErrors: {
                     ...prev.imageErrors,
                     cover:
-                      error instanceof Error
-                        ? error.message
-                        : "Cover image generation failed.",
+                      error instanceof Error ? error.message : "Cover image generation failed.",
                   },
                 }
               : prev,
@@ -428,11 +390,7 @@ export function usePathForgerPitchChapterActions(
       setImagePromptDrafts(chapterStageResult.chapter.imagePrompts);
       setImagePromptOverrides({});
       setActiveOptionBranch(null);
-      setSelectedBranch(
-        options?.resetBranchSelection
-          ? ""
-          : (selectedBranchForGeneration ?? ""),
-      );
+      setSelectedBranch(options?.resetBranchSelection ? "" : (selectedBranchForGeneration ?? ""));
       setRevealedOptionBranches(initialOptionRevealState);
       setOptionRevealTick(initialOptionRevealTick);
       setForgedOutcomes({});
@@ -507,8 +465,7 @@ export function usePathForgerPitchChapterActions(
                     ...prev,
                     imageErrors: {
                       ...prev.imageErrors,
-                      [update.type]:
-                        update.errorMessage ?? "Image generation failed.",
+                      [update.type]: update.errorMessage ?? "Image generation failed.",
                     },
                   };
                 }
@@ -546,9 +503,7 @@ export function usePathForgerPitchChapterActions(
           }
 
           setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : "Background image generation failed.",
+            error instanceof Error ? error.message : "Background image generation failed.",
           );
         } finally {
           if (chapterImageGenerationRunIdRef.current !== imageRunId) {
@@ -561,9 +516,7 @@ export function usePathForgerPitchChapterActions(
       })();
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Chapter package generation failed.",
+        error instanceof Error ? error.message : "Chapter package generation failed.",
       );
     } finally {
       if (!backgroundImagesStarted) {
@@ -583,27 +536,21 @@ export function usePathForgerPitchChapterActions(
     const resolvedOutcomeMarkdown = forgedOutcomes[activeOptionBranch]?.trim();
 
     if (!resolvedOutcomeMarkdown) {
-      setErrorMessage(
-        `Please forge Option ${activeOptionBranch} before continuing.`,
-      );
+      setErrorMessage(`Please forge Option ${activeOptionBranch} before continuing.`);
       return;
     }
 
     setChapterOutcomeModalOpen(false);
 
-    await handleGenerateChapterPackageForPitch(
-      currentPitchSelection,
-      visiblePitches,
-      {
-        activeRunAction: "nextChapter",
-        chapterNumber: visibleChapter.chapterNumber + 1,
-        selectedBranch: activeOptionBranch,
-        previousChapterMarkdown: visibleChapter.chapterMarkdown,
-        previousOutcomeMarkdown: resolvedOutcomeMarkdown,
-        currentPathLedgerMarkdown: visibleChapter.pathLedgerMarkdown,
-        resetBranchSelection: true,
-      },
-    );
+    await handleGenerateChapterPackageForPitch(currentPitchSelection, visiblePitches, {
+      activeRunAction: "nextChapter",
+      chapterNumber: visibleChapter.chapterNumber + 1,
+      selectedBranch: activeOptionBranch,
+      previousChapterMarkdown: visibleChapter.chapterMarkdown,
+      previousOutcomeMarkdown: resolvedOutcomeMarkdown,
+      currentPathLedgerMarkdown: visibleChapter.pathLedgerMarkdown,
+      resetBranchSelection: true,
+    });
   };
 
   const handlePitchModalOk = async () => {
@@ -617,10 +564,7 @@ export function usePathForgerPitchChapterActions(
 
     const currentPitchSelection = resolveCurrentPitchSelection(pitchSource);
 
-    await handleGenerateChapterPackageForPitch(
-      currentPitchSelection,
-      pitchSource,
-    );
+    await handleGenerateChapterPackageForPitch(currentPitchSelection, pitchSource);
   };
 
   const handleRunPipeline = async () => {
@@ -697,9 +641,7 @@ export function usePathForgerPitchChapterActions(
         }));
       }
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "PathForger pipeline failed.",
-      );
+      setErrorMessage(error instanceof Error ? error.message : "PathForger pipeline failed.");
     } finally {
       clearStatusMessages();
       setIsRunning(false);

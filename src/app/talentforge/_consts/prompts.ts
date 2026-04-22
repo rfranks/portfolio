@@ -6,8 +6,7 @@ export interface PromptTemplate {
 export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
   resumeSummary: {
     displayText: "Resume Summary",
-    fullText:
-      "Summarize your professional experience and key strengths in 2-3 sentences.",
+    fullText: "Summarize your professional experience and key strengths in 2-3 sentences.",
   },
   tailorResumeToRole: {
     displayText: "Tailor my résumé to this role",
@@ -86,8 +85,7 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
   },
   jobRequirements: {
     displayText: "Job Requirements",
-    fullText:
-      "List the key job requirements from the provided job description in bullet points.",
+    fullText: "List the key job requirements from the provided job description in bullet points.",
   },
   extractKeyRequirements: {
     displayText: "Extract key requirements",
@@ -126,8 +124,7 @@ export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = {
   },
   elevatorPitch: {
     displayText: "Elevator Pitch",
-    fullText:
-      "Craft a concise elevator pitch summarizing your background and career aspirations.",
+    fullText: "Craft a concise elevator pitch summarizing your background and career aspirations.",
   },
   projectSummary: {
     displayText: "Project Summary",
@@ -156,12 +153,7 @@ export const PROMPT_GROUPS: Record<string, string[]> = {
     "portfolioReview",
     "projectSummary",
   ],
-  Offers: [
-    "negotiateOffer",
-    "negotiateBetterOffer",
-    "compareTwoOffers",
-    "salaryResearch",
-  ],
+  Offers: ["negotiateOffer", "negotiateBetterOffer", "compareTwoOffers", "salaryResearch"],
   "Recruiter Replies": [
     "interviewPreparation",
     "networkingOutreach",

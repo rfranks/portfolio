@@ -96,11 +96,10 @@ export function newTextLabel(
     spaceGap?: number;
   },
   assetMgr: AssetMgr,
-  dims?: Dims
+  dims?: Dims,
 ): TextLabel {
   // destructure properties from textLabelProps
-  const { text, scale, fixed, fade, x, y, py, vy, vs, maxAge, onClick, color } =
-    textLabelProps;
+  const { text, scale, fixed, fade, x, y, py, vy, vs, maxAge, onClick, color } = textLabelProps;
   let { spaceGap } = textLabelProps;
 
   // get images from asset manager
@@ -121,8 +120,7 @@ export function newTextLabel(
 
   // give spaces a width roughly matching a letter
   // (this is a bit arbitrary, but should be close enough for most cases)
-  spaceGap =
-    spaceGap || (letterImgs && letterImgs["A"].width * 1.5 * scale) || 10;
+  spaceGap = spaceGap || (letterImgs && letterImgs["A"].width * 1.5 * scale) || 10;
 
   const imgs: (HTMLImageElement | null)[] = [];
 
@@ -135,20 +133,16 @@ export function newTextLabel(
         ch === "+"
           ? plusImg
           : ch === "-"
-          ? minusImg
-          : letterImgs?.[ch.toUpperCase()] ||
-            numberImgs?.[ch] ||
-            digitImgs?.[ch];
+            ? minusImg
+            : letterImgs?.[ch.toUpperCase()] || numberImgs?.[ch] || digitImgs?.[ch];
       if (img) {
         totalWidth += img.width * scale + 2;
         imgs.push(img);
       }
     }
   });
-  const posX =
-    x ?? (dims?.width !== undefined ? (dims.width - totalWidth) / 2 : 0);
-  const posY =
-    (y ?? (dims?.height !== undefined ? dims.height * 0.2 : 0)) + (py ?? 0);
+  const posX = x ?? (dims?.width !== undefined ? (dims.width - totalWidth) / 2 : 0);
+  const posY = (y ?? (dims?.height !== undefined ? dims.height * 0.2 : 0)) + (py ?? 0);
 
   const newLabel: TextLabel = {
     text,

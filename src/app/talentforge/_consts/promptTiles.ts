@@ -17,7 +17,7 @@ const BASE_TILES: Record<string, PromptTileDefinition> = Object.fromEntries(
       fullPrompt: template.fullText,
       inputs: [],
     },
-  ])
+  ]),
 );
 
 // Overrides/additional metadata for specific tiles
@@ -27,7 +27,7 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
     ...BASE_TILES.tailorResumeToRole,
     display: "Tailor Résumé",
     fullPrompt:
-      "You're tailoring a resume to a specific opportunity. Review the resume and job description below. Produce markdown with four sections: \"Tailored Summary\" (two sentences), \"Priority Bullet Updates\" (three to five rewritten bullets that reference quantified achievements from the resume), \"Keywords to Emphasize\" (comma-separated keywords), and \"Gaps to Address\" (bullet list of missing experience or evidence to gather). Resume:\n{{resumeText}}\n\nJob Description:\n{{jobDescription}}",
+      'You\'re tailoring a resume to a specific opportunity. Review the resume and job description below. Produce markdown with four sections: "Tailored Summary" (two sentences), "Priority Bullet Updates" (three to five rewritten bullets that reference quantified achievements from the resume), "Keywords to Emphasize" (comma-separated keywords), and "Gaps to Address" (bullet list of missing experience or evidence to gather). Resume:\n{{resumeText}}\n\nJob Description:\n{{jobDescription}}',
     inputs: ["resumeText", "jobDescription"],
   },
   coverLetter: {
@@ -74,7 +74,7 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
     ...BASE_TILES.extractKeyRequirements,
     display: "Extract Requirements",
     fullPrompt:
-      "Extract the key requirements from the job description below. Organize the response as markdown sections titled \"Core Responsibilities\", \"Required Qualifications\", \"Preferred Skills\", and \"Notable Keywords\" with concise bullet points under each heading. Job Description:\n{{jobDescription}}",
+      'Extract the key requirements from the job description below. Organize the response as markdown sections titled "Core Responsibilities", "Required Qualifications", "Preferred Skills", and "Notable Keywords" with concise bullet points under each heading. Job Description:\n{{jobDescription}}',
     inputs: ["jobDescription"],
   },
   jdRequirements: {
@@ -94,7 +94,7 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
     ...BASE_TILES.negotiateBetterOffer,
     display: "Negotiate Better Offer",
     fullPrompt:
-      "Help the candidate negotiate for better terms. Review the offer details, current compensation, and leverage points below. First provide a markdown section titled \"Negotiation Strategy\" summarizing the strongest arguments with bullet points referencing numbers or evidence. Then provide a section titled \"Draft Message\" containing a polished email requesting the desired improvements. Offer Details:\n{{offerDetails}}\n\nCurrent Compensation:\n{{currentComp}}\n\nLeverage Points:\n{{leveragePoints}}",
+      'Help the candidate negotiate for better terms. Review the offer details, current compensation, and leverage points below. First provide a markdown section titled "Negotiation Strategy" summarizing the strongest arguments with bullet points referencing numbers or evidence. Then provide a section titled "Draft Message" containing a polished email requesting the desired improvements. Offer Details:\n{{offerDetails}}\n\nCurrent Compensation:\n{{currentComp}}\n\nLeverage Points:\n{{leveragePoints}}',
     inputs: ["offerDetails", "currentComp", "leveragePoints"],
   },
   compareOffers: {
@@ -108,7 +108,7 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
     ...BASE_TILES.compareTwoOffers,
     display: "Compare Two Offers",
     fullPrompt:
-      "Compare the two offers below. Create a markdown table with rows for Base Salary, Bonus, Equity, Benefits, Time Off, and Other Notes using the details provided. After the table, add sections titled \"Key Differences\" and \"Recommendation\" summarizing trade-offs and advising which offer better aligns with the candidate's stated priorities. Offer A:\n{{offerA}}\n\nOffer B:\n{{offerB}}\n\nCandidate Priorities:\n{{priorities}}",
+      'Compare the two offers below. Create a markdown table with rows for Base Salary, Bonus, Equity, Benefits, Time Off, and Other Notes using the details provided. After the table, add sections titled "Key Differences" and "Recommendation" summarizing trade-offs and advising which offer better aligns with the candidate\'s stated priorities. Offer A:\n{{offerA}}\n\nOffer B:\n{{offerB}}\n\nCandidate Priorities:\n{{priorities}}',
     inputs: ["offerA", "offerB", "priorities"],
   },
   offerDetails: {
@@ -123,12 +123,7 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
     display: "Renegotiation Offer",
     fullPrompt:
       "Using the job description, resume, current offer summary, and recent market job listings, craft a persuasive counteroffer in the candidate's favor. Reference the resume and market data to justify improved compensation. Provide only the negotiation message.\n\nJob Description:\n{{jobDescription}}\n\nResume:\n{{resumeContent}}\n\nCurrent Offer:\n{{offerSummary}}\n\nMarket Data:\n{{marketData}}",
-    inputs: [
-      "jobDescription",
-      "resumeContent",
-      "offerSummary",
-      "marketData",
-    ],
+    inputs: ["jobDescription", "resumeContent", "offerSummary", "marketData"],
   },
   compareCurrentComp: {
     id: "compareCurrentComp",
@@ -147,7 +142,7 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
     ...BASE_TILES.screenRoleForRedFlags,
     display: "Spot Red Flags",
     fullPrompt:
-      "Screen the job description below for potential red flags. Begin with a two-sentence summary of the role. Then produce a markdown table with columns \"Flag\", \"Severity\", and \"Why it Matters\" where severity is either red or yellow. Conclude with a bullet list of clarifying questions to ask. Job Description:\n{{jobDescription}}",
+      'Screen the job description below for potential red flags. Begin with a two-sentence summary of the role. Then produce a markdown table with columns "Flag", "Severity", and "Why it Matters" where severity is either red or yellow. Conclude with a bullet list of clarifying questions to ask. Job Description:\n{{jobDescription}}',
     inputs: ["jobDescription"],
   },
   negotiateOffer: {
@@ -178,8 +173,7 @@ export const PROMPT_TILES: Record<string, PromptTileDefinition> = {
     ...BASE_TILES.recruiterFollowUpNudge,
     display: "Follow-Up Nudge",
     fullPrompt:
-      "Draft a professional follow-up to a recruiter based on the conversation context below. Provide two polished messages: one for email and one for LinkedIn InMail. Each message should acknowledge the previous touchpoint, restate interest or value, and suggest a next step or question. Format the output using markdown headings \"Email\" and \"LinkedIn\" followed by the respective message. Conversation context:\n{{conversationContext}}",
+      'Draft a professional follow-up to a recruiter based on the conversation context below. Provide two polished messages: one for email and one for LinkedIn InMail. Each message should acknowledge the previous touchpoint, restate interest or value, and suggest a next step or question. Format the output using markdown headings "Email" and "LinkedIn" followed by the respective message. Conversation context:\n{{conversationContext}}',
     inputs: ["conversationContext"],
   },
 };
-

@@ -15,10 +15,7 @@ export default function BlackjackCarouselNav({
   onSelectSlide,
 }: BlackjackCarouselNavProps) {
   return (
-    <nav
-      className="blackjack-carousel-nav"
-      aria-label="Blackjack page sections"
-    >
+    <nav className="blackjack-carousel-nav" aria-label="Blackjack page sections">
       <button
         type="button"
         className="blackjack-carousel-arrow"

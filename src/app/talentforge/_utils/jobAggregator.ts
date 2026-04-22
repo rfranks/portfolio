@@ -30,10 +30,7 @@ export async function fetchAllListings(query: string = ""): Promise<JobListing[]
 
     const { name } = connectors[index];
     if (typeof console !== "undefined" && typeof console.warn === "function") {
-      console.warn(
-        `[TalentForge] Failed to fetch listings from ${name}:`,
-        result.reason,
-      );
+      console.warn(`[TalentForge] Failed to fetch listings from ${name}:`, result.reason);
     }
   });
 

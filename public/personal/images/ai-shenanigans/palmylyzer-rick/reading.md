@@ -1,4 +1,5 @@
 # Palm Reading (grounded ONLY in traced lines)
+
 ## Life Line
 
 Your life line is broad, smooth, and continuous — this often suggests stable vitality and grounded energy. There’s a sense of endurance here: energy that builds gradually and sustains rather than spikes and drops.
@@ -11,9 +12,9 @@ The head line slopes slightly, suggesting a blend of structured thinking and ada
 
 This can indicate:
 
-* problem-solving through pattern recognition
-* comfort switching between logic and intuition
-* learning through experience rather than strict systems
+- problem-solving through pattern recognition
+- comfort switching between logic and intuition
+- learning through experience rather than strict systems
 
 ## Heart Line
 
@@ -21,9 +22,9 @@ Your heart line is present but not deeply cut. This often suggests controlled em
 
 It can point to someone who:
 
-* feels deeply but selectively expresses
-* values stability over intensity
-* processes emotions internally before sharing
+- feels deeply but selectively expresses
+- values stability over intensity
+- processes emotions internally before sharing
 
 ## Fate Line
 
@@ -31,21 +32,21 @@ A faint fate line suggests a path shaped more by choice and adaptation than by f
 
 This often appears in people who:
 
-* evolve their career or purpose over time
-* follow opportunities rather than rigid plans
-* refine identity through experience
+- evolve their career or purpose over time
+- follow opportunities rather than rigid plans
+- refine identity through experience
 
 # Overall Pattern
 
 This palm is structurally balanced:
 
-* Strong foundation (life line)
-* Flexible cognition (head line)
-* Controlled emotional signaling (heart line)
-* Light external pressure (fate line)
+- Strong foundation (life line)
+- Flexible cognition (head line)
+- Controlled emotional signaling (heart line)
+- Light external pressure (fate line)
 
 👉 This combination often reflects someone who:
 
-* builds steadily
-* adapts quietly
-* and shapes their path over time rather than following a fixed trajectory
+- builds steadily
+- adapts quietly
+- and shapes their path over time rather than following a fixed trajectory

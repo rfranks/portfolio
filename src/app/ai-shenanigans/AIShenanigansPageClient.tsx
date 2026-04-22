@@ -1,21 +1,11 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import {
-  ArrowBack,
-  Close,
-  DarkMode,
-  LightMode,
-} from "@mui/icons-material";
+import { ArrowBack, Close, DarkMode, LightMode } from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material/styles";
 import AIShenanigan, {
   AIShenaniganMovieOrientation,
@@ -139,61 +129,35 @@ const decodeHashSlug = (hash: string) => {
 
 const buildLinkProps = (item: AIShenaniganItemWithLinks) => ({
   ...(item.type ? { type: item.type } : {}),
-  ...(item.realisticSourceHref
-    ? { realisticSourceHref: item.realisticSourceHref }
-    : {}),
-  ...(item.stylizedSourceHref
-    ? { stylizedSourceHref: item.stylizedSourceHref }
-    : {}),
+  ...(item.realisticSourceHref ? { realisticSourceHref: item.realisticSourceHref } : {}),
+  ...(item.stylizedSourceHref ? { stylizedSourceHref: item.stylizedSourceHref } : {}),
   ...(item.movieSourceHref ? { movieSourceHref: item.movieSourceHref } : {}),
   ...(item.movieSourceHref2 ? { movieSourceHref2: item.movieSourceHref2 } : {}),
   ...(item.rawSourceHref ? { rawSourceHref: item.rawSourceHref } : {}),
-  ...(item.analyzedSourceHref
-    ? { analyzedSourceHref: item.analyzedSourceHref }
-    : {}),
+  ...(item.analyzedSourceHref ? { analyzedSourceHref: item.analyzedSourceHref } : {}),
   ...(item.palmLineAnalysisSourceHref
     ? {
         palmLineAnalysisSourceHref: item.palmLineAnalysisSourceHref,
       }
     : {}),
-  ...(item.palmReadingSourceHref
-    ? { palmReadingSourceHref: item.palmReadingSourceHref }
-    : {}),
-  ...(item.songAlbumSourceHref
-    ? { songAlbumSourceHref: item.songAlbumSourceHref }
-    : {}),
-  ...(item.songAudioSourceHref
-    ? { songAudioSourceHref: item.songAudioSourceHref }
-    : {}),
-  ...(item.songLyricsSourceHref
-    ? { songLyricsSourceHref: item.songLyricsSourceHref }
-    : {}),
-  ...(item.intentToCopyright
-    ? { intentToCopyright: item.intentToCopyright }
-    : {}),
+  ...(item.palmReadingSourceHref ? { palmReadingSourceHref: item.palmReadingSourceHref } : {}),
+  ...(item.songAlbumSourceHref ? { songAlbumSourceHref: item.songAlbumSourceHref } : {}),
+  ...(item.songAudioSourceHref ? { songAudioSourceHref: item.songAudioSourceHref } : {}),
+  ...(item.songLyricsSourceHref ? { songLyricsSourceHref: item.songLyricsSourceHref } : {}),
+  ...(item.intentToCopyright ? { intentToCopyright: item.intentToCopyright } : {}),
   ...(item.rightsNotice ? { rightsNotice: item.rightsNotice } : {}),
   ...(item.bookSourceHref ? { bookSourceHref: item.bookSourceHref } : {}),
-  ...(item.manuscriptSourceHref
-    ? { manuscriptSourceHref: item.manuscriptSourceHref }
-    : {}),
-  ...(item.trailerSourceHref
-    ? { trailerSourceHref: item.trailerSourceHref }
-    : {}),
-  ...(item.episodesSourceHref
-    ? { episodesSourceHref: item.episodesSourceHref }
-    : {}),
+  ...(item.manuscriptSourceHref ? { manuscriptSourceHref: item.manuscriptSourceHref } : {}),
+  ...(item.trailerSourceHref ? { trailerSourceHref: item.trailerSourceHref } : {}),
+  ...(item.episodesSourceHref ? { episodesSourceHref: item.episodesSourceHref } : {}),
   ...(item.bookCoverImage ? { bookCoverImage: item.bookCoverImage } : {}),
   ...(item.bookSource ? { bookSource: item.bookSource } : {}),
   ...(item.bookCaption ? { bookCaption: item.bookCaption } : {}),
   ...(item.manuscriptPdf ? { manuscriptPdf: item.manuscriptPdf } : {}),
   ...(item.manuscriptSource ? { manuscriptSource: item.manuscriptSource } : {}),
-  ...(item.manuscriptCaption
-    ? { manuscriptCaption: item.manuscriptCaption }
-    : {}),
+  ...(item.manuscriptCaption ? { manuscriptCaption: item.manuscriptCaption } : {}),
   ...(item.trailerMovie ? { trailerMovie: item.trailerMovie } : {}),
-  ...(item.trailerOrientation
-    ? { trailerOrientation: item.trailerOrientation }
-    : {}),
+  ...(item.trailerOrientation ? { trailerOrientation: item.trailerOrientation } : {}),
   ...(item.trailerSource ? { trailerSource: item.trailerSource } : {}),
   ...(item.trailerCaption ? { trailerCaption: item.trailerCaption } : {}),
   ...(item.episodesPdf ? { episodesPdf: item.episodesPdf } : {}),
@@ -233,21 +197,24 @@ export default function AIShenanigansPageClient() {
     return indexBySlug;
   }, [shenaniganItems]);
 
-  const clampIndex = useCallback((value: number) => {
-    if (!shenaniganItems.length) {
-      return 0;
-    }
+  const clampIndex = useCallback(
+    (value: number) => {
+      if (!shenaniganItems.length) {
+        return 0;
+      }
 
-    if (value < 0) {
-      return shenaniganItems.length - 1;
-    }
+      if (value < 0) {
+        return shenaniganItems.length - 1;
+      }
 
-    if (value >= shenaniganItems.length) {
-      return 0;
-    }
+      if (value >= shenaniganItems.length) {
+        return 0;
+      }
 
-    return value;
-  }, [shenaniganItems.length]);
+      return value;
+    },
+    [shenaniganItems.length],
+  );
 
   const handlePrevious = useCallback(() => {
     setCurrentIndex((prevIndex) => clampIndex(prevIndex - 1));
@@ -293,11 +260,7 @@ export default function AIShenanigansPageClient() {
   }, [shenaniganIndexBySlug, shenaniganItems.length]);
 
   useEffect(() => {
-    if (
-      !isInitialHashSynced ||
-      !shenaniganItems.length ||
-      typeof window === "undefined"
-    ) {
+    if (!isInitialHashSynced || !shenaniganItems.length || typeof window === "undefined") {
       return;
     }
 
@@ -430,19 +393,11 @@ export default function AIShenanigansPageClient() {
             </Box>
             <IconButton
               color="inherit"
-              aria-label={
-                mode === "light"
-                  ? "Switch to dark mode"
-                  : "Switch to light mode"
-              }
+              aria-label={mode === "light" ? "Switch to dark mode" : "Switch to light mode"}
               onClick={toggleColorMode}
               size="small"
             >
-              {mode === "light" ? (
-                <DarkMode fontSize="small" />
-              ) : (
-                <LightMode fontSize="small" />
-              )}
+              {mode === "light" ? <DarkMode fontSize="small" /> : <LightMode fontSize="small" />}
             </IconButton>
             <IconButton
               color="inherit"
@@ -490,12 +445,9 @@ export default function AIShenanigansPageClient() {
                 rank={currentIndex + 1}
                 title={currentItem.title}
                 blurb={currentItem.blurb}
-                orientation={
-                  currentItem.orientation as AIShenaniganMovieOrientation
-                }
+                orientation={currentItem.orientation as AIShenaniganMovieOrientation}
                 realisticImage={
-                  (currentItem.realisticImage ||
-                    currentItem.songAlbumImage) as string
+                  (currentItem.realisticImage || currentItem.songAlbumImage) as string
                 }
                 realisticSource={currentItem.realisticSource}
                 realisticCaption={currentItem.realisticCaption}

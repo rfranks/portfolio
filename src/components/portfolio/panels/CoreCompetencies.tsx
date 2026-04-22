@@ -18,11 +18,10 @@ import CategoryOutlined from "@mui/icons-material/CategoryOutlined";
 import { alpha, keyframes, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useResumeData } from "@/providers/ResumeDataProvider";
-import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
 import SubsectionPager from "@/components/portfolio/layout/SubsectionPager";
 import Chip from "@/components/fabric/Chip";
 import MediaCycler from "@/components/shared/media/MediaCycler";
-import { PanelFrame } from "@/components/shared";
+import { PortfolioPanelShell } from "@/components/shared";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { competencies } from "@/consts/resumeData";
@@ -75,11 +74,9 @@ const SKILL_EXPAND_SOUND_PATHS = [
   "/audio/powerUp11.mp3",
 ] as const;
 const SKILL_CLOSE_SOUND_PATH = "/audio/whoosh.mp3";
-const NODE_CURSOR =
-  "url('/assets/cursors/PNG/Basic/Default/pointer_scifi_a.png') 4 2, pointer";
+const NODE_CURSOR = "url('/assets/cursors/PNG/Basic/Default/pointer_scifi_a.png') 4 2, pointer";
 const SKILL_REFERENCE_LINKS: Record<string, string> = {
-  "Retrieval-augmented generation":
-    "https://en.wikipedia.org/wiki/Retrieval-augmented_generation",
+  "Retrieval-augmented generation": "https://en.wikipedia.org/wiki/Retrieval-augmented_generation",
   "Large Language Models (LLM)": "https://en.wikipedia.org/wiki/Large_language_model",
   LangChain: "https://www.langchain.com/",
   "Clinical NLP with ICD-10/SNOMED/LOINC/RxNorm":
@@ -114,21 +111,20 @@ const SKILL_REFERENCE_LINKS: Record<string, string> = {
   PostgreSQL: "https://www.postgresql.org/docs/",
   MongoDB: "https://www.mongodb.com/docs/",
   MySQL: "https://dev.mysql.com/doc/",
-  "Architecture board member":
-    "https://martinfowler.com/architecture/",
-  "Engineering mentor":
-    "https://www.atlassian.com/blog/developer/mentoring-software-engineers",
+  "Architecture board member": "https://martinfowler.com/architecture/",
+  "Engineering mentor": "https://www.atlassian.com/blog/developer/mentoring-software-engineers",
   "Cross-functional collaboration with product, UX, QA, and DevOps":
     "https://www.thoughtworks.com/insights/blog/cross-functional-teams",
 };
 const getSkillReferenceUrl = (skillLabel: string) =>
   SKILL_REFERENCE_LINKS[skillLabel] ??
-  `https://www.google.com/search?q=${encodeURIComponent(
-    `${skillLabel} documentation`,
-  )}`;
+  `https://www.google.com/search?q=${encodeURIComponent(`${skillLabel} documentation`)}`;
 
 const normalizeCompetencyOptionIconKey = (value: string) =>
-  value.trim().toLowerCase().replace(/[\s_-]+/g, "");
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "");
 
 const renderCompetencyOptionIcon = (iconKey?: string) => {
   const normalized = iconKey ? normalizeCompetencyOptionIconKey(iconKey) : "";
@@ -181,23 +177,17 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
       ),
     [competencies.categories],
   );
-  const [selectedOrbIndex, setSelectedOrbIndex] = React.useState<number | null>(
-    null,
-  );
+  const [selectedOrbIndex, setSelectedOrbIndex] = React.useState<number | null>(null);
   const [viewMode, setViewMode] = React.useState<"cloud" | "list">("list");
   const [isClosingSpokes, setIsClosingSpokes] = React.useState(false);
   const [spokesVisible, setSpokesVisible] = React.useState(false);
   const [skillNodesAtOrbit, setSkillNodesAtOrbit] = React.useState(false);
-  const [activeBulletCategoryKey, setActiveBulletCategoryKey] =
-    React.useState<string>(categories[0] ? "competency-category-0" : "");
-  const [expandedSkillKey, setExpandedSkillKey] = React.useState<string | null>(
-    null,
+  const [activeBulletCategoryKey, setActiveBulletCategoryKey] = React.useState<string>(
+    categories[0] ? "competency-category-0" : "",
   );
-  const [openingNode, setOpeningNode] = React.useState<OpeningNodeState | null>(
-    null,
-  );
-  const [returningNode, setReturningNode] =
-    React.useState<ReturningNodeState | null>(null);
+  const [expandedSkillKey, setExpandedSkillKey] = React.useState<string | null>(null);
+  const [openingNode, setOpeningNode] = React.useState<OpeningNodeState | null>(null);
+  const [returningNode, setReturningNode] = React.useState<ReturningNodeState | null>(null);
   const openTimeoutRef = React.useRef<number | null>(null);
   const closeTimeoutRef = React.useRef<number | null>(null);
   const returnRevealTimeoutRef = React.useRef<number | null>(null);
@@ -226,17 +216,14 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
     skillExpandSfxE,
   ] as const;
 
-  const selectedCategory =
-    selectedOrbIndex == null ? null : categories[selectedOrbIndex] || null;
+  const selectedCategory = selectedOrbIndex == null ? null : categories[selectedOrbIndex] || null;
   const isCloudView = isMdUp && viewMode === "cloud";
   const spokeNodeOffset = "clamp(26px, 3.2vw, 42px)";
 
   const panelLayout = React.useMemo(() => {
     const clampNumber = (value: number, min: number, max: number) =>
       Math.min(max, Math.max(min, value));
-    const skillCounts = categories.map((category) =>
-      Math.max(1, category.items.length),
-    );
+    const skillCounts = categories.map((category) => Math.max(1, category.items.length));
     const logCounts = skillCounts.map((count) => Math.log(count + 1));
     const minLogCount = Math.min(...logCounts);
     const maxLogCount = Math.max(...logCounts);
@@ -244,8 +231,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
 
     return categories.map((category, index) => {
       const skillCount = category.items.length;
-      const skillWeight =
-        (Math.log(Math.max(1, skillCount) + 1) - minLogCount) / logRange;
+      const skillWeight = (Math.log(Math.max(1, skillCount) + 1) - minLogCount) / logRange;
       const colSpanLg = clampNumber(2 + Math.round(skillWeight * 1), 2, 3);
       const colSpanMd = clampNumber(2 + Math.round(skillWeight * 1), 2, 3);
       const colSpanSm = 2;
@@ -309,10 +295,9 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
                 pr: 0.5,
               }}
             >
-              {category.items.map((competency) => (
+              {category.items.map((competency) =>
                 (() => {
-                  const maybeSourceLink = (competency as { sourceLink?: unknown })
-                    .sourceLink;
+                  const maybeSourceLink = (competency as { sourceLink?: unknown }).sourceLink;
                   const resolvedSourceLink =
                     typeof maybeSourceLink === "string" && maybeSourceLink.trim()
                       ? maybeSourceLink.trim()
@@ -338,17 +323,17 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
                       >
                         {competency.label}
                       </Typography>
-                  <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
-                    sx={{ lineHeight: 1.3 }}
-                  >
-                    {competency.description}
-                  </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        color="text.secondary"
+                        sx={{ lineHeight: 1.3 }}
+                      >
+                        {competency.description}
+                      </Typography>
                     </Box>
                   );
-                })()
-              ))}
+                })(),
+              )}
             </Stack>
           ),
         };
@@ -364,9 +349,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
       return;
     }
 
-    const hasKey = bulletCategoryItems.some(
-      (item) => item.key === activeBulletCategoryKey,
-    );
+    const hasKey = bulletCategoryItems.some((item) => item.key === activeBulletCategoryKey);
     if (!hasKey) {
       setActiveBulletCategoryKey(bulletCategoryItems[0]?.key ?? "");
     }
@@ -410,11 +393,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
         ? bulletCategoryItems.length - 1
         : activeBulletCategoryIndex - 1;
     bulletCategoryItems[previousIndex]?.onSelect?.();
-  }, [
-    activeBulletCategoryIndex,
-    bulletCategoryItems,
-    hasMultipleBulletCategoryItems,
-  ]);
+  }, [activeBulletCategoryIndex, bulletCategoryItems, hasMultipleBulletCategoryItems]);
 
   const handleNextBulletCategory = React.useCallback(() => {
     if (!hasMultipleBulletCategoryItems || bulletCategoryItems.length === 0) {
@@ -480,8 +459,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
         const absCos = Math.max(0.08, Math.abs(Math.cos(radians)));
         const absSin = Math.max(0.08, Math.abs(Math.sin(radians)));
         const fitRadius = Math.min(maxRadiusX / absCos, maxRadiusY / absSin);
-        const baseRadius =
-          ringRadii[ringIndex] ?? ringRadii[ringRadii.length - 1] ?? 96;
+        const baseRadius = ringRadii[ringIndex] ?? ringRadii[ringRadii.length - 1] ?? 96;
         const radiusPx = Math.max(0, Math.min(baseRadius, fitRadius - 8));
 
         nodes.push({
@@ -616,9 +594,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
           toCenter: false,
         });
         openNodeRafRef.current = window.requestAnimationFrame(() => {
-          setOpeningNode((current) =>
-            current ? { ...current, toCenter: true } : current,
-          );
+          setOpeningNode((current) => (current ? { ...current, toCenter: true } : current));
           openNodeRafRef.current = null;
         });
 
@@ -687,9 +663,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
         phase: "revealing",
       });
       returnRevealTimeoutRef.current = window.setTimeout(() => {
-        setReturningNode((current) =>
-          current ? { ...current, phase: "returning" } : current,
-        );
+        setReturningNode((current) => (current ? { ...current, phase: "returning" } : current));
         returnRevealTimeoutRef.current = null;
 
         returnTravelTimeoutRef.current = window.setTimeout(() => {
@@ -751,67 +725,53 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
   }, [clearTimers, isMdUp, viewMode]);
 
   return (
-    <PortfolioPanel
-      className="h-full overflow-hidden"
-      sx={{
-        minHeight: 0,
-        height: "100%",
+    <PortfolioPanelShell
+      panelClassName="h-full overflow-hidden"
+      panelSx={{ overflow: "hidden" }}
+      topRail={topRail}
+      contentSx={{ pt: 0.5 }}
+      useNegativeTopRailMargins
+      useNegativeFooterMargins
+      footerSx={{
+        py: 1.25,
+        minHeight: "fit-content",
         display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
+        alignItems: "center",
+        justifyContent: "center",
       }}
+      footer={
+        isMdUp ? (
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+              View
+            </Typography>
+            <IconButton
+              size="small"
+              aria-label="Show list view"
+              onClick={() => handleViewModeChange(false)}
+              sx={{ p: 0.35 }}
+            >
+              <FormatListBulleted fontSize="small" color={isCloudView ? "disabled" : "primary"} />
+            </IconButton>
+            <Switch
+              checked={isCloudView}
+              onChange={handleSwitchViewModeChange}
+              inputProps={{ "aria-label": "Toggle competency view mode" }}
+              color="primary"
+              size="small"
+            />
+            <IconButton
+              size="small"
+              aria-label="Show panel view"
+              onClick={() => handleViewModeChange(true)}
+              sx={{ p: 0.35 }}
+            >
+              <GridView fontSize="small" color={isCloudView ? "primary" : "disabled"} />
+            </IconButton>
+          </Stack>
+        ) : null
+      }
     >
-      <PanelFrame
-        topRail={topRail}
-        contentSx={{ pt: 0.5 }}
-        useNegativeTopRailMargins
-        useNegativeFooterMargins
-        footerSx={{
-          py: 1.25,
-          minHeight: "fit-content",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        footer={
-          isMdUp ? (
-            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-                View
-              </Typography>
-              <IconButton
-                size="small"
-                aria-label="Show list view"
-                onClick={() => handleViewModeChange(false)}
-                sx={{ p: 0.35 }}
-              >
-                <FormatListBulleted
-                  fontSize="small"
-                  color={isCloudView ? "disabled" : "primary"}
-                />
-              </IconButton>
-              <Switch
-                checked={isCloudView}
-                onChange={handleSwitchViewModeChange}
-                inputProps={{ "aria-label": "Toggle competency view mode" }}
-                color="primary"
-                size="small"
-              />
-              <IconButton
-                size="small"
-                aria-label="Show panel view"
-                onClick={() => handleViewModeChange(true)}
-                sx={{ p: 0.35 }}
-              >
-                <GridView
-                  fontSize="small"
-                  color={isCloudView ? "primary" : "disabled"}
-                />
-              </IconButton>
-            </Stack>
-          ) : null
-        }
-      >
       {isCloudView ? (
         <Box
           ref={panelContainerRef}
@@ -905,9 +865,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
                 inset: 0,
                 zIndex: 4,
                 bgcolor:
-                  theme.palette.mode === "dark"
-                    ? "rgba(2,6,23,0.18)"
-                    : "rgba(255,255,255,0.34)",
+                  theme.palette.mode === "dark" ? "rgba(2,6,23,0.18)" : "rgba(255,255,255,0.34)",
                 backdropFilter: "blur(2px)",
                 pointerEvents: "none",
               }}
@@ -933,9 +891,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
                         animation: `${spokeLineGrow} ${
                           isClosingSpokes ? CLOSE_SPOKES_MS : OPEN_SPOKES_MS
                         }ms cubic-bezier(.22,.82,.28,.98) both`,
-                        animationDelay: `${
-                          node.index * (isClosingSpokes ? 12 : 18)
-                        }ms`,
+                        animationDelay: `${node.index * (isClosingSpokes ? 12 : 18)}ms`,
                         animationDirection: isClosingSpokes ? "reverse" : "normal",
                       }}
                     />
@@ -943,7 +899,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
                 : null}
 
               {spokesVisible
-                ? spokeLayout.map((node) => (
+                ? spokeLayout.map((node) =>
                     (() => {
                       const skillKey = `${node.skill.label}-${node.index}`;
                       const referenceUrl = getSkillReferenceUrl(node.skill.label);
@@ -959,8 +915,7 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
                           : centerAlongSpokeTransform;
                       const handleExpand = () => {
                         setExpandedSkillKey(skillKey);
-                        const nextSfx =
-                          skillExpandSfxRefs[node.index % skillExpandSfxRefs.length];
+                        const nextSfx = skillExpandSfxRefs[node.index % skillExpandSfxRefs.length];
                         rewindAndPlayAudio(nextSfx, {
                           volume: 0.24,
                         });
@@ -980,34 +935,25 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
                             left: "50%",
                             top: "50%",
                             transform: nodeTransform,
-                            transition:
-                              isExpanded
-                                ? "transform 420ms cubic-bezier(.22,.82,.28,.98), opacity 240ms ease"
-                                : `transform ${SKILL_NODE_TRAVEL_MS}ms cubic-bezier(.22,1.08,.24,1), opacity 220ms ease`,
+                            transition: isExpanded
+                              ? "transform 420ms cubic-bezier(.22,.82,.28,.98), opacity 240ms ease"
+                              : `transform ${SKILL_NODE_TRAVEL_MS}ms cubic-bezier(.22,1.08,.24,1), opacity 220ms ease`,
                             transitionDelay:
-                              isExpanded || !skillNodesAtOrbit
-                                ? "0ms"
-                                : `${node.index * 22}ms`,
+                              isExpanded || !skillNodesAtOrbit ? "0ms" : `${node.index * 22}ms`,
                             zIndex: isExpanded ? 8 : 5,
                             opacity: shouldMuteNode ? 0 : 1,
-                            pointerEvents:
-                              isClosingSpokes || shouldMuteNode ? "none" : "auto",
+                            pointerEvents: isClosingSpokes || shouldMuteNode ? "none" : "auto",
                           }}
                         >
                           <Box
                             sx={{
                               transform:
-                                isExpanded || skillNodesAtOrbit
-                                  ? "scale(1)"
-                                  : "scale(0.42)",
-                              transition:
-                                isExpanded
-                                  ? "transform 300ms cubic-bezier(.22,.82,.28,.98)"
-                                  : `transform ${SKILL_NODE_SCALE_MS}ms cubic-bezier(.16,1,.3,1)`,
+                                isExpanded || skillNodesAtOrbit ? "scale(1)" : "scale(0.42)",
+                              transition: isExpanded
+                                ? "transform 300ms cubic-bezier(.22,.82,.28,.98)"
+                                : `transform ${SKILL_NODE_SCALE_MS}ms cubic-bezier(.16,1,.3,1)`,
                               transitionDelay:
-                                isExpanded || !skillNodesAtOrbit
-                                  ? "0ms"
-                                  : `${node.index * 22}ms`,
+                                isExpanded || !skillNodesAtOrbit ? "0ms" : `${node.index * 22}ms`,
                             }}
                           >
                             <Box
@@ -1168,8 +1114,8 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
                           </Box>
                         </Box>
                       );
-                    })()
-                  ))
+                    })(),
+                  )
                 : null}
             </Box>
           ) : null}
@@ -1358,7 +1304,6 @@ export default function CoreCompetencies({ topRail }: CoreCompetenciesProps) {
           </Box>
         </Box>
       )}
-      </PanelFrame>
-    </PortfolioPanel>
+    </PortfolioPanelShell>
   );
 }

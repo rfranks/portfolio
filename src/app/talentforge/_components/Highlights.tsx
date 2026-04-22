@@ -72,10 +72,9 @@ export default function Highlights() {
             >
               talentforge
             </Typography>{" "}
-            stands out with its advanced AI that not only summarizes PDFs but
-            also answers content-specific questions, offering an intuitive,
-            user-friendly interface that improves over time, making it an
-            essential tool for efficient document handling and deeper
+            stands out with its advanced AI that not only summarizes PDFs but also answers
+            content-specific questions, offering an intuitive, user-friendly interface that improves
+            over time, making it an essential tool for efficient document handling and deeper
             comprehension.
           </Typography>
         </Box>

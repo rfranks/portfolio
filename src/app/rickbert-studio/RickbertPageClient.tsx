@@ -6,10 +6,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import RickbertStudioApp from "@/app/rickbert-studio/_app/RickbertStudioApp";
 import { useRickbertStudioStore } from "@/app/rickbert-studio/_store";
-import {
-  getRickbertOpenAIKey,
-  setRickbertOpenAIKey,
-} from "@/app/rickbert-studio/_utils/openAIKey";
+import { getRickbertOpenAIKey, setRickbertOpenAIKey } from "@/app/rickbert-studio/_utils/openAIKey";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 

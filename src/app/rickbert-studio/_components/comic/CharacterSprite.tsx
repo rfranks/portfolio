@@ -24,14 +24,7 @@ function shirtColor(style: string | undefined): string {
   }
 }
 
-export function CharacterSprite({
-  name,
-  x,
-  y,
-  scale = 1,
-  expression,
-  pose,
-}: CharacterSpriteProps) {
+export function CharacterSprite({ name, x, y, scale = 1, expression, pose }: CharacterSpriteProps) {
   const config = CHARACTER_CONFIGS[name] ?? CHARACTER_CONFIGS.Rickbert;
   const width = 56 * scale;
   const headRadius = 16 * scale;
@@ -92,9 +85,19 @@ export function CharacterSprite({
 
       {config.glasses && (
         <>
-          <Circle x={-6 * scale} y={-8 * scale} radius={4.5 * scale} stroke="#111" strokeWidth={1} />
+          <Circle
+            x={-6 * scale}
+            y={-8 * scale}
+            radius={4.5 * scale}
+            stroke="#111"
+            strokeWidth={1}
+          />
           <Circle x={6 * scale} y={-8 * scale} radius={4.5 * scale} stroke="#111" strokeWidth={1} />
-          <Line points={[-1.5 * scale, -8 * scale, 1.5 * scale, -8 * scale]} stroke="#111" strokeWidth={1} />
+          <Line
+            points={[-1.5 * scale, -8 * scale, 1.5 * scale, -8 * scale]}
+            stroke="#111"
+            strokeWidth={1}
+          />
         </>
       )}
 

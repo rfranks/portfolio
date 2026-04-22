@@ -32,10 +32,7 @@ export default function EmojiGlyph({
       return [] as SxProps<Theme>[];
     }
     if (Array.isArray(sx)) {
-      return sx.filter(
-        (entry): entry is Exclude<typeof entry, undefined> =>
-          entry !== undefined,
-      );
+      return sx.filter((entry): entry is Exclude<typeof entry, undefined> => entry !== undefined);
     }
     return [sx];
   }, [sx]);

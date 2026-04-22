@@ -28,10 +28,7 @@ export function withBasePath(path: string): string {
     return normalizedPath;
   }
 
-  if (
-    path.startsWith("/") &&
-    (normalizedPath === base || normalizedPath.startsWith(`${base}/`))
-  ) {
+  if (path.startsWith("/") && (normalizedPath === base || normalizedPath.startsWith(`${base}/`))) {
     return normalizedPath;
   }
 

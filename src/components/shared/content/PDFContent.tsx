@@ -33,8 +33,7 @@ const toSxArray = (value?: SxProps<Theme>) => {
 };
 
 const createMediaKeyDownHandler =
-  (onMediaActivate?: () => void) =>
-  (event: React.KeyboardEvent<HTMLElement>) => {
+  (onMediaActivate?: () => void) => (event: React.KeyboardEvent<HTMLElement>) => {
     if (!onMediaActivate) {
       return;
     }

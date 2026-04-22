@@ -4,10 +4,7 @@ import type { ClockState, ScaledTimeoutHandle } from "@/types/hooks/time";
 const FRAME_MS = 1000 / 60;
 
 export let clockRef: MutableRefObject<ClockState>;
-export let setScaledTimeout: (
-  cb: () => void,
-  ms: number,
-) => ScaledTimeoutHandle;
+export let setScaledTimeout: (cb: () => void, ms: number) => ScaledTimeoutHandle;
 export let clearScaledTimeout: (handle: ScaledTimeoutHandle | null) => void;
 export let advanceClock: (deltaMs: number) => void;
 

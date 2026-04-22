@@ -4,13 +4,7 @@ export const onboardingInputSchema = z.object({
   genre: z.string().min(1),
   tone: z.string().min(1),
   dangerLevel: z.enum(["Forgiving", "Risky", "Deadly"]),
-  adventureLength: z.enum([
-    "Very short (1-2 lines)",
-    "Short",
-    "Medium",
-    "Long",
-    "Very long",
-  ]),
+  adventureLength: z.enum(["Very short (1-2 lines)", "Short", "Medium", "Long", "Very long"]),
   protagonistPreference: z.string().min(1),
   premise: z.string().min(1),
   visualStyle: z.string().min(1),
@@ -72,10 +66,9 @@ export const runProtagonistNameStageInputSchema = z.object({
   randomnessSeed: z.string().optional(),
 });
 
-export const onboardingVisualStyleStageInputSchema =
-  onboardingInputSchema.extend({
-    visualStyle: z.string().optional().default(""),
-  });
+export const onboardingVisualStyleStageInputSchema = onboardingInputSchema.extend({
+  visualStyle: z.string().optional().default(""),
+});
 
 export const runVisualStyleStageInputSchema = z.object({
   apiKey: z.string().min(1),

@@ -1,11 +1,6 @@
 import { anyToJson } from "bio-parsers";
 import { blue } from "@mui/material/colors";
-import {
-  Base,
-  CodingCodon,
-  ParsedSequenceResult,
-  Sequence,
-} from "../_types/types";
+import { Base, CodingCodon, ParsedSequenceResult, Sequence } from "../_types/types";
 import { CODONS_TO_AMINO_ACIDS } from "../_consts/consts";
 
 // Map each nucleotide base to a representative color for display purposes.
@@ -128,9 +123,7 @@ export function getBasepairCounts(seq: string): BPCount[] {
 
   const bpCounts = [];
 
-  counts["GC %"] = seq.length
-    ? (((G.count + C.count) / seq.length) * 100).toFixed(2)
-    : "0";
+  counts["GC %"] = seq.length ? (((G.count + C.count) / seq.length) * 100).toFixed(2) : "0";
 
   bpCounts.push({ ...A, ...counts }, { ...C, ...counts }, { ...G, ...counts });
   if (U.count > 0) {
@@ -191,7 +184,7 @@ export function getSequenceStrokeStyle(index: number) {
 export async function parseSequence(
   unparsed: string,
   filename: string,
-  onParseSuccess?: (parsedSequence: Sequence) => void
+  onParseSuccess?: (parsedSequence: Sequence) => void,
 ) {
   for (const sequenceResult of await anyToJson(unparsed)) {
     let hasAmbiguous = false;
@@ -204,13 +197,11 @@ export async function parseSequence(
     try {
       const parsedSequence: Sequence = transformSequence(
         sequenceResult.parsedSequence.description !== undefined
-          ? sequenceResult.parsedSequence.name +
-              " " +
-              sequenceResult.parsedSequence.description
+          ? sequenceResult.parsedSequence.name + " " + sequenceResult.parsedSequence.description
           : sequenceResult.parsedSequence.name,
         sequenceResult,
         filename,
-        hasAmbiguous
+        hasAmbiguous,
       );
       onParseSuccess?.(parsedSequence);
     } catch (err) {
@@ -223,7 +214,7 @@ export function transformSequence(
   description: string,
   sequence: ParsedSequenceResult,
   filename: string,
-  hasAmbiguous: boolean
+  hasAmbiguous: boolean,
 ): Sequence {
   return {
     description,
@@ -246,9 +237,7 @@ export function translateSequenceToAminoAcids(sequence: string): string {
   return aminoAcids;
 }
 
-export function translateSequenceToAminoAcidsStartingFromATG(
-  sequence: string
-): string {
+export function translateSequenceToAminoAcidsStartingFromATG(sequence: string): string {
   let aminoAcids = "";
   // Convert the sequence to uppercase to standardize
   sequence = sequence.toUpperCase();
@@ -261,7 +250,7 @@ export function translateSequenceToAminoAcidsStartingFromATG(
   // Warn if the sequence length after the start codon is not a multiple of 3
   if ((sequence.length - startIndex) % 3 !== 0) {
     console.warn(
-      "Warning: The sequence length from the start codon is not a multiple of 3. Incomplete codon at the end will be ignored."
+      "Warning: The sequence length from the start codon is not a multiple of 3. Incomplete codon at the end will be ignored.",
     );
   }
   // Translate the sequence starting from the "ATG" codon
@@ -289,17 +278,9 @@ export function validBase(base: string): boolean {
 
 export function isMaxBase(sequence: string, base: Base): boolean {
   const counts = getBasepairCounts(sequence)?.[0];
-  const baseCounts: Array<number> = [
-    counts.A,
-    counts.C,
-    counts.G,
-    counts.T,
-    counts.U,
-  ];
+  const baseCounts: Array<number> = [counts.A, counts.C, counts.G, counts.T, counts.U];
   const maxBasePairCount = Math.max(...baseCounts);
-  const numMaxBasePairs = baseCounts.filter(
-    (count) => count === maxBasePairCount
-  );
+  const numMaxBasePairs = baseCounts.filter((count) => count === maxBasePairCount);
   const hasMultiple = numMaxBasePairs.length > 1;
 
   if (hasMultiple) {

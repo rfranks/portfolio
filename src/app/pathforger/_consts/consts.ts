@@ -1,7 +1,4 @@
-import type {
-  PathForgerBranchChoice,
-  PathForgerImageType,
-} from "@/app/pathforger/_types/pipeline";
+import type { PathForgerBranchChoice, PathForgerImageType } from "@/app/pathforger/_types/pipeline";
 
 export const DEV_MODE = process.env.NODE_ENV === "development";
 
@@ -49,23 +46,21 @@ export const pitchCacheStorageKey = "pathforger-last-pitches-v1";
 export const pathForgerStateStorageKey = "pathforger-state-v1";
 export const pathForgerSampleStorageArtifactPath =
   "/apps/pathforger/sample/localStorage.sample.json";
-export const pathForgerSampleImageByType: Record<PathForgerImageType, string> =
-  {
-    cover: "/apps/pathforger/sample/cover.png",
-    chapterSpread: "/apps/pathforger/sample/chapterSpread.png",
-    choicePreviewA: "/apps/pathforger/sample/optionA.png",
-    choicePreviewB: "/apps/pathforger/sample/optionB.png",
-    outcomeA: "/apps/pathforger/sample/outcomeA.png",
-    outcomeB: "/apps/pathforger/sample/outcomeB.png",
-  };
+export const pathForgerSampleImageByType: Record<PathForgerImageType, string> = {
+  cover: "/apps/pathforger/sample/cover.png",
+  chapterSpread: "/apps/pathforger/sample/chapterSpread.png",
+  choicePreviewA: "/apps/pathforger/sample/optionA.png",
+  choicePreviewB: "/apps/pathforger/sample/optionB.png",
+  outcomeA: "/apps/pathforger/sample/outcomeA.png",
+  outcomeB: "/apps/pathforger/sample/outcomeB.png",
+};
 
 export const optionBranchOrder: PathForgerBranchChoice[] = ["A", "B"];
 
-export const initialOptionRevealState: Record<PathForgerBranchChoice, boolean> =
-  {
-    A: false,
-    B: false,
-  };
+export const initialOptionRevealState: Record<PathForgerBranchChoice, boolean> = {
+  A: false,
+  B: false,
+};
 
 export const initialOptionRevealTick: Record<PathForgerBranchChoice, number> = {
   A: 0,

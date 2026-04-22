@@ -15,14 +15,7 @@ import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import { alpha } from "@mui/material/styles";
 
-import {
-  Clear,
-  ContentCopy,
-  DeleteOutline,
-  Error,
-  Search,
-  TableRows,
-} from "@mui/icons-material";
+import { Clear, ContentCopy, DeleteOutline, Error, Search, TableRows } from "@mui/icons-material";
 
 import { Sequence } from "../_types/types";
 
@@ -44,9 +37,7 @@ export default function SequencesTable({
   onSequenceDelete,
 }: SequencesTableProps) {
   const [sequenceFilter, setSequenceFilter] = useState<string>("");
-  const [filteredSequences, setFilteredSequences] = useState<Sequence[]>(
-    Object.values(sequences),
-  );
+  const [filteredSequences, setFilteredSequences] = useState<Sequence[]>(Object.values(sequences));
 
   useEffect(() => {
     setFilteredSequences(Object.values(sequences));
@@ -76,10 +67,7 @@ export default function SequencesTable({
               for (const k of Object.keys(sequences)) {
                 const seq = sequences[k];
 
-                if (
-                  seq.sequence.toLowerCase().includes(filter) ||
-                  filter.length === 0
-                ) {
+                if (seq.sequence.toLowerCase().includes(filter) || filter.length === 0) {
                   filteredSequences.push(seq);
                 }
               }
@@ -149,9 +137,7 @@ export default function SequencesTable({
             <TableRow
               key={seq.description}
               className={
-                activeSequences
-                  ?.map((seq) => seq.description)
-                  .includes(seq.description)
+                activeSequences?.map((seq) => seq.description).includes(seq.description)
                   ? "active"
                   : ""
               }

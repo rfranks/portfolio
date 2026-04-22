@@ -6,9 +6,7 @@ export function isPitchChoice(value: unknown): value is PathForgerPitchChoice {
   return value === "A" || value === "B" || value === "C";
 }
 
-export function isPathForgerPitchResult(
-  value: unknown,
-): value is PathForgerPitchResult {
+export function isPathForgerPitchResult(value: unknown): value is PathForgerPitchResult {
   if (!value || typeof value !== "object") {
     return false;
   }

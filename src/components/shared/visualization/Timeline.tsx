@@ -65,15 +65,11 @@ const Timeline: React.FC<TimelineProps> = ({
           isPending: false,
           category,
           itemId: id,
-          content: detail ? (
-            <Typography variant="body2">{detail}</Typography>
-          ) : null,
+          content: detail ? <Typography variant="body2">{detail}</Typography> : null,
           onClick: () => {
             if (category && id) {
               // find the event by data-<category>-id attribute and trigger a click
-              const item = document.querySelector(
-                `[data-${category}-id="${id}"]`,
-              ) as HTMLElement;
+              const item = document.querySelector(`[data-${category}-id="${id}"]`) as HTMLElement;
               if (item) {
                 item.click();
               }
@@ -130,11 +126,7 @@ const Timeline: React.FC<TimelineProps> = ({
             },
           }}
         >
-          <TimelineOppositeContent
-            sx={{ m: "auto 0" }}
-            variant="body2"
-            color="text.secondary"
-          >
+          <TimelineOppositeContent sx={{ m: "auto 0" }} variant="body2" color="text.secondary">
             {evt.label}
           </TimelineOppositeContent>
 
@@ -151,11 +143,7 @@ const Timeline: React.FC<TimelineProps> = ({
           </TimelineSeparator>
 
           <TimelineContent sx={{ py: "12px", px: 2 }}>
-            <Typography
-              variant="body1"
-              component="span"
-              sx={{ fontWeight: 600 }}
-            >
+            <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
               {evt.title}
             </Typography>
             <Box mt={1}>{evt.content}</Box>

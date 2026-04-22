@@ -3,10 +3,7 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import Chip from "@/components/fabric/Chip";
-import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
-import { MediaCycler } from "@/components/shared";
-import { PanelFrame } from "@/components/shared";
-import type { MediaCyclerItem } from "@/components/shared";
+import { MediaCycler, PortfolioPanelShell, type MediaCyclerItem } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 
@@ -37,10 +34,7 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
       }
     }
 
-    if (
-      typeof hobbies.heroImageUrl === "string" &&
-      hobbies.heroImageUrl.trim()
-    ) {
+    if (typeof hobbies.heroImageUrl === "string" && hobbies.heroImageUrl.trim()) {
       return hobbies.heroImageUrl.trim().replace(/\.png$/i, ".mp4");
     }
 
@@ -50,8 +44,7 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
   const [heroVideoUnavailable, setHeroVideoUnavailable] = React.useState(false);
   const heroVideoRef = React.useRef<HTMLVideoElement | null>(null);
 
-  const canPlayHeroVideo =
-    Boolean(resolvedHeroVideoUrl) && !heroVideoUnavailable;
+  const canPlayHeroVideo = Boolean(resolvedHeroVideoUrl) && !heroVideoUnavailable;
   const hasHeroMedia = Boolean(hobbies.heroImageUrl || canPlayHeroVideo);
 
   const handleHeroClick = React.useCallback(() => {
@@ -114,8 +107,7 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
           onError: handleHeroVideoError,
         },
         assetFrameSx: heroFrameSx,
-        previewVideoClassName:
-          "block h-full w-full rounded-[18px] bg-black/10 object-contain",
+        previewVideoClassName: "block h-full w-full rounded-[18px] bg-black/10 object-contain",
         previewVideoSx: {
           width: "100%",
           height: "100%",
@@ -135,25 +127,16 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
     resolvedHeroVideoUrl,
   ]);
 
-  const activeHeroMediaKey =
-    canPlayHeroVideo && isHeroVideoActive ? "hero-video" : "hero-image";
+  const activeHeroMediaKey = canPlayHeroVideo && isHeroVideoActive ? "hero-video" : "hero-image";
 
   return (
-    <PortfolioPanel
-      className="h-full"
-      sx={{
-        minHeight: 0,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
+    <PortfolioPanelShell
+      panelClassName="h-full"
+      panelSx={{ overflow: "hidden" }}
+      topRail={topRail}
+      contentSx={{ pt: 0.5, overflowY: "auto" }}
+      useNegativeTopRailMargins
     >
-      <PanelFrame
-        topRail={topRail}
-        contentSx={{ pt: 0.5, overflowY: "auto" }}
-        useNegativeTopRailMargins
-      >
       <Stack spacing={2}>
         <Stack
           spacing={2}
@@ -215,7 +198,6 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
           )}
         </Stack>
       </Stack>
-      </PanelFrame>
-    </PortfolioPanel>
+    </PortfolioPanelShell>
   );
 }

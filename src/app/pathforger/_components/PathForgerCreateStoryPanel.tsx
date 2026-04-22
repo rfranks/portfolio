@@ -14,12 +14,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import {
-  ChevronRight,
-  Close,
-  Settings,
-  Tune,
-} from "@mui/icons-material";
+import { ChevronRight, Close, Settings, Tune } from "@mui/icons-material";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { PathForgerGeneratedImage } from "@/app/pathforger/_types/pipeline";
 import type { JourneyLedgerPlaybackViewModel } from "@/app/pathforger/_types/journeyLedger";
@@ -38,12 +33,7 @@ type ActiveRunAction =
   | "forgePath"
   | null;
 
-type AdventureLength =
-  | "Very short (1-2 lines)"
-  | "Short"
-  | "Medium"
-  | "Long"
-  | "Very long";
+type AdventureLength = "Very short (1-2 lines)" | "Short" | "Medium" | "Long" | "Very long";
 
 type PathForgerCreateStoryPanelProps = {
   hidden: boolean;
@@ -154,9 +144,7 @@ const genreOptionVisuals: DecoratedOption[] = [
 
 const genreOptions = genreOptionVisuals.map((option) => option.label);
 
-const chapterLengthOptionVisuals: Array<
-  DecoratedOption & { label: AdventureLength }
-> = [
+const chapterLengthOptionVisuals: Array<DecoratedOption & { label: AdventureLength }> = [
   {
     label: "Very short (1-2 lines)",
     emoji: "⚡",
@@ -195,10 +183,7 @@ function renderDecoratedOption(
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-      <Typography
-        component="span"
-        sx={{ lineHeight: 1, fontSize: emojiFontSize }}
-      >
+      <Typography component="span" sx={{ lineHeight: 1, fontSize: emojiFontSize }}>
         {option.emoji}
       </Typography>
       <Typography
@@ -211,9 +196,7 @@ function renderDecoratedOption(
   );
 }
 
-export default function PathForgerCreateStoryPanel(
-  props: PathForgerCreateStoryPanelProps,
-) {
+export default function PathForgerCreateStoryPanel(props: PathForgerCreateStoryPanelProps) {
   const {
     hidden,
     showMainCreateSpinner,
@@ -269,36 +252,32 @@ export default function PathForgerCreateStoryPanel(
   );
   const selectedChapterLengthOption = React.useMemo(
     () =>
-      chapterLengthOptionVisuals.find(
-        (option) => option.label === adventureLength,
-      ) ?? { label: adventureLength, emoji: "📏" },
+      chapterLengthOptionVisuals.find((option) => option.label === adventureLength) ?? {
+        label: adventureLength,
+        emoji: "📏",
+      },
     [adventureLength],
   );
   const createStoryPanelRef = React.useRef<HTMLDivElement | null>(null);
-  const [dynamicCoverHeightPx, setDynamicCoverHeightPx] = React.useState<
-    number | null
-  >(null);
+  const [dynamicCoverHeightPx, setDynamicCoverHeightPx] = React.useState<number | null>(null);
   const ageRatingPanelContainerRef = React.useRef<HTMLDivElement | null>(null);
   const ageRatingPanelRefs = React.useRef<
     Partial<Record<AgeRatingOption["value"], HTMLDivElement | null>>
   >({});
-  const [ageRatingSelectionOutline, setAgeRatingSelectionOutline] =
-    React.useState({
-      top: 0,
-      left: 0,
-      width: 0,
-      height: 0,
-      opacity: 0,
-    });
+  const [ageRatingSelectionOutline, setAgeRatingSelectionOutline] = React.useState({
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+    opacity: 0,
+  });
 
   const updateAgeRatingSelectionOutline = React.useCallback(() => {
     const container = ageRatingPanelContainerRef.current;
     const activePanel = ageRatingPanelRefs.current[ageRating];
 
     if (!container || !activePanel) {
-      setAgeRatingSelectionOutline((prev) =>
-        prev.opacity === 0 ? prev : { ...prev, opacity: 0 },
-      );
+      setAgeRatingSelectionOutline((prev) => (prev.opacity === 0 ? prev : { ...prev, opacity: 0 }));
       return;
     }
 
@@ -349,18 +328,13 @@ export default function PathForgerCreateStoryPanel(
       }
       rafId = window.requestAnimationFrame(() => {
         const panelRect = panelNode.getBoundingClientRect();
-        const overflowPx = Math.max(
-          0,
-          panelRect.bottom + 8 - window.innerHeight,
-        );
+        const overflowPx = Math.max(0, panelRect.bottom + 8 - window.innerHeight);
         const baseHeight = window.innerWidth >= 900 ? 280 : 220;
         const minHeight = 56;
         const nextHeight = Math.round(
           Math.max(minHeight, Math.min(baseHeight, baseHeight - overflowPx)),
         );
-        setDynamicCoverHeightPx((prev) =>
-          prev === nextHeight ? prev : nextHeight,
-        );
+        setDynamicCoverHeightPx((prev) => (prev === nextHeight ? prev : nextHeight));
       });
     };
 
@@ -472,9 +446,7 @@ export default function PathForgerCreateStoryPanel(
         normalizedStatusText.includes("forging chapter") ||
         normalizedStatusText.includes("generating chapter"));
     const showLoadingAnimation =
-      showPathForgingAnimation ||
-      showPitchSelectionAnimation ||
-      showChapterLoadingAnimation;
+      showPathForgingAnimation || showPitchSelectionAnimation || showChapterLoadingAnimation;
     const loadingGifSrc = showPathForgingAnimation
       ? pathForgingGifSrc
       : showChapterLoadingAnimation
@@ -668,11 +640,7 @@ export default function PathForgerCreateStoryPanel(
                 ) : (
                   <CircularProgress size={30} thickness={4} />
                 )}
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ textAlign: "center" }}
-                >
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
                   {statusText || "Working..."}
                 </Typography>
               </Stack>
@@ -687,8 +655,7 @@ export default function PathForgerCreateStoryPanel(
                 value={genre}
                 onChange={(event) => onGenreChange(event.target.value)}
                 SelectProps={{
-                  renderValue: () =>
-                    renderDecoratedOption(selectedGenreOption, "selected"),
+                  renderValue: () => renderDecoratedOption(selectedGenreOption, "selected"),
                 }}
                 sx={{
                   "& .MuiSelect-select": {
@@ -700,16 +667,13 @@ export default function PathForgerCreateStoryPanel(
                 }}
               >
                 {genreOptions.map((item) => {
-                  const option = genreOptionVisuals.find(
-                    (entry) => entry.label === item,
-                  ) ?? { label: item, emoji: "📚" };
+                  const option = genreOptionVisuals.find((entry) => entry.label === item) ?? {
+                    label: item,
+                    emoji: "📚",
+                  };
 
                   return (
-                    <MenuItem
-                      key={item}
-                      value={item}
-                      sx={{ py: 1.4, minHeight: 68 }}
-                    >
+                    <MenuItem key={item} value={item} sx={{ py: 1.4, minHeight: 68 }}>
                       {renderDecoratedOption(option, "menu")}
                     </MenuItem>
                   );
@@ -723,9 +687,7 @@ export default function PathForgerCreateStoryPanel(
                 label="Protagonist Name Preference"
                 placeholder="Auto-generate a name"
                 value={protagonistPreference}
-                onChange={(event) =>
-                  onProtagonistPreferenceChange(event.target.value)
-                }
+                onChange={(event) => onProtagonistPreferenceChange(event.target.value)}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -742,17 +704,10 @@ export default function PathForgerCreateStoryPanel(
                             aria-label="Generate protagonist name"
                             onClick={onGenerateProtagonistName}
                             disabled={isRunning}
-                            color={
-                              activeRunAction === "name"
-                                ? "primary"
-                                : "default"
-                            }
+                            color={activeRunAction === "name" ? "primary" : "default"}
                             size="small"
                           >
-                            <Typography
-                              component="span"
-                              sx={{ fontSize: "1.1rem", lineHeight: 1 }}
-                            >
+                            <Typography component="span" sx={{ fontSize: "1.1rem", lineHeight: 1 }}>
                               ⚡
                             </Typography>
                           </IconButton>
@@ -774,10 +729,7 @@ export default function PathForgerCreateStoryPanel(
                 onChange={(event) => onPremiseChange(event.target.value)}
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment
-                      position="end"
-                      sx={{ alignSelf: "flex-start", mt: 1 }}
-                    >
+                    <InputAdornment position="end" sx={{ alignSelf: "flex-start", mt: 1 }}>
                       <Tooltip
                         title={
                           activeRunAction === "premise"
@@ -791,17 +743,10 @@ export default function PathForgerCreateStoryPanel(
                             aria-label="Generate premise"
                             onClick={onGeneratePremise}
                             disabled={isRunning}
-                            color={
-                              activeRunAction === "premise"
-                                ? "primary"
-                                : "default"
-                            }
+                            color={activeRunAction === "premise" ? "primary" : "default"}
                             size="small"
                           >
-                            <Typography
-                              component="span"
-                              sx={{ fontSize: "1.1rem", lineHeight: 1 }}
-                            >
+                            <Typography component="span" sx={{ fontSize: "1.1rem", lineHeight: 1 }}>
                               ⚡
                             </Typography>
                           </IconButton>
@@ -824,9 +769,7 @@ export default function PathForgerCreateStoryPanel(
                     <InputAdornment position="end">
                       <Tooltip
                         title={
-                          activeRunAction === "tone"
-                            ? "Forging tone..."
-                            : "Generate story tone"
+                          activeRunAction === "tone" ? "Forging tone..." : "Generate story tone"
                         }
                       >
                         <span>
@@ -835,15 +778,10 @@ export default function PathForgerCreateStoryPanel(
                             aria-label="Generate story tone"
                             onClick={onGenerateTone}
                             disabled={isRunning}
-                            color={
-                              activeRunAction === "tone" ? "primary" : "default"
-                            }
+                            color={activeRunAction === "tone" ? "primary" : "default"}
                             size="small"
                           >
-                            <Typography
-                              component="span"
-                              sx={{ fontSize: "1.1rem", lineHeight: 1 }}
-                            >
+                            <Typography component="span" sx={{ fontSize: "1.1rem", lineHeight: 1 }}>
                               ⚡
                             </Typography>
                           </IconButton>
@@ -877,17 +815,10 @@ export default function PathForgerCreateStoryPanel(
                             aria-label="Generate visual style"
                             onClick={onGenerateVisualStyle}
                             disabled={isRunning}
-                            color={
-                              activeRunAction === "style"
-                                ? "primary"
-                                : "default"
-                            }
+                            color={activeRunAction === "style" ? "primary" : "default"}
                             size="small"
                           >
-                            <Typography
-                              component="span"
-                              sx={{ fontSize: "1.1rem", lineHeight: 1 }}
-                            >
+                            <Typography component="span" sx={{ fontSize: "1.1rem", lineHeight: 1 }}>
                               ⚡
                             </Typography>
                           </IconButton>
@@ -992,10 +923,7 @@ export default function PathForgerCreateStoryPanel(
                         })}
                       >
                         <Stack spacing={0.25} alignItems="center">
-                          <Typography
-                            component="span"
-                            sx={{ fontSize: "1.3rem", lineHeight: 1 }}
-                          >
+                          <Typography component="span" sx={{ fontSize: "1.3rem", lineHeight: 1 }}>
                             {rating.emoji}
                           </Typography>
                           <Typography
@@ -1016,14 +944,13 @@ export default function PathForgerCreateStoryPanel(
               </Box>
               {ageRating === "R" ? (
                 <Alert severity="warning" sx={{ mt: 1.1 }}>
-                  ⚠️ Rated R selected: mature content may include stronger
-                  violence, language, and intense themes.
+                  ⚠️ Rated R selected: mature content may include stronger violence, language, and
+                  intense themes.
                 </Alert>
               ) : null}
               {ageRating === "NC-17" ? (
                 <Alert severity="error" sx={{ mt: 1.1, fontWeight: 700 }}>
-                  ⛔ Rated NC-17 selected: explicit adult content and extreme
-                  themes enabled.
+                  ⛔ Rated NC-17 selected: explicit adult content and extreme themes enabled.
                 </Alert>
               ) : null}
             </Grid>
@@ -1034,15 +961,9 @@ export default function PathForgerCreateStoryPanel(
                 fullWidth
                 label="Chapter Length"
                 value={adventureLength}
-                onChange={(event) =>
-                  onAdventureLengthChange(event.target.value as AdventureLength)
-                }
+                onChange={(event) => onAdventureLengthChange(event.target.value as AdventureLength)}
                 SelectProps={{
-                  renderValue: () =>
-                    renderDecoratedOption(
-                      selectedChapterLengthOption,
-                      "selected",
-                    ),
+                  renderValue: () => renderDecoratedOption(selectedChapterLengthOption, "selected"),
                 }}
                 sx={{
                   "& .MuiSelect-select": {
@@ -1054,11 +975,7 @@ export default function PathForgerCreateStoryPanel(
                 }}
               >
                 {chapterLengthOptionVisuals.map((item) => (
-                  <MenuItem
-                    key={item.label}
-                    value={item.label}
-                    sx={{ py: 1.4, minHeight: 68 }}
-                  >
+                  <MenuItem key={item.label} value={item.label} sx={{ py: 1.4, minHeight: 68 }}>
                     {renderDecoratedOption(item, "menu")}
                   </MenuItem>
                 ))}
@@ -1083,10 +1000,7 @@ export default function PathForgerCreateStoryPanel(
                 onClick={onCreateIt}
                 disabled={isRunning}
                 startIcon={
-                  <Typography
-                    component="span"
-                    sx={{ fontSize: "1.1rem", lineHeight: 1 }}
-                  >
+                  <Typography component="span" sx={{ fontSize: "1.1rem", lineHeight: 1 }}>
                     🚀
                   </Typography>
                 }

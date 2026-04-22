@@ -57,18 +57,9 @@ function keywordTagging(content: string): string[] {
     .map(([tag]) => tag);
 }
 
-const NETWORK_ERROR_CODES = [
-  "ECONNRESET",
-  "ENOTFOUND",
-  "ETIMEDOUT",
-  "EAI_AGAIN",
-];
+const NETWORK_ERROR_CODES = ["ECONNRESET", "ENOTFOUND", "ETIMEDOUT", "EAI_AGAIN"];
 
-async function fetchAiTags(
-  content: string,
-  maxRetries = 3,
-  baseDelay = 500,
-): Promise<string[]> {
+async function fetchAiTags(content: string, maxRetries = 3, baseDelay = 500): Promise<string[]> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const res = await askOpenAI({
@@ -125,4 +116,3 @@ export async function tagResume(content: string): Promise<string[]> {
 export function getKeywordTags(content: string): string[] {
   return keywordTagging(content);
 }
-

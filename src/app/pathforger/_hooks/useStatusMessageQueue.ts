@@ -9,9 +9,7 @@ export function useStatusMessageQueue(minDisplayMs: number): {
   const statusMessageQueueRef = React.useRef<string[]>([]);
   const currentStatusMessageRef = React.useRef("");
   const currentStatusMessageShownAtRef = React.useRef(0);
-  const statusMessageTimerRef = React.useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
+  const statusMessageTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const processStatusQueueRef = React.useRef<() => void>(() => {});
 
   const clearStatusMessageTimer = React.useCallback(() => {
@@ -26,10 +24,13 @@ export function useStatusMessageQueue(minDisplayMs: number): {
       return;
     }
 
-    statusMessageTimerRef.current = setTimeout(() => {
-      statusMessageTimerRef.current = null;
-      processStatusQueueRef.current();
-    }, Math.max(0, delayMs));
+    statusMessageTimerRef.current = setTimeout(
+      () => {
+        statusMessageTimerRef.current = null;
+        processStatusQueueRef.current();
+      },
+      Math.max(0, delayMs),
+    );
   }, []);
 
   React.useEffect(() => {

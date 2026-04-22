@@ -52,9 +52,7 @@ export default function ProjectShowcasePage({
 
     const normalizedHash = (() => {
       try {
-        const storedHash = window.sessionStorage
-          .getItem(LAST_HOME_HASH_STORAGE_KEY)
-          ?.trim();
+        const storedHash = window.sessionStorage.getItem(LAST_HOME_HASH_STORAGE_KEY)?.trim();
         if (storedHash && storedHash.startsWith("#")) {
           return storedHash;
         }
@@ -85,10 +83,7 @@ export default function ProjectShowcasePage({
           color: "text.primary",
         }}
       >
-        <AppBar
-          mode={mode}
-          toggleColorMode={toggleColorMode}
-        >
+        <AppBar mode={mode} toggleColorMode={toggleColorMode}>
           <IconButton
             edge="start"
             color="inherit"

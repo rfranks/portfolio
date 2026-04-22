@@ -38,10 +38,7 @@ export function getAppOpenAIKey(config: AppOpenAIKeyStorageConfig): string {
   return (process.env.NEXT_PUBLIC_OPENAI_API_KEY ?? "").trim();
 }
 
-export function setAppOpenAIKey(
-  value: string,
-  config: AppOpenAIKeyStorageConfig,
-): void {
+export function setAppOpenAIKey(value: string, config: AppOpenAIKeyStorageConfig): void {
   const trimmed = value.trim();
   if (!trimmed) {
     return;

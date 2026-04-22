@@ -1,8 +1,4 @@
-import {
-  AntiPowerupType,
-  SuperPowerupType,
-  PowerupType,
-} from "@/types/game/objects";
+import { AntiPowerupType, SuperPowerupType, PowerupType } from "@/types/game/objects";
 
 /** All powerup types available in the game */
 export const POWERUP_TYPES: PowerupType[] = [

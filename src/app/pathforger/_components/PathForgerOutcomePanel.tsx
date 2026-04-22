@@ -38,9 +38,7 @@ type PathForgerOutcomePanelProps = {
   kenBurnsImageSx: Record<string, unknown>;
 };
 
-export default function PathForgerOutcomePanel(
-  props: PathForgerOutcomePanelProps,
-) {
+export default function PathForgerOutcomePanel(props: PathForgerOutcomePanelProps) {
   const {
     open,
     title,

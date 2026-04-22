@@ -3,10 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { withBasePath } from "@/utils/basePath";
-import {
-  CHIP_GREEN_WHITE_SRC,
-  CHIP_WHITE_BLUE_SRC,
-} from "../_consts/blackjack";
+import { CHIP_GREEN_WHITE_SRC, CHIP_WHITE_BLUE_SRC } from "../_consts/blackjack";
 import type { BlackjackRenderState } from "../_types/messages";
 import ChipDecoratedValue from "./ChipDecoratedValue";
 
@@ -31,8 +28,7 @@ export default function BlackjackBonusWagerChip({
   showChipIcon = false,
   showBorder = true,
 }: BlackjackBonusWagerChipProps) {
-  const selectedBonusWager =
-    engineState.player?.selectedBonusWager ?? fallbackWager ?? 10;
+  const selectedBonusWager = engineState.player?.selectedBonusWager ?? fallbackWager ?? 10;
   const canCycleBonusWager = engineState.askingToDeal;
   const formattedWager = `$${selectedBonusWager}`;
 
@@ -69,9 +65,7 @@ export default function BlackjackBonusWagerChip({
             height={20}
           />
         ) : null}
-        {label ? (
-          <span className="blackjack-game-mode-chip-label">{label}</span>
-        ) : null}
+        {label ? <span className="blackjack-game-mode-chip-label">{label}</span> : null}
         <span className="blackjack-game-mode-chip-value">{formattedWager}</span>
       </button>
     );

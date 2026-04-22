@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ChangeEvent } from "react";
-import {
-  Button,
-  Checkbox,
-  FormControlLabel,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Button, Checkbox, FormControlLabel, Stack, Typography } from "@mui/material";
 
 import type { TalentForgeGoalTag } from "@/app/talentforge/_utils/promptRegistry";
 import { getGoals, setGoals } from "@/app/talentforge/_utils/dataStore";
@@ -46,16 +40,15 @@ export default function GoalSelectionStep({ onNext, onBack }: StepProps) {
     setSelectedGoals(getGoals());
   }, []);
 
-  const handleChange = (goal: TalentForgeGoalTag) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const { checked } = event.target;
-      setSelectedGoals((current) => {
-        if (checked) {
-          return current.includes(goal) ? current : [...current, goal];
-        }
-        return current.filter((item) => item !== goal);
-      });
-    };
+  const handleChange = (goal: TalentForgeGoalTag) => (event: ChangeEvent<HTMLInputElement>) => {
+    const { checked } = event.target;
+    setSelectedGoals((current) => {
+      if (checked) {
+        return current.includes(goal) ? current : [...current, goal];
+      }
+      return current.filter((item) => item !== goal);
+    });
+  };
 
   const handleFinish = () => {
     const orderedGoals = GOAL_OPTIONS.map((option) => option.key).filter((key) =>
@@ -70,8 +63,8 @@ export default function GoalSelectionStep({ onNext, onBack }: StepProps) {
   return (
     <Stack spacing={2} aria-label="Select goals">
       <Typography variant="body1">
-        Choose the outcomes you care about most. We&apos;ll highlight prompts that
-        match these goals throughout TalentForge.
+        Choose the outcomes you care about most. We&apos;ll highlight prompts that match these goals
+        throughout TalentForge.
       </Typography>
       <Stack spacing={1} role="group" aria-label="Goal options">
         {GOAL_OPTIONS.map((option) => (
@@ -113,4 +106,3 @@ export default function GoalSelectionStep({ onNext, onBack }: StepProps) {
     </Stack>
   );
 }
-

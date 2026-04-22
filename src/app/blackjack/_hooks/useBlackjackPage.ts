@@ -34,10 +34,7 @@ import {
   postBlackjackStart,
   postBlackjackToggleGameMode,
 } from "../_utils/messages";
-import {
-  createBlackjackConfettiPieces,
-  createWinningChipFx,
-} from "../_utils/effects";
+import { createBlackjackConfettiPieces, createWinningChipFx } from "../_utils/effects";
 import {
   getDealerOutcomeStampLabel,
   getDisplayResultSummary,
@@ -52,40 +49,30 @@ export function useBlackjackPage() {
   const pageRef = React.useRef<HTMLElement | null>(null);
   const tableShellRef = React.useRef<HTMLDivElement | null>(null);
   const playerStackRef = React.useRef<HTMLSpanElement | null>(null);
-  const slideRefs = React.useRef<
-    Partial<Record<BlackjackCarouselSlideId, HTMLElement | null>>
-  >({});
+  const slideRefs = React.useRef<Partial<Record<BlackjackCarouselSlideId, HTMLElement | null>>>({});
   const handRefs = React.useRef<Record<number, HTMLDivElement | null>>({});
 
-  const [engineState, setEngineState] =
-    React.useState<BlackjackRenderState | null>(null);
+  const [engineState, setEngineState] = React.useState<BlackjackRenderState | null>(null);
   const [gameStarted, setGameStarted] = React.useState(false);
   const [startRequested, setStartRequested] = React.useState(false);
   const [controlsArmed, setControlsArmed] = React.useState(false);
   const [activeSlideIndex, setActiveSlideIndex] = React.useState(0);
-  const [displayedPlayerStack, setDisplayedPlayerStack] = React.useState<
-    number | null
-  >(null);
+  const [displayedPlayerStack, setDisplayedPlayerStack] = React.useState<number | null>(null);
   const [stackTickerActive, setStackTickerActive] = React.useState(false);
   const [winningChipFx, setWinningChipFx] = React.useState<WinningChipFx[]>([]);
   const [blackjackConfettiPieces, setBlackjackConfettiPieces] = React.useState<
     BlackjackConfettiPiece[]
   >([]);
-  const [modeTransitionMessageVisible, setModeTransitionMessageVisible] =
-    React.useState(false);
+  const [modeTransitionMessageVisible, setModeTransitionMessageVisible] = React.useState(false);
   const [soundsEnabled, setSoundsEnabled] = React.useState(() => {
     if (typeof window === "undefined") {
       return true;
     }
 
-    return (
-      window.localStorage.getItem(BLACKJACK_SOUNDS_STORAGE_KEY) !== "false"
-    );
+    return window.localStorage.getItem(BLACKJACK_SOUNDS_STORAGE_KEY) !== "false";
   });
 
-  const previousEngineStateRef = React.useRef<BlackjackRenderState | null>(
-    null,
-  );
+  const previousEngineStateRef = React.useRef<BlackjackRenderState | null>(null);
   const previousGameModeRef = React.useRef<BlackjackGameMode | null>(null);
   const pendingModeChangeAutoDealRef = React.useRef(false);
   const modeChangeObservedRef = React.useRef(false);
@@ -167,9 +154,7 @@ export function useBlackjackPage() {
 
   const playWagerChipSfx = React.useCallback(() => {
     const wagerToggleSound =
-      CHIP_WIN_IMPACT_SOUNDS[
-        Math.floor(Math.random() * CHIP_WIN_IMPACT_SOUNDS.length)
-      ];
+      CHIP_WIN_IMPACT_SOUNDS[Math.floor(Math.random() * CHIP_WIN_IMPACT_SOUNDS.length)];
     playSfx(chipWinImpactSfx, wagerToggleSound, { volume: 0.48 });
   }, [chipWinImpactSfx, playSfx]);
 
@@ -197,10 +182,7 @@ export function useBlackjackPage() {
         return;
       }
 
-      const durationMs = Math.min(
-        1800,
-        Math.max(700, Math.abs(to - from) * 22),
-      );
+      const durationMs = Math.min(1800, Math.max(700, Math.abs(to - from) * 22));
       const startTime = performance.now();
       setStackTickerActive(true);
       setDisplayedPlayerStack(from);
@@ -235,10 +217,8 @@ export function useBlackjackPage() {
       }
 
       const chipCount = Math.min(14, Math.max(6, Math.round(winAmount / 15)));
-      const targetX =
-        stackRect.left - tableRect.left + stackRect.width * 0.5 - 22;
-      const targetY =
-        stackRect.top - tableRect.top + stackRect.height * 0.5 - 22;
+      const targetX = stackRect.left - tableRect.left + stackRect.width * 0.5 - 22;
+      const targetY = stackRect.top - tableRect.top + stackRect.height * 0.5 - 22;
 
       const nextFx = createWinningChipFx({
         chipCount,
@@ -251,9 +231,7 @@ export function useBlackjackPage() {
       setWinningChipFx(nextFx);
 
       const launchSound =
-        CHIP_WIN_LAUNCH_SOUNDS[
-          Math.floor(Math.random() * CHIP_WIN_LAUNCH_SOUNDS.length)
-        ];
+        CHIP_WIN_LAUNCH_SOUNDS[Math.floor(Math.random() * CHIP_WIN_LAUNCH_SOUNDS.length)];
       playSfx(chipWinLaunchSfx, launchSound, { volume: 0.5 });
 
       if (winningChipClearTimeoutRef.current !== null) {
@@ -264,14 +242,11 @@ export function useBlackjackPage() {
       }
 
       const maxLifetimeMs = nextFx.reduce(
-        (maxLifetime, chip) =>
-          Math.max(maxLifetime, chip.delayMs + chip.durationMs),
+        (maxLifetime, chip) => Math.max(maxLifetime, chip.delayMs + chip.durationMs),
         0,
       );
       const impactSound =
-        CHIP_WIN_IMPACT_SOUNDS[
-          Math.floor(Math.random() * CHIP_WIN_IMPACT_SOUNDS.length)
-        ];
+        CHIP_WIN_IMPACT_SOUNDS[Math.floor(Math.random() * CHIP_WIN_IMPACT_SOUNDS.length)];
       const impactDelayMs = Math.max(140, maxLifetimeMs - 180);
       winningChipImpactTimeoutRef.current = window.setTimeout(() => {
         playSfx(chipWinImpactSfx, impactSound, { volume: 0.62 });
@@ -314,8 +289,7 @@ export function useBlackjackPage() {
     }, 520);
 
     const maxLifetimeMs = [...nextPieces, ...secondWavePreview].reduce(
-      (maxLifetime, piece) =>
-        Math.max(maxLifetime, piece.delayMs + piece.durationMs),
+      (maxLifetime, piece) => Math.max(maxLifetime, piece.delayMs + piece.durationMs),
       0,
     );
 
@@ -362,10 +336,7 @@ export function useBlackjackPage() {
   );
 
   const handleToggleGameMode = React.useCallback(
-    (options?: {
-      autoDeal?: boolean;
-      direction?: BlackjackGameModeDirection;
-    }) => {
+    (options?: { autoDeal?: boolean; direction?: BlackjackGameModeDirection }) => {
       const autoDeal = options?.autoDeal ?? true;
       const direction = options?.direction ?? "next";
       startMusic();
@@ -402,19 +373,8 @@ export function useBlackjackPage() {
     }
 
     setSoundsEnabled(shouldEnableAll);
-    window.localStorage.setItem(
-      BLACKJACK_SOUNDS_STORAGE_KEY,
-      String(shouldEnableAll),
-    );
-  }, [
-    ambienceEnabled,
-    bgmEnabled,
-    soundsEnabled,
-    startAmbience,
-    startBGM,
-    stopAmbience,
-    stopBGM,
-  ]);
+    window.localStorage.setItem(BLACKJACK_SOUNDS_STORAGE_KEY, String(shouldEnableAll));
+  }, [ambienceEnabled, bgmEnabled, soundsEnabled, startAmbience, startBGM, stopAmbience, stopBGM]);
 
   const handleCycleWager = React.useCallback(() => {
     playWagerChipSfx();
@@ -428,9 +388,7 @@ export function useBlackjackPage() {
 
   const handleCardFlip = React.useCallback(() => {
     const flipSound =
-      BLACKJACK_CARD_FLIP_SOUNDS[
-        Math.floor(Math.random() * BLACKJACK_CARD_FLIP_SOUNDS.length)
-      ];
+      BLACKJACK_CARD_FLIP_SOUNDS[Math.floor(Math.random() * BLACKJACK_CARD_FLIP_SOUNDS.length)];
     playSfx(cardFlipSfx, flipSound, { volume: 0.34 });
   }, [cardFlipSfx, playSfx]);
 
@@ -441,17 +399,13 @@ export function useBlackjackPage() {
     [],
   );
 
-  const setHandRef = React.useCallback(
-    (index: number, node: HTMLDivElement | null) => {
-      handRefs.current[index] = node;
-    },
-    [],
-  );
+  const setHandRef = React.useCallback((index: number, node: HTMLDivElement | null) => {
+    handRefs.current[index] = node;
+  }, []);
 
   const scrollToSlide = React.useCallback((targetIndex: number) => {
     const slideCount = BLACKJACK_CAROUSEL_SLIDES.length;
-    const normalizedIndex =
-      ((targetIndex % slideCount) + slideCount) % slideCount;
+    const normalizedIndex = ((targetIndex % slideCount) + slideCount) % slideCount;
     const targetId = BLACKJACK_CAROUSEL_SLIDES[normalizedIndex]?.id;
     if (!targetId) {
       return;
@@ -499,9 +453,9 @@ export function useBlackjackPage() {
       return;
     }
 
-    const observedSlides = BLACKJACK_CAROUSEL_SLIDES.map(
-      ({ id }) => slideRefs.current[id],
-    ).filter((slide): slide is HTMLElement => Boolean(slide));
+    const observedSlides = BLACKJACK_CAROUSEL_SLIDES.map(({ id }) => slideRefs.current[id]).filter(
+      (slide): slide is HTMLElement => Boolean(slide),
+    );
 
     if (observedSlides.length === 0) {
       return;
@@ -583,10 +537,8 @@ export function useBlackjackPage() {
     if (previousState) {
       const previousResultKey = getResultTransitionKey(previousState.result);
       const currentResultKey = getResultTransitionKey(engineState.result);
-      const currentBusts =
-        engineState.player?.hands.map((hand) => hand.busted) ?? [];
-      const previousBusts =
-        previousState.player?.hands.map((hand) => hand.busted) ?? [];
+      const currentBusts = engineState.player?.hands.map((hand) => hand.busted) ?? [];
+      const previousBusts = previousState.player?.hands.map((hand) => hand.busted) ?? [];
 
       for (let index = 0; index < currentBusts.length; index += 1) {
         if (currentBusts[index] && !previousBusts[index]) {
@@ -599,13 +551,11 @@ export function useBlackjackPage() {
         const previousWinnings = previousState.player?.winnings ?? 0;
         const currentWinnings = engineState.player?.winnings ?? 0;
         const netDiff = currentWinnings - previousWinnings;
-        const previousPlayerStack =
-          previousState.player?.stack ?? currentPlayerStack;
+        const previousPlayerStack = previousState.player?.stack ?? currentPlayerStack;
         const stackDelta = currentPlayerStack - previousPlayerStack;
         const isBlackjackWin =
           engineState.result?.badge === "Won!" &&
-          (getPlayerHasBlackjack(engineState) ||
-            engineState.result.summary.includes("Blackjack"));
+          (getPlayerHasBlackjack(engineState) || engineState.result.summary.includes("Blackjack"));
 
         if (isBlackjackWin) {
           playSfx(blackjackSfx);
@@ -616,19 +566,11 @@ export function useBlackjackPage() {
         }
 
         if (engineState.result?.badge === "Won!") {
-          const visualWinAmount = Math.max(
-            stackDelta,
-            netDiff,
-            currentWinnings,
-            15,
-          );
+          const visualWinAmount = Math.max(stackDelta, netDiff, currentWinnings, 15);
 
           if (stackDelta > 0) {
             handledWinningStackAnimation = true;
-            animateDisplayedPlayerStack(
-              previousPlayerStack,
-              currentPlayerStack,
-            );
+            animateDisplayedPlayerStack(previousPlayerStack, currentPlayerStack);
           }
 
           triggerWinningChipFx(visualWinAmount);

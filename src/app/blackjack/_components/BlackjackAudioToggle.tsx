@@ -17,12 +17,7 @@ export default function BlackjackAudioToggle({
 }: BlackjackAudioToggleProps) {
   return (
     <label className={className}>
-      <input
-        className={inputClassName}
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-      />
+      <input className={inputClassName} type="checkbox" checked={checked} onChange={onChange} />
       <span>{label}</span>
     </label>
   );

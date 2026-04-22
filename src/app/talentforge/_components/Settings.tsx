@@ -77,8 +77,7 @@ export default function Settings() {
   const [toastMessage, setToastMessage] = React.useState("");
   const [compareOpen, setCompareOpen] = React.useState(false);
   const [exportNotes, setExportNotes] = React.useState("");
-  const [pendingImport, setPendingImport] =
-    React.useState<PendingSnapshotImport | null>(null);
+  const [pendingImport, setPendingImport] = React.useState<PendingSnapshotImport | null>(null);
   const { hasKey, clearKey, reloadFromStorage } = useOpenAIKey();
 
   const offers = dataStore.getOffers();
@@ -172,8 +171,7 @@ export default function Settings() {
   };
 
   const handleCompChange =
-    (field: "salary" | "benefits" | "stock") =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: "salary" | "benefits" | "stock") => (e: React.ChangeEvent<HTMLInputElement>) => {
       setComp((c) => ({ ...c, [field]: e.target.value }));
     };
   const handleSaveComp = () => {
@@ -189,8 +187,7 @@ export default function Settings() {
             Settings
           </Typography>
           <Typography color="text.secondary">
-            Configure AI access, compare offers, and manage your local
-            TalentForge data.
+            Configure AI access, compare offers, and manage your local TalentForge data.
           </Typography>
         </Hero>
 
@@ -218,8 +215,8 @@ export default function Settings() {
             </Typography>
             <Stack spacing={2} aria-label="Update current compensation">
               <Typography variant="body2" color="text.secondary">
-                This information is only used to negotiate better offers on your
-                behalf and compare them against your current compensation.
+                This information is only used to negotiate better offers on your behalf and compare
+                them against your current compensation.
               </Typography>
               <TextField
                 label="Current Salary"
@@ -242,11 +239,7 @@ export default function Settings() {
             </Stack>
           </CardContent>
           <CardActions>
-            <Button
-              variant="contained"
-              onClick={handleSaveComp}
-              disabled={!compHasValue}
-            >
+            <Button variant="contained" onClick={handleSaveComp} disabled={!compHasValue}>
               Save
             </Button>
           </CardActions>
@@ -258,8 +251,7 @@ export default function Settings() {
               Compare Offers
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Select two saved offers to review them side by side and generate
-              an AI analysis.
+              Select two saved offers to review them side by side and generate an AI analysis.
             </Typography>
           </CardContent>
           <CardActions sx={{ gap: 1, flexWrap: "wrap" }}>
@@ -285,16 +277,10 @@ export default function Settings() {
             </Typography>
             <List>
               <ListItem>
-                <ListItemText
-                  primary="LinkedIn"
-                  secondary="Configuration coming soon"
-                />
+                <ListItemText primary="LinkedIn" secondary="Configuration coming soon" />
               </ListItem>
               <ListItem>
-                <ListItemText
-                  primary="Indeed"
-                  secondary="Configuration coming soon"
-                />
+                <ListItemText primary="Indeed" secondary="Configuration coming soon" />
               </ListItem>
             </List>
           </CardContent>
@@ -315,10 +301,7 @@ export default function Settings() {
                 </Typography>
                 <List dense disablePadding>
                   <ListItem disablePadding>
-                    <ListItemText
-                      primary="App Version"
-                      secondary={APP_VERSION}
-                    />
+                    <ListItemText primary="App Version" secondary={APP_VERSION} />
                   </ListItem>
                   <ListItem disablePadding>
                     <ListItemText
@@ -345,12 +328,7 @@ export default function Settings() {
             </Button>
             <Button component="label">
               Import Snapshot
-              <input
-                type="file"
-                accept="application/json"
-                hidden
-                onChange={handleImport}
-              />
+              <input type="file" accept="application/json" hidden onChange={handleImport} />
             </Button>
           </CardActions>
         </Panel>
@@ -373,12 +351,7 @@ export default function Settings() {
         </Panel>
 
         <OpenAIKeyModal open={openKeyModal} onClose={handleCloseModal} />
-        <Dialog
-          open={Boolean(pendingImport)}
-          onClose={handleCancelImport}
-          fullWidth
-          maxWidth="sm"
-        >
+        <Dialog open={Boolean(pendingImport)} onClose={handleCancelImport} fullWidth maxWidth="sm">
           <DialogTitle>Import Snapshot</DialogTitle>
           <DialogContent dividers>
             {pendingImport ? (
@@ -424,19 +397,13 @@ export default function Settings() {
                       {details.map((item) =>
                         item.value ? (
                           <ListItem key={item.label} disablePadding>
-                            <ListItemText
-                              primary={item.label}
-                              secondary={item.value}
-                            />
+                            <ListItemText primary={item.label} secondary={item.value} />
                           </ListItem>
                         ) : null,
                       )}
                       {metadata.notes ? (
                         <ListItem disablePadding>
-                          <ListItemText
-                            primary="Notes"
-                            secondary={metadata.notes}
-                          />
+                          <ListItemText primary="Notes" secondary={metadata.notes} />
                         </ListItem>
                       ) : null}
                     </List>
@@ -447,21 +414,12 @@ export default function Settings() {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCancelImport}>Cancel</Button>
-            <Button
-              onClick={handleConfirmImport}
-              variant="contained"
-              disabled={!pendingImport}
-            >
+            <Button onClick={handleConfirmImport} variant="contained" disabled={!pendingImport}>
               Import Snapshot
             </Button>
           </DialogActions>
         </Dialog>
-        <Dialog
-          open={compareOpen}
-          onClose={() => setCompareOpen(false)}
-          fullWidth
-          maxWidth="lg"
-        >
+        <Dialog open={compareOpen} onClose={() => setCompareOpen(false)} fullWidth maxWidth="lg">
           <DialogTitle>Compare Offers</DialogTitle>
           <DialogContent dividers>
             <CompareOffers />

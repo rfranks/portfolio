@@ -69,14 +69,7 @@ export const ComicStripSpecSchema = z.object({
 
 export const ValidationIssueSchema = z.object({
   code: z.string().min(1),
-  category: z.enum([
-    "format",
-    "script",
-    "character",
-    "visual",
-    "readability",
-    "style",
-  ]),
+  category: z.enum(["format", "script", "character", "visual", "readability", "style"]),
   severity: SeveritySchema,
   message: z.string(),
   panelNumber: z.number().int().positive().optional(),

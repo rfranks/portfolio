@@ -19,8 +19,7 @@ export function createProjectPageData(
   };
   const baseProjectRecord = baseProject as Record<string, unknown>;
   const baseProjectBlurb =
-    typeof baseProjectRecord.blurb === "string" &&
-    baseProjectRecord.blurb.trim()
+    typeof baseProjectRecord.blurb === "string" && baseProjectRecord.blurb.trim()
       ? baseProjectRecord.blurb.trim()
       : undefined;
 

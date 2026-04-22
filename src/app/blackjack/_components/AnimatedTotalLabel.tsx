@@ -9,10 +9,7 @@ type AnimatedTotalLabelProps = {
 
 const CHANGE_ANIMATION_MS = 320;
 
-export default function AnimatedTotalLabel({
-  value,
-  className,
-}: AnimatedTotalLabelProps) {
+export default function AnimatedTotalLabel({ value, className }: AnimatedTotalLabelProps) {
   const [currentValue, setCurrentValue] = React.useState(value);
   const [outgoingValue, setOutgoingValue] = React.useState<string | null>(null);
 

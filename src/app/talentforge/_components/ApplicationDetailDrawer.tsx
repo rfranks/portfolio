@@ -51,10 +51,7 @@ import {
 import { useTalentForgeData } from "@/app/talentforge/_contexts/TalentForgeDataContext";
 import PromptTileGrid from "./promptTiles/PromptTileGrid";
 import FileUploader from "./FileUploader";
-import {
-  getPromptTiles,
-  type PromptContext,
-} from "@/app/talentforge/_utils/promptRegistry";
+import { getPromptTiles, type PromptContext } from "@/app/talentforge/_utils/promptRegistry";
 import { STATUSES } from "@/app/talentforge/_utils/keyboard";
 import Chip from "@/components/fabric/Chip";
 
@@ -72,10 +69,7 @@ interface ApplicationDetailDrawerProps {
     id: string,
     updates: Partial<Pick<JobApplication, "nextAction" | "dueAt">>,
   ) => void;
-  onUpdateAttachments: (
-    id: string,
-    attachments: ApplicationAttachment[],
-  ) => void;
+  onUpdateAttachments: (id: string, attachments: ApplicationAttachment[]) => void;
   onSaveDecision: (
     id: string,
     updates: {
@@ -181,8 +175,7 @@ export default function ApplicationDetailDrawer({
 }: ApplicationDetailDrawerProps) {
   const data = useTalentForgeData();
   const attachments = application?.attachments ?? [];
-  const [previewAttachment, setPreviewAttachment] =
-    useState<ApplicationAttachment | null>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<ApplicationAttachment | null>(null);
   const [uploaderKey, setUploaderKey] = useState(0);
   const router = useRouter();
 
@@ -203,9 +196,7 @@ export default function ApplicationDetailDrawer({
 
   const jobDescriptionHtml = useMemo(() => {
     if (!application?.role.description) return "";
-    return DOMPurify.sanitize(
-      (marked.parse(application.role.description) as string) || "",
-    );
+    return DOMPurify.sanitize((marked.parse(application.role.description) as string) || "");
   }, [application?.role.description]);
 
   useEffect(() => {
@@ -230,11 +221,7 @@ export default function ApplicationDetailDrawer({
     });
 
   const handleAttachmentUpload = (
-    value:
-      | File[]
-      | string
-      | { filename: string; type: string; content: string }
-      | undefined,
+    value: File[] | string | { filename: string; type: string; content: string } | undefined,
   ) => {
     if (!application || !Array.isArray(value) || value.length === 0) {
       return;
@@ -255,9 +242,7 @@ export default function ApplicationDetailDrawer({
         if (newAttachments.length === 0) {
           return;
         }
-        const latestApp = data
-          .getJobApplications()
-          .find((entry) => entry.id === appId);
+        const latestApp = data.getJobApplications().find((entry) => entry.id === appId);
         const baseAttachments = latestApp?.attachments ?? [];
         onUpdateAttachments(appId, [...baseAttachments, ...newAttachments]);
         setUploaderKey((key) => key + 1);
@@ -271,13 +256,9 @@ export default function ApplicationDetailDrawer({
     if (!application) {
       return;
     }
-    const latestApp = data
-      .getJobApplications()
-      .find((entry) => entry.id === application.id);
+    const latestApp = data.getJobApplications().find((entry) => entry.id === application.id);
     const baseAttachments = latestApp?.attachments ?? [];
-    const nextAttachments = baseAttachments.filter(
-      (attachment) => attachment.id !== attachmentId,
-    );
+    const nextAttachments = baseAttachments.filter((attachment) => attachment.id !== attachmentId);
     onUpdateAttachments(application.id, nextAttachments);
     if (previewAttachment?.id === attachmentId) {
       setPreviewAttachment(null);
@@ -374,10 +355,7 @@ export default function ApplicationDetailDrawer({
     ) {
       const text = decodeBase64ToText(attachment.content);
       return (
-        <Box
-          component="pre"
-          sx={{ whiteSpace: "pre-wrap", fontFamily: "monospace", m: 0 }}
-        >
+        <Box component="pre" sx={{ whiteSpace: "pre-wrap", fontFamily: "monospace", m: 0 }}>
           {text || "Unable to display text preview."}
         </Box>
       );
@@ -411,14 +389,11 @@ export default function ApplicationDetailDrawer({
   }, [application, data]);
 
   const interviewDateValue = application?.interviewDateTime
-    ? toDateTimeLocalValue(application.interviewDateTime) ||
-      application.interviewDateTime
+    ? toDateTimeLocalValue(application.interviewDateTime) || application.interviewDateTime
     : "";
   const interviewLocationValue = application?.interviewLocation ?? "";
   const interviewDateRaw =
-    typeof application?.interviewDateTime === "string"
-      ? application.interviewDateTime.trim()
-      : "";
+    typeof application?.interviewDateTime === "string" ? application.interviewDateTime.trim() : "";
   const hasValidInterviewTime =
     Boolean(interviewDateRaw) && !Number.isNaN(new Date(interviewDateRaw).getTime());
   const canDownloadInvite = Boolean(application) && hasValidInterviewTime;
@@ -482,21 +457,17 @@ export default function ApplicationDetailDrawer({
   const [reasonDraft, setReasonDraft] = useState<string>("");
   const [nextActionDraft, setNextActionDraft] = useState<string>("");
   const [dueDraft, setDueDraft] = useState<string>("");
-  const [decisionStatusDraft, setDecisionStatusDraft] =
-    useState<OfferDecisionStatus>(OFFER_DECISION_DEFAULT_STATUS);
+  const [decisionStatusDraft, setDecisionStatusDraft] = useState<OfferDecisionStatus>(
+    OFFER_DECISION_DEFAULT_STATUS,
+  );
   const [decisionDateDraft, setDecisionDateDraft] = useState<string>("");
   const [decisionNotesDraft, setDecisionNotesDraft] = useState<string>("");
   const [allRecruiters, setAllRecruiters] = useState<RecruiterEntry[]>([]);
   const [allThreads, setAllThreads] = useState<Message[]>([]);
   const [linkedRecruiterIds, setLinkedRecruiterIds] = useState<string[]>([]);
-  const [recruiterSelection, setRecruiterSelection] =
-    useState<RecruiterEntry | null>(null);
-  const [viewRecruiter, setViewRecruiter] = useState<RecruiterEntry | null>(
-    null,
-  );
-  const [editingRecruiterId, setEditingRecruiterId] = useState<string | null>(
-    null,
-  );
+  const [recruiterSelection, setRecruiterSelection] = useState<RecruiterEntry | null>(null);
+  const [viewRecruiter, setViewRecruiter] = useState<RecruiterEntry | null>(null);
+  const [editingRecruiterId, setEditingRecruiterId] = useState<string | null>(null);
   const [editingTags, setEditingTags] = useState<string>("");
 
   const decisionInitial = useMemo(() => {
@@ -510,9 +481,7 @@ export default function ApplicationDetailDrawer({
     const decision = application.decision ?? application.offer?.decision;
     return {
       status: decision?.status ?? OFFER_DECISION_DEFAULT_STATUS,
-      decidedAt: decision?.decidedAt
-        ? toDateTimeLocalValue(decision.decidedAt)
-        : "",
+      decidedAt: decision?.decidedAt ? toDateTimeLocalValue(decision.decidedAt) : "",
       notes: decision?.notes ?? "",
     };
   }, [application]);
@@ -541,9 +510,7 @@ export default function ApplicationDetailDrawer({
     const aiEntries = (application.activities ?? []).map((activity) => {
       const summary = activity.summary?.trim() ?? "";
       const errorText =
-        activity.outcome === "error" && activity.error
-          ? activity.error.trim()
-          : undefined;
+        activity.outcome === "error" && activity.error ? activity.error.trim() : undefined;
       return {
         id: activity.id,
         type: "ai" as const,
@@ -595,9 +562,7 @@ export default function ApplicationDetailDrawer({
     setDecisionStatusDraft(decisionInitial.status);
     setDecisionDateDraft(decisionInitial.decidedAt);
     setDecisionNotesDraft(decisionInitial.notes);
-    setLinkedRecruiterIds(
-      (application.recruiters ?? []).map((recruiter) => recruiter.id),
-    );
+    setLinkedRecruiterIds((application.recruiters ?? []).map((recruiter) => recruiter.id));
     setRecruiterSelection(null);
   }, [
     application,
@@ -628,8 +593,7 @@ export default function ApplicationDetailDrawer({
   }, [linkedRecruiterIds, recruiterMap, application?.recruiters]);
 
   const availableRecruiters = useMemo(
-    () =>
-      allRecruiters.filter((recruiter) => !linkedRecruiterIds.includes(recruiter.id)),
+    () => allRecruiters.filter((recruiter) => !linkedRecruiterIds.includes(recruiter.id)),
     [allRecruiters, linkedRecruiterIds],
   );
 
@@ -646,9 +610,7 @@ export default function ApplicationDetailDrawer({
     const matches: Message[] = [];
     for (const thread of allThreads) {
       const matchesApplication = thread.applicationId === application.id;
-      const matchesRecruiter = Boolean(
-        thread.recruiterId && recruiterIds.has(thread.recruiterId),
-      );
+      const matchesRecruiter = Boolean(thread.recruiterId && recruiterIds.has(thread.recruiterId));
       if ((matchesApplication || matchesRecruiter) && !seen.has(thread.id)) {
         matches.push(thread);
         seen.add(thread.id);
@@ -662,7 +624,7 @@ export default function ApplicationDetailDrawer({
   }, [allThreads, application, linkedRecruiterIds]);
 
   const editingRecruiter = editingRecruiterId
-    ? recruiterMap.get(editingRecruiterId) ?? null
+    ? (recruiterMap.get(editingRecruiterId) ?? null)
     : null;
 
   const buildRecruiterList = (
@@ -671,16 +633,12 @@ export default function ApplicationDetailDrawer({
   ): RecruiterEntry[] => {
     const fallback = application?.recruiters ?? [];
     return ids
-      .map(
-        (id) => map.get(id) ?? fallback.find((recruiter) => recruiter.id === id),
-      )
+      .map((id) => map.get(id) ?? fallback.find((recruiter) => recruiter.id === id))
       .filter((value): value is RecruiterEntry => Boolean(value));
   };
 
   const initialNextAction = application?.nextAction ?? "";
-  const initialDueDraft = application?.dueAt
-    ? toDateTimeLocalValue(application.dueAt)
-    : "";
+  const initialDueDraft = application?.dueAt ? toDateTimeLocalValue(application.dueAt) : "";
   const trimmedNextActionDraft = nextActionDraft.trim();
   const dueIso = toIsoOrUndefined(dueDraft);
   const dueHasError = Boolean(dueDraft) && !dueIso;
@@ -689,9 +647,7 @@ export default function ApplicationDetailDrawer({
   const hasReminderChanges = hasNextActionChange || hasDueDraftChange;
   const canSaveReminder = Boolean(application) && hasReminderChanges && !dueHasError;
 
-  const handleStatusDraftChange = (
-    event: SelectChangeEvent<unknown>,
-  ) => {
+  const handleStatusDraftChange = (event: SelectChangeEvent<unknown>) => {
     const nextStatus = event.target.value as ApplicationStatus;
     setStatusDraft(nextStatus);
     if (!application) {
@@ -723,9 +679,7 @@ export default function ApplicationDetailDrawer({
     onSetInterviewDate(application.id, event.target.value);
   };
 
-  const handleInterviewLocationChange = (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleInterviewLocationChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (!application) return;
     onSetInterviewLocation(application.id, event.target.value);
   };
@@ -751,8 +705,7 @@ export default function ApplicationDetailDrawer({
     decisionStatusDraft !== decisionInitial.status ||
     decisionDateDraft !== decisionInitial.decidedAt ||
     trimmedDecisionNotesDraft !== trimmedDecisionInitialNotes;
-  const canSaveDecision =
-    Boolean(application) && decisionHasChanges && !decisionDateHasError;
+  const canSaveDecision = Boolean(application) && decisionHasChanges && !decisionDateHasError;
 
   const handleReminderSave = () => {
     if (!application || !hasReminderChanges || dueHasError) {
@@ -775,21 +728,15 @@ export default function ApplicationDetailDrawer({
     setDueDraft(initialDueDraft);
   };
 
-  const handleDecisionStatusDraftChange = (
-    event: SelectChangeEvent<unknown>,
-  ) => {
+  const handleDecisionStatusDraftChange = (event: SelectChangeEvent<unknown>) => {
     setDecisionStatusDraft(event.target.value as OfferDecisionStatus);
   };
 
-  const handleDecisionDateDraftChange = (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleDecisionDateDraftChange = (event: ChangeEvent<HTMLInputElement>) => {
     setDecisionDateDraft(event.target.value);
   };
 
-  const handleDecisionNotesDraftChange = (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleDecisionNotesDraftChange = (event: ChangeEvent<HTMLInputElement>) => {
     setDecisionNotesDraft(event.target.value);
   };
 
@@ -810,10 +757,7 @@ export default function ApplicationDetailDrawer({
     });
   };
 
-  const handleLinkRecruiter = (
-    _: unknown,
-    recruiter: RecruiterEntry | null,
-  ) => {
+  const handleLinkRecruiter = (_: unknown, recruiter: RecruiterEntry | null) => {
     if (!application || !recruiter) {
       setRecruiterSelection(recruiter);
       return;
@@ -889,10 +833,7 @@ export default function ApplicationDetailDrawer({
 
   const handleComposeNewThread = () => {
     if (!application) return;
-    const connectorLabel = [
-      application.role.company,
-      application.role.title,
-    ]
+    const connectorLabel = [application.role.company, application.role.title]
       .filter((value): value is string => Boolean(value))
       .join(" – ");
     const message: Message = {
@@ -924,924 +865,872 @@ export default function ApplicationDetailDrawer({
   return (
     <>
       <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      variant="persistent"
-      ModalProps={{ keepMounted: true }}
-      sx={{ zIndex: (theme) => theme.zIndex.drawer - 1 }}
-      PaperProps={{
-        sx: {
-          width: { xs: "100%", sm: 360, md: 380, lg: 420 },
-          maxWidth: "100vw",
-          p: 2,
-          display: "flex",
-          flexDirection: "column",
-          gap: 0,
-          mr: promptDrawerOpen
-            ? { xs: 0, md: 420, lg: 520 }
-            : 0,
-        },
-      }}
-    >
-      <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="flex-start"
-          justifyContent="space-between"
-        >
-          <Box>
-            <Typography variant="h6">
-              {application ? application.role.title : "Application details"}
-            </Typography>
-            {application && (
-              <>
-                <Typography variant="body2" color="text.secondary">
-                  {[
-                    application.role.company,
-                    application.role.location,
-                  ]
-                    .filter(Boolean)
-                    .join(" • ")}
-                </Typography>
-                {application.role.url && (
-                  <Link
-                    href={application.role.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    variant="body2"
-                    sx={{ display: "inline-block", mt: 0.5 }}
-                  >
-                    View job posting
-                  </Link>
-                )}
-              </>
-            )}
-          </Box>
-          <IconButton
-            size="small"
-            onClick={onClose}
-            aria-label="Close application details"
-          >
-            <Close />
-          </IconButton>
-        </Stack>
-        <Box sx={{ flexGrow: 1, overflowY: "auto", mt: 2, pr: 1 }}>
-          <Stack spacing={3} divider={<Divider flexItem />}>
-            {application && (
-              <Box>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={1}
-                  alignItems={{ xs: "flex-start", sm: "center" }}
-                  justifyContent="space-between"
-                >
-                  <Typography variant="subtitle2">Activity log</Typography>
-                  <Stack direction="row" spacing={1}>
-                    <Chip
-                      label="AI"
-                      size="small"
-                      color={activityFilters.ai ? "primary" : "default"}
-                      variant={activityFilters.ai ? "filled" : "outlined"}
-                      onClick={() => handleActivityFilterToggle("ai")}
-                    />
-                    <Chip
-                      label="Manual"
-                      size="small"
-                      color={activityFilters.manual ? "primary" : "default"}
-                      variant={activityFilters.manual ? "filled" : "outlined"}
-                      onClick={() => handleActivityFilterToggle("manual")}
-                    />
-                  </Stack>
-                </Stack>
-                {filteredActivityTimeline.length > 0 ? (
-                  <List dense disablePadding sx={{ mt: 1 }}>
-                    {filteredActivityTimeline.map((entry) => (
-                      <ListItem
-                        key={`${entry.type}-${entry.id}`}
-                        alignItems="flex-start"
-                        sx={{ px: 0, py: 1 }}
-                      >
-                        <ListItemText
-                          primary={
-                            <Stack
-                              direction={{ xs: "column", sm: "row" }}
-                              spacing={1}
-                              alignItems={{ xs: "flex-start", sm: "center" }}
-                            >
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                {entry.title}
-                              </Typography>
-                              <Stack direction="row" spacing={0.5}>
-                                <Chip
-                                  label={entry.type === "ai" ? "AI" : "Manual"}
-                                  size="small"
-                                  variant="outlined"
-                                />
-                                {entry.type === "ai" && entry.outcome && (
-                                  <Chip
-                                    label={
-                                      entry.outcome === "error"
-                                        ? "Error"
-                                        : "Success"
-                                    }
-                                    size="small"
-                                    color={
-                                      entry.outcome === "error" ? "error" : "success"
-                                    }
-                                    variant={
-                                      entry.outcome === "error" ? "filled" : "outlined"
-                                    }
-                                  />
-                                )}
-                              </Stack>
-                            </Stack>
-                          }
-                          secondary={
-                            <Stack spacing={0.5}>
-                              <Typography variant="caption" color="text.secondary">
-                                {formatTimelineDate(entry.timestamp)}
-                              </Typography>
-                              {entry.description && (
-                                <Typography variant="body2" color="text.secondary">
-                                  {entry.description}
-                                </Typography>
-                              )}
-                            </Stack>
-                          }
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                ) : (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    {hasActivityTimeline
-                      ? "No activity matches the selected filters."
-                      : "No activity recorded yet."}
-                  </Typography>
-                )}
-              </Box>
-            )}
-            {application && (
-              <Box>
-                <Typography variant="subtitle2" gutterBottom>
-                  Status timeline
-                </Typography>
-                {history.length > 0 ? (
-                  <Stepper
-                    orientation="vertical"
-                    activeStep={history.length - 1}
-                    sx={{ mt: 1 }}
-                  >
-                    {history.map((entry, index) => (
-                      <Step
-                        key={`${entry.status}-${entry.changedAt}-${index}`}
-                        completed={index < history.length - 1}
-                        expanded
-                      >
-                        <StepLabel
-                          optional={
-                            <Typography variant="caption" color="text.secondary">
-                              {formatTimelineDate(entry.changedAt)}
-                            </Typography>
-                          }
-                        >
-                          {formatStatusLabel(entry.status)}
-                        </StepLabel>
-                        <Box sx={{ pl: 4, pb: index === history.length - 1 ? 0 : 2 }}>
-                          <Typography
-                            variant="body2"
-                            color={entry.reason ? "text.secondary" : "text.disabled"}
-                            sx={{ fontStyle: entry.reason ? "normal" : "italic" }}
-                          >
-                            {entry.reason || "No reason provided"}
-                          </Typography>
-                        </Box>
-                      </Step>
-                    ))}
-                  </Stepper>
-                ) : (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    No status updates logged yet.
-                  </Typography>
-                )}
-                <Box component="form" onSubmit={handleStatusSubmit} noValidate sx={{ mt: 2 }}>
-                  <Stack spacing={2}>
-                    <TextField
-                      label="Status"
-                      select
-                      size="small"
-                      value={statusDraft}
-                      SelectProps={{ onChange: handleStatusDraftChange }}
-                      fullWidth
-                    >
-                      {STATUSES.map((status) => (
-                        <MenuItem key={status} value={status}>
-                          {formatStatusLabel(status)}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                    <TextField
-                      label="Date"
-                      type="datetime-local"
-                      size="small"
-                      value={dateDraft}
-                      onChange={handleDateDraftChange}
-                      fullWidth
-                      required
-                      InputLabelProps={{ shrink: true }}
-                    />
-                    <TextField
-                      label="Reason"
-                      value={reasonDraft}
-                      onChange={handleReasonDraftChange}
-                      fullWidth
-                      multiline
-                      minRows={2}
-                      placeholder="Optional details about this status change"
-                    />
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      disabled={!application || !dateDraft}
-                      sx={{ alignSelf: "flex-start" }}
-                    >
-                      {statusDraft === application.status
-                        ? "Update status"
-                        : "Log status change"}
-                    </Button>
-                  </Stack>
-                </Box>
-              </Box>
-            )}
-            {application && (
-              <Box>
-                <Typography variant="subtitle2" gutterBottom>
-                  Interview details
-                </Typography>
-                <Stack spacing={2}>
-                  <TextField
-                    label="Interview time"
-                    type="datetime-local"
-                    size="small"
-                    value={interviewDateValue}
-                    onChange={handleInterviewDateChange}
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                  />
-                  <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={1}
-                    alignItems={{ xs: "stretch", sm: "flex-end" }}
-                  >
-                    <TextField
-                      label="Meeting URL/Location"
-                      size="small"
-                      value={interviewLocationValue}
-                      onChange={handleInterviewLocationChange}
-                      fullWidth
-                      sx={{ flexGrow: 1 }}
-                    />
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={handleDownloadInvite}
-                      disabled={!canDownloadInvite}
-                      sx={{
-                        alignSelf: { xs: "stretch", sm: "flex-end" },
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Download invite
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Box>
-            )}
-            {application && (
-              <Box>
-                <Typography variant="subtitle2" gutterBottom>
-                  Next action
-                </Typography>
-                <Stack spacing={2}>
-                  <TextField
-                    label="Next action"
-                    value={nextActionDraft}
-                    onChange={handleNextActionDraftChange}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    placeholder="Describe the next follow-up step"
-                  />
-                  <TextField
-                    label="Due date"
-                    type="datetime-local"
-                    size="small"
-                    value={dueDraft}
-                    onChange={handleDueDraftChange}
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    error={dueHasError}
-                    helperText={dueHasError ? "Enter a valid date and time" : undefined}
-                  />
-                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
-                    <Button
-                      variant="contained"
-                      onClick={handleReminderSave}
-                      disabled={!canSaveReminder}
-                      sx={{ alignSelf: "flex-start" }}
-                    >
-                      Save reminder
-                    </Button>
-                    <Button
-                      variant="text"
-                      onClick={handleReminderReset}
-                      disabled={!hasReminderChanges}
-                    >
-                      Reset
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Box>
-            )}
-            {application && (
-              <Box>
-                <Typography variant="subtitle2" gutterBottom>
-                  Offer decision
-                </Typography>
-                <Stack spacing={2}>
-                  <TextField
-                    label="Decision status"
-                    select
-                    size="small"
-                    value={decisionStatusDraft}
-                    SelectProps={{ onChange: handleDecisionStatusDraftChange }}
-                    fullWidth
-                  >
-                    {OFFER_DECISION_STATUSES.map((status) => (
-                      <MenuItem key={status} value={status}>
-                        {formatDecisionStatus(status)}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
-                    label="Decision date"
-                    type="datetime-local"
-                    size="small"
-                    value={decisionDateDraft}
-                    onChange={handleDecisionDateDraftChange}
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    error={decisionDateHasError}
-                    helperText={
-                      decisionDateHasError
-                        ? "Enter a valid date and time"
-                        : undefined
-                    }
-                  />
-                  <TextField
-                    label="Decision notes"
-                    value={decisionNotesDraft}
-                    onChange={handleDecisionNotesDraftChange}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    placeholder="Add optional notes about this decision"
-                  />
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{ flexWrap: "wrap", rowGap: 1 }}
-                  >
-                    <Button
-                      variant="contained"
-                      onClick={handleDecisionSave}
-                      disabled={!canSaveDecision}
-                      sx={{ alignSelf: "flex-start" }}
-                    >
-                      Save decision
-                    </Button>
-                    <Button
-                      variant="text"
-                      onClick={handleDecisionReset}
-                      disabled={!decisionHasChanges}
-                    >
-                      Reset
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Box>
-            )}
+        anchor="right"
+        open={open}
+        onClose={onClose}
+        variant="persistent"
+        ModalProps={{ keepMounted: true }}
+        sx={{ zIndex: (theme) => theme.zIndex.drawer - 1 }}
+        PaperProps={{
+          sx: {
+            width: { xs: "100%", sm: 360, md: 380, lg: 420 },
+            maxWidth: "100vw",
+            p: 2,
+            display: "flex",
+            flexDirection: "column",
+            gap: 0,
+            mr: promptDrawerOpen ? { xs: 0, md: 420, lg: 520 } : 0,
+          },
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+          <Stack direction="row" spacing={1} alignItems="flex-start" justifyContent="space-between">
             <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Job description
+              <Typography variant="h6">
+                {application ? application.role.title : "Application details"}
               </Typography>
-              {application?.role.description ? (
-                <Box
-                  sx={{
-                    "& ul": { pl: 3 },
-                    "& ol": { pl: 3 },
-                    "& p": { mt: 0, mb: 1 },
-                  }}
-                  dangerouslySetInnerHTML={{ __html: jobDescriptionHtml }}
-                />
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No description provided for this role.
-                </Typography>
-              )}
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Linked resume
-              </Typography>
-              {application?.resumeVariant ? (
-                <Stack spacing={0.5}>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {application.resumeVariant.title}
+              {application && (
+                <>
+                  <Typography variant="body2" color="text.secondary">
+                    {[application.role.company, application.role.location]
+                      .filter(Boolean)
+                      .join(" • ")}
                   </Typography>
-                  {application.resumeVariant.url ? (
+                  {application.role.url && (
                     <Link
-                      href={application.resumeVariant.url}
+                      href={application.role.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       variant="body2"
+                      sx={{ display: "inline-block", mt: 0.5 }}
                     >
-                      Open resume
+                      View job posting
                     </Link>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      This resume is stored locally and does not have a public
-                      link.
-                    </Typography>
                   )}
-                </Stack>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No resume is linked to this application.
-                </Typography>
+                </>
               )}
             </Box>
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Attachments
-              </Typography>
-              {application ? (
-                <Stack spacing={1.5}>
-                  {attachments.length > 0 ? (
-                    <List dense disablePadding>
-                      {attachments.map((attachment) => (
+            <IconButton size="small" onClick={onClose} aria-label="Close application details">
+              <Close />
+            </IconButton>
+          </Stack>
+          <Box sx={{ flexGrow: 1, overflowY: "auto", mt: 2, pr: 1 }}>
+            <Stack spacing={3} divider={<Divider flexItem />}>
+              {application && (
+                <Box>
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={1}
+                    alignItems={{ xs: "flex-start", sm: "center" }}
+                    justifyContent="space-between"
+                  >
+                    <Typography variant="subtitle2">Activity log</Typography>
+                    <Stack direction="row" spacing={1}>
+                      <Chip
+                        label="AI"
+                        size="small"
+                        color={activityFilters.ai ? "primary" : "default"}
+                        variant={activityFilters.ai ? "filled" : "outlined"}
+                        onClick={() => handleActivityFilterToggle("ai")}
+                      />
+                      <Chip
+                        label="Manual"
+                        size="small"
+                        color={activityFilters.manual ? "primary" : "default"}
+                        variant={activityFilters.manual ? "filled" : "outlined"}
+                        onClick={() => handleActivityFilterToggle("manual")}
+                      />
+                    </Stack>
+                  </Stack>
+                  {filteredActivityTimeline.length > 0 ? (
+                    <List dense disablePadding sx={{ mt: 1 }}>
+                      {filteredActivityTimeline.map((entry) => (
                         <ListItem
-                          key={attachment.id}
-                          secondaryAction={
-                            <Stack direction="row" spacing={0.5}>
-                              <Tooltip title="Preview">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handlePreviewAttachment(attachment)}
-                                  aria-label={`Preview ${attachment.name}`}
-                                >
-                                  <Visibility fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Download">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleDownloadAttachment(attachment)}
-                                  aria-label={`Download ${attachment.name}`}
-                                >
-                                  <Download fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleDeleteAttachment(attachment.id)}
-                                  aria-label={`Delete ${attachment.name}`}
-                                >
-                                  <Delete fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          }
+                          key={`${entry.type}-${entry.id}`}
+                          alignItems="flex-start"
+                          sx={{ px: 0, py: 1 }}
                         >
                           <ListItemText
-                            primary={attachment.name}
-                            secondary={attachment.mimeType}
+                            primary={
+                              <Stack
+                                direction={{ xs: "column", sm: "row" }}
+                                spacing={1}
+                                alignItems={{ xs: "flex-start", sm: "center" }}
+                              >
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {entry.title}
+                                </Typography>
+                                <Stack direction="row" spacing={0.5}>
+                                  <Chip
+                                    label={entry.type === "ai" ? "AI" : "Manual"}
+                                    size="small"
+                                    variant="outlined"
+                                  />
+                                  {entry.type === "ai" && entry.outcome && (
+                                    <Chip
+                                      label={entry.outcome === "error" ? "Error" : "Success"}
+                                      size="small"
+                                      color={entry.outcome === "error" ? "error" : "success"}
+                                      variant={entry.outcome === "error" ? "filled" : "outlined"}
+                                    />
+                                  )}
+                                </Stack>
+                              </Stack>
+                            }
+                            secondary={
+                              <Stack spacing={0.5}>
+                                <Typography variant="caption" color="text.secondary">
+                                  {formatTimelineDate(entry.timestamp)}
+                                </Typography>
+                                {entry.description && (
+                                  <Typography variant="body2" color="text.secondary">
+                                    {entry.description}
+                                  </Typography>
+                                )}
+                              </Stack>
+                            }
                           />
                         </ListItem>
                       ))}
                     </List>
                   ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No attachments uploaded yet.
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      {hasActivityTimeline
+                        ? "No activity matches the selected filters."
+                        : "No activity recorded yet."}
                     </Typography>
                   )}
-                  <FileUploader
-                    key={`${application.id}-${uploaderKey}`}
-                    label="Upload attachments"
-                    variant="upload"
-                    outputType="files"
-                    limit={5}
-                    maxFileSize={10 * 1024 * 1024}
-                    onChange={handleAttachmentUpload}
-                  />
-                </Stack>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  Select an application to manage attachments.
-                </Typography>
+                </Box>
               )}
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Recruiter info
-              </Typography>
-              {linkedRecruiters.length > 0 ? (
-                <Stack spacing={2}>
-                  {linkedRecruiters.map((recruiter) => (
-                    <Box
-                      key={recruiter.id}
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 1,
-                        border: "1px solid",
-                        borderColor: "divider",
-                        bgcolor: "background.paper",
-                      }}
-                    >
-                      <Stack
-                        direction="row"
-                        alignItems="flex-start"
-                        justifyContent="space-between"
-                        spacing={1}
-                      >
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {recruiter.name}
-                          </Typography>
-                          {recruiter.email && (
-                            <Link
-                              href={`mailto:${recruiter.email}`}
-                              variant="body2"
-                              sx={{ display: "inline-block" }}
-                            >
-                              {recruiter.email}
-                            </Link>
-                          )}
-                          <Typography variant="caption" color="text.secondary">
-                            Connector: {recruiter.connector}
-                          </Typography>
-                          {recruiter.tags.length > 0 && (
-                            <Stack
-                              direction="row"
-                              spacing={1}
-                              flexWrap="wrap"
-                              useFlexGap
-                              sx={{ mt: 0.5 }}
-                            >
-                              {recruiter.tags.map((tag) => (
-                                <Chip key={tag} label={tag} size="small" />
-                              ))}
-                            </Stack>
-                          )}
-                        </Box>
-                        <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleOpenRecruiterView(recruiter.id)}
-                          >
-                            View
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleOpenEditTags(recruiter.id)}
-                          >
-                            Edit tags
-                          </Button>
-                          <Button
-                            size="small"
-                            color="error"
-                            onClick={() => handleUnlinkRecruiter(recruiter.id)}
-                          >
-                            Unlink
-                          </Button>
-                        </Stack>
-                      </Stack>
-                    </Box>
-                  ))}
-                </Stack>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No recruiters are associated with this application yet.
-                </Typography>
-              )}
-              <Autocomplete
-                sx={{ mt: 2 }}
-                size="small"
-                value={recruiterSelection}
-                options={availableRecruiters}
-                getOptionLabel={(option) => option.name}
-                onChange={handleLinkRecruiter}
-                isOptionEqualToValue={(option, value) => option.id === value.id}
-                disabled={!application || availableRecruiters.length === 0}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Link recruiter"
-                    placeholder={
-                      availableRecruiters.length === 0
-                        ? "All recruiters linked"
-                        : "Search recruiters"
-                    }
-                  />
-                )}
-                noOptionsText={
-                  availableRecruiters.length === 0
-                    ? "No additional recruiters available"
-                    : "No recruiters found"
-                }
-              />
-            </Box>
-            <Box>
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={1}
-                alignItems={{ xs: "stretch", sm: "center" }}
-                justifyContent="space-between"
-              >
-                <Typography variant="subtitle2">Related inbox threads</Typography>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={handleComposeNewThread}
-                  disabled={!application}
-                >
-                  Compose new message
-                </Button>
-              </Stack>
-              {relatedThreads.length > 0 ? (
-                <Stack spacing={2} sx={{ mt: 2 }}>
-                  {relatedThreads.map((thread) => (
-                    <Box
-                      key={thread.id}
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 1,
-                        border: "1px solid",
-                        borderColor: "divider",
-                        bgcolor: "background.paper",
-                      }}
-                    >
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        justifyContent="space-between"
-                        alignItems="flex-start"
-                      >
-                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {thread.connector}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Sent {formatTimelineDate(thread.sentAt)}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mt: 0.5, whiteSpace: "pre-wrap" }}
-                          >
-                            {thread.body || "No preview available."}
-                          </Typography>
-                        </Box>
-                        <Button
-                          component={NextLink}
-                          href={`/talentforge/inbox?threadId=${thread.id}`}
-                          size="small"
-                          variant="outlined"
-                          sx={{ flexShrink: 0 }}
+              {application && (
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Status timeline
+                  </Typography>
+                  {history.length > 0 ? (
+                    <Stepper orientation="vertical" activeStep={history.length - 1} sx={{ mt: 1 }}>
+                      {history.map((entry, index) => (
+                        <Step
+                          key={`${entry.status}-${entry.changedAt}-${index}`}
+                          completed={index < history.length - 1}
+                          expanded
                         >
-                          Open in inbox
-                        </Button>
-                      </Stack>
+                          <StepLabel
+                            optional={
+                              <Typography variant="caption" color="text.secondary">
+                                {formatTimelineDate(entry.changedAt)}
+                              </Typography>
+                            }
+                          >
+                            {formatStatusLabel(entry.status)}
+                          </StepLabel>
+                          <Box sx={{ pl: 4, pb: index === history.length - 1 ? 0 : 2 }}>
+                            <Typography
+                              variant="body2"
+                              color={entry.reason ? "text.secondary" : "text.disabled"}
+                              sx={{ fontStyle: entry.reason ? "normal" : "italic" }}
+                            >
+                              {entry.reason || "No reason provided"}
+                            </Typography>
+                          </Box>
+                        </Step>
+                      ))}
+                    </Stepper>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      No status updates logged yet.
+                    </Typography>
+                  )}
+                  <Box component="form" onSubmit={handleStatusSubmit} noValidate sx={{ mt: 2 }}>
+                    <Stack spacing={2}>
                       <TextField
+                        label="Status"
                         select
-                        label="Linked recruiter"
                         size="small"
-                        value={thread.recruiterId || ""}
-                        onChange={(event) =>
-                          handleThreadRecruiterChange(
-                            thread.id,
-                            event.target.value as string,
-                          )
-                        }
-                        sx={{ mt: 1 }}
+                        value={statusDraft}
+                        SelectProps={{ onChange: handleStatusDraftChange }}
                         fullWidth
                       >
-                        <MenuItem value="">
-                          <em>No recruiter</em>
-                        </MenuItem>
-                        {allRecruiters.map((recruiter) => (
-                          <MenuItem key={recruiter.id} value={recruiter.id}>
-                            {recruiter.name}
+                        {STATUSES.map((status) => (
+                          <MenuItem key={status} value={status}>
+                            {formatStatusLabel(status)}
                           </MenuItem>
                         ))}
                       </TextField>
-                    </Box>
-                  ))}
-                </Stack>
-              ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                  No inbox threads are linked to this application yet.
-                </Typography>
-              )}
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Connector sync status
-              </Typography>
-              {connectors.length > 0 ? (
-                <Stack spacing={1}>
-                  {connectors.map((connector) => (
-                    <Stack
-                      key={connector.key}
-                      direction="row"
-                      alignItems="center"
-                      spacing={1}
-                    >
-                      <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                        {connector.label}
-                      </Typography>
-                      <Chip
-                        label={connector.connected ? "Connected" : "Not connected"}
-                        color={connector.connected ? "success" : "default"}
+                      <TextField
+                        label="Date"
+                        type="datetime-local"
                         size="small"
+                        value={dateDraft}
+                        onChange={handleDateDraftChange}
+                        fullWidth
+                        required
+                        InputLabelProps={{ shrink: true }}
                       />
+                      <TextField
+                        label="Reason"
+                        value={reasonDraft}
+                        onChange={handleReasonDraftChange}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        placeholder="Optional details about this status change"
+                      />
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        disabled={!application || !dateDraft}
+                        sx={{ alignSelf: "flex-start" }}
+                      >
+                        {statusDraft === application.status ? "Update status" : "Log status change"}
+                      </Button>
                     </Stack>
-                  ))}
-                </Stack>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  This application is not linked to any connectors.
-                </Typography>
+                  </Box>
+                </Box>
               )}
-            </Box>
-            {application && promptContexts.length > 0 && (
+              {application && (
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Interview details
+                  </Typography>
+                  <Stack spacing={2}>
+                    <TextField
+                      label="Interview time"
+                      type="datetime-local"
+                      size="small"
+                      value={interviewDateValue}
+                      onChange={handleInterviewDateChange}
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      spacing={1}
+                      alignItems={{ xs: "stretch", sm: "flex-end" }}
+                    >
+                      <TextField
+                        label="Meeting URL/Location"
+                        size="small"
+                        value={interviewLocationValue}
+                        onChange={handleInterviewLocationChange}
+                        fullWidth
+                        sx={{ flexGrow: 1 }}
+                      />
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={handleDownloadInvite}
+                        disabled={!canDownloadInvite}
+                        sx={{
+                          alignSelf: { xs: "stretch", sm: "flex-end" },
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Download invite
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
+              )}
+              {application && (
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Next action
+                  </Typography>
+                  <Stack spacing={2}>
+                    <TextField
+                      label="Next action"
+                      value={nextActionDraft}
+                      onChange={handleNextActionDraftChange}
+                      fullWidth
+                      multiline
+                      minRows={2}
+                      placeholder="Describe the next follow-up step"
+                    />
+                    <TextField
+                      label="Due date"
+                      type="datetime-local"
+                      size="small"
+                      value={dueDraft}
+                      onChange={handleDueDraftChange}
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                      error={dueHasError}
+                      helperText={dueHasError ? "Enter a valid date and time" : undefined}
+                    />
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
+                      <Button
+                        variant="contained"
+                        onClick={handleReminderSave}
+                        disabled={!canSaveReminder}
+                        sx={{ alignSelf: "flex-start" }}
+                      >
+                        Save reminder
+                      </Button>
+                      <Button
+                        variant="text"
+                        onClick={handleReminderReset}
+                        disabled={!hasReminderChanges}
+                      >
+                        Reset
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
+              )}
+              {application && (
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Offer decision
+                  </Typography>
+                  <Stack spacing={2}>
+                    <TextField
+                      label="Decision status"
+                      select
+                      size="small"
+                      value={decisionStatusDraft}
+                      SelectProps={{ onChange: handleDecisionStatusDraftChange }}
+                      fullWidth
+                    >
+                      {OFFER_DECISION_STATUSES.map((status) => (
+                        <MenuItem key={status} value={status}>
+                          {formatDecisionStatus(status)}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                    <TextField
+                      label="Decision date"
+                      type="datetime-local"
+                      size="small"
+                      value={decisionDateDraft}
+                      onChange={handleDecisionDateDraftChange}
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                      error={decisionDateHasError}
+                      helperText={decisionDateHasError ? "Enter a valid date and time" : undefined}
+                    />
+                    <TextField
+                      label="Decision notes"
+                      value={decisionNotesDraft}
+                      onChange={handleDecisionNotesDraftChange}
+                      fullWidth
+                      multiline
+                      minRows={2}
+                      placeholder="Add optional notes about this decision"
+                    />
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
+                      <Button
+                        variant="contained"
+                        onClick={handleDecisionSave}
+                        disabled={!canSaveDecision}
+                        sx={{ alignSelf: "flex-start" }}
+                      >
+                        Save decision
+                      </Button>
+                      <Button
+                        variant="text"
+                        onClick={handleDecisionReset}
+                        disabled={!decisionHasChanges}
+                      >
+                        Reset
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
+              )}
               <Box>
                 <Typography variant="subtitle2" gutterBottom>
-                  Quick prompts
+                  Job description
                 </Typography>
-                <PromptTileGrid
-                  contexts={promptContexts}
-                  initialValues={promptInitialValues}
-                />
-              </Box>
-            )}
-          </Stack>
-        </Box>
-      </Box>
-      <Dialog open={Boolean(viewRecruiter)} onClose={handleCloseRecruiterView}>
-        <DialogTitle>Recruiter details</DialogTitle>
-        <DialogContent>
-          {viewRecruiter ? (
-            <Stack spacing={1.5} sx={{ mt: 0.5 }}>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Name
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {viewRecruiter.name}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Email
-                </Typography>
-                {viewRecruiter.email ? (
-                  <Link href={`mailto:${viewRecruiter.email}`}>
-                    {viewRecruiter.email}
-                  </Link>
+                {application?.role.description ? (
+                  <Box
+                    sx={{
+                      "& ul": { pl: 3 },
+                      "& ol": { pl: 3 },
+                      "& p": { mt: 0, mb: 1 },
+                    }}
+                    dangerouslySetInnerHTML={{ __html: jobDescriptionHtml }}
+                  />
                 ) : (
                   <Typography variant="body2" color="text.secondary">
-                    No email available.
+                    No description provided for this role.
                   </Typography>
                 )}
               </Box>
               <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Connector
+                <Typography variant="subtitle2" gutterBottom>
+                  Linked resume
                 </Typography>
-                <Typography variant="body2">{viewRecruiter.connector}</Typography>
+                {application?.resumeVariant ? (
+                  <Stack spacing={0.5}>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {application.resumeVariant.title}
+                    </Typography>
+                    {application.resumeVariant.url ? (
+                      <Link
+                        href={application.resumeVariant.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variant="body2"
+                      >
+                        Open resume
+                      </Link>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        This resume is stored locally and does not have a public link.
+                      </Typography>
+                    )}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No resume is linked to this application.
+                  </Typography>
+                )}
               </Box>
               <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Tags
+                <Typography variant="subtitle2" gutterBottom>
+                  Attachments
                 </Typography>
-                {viewRecruiter.tags.length > 0 ? (
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    {viewRecruiter.tags.map((tag) => (
-                      <Chip key={tag} label={tag} size="small" />
+                {application ? (
+                  <Stack spacing={1.5}>
+                    {attachments.length > 0 ? (
+                      <List dense disablePadding>
+                        {attachments.map((attachment) => (
+                          <ListItem
+                            key={attachment.id}
+                            secondaryAction={
+                              <Stack direction="row" spacing={0.5}>
+                                <Tooltip title="Preview">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handlePreviewAttachment(attachment)}
+                                    aria-label={`Preview ${attachment.name}`}
+                                  >
+                                    <Visibility fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Download">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleDownloadAttachment(attachment)}
+                                    aria-label={`Download ${attachment.name}`}
+                                  >
+                                    <Download fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleDeleteAttachment(attachment.id)}
+                                    aria-label={`Delete ${attachment.name}`}
+                                  >
+                                    <Delete fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Stack>
+                            }
+                          >
+                            <ListItemText
+                              primary={attachment.name}
+                              secondary={attachment.mimeType}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No attachments uploaded yet.
+                      </Typography>
+                    )}
+                    <FileUploader
+                      key={`${application.id}-${uploaderKey}`}
+                      label="Upload attachments"
+                      variant="upload"
+                      outputType="files"
+                      limit={5}
+                      maxFileSize={10 * 1024 * 1024}
+                      onChange={handleAttachmentUpload}
+                    />
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    Select an application to manage attachments.
+                  </Typography>
+                )}
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  Recruiter info
+                </Typography>
+                {linkedRecruiters.length > 0 ? (
+                  <Stack spacing={2}>
+                    {linkedRecruiters.map((recruiter) => (
+                      <Box
+                        key={recruiter.id}
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 1,
+                          border: "1px solid",
+                          borderColor: "divider",
+                          bgcolor: "background.paper",
+                        }}
+                      >
+                        <Stack
+                          direction="row"
+                          alignItems="flex-start"
+                          justifyContent="space-between"
+                          spacing={1}
+                        >
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {recruiter.name}
+                            </Typography>
+                            {recruiter.email && (
+                              <Link
+                                href={`mailto:${recruiter.email}`}
+                                variant="body2"
+                                sx={{ display: "inline-block" }}
+                              >
+                                {recruiter.email}
+                              </Link>
+                            )}
+                            <Typography variant="caption" color="text.secondary">
+                              Connector: {recruiter.connector}
+                            </Typography>
+                            {recruiter.tags.length > 0 && (
+                              <Stack
+                                direction="row"
+                                spacing={1}
+                                flexWrap="wrap"
+                                useFlexGap
+                                sx={{ mt: 0.5 }}
+                              >
+                                {recruiter.tags.map((tag) => (
+                                  <Chip key={tag} label={tag} size="small" />
+                                ))}
+                              </Stack>
+                            )}
+                          </Box>
+                          <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => handleOpenRecruiterView(recruiter.id)}
+                            >
+                              View
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => handleOpenEditTags(recruiter.id)}
+                            >
+                              Edit tags
+                            </Button>
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => handleUnlinkRecruiter(recruiter.id)}
+                            >
+                              Unlink
+                            </Button>
+                          </Stack>
+                        </Stack>
+                      </Box>
                     ))}
                   </Stack>
                 ) : (
                   <Typography variant="body2" color="text.secondary">
-                    No tags have been added yet.
+                    No recruiters are associated with this application yet.
+                  </Typography>
+                )}
+                <Autocomplete
+                  sx={{ mt: 2 }}
+                  size="small"
+                  value={recruiterSelection}
+                  options={availableRecruiters}
+                  getOptionLabel={(option) => option.name}
+                  onChange={handleLinkRecruiter}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  disabled={!application || availableRecruiters.length === 0}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Link recruiter"
+                      placeholder={
+                        availableRecruiters.length === 0
+                          ? "All recruiters linked"
+                          : "Search recruiters"
+                      }
+                    />
+                  )}
+                  noOptionsText={
+                    availableRecruiters.length === 0
+                      ? "No additional recruiters available"
+                      : "No recruiters found"
+                  }
+                />
+              </Box>
+              <Box>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  alignItems={{ xs: "stretch", sm: "center" }}
+                  justifyContent="space-between"
+                >
+                  <Typography variant="subtitle2">Related inbox threads</Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleComposeNewThread}
+                    disabled={!application}
+                  >
+                    Compose new message
+                  </Button>
+                </Stack>
+                {relatedThreads.length > 0 ? (
+                  <Stack spacing={2} sx={{ mt: 2 }}>
+                    {relatedThreads.map((thread) => (
+                      <Box
+                        key={thread.id}
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 1,
+                          border: "1px solid",
+                          borderColor: "divider",
+                          bgcolor: "background.paper",
+                        }}
+                      >
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                        >
+                          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {thread.connector}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Sent {formatTimelineDate(thread.sentAt)}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ mt: 0.5, whiteSpace: "pre-wrap" }}
+                            >
+                              {thread.body || "No preview available."}
+                            </Typography>
+                          </Box>
+                          <Button
+                            component={NextLink}
+                            href={`/talentforge/inbox?threadId=${thread.id}`}
+                            size="small"
+                            variant="outlined"
+                            sx={{ flexShrink: 0 }}
+                          >
+                            Open in inbox
+                          </Button>
+                        </Stack>
+                        <TextField
+                          select
+                          label="Linked recruiter"
+                          size="small"
+                          value={thread.recruiterId || ""}
+                          onChange={(event) =>
+                            handleThreadRecruiterChange(thread.id, event.target.value as string)
+                          }
+                          sx={{ mt: 1 }}
+                          fullWidth
+                        >
+                          <MenuItem value="">
+                            <em>No recruiter</em>
+                          </MenuItem>
+                          {allRecruiters.map((recruiter) => (
+                            <MenuItem key={recruiter.id} value={recruiter.id}>
+                              {recruiter.name}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Box>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                    No inbox threads are linked to this application yet.
                   </Typography>
                 )}
               </Box>
               <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Notes
+                <Typography variant="subtitle2" gutterBottom>
+                  Connector sync status
                 </Typography>
-                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                  {viewRecruiter.notes || "No notes saved."}
-                </Typography>
+                {connectors.length > 0 ? (
+                  <Stack spacing={1}>
+                    {connectors.map((connector) => (
+                      <Stack key={connector.key} direction="row" alignItems="center" spacing={1}>
+                        <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                          {connector.label}
+                        </Typography>
+                        <Chip
+                          label={connector.connected ? "Connected" : "Not connected"}
+                          color={connector.connected ? "success" : "default"}
+                          size="small"
+                        />
+                      </Stack>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    This application is not linked to any connectors.
+                  </Typography>
+                )}
               </Box>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Linked threads
-                </Typography>
-                <Typography variant="body2">
-                  {viewRecruiter.threadIds.length}
-                  {viewRecruiter.threadIds.length === 1 ? " thread" : " threads"}
-                </Typography>
-              </Box>
+              {application && promptContexts.length > 0 && (
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Quick prompts
+                  </Typography>
+                  <PromptTileGrid contexts={promptContexts} initialValues={promptInitialValues} />
+                </Box>
+              )}
             </Stack>
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              No recruiter selected.
-            </Typography>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseRecruiterView}>Close</Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog
-        open={Boolean(editingRecruiterId)}
-        onClose={handleCloseEditTags}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle>Edit recruiter tags</DialogTitle>
-        <DialogContent>
-          <Stack spacing={1} sx={{ mt: 0.5 }}>
-            <Typography variant="body2" color="text.secondary">
-              Enter a comma-separated list of tags to help categorize this recruiter.
-            </Typography>
-            <TextField
-              label="Tags"
-              value={editingTags}
-              onChange={(event) => setEditingTags(event.target.value)}
-              placeholder="e.g. responsive, hiring manager"
-              autoFocus
-              fullWidth
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseEditTags}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleSaveRecruiterTags}
-            disabled={!editingRecruiter}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog
-        open={Boolean(previewAttachment)}
-        onClose={handleClosePreview}
-        fullWidth
-        maxWidth="md"
-      >
-        <DialogTitle>
-          {previewAttachment?.name ?? "Attachment preview"}
-        </DialogTitle>
-        <DialogContent dividers sx={{ minHeight: 200 }}>
-          {previewAttachment ? renderPreviewContent(previewAttachment) : null}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClosePreview}>Close</Button>
-          <Button
-            onClick={() => {
-              if (previewAttachment) {
-                handleDownloadAttachment(previewAttachment);
-              }
-            }}
-            startIcon={<Download />}
-            variant="contained"
-            disabled={!previewAttachment}
-          >
-            Download
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Drawer>
-  </>
+          </Box>
+        </Box>
+        <Dialog open={Boolean(viewRecruiter)} onClose={handleCloseRecruiterView}>
+          <DialogTitle>Recruiter details</DialogTitle>
+          <DialogContent>
+            {viewRecruiter ? (
+              <Stack spacing={1.5} sx={{ mt: 0.5 }}>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Name
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    {viewRecruiter.name}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Email
+                  </Typography>
+                  {viewRecruiter.email ? (
+                    <Link href={`mailto:${viewRecruiter.email}`}>{viewRecruiter.email}</Link>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No email available.
+                    </Typography>
+                  )}
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Connector
+                  </Typography>
+                  <Typography variant="body2">{viewRecruiter.connector}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Tags
+                  </Typography>
+                  {viewRecruiter.tags.length > 0 ? (
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      {viewRecruiter.tags.map((tag) => (
+                        <Chip key={tag} label={tag} size="small" />
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No tags have been added yet.
+                    </Typography>
+                  )}
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Notes
+                  </Typography>
+                  <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                    {viewRecruiter.notes || "No notes saved."}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Linked threads
+                  </Typography>
+                  <Typography variant="body2">
+                    {viewRecruiter.threadIds.length}
+                    {viewRecruiter.threadIds.length === 1 ? " thread" : " threads"}
+                  </Typography>
+                </Box>
+              </Stack>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No recruiter selected.
+              </Typography>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseRecruiterView}>Close</Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog
+          open={Boolean(editingRecruiterId)}
+          onClose={handleCloseEditTags}
+          fullWidth
+          maxWidth="xs"
+        >
+          <DialogTitle>Edit recruiter tags</DialogTitle>
+          <DialogContent>
+            <Stack spacing={1} sx={{ mt: 0.5 }}>
+              <Typography variant="body2" color="text.secondary">
+                Enter a comma-separated list of tags to help categorize this recruiter.
+              </Typography>
+              <TextField
+                label="Tags"
+                value={editingTags}
+                onChange={(event) => setEditingTags(event.target.value)}
+                placeholder="e.g. responsive, hiring manager"
+                autoFocus
+                fullWidth
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseEditTags}>Cancel</Button>
+            <Button
+              variant="contained"
+              onClick={handleSaveRecruiterTags}
+              disabled={!editingRecruiter}
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog
+          open={Boolean(previewAttachment)}
+          onClose={handleClosePreview}
+          fullWidth
+          maxWidth="md"
+        >
+          <DialogTitle>{previewAttachment?.name ?? "Attachment preview"}</DialogTitle>
+          <DialogContent dividers sx={{ minHeight: 200 }}>
+            {previewAttachment ? renderPreviewContent(previewAttachment) : null}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClosePreview}>Close</Button>
+            <Button
+              onClick={() => {
+                if (previewAttachment) {
+                  handleDownloadAttachment(previewAttachment);
+                }
+              }}
+              startIcon={<Download />}
+              variant="contained"
+              disabled={!previewAttachment}
+            >
+              Download
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Drawer>
+    </>
   );
 }

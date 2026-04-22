@@ -45,9 +45,7 @@ type PathForgerSettingsDialogProps = {
   onRunPipeline: () => void | Promise<void>;
 };
 
-export default function PathForgerSettingsDialog(
-  props: PathForgerSettingsDialogProps,
-) {
+export default function PathForgerSettingsDialog(props: PathForgerSettingsDialogProps) {
   const {
     open,
     onClose,
@@ -89,9 +87,7 @@ export default function PathForgerSettingsDialog(
               label="Danger Level"
               value={dangerLevel}
               onChange={(event) =>
-                onDangerLevelChange(
-                  event.target.value as "Forgiving" | "Risky" | "Deadly",
-                )
+                onDangerLevelChange(event.target.value as "Forgiving" | "Risky" | "Deadly")
               }
             >
               <MenuItem value="Forgiving">Forgiving</MenuItem>
@@ -103,9 +99,7 @@ export default function PathForgerSettingsDialog(
               control={
                 <Checkbox
                   checked={allowPermanentDeath}
-                  onChange={(event) =>
-                    onAllowPermanentDeathChange(event.target.checked)
-                  }
+                  onChange={(event) => onAllowPermanentDeathChange(event.target.checked)}
                 />
               }
               label="Allow permanent death"
@@ -117,8 +111,8 @@ export default function PathForgerSettingsDialog(
               Pipeline
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Runs split calls: text/md generation first, then separate
-              image-generation calls from the returned image prompts.
+              Runs split calls: text/md generation first, then separate image-generation calls from
+              the returned image prompts.
             </Typography>
             <Grid container spacing={1.5} sx={{ mb: 2 }}>
               <Grid item xs={12} sm={6}>
@@ -128,14 +122,10 @@ export default function PathForgerSettingsDialog(
                   label="Selected Pitch"
                   value={selectedPitch}
                   onChange={(event) =>
-                    onSelectedPitchChange(
-                      event.target.value as PitchSelectionState,
-                    )
+                    onSelectedPitchChange(event.target.value as PitchSelectionState)
                   }
                 >
-                  <MenuItem value="auto">
-                    Auto (use model recommendation)
-                  </MenuItem>
+                  <MenuItem value="auto">Auto (use model recommendation)</MenuItem>
                   <MenuItem value="A">A</MenuItem>
                   <MenuItem value="B">B</MenuItem>
                   <MenuItem value="C">C</MenuItem>
@@ -148,9 +138,7 @@ export default function PathForgerSettingsDialog(
                   label="Outcome Branch (optional)"
                   value={selectedBranch}
                   onChange={(event) =>
-                    onSelectedBranchChange(
-                      event.target.value as "" | PathForgerBranchChoice,
-                    )
+                    onSelectedBranchChange(event.target.value as "" | PathForgerBranchChoice)
                   }
                 >
                   <MenuItem value="">None</MenuItem>

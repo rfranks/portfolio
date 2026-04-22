@@ -1164,9 +1164,7 @@
       "start": "Aug 2008",
       "end": "October 2010",
       "position": "",
-      "details": [
-        "Full-stack developer focused on Java-based web application development."
-      ]
+      "details": ["Full-stack developer focused on Java-based web application development."]
     }
   ],
   "projects": [
@@ -1299,7 +1297,7 @@
           "comment": "Honored to have my code preserved in the Arctic Code Vault for future generations!  Just one issue, how do I commit to GitHub in the Arctic? We would like to release more code, but the wifi is terrible.",
           "launchUrl": "/blasteroids",
           "githubUrl": "https://github.com/rfranks/blasteroids",
-          "imageSrcUrl": "/personal/images/github/achievments/arctic-code-vault-contributor-default.png",
+          "imageSrcUrl": "/personal/images/github/achievements/arctic-code-vault-contributor-default.png",
           "date": "February 2, 2020"
         }
       ],
@@ -1897,28 +1895,28 @@
         "name": "Pull Shark",
         "tier": "x3",
         "slug": "pull-shark",
-        "imageSrcUrl": "/personal/images/github/achievments/pull-shark-default.png",
+        "imageSrcUrl": "/personal/images/github/achievements/pull-shark-default.png",
         "achievementUrl": "https://github.com/rfranks?achievement=pull-shark&tab=achievements",
         "source": "GitHub profile achievements"
       },
       {
         "name": "Quickdraw",
         "slug": "quickdraw",
-        "imageSrcUrl": "/personal/images/github/achievments/quickdraw-default.png",
+        "imageSrcUrl": "/personal/images/github/achievements/quickdraw-default.png",
         "achievementUrl": "https://github.com/rfranks?achievement=quickdraw&tab=achievements",
         "source": "GitHub profile achievements"
       },
       {
         "name": "YOLO",
         "slug": "yolo",
-        "imageSrcUrl": "/personal/images/github/achievments/yolo-default.png",
+        "imageSrcUrl": "/personal/images/github/achievements/yolo-default.png",
         "achievementUrl": "https://github.com/rfranks?achievement=yolo&tab=achievements",
         "source": "GitHub profile achievements"
       },
       {
         "name": "Arctic Code Vault Contributor",
         "slug": "arctic-code-vault-contributor",
-        "imageSrcUrl": "/personal/images/github/achievments/arctic-code-vault-contributor-default.png",
+        "imageSrcUrl": "/personal/images/github/achievements/arctic-code-vault-contributor-default.png",
         "achievementUrl": "https://github.com/rfranks?achievement=arctic-code-vault-contributor&tab=achievements",
         "source": "GitHub profile achievements"
       }
@@ -2152,5 +2150,6 @@
         ]
       }
     ]
-  }
+  },
+  "schemaVersion": 2
 }

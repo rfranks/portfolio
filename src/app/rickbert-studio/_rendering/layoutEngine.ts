@@ -35,7 +35,7 @@ export const DEFAULT_RENDER_SETTINGS: RenderSettings = {
 
 export function computeStripLayout(
   spec: ComicStripSpec,
-  settings: RenderSettings = DEFAULT_RENDER_SETTINGS
+  settings: RenderSettings = DEFAULT_RENDER_SETTINGS,
 ): StripLayout {
   const rows = spec.layout === "GRID_2X3" ? 2 : 1;
   const columns = 3;

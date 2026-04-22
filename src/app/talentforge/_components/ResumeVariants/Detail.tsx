@@ -188,9 +188,7 @@ export default function Detail({ resume, onClose, onSave }: Props) {
     setRetagSuccess(false);
     try {
       const aiTags = await tagResume(resume.content);
-      const normalized = normalizeTags(
-        aiTags.filter((tag) => tag.trim().length <= MAX_TAG_LENGTH)
-      );
+      const normalized = normalizeTags(aiTags.filter((tag) => tag.trim().length <= MAX_TAG_LENGTH));
       if (!normalized.length) {
         setRetagError("AI couldn't suggest any tags.");
         return;
@@ -200,7 +198,7 @@ export default function Detail({ resume, onClose, onSave }: Props) {
       setRetagError(
         error instanceof Error && error.message
           ? error.message
-          : "Unable to refresh tags right now."
+          : "Unable to refresh tags right now.",
       );
       setRetagSuccess(false);
     } finally {
@@ -222,12 +220,7 @@ export default function Detail({ resume, onClose, onSave }: Props) {
             </Typography>
           )}
           <Stack spacing={0.5}>
-            <Stack
-              direction="row"
-              spacing={1}
-              flexWrap="wrap"
-              alignItems="center"
-            >
+            <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
               {tags.map((tag, idx) =>
                 editingIdx === idx ? (
                   <TextField
@@ -260,9 +253,7 @@ export default function Detail({ resume, onClose, onSave }: Props) {
                       }
                     }}
                     error={Boolean(editingError)}
-                    helperText={
-                      editingError ?? "Press Enter to save or Esc to cancel."
-                    }
+                    helperText={editingError ?? "Press Enter to save or Esc to cancel."}
                     FormHelperTextProps={{ sx: { ml: 0 } }}
                     inputProps={{ "aria-label": `Edit tag ${tag}` }}
                     sx={{ mb: 1, minWidth: 120 }}
@@ -287,7 +278,7 @@ export default function Detail({ resume, onClose, onSave }: Props) {
                     aria-label={`Edit tag ${tag}`}
                     sx={{ mb: 1 }}
                   />
-                )
+                ),
               )}
               <TextField
                 size="small"
@@ -317,10 +308,7 @@ export default function Detail({ resume, onClose, onSave }: Props) {
                 sx={{ mb: 1, minWidth: 160 }}
               />
             </Stack>
-            <Typography
-              variant="caption"
-              color={inputError ? "error" : "text.secondary"}
-            >
+            <Typography variant="caption" color={inputError ? "error" : "text.secondary"}>
               {inputError
                 ? inputError
                 : "Press Enter, Tab, or comma to add a tag. Backspace removes the last tag."}
@@ -363,22 +351,13 @@ export default function Detail({ resume, onClose, onSave }: Props) {
         </Stack>
       </DialogContent>
       <DialogActions sx={{ flexWrap: "wrap", gap: 1 }}>
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="center"
-          sx={{ flexGrow: 1 }}
-        >
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ flexGrow: 1 }}>
           <Button
             variant="outlined"
             onClick={handleRetag}
             disabled={retagging || !hasContent}
             startIcon={
-              retagging ? (
-                <CircularProgress size={18} />
-              ) : (
-                <AutoAwesomeIcon fontSize="small" />
-              )
+              retagging ? <CircularProgress size={18} /> : <AutoAwesomeIcon fontSize="small" />
             }
           >
             Retag with AI

@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
-import { ImageLightbox, MarkdownContent, PanelFrame } from "@/components/shared";
+import { ImageLightbox, MarkdownContent, PortfolioPanelShell } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import IconButton from "@mui/material/IconButton";
@@ -36,9 +36,9 @@ export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
         overflowY: "hidden",
       }}
     >
-      <Box
-        className="mx-auto"
-        sx={{
+      <PortfolioPanelShell
+        panelClassName="mx-auto"
+        panelSx={{
           width: "100%",
           maxWidth: "1200px",
           minHeight: 0,
@@ -48,255 +48,244 @@ export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
           flexDirection: "column",
           mx: "auto",
           overflow: "hidden",
+          p: 0,
+          mb: 0,
+          borderColor: "transparent",
+          bgcolor: "transparent",
+          backgroundImage: "none",
+          boxShadow: "none",
+        }}
+        topRail={topRail}
+        useNegativeTopRailMargins={false}
+        topRailSx={{
+          mx: 0,
+          mt: 0,
+          position: "relative",
+          zIndex: 6,
+        }}
+        contentSx={{
+          minHeight: 0,
+          flex: "1 1 auto",
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          pt: 0,
+          pb: { xs: 2, md: 2.5 },
+        }}
+        footer={
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent="center"
+            useFlexGap
+            flexWrap="wrap"
+            className="w-full"
+            sx={{ flexShrink: 0 }}
+          >
+            <IconButton
+              color="primary"
+              href={`mailto:${summary.contact.email}`}
+              className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+            >
+              <AlternateEmail />
+            </IconButton>
+            <IconButton
+              color="primary"
+              href={summary.contact.linkedin}
+              target="_blank"
+              rel="noopener"
+              className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+            >
+              <LinkedIn />
+            </IconButton>
+            {summary.contact.github.map((url) => (
+              <Tooltip title={url.substring(url.lastIndexOf("/") + 1)} key={url} arrow>
+                <IconButton
+                  color="default"
+                  href={url}
+                  target="_blank"
+                  rel="noopener"
+                  className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+                >
+                  <GitHub />
+                </IconButton>
+              </Tooltip>
+            ))}
+            <Button
+              variant="text"
+              href={withBasePath(summary.resumeUrl)}
+              download
+              className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+            >
+              Resume
+            </Button>
+          </Stack>
+        }
+        footerSx={{
+          px: { xs: 2, md: 3.5 },
+          pb: { xs: 2.5, md: 3.5 },
+          py: 1,
         }}
       >
-        <PanelFrame
-          topRail={topRail}
-          useNegativeTopRailMargins={false}
-          rootSx={{
-            minHeight: 0,
-            height: "100%",
-            flex: "1 1 auto",
-            overflow: "hidden",
-          }}
-          topRailSx={{
-            mx: 0,
-            mt: 0,
-            position: "relative",
-            zIndex: 6,
-          }}
-          contentSx={{
-            minHeight: 0,
-            flex: "1 1 auto",
-            overflowY: "auto",
+        <Box
+          sx={{
+            px: { xs: 2, md: 3.5 },
+            pt: { xs: 1.25, md: 1.5 },
             display: "flex",
             flexDirection: "column",
-            pt: 0,
-            pb: { xs: 2, md: 2.5 },
-          }}
-          footer={
-            <Stack
-              direction="row"
-              spacing={2}
-              justifyContent="center"
-              useFlexGap
-              flexWrap="wrap"
-              className="w-full"
-              sx={{ flexShrink: 0 }}
-            >
-              <IconButton
-                color="primary"
-                href={`mailto:${summary.contact.email}`}
-                className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
-              >
-                <AlternateEmail />
-              </IconButton>
-              <IconButton
-                color="primary"
-                href={summary.contact.linkedin}
-                target="_blank"
-                rel="noopener"
-                className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
-              >
-                <LinkedIn />
-              </IconButton>
-              {summary.contact.github.map((url) => (
-                <Tooltip
-                  title={url.substring(url.lastIndexOf("/") + 1)}
-                  key={url}
-                  arrow
-                >
-                  <IconButton
-                    key={url}
-                    color="default"
-                    href={url}
-                    target="_blank"
-                    rel="noopener"
-                    className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
-                  >
-                    <GitHub />
-                  </IconButton>
-                </Tooltip>
-              ))}
-              <Button
-                variant="text"
-                href={withBasePath(summary.resumeUrl)}
-                download
-                className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
-              >
-                Resume
-              </Button>
-            </Stack>
-          }
-          footerSx={{
-            px: { xs: 2, md: 3.5 },
-            pb: { xs: 2.5, md: 3.5 },
-            py: 1,
+            gap: { xs: 1.5, md: 2 },
           }}
         >
           <Box
+            className="flex flex-col items-center gap-2.5 text-center"
+            sx={{ mt: { xs: 0.25, md: 0.5 } }}
+          >
+            <Typography
+              component="p"
+              variant="overline"
+              color="primary"
+              className="rounded-full border border-current/20 px-4 py-1 tracking-[0.24em]"
+            >
+              {summary.title}
+            </Typography>
+            <Typography component="h1" variant="h4" className="max-w-3xl text-balance">
+              {summary.name}
+            </Typography>
+            <Typography
+              color="text.secondary"
+              className="rounded-full bg-white/10 px-4 py-1 dark:bg-white/5"
+            >
+              {summary.location}
+            </Typography>
+          </Box>
+
+          <Stack
+            spacing={2}
+            direction={{ xs: "column", md: "row" }}
             sx={{
-              px: { xs: 2, md: 3.5 },
-              pt: { xs: 1.25, md: 1.5 },
-              display: "flex",
-              flexDirection: "column",
-              gap: { xs: 1.5, md: 2 },
+              minHeight: 0,
+              flex: "1 1 auto",
+              alignItems: { xs: "stretch", md: "flex-start" },
             }}
           >
             <Box
-              className="flex flex-col items-center gap-2.5 text-center"
-              sx={{ mt: { xs: 0.25, md: 0.5 } }}
+              className="mx-auto w-full max-w-[220px] overflow-hidden rounded-[28px] border border-white/10 bg-white/5 p-2 shadow-lg md:mx-0"
+              sx={{
+                width: { xs: "100%", md: 220 },
+                minWidth: { xs: 0, md: 220 },
+                flexShrink: 0,
+              }}
             >
-              <Typography
-                component="p"
-                variant="overline"
-                color="primary"
-                className="rounded-full border border-current/20 px-4 py-1 tracking-[0.24em]"
+              <ImageLightbox
+                src={withBasePath(summary.headshotImage)}
+                alt={`${summary.name} headshot`}
+                title={summary.name}
+                caption={summary.title}
+                triggerSx={{ width: "100%" }}
               >
-                {summary.title}
-              </Typography>
-              <Typography component="h1" variant="h4" className="max-w-3xl text-balance">
-                {summary.name}
-              </Typography>
-              <Typography
-                color="text.secondary"
-                className="rounded-full bg-white/10 px-4 py-1 dark:bg-white/5"
-              >
-                {summary.location}
-              </Typography>
+                <Image
+                  src={withBasePath(summary.headshotImage)}
+                  alt={`${summary.name} headshot`}
+                  width={480}
+                  height={640}
+                  className="h-auto w-full rounded-[22px] object-cover"
+                />
+              </ImageLightbox>
             </Box>
 
             <Stack
-              spacing={2}
-              direction={{ xs: "column", md: "row" }}
+              spacing={1.5}
               sx={{
+                minWidth: 0,
                 minHeight: 0,
                 flex: "1 1 auto",
-                alignItems: { xs: "stretch", md: "flex-start" },
+                pb: { xs: 1.25, md: 1.5 },
               }}
             >
-              <Box
-                className="mx-auto w-full max-w-[220px] overflow-hidden rounded-[28px] border border-white/10 bg-white/5 p-2 shadow-lg md:mx-0"
-                sx={{
-                  width: { xs: "100%", md: 220 },
-                  minWidth: { xs: 0, md: 220 },
-                  flexShrink: 0,
-                }}
-              >
-                <ImageLightbox
-                  src={withBasePath(summary.headshotImage)}
-                  alt={`${summary.name} headshot`}
-                  title={summary.name}
-                  caption={summary.title}
-                  triggerSx={{ width: "100%" }}
-                >
-                  <Image
-                    src={withBasePath(summary.headshotImage)}
-                    alt={`${summary.name} headshot`}
-                    width={480}
-                    height={640}
-                    className="h-auto w-full rounded-[22px] object-cover"
-                  />
-                </ImageLightbox>
-              </Box>
-
-              <Stack
-                spacing={1.5}
-                sx={{
-                  minWidth: 0,
-                  minHeight: 0,
-                  flex: "1 1 auto",
-                  pb: { xs: 1.25, md: 1.5 },
-                }}
-              >
-                {summary.gutter.map((paragraph, index) => (
-                  <MarkdownContent
-                    key={paragraph}
-                    content={paragraph}
-                    variant="body1"
-                    color={index === 0 ? "text.primary" : "text.secondary"}
-                    className="leading-7"
-                  />
-                ))}
-                {githubAchievements.length > 0 ? (
-                  <Box sx={{ pt: { xs: 1, md: 1.25 }, flexShrink: 0 }}>
-                    <Stack
-                      direction={{ xs: "column", md: "row" }}
-                      spacing={1}
-                      sx={{
-                        width: "100%",
-                        pb: 0.25,
-                        alignItems: "stretch",
-                        justifyContent: { xs: "flex-start", md: "space-evenly" },
-                        flexWrap: "nowrap",
-                        gap: { xs: 1, md: 1.25 },
-                      }}
-                    >
-                      {githubAchievements.map((achievement) => (
-                        <Box
-                          key={achievement.slug}
-                          component="a"
-                          href={achievement.achievementUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.75,
-                            width: "100%",
-                            minWidth: 0,
-                            flex: { xs: "1 1 auto", md: "1 1 0" },
-                            borderRadius: "14px",
-                            border: "1px solid",
-                            borderColor: "divider",
-                            bgcolor: "background.paper",
-                            px: 1.1,
-                            py: 0.75,
-                            textDecoration: "none",
-                            color: "inherit",
-                            transition:
-                              "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease",
-                            "&:hover": {
-                              transform: "translateY(-1px)",
-                              boxShadow: 2,
-                              borderColor: "primary.main",
-                              bgcolor: "action.hover",
-                            },
-                          }}
+              {summary.gutter.map((paragraph, index) => (
+                <MarkdownContent
+                  key={paragraph}
+                  content={paragraph}
+                  variant="body1"
+                  color={index === 0 ? "text.primary" : "text.secondary"}
+                  className="leading-7"
+                />
+              ))}
+              {githubAchievements.length > 0 ? (
+                <Box sx={{ pt: { xs: 1, md: 1.25 }, flexShrink: 0 }}>
+                  <Stack
+                    direction={{ xs: "column", md: "row" }}
+                    spacing={1}
+                    sx={{
+                      width: "100%",
+                      pb: 0.25,
+                      alignItems: "stretch",
+                      justifyContent: { xs: "flex-start", md: "space-evenly" },
+                      flexWrap: "nowrap",
+                      gap: { xs: 1, md: 1.25 },
+                    }}
+                  >
+                    {githubAchievements.map((achievement) => (
+                      <Box
+                        key={achievement.slug}
+                        component="a"
+                        href={achievement.achievementUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.75,
+                          width: "100%",
+                          minWidth: 0,
+                          flex: { xs: "1 1 auto", md: "1 1 0" },
+                          borderRadius: "14px",
+                          border: "1px solid",
+                          borderColor: "divider",
+                          bgcolor: "background.paper",
+                          px: 1.1,
+                          py: 0.75,
+                          textDecoration: "none",
+                          color: "inherit",
+                          transition:
+                            "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease",
+                          "&:hover": {
+                            transform: "translateY(-1px)",
+                            boxShadow: 2,
+                            borderColor: "primary.main",
+                            bgcolor: "action.hover",
+                          },
+                        }}
+                      >
+                        <ImageLightbox
+                          src={withBasePath(achievement.imageSrcUrl)}
+                          alt={achievement.name}
+                          title={achievement.name}
+                          caption={achievement.source}
+                          triggerSx={{ display: "inline-flex", borderRadius: "999px" }}
                         >
-                          <ImageLightbox
+                          <Box
+                            component="img"
                             src={withBasePath(achievement.imageSrcUrl)}
                             alt={achievement.name}
-                            title={achievement.name}
-                            caption={achievement.source}
-                            triggerSx={{ display: "inline-flex", borderRadius: "999px" }}
-                          >
-                            <Box
-                              component="img"
-                              src={withBasePath(achievement.imageSrcUrl)}
-                              alt={achievement.name}
-                              width={34}
-                              height={34}
-                              style={{ borderRadius: 999 }}
-                            />
-                          </ImageLightbox>
-                        <Typography
-                          variant="caption"
-                          sx={{ fontWeight: 700, minWidth: 0 }}
-                        >
+                            width={34}
+                            height={34}
+                            style={{ borderRadius: 999 }}
+                          />
+                        </ImageLightbox>
+                        <Typography variant="caption" sx={{ fontWeight: 700, minWidth: 0 }}>
                           {achievement.name}
                           {achievement.tier ? ` ${achievement.tier}` : ""}
                         </Typography>
-                        </Box>
-                      ))}
-                    </Stack>
-                  </Box>
-                ) : null}
-              </Stack>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              ) : null}
             </Stack>
-          </Box>
-        </PanelFrame>
-      </Box>
+          </Stack>
+        </Box>
+      </PortfolioPanelShell>
     </Hero>
   );
 }

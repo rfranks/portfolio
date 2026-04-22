@@ -1,12 +1,5 @@
 import * as React from "react";
-import {
-  Box,
-  Button,
-  Container,
-  Paper,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Container, Paper, Tooltip, Typography } from "@mui/material";
 
 type PathForgerToolbarProps = {
   hasStory: boolean;
@@ -74,10 +67,7 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                     },
                   }}
                   startIcon={
-                    <Typography
-                      component="span"
-                      sx={{ fontSize: "1.35rem", lineHeight: 1 }}
-                    >
+                    <Typography component="span" sx={{ fontSize: "1.35rem", lineHeight: 1 }}>
                       📖
                     </Typography>
                   }
@@ -108,10 +98,7 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                     },
                   }}
                   startIcon={
-                    <Typography
-                      component="span"
-                      sx={{ fontSize: "1.35rem", lineHeight: 1 }}
-                    >
+                    <Typography component="span" sx={{ fontSize: "1.35rem", lineHeight: 1 }}>
                       🧭
                     </Typography>
                   }
@@ -142,10 +129,7 @@ export default function PathForgerToolbar(props: PathForgerToolbarProps) {
                     },
                   }}
                   startIcon={
-                    <Typography
-                      component="span"
-                      sx={{ fontSize: "1.35rem", lineHeight: 1 }}
-                    >
+                    <Typography component="span" sx={{ fontSize: "1.35rem", lineHeight: 1 }}>
                       ⭐
                     </Typography>
                   }

@@ -39,12 +39,7 @@ type OnboardingPayload = {
   genre: string;
   tone: string;
   dangerLevel: "Forgiving" | "Risky" | "Deadly";
-  adventureLength:
-    | "Very short (1-2 lines)"
-    | "Short"
-    | "Medium"
-    | "Long"
-    | "Very long";
+  adventureLength: "Very short (1-2 lines)" | "Short" | "Medium" | "Long" | "Very long";
   protagonistPreference: string;
   premise: string;
   visualStyle: string;
@@ -60,12 +55,7 @@ type PathForgerPersistedStateV1 = {
     genre: string;
     tone: string;
     dangerLevel: "Forgiving" | "Risky" | "Deadly";
-    adventureLength:
-      | "Very short (1-2 lines)"
-      | "Short"
-      | "Medium"
-      | "Long"
-      | "Very long";
+    adventureLength: "Very short (1-2 lines)" | "Short" | "Medium" | "Long" | "Very long";
     protagonistPreference: string;
     recentGeneratedProtagonistNames: string[];
     recentGeneratedPremises: string[];
@@ -111,11 +101,7 @@ const adventureLengthValues = [
   "Long",
   "Very long",
 ] as const;
-const romanceModeValues = [
-  "No romance",
-  "Optional romance",
-  "Romance-forward",
-] as const;
+const romanceModeValues = ["No romance", "Optional romance", "Romance-forward"] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -125,9 +111,7 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
-function sanitizeImagePromptMap(
-  value: unknown,
-): Partial<Record<PathForgerImageType, string>> {
+function sanitizeImagePromptMap(value: unknown): Partial<Record<PathForgerImageType, string>> {
   if (!isRecord(value)) {
     return {};
   }
@@ -143,9 +127,7 @@ function sanitizeImagePromptMap(
   return next;
 }
 
-function sanitizeRenderImages(
-  value: unknown,
-): Record<PathForgerImageType, boolean> | null {
+function sanitizeRenderImages(value: unknown): Record<PathForgerImageType, boolean> | null {
   if (!isRecord(value)) {
     return null;
   }
@@ -215,8 +197,7 @@ function buildFallbackPitchResultFromChapter(
   chapter: PathForgerChapterResult,
   selectedPitch: "auto" | PathForgerPitchChoice,
 ): PathForgerPitchResult {
-  const recommendedPitch: PathForgerPitchChoice =
-    selectedPitch === "auto" ? "A" : selectedPitch;
+  const recommendedPitch: PathForgerPitchChoice = selectedPitch === "auto" ? "A" : selectedPitch;
   const chapterTitle = chapter.chapterTitle?.trim() || "Restored Adventure";
   const teaser = chapter.continuePromptMarkdown?.trim() || chapterTitle;
 
@@ -235,12 +216,7 @@ function buildFallbackPitchResultFromChapter(
 }
 
 function isPersistedStateV1Like(value: unknown): value is PathForgerPersistedStateV1 {
-  return (
-    isRecord(value) &&
-    value.version === 1 &&
-    isRecord(value.form) &&
-    isRecord(value.story)
-  );
+  return isRecord(value) && value.version === 1 && isRecord(value.form) && isRecord(value.story);
 }
 
 async function loadDevSampleStorageArtifactIfNeeded(): Promise<void> {
@@ -276,10 +252,7 @@ async function loadDevSampleStorageArtifactIfNeeded(): Promise<void> {
           imageModel: DEFAULT_IMAGE_MODEL_ID,
         },
       };
-      window.localStorage.setItem(
-        pathForgerStateStorageKey,
-        JSON.stringify(migrated),
-      );
+      window.localStorage.setItem(pathForgerStateStorageKey, JSON.stringify(migrated));
     } catch {
       // Ignore malformed persisted state during migration.
     }
@@ -287,12 +260,8 @@ async function loadDevSampleStorageArtifactIfNeeded(): Promise<void> {
 
   maybeMigrateLegacyDevImageModel();
 
-  const hasPersistedState = Boolean(
-    window.localStorage.getItem(pathForgerStateStorageKey),
-  );
-  const hasPersistedPitchCache = Boolean(
-    window.localStorage.getItem(pitchCacheStorageKey),
-  );
+  const hasPersistedState = Boolean(window.localStorage.getItem(pathForgerStateStorageKey));
+  const hasPersistedPitchCache = Boolean(window.localStorage.getItem(pitchCacheStorageKey));
   if (hasPersistedState && hasPersistedPitchCache) {
     return;
   }
@@ -316,17 +285,11 @@ async function loadDevSampleStorageArtifactIfNeeded(): Promise<void> {
       (sampleState.story.pitchOnlyResult === null ||
         isPathForgerPitchResult(sampleState.story.pitchOnlyResult))
     ) {
-      window.localStorage.setItem(
-        pathForgerStateStorageKey,
-        JSON.stringify(sampleState),
-      );
+      window.localStorage.setItem(pathForgerStateStorageKey, JSON.stringify(sampleState));
     }
 
     if (!hasPersistedPitchCache && isPathForgerPitchResult(samplePitchCache)) {
-      window.localStorage.setItem(
-        pitchCacheStorageKey,
-        JSON.stringify(samplePitchCache),
-      );
+      window.localStorage.setItem(pitchCacheStorageKey, JSON.stringify(samplePitchCache));
     }
   } catch {
     // Ignore sample artifact load failures in dev mode.
@@ -337,8 +300,7 @@ function buildDevSampleImages(args: {
   chapter: PathForgerChapterResult;
   renderImages: Record<PathForgerImageType, boolean>;
 }): Partial<Record<PathForgerImageType, PathForgerGeneratedImage>> {
-  const nextImages: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>> =
-    {};
+  const nextImages: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>> = {};
 
   for (const type of imageTypeOrder) {
     if (!args.renderImages[type]) {
@@ -391,12 +353,7 @@ type UsePathForgerPersistenceArgs = {
   genre: string;
   tone: string;
   dangerLevel: "Forgiving" | "Risky" | "Deadly";
-  adventureLength:
-    | "Very short (1-2 lines)"
-    | "Short"
-    | "Medium"
-    | "Long"
-    | "Very long";
+  adventureLength: "Very short (1-2 lines)" | "Short" | "Medium" | "Long" | "Very long";
   protagonistPreference: string;
   recentGeneratedProtagonistNames: string[];
   recentGeneratedPremises: string[];
@@ -421,29 +378,19 @@ type UsePathForgerPersistenceArgs = {
   setActiveRunAction: (value: ActiveRunAction) => void;
   setIsGeneratingChapterImages: (value: boolean) => void;
   setSelectedPitch: (value: "auto" | PathForgerPitchChoice) => void;
-  setSelectedBranch: React.Dispatch<
-    React.SetStateAction<"" | PathForgerBranchChoice>
-  >;
+  setSelectedBranch: React.Dispatch<React.SetStateAction<"" | PathForgerBranchChoice>>;
   setPitchInputSignature: (value: string | null) => void;
   setPitchOnlyResult: (value: PathForgerPitchResult | null) => void;
-  setChapterOnlyResult: React.Dispatch<
-    React.SetStateAction<PathForgerChapterResult | null>
-  >;
+  setChapterOnlyResult: React.Dispatch<React.SetStateAction<PathForgerChapterResult | null>>;
   setImagePromptDrafts: React.Dispatch<
     React.SetStateAction<Partial<Record<PathForgerImageType, string>>>
   >;
   setImagePromptOverrides: React.Dispatch<
     React.SetStateAction<Partial<Record<PathForgerImageType, string>>>
   >;
-  setActiveOptionBranch: React.Dispatch<
-    React.SetStateAction<PathForgerBranchChoice | null>
-  >;
-  setRevealedOptionBranches: React.Dispatch<
-    React.SetStateAction<BranchRevealState>
-  >;
-  setOptionRevealTick: React.Dispatch<
-    React.SetStateAction<BranchRevealTickState>
-  >;
+  setActiveOptionBranch: React.Dispatch<React.SetStateAction<PathForgerBranchChoice | null>>;
+  setRevealedOptionBranches: React.Dispatch<React.SetStateAction<BranchRevealState>>;
+  setOptionRevealTick: React.Dispatch<React.SetStateAction<BranchRevealTickState>>;
   setForgedOutcomes: React.Dispatch<
     React.SetStateAction<Partial<Record<PathForgerBranchChoice, string>>>
   >;
@@ -455,9 +402,7 @@ type UsePathForgerPersistenceArgs = {
       nextMarkdown: string;
     } | null>
   >;
-  setResult: React.Dispatch<
-    React.SetStateAction<PathForgerPipelineResult | null>
-  >;
+  setResult: React.Dispatch<React.SetStateAction<PathForgerPipelineResult | null>>;
   setCreateStoryPanelOpen: (value: boolean) => void;
   setChapterModalOpen: (value: boolean) => void;
   setContinueModalOpen: (value: boolean) => void;
@@ -469,24 +414,18 @@ type UsePathForgerPersistenceArgs = {
     value: "Very short (1-2 lines)" | "Short" | "Medium" | "Long" | "Very long",
   ) => void;
   setProtagonistPreference: (value: string) => void;
-  setRecentGeneratedProtagonistNames: React.Dispatch<
-    React.SetStateAction<string[]>
-  >;
+  setRecentGeneratedProtagonistNames: React.Dispatch<React.SetStateAction<string[]>>;
   setRecentGeneratedPremises: React.Dispatch<React.SetStateAction<string[]>>;
   setPremise: (value: string) => void;
   setVisualStyle: (value: string) => void;
-  setRomanceMode: (
-    value: "No romance" | "Optional romance" | "Romance-forward",
-  ) => void;
+  setRomanceMode: (value: "No romance" | "Optional romance" | "Romance-forward") => void;
   setAllowPermanentDeath: (value: boolean) => void;
   setAgeRating: (value: string) => void;
   setPersonalizedImages: (value: boolean) => void;
   setDefaultModel: (value: string) => void;
   setTextModel: (value: string) => void;
   setImageModel: (value: string) => void;
-  setRenderImages: React.Dispatch<
-    React.SetStateAction<Record<PathForgerImageType, boolean>>
-  >;
+  setRenderImages: React.Dispatch<React.SetStateAction<Record<PathForgerImageType, boolean>>>;
   setSelfieDataUrl: (value: string | undefined) => void;
   setSelfieName: (value: string) => void;
 };
@@ -705,17 +644,13 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
                 setPitchInputSignature(story.pitchInputSignature);
               }
 
-              const hasValidPitchResult = isPathForgerPitchResult(
-                story.pitchOnlyResult,
-              );
+              const hasValidPitchResult = isPathForgerPitchResult(story.pitchOnlyResult);
               if (hasValidPitchResult) {
                 setPitchOnlyResult(story.pitchOnlyResult);
                 didRestorePitchFromPersistedStateRef.current = true;
               }
 
-              const hasValidChapterResult = isValidChapterResult(
-                story.chapterOnlyResult,
-              );
+              const hasValidChapterResult = isValidChapterResult(story.chapterOnlyResult);
               if (hasValidChapterResult) {
                 setChapterOnlyResult(story.chapterOnlyResult);
                 didRestoreChapterFromPersistedStateRef.current = true;
@@ -732,9 +667,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
               shouldAutoShowCreateStoryPanel = !hasPersistedStoryInProgress;
 
               setImagePromptDrafts(sanitizeImagePromptMap(story.imagePromptDrafts));
-              setImagePromptOverrides(
-                sanitizeImagePromptMap(story.imagePromptOverrides),
-              );
+              setImagePromptOverrides(sanitizeImagePromptMap(story.imagePromptOverrides));
 
               if (
                 story.activeOptionBranch === null ||
@@ -747,10 +680,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
               if (isRecord(story.revealedOptionBranches)) {
                 const revealedA = story.revealedOptionBranches.A;
                 const revealedB = story.revealedOptionBranches.B;
-                if (
-                  typeof revealedA === "boolean" &&
-                  typeof revealedB === "boolean"
-                ) {
+                if (typeof revealedA === "boolean" && typeof revealedB === "boolean") {
                   setRevealedOptionBranches({ A: revealedA, B: revealedB });
                 }
               }
@@ -767,9 +697,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
               }
 
               if (isRecord(story.forgedOutcomes)) {
-                const nextForgedOutcomes: Partial<
-                  Record<PathForgerBranchChoice, string>
-                > = {};
+                const nextForgedOutcomes: Partial<Record<PathForgerBranchChoice, string>> = {};
                 if (typeof story.forgedOutcomes.A === "string") {
                   nextForgedOutcomes.A = story.forgedOutcomes.A;
                 }
@@ -785,16 +713,13 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
 
               if (
                 isRecord(story.lastForgedLedgerTransition) &&
-                typeof story.lastForgedLedgerTransition.chapterNumber ===
-                  "number" &&
-                typeof story.lastForgedLedgerTransition.previousMarkdown ===
-                  "string" &&
+                typeof story.lastForgedLedgerTransition.chapterNumber === "number" &&
+                typeof story.lastForgedLedgerTransition.previousMarkdown === "string" &&
                 typeof story.lastForgedLedgerTransition.nextMarkdown === "string"
               ) {
                 setLastForgedLedgerTransition({
                   chapterNumber: story.lastForgedLedgerTransition.chapterNumber,
-                  previousMarkdown:
-                    story.lastForgedLedgerTransition.previousMarkdown,
+                  previousMarkdown: story.lastForgedLedgerTransition.previousMarkdown,
                   nextMarkdown: story.lastForgedLedgerTransition.nextMarkdown,
                 });
               }
@@ -893,12 +818,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
     } catch {
       // Ignore malformed storage values.
     }
-  }, [
-    createStoryInputSignature,
-    pitchOnlyResult,
-    setPitchInputSignature,
-    setPitchOnlyResult,
-  ]);
+  }, [createStoryInputSignature, pitchOnlyResult, setPitchInputSignature, setPitchOnlyResult]);
 
   React.useEffect(() => {
     if (typeof window === "undefined" || !ready) {
@@ -949,10 +869,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
     };
 
     try {
-      window.localStorage.setItem(
-        pathForgerStateStorageKey,
-        JSON.stringify(persistedState),
-      );
+      window.localStorage.setItem(pathForgerStateStorageKey, JSON.stringify(persistedState));
     } catch {
       // Ignore storage write failures (quota, privacy mode, etc.).
     }
@@ -1029,8 +946,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
     }
 
     const restoredPitchResult =
-      pitchOnlyResult ??
-      buildFallbackPitchResultFromChapter(chapterOnlyResult, selectedPitch);
+      pitchOnlyResult ?? buildFallbackPitchResultFromChapter(chapterOnlyResult, selectedPitch);
     if (!pitchOnlyResult) {
       setPitchOnlyResult(restoredPitchResult);
     }
@@ -1057,9 +973,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
             pitches: restoredPitchResult,
             chapter: chapterOnlyResult,
             selectedPitch:
-              selectedPitch === "auto"
-                ? restoredPitchResult.recommendedPitch
-                : selectedPitch,
+              selectedPitch === "auto" ? restoredPitchResult.recommendedPitch : selectedPitch,
             images: {},
             imageErrors: {},
             textModel,
@@ -1104,13 +1018,10 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
         const canUsePersonalizedImages =
           onboardingPayload.personalizedImages && Boolean(selfieDataUrl);
         const restoredSelectedPitch =
-          selectedPitch === "auto"
-            ? restoredPitchResult.recommendedPitch
-            : selectedPitch;
+          selectedPitch === "auto" ? restoredPitchResult.recommendedPitch : selectedPitch;
         const restoredSelectedPitchTitle =
-          restoredPitchResult.pitches.find(
-            (pitch) => pitch.id === restoredSelectedPitch,
-          )?.title ?? restoredPitchResult.adventureTitle;
+          restoredPitchResult.pitches.find((pitch) => pitch.id === restoredSelectedPitch)?.title ??
+          restoredPitchResult.adventureTitle;
         const imageStageResult = await runPathForgerImageStage(
           {
             apiKey,
@@ -1145,9 +1056,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
                   pitches: restoredPitchResult,
                   chapter: chapterOnlyResult,
                   selectedPitch:
-                    selectedPitch === "auto"
-                      ? restoredPitchResult.recommendedPitch
-                      : selectedPitch,
+                    selectedPitch === "auto" ? restoredPitchResult.recommendedPitch : selectedPitch,
                   images: {},
                   imageErrors: {},
                   textModel,
@@ -1173,8 +1082,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
                   ...baseResult,
                   imageErrors: {
                     ...baseResult.imageErrors,
-                    [update.type]:
-                      update.errorMessage ?? "Image generation failed.",
+                    [update.type]: update.errorMessage ?? "Image generation failed.",
                   },
                 };
               }
@@ -1196,9 +1104,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
               pitches: restoredPitchResult,
               chapter: chapterOnlyResult,
               selectedPitch:
-                selectedPitch === "auto"
-                  ? restoredPitchResult.recommendedPitch
-                  : selectedPitch,
+                selectedPitch === "auto" ? restoredPitchResult.recommendedPitch : selectedPitch,
               images: {},
               imageErrors: {},
               textModel,
@@ -1225,9 +1131,7 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
         }
 
         setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "Restoring chapter images failed.",
+          error instanceof Error ? error.message : "Restoring chapter images failed.",
         );
       } finally {
         if (chapterImageGenerationRunIdRef.current !== imageRunId) {

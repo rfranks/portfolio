@@ -40,8 +40,7 @@ export function validateTag(
     return `Tag must be ${maxLength} characters or fewer.`;
   }
   const duplicateIndex = existing.findIndex(
-    (tag, idx) =>
-      tag.toLowerCase() === trimmed.toLowerCase() && idx !== options.ignoreIndex,
+    (tag, idx) => tag.toLowerCase() === trimmed.toLowerCase() && idx !== options.ignoreIndex,
   );
   if (duplicateIndex !== -1) {
     return "Tag already exists.";

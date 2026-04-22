@@ -1,15 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Snackbar,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Card, CardContent, Snackbar, TextField, Typography } from "@mui/material";
 
 import useResumeParser from "@/hooks/useResumeParser";
 import { parsePastedHtml } from "@/app/talentforge/_utils/pasteParser";
@@ -24,8 +16,7 @@ interface ExtractedFields {
 }
 
 function extractFields(resumeText: string): ExtractedFields {
-  const email =
-    resumeText.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] || "";
+  const email = resumeText.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] || "";
   const phone = resumeText.match(/(\+?\d[\d\s-]{7,}\d)/)?.[0] || "";
   const lines = resumeText
     .split("\n")
@@ -71,11 +62,7 @@ export default function ResumePaste() {
         value={input}
         onChange={(e) => setInput(e.target.value)}
       />
-      <Button
-        variant="contained"
-        onClick={handleParse}
-        sx={{ mt: 2 }}
-      >
+      <Button variant="contained" onClick={handleParse} sx={{ mt: 2 }}>
         Parse
       </Button>
       {resume && fields && (
@@ -105,4 +92,3 @@ export default function ResumePaste() {
     </Box>
   );
 }
-

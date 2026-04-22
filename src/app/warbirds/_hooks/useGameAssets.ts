@@ -3,22 +3,9 @@
 
 import { useRef, useEffect, useCallback, useState } from "react";
 import { TANK_EXPLOSION_SRC } from "@/consts/game/effects";
-import {
-  WATER_SRCS,
-  TREE_SOURCES,
-  ROCK_SRCS,
-  GROUND_VARIANTS,
-} from "@/consts/game/environment";
-import {
-  DUCK_SRCS,
-  DUCK_TARGET_SRCS,
-  DUCK_OUTLINE_SRCS,
-} from "@/consts/game/objects";
-import {
-  NAPALM_MISSILE_SRC,
-  NAPALM_FLAME_FRAME_SRCS,
-  POWERUP_TYPES,
-} from "@/consts/game/powerups";
+import { WATER_SRCS, TREE_SOURCES, ROCK_SRCS, GROUND_VARIANTS } from "@/consts/game/environment";
+import { DUCK_SRCS, DUCK_TARGET_SRCS, DUCK_OUTLINE_SRCS } from "@/consts/game/objects";
+import { NAPALM_MISSILE_SRC, NAPALM_FLAME_FRAME_SRCS, POWERUP_TYPES } from "@/consts/game/powerups";
 import { SCORE_DIGIT_PATH } from "@/consts/game/ui";
 import { ENEMY_COLORS, AIRSHIP_COLORS } from "@/consts/game/vehicles";
 import { AssetMgr } from "@/types/game/ui";
@@ -54,25 +41,16 @@ export function useGameAssets(): {
     assetRefs.current.airshipFrames = Object.fromEntries(
       AIRSHIP_COLORS.map((color) => [
         color,
-        [1, 2, 3].map((i) =>
-          loadImg(`/assets/airships/airship_${color}_${i}.png`),
-        ),
+        [1, 2, 3].map((i) => loadImg(`/assets/airships/airship_${color}_${i}.png`)),
       ]),
     );
 
     // ARTILLERY
-    assetRefs.current.artilleryImg = loadImg(
-      "/assets/tanks/PNG/Retina/tank_bulletFly6.png",
-    );
+    assetRefs.current.artilleryImg = loadImg("/assets/tanks/PNG/Retina/tank_bulletFly6.png");
 
     // BLACK SMOKE
     assetRefs.current.blackSmokeImgs = Array.from({ length: 25 }, (_, i) =>
-      loadImg(
-        `/assets/smoke/PNG/Black smoke/blackSmoke${String(i).padStart(
-          2,
-          "0",
-        )}.png`,
-      ),
+      loadImg(`/assets/smoke/PNG/Black smoke/blackSmoke${String(i).padStart(2, "0")}.png`),
     );
 
     // BROKEN STICK
@@ -93,9 +71,7 @@ export function useGameAssets(): {
     // DIGIT IMAGES
     assetRefs.current.digitImgs = {};
     for (let d = 0; d <= 9; d++) {
-      assetRefs.current.digitImgs[d.toString()] = loadImg(
-        `${SCORE_DIGIT_PATH}${d}.png`,
-      );
+      assetRefs.current.digitImgs[d.toString()] = loadImg(`${SCORE_DIGIT_PATH}${d}.png`);
     }
 
     // DUCKS
@@ -123,17 +99,13 @@ export function useGameAssets(): {
     assetRefs.current.groundImgs = GROUND_VARIANTS.map(loadImg);
 
     // HOMING
-    assetRefs.current.homingImg = loadImg(
-      "/assets/tanks/PNG/Retina/tank_bullet3.png",
-    );
+    assetRefs.current.homingImg = loadImg("/assets/tanks/PNG/Retina/tank_bullet3.png");
 
     // LETTER IMAGES
     assetRefs.current.letterImgs = {};
     for (let c = 65; c <= 90; c++) {
       const ch = String.fromCharCode(c);
-      assetRefs.current.letterImgs[ch] = loadImg(
-        `/assets/tappyplane/PNG/Letters/letter${ch}.png`,
-      );
+      assetRefs.current.letterImgs[ch] = loadImg(`/assets/tappyplane/PNG/Letters/letter${ch}.png`);
     }
 
     // MEDAL FRAMES
@@ -164,52 +136,31 @@ export function useGameAssets(): {
     assetRefs.current.planeImg = assetRefs.current.planeFrames[0];
 
     // PLUS
-    assetRefs.current.plusImg = loadImg(
-      "/assets/shooting-gallery/PNG/HUD/text_plus_small.png",
-    );
+    assetRefs.current.plusImg = loadImg("/assets/shooting-gallery/PNG/HUD/text_plus_small.png");
 
     // POWERUPS
     assetRefs.current.powerupImgs = Object.fromEntries(
-      POWERUP_TYPES.map((type) => [
-        type,
-        loadImg(`/assets/powerups/${type}.png`),
-      ]),
+      POWERUP_TYPES.map((type) => [type, loadImg(`/assets/powerups/${type}.png`)]),
     ) as Record<string, HTMLImageElement>;
     // Ensure powerupImgs is always an object
     if (!assetRefs.current.powerupImgs) {
       assetRefs.current.powerupImgs = {};
     }
-    assetRefs.current.powerupImgs.coin2x = loadImg(
-      "/assets/powerups/coin_2x.png",
-    );
-    assetRefs.current.powerupImgs.infiniteAmmo = loadImg(
-      "/assets/powerups/infinite_ammo.png",
-    );
-    assetRefs.current.powerupImgs.machineGuns = loadImg(
-      "/assets/powerups/machine_guns.png",
-    );
-    assetRefs.current.powerupImgs.autoReload = loadImg(
-      "/assets/powerups/autoReload.png",
-    );
-    assetRefs.current.powerupImgs.shrink = loadImg(
-      "/assets/powerups/shrink_effect.png",
-    );
+    assetRefs.current.powerupImgs.coin2x = loadImg("/assets/powerups/coin_2x.png");
+    assetRefs.current.powerupImgs.infiniteAmmo = loadImg("/assets/powerups/infinite_ammo.png");
+    assetRefs.current.powerupImgs.machineGuns = loadImg("/assets/powerups/machine_guns.png");
+    assetRefs.current.powerupImgs.autoReload = loadImg("/assets/powerups/autoReload.png");
+    assetRefs.current.powerupImgs.shrink = loadImg("/assets/powerups/shrink_effect.png");
 
     // PUFF
-    assetRefs.current.puffLargeImg = loadImg(
-      "/assets/tappyplane/PNG/puffLarge.png",
-    );
-    assetRefs.current.puffSmallImg = loadImg(
-      "/assets/tappyplane/PNG/puffSmall.png",
-    );
+    assetRefs.current.puffLargeImg = loadImg("/assets/tappyplane/PNG/puffLarge.png");
+    assetRefs.current.puffSmallImg = loadImg("/assets/tappyplane/PNG/puffSmall.png");
 
     // ROCKS
     assetRefs.current.rockImgs = ROCK_SRCS.map(loadImg);
 
     // SHIELD
-    assetRefs.current.shieldImg = loadImg(
-      "/assets/particles/PNG (Transparent)/circle_03.png",
-    );
+    assetRefs.current.shieldImg = loadImg("/assets/particles/PNG (Transparent)/circle_03.png");
 
     // SPARKS
     assetRefs.current.sparkImgs = Array.from({ length: 7 }, (_, i) =>
@@ -223,9 +174,7 @@ export function useGameAssets(): {
     ];
 
     // STICK
-    assetRefs.current.stickImg = loadImg(
-      "/assets/shooting-gallery/PNG/Objects/stick_wood.png",
-    );
+    assetRefs.current.stickImg = loadImg("/assets/shooting-gallery/PNG/Objects/stick_wood.png");
 
     // TARGETS
     assetRefs.current.targetImgs = [
@@ -242,22 +191,14 @@ export function useGameAssets(): {
 
     // WHITE PUFF
     assetRefs.current.whitePuffImgs = Array.from({ length: 25 }, (_, i) =>
-      loadImg(
-        `/assets/smoke/PNG/White puff/whitePuff${String(i).padStart(
-          2,
-          "0",
-        )}.png`,
-      ),
+      loadImg(`/assets/smoke/PNG/White puff/whitePuff${String(i).padStart(2, "0")}.png`),
     );
 
     setReady(true);
   }, []);
 
   // Generic getters as specified in your AssetMgr
-  const get = useCallback<AssetMgr["get"]>(
-    (key: string) => assetRefs.current[key],
-    [],
-  );
+  const get = useCallback<AssetMgr["get"]>((key: string) => assetRefs.current[key], []);
   const getImg = useCallback<AssetMgr["getImg"]>(
     (key: string) => assetRefs.current[key] ?? undefined,
     [],

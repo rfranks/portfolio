@@ -16,8 +16,7 @@ export default function BlackjackPage() {
   const blackjack = useBlackjackPage();
   const blackjackProject = projects?.find((proj) => proj?.href === "/blackjack");
   const blackjackDiagrams = React.useMemo(
-    () =>
-      (blackjackProject?.diagrams as BlackjackDiagramConfig[] | undefined) ?? [],
+    () => (blackjackProject?.diagrams as BlackjackDiagramConfig[] | undefined) ?? [],
     [blackjackProject?.diagrams],
   );
   const normalizedBlackjackDiagrams = React.useMemo(
@@ -36,9 +35,9 @@ export default function BlackjackPage() {
         }),
     [blackjackDiagrams],
   );
-  const [activeDiagramKey, setActiveDiagramKey] = React.useState<
-    string | undefined
-  >(normalizedBlackjackDiagrams[0]?.key);
+  const [activeDiagramKey, setActiveDiagramKey] = React.useState<string | undefined>(
+    normalizedBlackjackDiagrams[0]?.key,
+  );
   const blackjackDiagramItems = React.useMemo<MediaCyclerItem[]>(
     () =>
       normalizedBlackjackDiagrams.map((diagram) => ({
@@ -61,8 +60,7 @@ export default function BlackjackPage() {
           borderRadius: "20px",
           background:
             "linear-gradient(180deg, rgba(30, 41, 59, 0.62), rgba(15, 23, 42, 0.48)), rgba(15, 23, 42, 0.42)",
-          boxShadow:
-            "inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 28px rgba(2, 8, 23, 0.16)",
+          boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 28px rgba(2, 8, 23, 0.16)",
         },
         assetFrameSx: {
           width: "100%",
@@ -101,10 +99,7 @@ export default function BlackjackPage() {
                 {
                   left: `${piece.left}%`,
                   width: `${piece.size}px`,
-                  height:
-                    piece.shape === "circle"
-                      ? `${piece.size}px`
-                      : `${piece.size * 1.6}px`,
+                  height: piece.shape === "circle" ? `${piece.size}px` : `${piece.size * 1.6}px`,
                   backgroundColor: piece.color,
                   animationDelay: `${piece.delayMs}ms`,
                   animationDuration: `${piece.durationMs}ms`,
@@ -170,9 +165,7 @@ export default function BlackjackPage() {
         className="blackjack-panel blackjack-demo-panel blackjack-carousel-slide"
       >
         <h2 className="blackjack-panel-title">Go! Blackjack!</h2>
-        <p className="blackjack-panel-subtitle">
-          Via Go in the terminal in VS Code Debugger
-        </p>
+        <p className="blackjack-panel-subtitle">Via Go in the terminal in VS Code Debugger</p>
         <video
           src={withBasePath("/personal/demovideos/blackjack_terminal.mov")}
           controls

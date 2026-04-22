@@ -2,9 +2,7 @@
   --blackjack-carousel-nav-space: 4.4rem;
   --blackjack-card-width: min(120px, 22vw);
   --blackjack-card-full-height: calc(var(--blackjack-card-width) * 174 / 120);
-  --blackjack-card-visible-height: calc(
-    var(--blackjack-card-full-height) * 0.5
-  );
+  --blackjack-card-visible-height: calc(var(--blackjack-card-full-height) * 0.5);
   position: relative;
   isolation: isolate;
   block-size: 100dvh;
@@ -14,16 +12,8 @@
   overflow-y: hidden;
   padding: 0;
   background:
-    radial-gradient(
-      circle at top left,
-      rgba(245, 158, 11, 0.12),
-      transparent 24rem
-    ),
-    radial-gradient(
-      circle at top right,
-      rgba(59, 130, 246, 0.12),
-      transparent 26rem
-    ),
+    radial-gradient(circle at top left, rgba(245, 158, 11, 0.12), transparent 24rem),
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 26rem),
     linear-gradient(180deg, #0f172a 0%, #111827 42%, #172033 100%);
   color: #e5eefc;
   scroll-behavior: smooth;
@@ -109,23 +99,17 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
   background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.1),
-      rgba(255, 255, 255, 0.03)
-    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
     rgba(15, 23, 42, 0.94);
   box-shadow: 0 24px 48px rgba(2, 8, 23, 0.42);
   text-align: center;
   pointer-events: auto;
   transform-origin: 50% 50%;
-  animation: blackjack-modal-panel-in 320ms cubic-bezier(0.16, 0.84, 0.24, 1)
-    forwards;
+  animation: blackjack-modal-panel-in 320ms cubic-bezier(0.16, 0.84, 0.24, 1) forwards;
 }
 
 .blackjack-round-end-modal--closing .blackjack-round-end-modal__panel {
-  animation: blackjack-modal-panel-out 280ms cubic-bezier(0.4, 0, 0.2, 1)
-    forwards;
+  animation: blackjack-modal-panel-out 280ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .blackjack-round-end-modal__panel #status {
@@ -382,11 +366,7 @@
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 24px;
   background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.12),
-      rgba(255, 255, 255, 0.04)
-    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
     rgba(15, 23, 42, 0.78);
   box-shadow:
     0 20px 48px rgba(2, 8, 23, 0.35),

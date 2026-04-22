@@ -72,11 +72,7 @@ const steps: Array<{
 
 export const TOTAL_ONBOARDING_STEPS = steps.length;
 
-export default function OnboardingStepper({
-  onComplete,
-}: {
-  onComplete?: () => void;
-}) {
+export default function OnboardingStepper({ onComplete }: { onComplete?: () => void }) {
   const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
@@ -108,17 +104,12 @@ export default function OnboardingStepper({
   };
 
   const Current = steps[activeStep]?.Component;
-  const stepLabelId =
-    activeStep < steps.length
-      ? `onboarding-step-label-${activeStep}`
-      : undefined;
-  const stepPanelId =
-    activeStep < steps.length
-      ? `onboarding-step-panel-${activeStep}`
-      : undefined;
+  const stepLabelId = activeStep < steps.length ? `onboarding-step-label-${activeStep}` : undefined;
+  const stepPanelId = activeStep < steps.length ? `onboarding-step-panel-${activeStep}` : undefined;
 
   const stepperAriaLabel = useMemo(
-    () => `TalentForge onboarding progress, step ${Math.min(activeStep + 1, steps.length)} of ${steps.length}`,
+    () =>
+      `TalentForge onboarding progress, step ${Math.min(activeStep + 1, steps.length)} of ${steps.length}`,
     [activeStep],
   );
 
@@ -152,16 +143,10 @@ export default function OnboardingStepper({
           </Button>
         </Box>
       ) : (
-        <Box
-          sx={{ mt: 3 }}
-          role="region"
-          id={stepPanelId}
-          aria-labelledby={stepLabelId}
-        >
+        <Box sx={{ mt: 3 }} role="region" id={stepPanelId} aria-labelledby={stepLabelId}>
           {Current && <Current onNext={handleNext} onBack={handleBack} />}
         </Box>
       )}
     </Box>
   );
 }
-

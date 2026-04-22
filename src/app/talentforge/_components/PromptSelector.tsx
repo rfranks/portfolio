@@ -41,22 +41,13 @@ interface PromptSelectorProps {
   contexts?: PromptContext | PromptContext[];
 }
 
-export default function PromptSelector({
-  value,
-  onChange,
-  contexts,
-}: PromptSelectorProps) {
+export default function PromptSelector({ value, onChange, contexts }: PromptSelectorProps) {
   const handleChange = (event: SelectChangeEvent<string>) => {
     onChange(event.target.value as string);
   };
 
   const requestedContexts = useMemo<PromptContext[]>(
-    () =>
-      contexts
-        ? Array.isArray(contexts)
-          ? contexts
-          : [contexts]
-        : PROMPT_CONTEXT_ORDER,
+    () => (contexts ? (Array.isArray(contexts) ? contexts : [contexts]) : PROMPT_CONTEXT_ORDER),
     [contexts],
   );
 
@@ -66,9 +57,7 @@ export default function PromptSelector({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<"create" | "edit">("create");
   const [editingTile, setEditingTile] = useState<CustomPromptTile | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<CustomPromptTile | null>(
-    null,
-  );
+  const [confirmDelete, setConfirmDelete] = useState<CustomPromptTile | null>(null);
 
   const customPromptMap = useMemo(
     () => new Map(customPrompts.map((tile) => [tile.id, tile])),
@@ -91,16 +80,10 @@ export default function PromptSelector({
     })
     .filter((group) => group.tiles.length > 0);
 
-  const fallbackTiles: PromptTileWithMetadata[] =
-    groups.length === 0 ? tiles : [];
+  const fallbackTiles: PromptTileWithMetadata[] = groups.length === 0 ? tiles : [];
 
-  const selectedTile = useMemo(
-    () => tiles.find((tile) => tile.id === value),
-    [tiles, value],
-  );
-  const selectedCustomTile = selectedTile
-    ? customPromptMap.get(selectedTile.id)
-    : undefined;
+  const selectedTile = useMemo(() => tiles.find((tile) => tile.id === value), [tiles, value]);
+  const selectedCustomTile = selectedTile ? customPromptMap.get(selectedTile.id) : undefined;
 
   const openCreateDrawer = () => {
     setDrawerMode("create");
@@ -176,11 +159,7 @@ export default function PromptSelector({
               </MenuItem>
             ))}
       </Select>
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{ mt: 1, flexWrap: "wrap", rowGap: 1 }}
-      >
+      <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap", rowGap: 1 }}>
         <Button
           size="small"
           variant="outlined"
@@ -216,7 +195,7 @@ export default function PromptSelector({
         mode={drawerMode}
         onClose={closeDrawer}
         onSave={handleDrawerSave}
-        initialValue={drawerMode === "edit" ? editingTile ?? undefined : undefined}
+        initialValue={drawerMode === "edit" ? (editingTile ?? undefined) : undefined}
       />
       <Dialog open={Boolean(confirmDelete)} onClose={() => setConfirmDelete(null)}>
         <DialogTitle>Delete prompt</DialogTitle>

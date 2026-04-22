@@ -1,12 +1,5 @@
 import * as React from "react";
-import {
-  Box,
-  Button,
-  IconButton,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, IconButton, Paper, Stack, Typography } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import type { JourneyLedgerPlaybackEntry } from "@/app/pathforger/_types/journeyLedger";
 
@@ -85,8 +78,7 @@ export default function PathForgerJourneyLedgerCarousel(
         border: transparent ? "none" : undefined,
         backgroundColor: transparent ? "transparent" : undefined,
         boxShadow: transparent ? "none" : undefined,
-        animation:
-          "pathforgerLedgerPanelIn 240ms cubic-bezier(0.2, 0.9, 0.35, 1) both",
+        animation: "pathforgerLedgerPanelIn 240ms cubic-bezier(0.2, 0.9, 0.35, 1) both",
         "@keyframes pathforgerLedgerPanelIn": {
           from: { opacity: 0, transform: "translateY(10px)" },
           to: { opacity: 1, transform: "translateY(0)" },
@@ -162,8 +154,7 @@ export default function PathForgerJourneyLedgerCarousel(
                     sx={{
                       color: "success.main",
                       fontWeight: 600,
-                      animation:
-                        "pathforgerLedgerAdded 380ms cubic-bezier(0.2, 0.9, 0.35, 1) both",
+                      animation: "pathforgerLedgerAdded 380ms cubic-bezier(0.2, 0.9, 0.35, 1) both",
                       "@keyframes pathforgerLedgerAdded": {
                         from: {
                           opacity: 0,
@@ -180,11 +171,7 @@ export default function PathForgerJourneyLedgerCarousel(
                   </Typography>
                 ))}
                 {currentEntry.afterItems.length === 0 ? (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ opacity: 0.85 }}
-                  >
+                  <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.85 }}>
                     No active entries.
                   </Typography>
                 ) : null}

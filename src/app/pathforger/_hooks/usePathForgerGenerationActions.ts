@@ -14,9 +14,7 @@ import {
   PathForgerPipelineResult,
 } from "@/app/pathforger/_types/pipeline";
 
-type OnboardingPayload = Parameters<
-  typeof runPathForgerPremiseStage
->[0]["onboarding"];
+type OnboardingPayload = Parameters<typeof runPathForgerPremiseStage>[0]["onboarding"];
 
 export interface UsePathForgerGenerationActionsArgs<TActiveRunAction> {
   premise: string;
@@ -28,9 +26,7 @@ export interface UsePathForgerGenerationActionsArgs<TActiveRunAction> {
   protagonistPreference: string;
   setProtagonistPreference: React.Dispatch<React.SetStateAction<string>>;
   recentGeneratedProtagonistNames: string[];
-  setRecentGeneratedProtagonistNames: React.Dispatch<
-    React.SetStateAction<string[]>
-  >;
+  setRecentGeneratedProtagonistNames: React.Dispatch<React.SetStateAction<string[]>>;
   recentGeneratedPremises: string[];
   setRecentGeneratedPremises: React.Dispatch<React.SetStateAction<string[]>>;
   buildOnboardingPayload: () => OnboardingPayload;
@@ -51,12 +47,8 @@ export interface UsePathForgerGenerationActionsArgs<TActiveRunAction> {
   setImagePromptOverrides: React.Dispatch<
     React.SetStateAction<Partial<Record<PathForgerImageType, string>>>
   >;
-  setResult: React.Dispatch<
-    React.SetStateAction<PathForgerPipelineResult | null>
-  >;
-  setChapterOnlyResult: React.Dispatch<
-    React.SetStateAction<PathForgerChapterResult | null>
-  >;
+  setResult: React.Dispatch<React.SetStateAction<PathForgerPipelineResult | null>>;
+  setChapterOnlyResult: React.Dispatch<React.SetStateAction<PathForgerChapterResult | null>>;
   handleCloseImagePromptEditor: () => void;
 }
 
@@ -159,16 +151,12 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
     }
 
     if (!premise.trim()) {
-      setErrorMessage(
-        "Please provide a premise so PathForger can craft a fitting name.",
-      );
+      setErrorMessage("Please provide a premise so PathForger can craft a fitting name.");
       return;
     }
 
     setIsRunning(true);
-    setActiveRunAction(
-      "name" as unknown as React.SetStateAction<TActiveRunAction>,
-    );
+    setActiveRunAction("name" as unknown as React.SetStateAction<TActiveRunAction>);
 
     try {
       const blockedNames = Array.from(
@@ -195,24 +183,17 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
       const resolvedName = generatedName.protagonistName.trim();
       setProtagonistPreference(resolvedName);
       setRecentGeneratedProtagonistNames((prev) => {
-        const next = [
-          resolvedName,
-          ...prev.filter((name) => name !== resolvedName),
-        ];
+        const next = [resolvedName, ...prev.filter((name) => name !== resolvedName)];
         return next.slice(0, 20);
       });
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Protagonist name generation failed.",
+        error instanceof Error ? error.message : "Protagonist name generation failed.",
       );
     } finally {
       clearStatusMessages();
       setIsRunning(false);
-      setActiveRunAction(
-        null as unknown as React.SetStateAction<TActiveRunAction>,
-      );
+      setActiveRunAction(null as unknown as React.SetStateAction<TActiveRunAction>);
     }
   }, [
     buildOnboardingPayload,
@@ -233,12 +214,8 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
   ]);
 
   const runGenerateTone = React.useCallback(
-    async (options?: {
-      premiseOverride?: string;
-      visualStyleOverride?: string;
-    }) => {
-      const effectivePremise =
-        options?.premiseOverride?.trim() ?? premise.trim();
+    async (options?: { premiseOverride?: string; visualStyleOverride?: string }) => {
+      const effectivePremise = options?.premiseOverride?.trim() ?? premise.trim();
       const effectiveVisualStyle = options?.visualStyleOverride;
 
       setErrorMessage("");
@@ -253,16 +230,12 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
       }
 
       if (!effectivePremise) {
-        setErrorMessage(
-          "Please provide a premise so PathForger can craft a fitting tone.",
-        );
+        setErrorMessage("Please provide a premise so PathForger can craft a fitting tone.");
         return null;
       }
 
       setIsRunning(true);
-      setActiveRunAction(
-        "tone" as unknown as React.SetStateAction<TActiveRunAction>,
-      );
+      setActiveRunAction("tone" as unknown as React.SetStateAction<TActiveRunAction>);
 
       try {
         const base = buildOnboardingPayload();
@@ -270,9 +243,7 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
           ...base,
           premise: effectivePremise,
           visualStyle:
-            typeof effectiveVisualStyle === "string"
-              ? effectiveVisualStyle
-              : base.visualStyle,
+            typeof effectiveVisualStyle === "string" ? effectiveVisualStyle : base.visualStyle,
         };
 
         const generatedTone = await runPathForgerToneStage(
@@ -290,16 +261,12 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
         setTone(nextTone);
         return nextTone;
       } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : "Tone generation failed.",
-        );
+        setErrorMessage(error instanceof Error ? error.message : "Tone generation failed.");
         return null;
       } finally {
         clearStatusMessages();
         setIsRunning(false);
-        setActiveRunAction(
-          null as unknown as React.SetStateAction<TActiveRunAction>,
-        );
+        setActiveRunAction(null as unknown as React.SetStateAction<TActiveRunAction>);
       }
     },
     [
@@ -324,8 +291,7 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
 
   const runGenerateVisualStyle = React.useCallback(
     async (options?: { premiseOverride?: string; toneOverride?: string }) => {
-      const effectivePremise =
-        options?.premiseOverride?.trim() ?? premise.trim();
+      const effectivePremise = options?.premiseOverride?.trim() ?? premise.trim();
       const effectiveTone = options?.toneOverride?.trim() ?? tone.trim();
 
       setErrorMessage("");
@@ -340,16 +306,12 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
       }
 
       if (!effectivePremise) {
-        setErrorMessage(
-          "Please provide a premise so PathForger can craft a fitting style.",
-        );
+        setErrorMessage("Please provide a premise so PathForger can craft a fitting style.");
         return;
       }
 
       setIsRunning(true);
-      setActiveRunAction(
-        "style" as unknown as React.SetStateAction<TActiveRunAction>,
-      );
+      setActiveRunAction("style" as unknown as React.SetStateAction<TActiveRunAction>);
 
       try {
         const base = buildOnboardingPayload();
@@ -372,15 +334,11 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
 
         setVisualStyle(generatedStyle.visualStyle);
       } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : "Style generation failed.",
-        );
+        setErrorMessage(error instanceof Error ? error.message : "Style generation failed.");
       } finally {
         clearStatusMessages();
         setIsRunning(false);
-        setActiveRunAction(
-          null as unknown as React.SetStateAction<TActiveRunAction>,
-        );
+        setActiveRunAction(null as unknown as React.SetStateAction<TActiveRunAction>);
       }
     },
     [
@@ -417,16 +375,12 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
     }
 
     if (!genre.trim()) {
-      setErrorMessage(
-        "Please choose a genre so PathForger can craft a fitting premise.",
-      );
+      setErrorMessage("Please choose a genre so PathForger can craft a fitting premise.");
       return null;
     }
 
     setIsRunning(true);
-    setActiveRunAction(
-      "premise" as unknown as React.SetStateAction<TActiveRunAction>,
-    );
+    setActiveRunAction("premise" as unknown as React.SetStateAction<TActiveRunAction>);
 
     try {
       const blockedPremisePhrases = Array.from(
@@ -473,10 +427,7 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
       setPremise(nextPremise);
 
       setRecentGeneratedPremises((prev) => {
-        const next = [
-          nextPremise,
-          ...prev.filter((value) => value !== nextPremise),
-        ];
+        const next = [nextPremise, ...prev.filter((value) => value !== nextPremise)];
         return next.slice(0, 20);
       });
 
@@ -509,16 +460,12 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
 
       return nextPremise;
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Premise generation failed.",
-      );
+      setErrorMessage(error instanceof Error ? error.message : "Premise generation failed.");
       return null;
     } finally {
       clearStatusMessages();
       setIsRunning(false);
-      setActiveRunAction(
-        null as unknown as React.SetStateAction<TActiveRunAction>,
-      );
+      setActiveRunAction(null as unknown as React.SetStateAction<TActiveRunAction>);
     }
   }, [
     buildOnboardingPayload,

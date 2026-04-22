@@ -102,18 +102,12 @@ export function GameUI({
         >
           <Box
             component="img"
-            src={
-              medalFrames[0]?.[0]?.src ||
-              withBasePath("/assets/medals/PNG/flat_medal1.png")
-            }
+            src={medalFrames[0]?.[0]?.src || withBasePath("/assets/medals/PNG/flat_medal1.png")}
             width={48 * scale}
             height={48 * scale}
             sx={{ mr: 2 * scale }}
           />
-          <Box
-            component="span"
-            sx={{ fontSize: 48 * scale, color: "white", fontWeight: "bold" }}
-          >
+          <Box component="span" sx={{ fontSize: 48 * scale, color: "white", fontWeight: "bold" }}>
             x{medalCount}
           </Box>
         </Box>
@@ -132,18 +126,12 @@ export function GameUI({
         >
           <Box
             component="img"
-            src={withBasePath(
-              "/assets/shooting-gallery/PNG/Objects/duck_brown.png",
-            )}
+            src={withBasePath("/assets/shooting-gallery/PNG/Objects/duck_brown.png")}
             width={48 * scale}
             height={48 * scale}
             sx={{ mr: 2 * scale }}
           />
-          <Box
-            sx={{ fontSize: 48 * scale, color: "white", fontWeight: "bold" }}
-          >
-            x{duckCount}
-          </Box>
+          <Box sx={{ fontSize: 48 * scale, color: "white", fontWeight: "bold" }}>x{duckCount}</Box>
         </Box>
       )}
 
@@ -151,9 +139,7 @@ export function GameUI({
       {enemyCount > 0 && (
         <Box
           position="absolute"
-          top={
-            16 * scale + 32 * scale + 8 * scale + 2 * (48 * scale + 8 * scale)
-          }
+          top={16 * scale + 32 * scale + 8 * scale + 2 * (48 * scale + 8 * scale)}
           left={16 * scale}
           display="flex"
           alignItems="center"
@@ -167,11 +153,7 @@ export function GameUI({
             height={48 * scale}
             sx={{ mr: 2 * scale }}
           />
-          <Box
-            sx={{ fontSize: 48 * scale, color: "white", fontWeight: "bold" }}
-          >
-            x{enemyCount}
-          </Box>
+          <Box sx={{ fontSize: 48 * scale, color: "white", fontWeight: "bold" }}>x{enemyCount}</Box>
         </Box>
       )}
       {/* Score display */}
@@ -226,9 +208,7 @@ export function GameUI({
       {crashed && phase === "playing" && (
         <Box
           component="img"
-          src={withBasePath(
-            "/assets/shooting-gallery/PNG/HUD/text_gameover.png",
-          )}
+          src={withBasePath("/assets/shooting-gallery/PNG/HUD/text_gameover.png")}
           alt="Game Over"
           onClick={resetGame}
           sx={{
@@ -257,10 +237,7 @@ export function GameUI({
             .map((t) => {
               const timeLeft = activePowerups[t].expires - frameCount;
               const flash = timeLeft < 60 && timeLeft % 10 < 5;
-              const powerupImgs = getImg("powerupImgs") as Record<
-                string,
-                HTMLImageElement
-              >;
+              const powerupImgs = getImg("powerupImgs") as Record<string, HTMLImageElement>;
               const imgSrc = powerupImgs[t].src;
 
               return (

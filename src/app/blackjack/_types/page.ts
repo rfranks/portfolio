@@ -6,10 +6,7 @@ export type BlackjackCarouselSlideId =
   | "terminal-demo"
   | "architecture-diagrams";
 
-export type BlackjackDiagramConfig = Pick<
-  DiagramProps,
-  "diagram" | "height" | "title" | "type"
->;
+export type BlackjackDiagramConfig = Pick<DiagramProps, "diagram" | "height" | "title" | "type">;
 
 export type WinningChipFx = {
   id: string;

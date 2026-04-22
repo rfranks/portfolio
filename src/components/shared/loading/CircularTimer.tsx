@@ -2,9 +2,7 @@ import * as React from "react";
 
 // MUI components
 import Box from "@mui/material/Box";
-import CircularProgress, {
-  CircularProgressProps,
-} from "@mui/material/CircularProgress";
+import CircularProgress, { CircularProgressProps } from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
 
 export function CircularProgressWithLabel(
@@ -25,11 +23,7 @@ export function CircularProgressWithLabel(
           justifyContent: "center",
         }}
       >
-        <Typography
-          variant="caption"
-          component="div"
-          sx={{ color: "text.secondary" }}
-        >
+        <Typography variant="caption" component="div" sx={{ color: "text.secondary" }}>
           {props.label}
         </Typography>
       </Box>
@@ -50,10 +44,6 @@ export default function CircularTimer() {
   }, []);
 
   return (
-    <CircularProgressWithLabel
-      label={`${progress} s`}
-      variant="indeterminate"
-      role="progressbar"
-    />
+    <CircularProgressWithLabel label={`${progress} s`} variant="indeterminate" role="progressbar" />
   );
 }

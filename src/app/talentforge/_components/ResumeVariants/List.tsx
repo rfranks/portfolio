@@ -133,17 +133,10 @@ export default function List({ resumes, setResumes }: Props) {
   };
 
   const parsedToString = (p: ResumeEntry["parsed"]) =>
-    [p.contact, ...p.experience, ...p.education, ...p.skills]
-      .filter(Boolean)
-      .join("\n");
+    [p.contact, ...p.experience, ...p.education, ...p.skills].filter(Boolean).join("\n");
 
   if (resumes.length === 0) {
-    return (
-      <EmptyState
-        message="No resumes"
-        helperText="Add a resume above to begin."
-      />
-    );
+    return <EmptyState message="No resumes" helperText="Add a resume above to begin." />;
   }
 
   return (
@@ -176,18 +169,10 @@ export default function List({ resumes, setResumes }: Props) {
               <IconButton size="small" onClick={() => setDiffTarget(r)} aria-label="diff">
                 <DifferenceIcon fontSize="small" />
               </IconButton>
-              <IconButton
-                size="small"
-                onClick={() => setConfirmDelete(r)}
-                aria-label="delete"
-              >
+              <IconButton size="small" onClick={() => setConfirmDelete(r)} aria-label="delete">
                 <DeleteIcon fontSize="small" />
               </IconButton>
-              <IconButton
-                size="small"
-                onClick={() => handleExport(r)}
-                aria-label="export"
-              >
+              <IconButton size="small" onClick={() => handleExport(r)} aria-label="export">
                 <FileDownloadIcon fontSize="small" />
               </IconButton>
               <IconButton component="label" size="small" aria-label="import">
@@ -205,7 +190,11 @@ export default function List({ resumes, setResumes }: Props) {
               </IconButton>
             </Stack>
             {metadataLabel && (
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: "block", mt: 0.5 }}
+              >
                 {metadataLabel}
               </Typography>
             )}
@@ -230,10 +219,7 @@ export default function List({ resumes, setResumes }: Props) {
         <Dialog open onClose={() => setDiffTarget(null)} fullWidth maxWidth="md">
           <DialogTitle>Diff {diffTarget.title}</DialogTitle>
           <DialogContent dividers>
-            <Diff
-              original={diffTarget.content}
-              updated={parsedToString(diffTarget.parsed)}
-            />
+            <Diff original={diffTarget.content} updated={parsedToString(diffTarget.parsed)} />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setDiffTarget(null)}>Close</Button>
@@ -243,9 +229,7 @@ export default function List({ resumes, setResumes }: Props) {
       {confirmDelete && (
         <Dialog open onClose={() => setConfirmDelete(null)}>
           <DialogTitle>Delete Resume</DialogTitle>
-          <DialogContent>
-            Are you sure you want to delete {confirmDelete.title}?
-          </DialogContent>
+          <DialogContent>Are you sure you want to delete {confirmDelete.title}?</DialogContent>
           <DialogActions>
             <Button onClick={() => setConfirmDelete(null)}>Cancel</Button>
             <Button

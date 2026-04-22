@@ -79,8 +79,7 @@ By accessing or using Bookworm, you agree to be bound by these Terms of Use. If 
 - If you have any questions about these Terms of Use, please contact us at [richardfrankskr@hotmail.com](mailto:richardfranksjr@hotmail.com).
 `;
 
-export interface TermsDialogProps
-  extends Omit<DialogProps, "open" | "onClose"> {
+export interface TermsDialogProps extends Omit<DialogProps, "open" | "onClose"> {
   /**
    * If `true`, the dialog is open.
    */
@@ -91,10 +90,7 @@ export interface TermsDialogProps
   onClose?: () => void;
 }
 
-export default function TermsDialog({
-  open = false,
-  onClose,
-}: TermsDialogProps) {
+export default function TermsDialog({ open = false, onClose }: TermsDialogProps) {
   const handleClose = () => {
     onClose?.();
   };

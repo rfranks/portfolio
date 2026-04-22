@@ -33,7 +33,7 @@ export function saveItem<T>(key: string, value: T, version = 1): void {
 export function loadItem<T>(
   key: string,
   currentVersion = 1,
-  migrate?: (data: unknown, version: number) => T
+  migrate?: (data: unknown, version: number) => T,
 ): T | undefined {
   if (typeof window === "undefined") return undefined;
 
@@ -70,10 +70,7 @@ export function deleteItem(key: string): void {
  * and version. Only entries whose keys start with `prefix` and whose stored
  * version equals `currentVersion` are included.
  */
-export function listItems<T>(
-  prefix = "",
-  currentVersion = 1
-): Record<string, T> {
+export function listItems<T>(prefix = "", currentVersion = 1): Record<string, T> {
   const results: Record<string, T> = {};
   if (typeof window === "undefined") return results;
 
@@ -88,4 +85,3 @@ export function listItems<T>(
   }
   return results;
 }
-

@@ -13,10 +13,8 @@ const KEY_ISSUE_PATTERNS = [
 ];
 
 const MAX_MESSAGE_LENGTH = 200;
-const DEFAULT_ERROR_MESSAGE =
-  "We couldn't reach OpenAI. Please try again.";
-const KEY_GUIDANCE_MESSAGE =
-  "Add your OpenAI API key in Settings to use this feature.";
+const DEFAULT_ERROR_MESSAGE = "We couldn't reach OpenAI. Please try again.";
+const KEY_GUIDANCE_MESSAGE = "Add your OpenAI API key in Settings to use this feature.";
 
 const sanitizeMessage = (value: string): string => {
   const trimmed = value.trim();

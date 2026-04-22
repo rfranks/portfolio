@@ -31,7 +31,7 @@ function issue(
   code: string,
   message: string,
   panelNumber?: number,
-  suggestion?: string
+  suggestion?: string,
 ): ValidationIssue {
   return { category, severity, code, message, panelNumber, suggestion };
 }
@@ -42,12 +42,9 @@ function uniqueStrings(values: string[]): string[] {
 
 export function extractPreflightRequirements(spec: ComicStripSpec): PreflightRequirements {
   const source = spec.sourceText.toLowerCase();
-  const requestedPanelCount = /\b6\s*panel/.test(source)
-    ? 6
-    : spec.panelCount;
+  const requestedPanelCount = /\b6\s*panel/.test(source) ? 6 : spec.panelCount;
 
-  const requestedLayout =
-    requestedPanelCount === 6 ? "GRID_2X3" : "ROW_3";
+  const requestedLayout = requestedPanelCount === 6 ? "GRID_2X3" : "ROW_3";
 
   const titleRequired =
     /\btitle\b/.test(source) || /\brickbert\b/.test(source) || requestedPanelCount === 6;
@@ -89,7 +86,7 @@ export function extractPreflightRequirements(spec: ComicStripSpec): PreflightReq
 
 export function validateFormatCompliance(
   spec: ComicStripSpec,
-  requirements: PreflightRequirements
+  requirements: PreflightRequirements,
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
@@ -101,8 +98,8 @@ export function validateFormatCompliance(
         "panel_count_mismatch",
         `Requested ${requirements.requestedPanelCount} panels but parsed ${spec.panelCount}.`,
         undefined,
-        "Align panel headings with requested panel count before render."
-      )
+        "Align panel headings with requested panel count before render.",
+      ),
     );
   }
 
@@ -114,8 +111,8 @@ export function validateFormatCompliance(
         "layout_mismatch",
         `Layout must be ${requirements.requestedLayout} for ${requirements.requestedPanelCount} panels.`,
         undefined,
-        "Force 3 panels to 1x3 and 6 panels to 2x3."
-      )
+        "Force 3 panels to 1x3 and 6 panels to 2x3.",
+      ),
     );
   }
 
@@ -127,8 +124,8 @@ export function validateFormatCompliance(
         "title_missing",
         "Title is required but missing.",
         undefined,
-        "Set strip title to RICKBERT when the script requires a title."
-      )
+        "Set strip title to RICKBERT when the script requires a title.",
+      ),
     );
   }
 
@@ -137,7 +134,7 @@ export function validateFormatCompliance(
 
 export function validateScriptCompliance(
   spec: ComicStripSpec,
-  requirements: PreflightRequirements
+  requirements: PreflightRequirements,
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
@@ -151,8 +148,8 @@ export function validateScriptCompliance(
           "panel_missing",
           `Panel ${expected} is missing from the parsed script.`,
           expected,
-          "Add the missing panel heading and content."
-        )
+          "Add the missing panel heading and content.",
+        ),
       );
       continue;
     }
@@ -165,8 +162,8 @@ export function validateScriptCompliance(
           "dialogue_missing",
           `Panel ${expected} does not include dialogue lines.`,
           expected,
-          "Add dialogue bullets with speaker attribution."
-        )
+          "Add dialogue bullets with speaker attribution.",
+        ),
       );
     }
 
@@ -179,8 +176,8 @@ export function validateScriptCompliance(
             "speaker_missing",
             `Panel ${expected} has dialogue without a speaker attribution.`,
             expected,
-            "Use bullet format like **Claire:** text."
-          )
+            "Use bullet format like **Claire:** text.",
+          ),
         );
       }
     }
@@ -195,8 +192,8 @@ export function validateScriptCompliance(
             "production_line_loss",
             `Panel ${expected} lost dialogue lines in production mode.`,
             expected,
-            "Preserve every provided dialogue line verbatim."
-          )
+            "Preserve every provided dialogue line verbatim.",
+          ),
         );
       }
     }
@@ -207,7 +204,7 @@ export function validateScriptCompliance(
 
 export function validateCharacterCompliance(
   spec: ComicStripSpec,
-  requirements: PreflightRequirements
+  requirements: PreflightRequirements,
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const allowedSpeakers = new Set([
@@ -220,10 +217,7 @@ export function validateCharacterCompliance(
     for (const line of panel.dialogue) {
       if (!allowedSpeakers.has(line.speaker.trim().toLowerCase())) {
         const loweredSpeaker = line.speaker.trim().toLowerCase();
-        if (
-          line.speaker !== "Unknown" &&
-          !ALLOWED_DEVICE_SPEAKERS.has(loweredSpeaker)
-        ) {
+        if (line.speaker !== "Unknown" && !ALLOWED_DEVICE_SPEAKERS.has(loweredSpeaker)) {
           issues.push(
             issue(
               "character",
@@ -231,8 +225,8 @@ export function validateCharacterCompliance(
               "non_canonical_character",
               `Panel ${panel.panelNumber} uses non-canonical speaker "${line.speaker}".`,
               panel.panelNumber,
-              "Confirm this character is intentional or map the name to canonical roster."
-            )
+              "Confirm this character is intentional or map the name to canonical roster.",
+            ),
           );
         }
       }
@@ -241,7 +235,7 @@ export function validateCharacterCompliance(
 
   if (requirements.requiresAlvinRemote) {
     const alvinPanel = spec.panels.find((panel) =>
-      panel.characters.some((character) => character.name === "Alvin")
+      panel.characters.some((character) => character.name === "Alvin"),
     );
 
     if (!alvinPanel) {
@@ -252,16 +246,14 @@ export function validateCharacterCompliance(
           "alvin_missing",
           "Alvin is required but not present in any panel.",
           undefined,
-          "Add Alvin to the required panel."
-        )
+          "Add Alvin to the required panel.",
+        ),
       );
     } else {
       const hasRemoteMarker =
         /remote|bali|video|window|monitor/i.test(alvinPanel.sceneText) ||
         alvinPanel.props.some((prop) => prop.kind === "window") ||
-        alvinPanel.characters.some(
-          (character) => character.name === "Alvin" && character.isRemote
-        );
+        alvinPanel.characters.some((character) => character.name === "Alvin" && character.isRemote);
 
       if (!hasRemoteMarker) {
         issues.push(
@@ -271,8 +263,8 @@ export function validateCharacterCompliance(
             "alvin_not_remote",
             "Alvin must appear remotely (window/monitor tile) when required.",
             alvinPanel.panelNumber,
-            "Add a remote video window cue for Alvin."
-          )
+            "Add a remote video window cue for Alvin.",
+          ),
         );
       }
     }
@@ -283,12 +275,15 @@ export function validateCharacterCompliance(
 
 export function validateVisualRequirements(
   spec: ComicStripSpec,
-  requirements: PreflightRequirements
+  requirements: PreflightRequirements,
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
   const panelText = spec.panels
-    .map((panel) => `${panel.sceneText} ${panel.labels.join(" ")} ${panel.props.map((prop) => prop.name).join(" ")}`)
+    .map(
+      (panel) =>
+        `${panel.sceneText} ${panel.labels.join(" ")} ${panel.props.map((prop) => prop.name).join(" ")}`,
+    )
     .join(" ")
     .toLowerCase();
   const sourceText = spec.sourceText.toLowerCase();
@@ -296,11 +291,7 @@ export function validateVisualRequirements(
   const hasHaroldMention = /harold|hanz/.test(sourceText);
 
   for (const requiredProp of requirements.requiredProps) {
-    if (
-      requiredProp === "Name Tag" &&
-      hasHanzDevice &&
-      hasHaroldMention
-    ) {
+    if (requiredProp === "Name Tag" && hasHanzDevice && hasHaroldMention) {
       continue;
     }
 
@@ -312,8 +303,8 @@ export function validateVisualRequirements(
           "required_prop_missing",
           `Required visual element missing: ${requiredProp}.`,
           undefined,
-          "Add the missing prop/label requirement to the panel spec."
-        )
+          "Add the missing prop/label requirement to the panel spec.",
+        ),
       );
     }
   }
@@ -327,8 +318,8 @@ export function validateVisualRequirements(
           "required_label_missing",
           `Required label text missing: ${label}.`,
           undefined,
-          "Ensure label text is present and spelled exactly."
-        )
+          "Ensure label text is present and spelled exactly.",
+        ),
       );
     }
   }
@@ -350,8 +341,8 @@ export function validateReadability(spec: ComicStripSpec): ValidationIssue[] {
             "bubble_overflow_likely",
             `Panel ${panel.panelNumber} has likely speech bubble overflow for speaker ${line.speaker}.`,
             panel.panelNumber,
-            "Split long lines into shorter beats."
-          )
+            "Split long lines into shorter beats.",
+          ),
         );
       } else if (length > 80) {
         issues.push(
@@ -361,8 +352,8 @@ export function validateReadability(spec: ComicStripSpec): ValidationIssue[] {
             "bubble_dense",
             `Panel ${panel.panelNumber} has dense dialogue that may reduce legibility.`,
             panel.panelNumber,
-            "Shorten wording or increase bubble area."
-          )
+            "Shorten wording or increase bubble area.",
+          ),
         );
       }
     }
@@ -384,8 +375,8 @@ export function validateStyleCompliance(spec: ComicStripSpec): ValidationIssue[]
           "house_style_term_missing",
           `House style descriptor missing from art style summary: ${term}.`,
           undefined,
-          "Include required house style terms in the render spec."
-        )
+          "Include required house style terms in the render spec.",
+        ),
       );
     }
   }
@@ -399,8 +390,8 @@ export function validateStyleCompliance(spec: ComicStripSpec): ValidationIssue[]
           "forbidden_style_marker",
           `Style drift detected toward forbidden style: ${forbidden}.`,
           undefined,
-          "Reset art style to flat newspaper office comic constraints."
-        )
+          "Reset art style to flat newspaper office comic constraints.",
+        ),
       );
     }
   }
@@ -414,8 +405,8 @@ export function validateStyleCompliance(spec: ComicStripSpec): ValidationIssue[]
         "fallback_style_risk",
         "Prompt includes terms associated with diagram/stick-figure fallback risk.",
         undefined,
-        "Reinforce anti-fallback negatives before render."
-      )
+        "Reinforce anti-fallback negatives before render.",
+      ),
     );
   }
 

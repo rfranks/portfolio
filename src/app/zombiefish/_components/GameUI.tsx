@@ -46,9 +46,7 @@ export function GameUI({
       {phase === "gameover" && (
         <Box
           component="img"
-          src={withBasePath(
-            "/assets/shooting-gallery/PNG/HUD/text_gameover.png",
-          )}
+          src={withBasePath("/assets/shooting-gallery/PNG/HUD/text_gameover.png")}
           alt="Game Over"
           sx={{
             position: "absolute",

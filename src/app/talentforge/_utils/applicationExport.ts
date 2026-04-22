@@ -6,9 +6,7 @@ import type {
   OfferDecisionStatus,
   ApplicationActivityOutcome,
 } from "@/types";
-import {
-  OFFER_DECISION_STATUS_LABELS,
-} from "@/types";
+import { OFFER_DECISION_STATUS_LABELS } from "@/types";
 
 const HEADERS = [
   { key: "title", label: "Title" },
@@ -118,7 +116,9 @@ const normalizeDecisionForExport = (
   return result;
 };
 
-const summarizeRecruiters = (recruiters?: Recruiter[]): {
+const summarizeRecruiters = (
+  recruiters?: Recruiter[],
+): {
   names: string;
   emails: string;
   details: RecruiterSummary[];
@@ -198,16 +198,12 @@ const escapeCsvValue = (value: string): string => {
   return needsQuotes ? `"${escaped}"` : escaped;
 };
 
-export const mapApplicationToRow = (
-  application: JobApplication,
-): ApplicationExportRow => {
+export const mapApplicationToRow = (application: JobApplication): ApplicationExportRow => {
   const { names, emails } = summarizeRecruiters(application.recruiters);
   const { summaryText, compensationText } = summarizeOffer(application.offer);
   const decision = getDecision(application);
   const decisionStatus = decision ? formatDecisionStatus(decision.status) : "";
-  const decisionDate = decision?.decidedAt
-    ? toIsoString(decision.decidedAt)
-    : "";
+  const decisionDate = decision?.decidedAt ? toIsoString(decision.decidedAt) : "";
   const decisionNotes = decision?.notes ? decision.notes.trim() : "";
 
   return {
@@ -231,9 +227,7 @@ export const mapApplicationToRow = (
   };
 };
 
-export const mapApplicationToRecord = (
-  application: JobApplication,
-): ApplicationExportRecord => {
+export const mapApplicationToRecord = (application: JobApplication): ApplicationExportRecord => {
   const row = mapApplicationToRow(application);
   const recruiterSummary = summarizeRecruiters(application.recruiters);
   const offerSummary = summarizeOffer(application.offer);
@@ -266,9 +260,7 @@ export const mapApplicationToRecord = (
         amount: comp.amount,
         ...(comp.notes ? { notes: comp.notes } : {}),
       })),
-      ...(offerSummary.details.decision
-        ? { decision: offerSummary.details.decision }
-        : {}),
+      ...(offerSummary.details.decision ? { decision: offerSummary.details.decision } : {}),
     };
   }
 
@@ -317,9 +309,7 @@ export const mapApplicationToRecord = (
   return record;
 };
 
-export const createApplicationsCsv = (
-  applications: JobApplication[],
-): string => {
+export const createApplicationsCsv = (applications: JobApplication[]): string => {
   const headerLine = HEADERS.map((header) => header.label).join(",");
   if (applications.length === 0) {
     return headerLine;

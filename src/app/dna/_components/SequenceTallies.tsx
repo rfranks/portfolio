@@ -41,24 +41,14 @@ export default function SequenceTallies({
         {totalBPs} bps
       </Typography>
       {sequencesInError > 0 && (
-        <Typography color="text.secondary">
-          Sequences in error: {sequencesInError}
-        </Typography>
+        <Typography color="text.secondary">Sequences in error: {sequencesInError}</Typography>
       )}
       {activeSequence && (
         <div>
           <Title>Active Sequence</Title>
-          <Typography color="text.secondary">
-            {activeSequence?.description}
-          </Typography>
-          <Typography color="text.secondary">
-            {activeSequence?.sequence.length} bps
-          </Typography>
-          <Link
-            color="primary"
-            href="#"
-            onClick={() => onViewSequenceClick?.()}
-          >
+          <Typography color="text.secondary">{activeSequence?.description}</Typography>
+          <Typography color="text.secondary">{activeSequence?.sequence.length} bps</Typography>
+          <Link color="primary" href="#" onClick={() => onViewSequenceClick?.()}>
             View
           </Link>
         </div>

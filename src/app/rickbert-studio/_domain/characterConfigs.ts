@@ -92,8 +92,6 @@ export const CHARACTER_CONFIGS: Record<string, CharacterConfig> = {
 
 export function normalizeCharacterName(name: string): string {
   const lowered = name.trim().toLowerCase();
-  const entry = Object.keys(CHARACTER_CONFIGS).find(
-    (key) => key.toLowerCase() === lowered
-  );
+  const entry = Object.keys(CHARACTER_CONFIGS).find((key) => key.toLowerCase() === lowered);
   return entry ?? name.trim();
 }

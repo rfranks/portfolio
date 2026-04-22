@@ -1,10 +1,5 @@
 import * as React from "react";
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  Snackbar,
-} from "@mui/material";
+import { Alert, Box, CircularProgress, Snackbar } from "@mui/material";
 
 type PathForgerSnackbarProps = {
   open: boolean;
@@ -33,9 +28,7 @@ export default function PathForgerSnackbar(props: PathForgerSnackbarProps) {
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              animation: isRunning
-                ? "pathforgerStatusShimmer 1.35s ease-in-out infinite"
-                : "none",
+              animation: isRunning ? "pathforgerStatusShimmer 1.35s ease-in-out infinite" : "none",
               willChange: isRunning ? "opacity, color" : "auto",
               "@keyframes pathforgerStatusShimmer": {
                 "0%": {
@@ -53,11 +46,7 @@ export default function PathForgerSnackbar(props: PathForgerSnackbarProps) {
               },
             })}
           >
-            <CircularProgress
-              size={16}
-              thickness={6}
-              sx={{ color: "currentColor" }}
-            />
+            <CircularProgress size={16} thickness={6} sx={{ color: "currentColor" }} />
           </Box>
         }
         sx={{ alignItems: "center" }}
@@ -67,9 +56,7 @@ export default function PathForgerSnackbar(props: PathForgerSnackbarProps) {
           sx={(theme) => ({
             display: "inline-block",
             overflowWrap: "anywhere",
-            animation: isRunning
-              ? "pathforgerStatusShimmer 1.35s ease-in-out infinite"
-              : "none",
+            animation: isRunning ? "pathforgerStatusShimmer 1.35s ease-in-out infinite" : "none",
             willChange: isRunning ? "opacity, color" : "auto",
             "@keyframes pathforgerStatusShimmer": {
               "0%": {
@@ -93,4 +80,3 @@ export default function PathForgerSnackbar(props: PathForgerSnackbarProps) {
     </Snackbar>
   );
 }
-

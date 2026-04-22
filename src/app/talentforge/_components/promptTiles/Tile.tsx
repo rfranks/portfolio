@@ -65,20 +65,17 @@ export default function Tile({
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [offerDrafts, setOfferDrafts] = useState<
-    { email: string; linkedin: string; indeed: string } | null
-  >(null);
-  const [nudgeDrafts, setNudgeDrafts] = useState<
-    | {
-        followUp: { email: string; linkedin: string; indeed: string };
-        decline: { email: string; linkedin: string; indeed: string };
-      }
-    | null
-  >(null);
+  const [offerDrafts, setOfferDrafts] = useState<{
+    email: string;
+    linkedin: string;
+    indeed: string;
+  } | null>(null);
+  const [nudgeDrafts, setNudgeDrafts] = useState<{
+    followUp: { email: string; linkedin: string; indeed: string };
+    decline: { email: string; linkedin: string; indeed: string };
+  } | null>(null);
   const [activeTab, setActiveTab] = useState(0);
-  const [nudgeMode, setNudgeMode] = useState<"followUp" | "decline">(
-    "followUp",
-  );
+  const [nudgeMode, setNudgeMode] = useState<"followUp" | "decline">("followUp");
 
   useEffect(() => {
     setValues(initialValues);
@@ -97,8 +94,7 @@ export default function Tile({
 
   const customTile = useMemo(() => getCustomPromptTileById(id), [id]);
 
-  const loadSelectedResume = () =>
-    resumesList.find((r) => r.id === values["resumeVariantId"]);
+  const loadSelectedResume = () => resumesList.find((r) => r.id === values["resumeVariantId"]);
 
   const resolveCustomPlaceholderValue = (
     placeholder: CustomPromptPlaceholder,
@@ -121,9 +117,7 @@ export default function Tile({
           return {
             value: "",
             ok,
-            error: ok
-              ? undefined
-              : `Select a resume for ${placeholder.label}.`,
+            error: ok ? undefined : `Select a resume for ${placeholder.label}.`,
           };
         }
         return { value: formatResumeForPrompt(resume), ok: true };
@@ -135,9 +129,7 @@ export default function Tile({
           return {
             value: "",
             ok,
-            error: ok
-              ? undefined
-              : `Choose a job application for ${placeholder.label}.`,
+            error: ok ? undefined : `Choose a job application for ${placeholder.label}.`,
           };
         }
         return { value: formatJobApplicationForPrompt(application), ok: true };
@@ -149,9 +141,7 @@ export default function Tile({
           return {
             value: "",
             ok,
-            error: ok
-              ? undefined
-              : `Select an offer for ${placeholder.label}.`,
+            error: ok ? undefined : `Select an offer for ${placeholder.label}.`,
           };
         }
         return { value: formatOfferForPrompt(offer), ok: true };
@@ -173,9 +163,7 @@ export default function Tile({
         return {
           value,
           ok,
-          error: ok
-            ? undefined
-            : "Update your profile details to use this placeholder.",
+          error: ok ? undefined : "Update your profile details to use this placeholder.",
         };
       }
       case "goals": {
@@ -184,9 +172,7 @@ export default function Tile({
         return {
           value,
           ok,
-          error: ok
-            ? undefined
-            : "Select at least one goal to use this placeholder.",
+          error: ok ? undefined : "Select at least one goal to use this placeholder.",
         };
       }
       default:
@@ -194,9 +180,7 @@ export default function Tile({
     }
   };
 
-  const renderCustomPlaceholderInput = (
-    placeholder: CustomPromptPlaceholder,
-  ) => {
+  const renderCustomPlaceholderInput = (placeholder: CustomPromptPlaceholder) => {
     const stored = values[placeholder.id] || "";
     const helperText = placeholder.helperText || undefined;
     switch (placeholder.type) {
@@ -206,9 +190,7 @@ export default function Tile({
             key={placeholder.id}
             label={placeholder.label}
             value={stored}
-            onChange={(event) =>
-              handleChange(placeholder.id, event.target.value)
-            }
+            onChange={(event) => handleChange(placeholder.id, event.target.value)}
             fullWidth
             size="small"
             helperText={helperText}
@@ -220,9 +202,7 @@ export default function Tile({
             key={placeholder.id}
             label={placeholder.label}
             value={stored}
-            onChange={(event) =>
-              handleChange(placeholder.id, event.target.value)
-            }
+            onChange={(event) => handleChange(placeholder.id, event.target.value)}
             fullWidth
             multiline
             minRows={3}
@@ -243,9 +223,7 @@ export default function Tile({
             key={placeholder.id}
             label={placeholder.label}
             value={stored}
-            onChange={(event) =>
-              handleChange(placeholder.id, event.target.value)
-            }
+            onChange={(event) => handleChange(placeholder.id, event.target.value)}
             select
             fullWidth
             size="small"
@@ -271,9 +249,7 @@ export default function Tile({
             key={placeholder.id}
             label={placeholder.label}
             value={stored}
-            onChange={(event) =>
-              handleChange(placeholder.id, event.target.value)
-            }
+            onChange={(event) => handleChange(placeholder.id, event.target.value)}
             select
             fullWidth
             size="small"
@@ -299,9 +275,7 @@ export default function Tile({
             key={placeholder.id}
             label={placeholder.label}
             value={stored}
-            onChange={(event) =>
-              handleChange(placeholder.id, event.target.value)
-            }
+            onChange={(event) => handleChange(placeholder.id, event.target.value)}
             select
             fullWidth
             size="small"
@@ -382,10 +356,7 @@ export default function Tile({
         }
         let prompt = fullPrompt;
         customTile.placeholders.forEach((placeholder, index) => {
-          prompt = prompt.replaceAll(
-            `{{${placeholder.id}}}`,
-            resolved[index].value,
-          );
+          prompt = prompt.replaceAll(`{{${placeholder.id}}}`, resolved[index].value);
         });
         const res = await askOpenAI({
           context: "",
@@ -456,8 +427,7 @@ export default function Tile({
         const res = await askOpenAI({
           context: negotiateContext,
           user: prompt,
-          system:
-            "You analyze offers and produce structured negotiation drafts.",
+          system: "You analyze offers and produce structured negotiation drafts.",
           returnFirstResponse: true,
           chatHistory: [],
         });
@@ -489,8 +459,7 @@ export default function Tile({
         const res = await askOpenAI({
           context: "",
           user: prompt,
-          system:
-            "You craft professional recruiter follow-up and decline messages.",
+          system: "You craft professional recruiter follow-up and decline messages.",
           returnFirstResponse: true,
           chatHistory: [],
         });
@@ -545,9 +514,7 @@ export default function Tile({
     setSaving(true);
     try {
       if (id === "resumeRewrite") {
-        const sourceResume = resumesList.find(
-          (entry) => entry.id === values["resumeVariantId"],
-        );
+        const sourceResume = resumesList.find((entry) => entry.id === values["resumeVariantId"]);
         if (!sourceResume) return;
         const tags = await tagResume(response);
         const parsed = parseResumeText(response);
@@ -589,9 +556,7 @@ export default function Tile({
               No inputs required. Run the prompt to generate a response.
             </Typography>
           ) : (
-            customTile.placeholders.map((placeholder) =>
-              renderCustomPlaceholderInput(placeholder),
-            )
+            customTile.placeholders.map((placeholder) => renderCustomPlaceholderInput(placeholder))
           )
         ) : (
           inputs.map((name) =>
@@ -659,9 +624,7 @@ export default function Tile({
           <Box>
             <Tabs
               value={nudgeMode === "followUp" ? 0 : 1}
-              onChange={(_, v) =>
-                setNudgeMode(v === 0 ? "followUp" : "decline")
-              }
+              onChange={(_, v) => setNudgeMode(v === 0 ? "followUp" : "decline")}
             >
               <Tab label="Follow Up" />
               <Tab label="Decline" />
@@ -693,15 +656,9 @@ export default function Tile({
                   </Tooltip>
                 )}
               </Box>
-              {activeTab === 0 && (
-                <Markdown>{nudgeDrafts[nudgeMode].email}</Markdown>
-              )}
-              {activeTab === 1 && (
-                <Markdown>{nudgeDrafts[nudgeMode].linkedin}</Markdown>
-              )}
-              {activeTab === 2 && (
-                <Markdown>{nudgeDrafts[nudgeMode].indeed}</Markdown>
-              )}
+              {activeTab === 0 && <Markdown>{nudgeDrafts[nudgeMode].email}</Markdown>}
+              {activeTab === 1 && <Markdown>{nudgeDrafts[nudgeMode].linkedin}</Markdown>}
+              {activeTab === 2 && <Markdown>{nudgeDrafts[nudgeMode].indeed}</Markdown>}
             </Box>
           </Box>
         )}
@@ -711,11 +668,7 @@ export default function Tile({
               {response}
             </Typography>
             {(id === "resumeRewrite" || id === "coverLetter") && (
-              <Button
-                variant="outlined"
-                onClick={handleSaveVariant}
-                disabled={saving}
-              >
+              <Button variant="outlined" onClick={handleSaveVariant} disabled={saving}>
                 {saving ? "Saving..." : "Save as resume variant"}
               </Button>
             )}

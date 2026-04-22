@@ -26,7 +26,7 @@ type ParseStripOptions = {
 function extractSection(stripRequest: string, heading: string): string {
   const pattern = new RegExp(
     `${heading}:([\\s\\S]*?)(?:\\n\\s*(?:Additional Character design rules for this strip|Comic premise|Panel-by-panel script):|$)`,
-    "i"
+    "i",
   );
   const match = stripRequest.match(pattern);
   return match?.[1]?.trim() ?? "";
@@ -54,9 +54,7 @@ function deriveArtStyle(stripInput: StripInput): string {
     .join(" ");
   const normalized = compactWhitespace(snippet).slice(0, 220);
   const requiredTerms = ["flat", "clean", "office", "muted", "readable", "deadpan"];
-  const missingTerms = requiredTerms.filter(
-    (term) => !normalized.toLowerCase().includes(term)
-  );
+  const missingTerms = requiredTerms.filter((term) => !normalized.toLowerCase().includes(term));
   return compactWhitespace(`${normalized} ${missingTerms.join(" ")}`);
 }
 
@@ -65,7 +63,7 @@ function deriveGlobalConstraints(stripInput: StripInput): string[] {
   const checklistDoc = findReferenceDoc(stripInput, ["checklist"]);
   const additionalRules = extractSection(
     stripInput.stripRequest,
-    "Additional Character design rules for this strip"
+    "Additional Character design rules for this strip",
   )
     .split(/\n/)
     .map((line) => line.replace(/^[-*]\s*/, "").trim())
@@ -106,9 +104,7 @@ function parseDialogueLine(rawLine: string): DialogueLine {
   const speakerToken = matched[1].trim();
   const text = matched[2].trim();
   const speakerMatch = speakerToken.match(/^(.+?)\s*\((.+)\)$/);
-  const speaker = normalizeCharacterName(
-    speakerMatch ? speakerMatch[1].trim() : speakerToken
-  );
+  const speaker = normalizeCharacterName(speakerMatch ? speakerMatch[1].trim() : speakerToken);
   const qualifier = speakerMatch?.[2]?.trim();
 
   return {
@@ -123,7 +119,7 @@ function parseDialogueLine(rawLine: string): DialogueLine {
 function inferPropRequirements(
   sceneText: string,
   dialogue: DialogueLine[],
-  panelNumber: number
+  panelNumber: number,
 ): PropRequirement[] {
   const combined = `${sceneText}\n${dialogue.map((line) => line.raw).join("\n")}`.toLowerCase();
 
@@ -188,7 +184,7 @@ function inferPropRequirements(
 function inferCharacters(
   sceneText: string,
   dialogue: DialogueLine[],
-  customCharacterNames: Set<string>
+  customCharacterNames: Set<string>,
 ): CharacterInstance[] {
   const found = new Set<string>();
   const loweredScene = sceneText.toLowerCase();
@@ -215,7 +211,7 @@ function inferCharacters(
           pose: "neutral",
           wardrobe: "white",
           isRemote: /remote|bali|video|window|monitor/i.test(
-            sceneText + dialogue.map((d) => d.raw).join(" ")
+            sceneText + dialogue.map((d) => d.raw).join(" "),
           ),
         };
       }
@@ -224,15 +220,14 @@ function inferCharacters(
         name,
         expression: canonical.defaultExpression,
         pose:
-          name === "Rickbert" &&
-          /palm-to-face|palm to face|facepalm/.test(loweredScene)
+          name === "Rickbert" && /palm-to-face|palm to face|facepalm/.test(loweredScene)
             ? "palmFace"
             : canonical.defaultPose,
         wardrobe: canonical.shirtStyle,
         isRemote:
           name === "Alvin" &&
           /remote|bali|video|window|monitor/i.test(
-            sceneText + dialogue.map((d) => d.raw).join(" ")
+            sceneText + dialogue.map((d) => d.raw).join(" "),
           ),
       };
     });
@@ -241,7 +236,7 @@ function inferCharacters(
 function parsePanelSection(
   panelNumber: number,
   body: string,
-  customCharacterNames: Set<string>
+  customCharacterNames: Set<string>,
 ): PanelSpec {
   const lines = splitLines(body);
   const sceneLines: string[] = [];
@@ -286,7 +281,9 @@ function parsePanelSection(
     dialogue,
     props,
     labels: props
-      .filter((prop) => prop.kind === "label" || prop.kind === "nameTag" || prop.kind === "nameplate")
+      .filter(
+        (prop) => prop.kind === "label" || prop.kind === "nameTag" || prop.kind === "nameplate",
+      )
       .map((prop) => prop.name),
     camera: "medium",
     mood: "deadpan",
@@ -295,7 +292,7 @@ function parsePanelSection(
 
 function parsePanelsFromScript(
   stripRequest: string,
-  customCharacterNames: Set<string>
+  customCharacterNames: Set<string>,
 ): PanelSpec[] {
   const lines = stripRequest.split(/\r?\n/);
   const sections: Array<{ panelNumber: number; lines: string[] }> = [];
@@ -323,11 +320,7 @@ function parsePanelsFromScript(
   return sections
     .sort((a, b) => a.panelNumber - b.panelNumber)
     .map((section) =>
-      parsePanelSection(
-        section.panelNumber,
-        section.lines.join("\n"),
-        customCharacterNames
-      )
+      parsePanelSection(section.panelNumber, section.lines.join("\n"), customCharacterNames),
     );
 }
 
@@ -335,7 +328,7 @@ function buildDefaultPanelSpec(
   panelNumber: number,
   sceneText: string,
   dialogue: Array<[string, string]>,
-  customCharacterNames: Set<string>
+  customCharacterNames: Set<string>,
 ): PanelSpec {
   const parsedDialogue = dialogue.map(([speaker, text]) => ({
     speaker,
@@ -349,14 +342,14 @@ function buildDefaultPanelSpec(
     `Scene: ${sceneText}\nDialogue:\n${parsedDialogue
       .map((line) => `- **${line.speaker}:** ${line.text}`)
       .join("\n")}`,
-    customCharacterNames
+    customCharacterNames,
   );
 }
 
 function createStandardSpec(
   stripInput: StripInput,
   customCharacterNames: Set<string>,
-  characterOverrides: Record<string, string>
+  characterOverrides: Record<string, string>,
 ): ComicStripSpec {
   const sixPanelRequested = /\b6\s*panel/i.test(stripInput.stripRequest);
   const panelCount = sixPanelRequested ? 6 : SERIES_DEFAULT_PANEL_COUNT;
@@ -366,27 +359,47 @@ function createStandardSpec(
   const concisePremise = compactWhitespace(premiseText);
 
   const basePanels: PanelSpec[] = [
-    buildDefaultPanelSpec(1, "Office standup near a whiteboard.", [
-      ["Claire", "Quick product ask, Rickbert."],
-      ["Rickbert", "This sounds dangerous already."],
-    ], customCharacterNames),
-    buildDefaultPanelSpec(2, "Conference table with prototype gadget.", [
-      ["Mr. Barrel", "Can we ship this by Friday?"],
-      ["Rickbert", "Technically yes. Morally unclear."],
-    ], customCharacterNames),
-    buildDefaultPanelSpec(3, "Deadpan reaction beat.", [
-      ["Claire", "Users still need this."],
-      ["Rickbert", "Fine. Put it in the roadmap."],
-    ], customCharacterNames),
+    buildDefaultPanelSpec(
+      1,
+      "Office standup near a whiteboard.",
+      [
+        ["Claire", "Quick product ask, Rickbert."],
+        ["Rickbert", "This sounds dangerous already."],
+      ],
+      customCharacterNames,
+    ),
+    buildDefaultPanelSpec(
+      2,
+      "Conference table with prototype gadget.",
+      [
+        ["Mr. Barrel", "Can we ship this by Friday?"],
+        ["Rickbert", "Technically yes. Morally unclear."],
+      ],
+      customCharacterNames,
+    ),
+    buildDefaultPanelSpec(
+      3,
+      "Deadpan reaction beat.",
+      [
+        ["Claire", "Users still need this."],
+        ["Rickbert", "Fine. Put it in the roadmap."],
+      ],
+      customCharacterNames,
+    ),
   ];
 
   while (basePanels.length < panelCount) {
     const n = basePanels.length + 1;
     basePanels.push(
-      buildDefaultPanelSpec(n, `Additional office beat ${n}.`, [
-        ["Blair", "Sales already promised it."],
-        ["Rickbert", "Of course they did."],
-      ], customCharacterNames)
+      buildDefaultPanelSpec(
+        n,
+        `Additional office beat ${n}.`,
+        [
+          ["Blair", "Sales already promised it."],
+          ["Rickbert", "Of course they did."],
+        ],
+        customCharacterNames,
+      ),
     );
   }
 
@@ -397,9 +410,7 @@ function createStandardSpec(
     mode: "STANDARD",
     artStyle: deriveArtStyle(stripInput),
     panels: basePanels.slice(0, panelCount),
-    globalConstraints: deriveGlobalConstraints(stripInput).concat([
-      concisePremise,
-    ]),
+    globalConstraints: deriveGlobalConstraints(stripInput).concat([concisePremise]),
     characterOverrides,
     sourceText: stripInput.stripRequest,
   });
@@ -407,11 +418,11 @@ function createStandardSpec(
 
 export function parseStripInput(
   stripInputRaw: StripInput,
-  options: ParseStripOptions = {}
+  options: ParseStripOptions = {},
 ): ComicStripSpec {
   const stripInput = StripInputSchema.parse(stripInputRaw);
   const customCharacterNames = new Set(
-    (options.customCharacterNames ?? []).map((name) => normalizeCharacterName(name))
+    (options.customCharacterNames ?? []).map((name) => normalizeCharacterName(name)),
   );
   const characterOverrides = options.characterOverrides ?? {};
   const panels = parsePanelsFromScript(stripInput.stripRequest, customCharacterNames);

@@ -39,4 +39,3 @@ export function importSnapshot(json: string): void {
   getPipelineLayoutPreferences();
   getNegotiationLibrary();
 }
-

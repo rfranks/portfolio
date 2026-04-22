@@ -10,9 +10,7 @@ export default function OpenAIKeyInterstitial() {
   const { key, setKey } = useOpenAIKey();
   const [value, setValue] = React.useState(key);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [errorText, setErrorText] = React.useState<string | undefined>(
-    undefined,
-  );
+  const [errorText, setErrorText] = React.useState<string | undefined>(undefined);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const previousFocusRef = React.useRef<Element | null>(null);
 
@@ -30,11 +28,7 @@ export default function OpenAIKeyInterstitial() {
 
     return () => {
       const previous = previousFocusRef.current;
-      if (
-        previous &&
-        previous instanceof HTMLElement &&
-        typeof previous.focus === "function"
-      ) {
+      if (previous && previous instanceof HTMLElement && typeof previous.focus === "function") {
         previous.focus();
       }
     };
@@ -50,8 +44,7 @@ export default function OpenAIKeyInterstitial() {
       const result = await validateOpenAIKey(trimmed);
       if (!result.ok) {
         setErrorText(
-          result.error ??
-            "Unable to verify this key with OpenAI. Check the key and try again.",
+          result.error ?? "Unable to verify this key with OpenAI. Check the key and try again.",
         );
         return;
       }

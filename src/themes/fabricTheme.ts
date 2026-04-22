@@ -146,353 +146,349 @@ const createComponentOverrides = (mode: PaletteMode): ThemeOptions["components"]
   const tokens = getFabricTokens(mode);
 
   return {
-  MuiCssBaseline: {
-    styleOverrides: {
-      body: {
-        "--fabric-bg-base": tokens.background.base,
-        "--fabric-bg-layer": tokens.background.layer,
-        "--fabric-bg-radial-primary": tokens.background.radialPrimary,
-        "--fabric-bg-radial-secondary": tokens.background.radialSecondary,
-        "--fabric-surface-1": tokens.surface.level1,
-        "--fabric-surface-2": tokens.surface.level2,
-        "--fabric-surface-3": tokens.surface.level3,
-        "--fabric-surface-border": tokens.surface.border,
-        "--fabric-surface-border-strong": tokens.surface.borderStrong,
-        "--fabric-shadow-soft": tokens.surface.shadowSoft,
-        "--fabric-shadow-tight": tokens.surface.shadowTight,
-        "--fabric-inner-glow": tokens.surface.innerGlow,
-        "--fabric-blur-sm": tokens.blur.sm,
-        "--fabric-blur-md": tokens.blur.md,
-        "--fabric-blur-lg": tokens.blur.lg,
-        "--fabric-radius-sm": "12px",
-        "--fabric-radius-md": "18px",
-        "--fabric-radius-lg": "24px",
-        "--fabric-radius-xl": "30px",
-        "--fabric-radius-hero": "40px",
-        "--fabric-radius-capsule": "999px",
-        backgroundColor: "var(--fabric-bg-base)",
-        backgroundImage: [
-          "radial-gradient(55rem 32rem at 4% -8%, var(--fabric-bg-radial-primary), transparent 66%)",
-          "radial-gradient(46rem 28rem at 94% -12%, var(--fabric-bg-radial-secondary), transparent 70%)",
-          `linear-gradient(120deg, transparent 0, transparent 34%, ${mode === "dark" ? "rgba(198, 218, 255, 0.05)" : "rgba(37, 64, 109, 0.06)"} 35%, transparent 36%, transparent 64%, ${mode === "dark" ? "rgba(198, 218, 255, 0.05)" : "rgba(37, 64, 109, 0.06)"} 65%, transparent 66%, transparent 100%)`,
-          "linear-gradient(180deg, var(--fabric-bg-layer), var(--fabric-bg-base))",
-        ].join(","),
-        backgroundAttachment: "fixed",
-      },
-      "@media (prefers-reduced-motion: reduce)": {
-        "*": {
-          animationDuration: "0.01ms !important",
-          animationIterationCount: "1 !important",
-          transitionDuration: "0.01ms !important",
-          scrollBehavior: "auto !important",
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          "--fabric-bg-base": tokens.background.base,
+          "--fabric-bg-layer": tokens.background.layer,
+          "--fabric-bg-radial-primary": tokens.background.radialPrimary,
+          "--fabric-bg-radial-secondary": tokens.background.radialSecondary,
+          "--fabric-surface-1": tokens.surface.level1,
+          "--fabric-surface-2": tokens.surface.level2,
+          "--fabric-surface-3": tokens.surface.level3,
+          "--fabric-surface-border": tokens.surface.border,
+          "--fabric-surface-border-strong": tokens.surface.borderStrong,
+          "--fabric-shadow-soft": tokens.surface.shadowSoft,
+          "--fabric-shadow-tight": tokens.surface.shadowTight,
+          "--fabric-inner-glow": tokens.surface.innerGlow,
+          "--fabric-blur-sm": tokens.blur.sm,
+          "--fabric-blur-md": tokens.blur.md,
+          "--fabric-blur-lg": tokens.blur.lg,
+          "--fabric-radius-sm": "12px",
+          "--fabric-radius-md": "18px",
+          "--fabric-radius-lg": "24px",
+          "--fabric-radius-xl": "30px",
+          "--fabric-radius-hero": "40px",
+          "--fabric-radius-capsule": "999px",
+          backgroundColor: "var(--fabric-bg-base)",
+          backgroundImage: [
+            "radial-gradient(55rem 32rem at 4% -8%, var(--fabric-bg-radial-primary), transparent 66%)",
+            "radial-gradient(46rem 28rem at 94% -12%, var(--fabric-bg-radial-secondary), transparent 70%)",
+            `linear-gradient(120deg, transparent 0, transparent 34%, ${mode === "dark" ? "rgba(198, 218, 255, 0.05)" : "rgba(37, 64, 109, 0.06)"} 35%, transparent 36%, transparent 64%, ${mode === "dark" ? "rgba(198, 218, 255, 0.05)" : "rgba(37, 64, 109, 0.06)"} 65%, transparent 66%, transparent 100%)`,
+            "linear-gradient(180deg, var(--fabric-bg-layer), var(--fabric-bg-base))",
+          ].join(","),
+          backgroundAttachment: "fixed",
         },
-      },
-    },
-  },
-  MuiPaper: {
-    defaultProps: {
-      elevation: 0,
-    },
-    styleOverrides: {
-      root: ({ ownerState }) => ({
-        position: "relative",
-        borderRadius: "var(--fabric-radius-lg)",
-        border: "1px solid var(--fabric-surface-border)",
-        backgroundColor: "var(--fabric-surface-1)",
-        backgroundImage:
-          "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
-        backdropFilter: "blur(var(--fabric-blur-sm))",
-        boxShadow: "var(--fabric-shadow-soft)",
-        ...(ownerState.variant === "outlined" && {
-          borderColor: "var(--fabric-surface-border-strong)",
-          backgroundColor: "var(--fabric-surface-2)",
-        }),
-      }),
-    },
-  },
-  MuiCard: {
-    defaultProps: {
-      elevation: 0,
-    },
-    styleOverrides: {
-      root: {
-        borderRadius: "var(--fabric-radius-xl)",
-        border: "1px solid var(--fabric-surface-border)",
-        backgroundColor: "var(--fabric-surface-1)",
-        boxShadow: "var(--fabric-shadow-soft)",
-        overflow: "clip",
-      },
-    },
-  },
-  MuiDialog: {
-    styleOverrides: {
-      root: {
-        "& .MuiBackdrop-root": {
-          backdropFilter: "blur(var(--fabric-blur-md))",
-          backgroundColor: mode === "dark" ? "rgba(3, 9, 18, 0.48)" : "rgba(12, 18, 34, 0.32)",
-        },
-      },
-      paper: {
-        borderRadius: "var(--fabric-radius-xl)",
-        border: "1px solid var(--fabric-surface-border-strong)",
-        backgroundColor: "var(--fabric-surface-2)",
-        backgroundImage:
-          "linear-gradient(180deg, var(--fabric-inner-glow), transparent 30%)",
-        backdropFilter: "blur(var(--fabric-blur-lg))",
-        boxShadow: "var(--fabric-shadow-soft)",
-      },
-    },
-  },
-  MuiDrawer: {
-    styleOverrides: {
-      paper: {
-        border: "1px solid var(--fabric-surface-border)",
-        borderRightColor: "var(--fabric-surface-border-strong)",
-        backgroundColor: "var(--fabric-surface-2)",
-        backgroundImage:
-          "linear-gradient(180deg, var(--fabric-inner-glow), transparent 22%)",
-        backdropFilter: "blur(var(--fabric-blur-md))",
-        boxShadow: "var(--fabric-shadow-tight)",
-      },
-    },
-  },
-  MuiAppBar: {
-    defaultProps: {
-      elevation: 0,
-      color: "transparent",
-    },
-    styleOverrides: {
-      root: {
-        borderRadius: "var(--fabric-radius-xl)",
-        border: "1px solid var(--fabric-surface-border)",
-        backgroundColor: "var(--fabric-surface-2)",
-        backgroundImage:
-          "linear-gradient(180deg, var(--fabric-inner-glow), transparent 44%)",
-        backdropFilter: "blur(var(--fabric-blur-md))",
-        boxShadow: "var(--fabric-shadow-tight)",
-      },
-    },
-  },
-  MuiToolbar: {
-    styleOverrides: {
-      root: {
-        minHeight: 68,
-      },
-    },
-  },
-  MuiButtonBase: {
-    styleOverrides: {
-      root: ({ theme }) => ({
-        transition: theme.transitions.create(["background-color", "box-shadow", "transform", "border-color"], {
-          duration: theme.transitions.duration.shorter,
-        }),
-        "&:focus-visible": {
-          outline: `3px solid ${alpha(theme.palette.primary.main, 0.36)}`,
-          outlineOffset: 2,
-        },
-      }),
-    },
-  },
-  MuiButton: {
-    defaultProps: {
-      disableElevation: true,
-    },
-    styleOverrides: {
-      root: ({ ownerState, theme }) => ({
-        borderRadius: "var(--fabric-radius-capsule)",
-        textTransform: "none",
-        fontWeight: 600,
-        letterSpacing: 0.1,
-        paddingInline: theme.spacing(2),
-        ...(ownerState.size === "small" && {
-          minHeight: 32,
-        }),
-        ...(ownerState.size !== "small" && {
-          minHeight: 40,
-        }),
-        ...(ownerState.variant === "contained" && {
-          backgroundImage: `linear-gradient(180deg, ${alpha(theme.palette.primary.light, 0.95)}, ${theme.palette.primary.main})`,
-          border: `1px solid ${alpha(theme.palette.primary.dark, 0.4)}`,
-          boxShadow: `inset 0 1px 0 ${alpha("#fff", 0.38)}, var(--fabric-shadow-tight)`,
-          "&:hover": {
-            transform: "translateY(-1px)",
-            backgroundImage: `linear-gradient(180deg, ${alpha(theme.palette.primary.light, 1)}, ${alpha(theme.palette.primary.main, 0.94)})`,
-            boxShadow: `inset 0 1px 0 ${alpha("#fff", 0.42)}, 0 10px 20px ${alpha(theme.palette.primary.dark, 0.24)}`,
-          },
-        }),
-        ...(ownerState.variant === "outlined" && {
-          borderColor: "var(--fabric-surface-border-strong)",
-          backgroundColor: "var(--fabric-surface-2)",
-          "&:hover": {
-            borderColor: "var(--fabric-surface-border-strong)",
-            backgroundColor: "var(--fabric-surface-3)",
-            transform: "translateY(-1px)",
-          },
-        }),
-        ...(ownerState.variant === "text" && {
-          color: theme.palette.primary.main,
-          "&:hover": {
-            backgroundColor: alpha(theme.palette.primary.main, 0.1),
-          },
-        }),
         "@media (prefers-reduced-motion: reduce)": {
-          "&:hover": {
-            transform: "none",
+          "*": {
+            animationDuration: "0.01ms !important",
+            animationIterationCount: "1 !important",
+            transitionDuration: "0.01ms !important",
+            scrollBehavior: "auto !important",
           },
         },
-      }),
-    },
-  },
-  MuiChip: {
-    styleOverrides: {
-      root: ({ theme }) => ({
-        borderRadius: "var(--fabric-radius-capsule)",
-        border: "1px solid var(--fabric-surface-border)",
-        backgroundColor: "var(--fabric-surface-2)",
-        boxShadow: `inset 0 1px 0 var(--fabric-inner-glow), ${theme.fabric.surface.shadowTight}`,
-        backdropFilter: "blur(var(--fabric-blur-sm))",
-        fontWeight: 500,
-      }),
-      filled: ({ theme }) => ({
-        backgroundColor: alpha(theme.palette.primary.main, mode === "dark" ? 0.34 : 0.2),
-        borderColor: alpha(theme.palette.primary.main, 0.32),
-      }),
-    },
-  },
-  MuiTextField: {
-    defaultProps: {
-      variant: "outlined",
-    },
-  },
-  MuiInputBase: {
-    styleOverrides: {
-      root: {
-        borderRadius: "var(--fabric-radius-md)",
       },
     },
-  },
-  MuiOutlinedInput: {
-    styleOverrides: {
-      root: ({ theme }) => ({
-        borderRadius: "var(--fabric-radius-md)",
-        backgroundColor: "var(--fabric-surface-2)",
-        boxShadow: `inset 0 1px 0 var(--fabric-inner-glow), 0 1px 0 ${alpha(theme.palette.common.white, mode === "dark" ? 0.04 : 0.46)}`,
-        "& .MuiOutlinedInput-notchedOutline": {
-          borderColor: "var(--fabric-surface-border)",
-        },
-        "&:hover .MuiOutlinedInput-notchedOutline": {
-          borderColor: "var(--fabric-surface-border-strong)",
-        },
-        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-          borderColor: alpha(theme.palette.primary.main, 0.75),
-        },
-        "&.Mui-focused": {
-          boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.2)}, inset 0 1px 0 var(--fabric-inner-glow)`,
-        },
-      }),
-      input: ({ theme }) => ({
-        paddingBlock: theme.spacing(1.25),
-      }),
-    },
-  },
-  MuiTabs: {
-    styleOverrides: {
-      root: {
-        borderRadius: "var(--fabric-radius-capsule)",
-        border: "1px solid var(--fabric-surface-border)",
-        backgroundColor: "var(--fabric-surface-2)",
-        minHeight: 40,
-        padding: 4,
+    MuiPaper: {
+      defaultProps: {
+        elevation: 0,
       },
-      indicator: ({ theme }) => ({
-        borderRadius: "var(--fabric-radius-capsule)",
-        height: "calc(100% - 8px)",
-        margin: 4,
-        backgroundColor: alpha(theme.palette.primary.main, mode === "dark" ? 0.34 : 0.2),
-        border: `1px solid ${alpha(theme.palette.primary.main, 0.36)}`,
-      }),
-    },
-  },
-  MuiTab: {
-    styleOverrides: {
-      root: ({ theme }) => ({
-        textTransform: "none",
-        minHeight: 36,
-        borderRadius: "var(--fabric-radius-capsule)",
-        zIndex: 1,
-        fontWeight: 600,
-        color: theme.palette.text.secondary,
-        "&.Mui-selected": {
-          color: theme.palette.text.primary,
-        },
-      }),
-    },
-  },
-  MuiList: {
-    styleOverrides: {
-      root: {
-        paddingTop: 4,
-        paddingBottom: 4,
+      styleOverrides: {
+        root: ({ ownerState }) => ({
+          position: "relative",
+          borderRadius: "var(--fabric-radius-lg)",
+          border: "1px solid var(--fabric-surface-border)",
+          backgroundColor: "var(--fabric-surface-1)",
+          backgroundImage: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
+          backdropFilter: "blur(var(--fabric-blur-sm))",
+          boxShadow: "var(--fabric-shadow-soft)",
+          ...(ownerState.variant === "outlined" && {
+            borderColor: "var(--fabric-surface-border-strong)",
+            backgroundColor: "var(--fabric-surface-2)",
+          }),
+        }),
       },
     },
-  },
-  MuiListItemButton: {
-    styleOverrides: {
-      root: ({ theme }) => ({
-        borderRadius: "var(--fabric-radius-md)",
-        border: "1px solid transparent",
-        "&:hover": {
-          backgroundColor: alpha(theme.palette.primary.main, mode === "dark" ? 0.16 : 0.1),
-          borderColor: "var(--fabric-surface-border)",
+    MuiCard: {
+      defaultProps: {
+        elevation: 0,
+      },
+      styleOverrides: {
+        root: {
+          borderRadius: "var(--fabric-radius-xl)",
+          border: "1px solid var(--fabric-surface-border)",
+          backgroundColor: "var(--fabric-surface-1)",
+          boxShadow: "var(--fabric-shadow-soft)",
+          overflow: "clip",
         },
-        "&.Mui-selected": {
-          backgroundColor: alpha(theme.palette.primary.main, mode === "dark" ? 0.22 : 0.14),
-          borderColor: "var(--fabric-surface-border-strong)",
-        },
-        "&.Mui-selected:hover": {
-          backgroundColor: alpha(theme.palette.primary.main, mode === "dark" ? 0.26 : 0.18),
-        },
-      }),
-    },
-  },
-  MuiMenu: {
-    styleOverrides: {
-      paper: {
-        borderRadius: "var(--fabric-radius-lg)",
-        border: "1px solid var(--fabric-surface-border)",
-        backgroundColor: "var(--fabric-surface-2)",
-        backdropFilter: "blur(var(--fabric-blur-md))",
-        boxShadow: "var(--fabric-shadow-tight)",
       },
     },
-  },
-  MuiPopover: {
-    styleOverrides: {
-      paper: {
-        borderRadius: "var(--fabric-radius-lg)",
-        border: "1px solid var(--fabric-surface-border)",
-        backgroundColor: "var(--fabric-surface-2)",
-        backdropFilter: "blur(var(--fabric-blur-md))",
+    MuiDialog: {
+      styleOverrides: {
+        root: {
+          "& .MuiBackdrop-root": {
+            backdropFilter: "blur(var(--fabric-blur-md))",
+            backgroundColor: mode === "dark" ? "rgba(3, 9, 18, 0.48)" : "rgba(12, 18, 34, 0.32)",
+          },
+        },
+        paper: {
+          borderRadius: "var(--fabric-radius-xl)",
+          border: "1px solid var(--fabric-surface-border-strong)",
+          backgroundColor: "var(--fabric-surface-2)",
+          backgroundImage: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 30%)",
+          backdropFilter: "blur(var(--fabric-blur-lg))",
+          boxShadow: "var(--fabric-shadow-soft)",
+        },
       },
     },
-  },
-  MuiBottomNavigation: {
-    styleOverrides: {
-      root: {
-        borderRadius: "var(--fabric-radius-lg)",
-        border: "1px solid var(--fabric-surface-border)",
-        backgroundColor: "var(--fabric-surface-2)",
-        backdropFilter: "blur(var(--fabric-blur-sm))",
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          border: "1px solid var(--fabric-surface-border)",
+          borderRightColor: "var(--fabric-surface-border-strong)",
+          backgroundColor: "var(--fabric-surface-2)",
+          backgroundImage: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 22%)",
+          backdropFilter: "blur(var(--fabric-blur-md))",
+          boxShadow: "var(--fabric-shadow-tight)",
+        },
       },
     },
-  },
-};
+    MuiAppBar: {
+      defaultProps: {
+        elevation: 0,
+        color: "transparent",
+      },
+      styleOverrides: {
+        root: {
+          borderRadius: "var(--fabric-radius-xl)",
+          border: "1px solid var(--fabric-surface-border)",
+          backgroundColor: "var(--fabric-surface-2)",
+          backgroundImage: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 44%)",
+          backdropFilter: "blur(var(--fabric-blur-md))",
+          boxShadow: "var(--fabric-shadow-tight)",
+        },
+      },
+    },
+    MuiToolbar: {
+      styleOverrides: {
+        root: {
+          minHeight: 68,
+        },
+      },
+    },
+    MuiButtonBase: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          transition: theme.transitions.create(
+            ["background-color", "box-shadow", "transform", "border-color"],
+            {
+              duration: theme.transitions.duration.shorter,
+            },
+          ),
+          "&:focus-visible": {
+            outline: `3px solid ${alpha(theme.palette.primary.main, 0.36)}`,
+            outlineOffset: 2,
+          },
+        }),
+      },
+    },
+    MuiButton: {
+      defaultProps: {
+        disableElevation: true,
+      },
+      styleOverrides: {
+        root: ({ ownerState, theme }) => ({
+          borderRadius: "var(--fabric-radius-capsule)",
+          textTransform: "none",
+          fontWeight: 600,
+          letterSpacing: 0.1,
+          paddingInline: theme.spacing(2),
+          ...(ownerState.size === "small" && {
+            minHeight: 32,
+          }),
+          ...(ownerState.size !== "small" && {
+            minHeight: 40,
+          }),
+          ...(ownerState.variant === "contained" && {
+            backgroundImage: `linear-gradient(180deg, ${alpha(theme.palette.primary.light, 0.95)}, ${theme.palette.primary.main})`,
+            border: `1px solid ${alpha(theme.palette.primary.dark, 0.4)}`,
+            boxShadow: `inset 0 1px 0 ${alpha("#fff", 0.38)}, var(--fabric-shadow-tight)`,
+            "&:hover": {
+              transform: "translateY(-1px)",
+              backgroundImage: `linear-gradient(180deg, ${alpha(theme.palette.primary.light, 1)}, ${alpha(theme.palette.primary.main, 0.94)})`,
+              boxShadow: `inset 0 1px 0 ${alpha("#fff", 0.42)}, 0 10px 20px ${alpha(theme.palette.primary.dark, 0.24)}`,
+            },
+          }),
+          ...(ownerState.variant === "outlined" && {
+            borderColor: "var(--fabric-surface-border-strong)",
+            backgroundColor: "var(--fabric-surface-2)",
+            "&:hover": {
+              borderColor: "var(--fabric-surface-border-strong)",
+              backgroundColor: "var(--fabric-surface-3)",
+              transform: "translateY(-1px)",
+            },
+          }),
+          ...(ownerState.variant === "text" && {
+            color: theme.palette.primary.main,
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+            },
+          }),
+          "@media (prefers-reduced-motion: reduce)": {
+            "&:hover": {
+              transform: "none",
+            },
+          },
+        }),
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderRadius: "var(--fabric-radius-capsule)",
+          border: "1px solid var(--fabric-surface-border)",
+          backgroundColor: "var(--fabric-surface-2)",
+          boxShadow: `inset 0 1px 0 var(--fabric-inner-glow), ${theme.fabric.surface.shadowTight}`,
+          backdropFilter: "blur(var(--fabric-blur-sm))",
+          fontWeight: 500,
+        }),
+        filled: ({ theme }) => ({
+          backgroundColor: alpha(theme.palette.primary.main, mode === "dark" ? 0.34 : 0.2),
+          borderColor: alpha(theme.palette.primary.main, 0.32),
+        }),
+      },
+    },
+    MuiTextField: {
+      defaultProps: {
+        variant: "outlined",
+      },
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        root: {
+          borderRadius: "var(--fabric-radius-md)",
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderRadius: "var(--fabric-radius-md)",
+          backgroundColor: "var(--fabric-surface-2)",
+          boxShadow: `inset 0 1px 0 var(--fabric-inner-glow), 0 1px 0 ${alpha(theme.palette.common.white, mode === "dark" ? 0.04 : 0.46)}`,
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "var(--fabric-surface-border)",
+          },
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "var(--fabric-surface-border-strong)",
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: alpha(theme.palette.primary.main, 0.75),
+          },
+          "&.Mui-focused": {
+            boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.2)}, inset 0 1px 0 var(--fabric-inner-glow)`,
+          },
+        }),
+        input: ({ theme }) => ({
+          paddingBlock: theme.spacing(1.25),
+        }),
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          borderRadius: "var(--fabric-radius-capsule)",
+          border: "1px solid var(--fabric-surface-border)",
+          backgroundColor: "var(--fabric-surface-2)",
+          minHeight: 40,
+          padding: 4,
+        },
+        indicator: ({ theme }) => ({
+          borderRadius: "var(--fabric-radius-capsule)",
+          height: "calc(100% - 8px)",
+          margin: 4,
+          backgroundColor: alpha(theme.palette.primary.main, mode === "dark" ? 0.34 : 0.2),
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.36)}`,
+        }),
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          textTransform: "none",
+          minHeight: 36,
+          borderRadius: "var(--fabric-radius-capsule)",
+          zIndex: 1,
+          fontWeight: 600,
+          color: theme.palette.text.secondary,
+          "&.Mui-selected": {
+            color: theme.palette.text.primary,
+          },
+        }),
+      },
+    },
+    MuiList: {
+      styleOverrides: {
+        root: {
+          paddingTop: 4,
+          paddingBottom: 4,
+        },
+      },
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderRadius: "var(--fabric-radius-md)",
+          border: "1px solid transparent",
+          "&:hover": {
+            backgroundColor: alpha(theme.palette.primary.main, mode === "dark" ? 0.16 : 0.1),
+            borderColor: "var(--fabric-surface-border)",
+          },
+          "&.Mui-selected": {
+            backgroundColor: alpha(theme.palette.primary.main, mode === "dark" ? 0.22 : 0.14),
+            borderColor: "var(--fabric-surface-border-strong)",
+          },
+          "&.Mui-selected:hover": {
+            backgroundColor: alpha(theme.palette.primary.main, mode === "dark" ? 0.26 : 0.18),
+          },
+        }),
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          borderRadius: "var(--fabric-radius-lg)",
+          border: "1px solid var(--fabric-surface-border)",
+          backgroundColor: "var(--fabric-surface-2)",
+          backdropFilter: "blur(var(--fabric-blur-md))",
+          boxShadow: "var(--fabric-shadow-tight)",
+        },
+      },
+    },
+    MuiPopover: {
+      styleOverrides: {
+        paper: {
+          borderRadius: "var(--fabric-radius-lg)",
+          border: "1px solid var(--fabric-surface-border)",
+          backgroundColor: "var(--fabric-surface-2)",
+          backdropFilter: "blur(var(--fabric-blur-md))",
+        },
+      },
+    },
+    MuiBottomNavigation: {
+      styleOverrides: {
+        root: {
+          borderRadius: "var(--fabric-radius-lg)",
+          border: "1px solid var(--fabric-surface-border)",
+          backgroundColor: "var(--fabric-surface-2)",
+          backdropFilter: "blur(var(--fabric-blur-sm))",
+        },
+      },
+    },
+  };
 };
 
-export default function getFabricTheme(
-  mode: PaletteMode,
-  config: FabricThemeConfig = {},
-) {
+export default function getFabricTheme(mode: PaletteMode, config: FabricThemeConfig = {}) {
   const fabric = getFabricTokens(mode);
 
   return createTheme({

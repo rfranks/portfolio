@@ -10,8 +10,7 @@ const layerToVariable: Record<1 | 2 | 3, string> = {
 };
 
 const SurfaceRoot = styled(Paper, {
-  shouldForwardProp: (prop) =>
-    prop !== "layer" && prop !== "interactive" && prop !== "glow",
+  shouldForwardProp: (prop) => prop !== "layer" && prop !== "interactive" && prop !== "glow",
 })<Pick<SurfaceProps, "layer" | "interactive" | "glow">>(
   ({ theme, layer = 1, interactive = false, glow = true }) => ({
     borderRadius: "var(--fabric-radius-lg)",

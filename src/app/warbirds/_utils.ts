@@ -18,11 +18,7 @@ import { Water } from "@/types/game/environment";
 /**
  * Initializes the entire game state to default values, precisely matching index.tsx
  */
-export function initState(
-  dims: Dims,
-  assets: AssetMgr,
-  audio: AudioMgr,
-): GameState {
+export function initState(dims: Dims, assets: AssetMgr, audio: AudioMgr): GameState {
   const activePowerups: Record<PowerupType, { expires: number }> = {
     artillery: { expires: 0 },
     bomb: { expires: 0 },
@@ -148,13 +144,11 @@ export function initState(
 
     isActive,
     enemySpeed: () =>
-      (isActive("hourglass", state.frameCount)
-        ? ENEMY_SPEED * 0.5
-        : ENEMY_SPEED) * clockRef.current.scale,
+      (isActive("hourglass", state.frameCount) ? ENEMY_SPEED * 0.5 : ENEMY_SPEED) *
+      clockRef.current.scale,
     groundSpeed: () =>
-      (isActive("hourglass", state.frameCount)
-        ? GROUND_SPEED * 0.5
-        : GROUND_SPEED) * clockRef.current.scale,
+      (isActive("hourglass", state.frameCount) ? GROUND_SPEED * 0.5 : GROUND_SPEED) *
+      clockRef.current.scale,
 
     phase: "title",
   };

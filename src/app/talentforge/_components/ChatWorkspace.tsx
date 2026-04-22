@@ -79,30 +79,20 @@ export default function ChatWorkspace({
   resumes = [],
 }: ChatWorkspaceProps) {
   const [output, setOutput] = useState("");
-  const [jobDescription, setJobDescription] = useState(
-    initialJobDescription || "",
-  );
-  const [selectedResumeId, setSelectedResumeId] = useState<string>(
-    initialResumeId || "",
-  );
+  const [jobDescription, setJobDescription] = useState(initialJobDescription || "");
+  const [selectedResumeId, setSelectedResumeId] = useState<string>(initialResumeId || "");
   const [customPrompts, setCustomPrompts] = useState<CustomPromptTile[]>(() =>
     getCustomPromptTiles(),
   );
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
-  const [customValues, setCustomValues] = useState<
-    Record<string, Record<string, string>>
-  >({});
+  const [customValues, setCustomValues] = useState<Record<string, Record<string, string>>>({});
   const [isRunning, setIsRunning] = useState(false);
   const [promptSearch, setPromptSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<"create" | "edit">("create");
   const [editingTile, setEditingTile] = useState<CustomPromptTile | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<CustomPromptTile | null>(
-    null,
-  );
-  const [highlightedTileId, setHighlightedTileId] = useState<string | null>(
-    null,
-  );
+  const [confirmDelete, setConfirmDelete] = useState<CustomPromptTile | null>(null);
+  const [highlightedTileId, setHighlightedTileId] = useState<string | null>(null);
   const notifyAIError = useAIErrorHandler();
 
   useEffect(() => {
@@ -175,9 +165,7 @@ export default function ChatWorkspace({
       case "resumeVariantId":
         return "Resume Variant";
       default:
-        return key
-          .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (char) => char.toUpperCase());
+        return key.replace(/([A-Z])/g, " $1").replace(/^./, (char) => char.toUpperCase());
     }
   };
 
@@ -229,9 +217,7 @@ export default function ChatWorkspace({
             return {
               value: "",
               ok,
-              error: ok
-                ? undefined
-                : `Select a resume for ${placeholder.label}.`,
+              error: ok ? undefined : `Select a resume for ${placeholder.label}.`,
             };
           }
           return { value: formatResumeForPrompt(resume), ok: true };
@@ -243,9 +229,7 @@ export default function ChatWorkspace({
             return {
               value: "",
               ok,
-              error: ok
-                ? undefined
-                : `Choose a job application for ${placeholder.label}.`,
+              error: ok ? undefined : `Choose a job application for ${placeholder.label}.`,
             };
           }
           return { value: formatJobApplicationForPrompt(application), ok: true };
@@ -257,9 +241,7 @@ export default function ChatWorkspace({
             return {
               value: "",
               ok,
-              error: ok
-                ? undefined
-                : `Select an offer for ${placeholder.label}.`,
+              error: ok ? undefined : `Select an offer for ${placeholder.label}.`,
             };
           }
           return { value: formatOfferForPrompt(offer), ok: true };
@@ -281,9 +263,7 @@ export default function ChatWorkspace({
           return {
             value,
             ok,
-            error: ok
-              ? undefined
-              : "Update your profile details to use this placeholder.",
+            error: ok ? undefined : "Update your profile details to use this placeholder.",
           };
         }
         case "goals": {
@@ -292,31 +272,21 @@ export default function ChatWorkspace({
           return {
             value,
             ok,
-            error: ok
-              ? undefined
-              : "Select at least one goal to use this placeholder.",
+            error: ok ? undefined : "Select at least one goal to use this placeholder.",
           };
         }
         default:
           return { value: stored, ok: true };
       }
     },
-    [
-      currentCompensation,
-      customValues,
-      goals,
-      jobApplications,
-      offers,
-      resumes,
-      userProfile,
-    ],
+    [currentCompensation, customValues, goals, jobApplications, offers, resumes, userProfile],
   );
 
   const canRunSelectedTile = useMemo(() => {
     if (!selectedTile) return false;
     if (selectedTile.source === "custom" && selectedTile.customTile) {
-      return selectedTile.customTile.placeholders.every((placeholder) =>
-        resolvePlaceholderValue(selectedTile, placeholder).ok,
+      return selectedTile.customTile.placeholders.every(
+        (placeholder) => resolvePlaceholderValue(selectedTile, placeholder).ok,
       );
     }
     return selectedTile.inputs.every((input) => {
@@ -326,11 +296,7 @@ export default function ChatWorkspace({
       }
       return value.trim().length > 0;
     });
-  }, [
-    getInputValue,
-    resolvePlaceholderValue,
-    selectedTile,
-  ]);
+  }, [getInputValue, resolvePlaceholderValue, selectedTile]);
 
   const handleRun = async () => {
     if (!selectedTile) return;
@@ -372,10 +338,7 @@ export default function ChatWorkspace({
 
       let prompt = selectedTile.fullPrompt;
 
-      if (
-        selectedTile.id === "resumeRewrite" ||
-        selectedTile.id === "resumeCompare"
-      ) {
+      if (selectedTile.id === "resumeRewrite" || selectedTile.id === "resumeCompare") {
         const resumeId = inputValues["resumeVariantId"];
         const resume = resumes.find((r) => r.id === resumeId);
         if (!resume) {
@@ -395,8 +358,7 @@ export default function ChatWorkspace({
       for (const key of selectedTile.inputs) {
         if (
           key === "resumeVariantId" &&
-          (selectedTile.id === "resumeRewrite" ||
-            selectedTile.id === "resumeCompare")
+          (selectedTile.id === "resumeRewrite" || selectedTile.id === "resumeCompare")
         ) {
           continue;
         }
@@ -695,11 +657,7 @@ export default function ChatWorkspace({
                 }}
               />
               {filteredTiles.length > 0 ? (
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  sx={{ flexWrap: "wrap", rowGap: 1 }}
-                >
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
                   {filteredTiles.map((tile) => {
                     const isSelected = tile.id === selectedTileId;
                     const isHighlighted = tile.id === highlightedTileId && !isSelected;
@@ -731,9 +689,7 @@ export default function ChatWorkspace({
                 </Stack>
               ) : (
                 <Typography color="text.secondary">
-                  {promptSearchQuery
-                    ? "No prompts match your search."
-                    : "No prompts available."}
+                  {promptSearchQuery ? "No prompts match your search." : "No prompts available."}
                 </Typography>
               )}
             </Stack>
@@ -846,9 +802,7 @@ export default function ChatWorkspace({
               )}
             </Stack>
           ) : (
-            <Typography color="text.secondary">
-              Select a prompt chip to get started.
-            </Typography>
+            <Typography color="text.secondary">Select a prompt chip to get started.</Typography>
           )}
         </Stack>
         <Box
@@ -893,12 +847,7 @@ export default function ChatWorkspace({
             </TextField>
           )}
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
-            <Chip
-              label="Copy"
-              onClick={handleCopy}
-              disabled={!output}
-              variant="outlined"
-            />
+            <Chip label="Copy" onClick={handleCopy} disabled={!output} variant="outlined" />
             {onInsertIntoInbox && (
               <Chip
                 label="Insert into Inbox"
@@ -924,7 +873,7 @@ export default function ChatWorkspace({
         mode={drawerMode}
         onClose={closeDrawer}
         onSave={handleDrawerSave}
-        initialValue={drawerMode === "edit" ? editingTile ?? undefined : undefined}
+        initialValue={drawerMode === "edit" ? (editingTile ?? undefined) : undefined}
       />
       <Dialog open={Boolean(confirmDelete)} onClose={() => setConfirmDelete(null)}>
         <DialogTitle>Delete prompt</DialogTitle>

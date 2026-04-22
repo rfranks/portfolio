@@ -78,7 +78,7 @@ function parseSafely(state: RickbertStudioState): ComicStripSpec {
     Object.entries(state.characterMapOverrides).map(([name, config]) => [
       name,
       config.aliasOf || config.role || config.notes || "custom",
-    ])
+    ]),
   );
   const parsed = parseStripInput(buildStripInput(state), {
     customCharacterNames: Object.keys(state.characterMapOverrides),
@@ -113,14 +113,13 @@ export const useRickbertStudioStore = create<RickbertStudioState>((set, get) => 
   setReferenceDoc: (id, value) =>
     set((state) => ({
       referenceDocs: state.referenceDocs.map((doc) =>
-        doc.id === id ? { ...doc, content: value } : doc
+        doc.id === id ? { ...doc, content: value } : doc,
       ),
     })),
   setStripRequest: (value) => set({ stripRequest: value }),
   setOpenAIKey: (value) => set({ openAIKey: value }),
   setStyleReferenceDataUrl: (value) => set({ styleReferenceDataUrl: value }),
-  setFinalRenderUseOutlineGuide: (value) =>
-    set({ finalRenderUseOutlineGuide: value }),
+  setFinalRenderUseOutlineGuide: (value) => set({ finalRenderUseOutlineGuide: value }),
   setCharacterMapOverrides: (value) => set({ characterMapOverrides: value }),
   parse: () => {
     try {
@@ -128,8 +127,7 @@ export const useRickbertStudioStore = create<RickbertStudioState>((set, get) => 
       set({ parsedSpec: parsed, errorMessage: null, activeTab: "parsed" });
     } catch (error) {
       set({
-        errorMessage:
-          error instanceof Error ? error.message : "Failed to parse strip input.",
+        errorMessage: error instanceof Error ? error.message : "Failed to parse strip input.",
       });
     }
   },
@@ -146,8 +144,7 @@ export const useRickbertStudioStore = create<RickbertStudioState>((set, get) => 
       });
     } catch (error) {
       set({
-        errorMessage:
-          error instanceof Error ? error.message : "Failed to run validation.",
+        errorMessage: error instanceof Error ? error.message : "Failed to run validation.",
       });
     }
   },
@@ -164,8 +161,7 @@ export const useRickbertStudioStore = create<RickbertStudioState>((set, get) => 
       });
     } catch (error) {
       set({
-        errorMessage:
-          error instanceof Error ? error.message : "Failed to render strip.",
+        errorMessage: error instanceof Error ? error.message : "Failed to render strip.",
       });
     }
   },

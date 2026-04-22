@@ -206,7 +206,10 @@ function objectSchema<T extends object>(
     const result: Record<string, unknown> = options?.allowUnknown === false ? {} : { ...source };
     const errors: string[] = [];
 
-    for (const [rawKey, schema] of Object.entries(shape) as [keyof T & string, Schema<T[keyof T]>][]) {
+    for (const [rawKey, schema] of Object.entries(shape) as [
+      keyof T & string,
+      Schema<T[keyof T]>,
+    ][]) {
       const value = source[rawKey];
       const nextPath = appendKey(path, rawKey);
       if (typeof value === "undefined") {
@@ -463,22 +466,20 @@ const rolePostingSchema = objectSchema<ApplicationRecord["role"]>({
   source: stringSchema().optional(),
 });
 
-const customPromptTileSchema: Schema<CustomPromptTile> = createSchema(
-  (input, path) => {
-    const parsed = customPromptTileBaseSchema.safeParse(input, path);
-    if (!parsed.success) {
-      return parsed;
-    }
-    const tile = parsed.data;
-    if (!Array.isArray(tile.contexts) || tile.contexts.length === 0) {
-      return failure(`${appendKey(path, "contexts")} must include at least one context`);
-    }
-    if (!Array.isArray(tile.placeholders) || tile.placeholders.length === 0) {
-      return failure(`${appendKey(path, "placeholders")} must include at least one placeholder`);
-    }
-    return success(tile);
-  },
-);
+const customPromptTileSchema: Schema<CustomPromptTile> = createSchema((input, path) => {
+  const parsed = customPromptTileBaseSchema.safeParse(input, path);
+  if (!parsed.success) {
+    return parsed;
+  }
+  const tile = parsed.data;
+  if (!Array.isArray(tile.contexts) || tile.contexts.length === 0) {
+    return failure(`${appendKey(path, "contexts")} must include at least one context`);
+  }
+  if (!Array.isArray(tile.placeholders) || tile.placeholders.length === 0) {
+    return failure(`${appendKey(path, "placeholders")} must include at least one placeholder`);
+  }
+  return success(tile);
+});
 
 const offerSchema: Schema<Offer> = createSchema((input, path) => {
   if (!isPlainObject(input)) {
@@ -503,18 +504,16 @@ const offerSchema: Schema<Offer> = createSchema((input, path) => {
     errors.push(...compensationResult.errors);
   }
 
-  const summaryResult = arraySchema(stringSchema()).optional().safeParse(
-    (source as { summary?: unknown }).summary,
-    appendKey(path, "summary"),
-  );
+  const summaryResult = arraySchema(stringSchema())
+    .optional()
+    .safeParse((source as { summary?: unknown }).summary, appendKey(path, "summary"));
   if (!summaryResult.success) {
     errors.push(...summaryResult.errors);
   }
 
-  const decisionResult = offerDecisionSchema.optional().safeParse(
-    (source as { decision?: unknown }).decision,
-    appendKey(path, "decision"),
-  );
+  const decisionResult = offerDecisionSchema
+    .optional()
+    .safeParse((source as { decision?: unknown }).decision, appendKey(path, "decision"));
   if (!decisionResult.success) {
     errors.push(...decisionResult.errors);
   }
@@ -581,98 +580,98 @@ const jobApplicationSchema: Schema<ApplicationRecord> = createSchema((input, pat
     errors.push(...historyResult.errors);
   }
 
-  const resumeResult = resumeEntrySchema.optional().safeParse(
-    (source as { resumeVariant?: unknown }).resumeVariant,
-    appendKey(path, "resumeVariant"),
-  );
+  const resumeResult = resumeEntrySchema
+    .optional()
+    .safeParse(
+      (source as { resumeVariant?: unknown }).resumeVariant,
+      appendKey(path, "resumeVariant"),
+    );
   if (!resumeResult.success) {
     errors.push(...resumeResult.errors);
   }
 
-  const nextActionResult = stringSchema().optional().safeParse(
-    (source as { nextAction?: unknown }).nextAction,
-    appendKey(path, "nextAction"),
-  );
+  const nextActionResult = stringSchema()
+    .optional()
+    .safeParse((source as { nextAction?: unknown }).nextAction, appendKey(path, "nextAction"));
   if (!nextActionResult.success) {
     errors.push(...nextActionResult.errors);
   }
 
-  const dueAtResult = stringSchema().optional().safeParse(
-    (source as { dueAt?: unknown }).dueAt,
-    appendKey(path, "dueAt"),
-  );
+  const dueAtResult = stringSchema()
+    .optional()
+    .safeParse((source as { dueAt?: unknown }).dueAt, appendKey(path, "dueAt"));
   if (!dueAtResult.success) {
     errors.push(...dueAtResult.errors);
   }
 
-  const interviewDateResult = stringSchema().optional().safeParse(
-    (source as { interviewDateTime?: unknown }).interviewDateTime,
-    appendKey(path, "interviewDateTime"),
-  );
+  const interviewDateResult = stringSchema()
+    .optional()
+    .safeParse(
+      (source as { interviewDateTime?: unknown }).interviewDateTime,
+      appendKey(path, "interviewDateTime"),
+    );
   if (!interviewDateResult.success) {
     errors.push(...interviewDateResult.errors);
   }
 
-  const interviewLocationResult = stringSchema().optional().safeParse(
-    (source as { interviewLocation?: unknown }).interviewLocation,
-    appendKey(path, "interviewLocation"),
-  );
+  const interviewLocationResult = stringSchema()
+    .optional()
+    .safeParse(
+      (source as { interviewLocation?: unknown }).interviewLocation,
+      appendKey(path, "interviewLocation"),
+    );
   if (!interviewLocationResult.success) {
     errors.push(...interviewLocationResult.errors);
   }
 
-  const recruitersResult = arraySchema(recruiterEntrySchema).optional().safeParse(
-    (source as { recruiters?: unknown }).recruiters,
-    appendKey(path, "recruiters"),
-  );
+  const recruitersResult = arraySchema(recruiterEntrySchema)
+    .optional()
+    .safeParse((source as { recruiters?: unknown }).recruiters, appendKey(path, "recruiters"));
   if (!recruitersResult.success) {
     errors.push(...recruitersResult.errors);
   }
 
-  const threadsResult = arraySchema(messageSchema).optional().safeParse(
-    (source as { threads?: unknown }).threads,
-    appendKey(path, "threads"),
-  );
+  const threadsResult = arraySchema(messageSchema)
+    .optional()
+    .safeParse((source as { threads?: unknown }).threads, appendKey(path, "threads"));
   if (!threadsResult.success) {
     errors.push(...threadsResult.errors);
   }
 
-  const offerResult = offerSchema.optional().safeParse(
-    (source as { offer?: unknown }).offer,
-    appendKey(path, "offer"),
-  );
+  const offerResult = offerSchema
+    .optional()
+    .safeParse((source as { offer?: unknown }).offer, appendKey(path, "offer"));
   if (!offerResult.success) {
     errors.push(...offerResult.errors);
   }
 
-  const decisionResult = offerDecisionSchema.optional().safeParse(
-    (source as { decision?: unknown }).decision,
-    appendKey(path, "decision"),
-  );
+  const decisionResult = offerDecisionSchema
+    .optional()
+    .safeParse((source as { decision?: unknown }).decision, appendKey(path, "decision"));
   if (!decisionResult.success) {
     errors.push(...decisionResult.errors);
   }
 
-  const historyEntriesResult = arraySchema(offerHistoryEntrySchema).optional().safeParse(
-    (source as { offerHistory?: unknown }).offerHistory,
-    appendKey(path, "offerHistory"),
-  );
+  const historyEntriesResult = arraySchema(offerHistoryEntrySchema)
+    .optional()
+    .safeParse(
+      (source as { offerHistory?: unknown }).offerHistory,
+      appendKey(path, "offerHistory"),
+    );
   if (!historyEntriesResult.success) {
     errors.push(...historyEntriesResult.errors);
   }
 
-  const attachmentsResult = arraySchema(applicationAttachmentSchema).optional().safeParse(
-    (source as { attachments?: unknown }).attachments,
-    appendKey(path, "attachments"),
-  );
+  const attachmentsResult = arraySchema(applicationAttachmentSchema)
+    .optional()
+    .safeParse((source as { attachments?: unknown }).attachments, appendKey(path, "attachments"));
   if (!attachmentsResult.success) {
     errors.push(...attachmentsResult.errors);
   }
 
-  const activitiesResult = arraySchema(applicationActivitySchema).optional().safeParse(
-    (source as { activities?: unknown }).activities,
-    appendKey(path, "activities"),
-  );
+  const activitiesResult = arraySchema(applicationActivitySchema)
+    .optional()
+    .safeParse((source as { activities?: unknown }).activities, appendKey(path, "activities"));
   if (!activitiesResult.success) {
     errors.push(...activitiesResult.errors);
   }

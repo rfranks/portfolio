@@ -3,6 +3,7 @@ import type {
   ReferenceDocConfig,
   ValidationReport,
 } from "@/app/rickbert-studio/_models";
+import { requestOpenAIJsonRaw } from "@/utils/openai/client";
 
 export type FinalRenderRequest = {
   apiKey?: string;
@@ -80,9 +81,7 @@ function resolveRequiredDocs(referenceDocs: ReferenceDocConfig[]): RequiredDocMa
     .map(([key]) => key);
 
   if (missing.length > 0) {
-    throw new Error(
-      `Final Render requires non-empty reference docs: ${missing.join(", ")}.`
-    );
+    throw new Error(`Final Render requires non-empty reference docs: ${missing.join(", ")}.`);
   }
 
   return docs;
@@ -100,7 +99,7 @@ function summarizeReferenceDocs(referenceDocs: ReferenceDocConfig[]): string {
 function buildSystemPrompt(
   masterPrompt: string,
   referenceDocs: ReferenceDocConfig[],
-  requiredDocs: RequiredDocMap
+  requiredDocs: RequiredDocMap,
 ): string {
   return [
     "You are a senior comic production renderer for the RICKBERT office comic series.",
@@ -186,10 +185,7 @@ function parseImageCandidate(raw: string): ExtractedImage | null {
   };
 }
 
-function pushCandidate(
-  bucket: ExtractedImage[],
-  raw: unknown
-): void {
+function pushCandidate(bucket: ExtractedImage[], raw: unknown): void {
   if (typeof raw !== "string") {
     return;
   }
@@ -244,7 +240,7 @@ function extractImageBase64(payload: unknown): ExtractedImage | null {
   // Some responses include multiple image payloads. Prefer the largest payload,
   // which is typically the highest-resolution final image rather than an interim preview.
   return candidates.reduce((largest, current) =>
-    current.base64.length > largest.base64.length ? current : largest
+    current.base64.length > largest.base64.length ? current : largest,
   );
 }
 
@@ -254,15 +250,11 @@ function extractErrorMessage(payload: Record<string, unknown>): string {
       ? (payload.error as OpenAIErrorPayload)
       : null;
   const apiMessage =
-    errorPayload?.message ||
-    (typeof payload?.error === "string" ? payload.error : "");
+    errorPayload?.message || (typeof payload?.error === "string" ? payload.error : "");
   return apiMessage;
 }
 
-function shouldRetryWithMinimalToolOptions(
-  status: number,
-  apiMessage: string
-): boolean {
+function shouldRetryWithMinimalToolOptions(status: number, apiMessage: string): boolean {
   if (status !== 400 || !apiMessage) {
     return false;
   }
@@ -276,16 +268,13 @@ function shouldRetryWithMinimalToolOptions(
 }
 
 export async function requestFinalRender(
-  payload: FinalRenderRequest
+  payload: FinalRenderRequest,
 ): Promise<FinalRenderResponse> {
   if (!payload.validationReport?.pass) {
-    throw new Error(
-      "Final Render requires a passing validation report. Please Validate first."
-    );
+    throw new Error("Final Render requires a passing validation report. Please Validate first.");
   }
 
-  const apiKey =
-    payload.apiKey?.trim() || process.env.NEXT_PUBLIC_OPENAI_API_KEY?.trim() || "";
+  const apiKey = payload.apiKey?.trim() || process.env.NEXT_PUBLIC_OPENAI_API_KEY?.trim() || "";
   if (!apiKey) {
     throw new Error("OpenAI API key is missing.");
   }
@@ -294,15 +283,10 @@ export async function requestFinalRender(
   const requiredDocs = resolveRequiredDocs(payload.referenceDocs);
   const normalizedModel = model.toLowerCase();
   const supportsExplicitAction =
-    normalizedModel.includes("gpt-image-1.5") ||
-    normalizedModel.includes("chatgpt-image-latest");
+    normalizedModel.includes("gpt-image-1.5") || normalizedModel.includes("chatgpt-image-latest");
   const action = payload.outlineDataUrl || payload.styleReferenceDataUrl ? "edit" : "generate";
-  const imageTool = supportsExplicitAction
-    ? { ...IMAGE_TOOL_CONFIG, action }
-    : IMAGE_TOOL_CONFIG;
-  const userContent: OpenAIContentPart[] = [
-    { type: "input_text", text: buildUserPrompt(payload) },
-  ];
+  const imageTool = supportsExplicitAction ? { ...IMAGE_TOOL_CONFIG, action } : IMAGE_TOOL_CONFIG;
+  const userContent: OpenAIContentPart[] = [{ type: "input_text", text: buildUserPrompt(payload) }];
 
   if (payload.outlineDataUrl) {
     userContent.push({
@@ -326,11 +310,7 @@ export async function requestFinalRender(
         content: [
           {
             type: "input_text",
-            text: buildSystemPrompt(
-              payload.masterPrompt,
-              payload.referenceDocs,
-              requiredDocs
-            ),
+            text: buildSystemPrompt(payload.masterPrompt, payload.referenceDocs, requiredDocs),
           },
         ],
       },
@@ -352,34 +332,31 @@ export async function requestFinalRender(
   };
 
   const runRequest = async (
-    body: Record<string, unknown>
+    body: Record<string, unknown>,
   ): Promise<{ response: Response; data: Record<string, unknown> }> => {
-    const response = await fetch("https://api.openai.com/v1/responses", {
+    return requestOpenAIJsonRaw<Record<string, unknown>>({
+      apiKey,
+      path: "/responses",
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
+      body,
     });
-    const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-    return { response, data };
   };
 
   let { response, data } = await runRequest(
-    requestWithPreferredToolOptions as unknown as Record<string, unknown>
+    requestWithPreferredToolOptions as unknown as Record<string, unknown>,
   );
 
   const firstAttemptMessage = extractErrorMessage(data);
   if (shouldRetryWithMinimalToolOptions(response.status, firstAttemptMessage)) {
     ({ response, data } = await runRequest(
-      requestWithMinimalToolOptions as unknown as Record<string, unknown>
+      requestWithMinimalToolOptions as unknown as Record<string, unknown>,
     ));
   }
 
   if (!response.ok) {
     const apiMessage = extractErrorMessage(data);
-    const message = apiMessage.length > 0 ? apiMessage : `Final render failed (${response.status}).`;
+    const message =
+      apiMessage.length > 0 ? apiMessage : `Final render failed (${response.status}).`;
     throw new Error(message);
   }
 

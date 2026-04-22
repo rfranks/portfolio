@@ -13,19 +13,8 @@ type PathForgerModelAutocompleteProps = {
   sx?: SxProps<Theme>;
 };
 
-export default function PathForgerModelAutocomplete(
-  props: PathForgerModelAutocompleteProps,
-) {
-  const {
-    label,
-    value,
-    options,
-    loading,
-    fallbackValue,
-    onChange,
-    helperText,
-    sx,
-  } = props;
+export default function PathForgerModelAutocomplete(props: PathForgerModelAutocompleteProps) {
+  const { label, value, options, loading, fallbackValue, onChange, helperText, sx } = props;
 
   return (
     <Autocomplete
@@ -43,12 +32,7 @@ export default function PathForgerModelAutocomplete(
         );
       }}
       renderInput={(params) => (
-        <TextField
-          {...params}
-          fullWidth
-          label={label}
-          helperText={helperText}
-        />
+        <TextField {...params} fullWidth label={label} helperText={helperText} />
       )}
       sx={sx}
     />

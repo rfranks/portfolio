@@ -1,13 +1,5 @@
 import * as React from "react";
-import {
-  Box,
-  Button,
-  Grid,
-  IconButton,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Grid, IconButton, Paper, Stack, Typography } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { MarkdownContent } from "@/components/shared";
 import { ImageLightbox } from "@/components/shared";
@@ -41,9 +33,7 @@ type PathForgerContinuePanelProps = {
   activeOptionBranch: PathForgerBranchChoice | null;
   revealedOptionBranches: Record<PathForgerBranchChoice, boolean>;
   optionRevealTick: Record<PathForgerBranchChoice, number>;
-  optionPanelImages: Partial<
-    Record<PathForgerBranchChoice, PathForgerGeneratedImage | undefined>
-  >;
+  optionPanelImages: Partial<Record<PathForgerBranchChoice, PathForgerGeneratedImage | undefined>>;
   continueOptionsScrollRef: React.RefObject<HTMLDivElement | null>;
   continueOptionPanelRefs: React.MutableRefObject<
     Partial<Record<PathForgerBranchChoice, HTMLDivElement | null>>
@@ -56,9 +46,7 @@ type PathForgerContinuePanelProps = {
   kenBurnsImageSx: Record<string, unknown>;
 };
 
-export default function PathForgerContinuePanel(
-  props: PathForgerContinuePanelProps,
-) {
+export default function PathForgerContinuePanel(props: PathForgerContinuePanelProps) {
   const {
     open,
     statusIsRunning,
@@ -87,9 +75,7 @@ export default function PathForgerContinuePanel(
   }
 
   const showPathForgingAnimation =
-    statusIsRunning &&
-    activeRunAction === "forgePath" &&
-    Boolean(activeOptionBranch);
+    statusIsRunning && activeRunAction === "forgePath" && Boolean(activeOptionBranch);
 
   return (
     <Box
@@ -184,10 +170,7 @@ export default function PathForgerContinuePanel(
                 flexDirection: "column",
               }}
             >
-              <MarkdownContent
-                content={continuePromptMarkdown}
-                variant="body1"
-              />
+              <MarkdownContent content={continuePromptMarkdown} variant="body1" />
               <Grid
                 container
                 spacing={1.25}
@@ -232,18 +215,14 @@ export default function PathForgerContinuePanel(
                             minHeight: 128,
                             cursor: statusIsRunning ? "not-allowed" : "pointer",
                             opacity: statusIsRunning ? 0.72 : 1,
-                            borderColor: isActive
-                              ? theme.palette.primary.main
-                              : "divider",
+                            borderColor: isActive ? theme.palette.primary.main : "divider",
                             boxShadow: isActive
                               ? `0 0 0 1px ${theme.palette.primary.main}`
                               : "none",
                             transition:
                               "border-color 220ms ease, box-shadow 220ms ease, transform 200ms ease",
                             "&:hover": {
-                              transform: statusIsRunning
-                                ? "none"
-                                : "translateY(-2px)",
+                              transform: statusIsRunning ? "none" : "translateY(-2px)",
                             },
                           })}
                         >
@@ -255,9 +234,7 @@ export default function PathForgerContinuePanel(
                                 display: "flex",
                               }}
                             >
-                              <Typography variant="h6">
-                                Option {branch}
-                              </Typography>
+                              <Typography variant="h6">Option {branch}</Typography>
                               {choice?.label ? (
                                 <Typography
                                   variant="body2"
@@ -389,10 +366,7 @@ export default function PathForgerContinuePanel(
             onClick={onForgeMyPath}
             disabled={forgeDisabled}
             startIcon={
-              <Typography
-                component="span"
-                sx={{ fontSize: "1.1rem", lineHeight: 1 }}
-              >
+              <Typography component="span" sx={{ fontSize: "1.1rem", lineHeight: 1 }}>
                 🛠️
               </Typography>
             }

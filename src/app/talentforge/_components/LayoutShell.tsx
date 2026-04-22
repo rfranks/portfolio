@@ -87,12 +87,7 @@ export default function LayoutShell({
             }}
           >
             {!isDesktop && (
-              <IconButton
-                color="inherit"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 2 }}
-              >
+              <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
                 <MenuIcon />
               </IconButton>
             )}

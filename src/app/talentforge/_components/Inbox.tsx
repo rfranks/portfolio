@@ -39,12 +39,7 @@ import useAIErrorHandler from "@/app/talentforge/_hooks/useAIErrorHandler";
 
 import { useTalentForgeData } from "@/app/talentforge/_contexts/TalentForgeDataContext";
 import { useSearchParams } from "next/navigation";
-import type {
-  ApplicationStatus,
-  JobApplication,
-  Message,
-  RecruiterEntry,
-} from "@/types";
+import type { ApplicationStatus, JobApplication, Message, RecruiterEntry } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import { ContentCopy } from "@mui/icons-material";
 import PromptSelector from "./PromptSelector";
@@ -57,8 +52,7 @@ import { Hero, Surface } from "@/components/fabric";
 const NO_COMPANY_FILTER = "__no_company__";
 type StatusFilterValue = ApplicationStatus | "all" | "unlinked";
 
-const formatStatus = (status: string) =>
-  status.charAt(0).toUpperCase() + status.slice(1);
+const formatStatus = (status: string) => status.charAt(0).toUpperCase() + status.slice(1);
 
 type QuickReplyChannel = "email" | "linkedin" | "indeed";
 type QuickReplyType = "followUp" | "decline";
@@ -74,11 +68,7 @@ interface QuickReplyEntry {
   content: QuickReplyContent;
 }
 
-const QUICK_REPLY_CHANNELS: QuickReplyChannel[] = [
-  "email",
-  "linkedin",
-  "indeed",
-];
+const QUICK_REPLY_CHANNELS: QuickReplyChannel[] = ["email", "linkedin", "indeed"];
 
 export default function Inbox() {
   const data = useTalentForgeData();
@@ -90,22 +80,21 @@ export default function Inbox() {
   const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [templateSelections, setTemplateSelections] =
-    useState<Record<string, AutoReplyTemplate>>({});
+  const [templateSelections, setTemplateSelections] = useState<Record<string, AutoReplyTemplate>>(
+    {},
+  );
   const [quickReplyCache, setQuickReplyCache] = useState<
     Record<string, Partial<Record<QuickReplyType, QuickReplyEntry>>>
   >({});
-  const [quickReplyType, setQuickReplyType] =
-    useState<QuickReplyType>("followUp");
-  const [quickReplyChannel, setQuickReplyChannel] =
-    useState<QuickReplyChannel>("email");
+  const [quickReplyType, setQuickReplyType] = useState<QuickReplyType>("followUp");
+  const [quickReplyChannel, setQuickReplyChannel] = useState<QuickReplyChannel>("email");
   const [quickReplyLoading, setQuickReplyLoading] = useState(false);
   const [quickReplyError, setQuickReplyError] = useState<string | null>(null);
   const [templateDefs, setTemplateDefs] = useState<Record<string, string>>({});
   const [editorOpen, setEditorOpen] = useState(false);
-  const [editorTemplates, setEditorTemplates] = useState<
-    Array<{ name: string; prompt: string }>
-  >([]);
+  const [editorTemplates, setEditorTemplates] = useState<Array<{ name: string; prompt: string }>>(
+    [],
+  );
   const [search, setSearch] = useState("");
   const [recruiters, setRecruiters] = useState<RecruiterEntry[]>([]);
   const [aiThread, setAiThread] = useState<string | null>(null);
@@ -172,39 +161,33 @@ export default function Inbox() {
     return Array.from(companies).sort((a, b) => a.localeCompare(b));
   }, [applications]);
 
-  const filteredThreads = filterByText(threads, search, ["body", "connector"]).filter(
-    (m) => {
-      if (filter !== "all" && m.status !== filter) return false;
+  const filteredThreads = filterByText(threads, search, ["body", "connector"]).filter((m) => {
+    if (filter !== "all" && m.status !== filter) return false;
 
-      const application = m.applicationId
-        ? applicationById[m.applicationId]
-        : undefined;
+    const application = m.applicationId ? applicationById[m.applicationId] : undefined;
 
-      if (statusFilter === "unlinked") {
-        if (application) return false;
-      } else if (statusFilter !== "all") {
-        if (!application || application.status !== statusFilter) {
-          return false;
-        }
+    if (statusFilter === "unlinked") {
+      if (application) return false;
+    } else if (statusFilter !== "all") {
+      if (!application || application.status !== statusFilter) {
+        return false;
       }
+    }
 
-      if (companyFilter === NO_COMPANY_FILTER) {
-        if (application) return false;
-      } else if (companyFilter !== "all") {
-        if (!application || application.role.company !== companyFilter) {
-          return false;
-        }
+    if (companyFilter === NO_COMPANY_FILTER) {
+      if (application) return false;
+    } else if (companyFilter !== "all") {
+      if (!application || application.role.company !== companyFilter) {
+        return false;
       }
+    }
 
-      return true;
-    },
-  );
+    return true;
+  });
 
   const buildQuickReplyContext = (message: Message) => {
     const parts: string[] = [];
-    const application = message.applicationId
-      ? applicationById[message.applicationId]
-      : undefined;
+    const application = message.applicationId ? applicationById[message.applicationId] : undefined;
     const recruiter = message.recruiterId
       ? recruiters.find((r) => r.id === message.recruiterId)
       : undefined;
@@ -227,9 +210,7 @@ export default function Inbox() {
     if (recruiter) {
       const note = recruiter.notes?.trim();
       parts.push(
-        note
-          ? `Recruiter: ${recruiter.name}. Notes: ${note}`
-          : `Recruiter: ${recruiter.name}.`,
+        note ? `Recruiter: ${recruiter.name}. Notes: ${note}` : `Recruiter: ${recruiter.name}.`,
       );
     }
 
@@ -240,9 +221,7 @@ export default function Inbox() {
         const formattedReplyDate = Number.isNaN(replyDate.getTime())
           ? reply.sentAt
           : replyDate.toLocaleString();
-        parts.push(
-          `Sent via ${reply.connector} on ${formattedReplyDate}:\n${reply.body.trim()}`,
-        );
+        parts.push(`Sent via ${reply.connector} on ${formattedReplyDate}:\n${reply.body.trim()}`);
       }
     }
 
@@ -250,12 +229,9 @@ export default function Inbox() {
   };
 
   const parseQuickReplyContent = (raw: string): QuickReplyContent | null => {
-    const sanitize = (value: unknown) =>
-      typeof value === "string" ? value.trim() : "";
+    const sanitize = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 
-    const attemptFromObject = (
-      obj: Record<string, unknown>,
-    ): QuickReplyContent | null => {
+    const attemptFromObject = (obj: Record<string, unknown>): QuickReplyContent | null => {
       const channelKeys: Record<QuickReplyChannel, string[]> = {
         email: ["email", "Email", "EMAIL"],
         linkedin: ["linkedin", "LinkedIn", "Linkedin", "LINKEDIN"],
@@ -333,22 +309,14 @@ export default function Inbox() {
     : undefined;
 
   const recruiterNotes = selectedRecruiter?.notes?.trim() || "";
-  const linkedApplicationMissing = Boolean(
-    selected?.applicationId && !selectedApplication,
-  );
+  const linkedApplicationMissing = Boolean(selected?.applicationId && !selectedApplication);
 
-  const quickReplyEntry = selected
-    ? quickReplyCache[selected.id]?.[quickReplyType]
-    : undefined;
+  const quickReplyEntry = selected ? quickReplyCache[selected.id]?.[quickReplyType] : undefined;
   const quickReplyContent = quickReplyEntry?.content;
-  const currentQuickReplyText = quickReplyContent
-    ? quickReplyContent[quickReplyChannel]
-    : "";
+  const currentQuickReplyText = quickReplyContent ? quickReplyContent[quickReplyChannel] : "";
 
   const templateNames = Object.keys(templateDefs) as AutoReplyTemplate[];
-  const defaultTemplate: AutoReplyTemplate = templateDefs.general
-    ? "general"
-    : templateNames[0];
+  const defaultTemplate: AutoReplyTemplate = templateDefs.general ? "general" : templateNames[0];
 
   const handleSelectThread = (message: Message) => {
     setSelectedId(message.id);
@@ -363,9 +331,7 @@ export default function Inbox() {
 
   const handleAutoReply = async (message: Message) => {
     const template = templateSelections[message.id] || defaultTemplate;
-    const reply = await autoReply(
-      buildAutoReplyMessages(template, message.body, templateDefs),
-    );
+    const reply = await autoReply(buildAutoReplyMessages(template, message.body, templateDefs));
     setDrafts((d) => ({ ...d, [message.id]: reply }));
   };
 
@@ -379,10 +345,7 @@ export default function Inbox() {
       return;
     }
 
-    const tileId =
-      quickReplyType === "followUp"
-        ? "recruiterFollowUp"
-        : "recruiterDecline";
+    const tileId = quickReplyType === "followUp" ? "recruiterFollowUp" : "recruiterDecline";
     const tile = getPromptTile(tileId, { contexts: "messaging" });
     if (!tile) {
       setQuickReplyError("This prompt is unavailable in the current workspace.");
@@ -473,10 +436,7 @@ export default function Inbox() {
     setQuickReplyError(null);
   };
 
-  const handleQuickReplyChannelChange = (
-    _event: unknown,
-    value: QuickReplyChannel,
-  ) => {
+  const handleQuickReplyChannelChange = (_event: unknown, value: QuickReplyChannel) => {
     setQuickReplyChannel(value);
   };
 
@@ -555,17 +515,11 @@ export default function Inbox() {
   };
 
   const openTemplateEditor = () => {
-    setEditorTemplates(
-      Object.entries(templateDefs).map(([name, prompt]) => ({ name, prompt })),
-    );
+    setEditorTemplates(Object.entries(templateDefs).map(([name, prompt]) => ({ name, prompt })));
     setEditorOpen(true);
   };
 
-  const handleTemplateChange = (
-    index: number,
-    field: "name" | "prompt",
-    value: string,
-  ) => {
+  const handleTemplateChange = (index: number, field: "name" | "prompt", value: string) => {
     setEditorTemplates((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [field]: value };
@@ -611,9 +565,7 @@ export default function Inbox() {
   }
 
   const selectedPromptTile =
-    promptKey !== ""
-      ? getPromptTile(promptKey, { contexts: "messaging" })
-      : undefined;
+    promptKey !== "" ? getPromptTile(promptKey, { contexts: "messaging" }) : undefined;
 
   const promptTileInitialValues =
     promptKey === "recruiterNudge" && aiThread
@@ -634,331 +586,307 @@ export default function Inbox() {
         <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ height: "100%" }}>
           <Surface layer={2} sx={{ width: { xs: "100%", md: 320 }, p: 2 }}>
             <Stack spacing={2}>
-            <Select
-              value={filter}
-              onChange={handleFilterChange}
-              sx={{ maxWidth: 200 }}
-              aria-label="Filter threads"
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="unread">Unread</MenuItem>
-              <MenuItem value="read">Read</MenuItem>
-            </Select>
-            <Select
-              value={statusFilter}
-              onChange={handleStatusFilterChange}
-              sx={{ maxWidth: 200 }}
-              displayEmpty
-              aria-label="Filter by application status"
-            >
-              <MenuItem value="all">All application statuses</MenuItem>
-              <MenuItem value="unlinked">No linked application</MenuItem>
-              {STATUSES.map((status) => (
-                <MenuItem key={status} value={status}>
-                  {formatStatus(status)}
-                </MenuItem>
-              ))}
-            </Select>
-            <Select
-              value={companyFilter}
-              onChange={handleCompanyFilterChange}
-              sx={{ maxWidth: 200 }}
-              displayEmpty
-              aria-label="Filter by company"
-            >
-              <MenuItem value="all">All companies</MenuItem>
-              <MenuItem value={NO_COMPANY_FILTER}>No linked application</MenuItem>
-              {companyOptions.map((company) => (
-                <MenuItem key={company} value={company}>
-                  {company}
-                </MenuItem>
-              ))}
-            </Select>
-            <TextField
-              label="Search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              sx={{ maxWidth: 300 }}
-            />
-            <List aria-label="Thread list">
-              {filteredThreads.map((message) => (
-                <ListItem key={message.id} disablePadding>
-                  <ListItemButton
-                    selected={selectedId === message.id}
-                    onClick={() => handleSelectThread(message)}
-                  >
-                    <ListItemText
-                      primary={
-                        <Typography variant="subtitle1" fontWeight="bold">
-                          {message.connector}
-                        </Typography>
-                      }
-                      secondary={message.body}
-                    />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
+              <Select
+                value={filter}
+                onChange={handleFilterChange}
+                sx={{ maxWidth: 200 }}
+                aria-label="Filter threads"
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="unread">Unread</MenuItem>
+                <MenuItem value="read">Read</MenuItem>
+              </Select>
+              <Select
+                value={statusFilter}
+                onChange={handleStatusFilterChange}
+                sx={{ maxWidth: 200 }}
+                displayEmpty
+                aria-label="Filter by application status"
+              >
+                <MenuItem value="all">All application statuses</MenuItem>
+                <MenuItem value="unlinked">No linked application</MenuItem>
+                {STATUSES.map((status) => (
+                  <MenuItem key={status} value={status}>
+                    {formatStatus(status)}
+                  </MenuItem>
+                ))}
+              </Select>
+              <Select
+                value={companyFilter}
+                onChange={handleCompanyFilterChange}
+                sx={{ maxWidth: 200 }}
+                displayEmpty
+                aria-label="Filter by company"
+              >
+                <MenuItem value="all">All companies</MenuItem>
+                <MenuItem value={NO_COMPANY_FILTER}>No linked application</MenuItem>
+                {companyOptions.map((company) => (
+                  <MenuItem key={company} value={company}>
+                    {company}
+                  </MenuItem>
+                ))}
+              </Select>
+              <TextField
+                label="Search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                sx={{ maxWidth: 300 }}
+              />
+              <List aria-label="Thread list">
+                {filteredThreads.map((message) => (
+                  <ListItem key={message.id} disablePadding>
+                    <ListItemButton
+                      selected={selectedId === message.id}
+                      onClick={() => handleSelectThread(message)}
+                    >
+                      <ListItemText
+                        primary={
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            {message.connector}
+                          </Typography>
+                        }
+                        secondary={message.body}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
             </Stack>
           </Surface>
           <Surface layer={1} sx={{ flexGrow: 1, p: 2 }}>
-          {selected ? (
-            <Stack spacing={2}>
-              <Typography variant="h6">{selected.connector}</Typography>
-              <Stack spacing={1}>
-                <Surface layer={2} sx={{ p: 2, borderRadius: "var(--fabric-radius-md)" }}>
-                  <Stack spacing={0.5}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Linked application
-                    </Typography>
-                    {selectedApplication ? (
-                      <>
-                        <Typography variant="body1" fontWeight={600}>
-                          {`${selectedApplication.role.title} · ${selectedApplication.role.company}`}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Status: {formatStatus(selectedApplication.status)}
-                        </Typography>
-                        {selectedApplication.resumeVariant && (
-                          <Typography variant="body2" color="text.secondary">
-                            Resume: {selectedApplication.resumeVariant.title}
-                          </Typography>
-                        )}
-                      </>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No application linked.
-                      </Typography>
-                    )}
-                  </Stack>
-                </Surface>
-                {selectedRecruiter && (
-                  <Surface
-                    layer={2}
-                    sx={{ p: 2, borderRadius: "var(--fabric-radius-md)" }}
-                  >
+            {selected ? (
+              <Stack spacing={2}>
+                <Typography variant="h6">{selected.connector}</Typography>
+                <Stack spacing={1}>
+                  <Surface layer={2} sx={{ p: 2, borderRadius: "var(--fabric-radius-md)" }}>
                     <Stack spacing={0.5}>
                       <Typography variant="subtitle2" color="text.secondary">
-                        Recruiter notes
+                        Linked application
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.primary"
-                        sx={{ whiteSpace: "pre-wrap" }}
-                      >
-                        {recruiterNotes || "No notes saved yet."}
-                      </Typography>
+                      {selectedApplication ? (
+                        <>
+                          <Typography variant="body1" fontWeight={600}>
+                            {`${selectedApplication.role.title} · ${selectedApplication.role.company}`}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Status: {formatStatus(selectedApplication.status)}
+                          </Typography>
+                          {selectedApplication.resumeVariant && (
+                            <Typography variant="body2" color="text.secondary">
+                              Resume: {selectedApplication.resumeVariant.title}
+                            </Typography>
+                          )}
+                        </>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No application linked.
+                        </Typography>
+                      )}
                     </Stack>
                   </Surface>
-                )}
-              </Stack>
-              <Typography>{selected.body}</Typography>
-              {selected.replies.map((r) => (
-                <Typography key={r.id} variant="body2">
-                  {r.body}
-                </Typography>
-              ))}
-              <Stack
-                direction="row"
-                spacing={1}
-                alignItems="center"
-                sx={{ flexWrap: "wrap", rowGap: 1 }}
-              >
-                <Button
-                  size="small"
-                  onClick={() => handleToggleStatus(selected)}
-                  aria-label="Toggle read status"
-                >
-                  {selected.status === "unread" ? "Mark read" : "Mark unread"}
-                </Button>
-                <Select
-                  size="small"
-                  displayEmpty
-                  value={selected.recruiterId || ""}
-                  onChange={(e) =>
-                    handleLinkRecruiter(selected.id, e.target.value as string)
-                  }
-                  sx={{ minWidth: 160 }}
-                  aria-label="Linked recruiter"
-                >
-                  <MenuItem value="">
-                    <em>No recruiter</em>
-                  </MenuItem>
-                  {recruiters.map((r) => (
-                    <MenuItem key={r.id} value={r.id}>
-                      {r.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                <Select
-                  size="small"
-                  displayEmpty
-                  value={selected.applicationId || ""}
-                  onChange={(e) =>
-                    handleLinkApplication(selected.id, e.target.value as string)
-                  }
-                  sx={{ minWidth: 200 }}
-                  aria-label="Linked application"
-                >
-                  <MenuItem value="">
-                    <em>No application</em>
-                  </MenuItem>
-                  {linkedApplicationMissing && selected.applicationId && (
-                    <MenuItem value={selected.applicationId}>
-                      Unknown application
-                    </MenuItem>
+                  {selectedRecruiter && (
+                    <Surface layer={2} sx={{ p: 2, borderRadius: "var(--fabric-radius-md)" }}>
+                      <Stack spacing={0.5}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Recruiter notes
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.primary"
+                          sx={{ whiteSpace: "pre-wrap" }}
+                        >
+                          {recruiterNotes || "No notes saved yet."}
+                        </Typography>
+                      </Stack>
+                    </Surface>
                   )}
-                  {sortedApplications.map((app) => (
-                    <MenuItem key={app.id} value={app.id}>
-                      {app.role.company} – {app.role.title}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Stack>
-              <Stack spacing={1}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Quick replies
-                </Typography>
+                </Stack>
+                <Typography>{selected.body}</Typography>
+                {selected.replies.map((r) => (
+                  <Typography key={r.id} variant="body2">
+                    {r.body}
+                  </Typography>
+                ))}
                 <Stack
                   direction="row"
                   spacing={1}
                   alignItems="center"
                   sx={{ flexWrap: "wrap", rowGap: 1 }}
                 >
-                  <ToggleButtonGroup
-                    size="small"
-                    exclusive
-                    value={quickReplyType}
-                    onChange={handleQuickReplyTypeChange}
-                    aria-label="Quick reply type"
-                  >
-                    <ToggleButton value="followUp">Follow up</ToggleButton>
-                    <ToggleButton value="decline">Decline</ToggleButton>
-                  </ToggleButtonGroup>
                   <Button
                     size="small"
-                    variant="outlined"
-                    onClick={() => void handleGenerateQuickReply(selected)}
-                    disabled={quickReplyLoading}
-                    aria-label="Generate quick reply"
+                    onClick={() => handleToggleStatus(selected)}
+                    aria-label="Toggle read status"
                   >
-                    {quickReplyLoading ? "Generating..." : "Generate"}
+                    {selected.status === "unread" ? "Mark read" : "Mark unread"}
                   </Button>
+                  <Select
+                    size="small"
+                    displayEmpty
+                    value={selected.recruiterId || ""}
+                    onChange={(e) => handleLinkRecruiter(selected.id, e.target.value as string)}
+                    sx={{ minWidth: 160 }}
+                    aria-label="Linked recruiter"
+                  >
+                    <MenuItem value="">
+                      <em>No recruiter</em>
+                    </MenuItem>
+                    {recruiters.map((r) => (
+                      <MenuItem key={r.id} value={r.id}>
+                        {r.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <Select
+                    size="small"
+                    displayEmpty
+                    value={selected.applicationId || ""}
+                    onChange={(e) => handleLinkApplication(selected.id, e.target.value as string)}
+                    sx={{ minWidth: 200 }}
+                    aria-label="Linked application"
+                  >
+                    <MenuItem value="">
+                      <em>No application</em>
+                    </MenuItem>
+                    {linkedApplicationMissing && selected.applicationId && (
+                      <MenuItem value={selected.applicationId}>Unknown application</MenuItem>
+                    )}
+                    {sortedApplications.map((app) => (
+                      <MenuItem key={app.id} value={app.id}>
+                        {app.role.company} – {app.role.title}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Stack>
+                <Stack spacing={1}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Quick replies
+                  </Typography>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                    sx={{ flexWrap: "wrap", rowGap: 1 }}
+                  >
+                    <ToggleButtonGroup
+                      size="small"
+                      exclusive
+                      value={quickReplyType}
+                      onChange={handleQuickReplyTypeChange}
+                      aria-label="Quick reply type"
+                    >
+                      <ToggleButton value="followUp">Follow up</ToggleButton>
+                      <ToggleButton value="decline">Decline</ToggleButton>
+                    </ToggleButtonGroup>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => void handleGenerateQuickReply(selected)}
+                      disabled={quickReplyLoading}
+                      aria-label="Generate quick reply"
+                    >
+                      {quickReplyLoading ? "Generating..." : "Generate"}
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleDraftWithAI(selected.id)}
+                      aria-label="Draft with AI"
+                    >
+                      Draft with AI
+                    </Button>
+                  </Stack>
+                  {quickReplyError && (
+                    <Alert severity="warning" variant="outlined">
+                      {quickReplyError}
+                    </Alert>
+                  )}
+                  {quickReplyLoading && !quickReplyContent && (
+                    <Typography variant="body2" color="text.secondary">
+                      Generating quick reply…
+                    </Typography>
+                  )}
+                  {quickReplyContent && (
+                    <Surface layer={2} sx={{ p: 2, borderRadius: "var(--fabric-radius-md)" }}>
+                      <Tabs
+                        value={quickReplyChannel}
+                        onChange={handleQuickReplyChannelChange}
+                        aria-label="Quick reply channel"
+                      >
+                        <Tab label="Email" value="email" />
+                        <Tab label="LinkedIn" value="linkedin" />
+                        <Tab label="Indeed" value="indeed" />
+                      </Tabs>
+                      <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1 }}>
+                        <Tooltip title="Copy to clipboard" arrow>
+                          <IconButton
+                            aria-label="Copy quick reply"
+                            size="small"
+                            onClick={() => handleCopyQuickReply(currentQuickReplyText)}
+                          >
+                            <ContentCopy fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Button
+                          size="small"
+                          onClick={() => handleInsertQuickReply(selected.id, currentQuickReplyText)}
+                        >
+                          Insert into draft
+                        </Button>
+                      </Stack>
+                      <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", mt: 1 }}>
+                        {currentQuickReplyText}
+                      </Typography>
+                    </Surface>
+                  )}
+                </Stack>
+                <TextField
+                  label="Your reply"
+                  multiline
+                  rows={4}
+                  fullWidth
+                  value={drafts[selected.id] || ""}
+                  onChange={(e) => setDrafts((d) => ({ ...d, [selected.id]: e.target.value }))}
+                />
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Select
+                    size="small"
+                    value={templateSelections[selected.id] || defaultTemplate}
+                    onChange={(e) =>
+                      setTemplateSelections((t) => ({
+                        ...t,
+                        [selected.id]: e.target.value as AutoReplyTemplate,
+                      }))
+                    }
+                    sx={{ maxWidth: 200 }}
+                    aria-label="Template"
+                  >
+                    {templateNames.map((name) => (
+                      <MenuItem key={name} value={name}>
+                        {name}
+                      </MenuItem>
+                    ))}
+                  </Select>
                   <Button
                     size="small"
                     variant="outlined"
-                    onClick={() => handleDraftWithAI(selected.id)}
-                    aria-label="Draft with AI"
+                    onClick={openTemplateEditor}
+                    aria-label="Edit templates"
                   >
-                    Draft with AI
+                    Edit
                   </Button>
                 </Stack>
-                {quickReplyError && (
-                  <Alert severity="warning" variant="outlined">
-                    {quickReplyError}
-                  </Alert>
-                )}
-                {quickReplyLoading && !quickReplyContent && (
-                  <Typography variant="body2" color="text.secondary">
-                    Generating quick reply…
-                  </Typography>
-                )}
-                {quickReplyContent && (
-                  <Surface
-                    layer={2}
-                    sx={{ p: 2, borderRadius: "var(--fabric-radius-md)" }}
-                  >
-                    <Tabs
-                      value={quickReplyChannel}
-                      onChange={handleQuickReplyChannelChange}
-                      aria-label="Quick reply channel"
-                    >
-                      <Tab label="Email" value="email" />
-                      <Tab label="LinkedIn" value="linkedin" />
-                      <Tab label="Indeed" value="indeed" />
-                    </Tabs>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      justifyContent="flex-end"
-                      sx={{ mt: 1 }}
-                    >
-                      <Tooltip title="Copy to clipboard" arrow>
-                        <IconButton
-                          aria-label="Copy quick reply"
-                          size="small"
-                          onClick={() => handleCopyQuickReply(currentQuickReplyText)}
-                        >
-                          <ContentCopy fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Button
-                        size="small"
-                        onClick={() =>
-                          handleInsertQuickReply(selected.id, currentQuickReplyText)
-                        }
-                      >
-                        Insert into draft
-                      </Button>
-                    </Stack>
-                    <Typography
-                      variant="body2"
-                      sx={{ whiteSpace: "pre-wrap", mt: 1 }}
-                    >
-                      {currentQuickReplyText}
-                    </Typography>
-                  </Surface>
-                )}
-              </Stack>
-              <TextField
-                label="Your reply"
-                multiline
-                rows={4}
-                fullWidth
-                value={drafts[selected.id] || ""}
-                onChange={(e) =>
-                  setDrafts((d) => ({ ...d, [selected.id]: e.target.value }))
-                }
-              />
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Select
-                  size="small"
-                  value={templateSelections[selected.id] || defaultTemplate}
-                  onChange={(e) =>
-                    setTemplateSelections((t) => ({
-                      ...t,
-                      [selected.id]: e.target.value as AutoReplyTemplate,
-                    }))
-                  }
-                  sx={{ maxWidth: 200 }}
-                  aria-label="Template"
-                >
-                  {templateNames.map((name) => (
-                    <MenuItem key={name} value={name}>
-                      {name}
-                    </MenuItem>
-                  ))}
-                </Select>
                 <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={openTemplateEditor}
-                  aria-label="Edit templates"
+                  variant="contained"
+                  onClick={() => handleSendReply(selected)}
+                  aria-label="Send reply"
                 >
-                  Edit
+                  Send
                 </Button>
               </Stack>
-              <Button
-                variant="contained"
-                onClick={() => handleSendReply(selected)}
-                aria-label="Send reply"
-              >
-                Send
-              </Button>
-            </Stack>
-          ) : (
-            <Typography>Select a thread to view messages</Typography>
-          )}
+            ) : (
+              <Typography>Select a thread to view messages</Typography>
+            )}
           </Surface>
         </Stack>
       </Stack>
@@ -966,11 +894,7 @@ export default function Inbox() {
         <DialogTitle>Draft with AI</DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
-            <PromptSelector
-              value={promptKey}
-              onChange={setPromptKey}
-              contexts="messaging"
-            />
+            <PromptSelector value={promptKey} onChange={setPromptKey} contexts="messaging" />
             {promptKey && !selectedPromptTile && (
               <Typography color="text.secondary">
                 The selected prompt is unavailable in this workspace.
@@ -986,12 +910,7 @@ export default function Inbox() {
           </Stack>
         </DialogContent>
       </Dialog>
-      <Dialog
-        open={editorOpen}
-        onClose={() => setEditorOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
+      <Dialog open={editorOpen} onClose={() => setEditorOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Edit Templates</DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
@@ -1000,16 +919,12 @@ export default function Inbox() {
                 <TextField
                   label="Name"
                   value={t.name}
-                  onChange={(e) =>
-                    handleTemplateChange(idx, "name", e.target.value)
-                  }
+                  onChange={(e) => handleTemplateChange(idx, "name", e.target.value)}
                 />
                 <TextField
                   label="Prompt"
                   value={t.prompt}
-                  onChange={(e) =>
-                    handleTemplateChange(idx, "prompt", e.target.value)
-                  }
+                  onChange={(e) => handleTemplateChange(idx, "prompt", e.target.value)}
                   multiline
                 />
                 <Button
@@ -1030,11 +945,7 @@ export default function Inbox() {
             >
               Add template
             </Button>
-            <Button
-              variant="contained"
-              onClick={handleSaveTemplates}
-              aria-label="Save templates"
-            >
+            <Button variant="contained" onClick={handleSaveTemplates} aria-label="Save templates">
               Save
             </Button>
           </Stack>

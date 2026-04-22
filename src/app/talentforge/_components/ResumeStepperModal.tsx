@@ -94,15 +94,18 @@ export default function ResumeStepperModal({
   const editingInputRef = useRef<HTMLInputElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const [tagging, setTagging] = useState(false);
-  const [tagFeedback, setTagFeedback] = useState<
-    { type: "success" | "error"; message: string } | null
-  >(null);
-  const [copyTagsFeedback, setCopyTagsFeedback] = useState<
-    { type: "success" | "error"; message: string } | null
-  >(null);
-  const [copyResumeFeedback, setCopyResumeFeedback] = useState<
-    { type: "success" | "error"; message: string } | null
-  >(null);
+  const [tagFeedback, setTagFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+  const [copyTagsFeedback, setCopyTagsFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+  const [copyResumeFeedback, setCopyResumeFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -153,8 +156,7 @@ export default function ResumeStepperModal({
     onResumesUpdated?.(updated);
   };
 
-  const selectedResume =
-    resumes.find((resume) => resume.id === selectedResumeId) ?? null;
+  const selectedResume = resumes.find((resume) => resume.id === selectedResumeId) ?? null;
 
   useEffect(() => {
     if (editingIdx !== null) {
@@ -314,9 +316,7 @@ export default function ResumeStepperModal({
     setTagFeedback(null);
     try {
       const aiTags = await tagResume(selectedResume.content);
-      const normalized = normalizeTags(
-        aiTags.filter((tag) => tag.trim().length <= MAX_TAG_LENGTH),
-      );
+      const normalized = normalizeTags(aiTags.filter((tag) => tag.trim().length <= MAX_TAG_LENGTH));
       if (!normalized.length) {
         setTagFeedback({
           type: "error",
@@ -434,15 +434,11 @@ export default function ResumeStepperModal({
       setText(sanitized);
       setComparison("");
       setToastOpen(true);
-      setActiveStep((prev) =>
-        prev === STEP_INDEX.upload ? STEP_INDEX.manage : prev,
-      );
+      setActiveStep((prev) => (prev === STEP_INDEX.upload ? STEP_INDEX.manage : prev));
     } catch (error) {
       console.error("Failed to save pasted resume", error);
       setTextImportError(
-        error instanceof Error
-          ? error.message
-          : "Failed to save resume. Please try again.",
+        error instanceof Error ? error.message : "Failed to save resume. Please try again.",
       );
     } finally {
       setTextImportLoading(false);
@@ -557,17 +553,11 @@ export default function ResumeStepperModal({
                       const committed = handleTitleCommit();
                       if (!committed) {
                         e.preventDefault();
-                        window.setTimeout(
-                          () => titleInputRef.current?.focus(),
-                          0,
-                        );
+                        window.setTimeout(() => titleInputRef.current?.focus(), 0);
                       }
                     }
                   }}
-                  helperText={
-                    titleError
-                      ?? "This name appears anywhere you reference the resume."
-                  }
+                  helperText={titleError ?? "This name appears anywhere you reference the resume."}
                   error={Boolean(titleError)}
                   FormHelperTextProps={{ sx: { ml: 0 } }}
                   inputRef={titleInputRef}
@@ -577,12 +567,7 @@ export default function ResumeStepperModal({
               </Stack>
               <Stack spacing={1}>
                 <Typography variant="subtitle1">Tags</Typography>
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  flexWrap="wrap"
-                  alignItems="center"
-                >
+                <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
                   {tagDraft.map((tag, idx) =>
                     editingIdx === idx ? (
                       <TextField
@@ -597,10 +582,7 @@ export default function ResumeStepperModal({
                         onBlur={() => {
                           const committed = handleEditCommit();
                           if (!committed) {
-                            window.setTimeout(
-                              () => editingInputRef.current?.focus(),
-                              0,
-                            );
+                            window.setTimeout(() => editingInputRef.current?.focus(), 0);
                           }
                         }}
                         onKeyDown={(e) => {
@@ -618,10 +600,7 @@ export default function ResumeStepperModal({
                           }
                         }}
                         error={Boolean(editingError)}
-                        helperText={
-                          editingError
-                            ?? "Press Enter to save or Esc to cancel."
-                        }
+                        helperText={editingError ?? "Press Enter to save or Esc to cancel."}
                         FormHelperTextProps={{ sx: { ml: 0 } }}
                         inputProps={{
                           "aria-label": `Edit tag ${tag}`,
@@ -682,19 +661,15 @@ export default function ResumeStepperModal({
                       }
                     }}
                     helperText={
-                      inputError
-                        ?? "Press Enter, Tab, or comma to add a tag. Backspace removes the last tag."
+                      inputError ??
+                      "Press Enter, Tab, or comma to add a tag. Backspace removes the last tag."
                     }
                     error={Boolean(inputError)}
                     FormHelperTextProps={{ sx: { ml: 0 } }}
                     inputProps={{ "aria-label": "Add new tag" }}
                     sx={{ mb: { xs: 1, sm: 0 }, flexGrow: 1, minWidth: 200 }}
                   />
-                  <Button
-                    variant="contained"
-                    onClick={handleAddTag}
-                    disabled={!newTag.trim()}
-                  >
+                  <Button variant="contained" onClick={handleAddTag} disabled={!newTag.trim()}>
                     Add tag
                   </Button>
                 </Stack>
@@ -709,11 +684,7 @@ export default function ResumeStepperModal({
                   onClick={handleRegenerateTags}
                   disabled={tagging || !selectedResume.content.trim()}
                   startIcon={
-                    tagging ? (
-                      <CircularProgress size={18} />
-                    ) : (
-                      <AutoAwesomeIcon fontSize="small" />
-                    )
+                    tagging ? <CircularProgress size={18} /> : <AutoAwesomeIcon fontSize="small" />
                   }
                 >
                   {tagging ? "Regenerating tags..." : "Regen tags from AI"}
@@ -738,9 +709,7 @@ export default function ResumeStepperModal({
               {tagFeedback && (
                 <Typography
                   variant="body2"
-                  color={
-                    tagFeedback.type === "success" ? "success.main" : "error"
-                  }
+                  color={tagFeedback.type === "success" ? "success.main" : "error"}
                 >
                   {tagFeedback.message}
                 </Typography>
@@ -748,11 +717,7 @@ export default function ResumeStepperModal({
               {copyTagsFeedback && (
                 <Typography
                   variant="body2"
-                  color={
-                    copyTagsFeedback.type === "success"
-                      ? "success.main"
-                      : "error"
-                  }
+                  color={copyTagsFeedback.type === "success" ? "success.main" : "error"}
                 >
                   {copyTagsFeedback.message}
                 </Typography>
@@ -760,11 +725,7 @@ export default function ResumeStepperModal({
               {copyResumeFeedback && (
                 <Typography
                   variant="body2"
-                  color={
-                    copyResumeFeedback.type === "success"
-                      ? "success.main"
-                      : "error"
-                  }
+                  color={copyResumeFeedback.type === "success" ? "success.main" : "error"}
                 >
                   {copyResumeFeedback.message}
                 </Typography>
@@ -863,14 +824,11 @@ export default function ResumeStepperModal({
                 </Typography>
                 <Box
                   sx={{
-                    pointerEvents:
-                      fileImportLoading || textImportLoading ? "none" : "auto",
+                    pointerEvents: fileImportLoading || textImportLoading ? "none" : "auto",
                     opacity: fileImportLoading ? 0.6 : 1,
                   }}
                   aria-busy={fileImportLoading}
-                  aria-label={
-                    fileImportLoading ? "Uploading resume" : undefined
-                  }
+                  aria-label={fileImportLoading ? "Uploading resume" : undefined}
                 >
                   <FileUploader
                     accept=".pdf,.docx,.txt,.md"
@@ -925,9 +883,7 @@ export default function ResumeStepperModal({
                         }
                         setToastOpen(true);
                         setActiveStep((prev) =>
-                          prev === STEP_INDEX.upload
-                            ? STEP_INDEX.manage
-                            : prev,
+                          prev === STEP_INDEX.upload ? STEP_INDEX.manage : prev,
                         );
                       } catch (error) {
                         console.error("Failed to import resume from file", error);
@@ -943,10 +899,7 @@ export default function ResumeStepperModal({
                   />
                 </Box>
                 {fileImportError && (
-                  <Alert
-                    severity="error"
-                    onClose={() => setFileImportError(null)}
-                  >
+                  <Alert severity="error" onClose={() => setFileImportError(null)}>
                     {fileImportError}
                   </Alert>
                 )}
@@ -971,8 +924,7 @@ export default function ResumeStepperModal({
                   }}
                   onPaste={(e) => {
                     const pasted =
-                      e.clipboardData.getData("text/html") ||
-                      e.clipboardData.getData("text/plain");
+                      e.clipboardData.getData("text/html") || e.clipboardData.getData("text/plain");
                     if (pasted) {
                       e.preventDefault();
                       const sanitized = parsePastedHtml(pasted);
@@ -982,10 +934,7 @@ export default function ResumeStepperModal({
                   }}
                 />
                 {textImportError && (
-                  <Alert
-                    severity="error"
-                    onClose={() => setTextImportError(null)}
-                  >
+                  <Alert severity="error" onClose={() => setTextImportError(null)}>
                     {textImportError}
                   </Alert>
                 )}
@@ -993,15 +942,9 @@ export default function ResumeStepperModal({
                   <Button
                     variant="contained"
                     onClick={handleSave}
-                    disabled={
-                      !text.trim() || textImportLoading || fileImportLoading
-                    }
+                    disabled={!text.trim() || textImportLoading || fileImportLoading}
                   >
-                    {textImportLoading ? (
-                      <CircularProgress size={24} />
-                    ) : (
-                      "Save"
-                    )}
+                    {textImportLoading ? <CircularProgress size={24} /> : "Save"}
                   </Button>
                 </Stack>
               </Stack>
@@ -1010,8 +953,7 @@ export default function ResumeStepperModal({
               renderResumeManagement({
                 intro:
                   "Rename your resume, curate tags, and review structured details to organize your library.",
-                emptyLibraryMessage:
-                  "Upload a resume in the first step to start managing it.",
+                emptyLibraryMessage: "Upload a resume in the first step to start managing it.",
                 emptySelectionMessage: "Select a resume to manage.",
                 showOverview: true,
               })}
@@ -1032,9 +974,7 @@ export default function ResumeStepperModal({
                   <Button
                     variant="outlined"
                     onClick={handleCompare}
-                    disabled={
-                      !text.trim() || !jobDescription.trim() || loadingCompare
-                    }
+                    disabled={!text.trim() || !jobDescription.trim() || loadingCompare}
                   >
                     Compare to Job
                   </Button>
@@ -1064,9 +1004,7 @@ export default function ResumeStepperModal({
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Close</Button>
-          {activeStep > 0 && (
-            <Button onClick={handleStepBack}>Back</Button>
-          )}
+          {activeStep > 0 && <Button onClick={handleStepBack}>Back</Button>}
           {activeStep < STEPS.length - 1 && (
             <Button variant="contained" onClick={handleStepNext}>
               Next

@@ -70,8 +70,7 @@ function extractRiskHudEntries(line: string): RiskHudEntry[] {
 
   const markerAlternation = riskFieldDefinitions
     .map(
-      (field) =>
-        `(?:${escapeRegExp(field.emoji)}\\s*)?${field.label.replace(/\s+/g, "\\s+")}\\s*:`,
+      (field) => `(?:${escapeRegExp(field.emoji)}\\s*)?${field.label.replace(/\s+/g, "\\s+")}\\s*:`,
     )
     .join("|");
   const markerRegex = new RegExp(markerAlternation, "gi");
@@ -157,9 +156,7 @@ function classifySeverityLevel(value: string): "low" | "moderate" | "high" | nul
     }
   }
 
-  if (
-    /\b(very high|extreme|critical|severe|deadly|high)\b/i.test(normalizedValue)
-  ) {
+  if (/\b(very high|extreme|critical|severe|deadly|high)\b/i.test(normalizedValue)) {
     return "high";
   }
 
@@ -183,8 +180,7 @@ function getRiskTone(label: string, value: string): RiskTone | null {
   }
 
   const isPositiveDirection =
-    normalizedLabel.includes("success probability") ||
-    normalizedLabel.includes("reward potential");
+    normalizedLabel.includes("success probability") || normalizedLabel.includes("reward potential");
   const isNegativeDirection =
     normalizedLabel.includes("threat level") ||
     normalizedLabel.includes("injury risk") ||
@@ -221,11 +217,7 @@ export default function MarkdownContent({
   sx,
   variant = "body2",
 }: MarkdownContentProps) {
-  const renderRiskHudEntry = (
-    entry: RiskHudEntry,
-    component: "p" | "li" | "div",
-    key?: string,
-  ) => {
+  const renderRiskHudEntry = (entry: RiskHudEntry, component: "p" | "li" | "div", key?: string) => {
     const tone = getRiskTone(entry.labelText, entry.valueText);
     const toneColor =
       tone === "good"
@@ -237,12 +229,7 @@ export default function MarkdownContent({
             : color;
 
     return (
-      <Typography
-        key={key}
-        component={component}
-        variant={variant}
-        color={color}
-      >
+      <Typography key={key} component={component} variant={variant} color={color}>
         <Box component="span" sx={{ fontWeight: 600 }}>
           {entry.labelText}:
         </Box>{" "}
@@ -253,10 +240,7 @@ export default function MarkdownContent({
     );
   };
 
-  const renderRiskHudLine = (
-    children: React.ReactNode,
-    component: "p" | "li" = "p",
-  ) => {
+  const renderRiskHudLine = (children: React.ReactNode, component: "p" | "li" = "p") => {
     const line = extractPlainText(children).replace(/\s+/g, " ").trim();
     const entries = extractRiskHudEntries(line);
 

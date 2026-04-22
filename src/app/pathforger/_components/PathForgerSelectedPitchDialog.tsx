@@ -54,9 +54,7 @@ type PathForgerSelectedPitchDialogProps = {
   activeRunAction: ActiveRunAction;
 };
 
-export default function PathForgerSelectedPitchDialog(
-  props: PathForgerSelectedPitchDialogProps,
-) {
+export default function PathForgerSelectedPitchDialog(props: PathForgerSelectedPitchDialogProps) {
   const {
     open,
     onClose,
@@ -81,19 +79,11 @@ export default function PathForgerSelectedPitchDialog(
         {visiblePitches ? (
           <>
             <Typography variant="subtitle1" sx={{ mb: 0.5 }}>
-              {activePitchForModal
-                ? activePitchForModal.title
-                : visiblePitches.adventureTitle}
+              {activePitchForModal ? activePitchForModal.title : visiblePitches.adventureTitle}
             </Typography>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: "block", mb: 2 }}
-            >
+            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
               Protagonist: {visiblePitches.protagonistName}
-              {visibleSelectedPitch
-                ? ` | Selected: ${visibleSelectedPitch}`
-                : ""}
+              {visibleSelectedPitch ? ` | Selected: ${visibleSelectedPitch}` : ""}
             </Typography>
 
             <Grid container spacing={1.5}>
@@ -144,32 +134,23 @@ export default function PathForgerSelectedPitchDialog(
                                 ? "rgba(79, 180, 255, 0.12)"
                                 : "rgba(79, 180, 255, 0.08)"
                               : "transparent",
-                            transition:
-                              "background-color 240ms cubic-bezier(0.22, 1, 0.36, 1)",
+                            transition: "background-color 240ms cubic-bezier(0.22, 1, 0.36, 1)",
                           })}
                         >
-                          <Stack
-                            direction="row"
-                            spacing={1.5}
-                            alignItems="center"
-                          >
+                          <Stack direction="row" spacing={1.5} alignItems="center">
                             <Box
                               sx={(theme) => ({
                                 width: 36,
                                 height: 36,
                                 borderRadius: "50%",
                                 border: "1px solid",
-                                borderColor: isSelected
-                                  ? theme.palette.primary.main
-                                  : "divider",
+                                borderColor: isSelected ? theme.palette.primary.main : "divider",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 fontWeight: 700,
                                 fontSize: "1rem",
-                                color: isSelected
-                                  ? "primary.main"
-                                  : "text.primary",
+                                color: isSelected ? "primary.main" : "text.primary",
                                 flexShrink: 0,
                                 animation: isSelected
                                   ? "pathforgerActivePitchBadgeBulge 1.6s ease-in-out infinite"
@@ -193,13 +174,8 @@ export default function PathForgerSelectedPitchDialog(
                               {pitch.id}
                             </Box>
                             <Box sx={{ minWidth: 0 }}>
-                              <Typography variant="subtitle1">
-                                {pitch.title}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                              >
+                              <Typography variant="subtitle1">{pitch.title}</Typography>
+                              <Typography variant="body2" color="text.secondary">
                                 {toPitchSubtitle(pitch.markdown)}
                               </Typography>
                             </Box>
@@ -223,10 +199,7 @@ export default function PathForgerSelectedPitchDialog(
                     }}
                   >
                     {activePitchForModal ? (
-                      <MarkdownContent
-                        content={activePitchForModal.markdown}
-                        variant="body1"
-                      />
+                      <MarkdownContent content={activePitchForModal.markdown} variant="body1" />
                     ) : (
                       <Typography variant="body2" color="text.secondary">
                         Select a pitch to view its full description.

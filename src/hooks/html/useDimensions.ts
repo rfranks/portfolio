@@ -19,9 +19,7 @@ import type { DebouncedFunc } from "lodash";
  * @param {React.RefObject<HTMLElement> | null} ref the ref to the element to measure
  * @returns the dimensions of the element, including the breakpoint
  */
-export function useDimensions(
-  ref: React.RefObject<HTMLElement> | null,
-): Dimensions {
+export function useDimensions(ref: React.RefObject<HTMLElement> | null): Dimensions {
   const [dimensions, setDimensions] = useState({
     width: 0,
     height: 0,
@@ -73,11 +71,7 @@ export function useDimensions(
       // we need to wait for the element to become visible or render content
       // before we can get the dimensions
       interval = setInterval(() => {
-        if (
-          ref.current &&
-          ref.current.offsetHeight > 0 &&
-          ref.current.offsetWidth > 0
-        ) {
+        if (ref.current && ref.current.offsetHeight > 0 && ref.current.offsetWidth > 0) {
           if (interval) {
             clearInterval(interval);
             interval = null;

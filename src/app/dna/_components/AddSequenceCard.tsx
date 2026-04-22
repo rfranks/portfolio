@@ -3,14 +3,7 @@ import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import {
-  Alert,
-  Grid,
-  Menu,
-  MenuItem,
-  styled,
-  TextareaAutosize,
-} from "@mui/material";
+import { Alert, Grid, Menu, MenuItem, styled, TextareaAutosize } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import AddCircle from "@mui/icons-material/AddCircle";
 import Close from "@mui/icons-material/Close";
@@ -61,22 +54,15 @@ export type AddSequenceCardProps = {
   onClose?: () => void;
 };
 
-export default function AddSequenceCard({
-  onAddSequence,
-  onClose,
-}: AddSequenceCardProps) {
+export default function AddSequenceCard({ onAddSequence, onClose }: AddSequenceCardProps) {
   const [rawSequenceContent, setRawSequenceContent] = useState<string>("");
   const [confirmClear, setConfirmClear] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [loadSampleMenuEl, setLoadSampleMenuEl] = useState<null | HTMLElement>(
-    null,
-  );
+  const [loadSampleMenuEl, setLoadSampleMenuEl] = useState<null | HTMLElement>(null);
   const loadSampleMenuOpen = Boolean(loadSampleMenuEl);
 
   const loadSample = async (sample: string) => {
-    const sampleContent = await (
-      await fetch(withBasePath(`/apps/dna/examples/${sample}`))
-    ).text();
+    const sampleContent = await (await fetch(withBasePath(`/apps/dna/examples/${sample}`))).text();
 
     setRawSequenceContent(sampleContent);
     setConfirmClear(false);
@@ -150,11 +136,7 @@ export default function AddSequenceCard({
             action={
               <Grid container spacing={1} wrap="nowrap">
                 <Grid item>
-                  <Button
-                    size="small"
-                    color="inherit"
-                    onClick={() => setConfirmClear(false)}
-                  >
+                  <Button size="small" color="inherit" onClick={() => setConfirmClear(false)}>
                     No
                   </Button>
                 </Grid>
@@ -259,18 +241,14 @@ export default function AddSequenceCard({
           variant="contained"
           startIcon={<AddCircle />}
           onClick={() =>
-            parseSequence(
-              rawSequenceContent,
-              "todo-filename",
-              (parsedSequence) => {
-                parsedSequence.sequence = parsedSequence.sequence.trim();
+            parseSequence(rawSequenceContent, "todo-filename", (parsedSequence) => {
+              parsedSequence.sequence = parsedSequence.sequence.trim();
 
-                onAddSequence?.(parsedSequence);
-                setRawSequenceContent("");
-                setConfirmClear(false);
-                textareaRef.current?.focus();
-              },
-            )
+              onAddSequence?.(parsedSequence);
+              setRawSequenceContent("");
+              setConfirmClear(false);
+              textareaRef.current?.focus();
+            })
           }
           disabled={rawSequenceContent?.length === 0}
         >

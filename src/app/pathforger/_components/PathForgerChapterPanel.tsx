@@ -1,13 +1,6 @@
 import * as React from "react";
 import { alpha } from "@mui/material/styles";
-import {
-  Box,
-  Button,
-  IconButton,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, IconButton, Paper, Stack, Typography } from "@mui/material";
 import { ChevronRight, Close } from "@mui/icons-material";
 import { EmojiGlyph } from "@/components/shared";
 import { MarkdownContent } from "@/components/shared";
@@ -31,9 +24,7 @@ type PathForgerChapterPanelProps = {
   kenBurnsImageSx: Record<string, unknown>;
 };
 
-export default function PathForgerChapterPanel(
-  props: PathForgerChapterPanelProps,
-) {
+export default function PathForgerChapterPanel(props: PathForgerChapterPanelProps) {
   const {
     open,
     chapterNumber,
@@ -56,9 +47,7 @@ export default function PathForgerChapterPanel(
 
   const trimmedTitle = title.trim();
   const chapterHeading =
-    chapterNumber && trimmedTitle
-      ? `Chapter ${chapterNumber} - ${trimmedTitle}`
-      : trimmedTitle;
+    chapterNumber && trimmedTitle ? `Chapter ${chapterNumber} - ${trimmedTitle}` : trimmedTitle;
 
   return (
     <Box
@@ -100,11 +89,7 @@ export default function PathForgerChapterPanel(
               </Typography>
             ) : null}
           </Box>
-          <IconButton
-            aria-label="Close chapter panel"
-            onClick={onClose}
-            size="small"
-          >
+          <IconButton aria-label="Close chapter panel" onClick={onClose} size="small">
             <Close fontSize="small" />
           </IconButton>
         </Box>

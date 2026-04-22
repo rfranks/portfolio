@@ -14,10 +14,7 @@ import {
   CHIP_RED_WHITE_SRC,
   CHIP_WHITE_BLUE_SRC,
 } from "../_consts/blackjack";
-import type {
-  BlackjackRenderState,
-  BlackjackUiAction,
-} from "../_types/messages";
+import type { BlackjackRenderState, BlackjackUiAction } from "../_types/messages";
 import type { WinningChipFx } from "../_types/page";
 import {
   decorateResultDetailLine,
@@ -62,10 +59,7 @@ type BlackjackGameSlideProps = {
   onToggleAllAudio: () => void;
   onToggleAmbience: () => void;
   onToggleBGM: () => void;
-  onToggleGameMode: (options?: {
-    autoDeal?: boolean;
-    direction?: "next" | "prev";
-  }) => void;
+  onToggleGameMode: (options?: { autoDeal?: boolean; direction?: "next" | "prev" }) => void;
   onToggleSounds: () => void;
   playerStackRef: React.RefObject<HTMLSpanElement | null>;
   resultEmojis: [string, string] | null;
@@ -125,10 +119,7 @@ export default function BlackjackGameSlide({
   const [settingsModalVisible, setSettingsModalVisible] = React.useState(false);
   const [settingsModalClosing, setSettingsModalClosing] = React.useState(false);
   const shouldShowRoundEndModal = Boolean(
-    gameStarted &&
-      useRoundEndModalLayout &&
-      engineState?.askingToDeal &&
-      engineState?.result,
+    gameStarted && useRoundEndModalLayout && engineState?.askingToDeal && engineState?.result,
   );
   const [roundEndModalVisible, setRoundEndModalVisible] = React.useState(false);
 
@@ -149,16 +140,10 @@ export default function BlackjackGameSlide({
 
   const showRoundEndModal = shouldShowRoundEndModal && roundEndModalVisible;
   const showHintModal = Boolean(
-    hintModalVisible &&
-      hintModalOpen &&
-      engineState?.hintText &&
-      typeof document !== "undefined",
+    hintModalVisible && hintModalOpen && engineState?.hintText && typeof document !== "undefined",
   );
   const showGameModeModal = Boolean(
-    gameModeModalVisible &&
-      gameModeModalOpen &&
-      engineState &&
-      typeof document !== "undefined",
+    gameModeModalVisible && gameModeModalOpen && engineState && typeof document !== "undefined",
   );
   const showSettingsModal = Boolean(
     settingsModalVisible && settingsModalOpen && typeof document !== "undefined",
@@ -264,9 +249,7 @@ export default function BlackjackGameSlide({
     const lead = `Hint: Autoplay says you should ${suggestedAction}!`;
     const [firstLine, ...remainingLines] = hintText.split("\n");
     const bodyText =
-      firstLine === lead
-        ? remainingLines.join("\n")
-        : hintText.replace(lead, "").trimStart();
+      firstLine === lead ? remainingLines.join("\n") : hintText.replace(lead, "").trimStart();
 
     return (
       <>
@@ -300,9 +283,7 @@ export default function BlackjackGameSlide({
                   <button
                     type="button"
                     className="blackjack-game-mode-modal__chevron"
-                    onClick={() =>
-                      onToggleGameMode({ autoDeal: false, direction: "prev" })
-                    }
+                    onClick={() => onToggleGameMode({ autoDeal: false, direction: "prev" })}
                     disabled={!engineState.canToggleGameMode}
                     aria-label="Previous game mode"
                     title="Previous game mode"
@@ -319,9 +300,7 @@ export default function BlackjackGameSlide({
                   <button
                     type="button"
                     className="blackjack-game-mode-modal__chevron"
-                    onClick={() =>
-                      onToggleGameMode({ autoDeal: false, direction: "next" })
-                    }
+                    onClick={() => onToggleGameMode({ autoDeal: false, direction: "next" })}
                     disabled={!engineState.canToggleGameMode}
                     aria-label="Next game mode"
                     title="Next game mode"
@@ -335,10 +314,7 @@ export default function BlackjackGameSlide({
               </p>
               {engineState.gameModeRules?.length ? (
                 <div className="blackjack-mode-panel blackjack-game-mode-modal__rules">
-                  <h3
-                    id="blackjack-game-mode-title"
-                    className="blackjack-game-mode-modal__title"
-                  >
+                  <h3 id="blackjack-game-mode-title" className="blackjack-game-mode-modal__title">
                     Game Rules for {engineState.gameModeLabel}
                   </h3>
                   <ul className="blackjack-mode-panel-rules">
@@ -426,21 +402,12 @@ export default function BlackjackGameSlide({
   const roundEndModal =
     showRoundEndModal && engineState?.result && typeof document !== "undefined"
       ? createPortal(
-          <div
-            className="blackjack-round-end-modal"
-            role="dialog"
-            aria-modal="true"
-          >
-            <div
-              className="blackjack-round-end-modal__backdrop"
-              aria-hidden="true"
-            />
+          <div className="blackjack-round-end-modal" role="dialog" aria-modal="true">
+            <div className="blackjack-round-end-modal__backdrop" aria-hidden="true" />
             <div className="blackjack-round-end-modal__panel">
               {engineState.result.badge ? (
                 <div className="blackjack-result-badge-row">
-                  <span
-                    className={getResultBadgeClass(engineState.result.badge)}
-                  >
+                  <span className={getResultBadgeClass(engineState.result.badge)}>
                     {getResultBadgeLabel(engineState.result)}
                   </span>
                 </div>
@@ -449,9 +416,7 @@ export default function BlackjackGameSlide({
                 className={`blackjack-result-summary ${getResultToneClass(engineState.result.tone)}`}
               >
                 {resultEmojis ? `${resultEmojis[0]} ` : null}
-                {engineState.result.badge === "Push"
-                  ? "You pushed!"
-                  : engineState.result.summary}
+                {engineState.result.badge === "Push" ? "You pushed!" : engineState.result.summary}
                 {resultEmojis ? ` ${resultEmojis[1]}` : null}
               </div>
               {engineState.result.detailLines.map((line, index) =>
@@ -485,9 +450,7 @@ export default function BlackjackGameSlide({
                 className={`blackjack-result-status-row${engineState?.askingToDeal ? " blackjack-result-status-row--deal-again" : ""}`}
               >
                 {!engineState?.askingToDeal ? (
-                  <div id="status">
-                    {decorateStatusText(engineState?.statusText ?? "")}
-                  </div>
+                  <div id="status">{decorateStatusText(engineState?.statusText ?? "")}</div>
                 ) : null}
                 <button
                   id="deal"
@@ -563,17 +526,9 @@ export default function BlackjackGameSlide({
                 height={348}
               />
             </div>
-            <button
-              type="button"
-              className="blackjack-start-button"
-              onClick={onStartGame}
-            >
-              <span className="blackjack-start-button-title">
-                Go! Blackjack!
-              </span>
-              <span className="blackjack-start-button-caption">
-                Click to play!
-              </span>
+            <button type="button" className="blackjack-start-button" onClick={onStartGame}>
+              <span className="blackjack-start-button-title">Go! Blackjack!</span>
+              <span className="blackjack-start-button-caption">Click to play!</span>
             </button>
           </div>
         )}
@@ -611,9 +566,7 @@ export default function BlackjackGameSlide({
               />
             </div>
             <div className="blackjack-game-banner-stamp">Go! Blackjack!</div>
-            <div className="blackjack-game-banner-subtitle">
-              Wasm Web Client
-            </div>
+            <div className="blackjack-game-banner-subtitle">Wasm Web Client</div>
             {engineState ? (
               <div className={styles.bannerControls}>
                 <BlackjackGameModeChip
@@ -638,21 +591,13 @@ export default function BlackjackGameSlide({
                       d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.04 7.04 0 0 0-1.63-.94l-.36-2.54a.49.49 0 0 0-.49-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.56 8.84a.5.5 0 0 0 .12.64L4.7 11.06c-.04.31-.06.62-.06.94s.02.63.07.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.4 1.05.72 1.63.94l.36 2.54a.49.49 0 0 0 .49.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.58-.23 1.12-.54 1.63-.94l2.39.96c.23.09.5 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.02-1.58zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"
                     />
                   </svg>
-                  <span className={styles.settingsTriggerLabel}>
-                    Settings
-                  </span>
+                  <span className={styles.settingsTriggerLabel}>Settings</span>
                 </button>
               </div>
             ) : null}
             {modeTransitionMessageVisible ? (
-              <div
-                className="blackjack-mode-transition-indicator"
-                role="status"
-              >
-                <span
-                  className="blackjack-mode-transition-spinner"
-                  aria-hidden="true"
-                />
+              <div className="blackjack-mode-transition-indicator" role="status">
+                <span className="blackjack-mode-transition-spinner" aria-hidden="true" />
                 <span>Shuffling into new mode...</span>
               </div>
             ) : null}
@@ -712,9 +657,7 @@ export default function BlackjackGameSlide({
             </div>
             <div id="dealer" className="blackjack-seat">
               <div id="dealer-total">
-                <AnimatedTotalLabel
-                  value={engineState?.dealer.totalLabel ?? "Total: 0"}
-                />
+                <AnimatedTotalLabel value={engineState?.dealer.totalLabel ?? "Total: 0"} />
               </div>
               <div className="blackjack-hand-cards-wrap">
                 <div className="blackjack-dealer-cards-stack">
@@ -725,11 +668,7 @@ export default function BlackjackGameSlide({
                         card={card}
                         dealIndex={index}
                         onFlip={onCardFlip}
-                        alt={
-                          card.masked
-                            ? "Hidden card"
-                            : `${card.value} of ${card.suit}`
-                        }
+                        alt={card.masked ? "Hidden card" : `${card.value} of ${card.suit}`}
                       />
                     ))}
                   </div>
@@ -737,14 +676,12 @@ export default function BlackjackGameSlide({
                     <div
                       className={getOutcomeStampClass(dealerOutcomeStampLabel)}
                       style={{
-                        transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle(
-                          {
-                            index: 0,
-                            cardsLength: engineState?.dealer.cards.length ?? 0,
-                            totalLabel: engineState?.dealer.totalLabel ?? "0",
-                            outcomeLabel: dealerOutcomeStampLabel,
-                          },
-                        )}deg)`,
+                        transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle({
+                          index: 0,
+                          cardsLength: engineState?.dealer.cards.length ?? 0,
+                          totalLabel: engineState?.dealer.totalLabel ?? "0",
+                          outcomeLabel: dealerOutcomeStampLabel,
+                        })}deg)`,
                       }}
                     >
                       {dealerOutcomeStampLabel}
@@ -763,16 +700,12 @@ export default function BlackjackGameSlide({
                   chipSrc={CHIP_BLUE_WHITE_SRC}
                   valueClassName={`blackjack-stack-ticker${stackTickerActive ? " blackjack-stack-ticker--active" : ""}`}
                 >
-                  {formatPlayerStackValue(
-                    displayedPlayerStack ?? engineState?.player?.stack ?? 0,
-                  )}
+                  {formatPlayerStackValue(displayedPlayerStack ?? engineState?.player?.stack ?? 0)}
                 </ChipDecoratedValue>
                 <ChipDecoratedValue
                   id="player-winnings"
                   className={`blackjack-money-chip ${
-                    getWinningsClass(
-                      engineState?.player?.winningsTone ?? "neutral",
-                    ) ?? ""
+                    getWinningsClass(engineState?.player?.winningsTone ?? "neutral") ?? ""
                   }`.trim()}
                   chipSrc={
                     engineState?.player?.winningsTone === "positive"
@@ -793,10 +726,7 @@ export default function BlackjackGameSlide({
                   className={`blackjack-hands${(engineState?.player?.hands?.length ?? 0) > 1 ? " blackjack-hands--split" : ""}`}
                 >
                   {(engineState?.player?.hands ?? []).map((hand) => {
-                    const displayBonusWinnings = getDisplayHandBonusWinnings(
-                      engineState!,
-                      hand,
-                    );
+                    const displayBonusWinnings = getDisplayHandBonusWinnings(engineState!, hand);
 
                     return (
                       <div
@@ -805,9 +735,7 @@ export default function BlackjackGameSlide({
                         className={`blackjack-seat blackjack-hand${activeVisualHandIndex === hand.index ? " blackjack-hand--active" : ""}`}
                       >
                         <div className="blackjack-hand-header">
-                          <span className="blackjack-hand-label">
-                            Hand {hand.index + 1}
-                          </span>
+                          <span className="blackjack-hand-label">Hand {hand.index + 1}</span>
                           <BlackjackWagerChip
                             engineState={engineState!}
                             onCycleWager={onCycleWager}
@@ -828,9 +756,7 @@ export default function BlackjackGameSlide({
                                 {hand.note}
                               </ChipDecoratedValue>
                             ) : (
-                              <span className="blackjack-hand-note">
-                                {hand.note}
-                              </span>
+                              <span className="blackjack-hand-note">{hand.note}</span>
                             )
                           ) : null}
                           {!isMobile && displayBonusWinnings > 0 ? (
@@ -848,9 +774,7 @@ export default function BlackjackGameSlide({
                         <div className="blackjack-hand-total">
                           <AnimatedTotalLabel value={hand.totalLabel} />
                           {hand.busted ? (
-                            <span className="blackjack-busted-badge">
-                              Busted!
-                            </span>
+                            <span className="blackjack-busted-badge">Busted!</span>
                           ) : null}
                         </div>
                         <div className="blackjack-hand-cards-wrap">
@@ -863,27 +787,21 @@ export default function BlackjackGameSlide({
                                   dealIndex={index}
                                   onFlip={onCardFlip}
                                   alt={
-                                    card.masked
-                                      ? "Hidden card"
-                                      : `${card.value} of ${card.suit}`
+                                    card.masked ? "Hidden card" : `${card.value} of ${card.suit}`
                                   }
                                 />
                               ))}
                             </div>
                             {hand.outcomeLabel ? (
                               <div
-                                className={getOutcomeStampClass(
-                                  hand.outcomeLabel,
-                                )}
+                                className={getOutcomeStampClass(hand.outcomeLabel)}
                                 style={{
-                                  transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle(
-                                    {
-                                      index: hand.index,
-                                      cardsLength: hand.cards.length,
-                                      totalLabel: hand.totalLabel,
-                                      outcomeLabel: hand.outcomeLabel,
-                                    },
-                                  )}deg)`,
+                                  transform: `translate(-50%, -50%) rotate(${getOutcomeStampAngle({
+                                    index: hand.index,
+                                    cardsLength: hand.cards.length,
+                                    totalLabel: hand.totalLabel,
+                                    outcomeLabel: hand.outcomeLabel,
+                                  })}deg)`,
                                 }}
                               >
                                 {hand.outcomeLabel}
@@ -899,15 +817,10 @@ export default function BlackjackGameSlide({
             </div>
           </div>
           {engineState?.result && !shouldShowRoundEndModal ? (
-            <div
-              id="result"
-              className="blackjack-status-panel blackjack-post-table-panel"
-            >
+            <div id="result" className="blackjack-status-panel blackjack-post-table-panel">
               {engineState.result.badge ? (
                 <div className="blackjack-result-badge-row">
-                  <span
-                    className={getResultBadgeClass(engineState.result.badge)}
-                  >
+                  <span className={getResultBadgeClass(engineState.result.badge)}>
                     {getResultBadgeLabel(engineState.result)}
                   </span>
                 </div>
@@ -916,9 +829,7 @@ export default function BlackjackGameSlide({
                 className={`blackjack-result-summary ${getResultToneClass(engineState.result.tone)}`}
               >
                 {resultEmojis ? `${resultEmojis[0]} ` : null}
-                {engineState.result.badge === "Push"
-                  ? "You pushed!"
-                  : engineState.result.summary}
+                {engineState.result.badge === "Push" ? "You pushed!" : engineState.result.summary}
                 {resultEmojis ? ` ${resultEmojis[1]}` : null}
               </div>
               {engineState.result.detailLines.map((line, index) => (
@@ -959,9 +870,7 @@ export default function BlackjackGameSlide({
                   className={`blackjack-status-row${engineState?.askingToDeal ? " blackjack-status-row--deal-again" : ""}`}
                 >
                   {!engineState?.askingToDeal ? (
-                    <div id="status">
-                      {decorateStatusText(engineState?.statusText ?? "")}
-                    </div>
+                    <div id="status">{decorateStatusText(engineState?.statusText ?? "")}</div>
                   ) : null}
                   {engineState?.askingToDeal ? (
                     <button
@@ -972,8 +881,7 @@ export default function BlackjackGameSlide({
                       }}
                       onClick={() => onAction("deal")}
                     >
-                      🃏{" "}
-                      <span className="blackjack-shimmer-text">Deal Again</span>
+                      🃏 <span className="blackjack-shimmer-text">Deal Again</span>
                     </button>
                   ) : null}
                 </div>

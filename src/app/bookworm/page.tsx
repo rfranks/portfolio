@@ -34,10 +34,7 @@ export default function BookwormPage() {
   const { mode, toggleColorMode, isReady } = useColorModePreference({
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
   });
-  const defaultTheme = React.useMemo(
-    () => createTheme(getBookwormLandingTheme(mode)),
-    [mode],
-  );
+  const defaultTheme = React.useMemo(() => createTheme(getBookwormLandingTheme(mode)), [mode]);
   const [apiKeyReady, setApiKeyReady] = React.useState(hasOpenAIKey());
   const [draftKey, setDraftKey] = React.useState("");
   const { setDocumentTitle } = useDocumentTitle();

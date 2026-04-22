@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Stack, TextField, Typography } from "@mui/material";
 import { askOpenAI } from "@/app/talentforge/_utils/utils";
 import { PROMPT_TEMPLATES } from "@/app/talentforge/_consts/prompts";
 import EmptyState from "./EmptyState";
@@ -58,57 +51,50 @@ export default function JobDescriptionRisk() {
   return (
     <RequireAIKey>
       <Box>
-      <TextField
-        label="Paste job description"
-        multiline
-        minRows={6}
-        fullWidth
-        value={jobDescription}
-        onChange={(e) => setJobDescription(e.target.value)}
-      />
-      <Button
-        variant="contained"
-        sx={{ mt: 2 }}
-        onClick={analyze}
-        disabled={!jobDescription || loading}
-      >
-        Analyze
-      </Button>
-      {loading && (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-          <CircularProgress />
-        </Box>
-      )}
-      {analysis ? (
-        <Box sx={{ mt: 2 }}>
-          {analysis.issues.map((issue, idx) => (
-            <Stack
-              key={idx}
-              direction="row"
-              spacing={1}
-              alignItems="flex-start"
-              sx={{ mb: 1 }}
-            >
-              <Typography>{issue.severity === "red" ? "🚩" : "⚠️"}</Typography>
-              <Typography variant="body2">{issue.message}</Typography>
-            </Stack>
-          ))}
-          {analysis.summary && (
-            <Typography variant="body2" sx={{ mt: 2 }}>
-              {analysis.summary}
-            </Typography>
-          )}
-        </Box>
-      ) : (
-        !loading && (
-          <EmptyState
-            message="No analysis yet"
-            helperText="Paste a job description and click Analyze."
-          />
-        )
-      )}
+        <TextField
+          label="Paste job description"
+          multiline
+          minRows={6}
+          fullWidth
+          value={jobDescription}
+          onChange={(e) => setJobDescription(e.target.value)}
+        />
+        <Button
+          variant="contained"
+          sx={{ mt: 2 }}
+          onClick={analyze}
+          disabled={!jobDescription || loading}
+        >
+          Analyze
+        </Button>
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <CircularProgress />
+          </Box>
+        )}
+        {analysis ? (
+          <Box sx={{ mt: 2 }}>
+            {analysis.issues.map((issue, idx) => (
+              <Stack key={idx} direction="row" spacing={1} alignItems="flex-start" sx={{ mb: 1 }}>
+                <Typography>{issue.severity === "red" ? "🚩" : "⚠️"}</Typography>
+                <Typography variant="body2">{issue.message}</Typography>
+              </Stack>
+            ))}
+            {analysis.summary && (
+              <Typography variant="body2" sx={{ mt: 2 }}>
+                {analysis.summary}
+              </Typography>
+            )}
+          </Box>
+        ) : (
+          !loading && (
+            <EmptyState
+              message="No analysis yet"
+              helperText="Paste a job description and click Analyze."
+            />
+          )
+        )}
       </Box>
     </RequireAIKey>
   );
 }
-

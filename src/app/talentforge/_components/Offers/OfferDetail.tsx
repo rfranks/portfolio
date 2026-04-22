@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { v4 as uuid } from "uuid";
-import {
-  Box,
-  Button,
-  Stack,
-  TextField,
-} from "@mui/material";
+import { Box, Button, Stack, TextField } from "@mui/material";
 import { addOffer, updateOffer, deleteOffer } from "@/app/talentforge/_utils/dataStore";
 import type { Offer, ApplicationRecord, OfferComp } from "@/types";
 
@@ -23,23 +18,15 @@ const defaultComp: OfferComp[] = [
 ];
 
 export default function OfferDetail({ offer, onSave }: OfferDetailProps) {
-  const [compensation, setCompensation] = useState<OfferComp[]>(
-    offer?.compensation ?? defaultComp,
-  );
-  const [summary, setSummary] = useState(
-    offer?.summary?.join("\n") || "",
-  );
+  const [compensation, setCompensation] = useState<OfferComp[]>(offer?.compensation ?? defaultComp);
+  const [summary, setSummary] = useState(offer?.summary?.join("\n") || "");
 
   useEffect(() => {
     setCompensation(offer?.compensation ?? defaultComp);
     setSummary(offer?.summary?.join("\n") || "");
   }, [offer]);
 
-  const handleCompChange = (
-    index: number,
-    key: "type" | "amount",
-    value: string,
-  ) => {
+  const handleCompChange = (index: number, key: "type" | "amount", value: string) => {
     setCompensation((prev) => {
       const next = [...prev];
       if (key === "amount") {
@@ -93,17 +80,13 @@ export default function OfferDetail({ offer, onSave }: OfferDetailProps) {
             <TextField
               label="Type"
               value={comp.type}
-              onChange={(e) =>
-                handleCompChange(index, "type", e.target.value)
-              }
+              onChange={(e) => handleCompChange(index, "type", e.target.value)}
             />
             <TextField
               label="Amount"
               type="number"
               value={comp.amount}
-              onChange={(e) =>
-                handleCompChange(index, "amount", e.target.value)
-              }
+              onChange={(e) => handleCompChange(index, "amount", e.target.value)}
             />
             <Button color="error" onClick={() => removeCompItem(index)}>
               Remove
@@ -132,4 +115,3 @@ export default function OfferDetail({ offer, onSave }: OfferDetailProps) {
     </Box>
   );
 }
-

@@ -46,16 +46,12 @@ describe("Timeline component", () => {
       expect(screen.getByText(label)).toBeInTheDocument();
       expect(screen.getByText(title)).toBeInTheDocument();
       // content is <div>Eggs</div>, <div>Salad</div>, etc.
-      expect(
-        screen.getByText((content as React.ReactElement).props.children),
-      ).toBeInTheDocument();
+      expect(screen.getByText((content as React.ReactElement).props.children)).toBeInTheDocument();
     });
   });
 
   it("reverses order when reverseOrder=true", () => {
-    renderWithTheme(
-      <Timeline events={baseEvents} reverseOrder alignment="right" />,
-    );
+    renderWithTheme(<Timeline events={baseEvents} reverseOrder alignment="right" />);
     // first rendered title should be last event
     const titles = screen.getAllByText(/Breakfast|Lunch|Dinner/);
     expect(titles[0].textContent).toBe("Dinner");
@@ -66,9 +62,7 @@ describe("Timeline component", () => {
     { alignment: "right", classSuffix: "Right" },
     { alignment: "alternate", classSuffix: "Alternate" },
   ])("applies alignment=%s via CSS class", ({ alignment, classSuffix }) => {
-    const { container } = renderWithTheme(
-      <Timeline events={baseEvents} alignment={alignment} />,
-    );
+    const { container } = renderWithTheme(<Timeline events={baseEvents} alignment={alignment} />);
     const root = container.querySelector(".MuiTimeline-root");
     expect(root).toHaveClass(`MuiTimeline-position${classSuffix}`);
   });
@@ -123,9 +117,7 @@ describe("Timeline component", () => {
     });
 
     it("respects reverseOrder for mermaid", () => {
-      renderWithTheme(
-        <Timeline mermaid={mermaid} reverseOrder alignment="right" />,
-      );
+      renderWithTheme(<Timeline mermaid={mermaid} reverseOrder alignment="right" />);
       // first title now the last line
       const titles = screen.getAllByText(/Event A|Event B|Event C/);
       expect(titles[0].textContent).toBe("Event C");
@@ -138,9 +130,7 @@ describe("Timeline component", () => {
         05/16 13∶00 : MissingParts
         05/16 14∶00 : Also : missing : id
       `;
-      const { container } = renderWithTheme(
-        <Timeline mermaid={badMermaid} />,
-      );
+      const { container } = renderWithTheme(<Timeline mermaid={badMermaid} />);
       // Only the well-formed line should render
       expect(container.querySelectorAll(".MuiTimelineItem-root")).toHaveLength(1);
       expect(screen.getByText("Good")).toBeInTheDocument();

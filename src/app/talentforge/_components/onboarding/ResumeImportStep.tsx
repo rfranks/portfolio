@@ -62,11 +62,7 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
       onNext();
     } catch (err) {
       console.error("Failed to import resume", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to import resume. Please try again.",
-      );
+      setError(err instanceof Error ? err.message : "Failed to import resume. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -79,19 +75,9 @@ export default function ResumeImportStep({ onNext, onBack }: StepProps) {
           {error}
         </Alert>
       )}
-      <Button
-        component="label"
-        variant="outlined"
-        aria-label="Upload resume"
-        disabled={loading}
-      >
-          Upload Resume
-          <input
-            type="file"
-            accept=".pdf,.docx,.txt,.md"
-            hidden
-            onChange={handleFileChange}
-          />
+      <Button component="label" variant="outlined" aria-label="Upload resume" disabled={loading}>
+        Upload Resume
+        <input type="file" accept=".pdf,.docx,.txt,.md" hidden onChange={handleFileChange} />
       </Button>
       {file ? (
         <Alert severity="info" variant="outlined">

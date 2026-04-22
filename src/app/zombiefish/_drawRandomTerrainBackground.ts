@@ -6,7 +6,7 @@ export function drawRandomTerrainBackground(
   getImg: AssetMgr["getImg"],
   width: number,
   height: number,
-  seed = 0
+  seed = 0,
 ) {
   // ---- seeded pseudo random ----
   const rand = (() => {

@@ -193,10 +193,7 @@ export default function AddPromptDrawer({
     setErrors({});
   }, [open, initialValue]);
 
-  const contextSelections = useMemo(
-    () => new Set(contexts),
-    [contexts],
-  );
+  const contextSelections = useMemo(() => new Set(contexts), [contexts]);
 
   const toggleContext = (context: PromptContext) => {
     setContexts((prev) => {
@@ -238,23 +235,16 @@ export default function AddPromptDrawer({
     );
   };
 
-  const handlePlaceholderTypeChange = (
-    key: string,
-    type: CustomPromptPlaceholderType,
-  ) => {
+  const handlePlaceholderTypeChange = (key: string, type: CustomPromptPlaceholderType) => {
     setPlaceholders((prev) =>
-      prev.map((placeholder) =>
-        placeholder.key === key ? { ...placeholder, type } : placeholder,
-      ),
+      prev.map((placeholder) => (placeholder.key === key ? { ...placeholder, type } : placeholder)),
     );
   };
 
   const handlePlaceholderHelperChange = (key: string, value: string) => {
     setPlaceholders((prev) =>
       prev.map((placeholder) =>
-        placeholder.key === key
-          ? { ...placeholder, helperText: value }
-          : placeholder,
+        placeholder.key === key ? { ...placeholder, helperText: value } : placeholder,
       ),
     );
   };
@@ -401,9 +391,7 @@ export default function AddPromptDrawer({
                   />
                 ))}
               </FormGroup>
-              {errors.contexts && (
-                <FormHelperText>{errors.contexts}</FormHelperText>
-              )}
+              {errors.contexts && <FormHelperText>{errors.contexts}</FormHelperText>}
             </FormControl>
             <Stack spacing={2}>
               <Stack direction="row" alignItems="center" spacing={1}>
@@ -440,10 +428,7 @@ export default function AddPromptDrawer({
                           label="Placeholder label"
                           value={placeholder.label}
                           onChange={(event) =>
-                            handlePlaceholderLabelChange(
-                              placeholder.key,
-                              event.target.value,
-                            )
+                            handlePlaceholderLabelChange(placeholder.key, event.target.value)
                           }
                           error={Boolean(labelError)}
                           helperText={labelError || "Shown beside the input control."}
@@ -453,16 +438,10 @@ export default function AddPromptDrawer({
                           label="Identifier"
                           value={placeholder.id}
                           onChange={(event) =>
-                            handlePlaceholderIdChange(
-                              placeholder.key,
-                              event.target.value,
-                            )
+                            handlePlaceholderIdChange(placeholder.key, event.target.value)
                           }
                           error={Boolean(idError)}
-                          helperText={
-                            idError ||
-                            "Used inside the prompt as {{identifier}}"
-                          }
+                          helperText={idError || "Used inside the prompt as {{identifier}}"}
                           fullWidth
                         />
                         <IconButton
@@ -506,10 +485,7 @@ export default function AddPromptDrawer({
                           label="Helper text"
                           value={placeholder.helperText || ""}
                           onChange={(event) =>
-                            handlePlaceholderHelperChange(
-                              placeholder.key,
-                              event.target.value,
-                            )
+                            handlePlaceholderHelperChange(placeholder.key, event.target.value)
                           }
                           multiline
                           minRows={2}
