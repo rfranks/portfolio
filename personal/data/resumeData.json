@@ -189,41 +189,51 @@
         "items": [
           {
             "label": "Retrieval-augmented generation",
-            "description": "Designing systems that ground model output in retrieved documents, records, and structured data."
+            "description": "Designing systems that ground model output in retrieved documents, records, and structured data.",
+            "emoji": "🧲"
           },
           {
             "label": "Large Language Models (LLM)",
-            "description": "Applying production LLM workflows for summarization, extraction, reasoning, and assistant experiences."
+            "description": "Applying production LLM workflows for summarization, extraction, reasoning, and assistant experiences.",
+            "emoji": "🧠"
           },
           {
             "label": "LangChain",
-            "description": "Building TypeScript and Python orchestration pipelines for prompts, tools, retrieval, and evaluation."
+            "description": "Building TypeScript and Python orchestration pipelines for prompts, tools, retrieval, and evaluation.",
+            "emoji": "⛓️"
           },
           {
             "label": "Clinical NLP with ICD-10/SNOMED/LOINC/RxNorm",
-            "description": "Mapping unstructured clinical language into medically relevant vocabularies and concepts."
+            "description": "Mapping unstructured clinical language into medically relevant vocabularies and concepts.",
+            "emoji": "🩺"
           },
           {
             "label": "Deepgram",
-            "description": "Using streaming and batch speech-to-text APIs in multi-model transcription pipelines."
+            "description": "Using streaming and batch speech-to-text APIs in multi-model transcription pipelines.",
+            "emoji": "🎙️"
           },
           {
             "label": "AssemblyAI",
-            "description": "Integrating speech intelligence services for transcription, insights, and downstream extraction."
+            "description": "Integrating speech intelligence services for transcription, insights, and downstream extraction.",
+            "emoji": "🗣️"
           },
           {
             "label": "AWS Transcribe",
-            "description": "Using managed AWS speech recognition for healthcare and general transcription workflows."
+            "description": "Using managed AWS speech recognition for healthcare and general transcription workflows.",
+            "emoji": "📝"
           },
           {
             "label": "AWS Comprehend Medical",
-            "description": "Extracting clinical entities, medications, conditions, and relationships from medical text."
+            "description": "Extracting clinical entities, medications, conditions, and relationships from medical text.",
+            "emoji": "🧬"
           },
           {
             "label": "ElevenLabs",
-            "description": "Integrating voice synthesis and conversational audio capabilities into product workflows."
+            "description": "Integrating voice synthesis and conversational audio capabilities into product workflows.",
+            "emoji": "🔊"
           }
-        ]
+        ],
+        "emoji": "🤖"
       },
       {
         "title": "Frontend",
@@ -233,37 +243,46 @@
         "items": [
           {
             "label": "React",
-            "description": "Building complex interactive UIs with reusable component systems and state-driven rendering."
+            "description": "Building complex interactive UIs with reusable component systems and state-driven rendering.",
+            "emoji": "⚛️"
           },
           {
             "label": "Next.js",
-            "description": "Shipping production React applications with App Router, SSR, SSG, and API integrations."
+            "description": "Shipping production React applications with App Router, SSR, SSG, and API integrations.",
+            "emoji": "▲"
           },
           {
             "label": "TypeScript",
-            "description": "Using static typing to improve correctness, maintainability, and shared contracts across stacks."
+            "description": "Using static typing to improve correctness, maintainability, and shared contracts across stacks.",
+            "emoji": "📘"
           },
           {
             "label": "React Native",
-            "description": "Delivering mobile application experiences with shared React patterns and native device access."
+            "description": "Delivering mobile application experiences with shared React patterns and native device access.",
+            "emoji": "📱"
           },
           {
             "label": "Expo",
-            "description": "Accelerating React Native development, builds, and device feature integration with Expo tooling."
+            "description": "Accelerating React Native development, builds, and device feature integration with Expo tooling.",
+            "emoji": "🚀"
           },
           {
             "label": "Design systems",
-            "description": "Creating reusable UI primitives, tokens, and patterns for consistent product experiences."
+            "description": "Creating reusable UI primitives, tokens, and patterns for consistent product experiences.",
+            "emoji": "🎨"
           },
           {
             "label": "Monorepos (single-spa)",
-            "description": "Organizing large frontend codebases with shared packages and microfrontend-friendly architecture."
+            "description": "Organizing large frontend codebases with shared packages and microfrontend-friendly architecture.",
+            "emoji": "🧩"
           },
           {
             "label": "Turborepo",
-            "description": "Managing monorepos with cached builds, shared packages, and coordinated multi-application development workflows."
+            "description": "Managing monorepos with cached builds, shared packages, and coordinated multi-application development workflows.",
+            "emoji": "🌀"
           }
-        ]
+        ],
+        "emoji": "🖥️"
       },
       {
         "title": "Backend",
@@ -273,21 +292,26 @@
         "items": [
           {
             "label": "Python (Django, Flask, FastAPI)",
-            "description": "Building APIs, services, and data-processing backends across multiple Python frameworks."
+            "description": "Building APIs, services, and data-processing backends across multiple Python frameworks.",
+            "emoji": "🐍"
           },
           {
             "label": "Java (Spring Boot/Hibernate)",
-            "description": "Designing enterprise service layers, domain models, and persistence-backed applications in Java."
+            "description": "Designing enterprise service layers, domain models, and persistence-backed applications in Java.",
+            "emoji": "☕"
           },
           {
             "label": "TypeScript APIs",
-            "description": "Implementing strongly typed backend services and internal APIs in the TypeScript ecosystem."
+            "description": "Implementing strongly typed backend services and internal APIs in the TypeScript ecosystem.",
+            "emoji": "🔌"
           },
           {
             "label": "NestJS",
-            "description": "Structuring scalable Node.js services with dependency injection, modules, and testable architecture."
+            "description": "Structuring scalable Node.js services with dependency injection, modules, and testable architecture.",
+            "emoji": "🪺"
           }
-        ]
+        ],
+        "emoji": "⚙️"
       },
       {
         "title": "Cloud & DevOps",
@@ -297,37 +321,46 @@
         "items": [
           {
             "label": "Azure Functions",
-            "description": "Deploying event-driven and HTTP-triggered serverless backends on Azure infrastructure."
+            "description": "Deploying event-driven and HTTP-triggered serverless backends on Azure infrastructure.",
+            "emoji": "⚡"
           },
           {
             "label": "AWS",
-            "description": "Using managed AWS services for application hosting, AI integrations, and operational workflows."
+            "description": "Using managed AWS services for application hosting, AI integrations, and operational workflows.",
+            "emoji": "🌩️"
           },
           {
             "label": "Amazon S3",
-            "description": "Using object storage for application assets, document pipelines, exports, and cloud-native data workflows."
+            "description": "Using object storage for application assets, document pipelines, exports, and cloud-native data workflows.",
+            "emoji": "🪣"
           },
           {
             "label": "CosmosDB",
-            "description": "Designing globally distributed document persistence for cloud-native application workloads."
+            "description": "Designing globally distributed document persistence for cloud-native application workloads.",
+            "emoji": "🌌"
           },
           {
             "label": "Google Cloud Storage",
-            "description": "Managing object storage for files, data exchange, and cloud-hosted application workflows in Google Cloud environments."
+            "description": "Managing object storage for files, data exchange, and cloud-hosted application workflows in Google Cloud environments.",
+            "emoji": "☁️"
           },
           {
             "label": "GitHub Actions CI/CD",
-            "description": "Automating builds, tests, releases, and deployment workflows directly in GitHub."
+            "description": "Automating builds, tests, releases, and deployment workflows directly in GitHub.",
+            "emoji": "🔁"
           },
           {
             "label": "Model deployment",
-            "description": "Deploying machine learning and AI models into production workflows with attention to reliability, versioning, and operational monitoring."
+            "description": "Deploying machine learning and AI models into production workflows with attention to reliability, versioning, and operational monitoring.",
+            "emoji": "🤖"
           },
           {
             "label": "Containerized deployments",
-            "description": "Packaging and shipping services consistently with container-based runtime environments."
+            "description": "Packaging and shipping services consistently with container-based runtime environments.",
+            "emoji": "📦"
           }
-        ]
+        ],
+        "emoji": "☁️"
       },
       {
         "title": "Data & Integration",
@@ -337,25 +370,31 @@
         "items": [
           {
             "label": "REST APIs",
-            "description": "Designing and consuming HTTP APIs with stable contracts, authentication, and versioning."
+            "description": "Designing and consuming HTTP APIs with stable contracts, authentication, and versioning.",
+            "emoji": "🌐"
           },
           {
             "label": "Event-driven microservices",
-            "description": "Building distributed systems that coordinate through asynchronous events and service boundaries."
+            "description": "Building distributed systems that coordinate through asynchronous events and service boundaries.",
+            "emoji": "📨"
           },
           {
             "label": "PostgreSQL",
-            "description": "Modeling relational data and tuning queries for reliable transactional application workloads."
+            "description": "Modeling relational data and tuning queries for reliable transactional application workloads.",
+            "emoji": "🐘"
           },
           {
             "label": "MongoDB",
-            "description": "Working with flexible document models for operational and product-facing application data."
+            "description": "Working with flexible document models for operational and product-facing application data.",
+            "emoji": "🍃"
           },
           {
             "label": "MySQL",
-            "description": "Supporting production relational data stores and integrations in enterprise environments."
+            "description": "Supporting production relational data stores and integrations in enterprise environments.",
+            "emoji": "🐬"
           }
-        ]
+        ],
+        "emoji": "🔗"
       },
       {
         "title": "Leadership",
@@ -365,17 +404,21 @@
         "items": [
           {
             "label": "Architecture board member",
-            "description": "Guiding platform direction, technical standards, and cross-team architectural decisions."
+            "description": "Guiding platform direction, technical standards, and cross-team architectural decisions.",
+            "emoji": "🏛️"
           },
           {
             "label": "Engineering mentor",
-            "description": "Coaching engineers through design reviews, implementation strategy, and technical growth."
+            "description": "Coaching engineers through design reviews, implementation strategy, and technical growth.",
+            "emoji": "🧭"
           },
           {
             "label": "Cross-functional collaboration with product, UX, QA, and DevOps",
-            "description": "Translating business goals into shippable technical plans with strong delivery alignment."
+            "description": "Translating business goals into shippable technical plans with strong delivery alignment.",
+            "emoji": "🤝"
           }
-        ]
+        ],
+        "emoji": "🤝"
       }
     ],
     "skills": [
@@ -1222,6 +1265,12 @@
       "href": "/blackjack",
       "type": "personal",
       "interestsMeWhy": "This project uses a familiar game to demonstrate serious engineering ideas: state management, probability, and clean separation of concerns. Blackjack works especially well because each round behaves like a compact state machine with meaningful decisions, hidden information, and strict rule evaluation. The Go engine models all of that in one place: card values, hand totals, split/double/insurance eligibility, dealer behavior, payout resolution, side-bet math, and running statistics.\n\nWhat makes it especially compelling is portability. The same Go business logic runs in multiple forms: as a terminal application, inside the VS Code Go debugger, and in the browser via WebAssembly. A thin message bridge translates web UI actions into engine inputs and turns engine state into render-ready output, while keeping rules centralized.\n\nIn practice, this means the web client and terminal client are different presentation layers over one shared rules core, rather than duplicated implementations. It is a practical example of writing business logic once and reusing it across runtime environments.\n\nPlus...it is Blackjack!",
+      "terminalDemo": {
+        "title": "Go! Blackjack!",
+        "subtitle": "Via Go in the terminal in VS Code Debugger",
+        "caption": "Terminal debugger run of the Go client showing the same blackjack rules core and round-state behavior used by the web UI, validating shared engine parity across presentation layers.",
+        "videoUrl": "/personal/demovideos/blackjack_terminal.mov"
+      },
       "watermark": {
         "kind": "cardsFan",
         "containerClassName": "pointer-events-none absolute bottom-3 right-3 h-36 w-40 opacity-[0.16] transition-all duration-500 group-hover:scale-[1.03] group-hover:opacity-[0.24]",
@@ -1268,13 +1317,9 @@
           "description": "Captures runtime interaction order between player actions, React dispatch, bus transport, Go WASM processing, engine updates, and state broadcasts back to the UI.",
           "selectorOptionVisual": {
             "type": "emoji",
-            "icon": "⏩"
+            "icon": "🔀"
           },
           "type": "sequenceDiagram",
-          "autoFitScaleMultiplier": 1.25,
-          "autoFitOffsetX": 100,
-          "autoFitOffsetY": 150,
-          "height": 460,
           "diagram": "sequenceDiagram\n  actor User\n  participant React as React UI\n  participant Bus as postMessage Bus\n  participant WebUI as Go WASM WebUI\n  participant Engine as Blackjack Engine\n\n  User->>React: Click Go! Blackjack!\n  React->>Bus: blackjack/start\n  Bus->>WebUI: start message\n  WebUI->>Engine: deal opening round\n  Engine-->>WebUI: updated game state\n  WebUI->>Bus: blackjack/state\n  Bus->>React: render state\n  React-->>User: show dealer, hands, controls\n\n  User->>React: Hit / Stand / Double / Split\n  React->>Bus: blackjack/action\n  Bus->>WebUI: action message\n  WebUI->>Engine: advance round\n  Engine-->>WebUI: settled or in-progress state\n  WebUI->>Bus: blackjack/state\n  Bus->>React: next render state\n\n  User->>React: Toggle game mode\n  React->>Bus: blackjack/toggle-game-mode\n  Bus->>WebUI: mode toggle message\n  WebUI->>Engine: rebuild mode-specific round state\n  WebUI->>Bus: blackjack/state"
         },
         {
@@ -1286,11 +1331,6 @@
             "icon": "🧱"
           },
           "type": "flowchart",
-          "autoFitPadding": 8,
-          "autoFitScaleMultiplier": 2,
-          "autoFitOffsetX": 450,
-          "autoFitOffsetY": 250,
-          "height": 460,
           "diagram": "flowchart TB\n  subgraph Presentation[\"Presentation Layer\"]\n    ReactPage[\"Blackjack Page\"]\n    Controls[\"Buttons / Chips / Hand Views\"]\n    Media[\"Audio + Animations\"]\n  end\n\n  subgraph Messaging[\"Event Bus Boundary\"]\n    StartMsg[\"blackjack/start\"]\n    ActionMsg[\"blackjack/action\"]\n    ToggleMsg[\"blackjack/toggle-game-mode\"]\n    StateMsg[\"blackjack/state\"]\n  end\n\n  subgraph WasmAdapter[\"WASM Adapter Layer\"]\n    WebAdapter[\"WebUI Message Bridge\"]\n    RenderState[\"Render DTO Assembly\"]\n  end\n\n  subgraph Domain[\"Game Domain Layer\"]\n    Dealer[\"Dealer / Shoe / Payouts\"]\n    GameMode[\"Mode Rules\"]\n    PlayerState[\"Hands / Wagers / Outcomes\"]\n  end\n\n  ReactPage --> Controls\n  ReactPage --> Media\n  Controls --> StartMsg\n  Controls --> ActionMsg\n  Controls --> ToggleMsg\n  StartMsg --> WebAdapter\n  ActionMsg --> WebAdapter\n  ToggleMsg --> WebAdapter\n  WebAdapter --> Dealer\n  WebAdapter --> GameMode\n  WebAdapter --> PlayerState\n  Dealer --> RenderState\n  GameMode --> RenderState\n  PlayerState --> RenderState\n  RenderState --> StateMsg\n  StateMsg --> ReactPage"
         },
         {
@@ -1299,10 +1339,9 @@
           "description": "Defines the shape of the render state contract consumed by the frontend, including nested views for controls, dealer cards, player hands, and round result metadata.",
           "selectorOptionVisual": {
             "type": "emoji",
-            "icon": "♻️"
+            "icon": "🗂️"
           },
           "type": "classDiagram",
-          "height": 520,
           "diagram": "classDiagram\n  class BlackjackRenderState {\n    +bool hasRendered\n    +bool askingToDeal\n    +bool askingForInsurance\n    +int house\n    +int count\n    +string gameMode\n    +string gameModeLabel\n    +string statusText\n    +string hintText\n  }\n\n  class BlackjackControlsView {\n    +bool deal\n    +bool hit\n    +bool stand\n    +bool double\n    +bool split\n    +bool insure\n    +bool decline\n  }\n\n  class BlackjackDealerView {\n    +string totalLabel\n    +BlackjackCardView[] cards\n  }\n\n  class BlackjackPlayerView {\n    +int stack\n    +int winnings\n    +string winningsDisplay\n    +string winningsTone\n    +BlackjackPlayerHandView[] hands\n  }\n\n  class BlackjackPlayerHandView {\n    +int index\n    +bool active\n    +int wager\n    +bool busted\n    +string totalLabel\n    +string note\n    +string outcomeLabel\n    +BlackjackCardView[] cards\n  }\n\n  class BlackjackCardView {\n    +bool masked\n    +string suit\n    +string value\n  }\n\n  class BlackjackResultView {\n    +string badge\n    +string tone\n    +string summary\n    +string[] detailLines\n  }\n\n  BlackjackRenderState --> BlackjackControlsView : controls\n  BlackjackRenderState --> BlackjackDealerView : dealer\n  BlackjackRenderState --> BlackjackPlayerView : player\n  BlackjackRenderState --> BlackjackResultView : result\n  BlackjackDealerView --> BlackjackCardView : cards\n  BlackjackPlayerView --> BlackjackPlayerHandView : hands\n  BlackjackPlayerHandView --> BlackjackCardView : cards"
         },
         {
@@ -1314,7 +1353,6 @@
             "icon": "🔁"
           },
           "type": "stateDiagram-v2",
-          "height": 520,
           "diagram": "stateDiagram-v2\n  [*] --> WaitingToDeal\n  WaitingToDeal --> DealingOpeningCards : Deal / Start\n  DealingOpeningCards --> OfferInsurance : Dealer ace showing\n  DealingOpeningCards --> CheckNaturals : Otherwise\n  OfferInsurance --> CheckNaturals : Insure / Decline\n  CheckNaturals --> RoundSettled : Dealer blackjack or player blackjack resolution\n  CheckNaturals --> PlayerTurn : No naturals\n\n  state PlayerTurn {\n    [*] --> EvaluateHand\n    EvaluateHand --> EvaluateHand : Hit\n    EvaluateHand --> AdvanceSplitHand : Stand\n    EvaluateHand --> AdvanceSplitHand : Double\n    EvaluateHand --> SplitHand : Split\n    SplitHand --> EvaluateHand\n    EvaluateHand --> AdvanceSplitHand : Bust\n    AdvanceSplitHand --> EvaluateHand : Next active split hand\n    AdvanceSplitHand --> [*] : No active hands remain\n  }\n\n  PlayerTurn --> DealerTurn : All player hands locked\n  DealerTurn --> DealerTurn : Draw to rule threshold\n  DealerTurn --> SettleHands : Stand / Bust threshold reached\n  SettleHands --> RoundSettled\n  RoundSettled --> WaitingToDeal : Deal Again"
         }
       ]
@@ -1467,44 +1505,88 @@
       "technologiesUsed": [
         {
           "name": "Backbone.js",
-          "url": "https://backbonejs.org/"
+          "url": "https://backbonejs.org/",
+          "emoji": "🦴"
         },
         {
           "name": "Handlebars.js",
-          "url": "https://handlebarsjs.com/"
+          "url": "https://handlebarsjs.com/",
+          "emoji": "🤲"
         },
         {
           "name": "pk-common-ui (shared widgets/utilities)",
-          "url": "https://example.org/pk-common-ui"
+          "url": "https://example.org/pk-common-ui",
+          "emoji": "🧰"
         },
         {
           "name": "Spring Web MVC",
-          "url": "https://spring.io/projects/spring-framework"
+          "url": "https://spring.io/projects/spring-framework",
+          "emoji": "🌱"
         },
         {
           "name": "Spring Boot",
-          "url": "https://spring.io/projects/spring-boot"
+          "url": "https://spring.io/projects/spring-boot",
+          "emoji": "👢"
         },
         {
           "name": "Java / Maven",
-          "url": "https://maven.apache.org/"
+          "url": "https://maven.apache.org/",
+          "emoji": "☕"
         },
         {
           "name": "JUnit / Mockito",
-          "url": "https://junit.org/"
+          "url": "https://junit.org/",
+          "emoji": "🧪"
         },
         {
           "name": "MapStruct (optional mappers)",
-          "url": "https://mapstruct.org/"
+          "url": "https://mapstruct.org/",
+          "emoji": "🗺️"
         },
         {
           "name": "Mermaid (diagrams)",
-          "url": "https://mermaid.js.org/"
+          "url": "https://mermaid.js.org/",
+          "emoji": "🧜‍♀️"
         }
       ],
       "blockDiagram": "graph TD;\n  WAR[patient-list-war\\\nBackbone/Handlebars UI] --> REST[patient-list-rest\\\nSpring Controllers];\n  REST --> API[patient-list-api\\\nFacade + DTOs];\n  API <--implements--> SRV[patient-list-services\\\nBusiness Logic, Mapping, Validation];\n  SRV --> DAO[patient-list-dao\\\nRepositories/Queries];\n  DAO --> DB[(Database)];\n  WAR -. static assets .-> ASSETS[Templates JS CSS];",
       "componentDiagram": "graph TD;\n  subgraph UI (patient-list-war)\n    Router[VisitRouter]\n    State[VisitListState]\n    Coll[VisitCollection]\n    ListView[VisitListView]\n    ItemView[VisitItemView]\n    Toolbar[ToolbarView]\n    Pager[PaginationView]\n    Wizard[WizardView]\n    TList[visit-list.hbs]\n    TRow[visit-row.hbs]\n  end\n  subgraph REST/API\n    EP[/GET /api/v1/visits/]\n    EPlist[/GET /api/v1/visitLists/{id}/visits/]\n    DTO[VisitDto]\n  end\n  subgraph Server\n    Ctl[VisitController]\n    Fac[VisitFacade]\n    Svc[VisitServiceImpl]\n    Map[VisitMapper]\n    Repo[VisitRepository]\n    DB[(DB)]\n  end\n  Router --> ListView\n  Router --> State\n  ListView --> Toolbar\n  ListView --> Pager\n  ListView --> Coll\n  Coll -->|reset/sync| ListView\n  ListView -->|each model| ItemView\n  ListView --> TList\n  ItemView --> TRow\n  Toolbar -->|filter:changed| State\n  Pager -->|page:changed| State\n  State -->|toQuery()| Coll\n  Coll -->|fetch| EP\n  EP --> Ctl --> Fac --> Svc --> Repo --> DB\n  Repo --> Svc --> Map --> DTO --> Ctl --> EP --> Coll\n  Wizard -->|save list| Ctl",
-      "sequenceDiagram": "sequenceDiagram\n  participant U as User\n  participant R as VisitRouter\n  participant V as VisitListView\n  participant S as VisitListState\n  participant C as VisitCollection\n  participant T as ToolbarView\n  participant H as Handlebars Templates\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as VisitFacade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/visits?listId=123&page=1\n  R->>S: create from query (listId,page,sort,filters)\n  R->>V: new VisitListView({state:S, collection:C})\n  V->>C: fetch({data: S.toQuery()})\n  C->>REST: GET /api/v1/visits?listId=123&page=1&sort=...\n  REST->>CTR: Dispatch controller\n  CTR->>FAC: findVisits(listId,paging,filters)\n  FAC->>DAO: query(listId,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>C: 200 JSON {items:[], paging:{}}\n  C-->>V: reset/sync events\n  V->>H: Render visit-list.hbs + visit-row.hbs\n  H-->>V: HTML table\n  V-->>U: Patient visit list displayed\n  U->>T: Change filter/search\n  T-->>S: event filter:changed\n  S-->>V: change:*\n  V->>C: fetch() (debounced) with new query\n  C->>REST: GET /api/v1/visits?... (repeat)"
+      "sequenceDiagram": "sequenceDiagram\n  participant U as User\n  participant R as VisitRouter\n  participant V as VisitListView\n  participant S as VisitListState\n  participant C as VisitCollection\n  participant T as ToolbarView\n  participant H as Handlebars Templates\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as VisitFacade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/visits?listId=123&page=1\n  R->>S: create from query (listId,page,sort,filters)\n  R->>V: new VisitListView({state:S, collection:C})\n  V->>C: fetch({data: S.toQuery()})\n  C->>REST: GET /api/v1/visits?listId=123&page=1&sort=...\n  REST->>CTR: Dispatch controller\n  CTR->>FAC: findVisits(listId,paging,filters)\n  FAC->>DAO: query(listId,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>C: 200 JSON {items:[], paging:{}}\n  C-->>V: reset/sync events\n  V->>H: Render visit-list.hbs + visit-row.hbs\n  H-->>V: HTML table\n  V-->>U: Patient visit list displayed\n  U->>T: Change filter/search\n  T-->>S: event filter:changed\n  S-->>V: change:*\n  V->>C: fetch() (debounced) with new query\n  C->>REST: GET /api/v1/visits?... (repeat)",
+      "diagrams": [
+        {
+          "title": "Component Diagram",
+          "shortText": "Component responsibilities and integration touchpoints.",
+          "description": "Details Backbone router/view/state relationships and their mapping to Spring controllers, facades, repositories, and DTO boundaries.",
+          "type": "flowchart",
+          "diagram": "graph TD;\n  subgraph UI (patient-list-war)\n    Router[VisitRouter]\n    State[VisitListState]\n    Coll[VisitCollection]\n    ListView[VisitListView]\n    ItemView[VisitItemView]\n    Toolbar[ToolbarView]\n    Pager[PaginationView]\n    Wizard[WizardView]\n    TList[visit-list.hbs]\n    TRow[visit-row.hbs]\n  end\n  subgraph REST/API\n    EP[/GET /api/v1/visits/]\n    EPlist[/GET /api/v1/visitLists/{id}/visits/]\n    DTO[VisitDto]\n  end\n  subgraph Server\n    Ctl[VisitController]\n    Fac[VisitFacade]\n    Svc[VisitServiceImpl]\n    Map[VisitMapper]\n    Repo[VisitRepository]\n    DB[(DB)]\n  end\n  Router --> ListView\n  Router --> State\n  ListView --> Toolbar\n  ListView --> Pager\n  ListView --> Coll\n  Coll -->|reset/sync| ListView\n  ListView -->|each model| ItemView\n  ListView --> TList\n  ItemView --> TRow\n  Toolbar -->|filter:changed| State\n  Pager -->|page:changed| State\n  State -->|toQuery()| Coll\n  Coll -->|fetch| EP\n  EP --> Ctl --> Fac --> Svc --> Repo --> DB\n  Repo --> Svc --> Map --> DTO --> Ctl --> EP --> Coll\n  Wizard -->|save list| Ctl",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🧩"
+          }
+        },
+        {
+          "title": "Sequence Diagram",
+          "shortText": "End-to-end interaction flow for key operations.",
+          "description": "Traces the visit-list request lifecycle from route navigation through server query execution and client-side rerender on filter changes.",
+          "type": "sequenceDiagram",
+          "diagram": "sequenceDiagram\n  participant U as User\n  participant R as VisitRouter\n  participant V as VisitListView\n  participant S as VisitListState\n  participant C as VisitCollection\n  participant T as ToolbarView\n  participant H as Handlebars Templates\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as VisitFacade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/visits?listId=123&page=1\n  R->>S: create from query (listId,page,sort,filters)\n  R->>V: new VisitListView({state:S, collection:C})\n  V->>C: fetch({data: S.toQuery()})\n  C->>REST: GET /api/v1/visits?listId=123&page=1&sort=...\n  REST->>CTR: Dispatch controller\n  CTR->>FAC: findVisits(listId,paging,filters)\n  FAC->>DAO: query(listId,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>C: 200 JSON {items:[], paging:{}}\n  C-->>V: reset/sync events\n  V->>H: Render visit-list.hbs + visit-row.hbs\n  H-->>V: HTML table\n  V-->>U: Patient visit list displayed\n  U->>T: Change filter/search\n  T-->>S: event filter:changed\n  S-->>V: change:*\n  V->>C: fetch() (debounced) with new query\n  C->>REST: GET /api/v1/visits?... (repeat)",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🔀"
+          }
+        },
+        {
+          "title": "Block Diagram",
+          "shortText": "High-level system architecture and data flow boundaries.",
+          "description": "Outlines how the patient-list UI, REST layer, facade API, services, and DAO modules connect end-to-end.",
+          "type": "flowchart",
+          "diagram": "graph TD;\n  WAR[patient-list-war\\\nBackbone/Handlebars UI] --> REST[patient-list-rest\\\nSpring Controllers];\n  REST --> API[patient-list-api\\\nFacade + DTOs];\n  API <--implements--> SRV[patient-list-services\\\nBusiness Logic, Mapping, Validation];\n  SRV --> DAO[patient-list-dao\\\nRepositories/Queries];\n  DAO --> DB[(Database)];\n  WAR -. static assets .-> ASSETS[Templates JS CSS];",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🧱"
+          }
+        }
+      ]
     },
     {
       "name": "Patient Assignment List Project",
@@ -1574,44 +1656,88 @@
       "technologiesUsed": [
         {
           "name": "Backbone.js",
-          "url": "https://backbonejs.org/"
+          "url": "https://backbonejs.org/",
+          "emoji": "🦴"
         },
         {
           "name": "Handlebars.js",
-          "url": "https://handlebarsjs.com/"
+          "url": "https://handlebarsjs.com/",
+          "emoji": "🤲"
         },
         {
           "name": "pk-common-ui (shared UI utilities)",
-          "url": "https://example.org/pk-common-ui"
+          "url": "https://example.org/pk-common-ui",
+          "emoji": "🧰"
         },
         {
           "name": "Spring Web MVC",
-          "url": "https://spring.io/projects/spring-framework"
+          "url": "https://spring.io/projects/spring-framework",
+          "emoji": "🌱"
         },
         {
           "name": "Spring Boot",
-          "url": "https://spring.io/projects/spring-boot"
+          "url": "https://spring.io/projects/spring-boot",
+          "emoji": "👢"
         },
         {
           "name": "Java / Maven (multi-module)",
-          "url": "https://maven.apache.org/"
+          "url": "https://maven.apache.org/",
+          "emoji": "☕"
         },
         {
           "name": "JUnit / Mockito",
-          "url": "https://junit.org/"
+          "url": "https://junit.org/",
+          "emoji": "🧪"
         },
         {
           "name": "MapStruct (optional mappers)",
-          "url": "https://mapstruct.org/"
+          "url": "https://mapstruct.org/",
+          "emoji": "🗺️"
         },
         {
           "name": "Mermaid (diagrams)",
-          "url": "https://mermaid.js.org/"
+          "url": "https://mermaid.js.org/",
+          "emoji": "🧜‍♀️"
         }
       ],
       "blockDiagram": "graph TD;\n  WAR[patient-list-war\\\nBackbone/Handlebars UI] --> REST[patient-list-rest\\\nSpring Controllers];\n  REST --> API[patient-list-api\\\nFacade + DTOs];\n  API <--implements--> SRV[patient-list-services\\\nBusiness Logic, Mapping, Validation];\n  SRV --> DAO[patient-list-dao\\\nRepositories/Queries];\n  DAO --> DB[(Database)];\n  WAR -. static assets .-> ASSETS[Templates JS CSS];",
       "componentDiagram": "graph TD;\n  subgraph UI patient-list-war\n    AR[AssignmentRouter]\n    AS[AssignmentState]\n    ALV[AssignmentListView]\n    VCOL[VisitCollection]\n    VLV[VisitListView]\n    TBV[ToolbarView]\n    PGR[PaginationView]\n    WIZ[WizardView]\n    TLIST[assignment-list.hbs]\n    TROW[visit-row.hbs]\n  end\n  subgraph REST/API\n    EPV[/GET /api/v1/visits/]\n    EPA[/GET /api/v1/assignmentLists/id/summary/]\n    DTOv[VisitDto]\n    DTOa[AssignmentListDto]\n  end\n  subgraph Server\n    CtlV[VisitController]\n    CtlA[AssignmentController]\n    Fac[PatientListFacade]\n    Svc[Facade Impl]\n    Map[DTO Mappers]\n    RepoV[VisitRepository]\n    RepoA[AssignmentRepository]\n    DB[(DB)]\n  end\n  AR --> AS\n  AR --> ALV\n  ALV --> TBV\n  ALV --> PGR\n  ALV --> VCOL\n  ALV -->|subview| VLV\n  VCOL -->|reset/sync| VLV\n  ALV --> TLIST\n  VLV --> TROW\n  TBV -->|filter:changed| AS\n  PGR -->|page:changed| AS\n  AS -->|toQuery| VCOL\n  VCOL -->|fetch| EPV\n  EPV --> CtlV --> Fac --> Svc --> RepoV --> DB\n  RepoV --> Svc --> Map --> DTOv --> CtlV --> EPV --> VCOL\n  ALV -->|load summary| EPA --> CtlA --> Fac --> RepoA --> DB\n  WIZ -->|save list| CtlA",
-      "sequenceDiagram": "sequenceDiagram\n  participant U as User\n  participant R as AssignmentRouter\n  participant S as AssignmentState\n  participant A as AssignmentListView\n  participant VC as VisitCollection\n  participant V as VisitListView\n  participant T as ToolbarView\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as Facade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/assignments/42?assignee=RN1&page=1\n  R->>S: Initialize state (listId=42, assignee=RN1, page=1, sort, filters)\n  R->>A: new AssignmentListView({state:S})\n  A->>VC: fetch({ data: S.toQuery() })\n  VC->>REST: GET /api/v1/visits?listId=42&assignee=RN1&page=1&sort=...\n  REST->>CTR: Dispatch\n  CTR->>FAC: findVisitsForAssignment(listId,assignee,paging,filters)\n  FAC->>DAO: query(listId,assignee,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>VC: 200 {items:[], paging:{}}\n  VC-->>A: reset/sync events\n  A->>V: render subview with VC\n  V->>V: render rows using Handlebars (visit-row.hbs)\n  A-->>U: Assignment list with visits displayed\n  U->>T: Change filter/search/assignee\n  T-->>S: filter:changed / assignee:changed\n  S-->>A: change:*\n  A->>VC: fetch() (debounced) with new query\n  VC->>REST: GET /api/v1/visits?... (repeat)"
+      "sequenceDiagram": "sequenceDiagram\n  participant U as User\n  participant R as AssignmentRouter\n  participant S as AssignmentState\n  participant A as AssignmentListView\n  participant VC as VisitCollection\n  participant V as VisitListView\n  participant T as ToolbarView\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as Facade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/assignments/42?assignee=RN1&page=1\n  R->>S: Initialize state (listId=42, assignee=RN1, page=1, sort, filters)\n  R->>A: new AssignmentListView({state:S})\n  A->>VC: fetch({ data: S.toQuery() })\n  VC->>REST: GET /api/v1/visits?listId=42&assignee=RN1&page=1&sort=...\n  REST->>CTR: Dispatch\n  CTR->>FAC: findVisitsForAssignment(listId,assignee,paging,filters)\n  FAC->>DAO: query(listId,assignee,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>VC: 200 {items:[], paging:{}}\n  VC-->>A: reset/sync events\n  A->>V: render subview with VC\n  V->>V: render rows using Handlebars (visit-row.hbs)\n  A-->>U: Assignment list with visits displayed\n  U->>T: Change filter/search/assignee\n  T-->>S: filter:changed / assignee:changed\n  S-->>A: change:*\n  A->>VC: fetch() (debounced) with new query\n  VC->>REST: GET /api/v1/visits?... (repeat)",
+      "diagrams": [
+        {
+          "title": "Component Diagram",
+          "shortText": "Component responsibilities and integration touchpoints.",
+          "description": "Breaks down AssignmentList and VisitList composition, shared toolbar/pagination wiring, and corresponding backend controller/repository responsibilities.",
+          "type": "flowchart",
+          "diagram": "graph TD;\n  subgraph UI patient-list-war\n    AR[AssignmentRouter]\n    AS[AssignmentState]\n    ALV[AssignmentListView]\n    VCOL[VisitCollection]\n    VLV[VisitListView]\n    TBV[ToolbarView]\n    PGR[PaginationView]\n    WIZ[WizardView]\n    TLIST[assignment-list.hbs]\n    TROW[visit-row.hbs]\n  end\n  subgraph REST/API\n    EPV[/GET /api/v1/visits/]\n    EPA[/GET /api/v1/assignmentLists/id/summary/]\n    DTOv[VisitDto]\n    DTOa[AssignmentListDto]\n  end\n  subgraph Server\n    CtlV[VisitController]\n    CtlA[AssignmentController]\n    Fac[PatientListFacade]\n    Svc[Facade Impl]\n    Map[DTO Mappers]\n    RepoV[VisitRepository]\n    RepoA[AssignmentRepository]\n    DB[(DB)]\n  end\n  AR --> AS\n  AR --> ALV\n  ALV --> TBV\n  ALV --> PGR\n  ALV --> VCOL\n  ALV -->|subview| VLV\n  VCOL -->|reset/sync| VLV\n  ALV --> TLIST\n  VLV --> TROW\n  TBV -->|filter:changed| AS\n  PGR -->|page:changed| AS\n  AS -->|toQuery| VCOL\n  VCOL -->|fetch| EPV\n  EPV --> CtlV --> Fac --> Svc --> RepoV --> DB\n  RepoV --> Svc --> Map --> DTOv --> CtlV --> EPV --> VCOL\n  ALV -->|load summary| EPA --> CtlA --> Fac --> RepoA --> DB\n  WIZ -->|save list| CtlA",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🧩"
+          }
+        },
+        {
+          "title": "Sequence Diagram",
+          "shortText": "End-to-end interaction flow for key operations.",
+          "description": "Captures assignment-list runtime flow from route initialization and visit fetches through state updates and incremental UI refresh.",
+          "type": "sequenceDiagram",
+          "diagram": "sequenceDiagram\n  participant U as User\n  participant R as AssignmentRouter\n  participant S as AssignmentState\n  participant A as AssignmentListView\n  participant VC as VisitCollection\n  participant V as VisitListView\n  participant T as ToolbarView\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as Facade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/assignments/42?assignee=RN1&page=1\n  R->>S: Initialize state (listId=42, assignee=RN1, page=1, sort, filters)\n  R->>A: new AssignmentListView({state:S})\n  A->>VC: fetch({ data: S.toQuery() })\n  VC->>REST: GET /api/v1/visits?listId=42&assignee=RN1&page=1&sort=...\n  REST->>CTR: Dispatch\n  CTR->>FAC: findVisitsForAssignment(listId,assignee,paging,filters)\n  FAC->>DAO: query(listId,assignee,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>VC: 200 {items:[], paging:{}}\n  VC-->>A: reset/sync events\n  A->>V: render subview with VC\n  V->>V: render rows using Handlebars (visit-row.hbs)\n  A-->>U: Assignment list with visits displayed\n  U->>T: Change filter/search/assignee\n  T-->>S: filter:changed / assignee:changed\n  S-->>A: change:*\n  A->>VC: fetch() (debounced) with new query\n  VC->>REST: GET /api/v1/visits?... (repeat)",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🔀"
+          }
+        },
+        {
+          "title": "Block Diagram",
+          "shortText": "High-level system architecture and data flow boundaries.",
+          "description": "Shows layered boundaries between assignment UI modules, REST endpoints, service/facade orchestration, and persistence.",
+          "type": "flowchart",
+          "diagram": "graph TD;\n  WAR[patient-list-war\\\nBackbone/Handlebars UI] --> REST[patient-list-rest\\\nSpring Controllers];\n  REST --> API[patient-list-api\\\nFacade + DTOs];\n  API <--implements--> SRV[patient-list-services\\\nBusiness Logic, Mapping, Validation];\n  SRV --> DAO[patient-list-dao\\\nRepositories/Queries];\n  DAO --> DB[(Database)];\n  WAR -. static assets .-> ASSETS[Templates JS CSS];",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🧱"
+          }
+        }
+      ]
     },
     {
       "name": "AI-Driven Clinical Copilot",
@@ -1756,63 +1882,112 @@
       "technologiesUsed": [
         {
           "name": "Next.js (App Router)",
-          "url": "https://nextjs.org/"
+          "url": "https://nextjs.org/",
+          "emoji": "▲"
         },
         {
           "name": "React 18",
-          "url": "https://react.dev/"
+          "url": "https://react.dev/",
+          "emoji": "⚛️"
         },
         {
           "name": "TypeScript",
-          "url": "https://www.typescriptlang.org/"
+          "url": "https://www.typescriptlang.org/",
+          "emoji": "📘"
         },
         {
           "name": "Refine (headless)",
-          "url": "https://refine.dev/"
+          "url": "https://refine.dev/",
+          "emoji": "🧵"
         },
         {
           "name": "Material UI (MUI)",
-          "url": "https://mui.com/"
+          "url": "https://mui.com/",
+          "emoji": "🧱"
         },
         {
           "name": "Axios",
-          "url": "https://axios-http.com/"
+          "url": "https://axios-http.com/",
+          "emoji": "📡"
         },
         {
           "name": "Azure Functions (TypeScript)",
-          "url": "https://learn.microsoft.com/azure/azure-functions/"
+          "url": "https://learn.microsoft.com/azure/azure-functions/",
+          "emoji": "⚡"
         },
         {
           "name": "Azure Cosmos DB",
-          "url": "https://learn.microsoft.com/azure/cosmos-db/"
+          "url": "https://learn.microsoft.com/azure/cosmos-db/",
+          "emoji": "🌌"
         },
         {
           "name": "Python Flask",
-          "url": "https://flask.palletsprojects.com/"
+          "url": "https://flask.palletsprojects.com/",
+          "emoji": "🐍"
         },
         {
           "name": "LangChain",
-          "url": "https://python.langchain.com/"
+          "url": "https://python.langchain.com/",
+          "emoji": "⛓️"
         },
         {
           "name": "OpenAI / Azure OpenAI (LLM)",
-          "url": "https://platform.openai.com/"
+          "url": "https://platform.openai.com/",
+          "emoji": "🧠"
         },
         {
           "name": "gTTS (optional audio synthesis)",
-          "url": "https://pypi.org/project/gTTS/"
+          "url": "https://pypi.org/project/gTTS/",
+          "emoji": "🎤"
         }
       ],
       "blockDiagram": "graph TD\n  subgraph Browser[Physician Browser]\n    U[/URL with siteId, patientId, userId, chatUri/]\n    Page[Next.js /patientPromptEnum]\n  end\n\n  U --> Page\n  subgraph UI[Next.js App aicopilot]\n    Page --> Params[useAISummaryParams]\n    Page --> Init[useAISummaryInit]\n    Page --> PR[usePromptResources]\n    Page --> Sub[useSubPrompts]\n    Page --> Ans[useAnswer]\n    Page --> Chips[PromptChips]\n    Page --> Modal[AISummaryModal]\n    Page --> Renderer[PromptRenderer]\n    Renderer --> PP[PatientPrompt]\n  end\n\n  subgraph AF[Azure Functions TypeScript]\n    Clients[/GET v1/clients/]:::fn\n    Cats[/GET v1/categories/]:::fn\n    Prompts[/GET v1/prompts/]:::fn\n    Audits[/GET v1/chatAudits/]:::fn\n    DB[(Cosmos DB)]:::db\n    Clients --> DB\n    Cats --> DB\n    Prompts --> DB\n    Audits --> DB\n  end\n\n  subgraph PY[AI Chat Service Flask]\n    Chat[/POST v1/chat_patient/]:::fn\n    LC[LangChain + LLM]\n    Chat --> LC\n  end\n\n  PR -- load prompts --> Prompts\n  Page -- clientType lookup --> Clients\n  Page -- category options --> Cats\n  PP -- POST question/context/data --> Chat\n  Chat -- ChatAnswer(parts,context) --> PP\n  PP -- poll score --> Audits\n\n  classDef fn fill:#eef,stroke:#335,stroke-width:1px;\n  classDef db fill:#efe,stroke:#393,stroke-width:1px;",
       "componentDiagram": "graph TB\n  A[/patientPromptEnum/page.tsx/]\n  subgraph Hooks\n    P1[useAISummaryParams]\n    P2[useAISummaryInit]\n    P3[usePromptResources]\n    P4[useSubPrompts]\n    P5[useAnswer]\n    P6[usePromptVisibility]\n    P7[usePromptTitle]\n    P8[useModalFocus]\n    P9[useAuth]\n    P10[useOrigin]\n  end\n\n  subgraph UI Components\n    C1[PromptRenderer]\n    C2[PatientPrompt]\n    C3[AISummaryModal]\n    C4[ModalTriggerTextField]\n    C5[PromptChips]\n    C6[BackToTopFab]\n    C7[Loading]\n    C8[SettingsMenu]\n  end\n\n  A --> P1 & P2 & P3 & P4 & P5 & P6 & P7 & P8 & P9 & P10\n  A --> C1 & C3 & C4 & C5 & C6 & C7 & C8\n  C1 --> C2\n  C2 -.->|onPromptFetching/onPromptFetched| A\n  A -.->|postMessage start/stopLoading| ParentApp",
-      "sequenceDiagram": "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Parent as Parent App (optional)\n  participant UI as Next.js /patientPromptEnum\n  participant Hooks as use* hooks\n  participant DP as Refine DataProvider\n  participant AF as Azure Functions (v1/clients, v1/categories, v1/prompts, v1/chatAudits)\n  participant DB as Cosmos DB\n  participant PP as PatientPrompt\n  participant PY as Flask aichat (/v1/chat_patient)\n  participant LLM as LangChain + LLM\n\n  Physician->>UI: Open with ?siteId&patientId&userId&chatUri[=&promptEnum|&interactive]\n  UI->>Hooks: useAISummaryParams() parse flags\n  Note over UI: If no auth and not localhost → notFound()\n  UI->>DP: list('clients', filter: siteId)\n  DP->>AF: GET /v1/clients?siteId=...\n  AF->>DB: query Clients\n  DB-->>AF: Client[] (clientType)\n  AF-->>DP: Client[]\n  UI->>DP: list('categories', filter: clientType)\n  DP->>AF: GET /v1/categories?clientType=...\n  AF->>DB: query Categories\n  DB-->>AF: Category[]\n  AF-->>DP: Category[]\n  UI->>DP: list('prompts', filters: siteId + promptEnum or text)\n  DP->>AF: GET /v1/prompts?siteId=...&promptEnum=...|text=...\n  AF->>DB: query Prompts\n  DB-->>AF: Prompt[]\n  AF-->>DP: Prompt[]\n  DP-->>UI: Prompt[]\n  UI->>UI: useSubPrompts split '<new_question>' → prompts[]\n  UI->>PP: Render for each prompt (or free-text)\n\n  loop For each question\n    PP->>Parent: postMessage startLoading{module}\n    PP->>PY: POST { chatUri=/v1/chat_patient }\\n{ siteID, patientID, userID, queryText, model, category[], context{}, data }\n    PY->>LLM: Build chain and fetch\n    LLM-->>PY: ChatAnswer(parts[], context)\n    PY-->>PP: 200 { answerId, content, parts[], context }\n    PP->>AF: Poll GET /v1/chatAudits?answerId=… (if guardrails on)\n    AF->>DB: Find ChatAudit\n    DB-->>AF: score, valid, reason\n    AF-->>PP: ChatAudit\n    alt score < 7 or !valid and retries < 3\n      PP->>PY: retry POST /v1/chat_patient\n    else success\n      PP->>UI: onPromptFetched(prompt, parts)\n      PP->>Parent: postMessage stopLoading{module}\n    end\n  end\n\n  Physician->>UI: Adjust model/categories/guardrails, then ask again\n  UI->>PP: Re-run with updated settings"
+      "sequenceDiagram": "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Parent as Parent App (optional)\n  participant UI as Next.js /patientPromptEnum\n  participant Hooks as use* hooks\n  participant DP as Refine DataProvider\n  participant AF as Azure Functions (v1/clients, v1/categories, v1/prompts, v1/chatAudits)\n  participant DB as Cosmos DB\n  participant PP as PatientPrompt\n  participant PY as Flask aichat (/v1/chat_patient)\n  participant LLM as LangChain + LLM\n\n  Physician->>UI: Open with ?siteId&patientId&userId&chatUri[=&promptEnum|&interactive]\n  UI->>Hooks: useAISummaryParams() parse flags\n  Note over UI: If no auth and not localhost → notFound()\n  UI->>DP: list('clients', filter: siteId)\n  DP->>AF: GET /v1/clients?siteId=...\n  AF->>DB: query Clients\n  DB-->>AF: Client[] (clientType)\n  AF-->>DP: Client[]\n  UI->>DP: list('categories', filter: clientType)\n  DP->>AF: GET /v1/categories?clientType=...\n  AF->>DB: query Categories\n  DB-->>AF: Category[]\n  AF-->>DP: Category[]\n  UI->>DP: list('prompts', filters: siteId + promptEnum or text)\n  DP->>AF: GET /v1/prompts?siteId=...&promptEnum=...|text=...\n  AF->>DB: query Prompts\n  DB-->>AF: Prompt[]\n  AF-->>DP: Prompt[]\n  DP-->>UI: Prompt[]\n  UI->>UI: useSubPrompts split '<new_question>' → prompts[]\n  UI->>PP: Render for each prompt (or free-text)\n\n  loop For each question\n    PP->>Parent: postMessage startLoading{module}\n    PP->>PY: POST { chatUri=/v1/chat_patient }\\n{ siteID, patientID, userID, queryText, model, category[], context{}, data }\n    PY->>LLM: Build chain and fetch\n    LLM-->>PY: ChatAnswer(parts[], context)\n    PY-->>PP: 200 { answerId, content, parts[], context }\n    PP->>AF: Poll GET /v1/chatAudits?answerId=… (if guardrails on)\n    AF->>DB: Find ChatAudit\n    DB-->>AF: score, valid, reason\n    AF-->>PP: ChatAudit\n    alt score < 7 or !valid and retries < 3\n      PP->>PY: retry POST /v1/chat_patient\n    else success\n      PP->>UI: onPromptFetched(prompt, parts)\n      PP->>Parent: postMessage stopLoading{module}\n    end\n  end\n\n  Physician->>UI: Adjust model/categories/guardrails, then ask again\n  UI->>PP: Re-run with updated settings",
+      "diagrams": [
+        {
+          "title": "Component Diagram",
+          "shortText": "Component responsibilities and integration touchpoints.",
+          "description": "Describes page-level hook wiring and key UI components, including modal, prompt rendering, and parent-app loading integration points.",
+          "type": "flowchart",
+          "diagram": "graph TB\n  A[/patientPromptEnum/page.tsx/]\n  subgraph Hooks\n    P1[useAISummaryParams]\n    P2[useAISummaryInit]\n    P3[usePromptResources]\n    P4[useSubPrompts]\n    P5[useAnswer]\n    P6[usePromptVisibility]\n    P7[usePromptTitle]\n    P8[useModalFocus]\n    P9[useAuth]\n    P10[useOrigin]\n  end\n\n  subgraph UI Components\n    C1[PromptRenderer]\n    C2[PatientPrompt]\n    C3[AISummaryModal]\n    C4[ModalTriggerTextField]\n    C5[PromptChips]\n    C6[BackToTopFab]\n    C7[Loading]\n    C8[SettingsMenu]\n  end\n\n  A --> P1 & P2 & P3 & P4 & P5 & P6 & P7 & P8 & P9 & P10\n  A --> C1 & C3 & C4 & C5 & C6 & C7 & C8\n  C1 --> C2\n  C2 -.->|onPromptFetching/onPromptFetched| A\n  A -.->|postMessage start/stopLoading| ParentApp",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🧩"
+          }
+        },
+        {
+          "title": "Sequence Diagram",
+          "shortText": "End-to-end interaction flow for key operations.",
+          "description": "Follows a full ask-answer cycle including prompt retrieval, chat execution, guardrail scoring, retry logic, and clinician rerun behavior.",
+          "type": "sequenceDiagram",
+          "diagram": "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Parent as Parent App (optional)\n  participant UI as Next.js /patientPromptEnum\n  participant Hooks as use* hooks\n  participant DP as Refine DataProvider\n  participant AF as Azure Functions (v1/clients, v1/categories, v1/prompts, v1/chatAudits)\n  participant DB as Cosmos DB\n  participant PP as PatientPrompt\n  participant PY as Flask aichat (/v1/chat_patient)\n  participant LLM as LangChain + LLM\n\n  Physician->>UI: Open with ?siteId&patientId&userId&chatUri[=&promptEnum|&interactive]\n  UI->>Hooks: useAISummaryParams() parse flags\n  Note over UI: If no auth and not localhost → notFound()\n  UI->>DP: list('clients', filter: siteId)\n  DP->>AF: GET /v1/clients?siteId=...\n  AF->>DB: query Clients\n  DB-->>AF: Client[] (clientType)\n  AF-->>DP: Client[]\n  UI->>DP: list('categories', filter: clientType)\n  DP->>AF: GET /v1/categories?clientType=...\n  AF->>DB: query Categories\n  DB-->>AF: Category[]\n  AF-->>DP: Category[]\n  UI->>DP: list('prompts', filters: siteId + promptEnum or text)\n  DP->>AF: GET /v1/prompts?siteId=...&promptEnum=...|text=...\n  AF->>DB: query Prompts\n  DB-->>AF: Prompt[]\n  AF-->>DP: Prompt[]\n  DP-->>UI: Prompt[]\n  UI->>UI: useSubPrompts split '<new_question>' → prompts[]\n  UI->>PP: Render for each prompt (or free-text)\n\n  loop For each question\n    PP->>Parent: postMessage startLoading{module}\n    PP->>PY: POST { chatUri=/v1/chat_patient }\\n{ siteID, patientID, userID, queryText, model, category[], context{}, data }\n    PY->>LLM: Build chain and fetch\n    LLM-->>PY: ChatAnswer(parts[], context)\n    PY-->>PP: 200 { answerId, content, parts[], context }\n    PP->>AF: Poll GET /v1/chatAudits?answerId=… (if guardrails on)\n    AF->>DB: Find ChatAudit\n    DB-->>AF: score, valid, reason\n    AF-->>PP: ChatAudit\n    alt score < 7 or !valid and retries < 3\n      PP->>PY: retry POST /v1/chat_patient\n    else success\n      PP->>UI: onPromptFetched(prompt, parts)\n      PP->>Parent: postMessage stopLoading{module}\n    end\n  end\n\n  Physician->>UI: Adjust model/categories/guardrails, then ask again\n  UI->>PP: Re-run with updated settings",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🔀"
+          }
+        },
+        {
+          "title": "Block Diagram",
+          "shortText": "High-level system architecture and data flow boundaries.",
+          "description": "Maps browser UI, hook orchestration, Azure Functions resources, and Flask/LLM chat services used for grounded clinical answers.",
+          "type": "flowchart",
+          "diagram": "graph TD\n  subgraph Browser[Physician Browser]\n    U[/URL with siteId, patientId, userId, chatUri/]\n    Page[Next.js /patientPromptEnum]\n  end\n\n  U --> Page\n  subgraph UI[Next.js App aicopilot]\n    Page --> Params[useAISummaryParams]\n    Page --> Init[useAISummaryInit]\n    Page --> PR[usePromptResources]\n    Page --> Sub[useSubPrompts]\n    Page --> Ans[useAnswer]\n    Page --> Chips[PromptChips]\n    Page --> Modal[AISummaryModal]\n    Page --> Renderer[PromptRenderer]\n    Renderer --> PP[PatientPrompt]\n  end\n\n  subgraph AF[Azure Functions TypeScript]\n    Clients[/GET v1/clients/]:::fn\n    Cats[/GET v1/categories/]:::fn\n    Prompts[/GET v1/prompts/]:::fn\n    Audits[/GET v1/chatAudits/]:::fn\n    DB[(Cosmos DB)]:::db\n    Clients --> DB\n    Cats --> DB\n    Prompts --> DB\n    Audits --> DB\n  end\n\n  subgraph PY[AI Chat Service Flask]\n    Chat[/POST v1/chat_patient/]:::fn\n    LC[LangChain + LLM]\n    Chat --> LC\n  end\n\n  PR -- load prompts --> Prompts\n  Page -- clientType lookup --> Clients\n  Page -- category options --> Cats\n  PP -- POST question/context/data --> Chat\n  Chat -- ChatAnswer(parts,context) --> PP\n  PP -- poll score --> Audits\n\n  classDef fn fill:#eef,stroke:#335,stroke-width:1px;\n  classDef db fill:#efe,stroke:#393,stroke-width:1px;",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🧱"
+          }
+        }
+      ]
     },
     {
       "name": "AI Patient List Podcasts",
-      "description": "Podcasts discussing the last 12 hours of clinically significant events for a list of patients.",
+      "showcaseHeading": "Physician Patient List Briefings",
+      "showcaseSubtitle": "Concise clinical audio updates",
+      "description": "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
       "href": "/patientlistpodcasts",
       "type": "work",
-      "interestsMeWhy": "Turning clinical events into podcasts explores a novel medium for physician updates. It combines summarization, text-to-speech, and healthcare data, but the most interesting part is shaping the pipeline so it remains timely, clinically relevant, and easy to consume during a busy shift. I am excited by this format because it expands how medical insight can be delivered beyond dashboards and static notes.",
+      "interestsMeWhy": "This project interests me because it treats \"last 12 hours\" clinical review as a real-time product problem, not just a model-output problem. Physicians do not need more raw data; they need high-signal context delivered quickly while they are already multitasking. Translating fragmented patient events into concise, per-patient audio briefings is a practical way to reduce cognitive overhead without forcing another dashboard workflow.\n\nFrom an engineering perspective, I like that the hard work is orchestration and reliability, not just prompt writing. The PromptJob lifecycle, per-patient parallelization, retry behavior, and partial-progress rendering all have to work together so the UI remains useful even when one branch is slower or noisy. That combination of agentic sequencing, typed service boundaries, and resilient async UX is exactly the kind of systems design challenge I enjoy.\n\nI am also drawn to the human side of the format. Audio briefings fit naturally into pre-round prep and transition moments, where screen attention is limited but decisions still need to be made. Building AI features that respect clinical pacing, preserve relevance, and remain operationally transparent feels like meaningful product engineering with direct user value.",
       "watermark": {
         "kind": "image",
         "containerClassName": "pointer-events-none absolute bottom-5 right-5 opacity-[0.12] transition-all duration-500 group-hover:translate-y-[-2px] group-hover:opacity-[0.2]",
@@ -1823,6 +1998,12 @@
         "imageClassName": "h-28 w-28 rounded-3xl object-contain"
       },
       "demoVideoUrl": "/personal/demovideos/physician_last12hours_podcast.mov",
+      "terminalDemo": {
+        "title": "AI Patient List Podcasts Demo",
+        "subtitle": "PromptJob pipeline to playable patient audio",
+        "caption": "Demonstrates the end-to-end physician prompt flow for the last 12 hours: PromptJob creation, patient event retrieval, script drafting, Gemini TTS generation, and progressive podcast playback in the UI.",
+        "videoUrl": "/personal/demovideos/physician_last12hours_podcast.mov"
+      },
       "specifications": {
         "UI contract": [
           "The page accepts chatUri (points to Flask aichat /v1/chat_patient) and an optional time window defaulting to last 12 hours; it POSTs the physician’s prompt to start a PromptJob and receives a jobId."
@@ -1856,48 +2037,93 @@
       "technologiesUsed": [
         {
           "name": "Next.js (React + TypeScript)",
-          "url": "https://nextjs.org"
+          "url": "https://nextjs.org",
+          "emoji": "▲"
         },
         {
           "name": "React",
-          "url": "https://react.dev"
+          "url": "https://react.dev",
+          "emoji": "⚛️"
         },
         {
           "name": "TypeScript",
-          "url": "https://www.typescriptlang.org"
+          "url": "https://www.typescriptlang.org",
+          "emoji": "📘"
         },
         {
           "name": "Native Fetch API (Next.js App Router / Route Handlers)",
-          "url": "https://developer.mozilla.org/docs/Web/API/Fetch_API"
+          "url": "https://developer.mozilla.org/docs/Web/API/Fetch_API",
+          "emoji": "📡"
         },
         {
           "name": "Flask (aichat service)",
-          "url": "https://flask.palletsprojects.com"
+          "url": "https://flask.palletsprojects.com",
+          "emoji": "🐍"
         },
         {
           "name": "LangChain (agent + tools)",
-          "url": "https://python.langchain.com"
+          "url": "https://python.langchain.com",
+          "emoji": "⛓️"
         },
         {
           "name": "Google Gemini Text-to-Speech",
-          "url": "https://ai.google.dev/gemini-api/docs/speech-generation"
+          "url": "https://ai.google.dev/gemini-api/docs/speech-generation",
+          "emoji": "💠"
         },
         {
           "name": "Azure Functions (TypeScript)",
-          "url": "https://learn.microsoft.com/azure/azure-functions/"
+          "url": "https://learn.microsoft.com/azure/azure-functions/",
+          "emoji": "⚡"
         },
         {
           "name": "Azure Cosmos DB (Core/SQL)",
-          "url": "https://learn.microsoft.com/azure/cosmos-db/"
+          "url": "https://learn.microsoft.com/azure/cosmos-db/",
+          "emoji": "🌌"
         },
         {
           "name": "Azure Blob Storage",
-          "url": "https://learn.microsoft.com/azure/storage/blobs/"
+          "url": "https://learn.microsoft.com/azure/storage/blobs/",
+          "emoji": "🪣"
         }
       ],
       "blockDiagram": "flowchart TB\n  subgraph UI[Next.js PromptJob Page]\n    Q[Physician Question]\n    L[List: Patient Podcasts]\n    P[HTML5 Audio Player]\n    F[Filters: last 12h]\n    S[Status/Progress Chips]\n  end\n\n  subgraph AICHAT[Python Flask aichat]\n    R[v1/chat_patient]\n    AG[LangChain Agent]\n    T1[Tool:getPatientEvents for 12h]\n    T2[Tool:planAndDraftScript]\n    T3[Tool:geminiTTS]\n    T4[Tool:savePodcastItem]\n  end\n\n  subgraph AFNS[Azure Functions-TypeScript]\n    FN1[/GET Patients/]\n    FN2[/GET Events?since=12h/]\n    FN3[/POST PromptJobs/]\n    FN4[/GET PromptJobs/:id/]\n    FN5[/PUT PodcastItems/]\n  end\n\n  subgraph DATA[Azure Resources]\n    COSMOS[(Cosmos DB)]\n    BLOB[[Blob Storage: audio.mp3]]\n  end\n\n  Q -->|POST prompt, window:12h via chatUri| R\n  R --> AG\n  AG -->|invoke| T1 --> FN2 --> COSMOS\n  AG -->|invoke| T2\n  AG -->|invoke| T3 --> BLOB\n  AG -->|invoke| T4 --> FN5 --> COSMOS\n  R -->|create job| FN3 --> COSMOS\n  UI <--> |poll| FN4\n  UI --> |fetch list| FN5\n  COSMOS -->|podcast metadata| UI\n  BLOB -->|audioUrl - SAS | UI\n  UI -.-> L\n  UI -.-> P\n  UI -.-> S\n  UI -.-> F\n",
       "componentDiagram": "flowchart LR\n  subgraph Page[PromptJobPage.tsx]\n    HOOK0[useInit chatUri, window=12h]\n    HOOK1[usePromptJob-chatUri]\n    HOOK2[usePromptJobStatus-jobId]\n    HOOK3[usePatientPodcasts-window=12h]\n    HOOK4[useAudioPlayer]\n    HOOK5[useFilters]\n    BAR[FiltersBar]\n    LIST[PodcastList]\n    CARD[PatientPodcastCard]\n    PLAYER[PodcastPlayer]\n    EMPTY[EmptyState]\n  end\n\n  HOOK0 --> HOOK1\n  HOOK1 --> HOOK2\n  HOOK2 --> HOOK3\n  HOOK5 --> HOOK3\n  HOOK3 --> LIST\n  LIST --> CARD\n  CARD --> PLAYER\n  PLAYER --> HOOK4\n  BAR --> HOOK5\n\n  subgraph DataLayer\n    API[apiClient using native fetch]\n    STATE[useState/useEffect]\n  end\n\n  HOOK1 -->|POST /v1/chat_patient| API\n  HOOK2 -->|GET /functions/promptjobs/:id| API\n  HOOK3 -->|GET /functions/podcastItems?since=12h| API\n  API --> STATE",
-      "sequenceDiagram": "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Page as Next.js PromptJobPage\n  participant AIC as Flask aichat (/v1/chat_patient)\n  participant AG as LangChain Agent\n  participant AF as Azure Functions (TS)\n  participant DB as Cosmos DB\n  participant BL as Blob Storage\n  participant GM as Gemini TTS\n\n  Physician->>Page: Type question & Submit\n  Note over Page: chatUri prop points to /v1/chat_patient\n  Page->>AIC: POST /v1/chat_patient { prompt, window: last12h }\n  AIC->>AF: POST /promptjobs (create)\n  AF->>DB: Insert PromptJob { jobId, status: queued }\n  AF-->>AIC: 201 { jobId }\n  AIC->>AG: Start agent(jobId, window=12h)\n\n  AG->>AF: GET /events?since=12h&groupBy=patient\n  AF->>DB: Query events (labs, vitals, notes)\n  DB-->>AF: Events by patient\n  AF-->>AG: Events payload\n  AG->>AG: Plan outline + draft script per patient\n  AG->>GM: Synthesize(script, voice)\n  GM-->>AG: Audio bytes\n  AG->>BL: PUT /blobs/podcasts/{jobId}/{patientId}.mp3\n  BL-->>AG: audioUrl (SAS)\n  AG->>AF: PUT /podcastItems { jobId, patientId, audioUrl, transcript, status: ready }\n  AF->>DB: Upsert PodcastItem\n  loop Progress updates\n    AG->>AF: PUT /promptjobs/{jobId}/progress { completed, total }\n    AF->>DB: Update PromptJob\n  end\n  AG-->>AIC: Completed\n  AIC->>AF: PUT /promptjobs/{jobId} { status: complete }\n  AF->>DB: Mark complete\n\n  par UI refresh cycle\n    Page->>AF: GET /promptjobs/{jobId}\n    AF-->>Page: { status, progress }\n    Page->>AF: GET /podcastItems?jobId&since=12h\n    AF->>DB: Query podcast items\n    DB-->>AF: Results (with audioUrl)\n    AF-->>Page: PodcastItems[]\n  end\n\n  Physician->>Page: Click play on a patient\n  Page->>BL: GET audioUrl (SAS)\n  BL-->>Page: MP3 stream\n  Page-->>Physician: Audio playback + transcript + controls"
+      "sequenceDiagram": "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Page as Next.js PromptJobPage\n  participant AIC as Flask aichat (/v1/chat_patient)\n  participant AG as LangChain Agent\n  participant AF as Azure Functions (TS)\n  participant DB as Cosmos DB\n  participant BL as Blob Storage\n  participant GM as Gemini TTS\n\n  Physician->>Page: Type question & Submit\n  Note over Page: chatUri prop points to /v1/chat_patient\n  Page->>AIC: POST /v1/chat_patient { prompt, window: last12h }\n  AIC->>AF: POST /promptjobs (create)\n  AF->>DB: Insert PromptJob { jobId, status: queued }\n  AF-->>AIC: 201 { jobId }\n  AIC->>AG: Start agent(jobId, window=12h)\n\n  AG->>AF: GET /events?since=12h&groupBy=patient\n  AF->>DB: Query events (labs, vitals, notes)\n  DB-->>AF: Events by patient\n  AF-->>AG: Events payload\n  AG->>AG: Plan outline + draft script per patient\n  AG->>GM: Synthesize(script, voice)\n  GM-->>AG: Audio bytes\n  AG->>BL: PUT /blobs/podcasts/{jobId}/{patientId}.mp3\n  BL-->>AG: audioUrl (SAS)\n  AG->>AF: PUT /podcastItems { jobId, patientId, audioUrl, transcript, status: ready }\n  AF->>DB: Upsert PodcastItem\n  loop Progress updates\n    AG->>AF: PUT /promptjobs/{jobId}/progress { completed, total }\n    AF->>DB: Update PromptJob\n  end\n  AG-->>AIC: Completed\n  AIC->>AF: PUT /promptjobs/{jobId} { status: complete }\n  AF->>DB: Mark complete\n\n  par UI refresh cycle\n    Page->>AF: GET /promptjobs/{jobId}\n    AF-->>Page: { status, progress }\n    Page->>AF: GET /podcastItems?jobId&since=12h\n    AF->>DB: Query podcast items\n    DB-->>AF: Results (with audioUrl)\n    AF-->>Page: PodcastItems[]\n  end\n\n  Physician->>Page: Click play on a patient\n  Page->>BL: GET audioUrl (SAS)\n  BL-->>Page: MP3 stream\n  Page-->>Physician: Audio playback + transcript + controls",
+      "diagrams": [
+        {
+          "title": "Component Diagram",
+          "shortText": "Component responsibilities and integration touchpoints.",
+          "description": "Highlights PromptJob page hooks/components and how they interact with fetch clients, state, and podcast list/player rendering.",
+          "type": "flowchart",
+          "diagram": "flowchart LR\n  subgraph Page[PromptJobPage.tsx]\n    HOOK0[useInit chatUri, window=12h]\n    HOOK1[usePromptJob-chatUri]\n    HOOK2[usePromptJobStatus-jobId]\n    HOOK3[usePatientPodcasts-window=12h]\n    HOOK4[useAudioPlayer]\n    HOOK5[useFilters]\n    BAR[FiltersBar]\n    LIST[PodcastList]\n    CARD[PatientPodcastCard]\n    PLAYER[PodcastPlayer]\n    EMPTY[EmptyState]\n  end\n\n  HOOK0 --> HOOK1\n  HOOK1 --> HOOK2\n  HOOK2 --> HOOK3\n  HOOK5 --> HOOK3\n  HOOK3 --> LIST\n  LIST --> CARD\n  CARD --> PLAYER\n  PLAYER --> HOOK4\n  BAR --> HOOK5\n\n  subgraph DataLayer\n    API[apiClient using native fetch]\n    STATE[useState/useEffect]\n  end\n\n  HOOK1 -->|POST /v1/chat_patient| API\n  HOOK2 -->|GET /functions/promptjobs/:id| API\n  HOOK3 -->|GET /functions/podcastItems?since=12h| API\n  API --> STATE",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🧩"
+          }
+        },
+        {
+          "title": "Sequence Diagram",
+          "shortText": "End-to-end interaction flow for key operations.",
+          "description": "Shows job creation, event retrieval, script/TTS generation, progress updates, and UI polling until playable patient podcast items are ready.",
+          "type": "sequenceDiagram",
+          "diagram": "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Page as Next.js PromptJobPage\n  participant AIC as Flask aichat (/v1/chat_patient)\n  participant AG as LangChain Agent\n  participant AF as Azure Functions (TS)\n  participant DB as Cosmos DB\n  participant BL as Blob Storage\n  participant GM as Gemini TTS\n\n  Physician->>Page: Type question & Submit\n  Note over Page: chatUri prop points to /v1/chat_patient\n  Page->>AIC: POST /v1/chat_patient { prompt, window: last12h }\n  AIC->>AF: POST /promptjobs (create)\n  AF->>DB: Insert PromptJob { jobId, status: queued }\n  AF-->>AIC: 201 { jobId }\n  AIC->>AG: Start agent(jobId, window=12h)\n\n  AG->>AF: GET /events?since=12h&groupBy=patient\n  AF->>DB: Query events (labs, vitals, notes)\n  DB-->>AF: Events by patient\n  AF-->>AG: Events payload\n  AG->>AG: Plan outline + draft script per patient\n  AG->>GM: Synthesize(script, voice)\n  GM-->>AG: Audio bytes\n  AG->>BL: PUT /blobs/podcasts/{jobId}/{patientId}.mp3\n  BL-->>AG: audioUrl (SAS)\n  AG->>AF: PUT /podcastItems { jobId, patientId, audioUrl, transcript, status: ready }\n  AF->>DB: Upsert PodcastItem\n  loop Progress updates\n    AG->>AF: PUT /promptjobs/{jobId}/progress { completed, total }\n    AF->>DB: Update PromptJob\n  end\n  AG-->>AIC: Completed\n  AIC->>AF: PUT /promptjobs/{jobId} { status: complete }\n  AF->>DB: Mark complete\n\n  par UI refresh cycle\n    Page->>AF: GET /promptjobs/{jobId}\n    AF-->>Page: { status, progress }\n    Page->>AF: GET /podcastItems?jobId&since=12h\n    AF->>DB: Query podcast items\n    DB-->>AF: Results (with audioUrl)\n    AF-->>Page: PodcastItems[]\n  end\n\n  Physician->>Page: Click play on a patient\n  Page->>BL: GET audioUrl (SAS)\n  BL-->>Page: MP3 stream\n  Page-->>Physician: Audio playback + transcript + controls",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🔀"
+          }
+        },
+        {
+          "title": "Block Diagram",
+          "shortText": "High-level system architecture and data flow boundaries.",
+          "description": "Depicts the pipeline from physician prompt to LangChain orchestration, Azure Functions data access, TTS generation, and persisted podcast artifacts.",
+          "type": "flowchart",
+          "diagram": "flowchart TB\n  subgraph UI[Next.js PromptJob Page]\n    Q[Physician Question]\n    L[List: Patient Podcasts]\n    P[HTML5 Audio Player]\n    F[Filters: last 12h]\n    S[Status/Progress Chips]\n  end\n\n  subgraph AICHAT[Python Flask aichat]\n    R[v1/chat_patient]\n    AG[LangChain Agent]\n    T1[Tool:getPatientEvents for 12h]\n    T2[Tool:planAndDraftScript]\n    T3[Tool:geminiTTS]\n    T4[Tool:savePodcastItem]\n  end\n\n  subgraph AFNS[Azure Functions-TypeScript]\n    FN1[/GET Patients/]\n    FN2[/GET Events?since=12h/]\n    FN3[/POST PromptJobs/]\n    FN4[/GET PromptJobs/:id/]\n    FN5[/PUT PodcastItems/]\n  end\n\n  subgraph DATA[Azure Resources]\n    COSMOS[(Cosmos DB)]\n    BLOB[[Blob Storage: audio.mp3]]\n  end\n\n  Q -->|POST prompt, window:12h via chatUri| R\n  R --> AG\n  AG -->|invoke| T1 --> FN2 --> COSMOS\n  AG -->|invoke| T2\n  AG -->|invoke| T3 --> BLOB\n  AG -->|invoke| T4 --> FN5 --> COSMOS\n  R -->|create job| FN3 --> COSMOS\n  UI <--> |poll| FN4\n  UI --> |fetch list| FN5\n  COSMOS -->|podcast metadata| UI\n  BLOB -->|audioUrl - SAS | UI\n  UI -.-> L\n  UI -.-> P\n  UI -.-> S\n  UI -.-> F\n",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🧱"
+          }
+        }
+      ]
     },
     {
       "name": "Petly",
