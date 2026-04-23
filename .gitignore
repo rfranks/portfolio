@@ -145,3 +145,6 @@ vite.config.ts.timestamp-*
 
 # Blackjack output
 /go/blackjack/**/state.out
+
+# Local health dashboard snapshots
+/public/personal/data/health/

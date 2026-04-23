@@ -2,11 +2,7 @@
  * Utility helpers for working with `localStorage` using JSON serialization
  * and versioned payloads so values can be migrated in the future.
  */
-
-export interface Versioned<T> {
-  version: number;
-  data: T;
-}
+import type { Versioned } from "@/types/storage";
 
 /**
  * Persist a value to `localStorage` under the provided key.

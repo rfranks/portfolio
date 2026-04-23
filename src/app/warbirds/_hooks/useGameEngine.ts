@@ -131,6 +131,16 @@ import {
   randomTree,
   randomWater,
 } from "@/utils/game/environment";
+import {
+  cancelAnimationFrameRef,
+  clearManagedTimeout,
+  mapClientPointToWorld,
+  pickRandom,
+  pointInRect,
+  rectsOverlap,
+  scheduleManagedSpawner,
+  startManagedAnimationLoop,
+} from "@/utils/game/engine2d";
 import { drawTextLabels, newTextLabel } from "@/utils/game/ui";
 import { ScaledTimeoutHandle } from "@/types/hooks/time";
 
@@ -364,6 +374,7 @@ export function useGameEngine() {
   const doSingleShot = useCallback(
     (sx: number, sy: number) => {
       play("shotSfx");
+      const shotPoint = { x: sx, y: sy };
 
       const powerupImgs = getImg("powerupImgs") as Record<string, HTMLImageElement>;
       // flap on plane if clicked there
@@ -428,7 +439,14 @@ export function useGameEngine() {
           AIRSHIP_BOB_AMPLITUDE;
         const ay = a.baseY + bob;
 
-        if (sx >= a.x && sx <= a.x + AIRSHIP_SIZE && sy >= ay && sy <= ay + AIRSHIP_SIZE) {
+        if (
+          pointInRect(shotPoint, {
+            x: a.x,
+            y: ay,
+            width: AIRSHIP_SIZE,
+            height: AIRSHIP_SIZE,
+          })
+        ) {
           hit = true;
 
           state.current.airships.splice(i, 1);
@@ -477,7 +495,7 @@ export function useGameEngine() {
         const bx = d.x - offsetX;
         const by = d.y - offsetY;
 
-        if (!d.hit && sx >= bx && sx <= bx + w && sy >= by && sy <= by + h) {
+        if (!d.hit && pointInRect(shotPoint, { x: bx, y: by, width: w, height: h })) {
           play("duckSfx");
 
           changeScore(SCORE_DUCK);
@@ -512,7 +530,7 @@ export function useGameEngine() {
       // POWERUP COLLECTION
       for (let i = 0; i < state.current.powerups.length; i++) {
         const p = state.current.powerups[i];
-        if (!p.collected && sx >= p.x && sx <= p.x + 128 && sy >= p.y && sy <= p.y + 128) {
+        if (!p.collected && pointInRect(shotPoint, { x: p.x, y: p.y, width: 128, height: 128 })) {
           p.collected = true;
           if (["bomb"].includes(p.type)) {
             // bomb powerup is instant
@@ -591,7 +609,7 @@ export function useGameEngine() {
       // MEDAL PICKING
       for (let i = 0; i < state.current.medals.length; i++) {
         const m = state.current.medals[i];
-        if (sx >= m.x && sx <= m.x + MEDAL_SIZE && sy >= m.y && sy <= m.y + MEDAL_SIZE) {
+        if (pointInRect(shotPoint, { x: m.x, y: m.y, width: MEDAL_SIZE, height: MEDAL_SIZE })) {
           play("medalSfx");
 
           changeScore(MEDAL_SCORE);
@@ -625,10 +643,12 @@ export function useGameEngine() {
           e.alive &&
           e.hasStick &&
           !e.stickBroken &&
-          sx >= e.x + ENEMY_WIDTH / 2 - targetWidth / 2 &&
-          sx <= e.x + ENEMY_WIDTH / 2 + targetWidth / 2 &&
-          sy >= e.y + targetYOffset &&
-          sy <= e.y + targetYOffset + targetHeight
+          pointInRect(shotPoint, {
+            x: e.x + ENEMY_WIDTH / 2 - targetWidth / 2,
+            y: e.y + targetYOffset,
+            width: targetWidth,
+            height: targetHeight,
+          })
         ) {
           hit = true;
           e.stickBroken = true;
@@ -650,10 +670,12 @@ export function useGameEngine() {
         if (
           !hit &&
           e.alive &&
-          sx >= e.x &&
-          sx <= e.x + ENEMY_WIDTH &&
-          sy >= e.y &&
-          sy <= e.y + ENEMY_HEIGHT
+          pointInRect(shotPoint, {
+            x: e.x,
+            y: e.y,
+            width: ENEMY_WIDTH,
+            height: ENEMY_HEIGHT,
+          })
         ) {
           hit = true;
           e.alive = false;
@@ -811,7 +833,7 @@ export function useGameEngine() {
   // ─── GAME INIT + SPLASH ──────────────────────────────────────────────
   // ─── SPLASH + PRELOAD ─────────────────────────────────────────────────────
   const startSplash = useCallback(() => {
-    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    cancelAnimationFrameRef(animationFrameRef);
 
     state.current.countdownTimeouts.forEach(clearScaledTimeout);
     state.current.countdownTimeouts = [];
@@ -927,7 +949,7 @@ export function useGameEngine() {
 
     const waterImgs = getImg("waterImgs") as HTMLImageElement[];
 
-    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    cancelAnimationFrameRef(animationFrameRef);
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -958,11 +980,8 @@ export function useGameEngine() {
     let blindfoldWasActive = false;
     let blindfoldPrevCursor = DEFAULT_CURSOR;
 
-    let lastTime = performance.now();
-    const render = () => {
-      const now = performance.now();
-      advanceClock(now - lastTime);
-      lastTime = now;
+    const render = ({ deltaMs: frameDeltaMs }: { deltaMs: number }) => {
+      advanceClock(frameDeltaMs);
       const { deltaMs, scale } = clockRef.current;
       state.current.frameCount += scale;
       state.current.enemyFlapTimer += scale;
@@ -1208,48 +1227,49 @@ export function useGameEngine() {
       // spawn enemy with dynamic rate
       const enemyFrames = getImg("enemyFrames") as HTMLImageElement[][];
       if (Math.random() < state.current.dynamicDensity) {
-        const colorIdx = Math.floor(Math.random() * enemyFrames.length);
+        const selectedFrames = pickRandom(enemyFrames) ?? enemyFrames[0];
+        if (selectedFrames) {
+          const hasStick = Math.random() < 0.25;
+          let targetIdx: number = -1,
+            targetScore: number = -1;
+          if (hasStick) {
+            targetIdx = Math.floor(Math.random() * 3);
+            targetScore = [500, 250, 100][targetIdx];
+          }
 
-        const hasStick = Math.random() < 0.25;
-        let targetIdx: number = -1,
-          targetScore: number = -1;
-        if (hasStick) {
-          targetIdx = Math.floor(Math.random() * 3);
-          targetScore = [500, 250, 100][targetIdx];
+          state.current.enemies.push({
+            x: width + ENEMY_WIDTH,
+            y: 50 + Math.random() * (height - 200),
+            vy: 0,
+            flapStrength: -(ENEMY_FLAP_BASE + Math.random() * ENEMY_FLAP_RANDOM),
+            // point to the chosen frame set
+            frames: selectedFrames,
+            propFrame: Math.floor(Math.random() * 3),
+            frameDuration: 6 * (1000 / 60), // advance propeller every 6 game frames
+            frameCounter: 0,
+            alive: true,
+            glide: ENEMY_CAN_FLAP ? Math.random() < ENEMY_GLIDE_PROB : true,
+            loopProgress: -1,
+            baseY: 50 + Math.random() * (height - 200),
+            rotation: 0,
+            // initialize our “step” state
+            stepProgress: -1,
+            stepDelta: 0,
+            hasStick,
+            stickBroken: false,
+            stickImg: getImg("stickImg") as HTMLImageElement,
+            brokenStickImg: getImg("brokenStickImg") as HTMLImageElement,
+            targetImg: hasStick
+              ? (getImg("targetImgs") as HTMLImageElement[])[targetIdx]
+              : undefined!,
+            targetType: hasStick ? (`red${targetIdx + 1}` as "red1" | "red2" | "red3") : undefined!,
+            targetScore: hasStick ? targetScore : 0,
+            targetFadeAge: 0,
+            targetFadeMax: hasStick ? 60 : 0,
+            targetHit: false,
+            targetVy: 0,
+          });
         }
-
-        state.current.enemies.push({
-          x: width + ENEMY_WIDTH,
-          y: 50 + Math.random() * (height - 200),
-          vy: 0,
-          flapStrength: -(ENEMY_FLAP_BASE + Math.random() * ENEMY_FLAP_RANDOM),
-          // point to the chosen frame set
-          frames: enemyFrames[colorIdx],
-          propFrame: Math.floor(Math.random() * 3),
-          frameDuration: 6 * (1000 / 60), // advance propeller every 6 game frames
-          frameCounter: 0,
-          alive: true,
-          glide: ENEMY_CAN_FLAP ? Math.random() < ENEMY_GLIDE_PROB : true,
-          loopProgress: -1,
-          baseY: 50 + Math.random() * (height - 200),
-          rotation: 0,
-          // initialize our “step” state
-          stepProgress: -1,
-          stepDelta: 0,
-          hasStick,
-          stickBroken: false,
-          stickImg: getImg("stickImg") as HTMLImageElement,
-          brokenStickImg: getImg("brokenStickImg") as HTMLImageElement,
-          targetImg: hasStick
-            ? (getImg("targetImgs") as HTMLImageElement[])[targetIdx]
-            : undefined!,
-          targetType: hasStick ? (`red${targetIdx + 1}` as "red1" | "red2" | "red3") : undefined!,
-          targetScore: hasStick ? targetScore : 0,
-          targetFadeAge: 0,
-          targetFadeMax: hasStick ? 60 : 0,
-          targetHit: false,
-          targetVy: 0,
-        });
       }
 
       // clear sky
@@ -1263,11 +1283,12 @@ export function useGameEngine() {
         const startX = Math.min(...newRange.map((m) => m.x));
         const endX = Math.max(...newRange.map((m) => m.x + m.width));
         // check overlap against any existing mountain
-        const overlap = state.current.mountains.some((m) => {
-          const mStart = m.x;
-          const mEnd = m.x + m.width;
-          return startX < mEnd && mStart < endX;
-        });
+        const overlap = state.current.mountains.some((m) =>
+          rectsOverlap(
+            { x: startX, y: 0, width: endX - startX, height: 1 },
+            { x: m.x, y: 0, width: m.width, height: 1 },
+          ),
+        );
         if (!overlap) {
           state.current.mountains.push(...newRange);
         }
@@ -1323,23 +1344,25 @@ export function useGameEngine() {
 
       // maybe spawn an airship
       if (Math.random() < AIRSHIP_SPAWN_PROB) {
-        const color = AIRSHIP_COLORS[Math.floor(Math.random() * AIRSHIP_COLORS.length)];
-        const altPct = AIRSHIP_MIN_ALT + Math.random() * (AIRSHIP_MAX_ALT - AIRSHIP_MIN_ALT);
-        const baseY = height * altPct;
-        const speed = AIRSHIP_MIN_SPEED + Math.random() * (AIRSHIP_MAX_SPEED - AIRSHIP_MIN_SPEED);
+        const color = pickRandom(AIRSHIP_COLORS) ?? AIRSHIP_COLORS[0];
+        if (color) {
+          const altPct = AIRSHIP_MIN_ALT + Math.random() * (AIRSHIP_MAX_ALT - AIRSHIP_MIN_ALT);
+          const baseY = height * altPct;
+          const speed = AIRSHIP_MIN_SPEED + Math.random() * (AIRSHIP_MAX_SPEED - AIRSHIP_MIN_SPEED);
 
-        const startX = -AIRSHIP_SIZE * 3; // * 3 gives them a head start
-        state.current.airships.push({
-          x: startX,
-          baseY,
-          frames: (getImg("airshipFrames") as Record<string, HTMLImageElement[]>)[color],
-          frameIndex: Math.floor(Math.random() * 3),
-          frameCounter: 0,
-          frameDuration: 10 * (1000 / 60),
-          speed,
-          color,
-          bobOffset: Math.random() * Math.PI * 2,
-        });
+          const startX = -AIRSHIP_SIZE * 3; // * 3 gives them a head start
+          state.current.airships.push({
+            x: startX,
+            baseY,
+            frames: (getImg("airshipFrames") as Record<string, HTMLImageElement[]>)[color],
+            frameIndex: Math.floor(Math.random() * 3),
+            frameCounter: 0,
+            frameDuration: 10 * (1000 / 60),
+            speed,
+            color,
+            bobOffset: Math.random() * Math.PI * 2,
+          });
+        }
       }
 
       // update & draw all airships
@@ -2786,11 +2809,12 @@ export function useGameEngine() {
 
         const lakeStart = newLake.x;
         const lakeEnd = newLake.x + newLake.size * tileW;
-        const overlap = state.current.waters.some((w) => {
-          const wStart = w.x;
-          const wEnd = w.x + w.size * tileW;
-          return lakeStart < wEnd && wStart < lakeEnd;
-        });
+        const overlap = state.current.waters.some((w) =>
+          rectsOverlap(
+            { x: lakeStart, y: 0, width: lakeEnd - lakeStart, height: 1 },
+            { x: w.x, y: 0, width: w.size * tileW, height: 1 },
+          ),
+        );
         if (!overlap) {
           state.current.waters.push(newLake);
 
@@ -3008,13 +3032,13 @@ export function useGameEngine() {
         (spark) => spark.age < spark.maxAge,
       );
 
-      // loop
-      animationFrameRef.current = requestAnimationFrame(render);
-
       // sync ui state
       syncUIFromState();
     };
-    animationFrameRef.current = requestAnimationFrame(render);
+    startManagedAnimationLoop({
+      frameRef: animationFrameRef,
+      onFrame: render,
+    });
   }, [
     getImg,
     dims,
@@ -3043,10 +3067,16 @@ export function useGameEngine() {
 
       const scheduleDensityIncrease = () => {
         state.current.dynamicDensity += ENEMY_DENSITY_STEP;
-        densityTimeoutRef.current = setScaledTimeout(scheduleDensityIncrease, 45000);
       };
-      densityTimeoutRef.current = setScaledTimeout(scheduleDensityIncrease, 45000);
-      return () => clearScaledTimeout(densityTimeoutRef.current);
+      scheduleManagedSpawner({
+        handleRef: densityTimeoutRef,
+        shouldContinue: () => state.current.phase === "playing",
+        getDelayMs: () => 45000,
+        spawn: scheduleDensityIncrease,
+        setTimeoutFn: setScaledTimeout,
+        clearTimeoutFn: clearScaledTimeout,
+      });
+      return () => clearManagedTimeout(densityTimeoutRef, clearScaledTimeout);
     }
   }, [ui.phase, initLoop]);
 
@@ -3066,12 +3096,8 @@ export function useGameEngine() {
       canvas.style.width = `${screenW}px`;
       canvas.style.height = `${screenH}px`;
       ctx.scale(scaleX * dpr, scaleY * dpr);
-      let raf: number;
-      let lastTime = performance.now();
-      const render = () => {
-        const now = performance.now();
-        advanceClock(now - lastTime);
-        lastTime = now;
+      const render = ({ deltaMs }: { deltaMs: number }) => {
+        advanceClock(deltaMs);
         ctx.fillStyle = SKY_COLOR;
         ctx.fillRect(0, 0, width, height);
         state.current.textLabels = drawTextLabels({
@@ -3079,10 +3105,12 @@ export function useGameEngine() {
           ctx,
           cull: true,
         });
-        raf = requestAnimationFrame(render);
       };
-      render();
-      return () => cancelAnimationFrame(raf);
+      startManagedAnimationLoop({
+        frameRef: animationFrameRef,
+        onFrame: render,
+      });
+      return () => cancelAnimationFrameRef(animationFrameRef);
     }
   }, [ui.phase, screenDims, canvasRef, dims]);
 
@@ -3123,11 +3151,15 @@ export function useGameEngine() {
     }
 
     // compute base click coords
-    const rect = canvasRef.current!.getBoundingClientRect();
-    const scaleX = dims.width / rect.width;
-    const scaleY = dims.height / rect.height;
-    const baseX = (e.clientX - rect.left) * scaleX,
-      baseY = (e.clientY - rect.top) * scaleY;
+    const worldPoint = mapClientPointToWorld({
+      clientX: e.clientX,
+      clientY: e.clientY,
+      bounds: canvasRef.current!.getBoundingClientRect(),
+      worldWidth: dims.width,
+      worldHeight: dims.height,
+    });
+    const baseX = worldPoint.x;
+    const baseY = worldPoint.y;
 
     if (isSpray) {
       // fire that many pellets, each random‐offset & delayed
@@ -3187,9 +3219,7 @@ export function useGameEngine() {
   useEffect(() => {
     return () => {
       // Cancel all timers, animation frames, etc. on unmount
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      cancelAnimationFrameRef(animationFrameRef);
     };
   }, []);
 

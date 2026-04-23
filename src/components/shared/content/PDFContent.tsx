@@ -8,6 +8,8 @@ import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { usePanZoomViewport } from "@/hooks/html/usePanZoomViewport";
+import InteractiveViewportShell from "@/components/shared/visualization/InteractiveViewportShell";
+import { toSxArray } from "@/utils/sx/toSxArray";
 
 type PDFContentProps = {
   src: string;
@@ -23,14 +25,6 @@ type PDFContentProps = {
   openLinkLabel?: string;
   openLinkHref?: string;
   openLinkDescription?: React.ReactNode;
-};
-
-const toSxArray = (value?: SxProps<Theme>) => {
-  if (value == null) {
-    return [];
-  }
-
-  return Array.isArray(value) ? value : [value];
 };
 
 const createMediaKeyDownHandler =
@@ -86,9 +80,12 @@ export default function PDFContent({
 
   return (
     <Box sx={containerSxArray}>
-      <Box
-        ref={containerRef}
-        sx={[
+      <InteractiveViewportShell
+        containerRef={containerRef}
+        viewportRef={viewportRef}
+        width="100%"
+        height="100%"
+        containerSx={[
           (theme) => ({
             overflow: "hidden",
             borderRadius: "18px",
@@ -99,11 +96,10 @@ export default function PDFContent({
               theme.palette.mode === "light"
                 ? alpha(theme.palette.common.white, 0.8)
                 : "rgba(15,23,42,0.48)",
-            touchAction: "none",
-            overscrollBehavior: "contain",
           }),
           ...frameSxArray,
         ]}
+        viewportSx={previewSxArray}
         role={canActivate ? "button" : undefined}
         tabIndex={canActivate ? 0 : -1}
         onClick={onMediaActivate}
@@ -115,63 +111,50 @@ export default function PDFContent({
         onDoubleClick={handleDoubleClick}
       >
         <Box
-          ref={viewportRef}
-          sx={[
-            {
-              width: "100%",
-              height: "100%",
-              overflow: "hidden",
-              position: "relative",
-            },
-            ...previewSxArray,
-          ]}
+          sx={{
+            width: "100%",
+            height: "100%",
+            transformOrigin: "top left",
+            transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+            cursor: isDragging ? "grabbing" : "grab",
+            transition: isDragging ? "none" : "transform 0.12s ease-out",
+          }}
         >
           <Box
-            sx={{
-              width: "100%",
-              height: "100%",
-              transformOrigin: "top left",
-              transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
-              cursor: isDragging ? "grabbing" : "grab",
-              transition: isDragging ? "none" : "transform 0.12s ease-out",
-            }}
+            component="object"
+            data={resolvedPdfSrc}
+            type="application/pdf"
+            aria-label={title}
+            sx={[
+              {
+                display: "block",
+                width: "100%",
+                height: "100%",
+              },
+              ...objectSxArray,
+            ]}
           >
             <Box
-              component="object"
-              data={resolvedPdfSrc}
-              type="application/pdf"
-              aria-label={title}
+              component="iframe"
+              src={resolvedPdfSrc}
+              title={title}
+              onLoad={onLoad}
               sx={[
-                {
-                  display: "block",
+                (theme) => ({
                   width: "100%",
                   height: "100%",
-                },
-                ...objectSxArray,
+                  border: 0,
+                  bgcolor:
+                    theme.palette.mode === "light"
+                      ? alpha(theme.palette.common.white, 0.84)
+                      : "rgba(15,23,42,0.48)",
+                }),
+                ...iframeSxArray,
               ]}
-            >
-              <Box
-                component="iframe"
-                src={resolvedPdfSrc}
-                title={title}
-                onLoad={onLoad}
-                sx={[
-                  (theme) => ({
-                    width: "100%",
-                    height: "100%",
-                    border: 0,
-                    bgcolor:
-                      theme.palette.mode === "light"
-                        ? alpha(theme.palette.common.white, 0.84)
-                        : "rgba(15,23,42,0.48)",
-                  }),
-                  ...iframeSxArray,
-                ]}
-              />
-            </Box>
+            />
           </Box>
         </Box>
-      </Box>
+      </InteractiveViewportShell>
       {showOpenLink ? (
         <Stack
           direction="row"

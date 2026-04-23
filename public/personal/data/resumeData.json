@@ -1599,6 +1599,21 @@
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
       },
+      "presentation": {
+        "useSharedOverviewSlide": false,
+        "useSharedDemoSlide": true,
+        "useSharedArchitectureDiagramsSlide": true,
+        "enableWhyThisInterestsSection": false,
+        "demoLayout": "default",
+        "sectionOrder": ["overview", "demo", "technologies", "specifications", "diagrams"],
+        "prefetchPlan": {
+          "overview": ["markdown", "image", "video"],
+          "demo": ["video", "image"],
+          "technologies": ["markdown"],
+          "specifications": ["markdown", "pdf"],
+          "diagrams": ["diagram", "pdf"]
+        }
+      },
       "presentationOrigin": "work"
     },
     {
@@ -1761,6 +1776,21 @@
         "technologies": "/audio/switch_001.ogg",
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
+      },
+      "presentation": {
+        "useSharedOverviewSlide": false,
+        "useSharedDemoSlide": true,
+        "useSharedArchitectureDiagramsSlide": true,
+        "enableWhyThisInterestsSection": false,
+        "demoLayout": "default",
+        "sectionOrder": ["overview", "demo", "technologies", "specifications", "diagrams"],
+        "prefetchPlan": {
+          "overview": ["markdown", "image", "video"],
+          "demo": ["video", "image"],
+          "technologies": ["markdown"],
+          "specifications": ["markdown", "pdf"],
+          "diagrams": ["diagram", "pdf"]
+        }
       },
       "presentationOrigin": "work"
     },
@@ -2015,6 +2045,21 @@
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
       },
+      "presentation": {
+        "useSharedOverviewSlide": true,
+        "useSharedDemoSlide": true,
+        "useSharedArchitectureDiagramsSlide": true,
+        "enableWhyThisInterestsSection": false,
+        "demoLayout": "default",
+        "sectionOrder": ["overview", "demo", "technologies", "specifications", "diagrams"],
+        "prefetchPlan": {
+          "overview": ["markdown", "image", "video"],
+          "demo": ["video", "image"],
+          "technologies": ["markdown"],
+          "specifications": ["markdown", "pdf"],
+          "diagrams": ["diagram", "pdf"]
+        }
+      },
       "presentationOrigin": "work"
     },
     {
@@ -2169,6 +2214,22 @@
         "technologies": "/audio/switch_001.ogg",
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
+      },
+      "presentation": {
+        "useSharedOverviewSlide": true,
+        "useSharedDemoSlide": true,
+        "useSharedArchitectureDiagramsSlide": true,
+        "enableWhyThisInterestsSection": true,
+        "demoLayout": "podcasts",
+        "sectionOrder": ["overview", "why", "demo", "technologies", "specifications", "diagrams"],
+        "prefetchPlan": {
+          "overview": ["markdown", "image", "video"],
+          "why": ["markdown"],
+          "demo": ["video", "image"],
+          "technologies": ["markdown"],
+          "specifications": ["markdown", "pdf"],
+          "diagrams": ["diagram", "pdf"]
+        }
       },
       "presentationOrigin": "work"
     },

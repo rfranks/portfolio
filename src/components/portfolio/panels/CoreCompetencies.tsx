@@ -22,6 +22,7 @@ import {
   EmojiListAvatar,
   GridCloudNavigationSlide,
   PortfolioPanelShell,
+  VirtualizedPanelList,
 } from "@/components/shared";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
@@ -50,6 +51,10 @@ export type CompetencyCategory = {
   emoji?: string;
   shortText?: string;
   subTitle?: string;
+};
+type ResolvedCompetencyItem = Omit<CompetencyItem, "emoji"> & { emoji: string };
+type ResolvedCompetencyCategory = Omit<CompetencyCategory, "items"> & {
+  items: ResolvedCompetencyItem[];
 };
 type CompetencySkill = CompetencyCategory["items"][number];
 type NodeTransitionSnapshot = {
@@ -84,6 +89,8 @@ const SKILL_EXPAND_SOUND_PATHS = [
   "/audio/powerUp11.mp3",
 ] as const;
 const SKILL_CLOSE_SOUND_PATH = "/audio/whoosh.mp3";
+const MOBILE_VIRTUALIZATION_MIN_ITEM_COUNT = 8;
+const MOBILE_VIRTUALIZATION_ESTIMATED_ROW_HEIGHT = 108;
 const NODE_CURSOR = "url('/assets/cursors/PNG/Basic/Default/pointer_scifi_a.png') 4 2, pointer";
 const SKILL_REFERENCE_LINKS: Record<string, string> = {
   "Retrieval-augmented generation": "https://en.wikipedia.org/wiki/Retrieval-augmented_generation",
@@ -254,13 +261,21 @@ export default function CoreCompetencies({
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
   const sourceCategories = categoriesOverride ?? competencies.categories;
-  const categories = React.useMemo(
+  const categories = React.useMemo<ResolvedCompetencyCategory[]>(
     () =>
-      [...sourceCategories].sort((left, right) =>
-        left.title.localeCompare(right.title, undefined, {
-          sensitivity: "base",
-        }),
-      ),
+      [...sourceCategories]
+        .map((category) => ({
+          ...category,
+          items: category.items.map((item) => ({
+            ...item,
+            emoji: resolveCompetencyEmoji(category.title, item.label, item.emoji),
+          })),
+        }))
+        .sort((left, right) =>
+          left.title.localeCompare(right.title, undefined, {
+            sensitivity: "base",
+          }),
+        ),
     [sourceCategories],
   );
   const [selectedOrbIndex, setSelectedOrbIndex] = React.useState<number | null>(null);
@@ -371,88 +386,79 @@ export default function CoreCompetencies({
             height: "100%",
           },
           customContent: (
-            <Stack
-              spacing={0.9}
-              sx={{
-                minHeight: 0,
-                height: "100%",
-                overflowY: "auto",
-                overscrollBehavior: "contain",
-                pr: 0.5,
-              }}
-            >
-              {category.items.map((competency, competencyIndex) =>
-                (() => {
-                  const maybeSourceLink = (competency as { sourceLink?: unknown }).sourceLink;
-                  const maybeEmoji = (competency as { emoji?: unknown }).emoji;
-                  const resolvedEmoji =
-                    typeof maybeEmoji === "string" && maybeEmoji.trim()
-                      ? maybeEmoji.trim()
-                      : resolveCompetencyEmoji(category.title, competency.label);
-                  const resolvedSourceLink =
-                    typeof maybeSourceLink === "string" && maybeSourceLink.trim()
-                      ? maybeSourceLink.trim()
-                      : getSkillReferenceUrl(competency.label);
+            <VirtualizedPanelList
+              items={category.items}
+              virtualizationEnabled={
+                !isMdUp && category.items.length >= MOBILE_VIRTUALIZATION_MIN_ITEM_COUNT
+              }
+              estimateItemHeight={MOBILE_VIRTUALIZATION_ESTIMATED_ROW_HEIGHT}
+              overscan={4}
+              itemKey={(competency) => `${category.title}-${competency.label}-subtitle`}
+              sx={{ pr: 0.5 }}
+              contentSx={{ minHeight: 0 }}
+              renderItem={(competency, competencyIndex) => {
+                const maybeSourceLink = (competency as { sourceLink?: unknown }).sourceLink;
+                const resolvedSourceLink =
+                  typeof maybeSourceLink === "string" && maybeSourceLink.trim()
+                    ? maybeSourceLink.trim()
+                    : getSkillReferenceUrl(competency.label);
 
-                  return (
-                    <Box
-                      key={`${category.title}-${competency.label}-subtitle`}
-                      data-grid-cloud-stagger-leaf="true"
-                      sx={{
-                        "--grid-cloud-leaf-index": competencyIndex,
-                        px: 0.8,
-                        py: 0.55,
-                        borderRadius: "10px",
-                      }}
-                    >
-                      <Stack direction="row" spacing={1.2} alignItems="stretch">
-                        <Box
-                          sx={{
-                            minWidth: 46,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            alignSelf: "stretch",
-                          }}
+                return (
+                  <Box
+                    sx={{
+                      "--grid-cloud-leaf-index": competencyIndex,
+                      px: 0.8,
+                      py: 0.55,
+                      borderRadius: "10px",
+                    }}
+                  >
+                    <Stack direction="row" spacing={1.2} alignItems="stretch">
+                      <Box
+                        sx={{
+                          minWidth: 46,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          alignSelf: "stretch",
+                        }}
+                      >
+                        <EmojiListAvatar
+                          emoji={competency.emoji}
+                          size={40}
+                          fontSize="2rem"
+                          borderAlpha={0.26}
+                          backgroundAlpha={0.1}
+                        />
+                      </Box>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography
+                          component={Link}
+                          href={resolvedSourceLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          underline="hover"
+                          variant="subtitle2"
+                          sx={{ fontWeight: 700, lineHeight: 1.25 }}
                         >
-                          <EmojiListAvatar
-                            emoji={resolvedEmoji}
-                            size={40}
-                            fontSize="2rem"
-                            borderAlpha={0.26}
-                            backgroundAlpha={0.1}
-                          />
-                        </Box>
-                        <Box sx={{ minWidth: 0, flex: 1 }}>
-                          <Typography
-                            component={Link}
-                            href={resolvedSourceLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            underline="hover"
-                            variant="subtitle2"
-                            sx={{ fontWeight: 700, lineHeight: 1.25 }}
-                          >
-                            {competency.label}
-                          </Typography>
-                          <Typography
-                            variant="subtitle2"
-                            color="text.secondary"
-                            sx={{ lineHeight: 1.3 }}
-                          >
-                            {competency.description}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </Box>
-                  );
-                })(),
-              )}
-            </Stack>
+                          {competency.label}
+                        </Typography>
+                        <Typography
+                          variant="subtitle2"
+                          color="text.secondary"
+                          sx={{ lineHeight: 1.3 }}
+                        >
+                          {competency.description}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+                );
+              }}
+            />
           ),
         };
       }),
-    [categories],
+    [categories, isMdUp],
   );
 
   React.useEffect(() => {

@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["mermaid", "pdfjs-dist", "dnaviz"],
   },
+  turbopack: {},
   images: {
     unoptimized: true,
   },

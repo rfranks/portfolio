@@ -125,6 +125,10 @@ function resolvePitchChapterErrorMessage(error: unknown, fallback: string): stri
   }
 
   if (error instanceof Error) {
+    if (error.name === "TimeoutError") {
+      return "PathForger request timed out. Please retry; the pipeline will resume with your current story setup.";
+    }
+
     const normalized = error.message.trim().toLowerCase();
     if (
       normalized.includes("too small") ||
@@ -132,6 +136,12 @@ function resolvePitchChapterErrorMessage(error: unknown, fallback: string): stri
       normalized.includes("required")
     ) {
       return "PathForger is missing required story setup fields. Please try auto-generating the setup values again.";
+    }
+    if (
+      normalized.includes("timed out") ||
+      normalized.includes("signal is aborted without reason")
+    ) {
+      return "PathForger request timed out. Please retry; the pipeline will resume with your current story setup.";
     }
     return error.message;
   }

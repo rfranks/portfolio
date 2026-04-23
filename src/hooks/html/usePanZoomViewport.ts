@@ -1,134 +1,40 @@
 import * as React from "react";
+import {
+  DEFAULT_INITIAL_STATE,
+  INTERACTIVE_VIEWPORT_PRESET_DEFAULTS,
+} from "@/hooks/html/panZoomViewportDefaults";
+import { normalizeViewportSnapshot } from "@/hooks/html/panZoomViewportSnapshot";
+import type {
+  PanZoomTransformState,
+  PanZoomViewportAutoFitAlign,
+  PanZoomViewportPreferences,
+  PanZoomViewportSnapshot,
+  PanZoomViewportZoomMode,
+} from "@/types/hooks/panZoomViewport";
+import type { UsePanZoomViewportOptions } from "@/types/hooks/usePanZoomViewport";
 
-export type PanZoomTransformState = {
-  scale: number;
-  translateX: number;
-  translateY: number;
-};
-
-export type InteractiveViewportPreset = "media" | "diagram";
-
-type UsePanZoomViewportOptions = {
-  preset?: InteractiveViewportPreset;
-  initialState?: PanZoomTransformState;
-  minScale?: number;
-  maxScale?: number;
-  panStep?: number;
-  clickZoomFactor?: number;
-  iconZoomFactor?: number;
-  doubleClickZoomFactor?: number;
-  panCalibrationAlpha?: number;
-  panReferenceDelta?: number;
-  minPanEma?: number;
-  minPanDeltaMultiplier?: number;
-  maxPanDeltaMultiplier?: number;
-  wheelCalibrationAlpha?: number;
-  wheelNormalizedGain?: number;
-  pinchCalibrationAlpha?: number;
-  pinchNormalizedGain?: number;
-  minWheelEma?: number;
-  minPinchLogEma?: number;
-  shouldIgnorePointerTarget?: (target: HTMLElement) => boolean;
-};
-
-const DEFAULT_INITIAL_STATE: PanZoomTransformState = {
-  scale: 1,
-  translateX: 0,
-  translateY: 0,
-};
-
-const INTERACTIVE_VIEWPORT_PRESET_DEFAULTS: Record<
-  InteractiveViewportPreset,
-  {
-    minScale: number;
-    maxScale: number;
-    panStep: number;
-    clickZoomFactor: number;
-    iconZoomFactor: number;
-    doubleClickZoomFactor: number;
-    panCalibrationAlpha: number;
-    panReferenceDeltaMultiplier: number;
-    minPanEma: number;
-    minPanDeltaMultiplier: number;
-    maxPanDeltaMultiplier: number;
-    wheelCalibrationAlpha: number;
-    wheelNormalizedGain: number;
-    pinchCalibrationAlpha: number;
-    pinchNormalizedGain: number;
-    minWheelEma: number;
-    minPinchLogEma: number;
-  }
-> = {
-  media: {
-    minScale: 0.1,
-    maxScale: 8,
-    panStep: 50,
-    clickZoomFactor: 2.5,
-    iconZoomFactor: 2.5,
-    doubleClickZoomFactor: 2.5,
-    panCalibrationAlpha: 0.2,
-    panReferenceDeltaMultiplier: 0.18,
-    minPanEma: 0.5,
-    minPanDeltaMultiplier: 0.35,
-    maxPanDeltaMultiplier: 1.85,
-    wheelCalibrationAlpha: 0.18,
-    wheelNormalizedGain: 0.24,
-    pinchCalibrationAlpha: 0.22,
-    pinchNormalizedGain: 0.52,
-    minWheelEma: 1,
-    minPinchLogEma: 0.0015,
-  },
-  diagram: {
-    minScale: 0.1,
-    maxScale: 8,
-    panStep: 50,
-    clickZoomFactor: 2.5,
-    iconZoomFactor: 2.5,
-    doubleClickZoomFactor: 2.5,
-    panCalibrationAlpha: 0.2,
-    panReferenceDeltaMultiplier: 0.18,
-    minPanEma: 0.5,
-    minPanDeltaMultiplier: 0.35,
-    maxPanDeltaMultiplier: 1.85,
-    wheelCalibrationAlpha: 0.18,
-    wheelNormalizedGain: 0.24,
-    pinchCalibrationAlpha: 0.22,
-    pinchNormalizedGain: 0.52,
-    minWheelEma: 1,
-    minPinchLogEma: 0.0015,
-  },
-};
-
-export function buildInteractiveViewportGridSx(params?: {
-  enabled?: boolean;
-  dotColor?: string;
-  dotSizePx?: number;
-  spacingPx?: number;
-  backgroundColor?: string;
-}): React.CSSProperties {
-  const enabled = params?.enabled ?? false;
-  if (!enabled) {
-    return {
-      backgroundColor: params?.backgroundColor ?? "#fff",
-    };
-  }
-
-  const dotSizePx = Math.max(0.5, params?.dotSizePx ?? 2);
-  const spacingPx = Math.max(4, params?.spacingPx ?? 30);
-  const dotColor = params?.dotColor ?? "#cecece";
-
-  return {
-    backgroundColor: params?.backgroundColor ?? "#fff",
-    backgroundImage: `radial-gradient(${dotColor} ${dotSizePx}px, transparent ${dotSizePx}px)`,
-    backgroundSize: `${spacingPx}px ${spacingPx}px`,
-  };
-}
+export { buildInteractiveViewportGridSx } from "@/hooks/html/panZoomViewportSnapshot";
+export {
+  deserializePanZoomViewportSnapshot,
+  serializePanZoomViewportSnapshot,
+} from "@/hooks/html/panZoomViewportSnapshot";
+export type { InteractiveViewportPreset } from "@/types/hooks/panZoomViewport";
+export type {
+  PanZoomTransformState,
+  PanZoomViewportAutoFitAlign,
+  PanZoomViewportPreferences,
+  PanZoomViewportSnapshot,
+  PanZoomViewportZoomMode,
+} from "@/types/hooks/panZoomViewport";
+export type { UsePanZoomViewportOptions } from "@/types/hooks/usePanZoomViewport";
 
 export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
   const preset = options.preset ?? "media";
   const presetDefaults = INTERACTIVE_VIEWPORT_PRESET_DEFAULTS[preset];
   const {
     initialState = DEFAULT_INITIAL_STATE,
+    preferencesStorageKey,
+    initialPreferences,
     minScale = presetDefaults.minScale,
     maxScale = presetDefaults.maxScale,
     panStep = presetDefaults.panStep,
@@ -162,10 +68,12 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
   const pendingWheelPointerRef = React.useRef<{ x: number; y: number } | null>(null);
   const wheelDeltaEmaRef = React.useRef(16);
   const wheelCommitTimeoutRef = React.useRef<number | null>(null);
+  const calibrationPersistTimeoutRef = React.useRef<number | null>(null);
   const pinchDistanceRef = React.useRef<number | null>(null);
   const pinchMidpointRef = React.useRef<{ x: number; y: number } | null>(null);
   const pinchLogEmaRef = React.useRef(0.012);
   const panDeltaEmaRef = React.useRef(8);
+  const deviceProfileRef = React.useRef<"pointer" | "touch">("pointer");
 
   const [scale, setScale] = React.useState(initialState.scale);
   const [translateX, setTranslateX] = React.useState(initialState.translateX);
@@ -190,15 +98,139 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
     },
   ]);
   const [historyIndex, setHistoryIndex] = React.useState(0);
+  const [viewportPreferences, setViewportPreferences] = React.useState<PanZoomViewportPreferences>(
+    initialPreferences ?? {},
+  );
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
   const maxGestureStepFactor = Math.max(clickZoomFactor, iconZoomFactor, doubleClickZoomFactor);
   const minGestureStepFactor = 1 / maxGestureStepFactor;
+  const calibrationStorageKey = React.useMemo(
+    () => (preferencesStorageKey ? `${preferencesStorageKey}:gesture-calibration` : null),
+    [preferencesStorageKey],
+  );
 
   const clampScale = React.useCallback(
     (value: number) => Math.min(maxScale, Math.max(minScale, value)),
     [maxScale, minScale],
+  );
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const prefersCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches ?? false;
+    const hasTouch = (window.navigator?.maxTouchPoints ?? 0) > 0;
+    deviceProfileRef.current = hasTouch || prefersCoarsePointer ? "touch" : "pointer";
+  }, []);
+
+  React.useEffect(() => {
+    if (!preferencesStorageKey || typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(preferencesStorageKey);
+      if (!raw) {
+        return;
+      }
+      const parsed = JSON.parse(raw) as PanZoomViewportPreferences;
+      if (!parsed || typeof parsed !== "object") {
+        return;
+      }
+      setViewportPreferences((current) => ({ ...current, ...parsed }));
+    } catch {
+      // ignore malformed preference payloads
+    }
+  }, [preferencesStorageKey]);
+
+  React.useEffect(() => {
+    if (!calibrationStorageKey || typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(calibrationStorageKey);
+      if (!raw) {
+        return;
+      }
+      const parsed = JSON.parse(raw) as Record<
+        string,
+        { wheelDeltaEma?: number; pinchLogEma?: number; panDeltaEma?: number }
+      >;
+      const profile = deviceProfileRef.current;
+      const profileCalibration = parsed?.[profile];
+      if (!profileCalibration || typeof profileCalibration !== "object") {
+        return;
+      }
+      if (
+        typeof profileCalibration.wheelDeltaEma === "number" &&
+        Number.isFinite(profileCalibration.wheelDeltaEma)
+      ) {
+        wheelDeltaEmaRef.current = Math.max(minWheelEma, profileCalibration.wheelDeltaEma);
+      }
+      if (
+        typeof profileCalibration.pinchLogEma === "number" &&
+        Number.isFinite(profileCalibration.pinchLogEma)
+      ) {
+        pinchLogEmaRef.current = Math.max(minPinchLogEma, profileCalibration.pinchLogEma);
+      }
+      if (
+        typeof profileCalibration.panDeltaEma === "number" &&
+        Number.isFinite(profileCalibration.panDeltaEma)
+      ) {
+        panDeltaEmaRef.current = Math.max(minPanEma, profileCalibration.panDeltaEma);
+      }
+    } catch {
+      // ignore malformed calibration payloads
+    }
+  }, [calibrationStorageKey, minPanEma, minPinchLogEma, minWheelEma]);
+
+  const queueCalibrationPersist = React.useCallback(() => {
+    if (!calibrationStorageKey || typeof window === "undefined") {
+      return;
+    }
+
+    if (calibrationPersistTimeoutRef.current !== null) {
+      window.clearTimeout(calibrationPersistTimeoutRef.current);
+    }
+    calibrationPersistTimeoutRef.current = window.setTimeout(() => {
+      calibrationPersistTimeoutRef.current = null;
+      try {
+        const currentRaw = window.localStorage.getItem(calibrationStorageKey);
+        const current = currentRaw ? (JSON.parse(currentRaw) as Record<string, unknown>) : {};
+        const profile = deviceProfileRef.current;
+        const next = {
+          ...(typeof current === "object" && current ? current : {}),
+          [profile]: {
+            wheelDeltaEma: wheelDeltaEmaRef.current,
+            pinchLogEma: pinchLogEmaRef.current,
+            panDeltaEma: panDeltaEmaRef.current,
+          },
+        };
+        window.localStorage.setItem(calibrationStorageKey, JSON.stringify(next));
+      } catch {
+        // ignore storage errors
+      }
+    }, 220);
+  }, [calibrationStorageKey]);
+
+  const updateViewportPreferences = React.useCallback(
+    (patch: Partial<PanZoomViewportPreferences>) => {
+      setViewportPreferences((current) => {
+        const next = { ...current, ...patch };
+        if (preferencesStorageKey && typeof window !== "undefined") {
+          try {
+            window.localStorage.setItem(preferencesStorageKey, JSON.stringify(next));
+          } catch {
+            // ignore storage write failures
+          }
+        }
+        return next;
+      });
+    },
+    [preferencesStorageKey],
   );
 
   const pushHistory = React.useCallback(
@@ -284,6 +316,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
 
       panDeltaEmaRef.current =
         panDeltaEmaRef.current * (1 - panCalibrationAlpha) + magnitude * panCalibrationAlpha;
+      queueCalibrationPersist();
       const panDeltaMultiplier = Math.min(
         maxPanDeltaMultiplier,
         Math.max(
@@ -303,18 +336,21 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       minPanEma,
       panCalibrationAlpha,
       panReferenceDelta,
+      queueCalibrationPersist,
     ],
   );
 
   const handleZoomIn = React.useCallback(() => {
     const nextScale = clampScale(transformRef.current.scale * iconZoomFactor);
     doTransform(nextScale, transformRef.current.translateX, transformRef.current.translateY);
-  }, [clampScale, doTransform, iconZoomFactor]);
+    updateViewportPreferences({ lastZoomMode: "icon" });
+  }, [clampScale, doTransform, iconZoomFactor, updateViewportPreferences]);
 
   const handleZoomOut = React.useCallback(() => {
     const nextScale = clampScale(transformRef.current.scale / iconZoomFactor);
     doTransform(nextScale, transformRef.current.translateX, transformRef.current.translateY);
-  }, [clampScale, doTransform, iconZoomFactor]);
+    updateViewportPreferences({ lastZoomMode: "icon" });
+  }, [clampScale, doTransform, iconZoomFactor, updateViewportPreferences]);
 
   const handleReset = React.useCallback(() => {
     applyFitTransform(initialStateRef.current);
@@ -379,6 +415,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
         e.preventDefault();
         const nextScale = clampScale(transformRef.current.scale * clickZoomFactor);
         zoomAtViewportPoint(e.clientX, e.clientY, nextScale);
+        updateViewportPreferences({ lastZoomMode: "click" });
         return;
       }
       if (e.shiftKey && e.button === 0) {
@@ -386,6 +423,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
         e.preventDefault();
         const nextScale = clampScale(transformRef.current.scale / clickZoomFactor);
         zoomAtViewportPoint(e.clientX, e.clientY, nextScale);
+        updateViewportPreferences({ lastZoomMode: "click" });
         return;
       }
 
@@ -395,7 +433,13 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
         setLastPointerPos({ x: e.clientX, y: e.clientY });
       }
     },
-    [clampScale, clickZoomFactor, shouldIgnorePointerTarget, zoomAtViewportPoint],
+    [
+      clampScale,
+      clickZoomFactor,
+      shouldIgnorePointerTarget,
+      updateViewportPreferences,
+      zoomAtViewportPoint,
+    ],
   );
 
   const handlePointerMove = React.useCallback(
@@ -447,8 +491,15 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       e.preventDefault();
       const nextScale = clampScale(transformRef.current.scale * doubleClickZoomFactor);
       zoomAtViewportPoint(e.clientX, e.clientY, nextScale);
+      updateViewportPreferences({ lastZoomMode: "doubleClick" });
     },
-    [clampScale, doubleClickZoomFactor, shouldIgnorePointerTarget, zoomAtViewportPoint],
+    [
+      clampScale,
+      doubleClickZoomFactor,
+      shouldIgnorePointerTarget,
+      updateViewportPreferences,
+      zoomAtViewportPoint,
+    ],
   );
 
   const getTouchDistance = (touchA: Touch, touchB: Touch) =>
@@ -468,6 +519,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       const absDelta = Math.abs(e.deltaY);
       wheelDeltaEmaRef.current =
         wheelDeltaEmaRef.current * (1 - wheelCalibrationAlpha) + absDelta * wheelCalibrationAlpha;
+      queueCalibrationPersist();
       const normalizedDelta = e.deltaY / Math.max(minWheelEma, wheelDeltaEmaRef.current);
       const rawWheelFactor = Math.exp(-normalizedDelta * wheelNormalizedGain);
       const boundedWheelFactor = Math.min(
@@ -475,6 +527,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
         Math.max(minGestureStepFactor, rawWheelFactor),
       );
       const nextScale = clampScale(baseScale * boundedWheelFactor);
+      updateViewportPreferences({ lastZoomMode: "wheel" });
       pendingWheelScaleRef.current = nextScale;
       pendingWheelPointerRef.current = { x: e.clientX, y: e.clientY };
 
@@ -533,8 +586,10 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       minGestureStepFactor,
       minWheelEma,
       pushHistory,
+      queueCalibrationPersist,
       wheelCalibrationAlpha,
       wheelNormalizedGain,
+      updateViewportPreferences,
     ],
   );
 
@@ -569,6 +624,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
         pinchLogEmaRef.current =
           pinchLogEmaRef.current * (1 - pinchCalibrationAlpha) +
           Math.abs(pinchLogDelta) * pinchCalibrationAlpha;
+        queueCalibrationPersist();
       }
       const normalizedPinchDelta = pinchLogDelta / Math.max(minPinchLogEma, pinchLogEmaRef.current);
       const amplifiedRatio = Math.min(
@@ -577,6 +633,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       );
       const currentScale = transformRef.current.scale;
       const nextScale = clampScale(currentScale * amplifiedRatio);
+      updateViewportPreferences({ lastZoomMode: "pinch" });
       const viewport = viewportRef.current;
 
       if (!viewport) {
@@ -627,6 +684,8 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       normalizePanDelta,
       pinchCalibrationAlpha,
       pinchNormalizedGain,
+      queueCalibrationPersist,
+      updateViewportPreferences,
     ],
   );
 
@@ -674,6 +733,10 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
         window.clearTimeout(wheelCommitTimeoutRef.current);
         wheelCommitTimeoutRef.current = null;
       }
+      if (calibrationPersistTimeoutRef.current !== null) {
+        window.clearTimeout(calibrationPersistTimeoutRef.current);
+        calibrationPersistTimeoutRef.current = null;
+      }
       pendingWheelPointerRef.current = null;
       container.removeEventListener("wheel", handleWheel, listenerOptions);
       container.removeEventListener("touchstart", handleTouchStart, listenerOptions);
@@ -693,6 +756,71 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       container.removeEventListener("gestureend", preventGesture as EventListener, listenerOptions);
     };
   }, [handleTouchEnd, handleTouchMove, handleTouchStart, handleWheel]);
+
+  const resetDeviceGestureCalibration = React.useCallback(() => {
+    wheelDeltaEmaRef.current = 16;
+    pinchLogEmaRef.current = 0.012;
+    panDeltaEmaRef.current = 8;
+    if (calibrationStorageKey && typeof window !== "undefined") {
+      try {
+        const currentRaw = window.localStorage.getItem(calibrationStorageKey);
+        if (!currentRaw) {
+          return;
+        }
+        const current = JSON.parse(currentRaw) as Record<string, unknown>;
+        if (!current || typeof current !== "object") {
+          return;
+        }
+        const profile = deviceProfileRef.current;
+        const next = { ...current };
+        delete (next as Record<string, unknown>)[profile];
+        window.localStorage.setItem(calibrationStorageKey, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+    }
+  }, [calibrationStorageKey]);
+
+  const getViewportSnapshot = React.useCallback((): PanZoomViewportSnapshot => {
+    return {
+      v: 1,
+      preset,
+      transform: {
+        scale: transformRef.current.scale,
+        translateX: transformRef.current.translateX,
+        translateY: transformRef.current.translateY,
+      },
+      preferences: {
+        ...viewportPreferences,
+      },
+    };
+  }, [preset, viewportPreferences]);
+
+  const applyViewportSnapshot = React.useCallback(
+    (snapshot: PanZoomViewportSnapshot, options?: { resetHistory?: boolean }) => {
+      const normalized = normalizeViewportSnapshot(snapshot);
+      if (!normalized) {
+        return;
+      }
+
+      const nextTransform: PanZoomTransformState = {
+        scale: clampScale(normalized.transform.scale),
+        translateX: normalized.transform.translateX,
+        translateY: normalized.transform.translateY,
+      };
+
+      if (options?.resetHistory === false) {
+        doTransform(nextTransform.scale, nextTransform.translateX, nextTransform.translateY);
+      } else {
+        applyFitTransform(nextTransform);
+      }
+
+      if (normalized.preferences && typeof normalized.preferences === "object") {
+        updateViewportPreferences(normalized.preferences);
+      }
+    },
+    [applyFitTransform, clampScale, doTransform, updateViewportPreferences],
+  );
 
   return {
     containerRef,
@@ -722,6 +850,17 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
     handlePointerUpOrLeave,
     handleDoubleClick,
     zoomAtViewportPoint,
+    getViewportSnapshot,
+    applyViewportSnapshot,
+    viewportPreferences,
+    setViewportGridEnabledPreference: (showGridDots: boolean) =>
+      updateViewportPreferences({ showGridDots }),
+    setViewportAutoFitVerticalAlignPreference: (
+      autoFitVerticalAlign: PanZoomViewportAutoFitAlign,
+    ) => updateViewportPreferences({ autoFitVerticalAlign }),
+    setViewportLastZoomModePreference: (lastZoomMode: PanZoomViewportZoomMode) =>
+      updateViewportPreferences({ lastZoomMode }),
+    resetDeviceGestureCalibration,
   };
 }
 

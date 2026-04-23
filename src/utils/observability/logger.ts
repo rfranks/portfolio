@@ -1,4 +1,4 @@
-export type LogLevel = "debug" | "info" | "warn" | "error";
+import type { LogLevel } from "@/types/observability/logger";
 
 const LEVEL_PRIORITY: Record<LogLevel, number> = {
   debug: 10,

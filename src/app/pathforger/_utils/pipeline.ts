@@ -53,24 +53,32 @@ import {
 } from "../_schemas/pipeline";
 import {
   PATHFORGER_PIPELINE_STAGE_KEYS,
-  PATHFORGER_PIPELINE_STAGE_TRANSITIONS,
-  type PathForgerPipelineStageKey,
   PathForgerPipelineStateMachine,
-  isAbortError,
   throwIfAborted,
 } from "./pipeline/orchestrationStateMachine";
+import { createPathForgerPipelineOrchestrationPolicy } from "./pipeline/orchestrationPolicyMap";
 import {
-  PathForgerStageExecutionError,
-  type PathForgerTypedStageModule,
-  runPathForgerStageSequence,
-} from "./pipeline/stageModules";
+  type PathForgerImageStageResult,
+  type PathForgerKnowledge,
+  type PathForgerPipelineOrchestrationContext,
+} from "../_types/orchestrationTypes";
+import { coerceStageModuleOutput, runPathForgerStageSequence } from "./pipeline/stageModules";
+import { createGenerateChapterStage } from "./pipeline/stages/generateChapterStage";
+import { createGenerateImagesStage } from "./pipeline/stages/generateImagesStage";
+import { createGeneratePitchesStage } from "./pipeline/stages/generatePitchesStage";
+import { createLoadKnowledgeStage } from "./pipeline/stages/loadKnowledgeStage";
 
 const DEFAULT_TEXT_MODEL = "gpt-4.1-mini";
 const DEFAULT_IMAGE_MODEL = "gpt-5.2";
 const RESPONSES_IMAGE_FALLBACK_MODELS = [DEFAULT_IMAGE_MODEL, "gpt-4.1-mini"] as const;
 const RESPONSES_TEXT_FALLBACK_MODELS = [DEFAULT_TEXT_MODEL, "gpt-5.2", "gpt-4.1"] as const;
 const TARGET_IMAGE_SIZE = "1024x1024";
-const MAX_PARALLEL_IMAGE_CALLS = 6;
+const MAX_PARALLEL_IMAGE_CALLS = 3;
+const IMAGE_REQUEST_TIMEOUT_MS = 180_000;
+const TEXT_REQUEST_TIMEOUT_MS = 180_000;
+const CONTINUATION_CHAPTER_MAX_CHARS = 10_000;
+const CONTINUATION_OUTCOME_MAX_CHARS = 4_000;
+const CONTINUATION_LEDGER_MAX_CHARS = 5_000;
 const IMAGE_RATE_LIMIT_MAX_RETRIES = 3;
 const IMAGE_RATE_LIMIT_BASE_DELAY_MS = 1_500;
 const SELFIE_REFERENCE_IMAGE_TYPES: ReadonlySet<PathForgerImageType> = new Set([
@@ -174,63 +182,9 @@ export type RunPathForgerPipelineOptions = {
   abortSignal?: AbortSignal;
 };
 
-type PathForgerPipelineOrchestrationContext = {
-  input: RunPathForgerPipelineInput;
-  renderImages: Record<PathForgerImageType, boolean>;
-  textModel: string;
-  imageModel: string;
-  knowledge?: PathForgerKnowledge;
-  pitches?: PathForgerPitchResult;
-  selectedPitch?: PathForgerPitchChoice;
-  chapter?: PathForgerChapterResult;
-  imageStageResult?: Awaited<ReturnType<typeof runPathForgerImageStage>>;
-};
-
-function normalizePipelineStageErrorMessage(error: unknown): string {
-  if (error instanceof PathForgerStageExecutionError) {
-    return error.message;
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return "PathForger pipeline failed.";
-}
-
-function shouldRetryPipelineStageError(error: unknown): boolean {
-  if (isAbortError(error)) {
-    return false;
-  }
-
-  const message =
-    error instanceof PathForgerStageExecutionError
-      ? error.message
-      : error instanceof Error
-        ? error.message
-        : "";
-  const normalized = message.trim().toLowerCase();
-  if (!normalized) {
-    return false;
-  }
-
-  return (
-    normalized.includes("rate limit") ||
-    normalized.includes("too many requests") ||
-    normalized.includes("timeout") ||
-    normalized.includes("timed out") ||
-    normalized.includes("temporarily unavailable") ||
-    normalized.includes("network error") ||
-    normalized.includes("fetch failed") ||
-    normalized.includes("server error") ||
-    /\b5\d{2}\b/.test(normalized)
-  );
-}
-
-type PathForgerKnowledge = {
-  mainPrompt: string;
-  docs: Record<KnowledgeDocFile, string>;
-};
+const PATHFORGER_PIPELINE_ORCHESTRATION_POLICY = createPathForgerPipelineOrchestrationPolicy({
+  retryDelayMs: (attempt) => attempt * 650,
+});
 
 type PathForgerKnowledgeCachePayload = {
   version: string;
@@ -1342,6 +1296,41 @@ function buildChapterStyleTextRules(
   ].filter(Boolean);
 }
 
+function truncateContinuationContextText(value: string | undefined, maxChars: number): string {
+  const source = (value ?? "").trim();
+  if (source.length <= maxChars) {
+    return source;
+  }
+
+  const tail = source.slice(-maxChars);
+  return `[truncated to last ${maxChars} chars]\n${tail}`;
+}
+
+function buildContinuationContext(params: {
+  previousChapterMarkdown?: string;
+  previousOutcomeMarkdown?: string;
+  currentPathLedgerMarkdown?: string;
+}): {
+  previousChapterMarkdown: string;
+  previousOutcomeMarkdown: string;
+  currentPathLedgerMarkdown: string;
+} {
+  return {
+    previousChapterMarkdown: truncateContinuationContextText(
+      params.previousChapterMarkdown,
+      CONTINUATION_CHAPTER_MAX_CHARS,
+    ),
+    previousOutcomeMarkdown: truncateContinuationContextText(
+      params.previousOutcomeMarkdown,
+      CONTINUATION_OUTCOME_MAX_CHARS,
+    ),
+    currentPathLedgerMarkdown: truncateContinuationContextText(
+      params.currentPathLedgerMarkdown,
+      CONTINUATION_LEDGER_MAX_CHARS,
+    ),
+  };
+}
+
 function buildChapterUserPrompt(params: {
   onboarding: PathForgerOnboardingInput;
   pitchResult: PathForgerPitchResult;
@@ -1364,6 +1353,11 @@ function buildChapterUserPrompt(params: {
   const chapterLengthRule = buildChapterLengthRule(params.onboarding.adventureLength);
   const chapterAgeRatingRules = buildChapterAgeRatingRule(params.onboarding.ageRating);
   const chapterStyleTextRules = buildChapterStyleTextRules(params.onboarding);
+  const continuationContext = buildContinuationContext({
+    previousChapterMarkdown: params.previousChapterMarkdown,
+    previousOutcomeMarkdown: params.previousOutcomeMarkdown,
+    currentPathLedgerMarkdown: params.currentPathLedgerMarkdown,
+  });
 
   return [
     `Generate Chapter ${chapterNumber} package for PathForger.`,
@@ -1418,15 +1412,7 @@ function buildChapterUserPrompt(params: {
       ? [
           "",
           "Continuation context:",
-          JSON.stringify(
-            {
-              previousChapterMarkdown: params.previousChapterMarkdown ?? "",
-              previousOutcomeMarkdown: params.previousOutcomeMarkdown ?? "",
-              currentPathLedgerMarkdown: params.currentPathLedgerMarkdown ?? "",
-            },
-            null,
-            2,
-          ),
+          JSON.stringify(continuationContext, null, 2),
           "",
           `Write a true continuation into Chapter ${chapterNumber}. Preserve continuity from the prior chapter, resolved branch outcome, and path ledger.`,
         ]
@@ -1456,6 +1442,11 @@ function buildChapterCoreUserPrompt(params: {
   const chapterLengthRule = buildChapterLengthRule(params.onboarding.adventureLength);
   const chapterAgeRatingRules = buildChapterAgeRatingRule(params.onboarding.ageRating);
   const chapterStyleTextRules = buildChapterStyleTextRules(params.onboarding);
+  const continuationContext = buildContinuationContext({
+    previousChapterMarkdown: params.previousChapterMarkdown,
+    previousOutcomeMarkdown: params.previousOutcomeMarkdown,
+    currentPathLedgerMarkdown: params.currentPathLedgerMarkdown,
+  });
 
   return [
     `Generate Chapter ${chapterNumber} package for PathForger.`,
@@ -1510,15 +1501,7 @@ function buildChapterCoreUserPrompt(params: {
       ? [
           "",
           "Continuation context:",
-          JSON.stringify(
-            {
-              previousChapterMarkdown: params.previousChapterMarkdown ?? "",
-              previousOutcomeMarkdown: params.previousOutcomeMarkdown ?? "",
-              currentPathLedgerMarkdown: params.currentPathLedgerMarkdown ?? "",
-            },
-            null,
-            2,
-          ),
+          JSON.stringify(continuationContext, null, 2),
           "",
           `Write a true continuation into Chapter ${chapterNumber}. Preserve continuity from the prior chapter, resolved branch outcome, and path ledger.`,
         ]
@@ -1565,6 +1548,7 @@ async function requestTextStage<TSchema extends z.ZodTypeAny>(params: {
   systemPrompt: string;
   userPrompt: string;
   schema: TSchema;
+  signal?: AbortSignal;
 }): Promise<z.infer<TSchema>> {
   const requestBodyForModel = (model: string) => ({
     model,
@@ -1620,6 +1604,11 @@ async function requestTextStage<TSchema extends z.ZodTypeAny>(params: {
       path: "/responses",
       method: "POST",
       body: requestBodyForModel(model),
+      signal: params.signal,
+      profile: "responses",
+      profileOverrides: {
+        timeoutMs: TEXT_REQUEST_TIMEOUT_MS,
+      },
     });
   };
 
@@ -1629,7 +1618,19 @@ async function requestTextStage<TSchema extends z.ZodTypeAny>(params: {
 
   const modelAttemptOrder = [requestedModel, ...resolveTextModelFallbackCandidates(requestedModel)];
   for (const model of modelAttemptOrder) {
-    const { response, data: payload } = await runTextRequest(model);
+    let response: Response;
+    let payload: Record<string, unknown>;
+    try {
+      ({ response, data: payload } = await runTextRequest(model));
+    } catch (error) {
+      if (isTextTimeoutLikeError(error)) {
+        throw new Error(
+          "PathForger text generation timed out while waiting for the model response. Please retry.",
+        );
+      }
+      throw error;
+    }
+
     if (response.ok) {
       data = payload;
       break;
@@ -1851,6 +1852,48 @@ function shouldRetryWithFallbackImageModel(params: {
   return false;
 }
 
+function isTextTimeoutLikeError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  if (error.name === "TimeoutError") {
+    return true;
+  }
+
+  const normalized = error.message.trim().toLowerCase();
+  return (
+    normalized.includes("timed out") || normalized.includes("signal is aborted without reason")
+  );
+}
+
+function isImageTimeoutLikeError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  if (error.name === "TimeoutError") {
+    return true;
+  }
+
+  const normalized = error.message.trim().toLowerCase();
+  return (
+    normalized.includes("timed out") || normalized.includes("signal is aborted without reason")
+  );
+}
+
+function normalizeImageGenerationErrorMessage(message: string): string {
+  const normalized = message.trim().toLowerCase();
+  if (
+    normalized.includes("signal is aborted without reason") ||
+    normalized.includes("request timed out")
+  ) {
+    return "Image generation timed out while waiting for the model. Please retry.";
+  }
+
+  return message;
+}
+
 async function requestImageAsset(params: {
   apiKey: string;
   model: string;
@@ -1862,6 +1905,7 @@ async function requestImageAsset(params: {
   toneHint?: string;
   genreHint?: string;
   ageRatingHint?: string;
+  signal?: AbortSignal;
 }): Promise<Omit<PathForgerGeneratedImage, "prompt">> {
   const coverTitleHint =
     params.imageType === "cover" ? extractCoverTitleHintFromPrompt(params.prompt) : null;
@@ -1919,23 +1963,37 @@ async function requestImageAsset(params: {
     let attempt = 0;
 
     while (true) {
-      const result = await requestOpenAIJsonRaw<Record<string, unknown>>({
-        apiKey: params.apiKey,
-        path: "/responses",
-        method: "POST",
-        body,
-      });
-      const message = extractErrorMessage(result.data);
-      if (
-        !isRateLimitResponse(result.response.status, result.data, message) ||
-        attempt >= IMAGE_RATE_LIMIT_MAX_RETRIES
-      ) {
-        return result;
-      }
+      try {
+        const result = await requestOpenAIJsonRaw<Record<string, unknown>>({
+          apiKey: params.apiKey,
+          path: "/responses",
+          method: "POST",
+          body,
+          signal: params.signal,
+          profile: "responses",
+          profileOverrides: {
+            timeoutMs: IMAGE_REQUEST_TIMEOUT_MS,
+          },
+        });
+        const message = extractErrorMessage(result.data);
+        if (
+          !isRateLimitResponse(result.response.status, result.data, message) ||
+          attempt >= IMAGE_RATE_LIMIT_MAX_RETRIES
+        ) {
+          return result;
+        }
 
-      const delayMs = resolveRateLimitDelayMs(result.response, message, attempt);
-      await sleep(delayMs);
-      attempt += 1;
+        const delayMs = resolveRateLimitDelayMs(result.response, message, attempt);
+        await sleep(delayMs);
+        attempt += 1;
+      } catch (error) {
+        if (!isImageTimeoutLikeError(error) || attempt >= IMAGE_RATE_LIMIT_MAX_RETRIES) {
+          throw error;
+        }
+
+        await sleep(IMAGE_RATE_LIMIT_BASE_DELAY_MS * (attempt + 1));
+        attempt += 1;
+      }
     }
   };
 
@@ -2071,6 +2129,7 @@ async function runImageJobsParallel(params: {
   selfieDataUrl?: string;
   onProgress?: (progress: PathForgerPipelineProgress) => void;
   onImageUpdate?: (update: PathForgerImageStageUpdate) => void;
+  abortSignal?: AbortSignal;
 }): Promise<{
   images: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>>;
   imageErrors: Partial<Record<PathForgerImageType, string>>;
@@ -2112,6 +2171,7 @@ async function runImageJobsParallel(params: {
         toneHint: params.onboarding.tone,
         genreHint: params.onboarding.genre,
         ageRatingHint: params.onboarding.ageRating,
+        signal: params.abortSignal,
       });
 
       images[job.type] = {
@@ -2126,7 +2186,8 @@ async function runImageJobsParallel(params: {
         total: params.jobs.length,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Image generation failed.";
+      const rawErrorMessage = error instanceof Error ? error.message : "Image generation failed.";
+      const errorMessage = normalizeImageGenerationErrorMessage(rawErrorMessage);
       imageErrors[job.type] = errorMessage;
       params.onImageUpdate?.({
         type: job.type,
@@ -2611,6 +2672,7 @@ export async function runPathForgerImageStage(
   rawInput: RunPathForgerImageStageInput,
   onProgress?: (progress: PathForgerPipelineProgress) => void,
   onImageUpdate?: (update: PathForgerImageStageUpdate) => void,
+  options?: { abortSignal?: AbortSignal },
 ): Promise<{
   images: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>>;
   imageErrors: Partial<Record<PathForgerImageType, string>>;
@@ -2664,6 +2726,7 @@ export async function runPathForgerImageStage(
     selfieDataUrl: input.selfieDataUrl,
     onProgress,
     onImageUpdate,
+    abortSignal: options?.abortSignal,
   });
 
   const resolvedImageModel =
@@ -2765,45 +2828,16 @@ export async function runPathForgerPipeline(
     },
     textModel: resolveTextModel(input.textModel, input.defaultModel),
     imageModel: resolveImageModel(input.imageModel, input.defaultModel),
+    abortSignal: options?.abortSignal,
   };
   const machine = new PathForgerPipelineStateMachine([...PATHFORGER_PIPELINE_STAGE_KEYS]);
   machine.start();
+  const loadKnowledgeStage = createLoadKnowledgeStage({
+    loadKnowledge: async () => loadPathForgerKnowledgeForStage(),
+  });
 
-  const stageRetryPolicy = {
-    maxAttempts: 2,
-    shouldRetry: (error: unknown) => shouldRetryPipelineStageError(error),
-    delayMs: (attempt: number) => attempt * 650,
-  } as const;
-
-  const loadKnowledgeStage: PathForgerTypedStageModule<
-    PathForgerPipelineOrchestrationContext,
-    PathForgerKnowledge,
-    PathForgerPipelineStageKey
-  > = {
-    key: "loadKnowledge",
-    progressStage: "loadingKnowledge",
-    startMessage: () => "Loading PathForger story knowledge...",
-    retryMessage: ({ attempt, maxAttempts, errorMessage }) =>
-      `Knowledge loading issue (${errorMessage}). Retrying (${attempt}/${maxAttempts})...`,
-    execute: async () => loadPathForgerKnowledgeForStage(),
-    apply: (context, knowledge) => ({
-      ...context,
-      knowledge,
-    }),
-    retry: stageRetryPolicy,
-  };
-
-  const pitchStage: PathForgerTypedStageModule<
-    PathForgerPipelineOrchestrationContext,
-    { pitches: PathForgerPitchResult; selectedPitch: PathForgerPitchChoice },
-    PathForgerPipelineStageKey
-  > = {
-    key: "generatePitches",
-    progressStage: "generatingPitches",
-    startMessage: () => "Generating a selection of potential stories...",
-    retryMessage: ({ attempt, maxAttempts, errorMessage }) =>
-      `Pitch generation issue (${errorMessage}). Retrying (${attempt}/${maxAttempts})...`,
-    execute: async (context) => {
+  const pitchStage = createGeneratePitchesStage({
+    generatePitches: async (context) => {
       if (!context.knowledge) {
         throw new Error("PathForger orchestration missing knowledge before pitch generation.");
       }
@@ -2814,6 +2848,7 @@ export async function runPathForgerPipeline(
         systemPrompt: buildPitchSystemPrompt(context.knowledge),
         userPrompt: buildPitchUserPrompt(context.input.onboarding),
         schema: pathForgerPitchResultSchema,
+        signal: context.abortSignal,
       });
       const normalizedPitches = normalizePitchResultTitles(pitches);
       const selectedPitch = context.input.selectedPitch ?? normalizedPitches.recommendedPitch;
@@ -2823,22 +2858,10 @@ export async function runPathForgerPipeline(
         selectedPitch,
       };
     },
-    apply: (context, result) => ({
-      ...context,
-      pitches: result.pitches,
-      selectedPitch: result.selectedPitch,
-    }),
-    retry: stageRetryPolicy,
-  };
+  });
 
-  const chapterStage: PathForgerTypedStageModule<
-    PathForgerPipelineOrchestrationContext,
-    PathForgerChapterResult,
-    PathForgerPipelineStageKey
-  > = {
-    key: "generateChapter",
-    progressStage: "generatingChapter",
-    startMessage: (context) => {
+  const chapterStage = createGenerateChapterStage({
+    getStartMessage: (context) => {
       const selectedPitchTitle =
         context.pitches && context.selectedPitch
           ? resolvePitchDisplayTitle({
@@ -2848,9 +2871,7 @@ export async function runPathForgerPipeline(
           : "selected pitch";
       return `Building Chapter 1 for ${selectedPitchTitle}...`;
     },
-    retryMessage: ({ attempt, maxAttempts, errorMessage }) =>
-      `Chapter generation issue (${errorMessage}). Retrying (${attempt}/${maxAttempts})...`,
-    execute: async (context) => {
+    generateChapter: async (context) => {
       if (!context.knowledge || !context.pitches || !context.selectedPitch) {
         throw new Error(
           "PathForger orchestration missing pitch context before chapter generation.",
@@ -2868,26 +2889,13 @@ export async function runPathForgerPipeline(
           selectedBranch: context.input.selectedBranch,
         }),
         schema: pathForgerChapterResultSchema,
+        signal: context.abortSignal,
       });
     },
-    apply: (context, chapter) => ({
-      ...context,
-      chapter,
-    }),
-    retry: stageRetryPolicy,
-  };
+  });
 
-  const imageStage: PathForgerTypedStageModule<
-    PathForgerPipelineOrchestrationContext,
-    Awaited<ReturnType<typeof runPathForgerImageStage>>,
-    PathForgerPipelineStageKey
-  > = {
-    key: "generateImages",
-    progressStage: "generatingImages",
-    startMessage: () => "Rendering chapter and outcome images...",
-    retryMessage: ({ attempt, maxAttempts, errorMessage }) =>
-      `Image generation issue (${errorMessage}). Retrying (${attempt}/${maxAttempts})...`,
-    execute: async (context) => {
+  const imageStage = createGenerateImagesStage({
+    generateImages: async (context): Promise<PathForgerImageStageResult> => {
       if (!context.chapter || !context.pitches || !context.selectedPitch) {
         throw new Error(
           "PathForger orchestration missing chapter context before image generation.",
@@ -2912,41 +2920,40 @@ export async function runPathForgerPipeline(
           renderImages: context.renderImages,
         },
         onProgress,
+        undefined,
+        { abortSignal: context.abortSignal },
       );
     },
-    apply: (context, imageStageResult) => ({
-      ...context,
-      imageStageResult,
-    }),
-    retry: stageRetryPolicy,
-  };
+  });
 
   let context = contextInitial;
 
   try {
-    throwIfAborted(options?.abortSignal, "PathForger pipeline canceled before start.");
+    throwIfAborted(
+      options?.abortSignal,
+      PATHFORGER_PIPELINE_ORCHESTRATION_POLICY.cancelMessages.beforeStart,
+    );
 
     const orchestrationModules = [
-      loadKnowledgeStage,
-      pitchStage,
-      chapterStage,
-      imageStage,
-    ] as unknown as readonly PathForgerTypedStageModule<
-      PathForgerPipelineOrchestrationContext,
-      unknown,
-      PathForgerPipelineStageKey
-    >[];
+      coerceStageModuleOutput(loadKnowledgeStage),
+      coerceStageModuleOutput(pitchStage),
+      coerceStageModuleOutput(chapterStage),
+      coerceStageModuleOutput(imageStage),
+    ] as const;
 
     context = await runPathForgerStageSequence({
       modules: orchestrationModules,
-      transitionMap: PATHFORGER_PIPELINE_STAGE_TRANSITIONS,
+      stagePolicyMap: PATHFORGER_PIPELINE_ORCHESTRATION_POLICY.stagePolicyMap,
       context,
       machine,
       onProgress,
       abortSignal: options?.abortSignal,
     });
 
-    throwIfAborted(options?.abortSignal, "PathForger pipeline canceled before finalization.");
+    throwIfAborted(
+      options?.abortSignal,
+      PATHFORGER_PIPELINE_ORCHESTRATION_POLICY.cancelMessages.beforeFinalization,
+    );
     machine.complete();
 
     if (
@@ -2973,24 +2980,9 @@ export async function runPathForgerPipeline(
       imageModel: context.imageStageResult.imageModel,
     };
   } catch (error) {
-    if (isAbortError(error)) {
-      machine.cancel("PathForger pipeline canceled.");
-      throw new Error("PathForger pipeline canceled.");
-    }
-
-    if (error instanceof PathForgerStageExecutionError) {
-      const message = `PathForger pipeline failed during ${error.stageKey}: ${error.message}`;
-      throw new Error(message);
-    }
-
-    const snapshot = machine.getSnapshot();
-    if (snapshot.state !== "failed") {
-      machine.failStage(
-        snapshot.currentStageKey ?? "unknown",
-        normalizePipelineStageErrorMessage(error),
-      );
-    }
-
-    throw new Error(normalizePipelineStageErrorMessage(error));
+    throw PATHFORGER_PIPELINE_ORCHESTRATION_POLICY.mapPipelineError({
+      error,
+      machine,
+    });
   }
 }

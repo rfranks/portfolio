@@ -1,10 +1,8 @@
 import resumeDataSnapshot from "../../public/personal/data/resumeData.json";
 import { parseResumeDataWithSchema } from "@/consts/resumeDataSchema";
+import type { ResumeDataMigrationPayload } from "@/types/data/migrations/resumeDataMigrations";
 import { fetchJson } from "@/utils/network/httpClient";
-import {
-  migrateResumeData,
-  type ResumeDataMigrationPayload,
-} from "@/utils/data/migrations/resumeDataMigrations";
+import { migrateResumeData } from "@/utils/data/migrations/resumeDataMigrations";
 
 export const resumeDataPath = "/personal/data/resumeData.json";
 

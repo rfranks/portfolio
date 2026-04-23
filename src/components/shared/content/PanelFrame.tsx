@@ -1,6 +1,7 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import type { SxProps, Theme } from "@mui/material/styles";
+import { toSxArray } from "@/utils/sx/toSxArray";
 
 export type PanelFrameProps = {
   topRail?: React.ReactNode;
@@ -13,8 +14,6 @@ export type PanelFrameProps = {
   useNegativeTopRailMargins?: boolean;
   useNegativeFooterMargins?: boolean;
 };
-
-const toSxArray = (value?: SxProps<Theme>) => (Array.isArray(value) ? value : value ? [value] : []);
 
 const PANEL_RAIL_OFFSET_X = -2;
 const PANEL_RAIL_OFFSET_Y = -2;
@@ -35,10 +34,13 @@ export default function PanelFrame({
     mx: useNegativeTopRailMargins ? { xs: 0, sm: 0, md: PANEL_RAIL_OFFSET_X } : 0,
     mt: useNegativeTopRailMargins ? { xs: 0, sm: 0, md: PANEL_RAIL_OFFSET_Y } : 0,
     mb: 0,
-    bgcolor: "background.paper",
+    bgcolor: "transparent",
+    backgroundColor: "transparent",
+    backgroundImage: "none",
     borderBottom: "1px solid",
     borderColor: "divider",
-    backdropFilter: "blur(8px)",
+    backdropFilter: "none",
+    filter: "none",
     borderTopLeftRadius: { xs: 0, sm: 0, md: "var(--fabric-radius-xl)" },
     borderTopRightRadius: { xs: 0, sm: 0, md: "var(--fabric-radius-xl)" },
   };

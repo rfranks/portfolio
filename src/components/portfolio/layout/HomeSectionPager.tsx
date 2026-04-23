@@ -1,6 +1,6 @@
 "use client";
 
-import { type MouseEvent, useMemo, useState } from "react";
+import { type MouseEvent, useEffect, useMemo, useState } from "react";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
@@ -9,10 +9,17 @@ import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
+import type { SxProps, Theme } from "@mui/material/styles";
 import { ChevronLeft, ChevronRight, MoreVert } from "@mui/icons-material";
 import type { NavigationIconConfig } from "@/components/portfolio/layout/navigationIcons";
 import { renderNavigationIcon } from "@/components/portfolio/layout/navigationIcons";
+import {
+  getPagerIconButtonFrameSx,
+  getPagerIconButtonSx,
+  getPagerSelectedChipSx,
+  getPagerSelectedTextSx,
+  PAGER_OVERFLOW_ACTION_DISPLAY_SX,
+} from "@/components/portfolio/layout/pagerFoundation";
 
 export type HomeSectionPagerItem = NavigationIconConfig & {
   id: string;
@@ -78,10 +85,6 @@ export default function HomeSectionPager({
   const hasMultipleItems = items.length > 1;
   const selectorOpen = Boolean(selectorAnchorEl);
 
-  if (!hasItems || !currentItem) {
-    return null;
-  }
-
   const handleSelectorOpen = (event: MouseEvent<HTMLElement>) => {
     setSelectorAnchorEl(event.currentTarget);
   };
@@ -99,41 +102,71 @@ export default function HomeSectionPager({
   const nextItem = currentIndex < items.length - 1 ? items[currentIndex + 1] : null;
   const wrappedPreviousItem = previousItem ?? (hasMultipleItems ? items[items.length - 1] : null);
   const wrappedNextItem = nextItem ?? (hasMultipleItems ? items[0] : null);
-  const pagerIconButtonSx = {
-    p: 0.45,
-    mt: { xs: 0.2, sm: 0.25, md: 0.35 },
-    color: "inherit",
-    borderRadius: "999px",
-    border: "1px solid",
-    borderColor: "rgba(255,255,255,0.28)",
-    bgcolor: "rgba(255,255,255,0.02)",
-    transition: "background-color 160ms ease, border-color 160ms ease, transform 160ms ease",
-    "&:hover": {
-      bgcolor: "rgba(255,255,255,0.1)",
-      borderColor: "rgba(255,255,255,0.52)",
-    },
-    "&:focus-visible": {
-      bgcolor: "rgba(255,255,255,0.12)",
-      borderColor: "rgba(255,255,255,0.6)",
-    },
-    "&.Mui-disabled": {
-      borderColor: "rgba(255,255,255,0.16)",
-      color: "rgba(255,255,255,0.42)",
-    },
-  };
+  const pagerIconButtonBaseSx = getPagerIconButtonSx({ selectedValueAsTitle: true });
+  const pagerIconButtonFrameSx = getPagerIconButtonFrameSx({ selectedValueAsTitle: true });
+  const pagerIconButtonSx: SxProps<Theme> = [pagerIconButtonBaseSx, pagerIconButtonFrameSx];
+
+  useEffect(() => {
+    const handleShortcutPrevious = () => {
+      if (!wrappedPreviousItem) {
+        return;
+      }
+      onSelectSection(wrappedPreviousItem.id);
+    };
+
+    const handleShortcutNext = () => {
+      if (!wrappedNextItem) {
+        return;
+      }
+      onSelectSection(wrappedNextItem.id);
+    };
+
+    window.addEventListener("portfolio:shortcut:home-prev", handleShortcutPrevious);
+    window.addEventListener("portfolio:shortcut:home-next", handleShortcutNext);
+    return () => {
+      window.removeEventListener("portfolio:shortcut:home-prev", handleShortcutPrevious);
+      window.removeEventListener("portfolio:shortcut:home-next", handleShortcutNext);
+    };
+  }, [onSelectSection, wrappedNextItem, wrappedPreviousItem]);
+
+  if (!hasItems || !currentItem) {
+    return null;
+  }
 
   return (
     <>
       <Box
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowLeft" && wrappedPreviousItem) {
+            event.preventDefault();
+            onSelectSection(wrappedPreviousItem.id);
+            return;
+          }
+
+          if (event.key === "ArrowRight" && wrappedNextItem) {
+            event.preventDefault();
+            onSelectSection(wrappedNextItem.id);
+            return;
+          }
+
+          if ((event.key === "Enter" || event.key === " ") && hasMultipleItems) {
+            event.preventDefault();
+            setSelectorAnchorEl(event.currentTarget);
+          }
+        }}
         sx={{
-          px: { xs: 1.75, md: 2.25 },
-          py: { xs: 0.75, md: 0.9 },
+          px: { xs: 1.75, md: 2.5 },
+          py: { xs: 0.8, sm: 0.9, md: 1.15 },
+          minHeight: { xs: 42, sm: 46, md: 68 },
           border: "none",
           borderRadius: 0,
           bgcolor: "transparent",
+          backgroundImage: "none",
           color: "common.white",
           boxShadow: "none",
           backdropFilter: "none",
+          filter: "none",
         }}
       >
         <Box
@@ -161,23 +194,12 @@ export default function HomeSectionPager({
             clickable
             color="default"
             variant="outlined"
-            size="small"
+            size="medium"
             onClick={handleSelectorOpen}
             label={
               <Typography
                 component="span"
-                sx={{
-                  flex: 1,
-                  minWidth: 0,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  fontSize: { xs: "0.84rem", sm: "0.96rem", md: "1.28rem" },
-                  lineHeight: 1.1,
-                  fontWeight: 900,
-                  color: "inherit",
-                  textAlign: "left",
-                }}
+                sx={getPagerSelectedTextSx({ selectedValueAsTitle: true })}
               >
                 {formatSelectedLabel(currentIndex, currentItem.label)}
               </Typography>
@@ -185,39 +207,7 @@ export default function HomeSectionPager({
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? "home-section-selector-menu" : undefined}
-            sx={{
-              minWidth: 0,
-              maxWidth: "100%",
-              justifySelf: "stretch",
-              border: "0 !important",
-              borderColor: "transparent !important",
-              bgcolor: "transparent !important",
-              backgroundColor: "transparent !important",
-              backgroundImage: "none !important",
-              boxShadow: "none !important",
-              backdropFilter: "none !important",
-              filter: "none !important",
-              color: "inherit",
-              borderRadius: "999px",
-              transition: "background-color 160ms ease, box-shadow 160ms ease",
-              "&.MuiChip-outlined": {
-                border: "0 !important",
-              },
-              "&:hover, &.Mui-focusVisible, &:active": {
-                bgcolor: (theme) => `${alpha(theme.palette.common.white, 0.1)} !important`,
-                backgroundColor: (theme) => `${alpha(theme.palette.common.white, 0.1)} !important`,
-                boxShadow: "none !important",
-                backdropFilter: "none !important",
-                filter: "none !important",
-              },
-              "& .MuiChip-label": {
-                width: "100%",
-                overflow: "hidden",
-                display: "block",
-                py: 0,
-                textAlign: "left",
-              },
-            }}
+            sx={getPagerSelectedChipSx({ selectedValueAsTitle: true })}
           />
           <IconButton
             aria-label="Next section"
@@ -240,10 +230,13 @@ export default function HomeSectionPager({
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? "home-section-selector-menu" : undefined}
-            sx={{
-              ...pagerIconButtonSx,
-              display: { xs: "none", sm: "none", md: "inline-flex" },
-            }}
+            sx={[
+              pagerIconButtonBaseSx,
+              pagerIconButtonFrameSx,
+              {
+                display: PAGER_OVERFLOW_ACTION_DISPLAY_SX,
+              },
+            ]}
           >
             <MoreVert fontSize="small" />
           </IconButton>

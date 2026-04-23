@@ -1,6 +1,130 @@
 import { z } from "zod";
+import { LATEST_RESUME_DATA_SCHEMA_VERSION } from "@/utils/data/migrations/resumeDataMigrations";
 
 const nonEmptyString = z.string().trim().min(1);
+
+export const RESUME_SCHEMA_BREAKING_FIELDS_APPROVAL_ENV = "ALLOW_RESUME_SCHEMA_BREAKING_FIELDS";
+
+export type ResumeSchemaChangeLogEntry = {
+  version: number;
+  date: string;
+  summary: string;
+  migration: string;
+  breakingFields: string[];
+};
+
+export const RESUME_DATA_SCHEMA_CHANGELOG: ResumeSchemaChangeLogEntry[] = [
+  {
+    version: 1,
+    date: "2026-04-20",
+    summary: "Established strict resumeData schema contract and migration framework baseline.",
+    migration: "baseline",
+    breakingFields: [],
+  },
+  {
+    version: 2,
+    date: "2026-04-22",
+    summary:
+      "Normalized legacy GitHub achievement path typo in migrated payloads without field removals.",
+    migration: "migrateV1ToV2",
+    breakingFields: [],
+  },
+  {
+    version: 3,
+    date: "2026-04-23",
+    summary:
+      "Introduced presentation orchestration config with migration defaults and prefetch hints for presentation projects.",
+    migration: "migrateV2ToV3",
+    breakingFields: [],
+  },
+];
+
+export function assertResumeSchemaGovernance(): void {
+  if (RESUME_DATA_SCHEMA_CHANGELOG.length === 0) {
+    throw new Error("Schema governance misconfigured: changelog must contain at least one entry.");
+  }
+
+  const sorted = [...RESUME_DATA_SCHEMA_CHANGELOG].sort(
+    (left, right) => left.version - right.version,
+  );
+  const seenMigrationNames = new Set<string>();
+
+  for (let index = 0; index < sorted.length; index += 1) {
+    const entry = sorted[index];
+    if (!Number.isInteger(entry.version) || entry.version < 1) {
+      throw new Error(
+        `Schema governance misconfigured: changelog version '${entry.version}' must be a positive integer.`,
+      );
+    }
+
+    if (index > 0) {
+      const previous = sorted[index - 1];
+      if (entry.version === previous.version) {
+        throw new Error(
+          `Schema governance misconfigured: duplicate changelog version ${entry.version}.`,
+        );
+      }
+      if (entry.version !== previous.version + 1) {
+        throw new Error(
+          `Schema governance misconfigured: changelog versions must be contiguous. Missing version ${previous.version + 1}.`,
+        );
+      }
+
+      const previousDateMs = Date.parse(previous.date);
+      const entryDateMs = Date.parse(entry.date);
+      if (!Number.isFinite(previousDateMs) || !Number.isFinite(entryDateMs)) {
+        throw new Error(
+          `Schema governance misconfigured: changelog dates must be valid ISO strings ('${previous.date}' -> '${entry.date}').`,
+        );
+      }
+      if (entryDateMs < previousDateMs) {
+        throw new Error(
+          `Schema governance misconfigured: changelog dates must be monotonic by version (${previous.version}=${previous.date}, ${entry.version}=${entry.date}).`,
+        );
+      }
+    }
+
+    const normalizedMigrationName = entry.migration.trim();
+    if (!normalizedMigrationName) {
+      throw new Error(
+        `Schema governance misconfigured: changelog version ${entry.version} must declare a migration name.`,
+      );
+    }
+    if (seenMigrationNames.has(normalizedMigrationName)) {
+      throw new Error(
+        `Schema governance misconfigured: duplicate migration name '${normalizedMigrationName}' in changelog.`,
+      );
+    }
+    seenMigrationNames.add(normalizedMigrationName);
+  }
+
+  const latestEntry = sorted[sorted.length - 1];
+  if (latestEntry.version !== LATEST_RESUME_DATA_SCHEMA_VERSION) {
+    throw new Error(
+      `Schema governance misconfigured: latest changelog version ${latestEntry.version} does not match migration schema version ${LATEST_RESUME_DATA_SCHEMA_VERSION}.`,
+    );
+  }
+
+  if (!latestEntry.migration.trim()) {
+    throw new Error(
+      "Schema governance misconfigured: latest changelog entry must include migration.",
+    );
+  }
+
+  const dedupedBreakingFields = new Set(latestEntry.breakingFields.map((value) => value.trim()));
+  if (dedupedBreakingFields.size !== latestEntry.breakingFields.length) {
+    throw new Error(
+      `Schema governance misconfigured: duplicate breaking field paths in version ${latestEntry.version}.`,
+    );
+  }
+}
+
+export function getLatestResumeSchemaChangeLogEntry(): ResumeSchemaChangeLogEntry {
+  const sorted = [...RESUME_DATA_SCHEMA_CHANGELOG].sort(
+    (left, right) => left.version - right.version,
+  );
+  return sorted[sorted.length - 1];
+}
 
 const contactSchema = z
   .object({
@@ -384,6 +508,45 @@ const projectSectionPagerSfxSchema = z
   })
   .strict();
 
+const projectPresentationSectionKeySchema = z.enum([
+  "overview",
+  "why",
+  "demo",
+  "technologies",
+  "specifications",
+  "diagrams",
+]);
+
+const mediaCyclerMediaTypeSchema = z.enum([
+  "image",
+  "video",
+  "pdf",
+  "diagram",
+  "custom",
+  "project",
+  "projectPresentation",
+  "recognition",
+  "recommendation",
+  "markdown",
+]);
+
+const projectPresentationConfigSchema = z
+  .object({
+    useSharedOverviewSlide: z.boolean().optional(),
+    useSharedDemoSlide: z.boolean().optional(),
+    useSharedArchitectureDiagramsSlide: z.boolean().optional(),
+    enableWhyThisInterestsSection: z.boolean().optional(),
+    demoLayout: z.enum(["default", "podcasts"]).optional(),
+    sectionOrder: z.array(projectPresentationSectionKeySchema).min(1).optional(),
+    prefetchPlan: z
+      .partialRecord(
+        projectPresentationSectionKeySchema,
+        z.array(mediaCyclerMediaTypeSchema).min(1),
+      )
+      .optional(),
+  })
+  .strict();
+
 const projectEntrySchema = z
   .object({
     name: nonEmptyString,
@@ -410,6 +573,7 @@ const projectEntrySchema = z
     diagrams: z.array(projectDiagramSchema).optional(),
     terminalDemo: terminalDemoSchema.optional(),
     sectionPagerSfx: projectSectionPagerSfxSchema.optional(),
+    presentation: projectPresentationConfigSchema.optional(),
   })
   .superRefine((project, ctx) => {
     if (project.type === "presentation" && !project.presentationOrigin) {
@@ -425,6 +589,23 @@ const projectEntrySchema = z
         code: z.ZodIssueCode.custom,
         path: ["presentationOrigin"],
         message: "presentationOrigin is only allowed when type is 'presentation'.",
+      });
+    }
+
+    if (project.type === "presentation" && !project.presentation) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["presentation"],
+        message:
+          "Presentation projects must provide a presentation config block for shared orchestration.",
+      });
+    }
+
+    if (project.type !== "presentation" && project.presentation) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["presentation"],
+        message: "presentation config is only allowed when type is 'presentation'.",
       });
     }
 
@@ -571,7 +752,7 @@ const projectsSectionSchema = z
 
 export const resumeDataSchema = z
   .object({
-    schemaVersion: z.number().int().positive().optional(),
+    schemaVersion: z.literal(LATEST_RESUME_DATA_SCHEMA_VERSION).optional(),
     summary: summarySchema,
     contactCTA: contactCtaSchema,
     portfolioApps: portfolioAppsSchema,
@@ -618,6 +799,7 @@ export function parseResumeDataWithSchema(
   input: unknown,
   source = "resumeData",
 ): ResumeDataSchemaType {
+  assertResumeSchemaGovernance();
   const parsed = resumeDataSchema.safeParse(input);
   if (!parsed.success) {
     const details = formatZodIssues(parsed.error.issues);

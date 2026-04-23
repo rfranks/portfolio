@@ -4,12 +4,7 @@
  * Only plain text is preserved; styling and layout are not captured.
  * To capture full styling, consider a different approach such as html2canvas.
  */
-type JsPdf = {
-  new (): {
-    text: (content: string, x: number, y: number) => void;
-    save: (name: string) => void;
-  };
-};
+import type { JsPdf } from "@/types/pdfExport";
 
 export async function exportElementToPdf(element: HTMLElement, fileName = "export.pdf") {
   if (typeof window === "undefined") return;

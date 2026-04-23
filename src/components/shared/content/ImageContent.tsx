@@ -4,6 +4,7 @@ import type * as React from "react";
 import Image from "next/image";
 import Box from "@mui/material/Box";
 import { usePanZoomViewport } from "@/hooks/html/usePanZoomViewport";
+import InteractiveViewportShell from "@/components/shared/visualization/InteractiveViewportShell";
 
 type ImageContentProps = {
   src: string;
@@ -56,11 +57,14 @@ export default function ImageContent({
   });
 
   return (
-    <Box
-      ref={containerRef}
+    <InteractiveViewportShell
+      containerRef={containerRef}
+      viewportRef={viewportRef}
+      width="100%"
+      height="100%"
       role={canActivate ? "button" : undefined}
       tabIndex={canActivate ? 0 : -1}
-      aria-label={canActivate ? `Activate ${alt}` : undefined}
+      ariaLabel={canActivate ? `Activate ${alt}` : undefined}
       onClick={onMediaActivate}
       onKeyDown={createMediaKeyDownHandler(onMediaActivate)}
       onPointerDown={handlePointerDown}
@@ -68,48 +72,33 @@ export default function ImageContent({
       onPointerUp={handlePointerUpOrLeave}
       onPointerLeave={handlePointerUpOrLeave}
       onDoubleClick={handleDoubleClick}
-      sx={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
+      containerSx={{
         overflow: "hidden",
-        touchAction: "none",
-        overscrollBehavior: "contain",
       }}
     >
       <Box
-        ref={viewportRef}
         sx={{
           width: "100%",
           height: "100%",
-          overflow: "hidden",
-          position: "relative",
+          transformOrigin: "top left",
+          transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+          cursor: isDragging ? "grabbing" : "grab",
+          transition: isDragging ? "none" : "transform 0.12s ease-out",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <Box
-          sx={{
-            width: "100%",
-            height: "100%",
-            transformOrigin: "top left",
-            transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
-            cursor: isDragging ? "grabbing" : "grab",
-            transition: isDragging ? "none" : "transform 0.12s ease-out",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Image
-            src={src}
-            alt={alt}
-            width={width}
-            height={height}
-            onLoad={onLoad}
-            className={className}
-            style={style}
-          />
-        </Box>
+        <Image
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          onLoad={onLoad}
+          className={className}
+          style={style}
+        />
       </Box>
-    </Box>
+    </InteractiveViewportShell>
   );
 }

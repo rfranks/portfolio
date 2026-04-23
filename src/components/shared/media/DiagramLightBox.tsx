@@ -2,38 +2,11 @@
 
 import * as React from "react";
 import { Close, OpenInFull } from "@mui/icons-material";
-import {
-  Box,
-  Dialog,
-  IconButton,
-  Typography,
-  Tooltip,
-  useMediaQuery,
-  type SxProps,
-  type Theme,
-} from "@mui/material";
+import { Box, Dialog, IconButton, Typography, Tooltip, useMediaQuery } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { Diagram } from "../visualization";
-import type { DiagramProps } from "../visualization";
-
-type DiagramLightBoxProps = {
-  diagram: string;
-  title: string;
-  subtitle?: string;
-  caption?: string;
-  diagramProps?: Omit<DiagramProps, "diagram">;
-  showExpandButton?: boolean;
-  expandButtonSx?: SxProps<Theme>;
-  stopEventPropagation?: boolean;
-  containerSx?: SxProps<Theme>;
-};
-
-const toSxArray = (value?: SxProps<Theme>) => {
-  if (value == null) {
-    return [];
-  }
-  return Array.isArray(value) ? value : [value];
-};
+import type { DiagramLightBoxProps } from "@/types/components/shared/media";
+import { toSxArray } from "@/utils/sx/toSxArray";
 
 export default function DiagramLightBox({
   diagram,
@@ -45,6 +18,7 @@ export default function DiagramLightBox({
   expandButtonSx,
   stopEventPropagation = false,
   containerSx,
+  onOpen,
 }: DiagramLightBoxProps) {
   const [open, setOpen] = React.useState(false);
   const theme = useTheme();
@@ -63,9 +37,11 @@ export default function DiagramLightBox({
         event.preventDefault();
         event.stopPropagation();
       }
+      const trigger = event.detail === 0 ? "keyboard" : "pointer";
+      onOpen?.(trigger, "diagram-lightbox-open");
       setOpen(true);
     },
-    [stopEventPropagation],
+    [onOpen, stopEventPropagation],
   );
 
   const desktopToolbarExpandAction =

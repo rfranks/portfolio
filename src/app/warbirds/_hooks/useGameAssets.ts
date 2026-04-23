@@ -11,6 +11,13 @@ import { ENEMY_COLORS, AIRSHIP_COLORS } from "@/consts/game/vehicles";
 import { AssetMgr } from "@/types/game/ui";
 import { withBasePath } from "@/utils/basePath";
 
+const POWERUP_ASSET_FILE_BY_TYPE: Record<string, string> = {
+  coin2x: "coin_2x",
+  infiniteAmmo: "infinite_ammo",
+  machineGuns: "machine_guns",
+  shrink: "shrink_effect",
+};
+
 /**
  * SSR-safe asset loader for browser games.
  * Ensures no client/server hydration errors!
@@ -140,17 +147,15 @@ export function useGameAssets(): {
 
     // POWERUPS
     assetRefs.current.powerupImgs = Object.fromEntries(
-      POWERUP_TYPES.map((type) => [type, loadImg(`/assets/powerups/${type}.png`)]),
+      POWERUP_TYPES.map((type) => {
+        const assetFile = POWERUP_ASSET_FILE_BY_TYPE[type] ?? type;
+        return [type, loadImg(`/assets/powerups/${assetFile}.png`)];
+      }),
     ) as Record<string, HTMLImageElement>;
     // Ensure powerupImgs is always an object
     if (!assetRefs.current.powerupImgs) {
       assetRefs.current.powerupImgs = {};
     }
-    assetRefs.current.powerupImgs.coin2x = loadImg("/assets/powerups/coin_2x.png");
-    assetRefs.current.powerupImgs.infiniteAmmo = loadImg("/assets/powerups/infinite_ammo.png");
-    assetRefs.current.powerupImgs.machineGuns = loadImg("/assets/powerups/machine_guns.png");
-    assetRefs.current.powerupImgs.autoReload = loadImg("/assets/powerups/autoReload.png");
-    assetRefs.current.powerupImgs.shrink = loadImg("/assets/powerups/shrink_effect.png");
 
     // PUFF
     assetRefs.current.puffLargeImg = loadImg("/assets/tappyplane/PNG/puffLarge.png");

@@ -1,5 +1,10 @@
-import { projects } from "@/consts/resumeData";
-import type { ProjectData, ProjectPresentationSectionKey } from "@/types/components/portfolio";
+import { competencies, coreCompetencies, projects } from "@/consts/resumeData";
+import type {
+  CommandPaletteAction,
+  ProjectData,
+  ProjectPresentationSectionKey,
+} from "@/types/components/portfolio";
+import { resolvePresentationSectionOrder } from "./project-presentation/presentationConfig";
 
 type ProjectPageOverrides = Partial<ProjectData>;
 const PRESENTATION_PROJECT_TYPE = "presentation";
@@ -20,6 +25,11 @@ const normalizeSlugToHref = (slug: string) => {
 const normalizeHrefToSlug = (href: string): string => href.replace(/^\/+/, "").trim();
 
 const slugifyDiagramTitle = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+const slugifyToken = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
 
 export type PresentationProjectDiagramTarget = {
   key: string;
@@ -134,18 +144,36 @@ function resolvePresentationDiagramTargets(
 }
 
 function resolvePresentationSections(project: ProjectData): ProjectPresentationSectionKey[] {
-  const sections: ProjectPresentationSectionKey[] = ["overview"];
-  if (project.interestsMeWhy?.trim()) {
-    sections.push("why");
-  }
-  if (hasPresentationDemoMedia(project)) {
-    sections.push("demo");
-  }
-  sections.push("technologies", "specifications");
-  if (resolvePresentationDiagramTargets(project).length > 0) {
-    sections.push("diagrams");
-  }
-  return sections;
+  const hasWhySection = Boolean(project.interestsMeWhy?.trim());
+  const hasDemoSection = hasPresentationDemoMedia(project);
+  const hasDiagramsSection = resolvePresentationDiagramTargets(project).length > 0;
+
+  const availabilityByKey: Record<ProjectPresentationSectionKey, boolean> = {
+    overview: true,
+    why: hasWhySection,
+    demo: hasDemoSection,
+    technologies: true,
+    specifications: true,
+    diagrams: hasDiagramsSection,
+  };
+
+  const defaultOrder: readonly ProjectPresentationSectionKey[] = [
+    "overview",
+    "why",
+    "demo",
+    "technologies",
+    "specifications",
+    "diagrams",
+  ];
+  const configuredOrder = resolvePresentationSectionOrder(
+    project,
+    defaultOrder,
+  ) as readonly ProjectPresentationSectionKey[];
+  const orderedUniqueKeys = Array.from(new Set(configuredOrder));
+  const fallbackKeys = defaultOrder.filter((key) => !orderedUniqueKeys.includes(key));
+  const mergedOrder = [...orderedUniqueKeys, ...fallbackKeys];
+
+  return mergedOrder.filter((key) => availabilityByKey[key]);
 }
 
 export function createPresentationProjectDeepLinkHref({
@@ -201,6 +229,25 @@ export function getPresentationProjectContracts(): PresentationProjectContract[]
       } satisfies PresentationProjectContract;
     })
     .filter((contract): contract is PresentationProjectContract => Boolean(contract));
+}
+
+export function getPresentationProjectContractBySlug(
+  slug: string,
+): PresentationProjectContract | null {
+  const normalized = slug.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  return (
+    getPresentationProjectContracts().find(
+      (contract) => contract.projectSlug.trim().toLowerCase() === normalized,
+    ) ?? null
+  );
+}
+
+export function getPresentationSectionTitle(key: ProjectPresentationSectionKey): string {
+  return PRESENTATION_SECTION_TITLE_BY_KEY[key];
 }
 
 export function getPresentationProjectDeepLinkIndex(): PresentationProjectDeepLinkTarget[] {
@@ -264,4 +311,186 @@ export function createPresentationProjectPageData(
   }
 
   return createProjectPageData(href, overrides);
+}
+
+const dedupeCommandPaletteActions = (actions: CommandPaletteAction[]) => {
+  const seen = new Set<string>();
+  const deduped: CommandPaletteAction[] = [];
+  actions.forEach((action) => {
+    const key = `${action.id}::${action.label}::${action.href ?? ""}`;
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    deduped.push(action);
+  });
+  return deduped;
+};
+
+const buildStaticProjectSearchActions = (): CommandPaletteAction[] =>
+  projects
+    .filter((project) => typeof project.href === "string" && project.href.trim().startsWith("/"))
+    .map((project) => {
+      const href = project.href.trim();
+      const projectTitle = project.name.trim() || href.replace(/^\/+/, "");
+      const projectSummary =
+        project.shortText?.trim() || project.showcaseSubtitle?.trim() || project.description.trim();
+      return {
+        id: `search-project-${href}`,
+        label: `Project: ${projectTitle}`,
+        subtitle: projectSummary,
+        previewTitle: projectTitle,
+        previewBody: project.description.trim() || projectSummary,
+        previewMeta: `${project.type?.toUpperCase() ?? "PROJECT"} • ${href}`,
+        group: "Projects",
+        href,
+        keywords: [
+          "project",
+          projectTitle,
+          project.name,
+          project.description,
+          project.shortText ?? "",
+          project.type ?? "",
+          href,
+        ],
+      } satisfies CommandPaletteAction;
+    });
+
+const buildStaticSlideSearchActions = (): CommandPaletteAction[] =>
+  getPresentationProjectDeepLinkIndex()
+    .filter((entry) => entry.diagramIndex === undefined)
+    .map((entry) => ({
+      id: `search-slide-${entry.projectSlug}-${entry.slideKey}`,
+      label: `Slide: ${entry.projectTitle} • ${entry.slideTitle}`,
+      subtitle: entry.href,
+      previewTitle: `${entry.projectTitle} • ${entry.slideTitle}`,
+      previewBody: `Jump directly to the ${entry.slideTitle} slide.`,
+      previewMeta: `/${entry.projectSlug}`,
+      group: "Slides",
+      href: entry.href,
+      keywords: [
+        "slide",
+        "presentation",
+        "section",
+        entry.projectTitle,
+        entry.projectSlug,
+        entry.slideTitle,
+        entry.slideKey,
+      ],
+    }));
+
+const buildStaticDiagramSearchActions = (): CommandPaletteAction[] =>
+  getPresentationProjectDeepLinkIndex()
+    .filter((entry) => entry.diagramIndex !== undefined)
+    .map((entry) => {
+      const diagramTitle = entry.diagramTitle ?? `Diagram ${entry.diagramIndex! + 1}`;
+      return {
+        id: `search-diagram-${entry.projectSlug}-${entry.diagramIndex}`,
+        label: `Diagram: ${entry.projectTitle} • ${diagramTitle}`,
+        subtitle: entry.href,
+        previewTitle: `${entry.projectTitle} • ${diagramTitle}`,
+        previewBody: "Jump to this architecture diagram and focus the diagrams slide.",
+        previewMeta: `/${entry.projectSlug} • ${entry.diagramIndex! + 1}`,
+        group: "Diagrams",
+        href: entry.href,
+        keywords: [
+          "diagram",
+          "architecture",
+          "mermaid",
+          "presentation",
+          entry.projectTitle,
+          entry.projectSlug,
+          diagramTitle,
+          entry.diagramKey ?? "",
+        ],
+      } satisfies CommandPaletteAction;
+    });
+
+const buildStaticTechnologySearchActions = (): CommandPaletteAction[] =>
+  projects.flatMap((project) => {
+    const projectHref = typeof project.href === "string" ? project.href.trim() : "";
+    const projectTitle = project.name.trim() || projectHref.replace(/^\/+/, "");
+    const technologies = Array.isArray(project.technologiesUsed) ? project.technologiesUsed : [];
+    const projectSlug = projectHref.replace(/^\/+/, "");
+    const technologyHref =
+      project.type?.toLowerCase() === PRESENTATION_PROJECT_TYPE && projectSlug
+        ? createPresentationProjectDeepLinkHref({
+            projectSlug,
+            slideKey: "technologies",
+          })
+        : projectHref;
+
+    return technologies
+      .filter((tech) => Boolean(tech?.name?.trim()) && Boolean(technologyHref))
+      .map<CommandPaletteAction>((tech) => ({
+        id: `search-technology-${slugifyToken(projectTitle)}-${slugifyToken(tech.name)}`,
+        label: `Technology: ${tech.name}`,
+        subtitle: projectTitle,
+        previewTitle: `${tech.name} • ${projectTitle}`,
+        previewBody: `Used in ${projectTitle}.`,
+        previewMeta: technologyHref,
+        group: "Technologies",
+        href: technologyHref,
+        keywords: [
+          "technology",
+          "tech",
+          tech.name,
+          projectTitle,
+          project.description,
+          project.type ?? "",
+          technologyHref,
+        ],
+      }));
+  });
+
+const buildStaticSkillSearchActions = (): CommandPaletteAction[] => {
+  const categorySkills =
+    competencies.categories?.flatMap((category) =>
+      (category.items ?? [])
+        .filter((skill) => Boolean(skill?.label?.trim()))
+        .map<CommandPaletteAction>((skill) => ({
+          id: `search-skill-${slugifyToken(`${category.title}-${skill.label}`)}`,
+          label: `Skill: ${skill.label}`,
+          subtitle: category.title,
+          previewTitle: `${skill.label} • ${category.title}`,
+          previewBody: skill.description?.trim() || `Jump to Core Competencies for ${skill.label}.`,
+          previewMeta: "/#competencies",
+          group: "Skills",
+          href: "/#competencies",
+          keywords: [
+            "skill",
+            "competency",
+            "core competency",
+            skill.label,
+            category.title,
+            skill.description ?? "",
+          ],
+        })),
+    ) ?? [];
+
+  const coreSkills = coreCompetencies.map((skill) => ({
+    id: `search-core-skill-${slugifyToken(skill)}`,
+    label: `Skill: ${skill}`,
+    subtitle: "Core Competencies",
+    previewTitle: `${skill} • Core Competencies`,
+    previewBody: `Jump to Core Competencies for ${skill}.`,
+    previewMeta: "/#competencies",
+    group: "Skills",
+    href: "/#competencies",
+    keywords: ["skill", "competency", "core competency", skill],
+  })) satisfies CommandPaletteAction[];
+
+  return [...categorySkills, ...coreSkills];
+};
+
+const STATIC_SEARCH_INDEX_ACTIONS = dedupeCommandPaletteActions([
+  ...buildStaticSkillSearchActions(),
+  ...buildStaticTechnologySearchActions(),
+  ...buildStaticProjectSearchActions(),
+  ...buildStaticSlideSearchActions(),
+  ...buildStaticDiagramSearchActions(),
+]);
+
+export function getPortfolioStaticSearchIndexActions(): CommandPaletteAction[] {
+  return STATIC_SEARCH_INDEX_ACTIONS;
 }

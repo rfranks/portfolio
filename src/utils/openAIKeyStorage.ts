@@ -1,14 +1,6 @@
 "use client";
 
-export interface AppOpenAIKeyStorageConfig {
-  primaryStorageKey: string;
-  fallbackStorageKeys?: string[];
-}
-
-export interface AppOpenAIKeyReadOptions {
-  includeFallbackStorageKeys?: boolean;
-  includeEnvFallback?: boolean;
-}
+import type { AppOpenAIKeyReadOptions, AppOpenAIKeyStorageConfig } from "@/types/openAIKeyStorage";
 
 function readFromBrowserStorage(key: string): string {
   if (typeof window === "undefined") {

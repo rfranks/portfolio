@@ -2,6 +2,7 @@ import type { PaletteMode } from "@mui/material";
 import type { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import type { DrawerProps as MuiDrawerProps } from "@mui/material/Drawer";
 import type { DiagramProps } from "@/types/components/shared";
+import type { MediaCyclerMediaType } from "@/types/media/mediaCycler";
 
 export interface Technology {
   name: string;
@@ -57,6 +58,21 @@ export type ProjectSectionPagerSfxConfig = Partial<
   Record<ProjectPresentationSectionKey, ProjectSectionPagerSfxValue>
 >;
 
+export type ProjectPresentationDemoLayout = "default" | "podcasts";
+export type ProjectPresentationPrefetchPlan = Partial<
+  Record<ProjectPresentationSectionKey, MediaCyclerMediaType[]>
+>;
+
+export interface ProjectPresentationConfig {
+  useSharedOverviewSlide?: boolean;
+  useSharedDemoSlide?: boolean;
+  useSharedArchitectureDiagramsSlide?: boolean;
+  enableWhyThisInterestsSection?: boolean;
+  demoLayout?: ProjectPresentationDemoLayout;
+  sectionOrder?: ProjectPresentationSectionKey[];
+  prefetchPlan?: ProjectPresentationPrefetchPlan;
+}
+
 export interface ProjectData {
   project: string;
   type?: "personal" | "work" | "presentation";
@@ -78,6 +94,7 @@ export interface ProjectData {
   diagrams?: ProjectDiagramConfig[];
   terminalDemo?: ProjectTerminalDemoConfig;
   sectionPagerSfx?: ProjectSectionPagerSfxConfig;
+  presentation?: ProjectPresentationConfig;
 }
 
 export interface Accolade {
@@ -100,6 +117,9 @@ export interface CommandPaletteAction {
   id: string;
   label: string;
   subtitle?: string;
+  previewTitle?: string;
+  previewBody?: string;
+  previewMeta?: string;
   group?: string;
   keywords?: string[];
   href?: string;

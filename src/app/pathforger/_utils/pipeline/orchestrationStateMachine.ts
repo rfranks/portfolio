@@ -142,6 +142,15 @@ export class PathForgerPipelineStateMachine {
     };
   }
 
+  failUnhandled(errorMessage: string, fallbackStageKey = "unknown"): void {
+    if (this.snapshot.state === "failed") {
+      return;
+    }
+
+    const stageKey = this.snapshot.currentStageKey ?? fallbackStageKey;
+    this.failStage(stageKey, errorMessage);
+  }
+
   cancel(reason = "PathForger pipeline canceled."): void {
     const now = Date.now();
     const currentStage = this.snapshot.currentStageKey;

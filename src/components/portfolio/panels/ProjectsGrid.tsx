@@ -20,6 +20,7 @@ import {
 import type { MediaCyclerItem } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
+import { resolveProjectLaunchHref } from "@/components/portfolio/appCapabilityRegistry";
 
 type ImageVisual = {
   kind: "image";
@@ -250,7 +251,7 @@ function renderProjectContent(
       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: "auto" }}>
         <Button
           size="small"
-          href={withBasePath(project.href)}
+          href={withBasePath(resolveProjectLaunchHref(project))}
           color="secondary"
           variant="outlined"
           className="transition-transform duration-200 ease-out hover:-translate-y-0.5"

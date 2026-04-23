@@ -1,14 +1,13 @@
 import * as React from "react";
 import type { SxProps, Theme } from "@mui/material/styles";
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel";
+import { toSxArray } from "@/utils/sx/toSxArray";
 import PanelFrame, { type PanelFrameProps } from "./PanelFrame";
 
 type PortfolioPanelShellProps = PanelFrameProps & {
   panelClassName?: string;
   panelSx?: SxProps<Theme>;
 };
-
-const toSxArray = (value?: SxProps<Theme>) => (Array.isArray(value) ? value : value ? [value] : []);
 
 export default function PortfolioPanelShell({
   panelClassName,

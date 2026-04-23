@@ -4,21 +4,9 @@ import * as React from "react";
 import { alpha } from "@mui/material/styles";
 import { Box, Dialog, IconButton, Typography } from "@mui/material";
 import { CenterFocusStrong, Close, ZoomIn, ZoomOut } from "@mui/icons-material";
-import type { SxProps, Theme } from "@mui/material/styles";
+import type { ImageLightboxProps } from "@/types/components/shared/media";
 import { usePanZoomViewport } from "@/hooks/html/usePanZoomViewport";
-
-type ImageLightboxProps = {
-  src: string;
-  alt: string;
-  title?: string;
-  caption?: string;
-  children?: React.ReactNode;
-  triggerSx?: SxProps<Theme>;
-  previewImageSx?: SxProps<Theme>;
-  previewContainerSx?: SxProps<Theme>;
-  kenBurnsImageSx?: SxProps<Theme>;
-  stopEventPropagation?: boolean;
-};
+import { toSxArray } from "@/utils/sx/toSxArray";
 
 export default function ImageLightbox(props: ImageLightboxProps) {
   const {
@@ -32,6 +20,7 @@ export default function ImageLightbox(props: ImageLightboxProps) {
     previewContainerSx,
     kenBurnsImageSx,
     stopEventPropagation = false,
+    onOpen,
   } = props;
   const [open, setOpen] = React.useState(false);
   const {
@@ -52,36 +41,12 @@ export default function ImageLightbox(props: ImageLightboxProps) {
     shouldIgnorePointerTarget: (target) => Boolean(target.closest("button")),
   });
   const previewContainerSxArray = React.useMemo(
-    () =>
-      previewContainerSx == null
-        ? []
-        : Array.isArray(previewContainerSx)
-          ? previewContainerSx
-          : [previewContainerSx],
+    () => toSxArray(previewContainerSx),
     [previewContainerSx],
   );
-  const previewImageSxArray = React.useMemo(
-    () =>
-      previewImageSx == null
-        ? []
-        : Array.isArray(previewImageSx)
-          ? previewImageSx
-          : [previewImageSx],
-    [previewImageSx],
-  );
-  const kenBurnsImageSxArray = React.useMemo(
-    () =>
-      kenBurnsImageSx == null
-        ? []
-        : Array.isArray(kenBurnsImageSx)
-          ? kenBurnsImageSx
-          : [kenBurnsImageSx],
-    [kenBurnsImageSx],
-  );
-  const triggerSxArray = React.useMemo(
-    () => (triggerSx == null ? [] : Array.isArray(triggerSx) ? triggerSx : [triggerSx]),
-    [triggerSx],
-  );
+  const previewImageSxArray = React.useMemo(() => toSxArray(previewImageSx), [previewImageSx]);
+  const kenBurnsImageSxArray = React.useMemo(() => toSxArray(kenBurnsImageSx), [kenBurnsImageSx]);
+  const triggerSxArray = React.useMemo(() => toSxArray(triggerSx), [triggerSx]);
 
   const handleOpen = React.useCallback(
     (event: React.MouseEvent<HTMLElement>) => {
@@ -89,9 +54,10 @@ export default function ImageLightbox(props: ImageLightboxProps) {
         event.preventDefault();
         event.stopPropagation();
       }
+      onOpen?.("pointer", "image-lightbox-open");
       setOpen(true);
     },
-    [stopEventPropagation],
+    [onOpen, stopEventPropagation],
   );
 
   const handleKeyDown = React.useCallback(
@@ -103,9 +69,10 @@ export default function ImageLightbox(props: ImageLightboxProps) {
         event.preventDefault();
         event.stopPropagation();
       }
+      onOpen?.("keyboard", "image-lightbox-open");
       setOpen(true);
     },
-    [stopEventPropagation],
+    [onOpen, stopEventPropagation],
   );
 
   React.useEffect(() => {

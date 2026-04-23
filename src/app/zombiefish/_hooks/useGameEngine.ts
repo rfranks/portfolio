@@ -10,6 +10,19 @@ import { BASE_DIMS } from "@/consts/game/dimensions";
 import { useGameAssets } from "./useGameAssets";
 import { useGameAudio } from "./useGameAudio";
 import { drawTextLabels, newTextLabel } from "@/utils/game/ui";
+import {
+  cancelAnimationFrameRef,
+  clearManagedTimeout,
+  findTopmostHitIndex,
+  mapClientPointToWorld,
+  pickRandom,
+  pointInCircle,
+  pointInRect,
+  randomInRange,
+  scheduleManagedSpawner,
+  scheduleManagedTimeout,
+  startManagedAnimationLoop,
+} from "@/utils/game/engine2d";
 import { drawRandomTerrainBackground } from "../_drawRandomTerrainBackground";
 
 import type { GameState, GameUIState, Fish, Bubble, MissParticle } from "../_types";
@@ -110,7 +123,6 @@ export default function useGameEngine() {
   // canvas and animation frame refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const lastTimeRef = useRef(performance.now());
 
   // assets
   const assetMgr = useGameAssets();
@@ -148,7 +160,6 @@ export default function useGameEngine() {
   const inactiveFish = useRef<Fish[]>([]);
   const inactiveBubbles = useRef<Bubble[]>([]);
   const bubbleSpawnRef = useRef(0);
-  const spawnTimeoutRef = useRef<ScaledTimeoutHandle | null>(null);
   const cursorTimeoutRef = useRef<ScaledTimeoutHandle | null>(null);
   const frameRef = useRef(0); // track milliseconds for one-second ticks
   const fishSpawnTimeout = useRef<ScaledTimeoutHandle | null>(null);
@@ -527,14 +538,15 @@ export default function useGameEngine() {
   const spawnBubble = useCallback(() => {
     const { width, height } = state.current.dims;
     const kinds = ["bubble_a", "bubble_b", "bubble_c"];
-    const kind = kinds[Math.floor(Math.random() * kinds.length)];
-    const size = Math.random() * (BUBBLE_MAX - BUBBLE_MIN) + BUBBLE_MIN;
-    const x = Math.random() * (width - size);
+    const kind = pickRandom(kinds);
+    if (!kind) return;
+    const size = randomInRange(BUBBLE_MIN, BUBBLE_MAX);
+    const x = randomInRange(0, Math.max(0, width - size));
     const y = height + size;
-    const vx = Math.random() * (BUBBLE_VX_MAX * 2) - BUBBLE_VX_MAX;
-    const vy = Math.random() * (BUBBLE_VY_MAX - BUBBLE_VY_MIN) + BUBBLE_VY_MIN; // upward
-    const amp = Math.random() * 2 + 0.5;
-    const freq = Math.random() * 0.05 + 0.01;
+    const vx = randomInRange(-BUBBLE_VX_MAX, BUBBLE_VX_MAX);
+    const vy = randomInRange(BUBBLE_VY_MIN, BUBBLE_VY_MAX); // upward
+    const amp = randomInRange(0.5, 2.5);
+    const freq = randomInRange(0.01, 0.06);
     if (state.current.bubbles.length >= MAX_BUBBLES) return;
     const bubble = inactiveBubbles.current.pop() || ({} as Bubble);
     bubble.id = nextBubbleId.current++;
@@ -550,338 +562,340 @@ export default function useGameEngine() {
   }, []);
 
   // main loop updates timer and fish
-  const loop = useCallback(() => {
-    const now = performance.now();
-    const deltaMsRaw = now - lastTimeRef.current;
-    lastTimeRef.current = now;
-    advanceClock(deltaMsRaw);
-    const { deltaMs, scale } = clockRef.current;
-    const cur = state.current;
-    if (timerLabel.current) {
-      const lbl = timerLabel.current;
-      const width = lbl.imgs.reduce(
-        (sum, img) => sum + (img ? img.width * lbl.scale + 2 : lbl.spaceGap),
-        0,
-      );
-      const height = lbl.imgs.reduce(
-        (max, img) => Math.max(max, (img?.height || 0) * lbl.scale),
-        0,
-      );
-      lbl.x = (cur.dims.width - width) / 2;
-      timeTextBounds.current = {
-        x: lbl.x,
-        y: lbl.y - (lbl.py ?? 0),
-        width,
-        height: height + (lbl.py ?? 0) * 2,
-      };
-    }
-
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) {
-      animationFrameRef.current = requestAnimationFrame(loop);
-      return;
-    }
-
-    if (cur.phase === "playing") {
-      updateFish(deltaMs, scale);
-
-      // spawn and animate bubbles
-      bubbleSpawnRef.current -= deltaMs;
-      if (bubbleSpawnRef.current <= 0) {
-        spawnBubble();
-        bubbleSpawnRef.current = (Math.floor(Math.random() * 60) + 30) * FRAME_MS;
-      }
-      cur.bubbles.forEach((b) => {
-        // Update position using velocity and per-bubble wiggle
-        b.x += (b.vx + Math.sin((frameRef.current / FRAME_MS) * b.freq) * b.amp) * scale;
-        b.y += b.vy * scale;
-      });
-      cur.bubbles = cur.bubbles.filter((b) => {
-        const onScreen = b.y + b.size > 0 && b.x + b.size > 0 && b.x - b.size < cur.dims.width;
-        if (!onScreen) inactiveBubbles.current.push(b);
-        return onScreen;
-      });
-
-      // track frames and decrement the timer once per second
-      frameRef.current += deltaMs;
-      if (frameRef.current >= 1000) {
-        frameRef.current -= 1000;
-        cur.timer = Math.max(0, cur.timer - 1);
-        audio.play("tick");
-        updateDigitLabel(timerLabel.current, cur.timer, 2);
-        if (cur.timer === 10 && !cur.warningPlayed) {
-          audio.play("warning");
-          cur.warningPlayed = true;
-        }
-      }
-
-      // check for game over once timer hits zero
-      if (cur.timer === 0) {
-        cur.phase = "gameover";
-        finalAccuracy.current = cur.shots > 0 ? Math.round((cur.hits / cur.shots) * 100) : 0;
-        updateBestAccuracy(finalAccuracy.current);
-        displayAccuracy.current = 0;
-        audio.pauseAll();
-        if (accuracyStatLabel.current) {
-          cur.textLabels = cur.textLabels.filter((lbl) => lbl !== accuracyStatLabel.current);
-          accuracyStatLabel.current = null;
-        }
-
-        // create accuracy label
-        const pctImg = getImg("pctImg") as HTMLImageElement;
-        const digitImgs = getImg("digitImgs") as Record<string, HTMLImageElement>;
-        const scale = 1;
-        const initImgs = [digitImgs["0"], pctImg];
-        const totalWidth = initImgs.reduce((w, img) => w + img.width * scale + 2, 0);
-        const accLbl = newTextLabel(
-          {
-            text: "0",
-            scale,
-            fixed: true,
-            fade: false,
-            x: (cur.dims.width - totalWidth) / 2,
-            y: cur.dims.height / 2,
-            py: STAT_LABEL_PY,
-          },
-          assetMgr,
+  const loop = useCallback(
+    ({ deltaMs: frameDeltaMs }: { deltaMs: number }) => {
+      advanceClock(frameDeltaMs);
+      const { deltaMs, scale } = clockRef.current;
+      const cur = state.current;
+      if (timerLabel.current) {
+        const lbl = timerLabel.current;
+        const width = lbl.imgs.reduce(
+          (sum, img) => sum + (img ? img.width * lbl.scale + 2 : lbl.spaceGap),
+          0,
         );
-        accLbl.text = "0%";
-        accLbl.imgs = initImgs;
-        accuracyLabel.current = accLbl;
-        cur.textLabels.push(accLbl);
+        const height = lbl.imgs.reduce(
+          (max, img) => Math.max(max, (img?.height || 0) * lbl.scale),
+          0,
+        );
+        lbl.x = (cur.dims.width - width) / 2;
+        timeTextBounds.current = {
+          x: lbl.x,
+          y: lbl.y - (lbl.py ?? 0),
+          width,
+          height: height + (lbl.py ?? 0) * 2,
+        };
+      }
 
-        // create game over stat labels
-        const makeStat = (text: string, y: number) => {
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      if (!canvas || !ctx) {
+        return;
+      }
+
+      if (cur.phase === "playing") {
+        updateFish(deltaMs, scale);
+
+        // spawn and animate bubbles
+        bubbleSpawnRef.current -= deltaMs;
+        if (bubbleSpawnRef.current <= 0) {
+          spawnBubble();
+          bubbleSpawnRef.current = randomInRange(30, 90) * FRAME_MS;
+        }
+        cur.bubbles.forEach((b) => {
+          // Update position using velocity and per-bubble wiggle
+          b.x += (b.vx + Math.sin((frameRef.current / FRAME_MS) * b.freq) * b.amp) * scale;
+          b.y += b.vy * scale;
+        });
+        cur.bubbles = cur.bubbles.filter((b) => {
+          const onScreen = b.y + b.size > 0 && b.x + b.size > 0 && b.x - b.size < cur.dims.width;
+          if (!onScreen) inactiveBubbles.current.push(b);
+          return onScreen;
+        });
+
+        // track frames and decrement the timer once per second
+        frameRef.current += deltaMs;
+        if (frameRef.current >= 1000) {
+          frameRef.current -= 1000;
+          cur.timer = Math.max(0, cur.timer - 1);
+          audio.play("tick");
+          updateDigitLabel(timerLabel.current, cur.timer, 2);
+          if (cur.timer === 10 && !cur.warningPlayed) {
+            audio.play("warning");
+            cur.warningPlayed = true;
+          }
+        }
+
+        // check for game over once timer hits zero
+        if (cur.timer === 0) {
+          cur.phase = "gameover";
+          finalAccuracy.current = cur.shots > 0 ? Math.round((cur.hits / cur.shots) * 100) : 0;
+          updateBestAccuracy(finalAccuracy.current);
+          displayAccuracy.current = 0;
+          audio.pauseAll();
+          if (accuracyStatLabel.current) {
+            cur.textLabels = cur.textLabels.filter((lbl) => lbl !== accuracyStatLabel.current);
+            accuracyStatLabel.current = null;
+          }
+
+          // create accuracy label
+          const pctImg = getImg("pctImg") as HTMLImageElement;
+          const digitImgs = getImg("digitImgs") as Record<string, HTMLImageElement>;
+          const scale = 1;
+          const initImgs = [digitImgs["0"], pctImg];
+          const totalWidth = initImgs.reduce((w, img) => w + img.width * scale + 2, 0);
+          const accLbl = newTextLabel(
+            {
+              text: "0",
+              scale,
+              fixed: true,
+              fade: false,
+              x: (cur.dims.width - totalWidth) / 2,
+              y: cur.dims.height / 2,
+              py: STAT_LABEL_PY,
+            },
+            assetMgr,
+          );
+          accLbl.text = "0%";
+          accLbl.imgs = initImgs;
+          accuracyLabel.current = accLbl;
+          cur.textLabels.push(accLbl);
+
+          // create game over stat labels
+          const makeStat = (text: string, y: number) => {
+            const lbl = newTextLabel(
+              { text, scale: 1, fixed: true, fade: false, y, py: STAT_LABEL_PY },
+              assetMgr,
+              cur.dims,
+            );
+            cur.textLabels.push(lbl);
+            return lbl;
+          };
+
+          const baseY = accLbl.y + 40;
+          gameoverTimeLabel.current = makeStat(
+            `TIME ${cur.timer.toString().padStart(2, "0")}`,
+            baseY,
+          );
+          gameoverShotsLabel.current = makeStat(`SHOTS ${cur.shots}`, baseY + 40);
+          gameoverHitsLabel.current = makeStat(`HITS ${cur.hits}`, baseY + 80);
+
+          // create a label for each fish type hit
+          let y = baseY + 120;
+          Object.entries(cur.hitCounts)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .forEach(([kind, count]) => {
+              const text = `${kind.replace(/_/g, " ")} ${count}`;
+              makeStat(text, y);
+              y += 40;
+            });
+          gameoverScoreLabel.current = makeStat(`SCORE ${cur.score}`, baseY + 120);
+        }
+        if (!bestAccuracyLabel.current) {
+          const best = Number(localStorage.getItem("bestAccuracy") || 0);
+          const pctImg = getImg("pctImg") as HTMLImageElement;
+          const digitImgs = getImg("digitImgs") as Record<string, HTMLImageElement>;
           const lbl = newTextLabel(
-            { text, scale: 1, fixed: true, fade: false, y, py: STAT_LABEL_PY },
+            {
+              text: `${best}%`,
+              scale: 1,
+              fixed: true,
+              fade: false,
+              x: 16,
+              y: 16,
+              py: STAT_LABEL_PY,
+            },
+            assetMgr,
+          );
+          lbl.imgs = [
+            ...best
+              .toString()
+              .split("")
+              .map((ch) => digitImgs[ch]),
+            pctImg,
+          ];
+          bestAccuracyLabel.current = lbl;
+          cur.textLabels.push(lbl);
+        }
+
+        // cull fish that have moved completely off-screen
+        const { width, height } = cur.dims;
+        const margin = FISH_SIZE * 2;
+        cur.fish = cur.fish.filter((f) => {
+          const on =
+            f.x > -margin && f.x < width + margin && f.y > -margin && f.y < height + margin;
+          if (!on) inactiveFish.current.push(f);
+          return on;
+        });
+      }
+
+      // update miss particles
+      cur.missParticles.forEach((p) => {
+        p.radius += MISS_GROWTH * scale;
+        p.alpha -= MISS_FADE * scale;
+      });
+      cur.missParticles = cur.missParticles.filter((p) => p.alpha > 0);
+
+      // update accuracy label during gameover
+      if (cur.phase === "gameover" && accuracyLabel.current) {
+        const lbl = accuracyLabel.current;
+        if (displayAccuracy.current < finalAccuracy.current) {
+          const prev = Math.floor(displayAccuracy.current);
+          displayAccuracy.current = Math.min(
+            displayAccuracy.current + scale,
+            finalAccuracy.current,
+          );
+          if (Math.floor(displayAccuracy.current) > prev) {
+            audio.play("tick");
+          }
+          const pct = Math.floor(displayAccuracy.current);
+          const str = pct.toString();
+          const digitImgs = getImg("digitImgs") as Record<string, HTMLImageElement>;
+          const pctImg = getImg("pctImg") as HTMLImageElement;
+          lbl.text = `${str}%`;
+          lbl.imgs = [...str.split("").map((ch) => digitImgs[ch]), pctImg];
+        }
+
+        // pulse the accuracy label slightly each frame
+        lbl.scale = 1 + 0.05 * Math.sin((frameRef.current / FRAME_MS) * 0.1);
+        const totalWidth = lbl.imgs.reduce((w, img) => w + (img?.width || 0) * lbl.scale + 2, 0);
+        lbl.x = (cur.dims.width - totalWidth) / 2;
+      }
+
+      // cull fish that have moved completely off-screen
+      if (cur.phase === "playing") {
+        const { width, height } = cur.dims;
+        const margin = FISH_SIZE * 2;
+        cur.fish = cur.fish.filter((f) => {
+          const on =
+            f.x > -margin && f.x < width + margin && f.y > -margin && f.y < height + margin;
+          if (!on) inactiveFish.current.push(f);
+          return on;
+        });
+      }
+
+      if (cur.phase === "paused") {
+        if (!pausedLabel.current) {
+          pausedLabel.current = newTextLabel(
+            { text: "PAUSED", scale: 2, fixed: true, fade: false },
             assetMgr,
             cur.dims,
           );
-          cur.textLabels.push(lbl);
-          return lbl;
-        };
-
-        const baseY = accLbl.y + 40;
-        gameoverTimeLabel.current = makeStat(
-          `TIME ${cur.timer.toString().padStart(2, "0")}`,
-          baseY,
-        );
-        gameoverShotsLabel.current = makeStat(`SHOTS ${cur.shots}`, baseY + 40);
-        gameoverHitsLabel.current = makeStat(`HITS ${cur.hits}`, baseY + 80);
-
-        // create a label for each fish type hit
-        let y = baseY + 120;
-        Object.entries(cur.hitCounts)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .forEach(([kind, count]) => {
-            const text = `${kind.replace(/_/g, " ")} ${count}`;
-            makeStat(text, y);
-            y += 40;
-          });
-        gameoverScoreLabel.current = makeStat(`SCORE ${cur.score}`, baseY + 120);
+          cur.textLabels.push(pausedLabel.current);
+        }
+      } else if (pausedLabel.current) {
+        cur.textLabels = cur.textLabels.filter((l) => l !== pausedLabel.current);
+        pausedLabel.current = null;
       }
-      if (!bestAccuracyLabel.current) {
-        const best = Number(localStorage.getItem("bestAccuracy") || 0);
-        const pctImg = getImg("pctImg") as HTMLImageElement;
+
+      // draw bubbles, fish and text labels
+      if (canvas && ctx) {
+        ctx.clearRect(0, 0, cur.dims.width, cur.dims.height);
+
+        drawBackground(ctx);
+
+        // draw timer bar at top of screen
+        const barWidth = (cur.timer / GAME_TIME) * cur.dims.width;
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, 0, barWidth, 8);
+
+        // draw bubbles beneath fish
+        const bubbleImgs = getImg("bubbleImgs") as Record<string, HTMLImageElement>;
+        cur.bubbles.forEach((b) => {
+          const img = bubbleImgs[b.kind as keyof typeof bubbleImgs];
+          if (!img) return;
+          // scale according to the bubble's size before drawing
+          ctx.drawImage(img, b.x, b.y, b.size, b.size);
+        });
+
+        cur.missParticles.forEach((p) => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255,255,255,${p.alpha})`;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        });
+
+        cur.fish.forEach((f) => {
+          const frameMap = getImg(f.isSkeleton ? "skeletonFrames" : "fishFrames") as Record<
+            string,
+            HTMLImageElement[]
+          >;
+          const frames = frameMap[f.kind as keyof typeof frameMap];
+          if (!frames || frames.length === 0) return;
+          const img = frames[f.frame];
+          if (!img) return;
+          ctx.save();
+          let pivotX = f.x + FISH_SIZE / 2;
+          const pivotY = f.y + FISH_SIZE / 2;
+          let drawX = -FISH_SIZE / 2;
+          const drawY = -FISH_SIZE / 2;
+          if (f.kind === "grey_long_a" || f.kind === "grey_long_b") {
+            pivotX = f.x + (f.kind === "grey_long_a" ? FISH_SIZE : 0);
+            drawX = f.kind === "grey_long_a" ? -FISH_SIZE : 0;
+          }
+          // Rotate the fish based on its precomputed orientation
+          ctx.translate(pivotX, pivotY);
+          ctx.rotate(f.angle);
+          if (f.flipped) {
+            ctx.scale(-1, 1);
+          }
+          if (f.highlight) {
+            const fishImgs = getImg("fishImgs") as Record<string, HTMLImageElement>;
+            const outline = fishImgs[`${f.kind}_outline` as keyof typeof fishImgs];
+            if (outline) {
+              ctx.globalAlpha = (Math.sin(frameRef.current / FRAME_MS / 10) + 1) / 2;
+              ctx.drawImage(outline, drawX, drawY, FISH_SIZE, FISH_SIZE);
+              ctx.globalAlpha = 1;
+            }
+          }
+          ctx.drawImage(img, drawX, drawY, FISH_SIZE, FISH_SIZE);
+          if (f.pendingSkeleton || (f.isSkeleton && f.hurtTimer > 0)) {
+            const flash = getImg("fishFlashImg") as HTMLImageElement;
+            if (flash) {
+              ctx.drawImage(flash, drawX, drawY, FISH_SIZE, FISH_SIZE);
+            }
+          }
+          ctx.restore();
+        });
+
+        cur.textLabels = drawTextLabels({
+          textLabels: cur.textLabels,
+          ctx,
+          cull: true,
+        });
+      }
+
+      cur.accuracy = cur.shots > 0 ? (cur.hits / cur.shots) * 100 : 0;
+
+      if (accuracyStatLabel.current && cur.phase === "playing") {
+        const lbl = accuracyStatLabel.current;
+        const pct = Math.round(cur.accuracy);
         const digitImgs = getImg("digitImgs") as Record<string, HTMLImageElement>;
-        const lbl = newTextLabel(
-          {
-            text: `${best}%`,
-            scale: 1,
-            fixed: true,
-            fade: false,
-            x: 16,
-            y: 16,
-            py: STAT_LABEL_PY,
-          },
-          assetMgr,
-        );
+        const pctImg = getImg("pctImg") as HTMLImageElement;
+        lbl.text = `${pct}%`;
         lbl.imgs = [
-          ...best
+          ...pct
             .toString()
             .split("")
             .map((ch) => digitImgs[ch]),
           pctImg,
         ];
-        bestAccuracyLabel.current = lbl;
-        cur.textLabels.push(lbl);
+        const totalWidth = lbl.imgs.reduce((w, img) => w + (img?.width || 0) * lbl.scale + 2, 0);
+        lbl.x = cur.dims.width - totalWidth - 16;
       }
 
-      // cull fish that have moved completely off-screen
-      const { width, height } = cur.dims;
-      const margin = FISH_SIZE * 2;
-      cur.fish = cur.fish.filter((f) => {
-        const on = f.x > -margin && f.x < width + margin && f.y > -margin && f.y < height + margin;
-        if (!on) inactiveFish.current.push(f);
-        return on;
+      setUI({
+        phase: cur.phase,
+        timer: cur.timer,
+        shots: cur.shots,
+        hits: cur.hits,
+        score: cur.score,
+        accuracy: cur.accuracy,
+        cursor: cur.cursor,
       });
-    }
-
-    // update miss particles
-    cur.missParticles.forEach((p) => {
-      p.radius += MISS_GROWTH * scale;
-      p.alpha -= MISS_FADE * scale;
-    });
-    cur.missParticles = cur.missParticles.filter((p) => p.alpha > 0);
-
-    // update accuracy label during gameover
-    if (cur.phase === "gameover" && accuracyLabel.current) {
-      const lbl = accuracyLabel.current;
-      if (displayAccuracy.current < finalAccuracy.current) {
-        const prev = Math.floor(displayAccuracy.current);
-        displayAccuracy.current = Math.min(displayAccuracy.current + scale, finalAccuracy.current);
-        if (Math.floor(displayAccuracy.current) > prev) {
-          audio.play("tick");
-        }
-        const pct = Math.floor(displayAccuracy.current);
-        const str = pct.toString();
-        const digitImgs = getImg("digitImgs") as Record<string, HTMLImageElement>;
-        const pctImg = getImg("pctImg") as HTMLImageElement;
-        lbl.text = `${str}%`;
-        lbl.imgs = [...str.split("").map((ch) => digitImgs[ch]), pctImg];
-      }
-
-      // pulse the accuracy label slightly each frame
-      lbl.scale = 1 + 0.05 * Math.sin((frameRef.current / FRAME_MS) * 0.1);
-      const totalWidth = lbl.imgs.reduce((w, img) => w + (img?.width || 0) * lbl.scale + 2, 0);
-      lbl.x = (cur.dims.width - totalWidth) / 2;
-    }
-
-    // cull fish that have moved completely off-screen
-    if (cur.phase === "playing") {
-      const { width, height } = cur.dims;
-      const margin = FISH_SIZE * 2;
-      cur.fish = cur.fish.filter((f) => {
-        const on = f.x > -margin && f.x < width + margin && f.y > -margin && f.y < height + margin;
-        if (!on) inactiveFish.current.push(f);
-        return on;
-      });
-    }
-
-    if (cur.phase === "paused") {
-      if (!pausedLabel.current) {
-        pausedLabel.current = newTextLabel(
-          { text: "PAUSED", scale: 2, fixed: true, fade: false },
-          assetMgr,
-          cur.dims,
-        );
-        cur.textLabels.push(pausedLabel.current);
-      }
-    } else if (pausedLabel.current) {
-      cur.textLabels = cur.textLabels.filter((l) => l !== pausedLabel.current);
-      pausedLabel.current = null;
-    }
-
-    // draw bubbles, fish and text labels
-    if (canvas && ctx) {
-      ctx.clearRect(0, 0, cur.dims.width, cur.dims.height);
-
-      drawBackground(ctx);
-
-      // draw timer bar at top of screen
-      const barWidth = (cur.timer / GAME_TIME) * cur.dims.width;
-      ctx.fillStyle = "rgba(0,0,0,0.5)";
-      ctx.fillRect(0, 0, barWidth, 8);
-
-      // draw bubbles beneath fish
-      const bubbleImgs = getImg("bubbleImgs") as Record<string, HTMLImageElement>;
-      cur.bubbles.forEach((b) => {
-        const img = bubbleImgs[b.kind as keyof typeof bubbleImgs];
-        if (!img) return;
-        // scale according to the bubble's size before drawing
-        ctx.drawImage(img, b.x, b.y, b.size, b.size);
-      });
-
-      cur.missParticles.forEach((p) => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(255,255,255,${p.alpha})`;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      });
-
-      cur.fish.forEach((f) => {
-        const frameMap = getImg(f.isSkeleton ? "skeletonFrames" : "fishFrames") as Record<
-          string,
-          HTMLImageElement[]
-        >;
-        const frames = frameMap[f.kind as keyof typeof frameMap];
-        if (!frames || frames.length === 0) return;
-        const img = frames[f.frame];
-        if (!img) return;
-        ctx.save();
-        let pivotX = f.x + FISH_SIZE / 2;
-        const pivotY = f.y + FISH_SIZE / 2;
-        let drawX = -FISH_SIZE / 2;
-        const drawY = -FISH_SIZE / 2;
-        if (f.kind === "grey_long_a" || f.kind === "grey_long_b") {
-          pivotX = f.x + (f.kind === "grey_long_a" ? FISH_SIZE : 0);
-          drawX = f.kind === "grey_long_a" ? -FISH_SIZE : 0;
-        }
-        // Rotate the fish based on its precomputed orientation
-        ctx.translate(pivotX, pivotY);
-        ctx.rotate(f.angle);
-        if (f.flipped) {
-          ctx.scale(-1, 1);
-        }
-        if (f.highlight) {
-          const fishImgs = getImg("fishImgs") as Record<string, HTMLImageElement>;
-          const outline = fishImgs[`${f.kind}_outline` as keyof typeof fishImgs];
-          if (outline) {
-            ctx.globalAlpha = (Math.sin(frameRef.current / FRAME_MS / 10) + 1) / 2;
-            ctx.drawImage(outline, drawX, drawY, FISH_SIZE, FISH_SIZE);
-            ctx.globalAlpha = 1;
-          }
-        }
-        ctx.drawImage(img, drawX, drawY, FISH_SIZE, FISH_SIZE);
-        if (f.pendingSkeleton || (f.isSkeleton && f.hurtTimer > 0)) {
-          const flash = getImg("fishFlashImg") as HTMLImageElement;
-          if (flash) {
-            ctx.drawImage(flash, drawX, drawY, FISH_SIZE, FISH_SIZE);
-          }
-        }
-        ctx.restore();
-      });
-
-      cur.textLabels = drawTextLabels({
-        textLabels: cur.textLabels,
-        ctx,
-        cull: true,
-      });
-    }
-
-    cur.accuracy = cur.shots > 0 ? (cur.hits / cur.shots) * 100 : 0;
-
-    if (accuracyStatLabel.current && cur.phase === "playing") {
-      const lbl = accuracyStatLabel.current;
-      const pct = Math.round(cur.accuracy);
-      const digitImgs = getImg("digitImgs") as Record<string, HTMLImageElement>;
-      const pctImg = getImg("pctImg") as HTMLImageElement;
-      lbl.text = `${pct}%`;
-      lbl.imgs = [
-        ...pct
-          .toString()
-          .split("")
-          .map((ch) => digitImgs[ch]),
-        pctImg,
-      ];
-      const totalWidth = lbl.imgs.reduce((w, img) => w + (img?.width || 0) * lbl.scale + 2, 0);
-      lbl.x = cur.dims.width - totalWidth - 16;
-    }
-
-    setUI({
-      phase: cur.phase,
-      timer: cur.timer,
-      shots: cur.shots,
-      hits: cur.hits,
-      score: cur.score,
-      accuracy: cur.accuracy,
-      cursor: cur.cursor,
-    });
-
-    animationFrameRef.current = requestAnimationFrame(loop);
-  }, [updateFish, getImg, assetMgr, spawnBubble, updateDigitLabel]);
+    },
+    [updateFish, getImg, assetMgr, spawnBubble, updateDigitLabel],
+  );
 
   // start the game
   const startSplash = useCallback(() => {
@@ -988,19 +1002,17 @@ export default function useGameEngine() {
       cursor: cur.cursor,
     });
 
-    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    lastTimeRef.current = performance.now();
-    animationFrameRef.current = requestAnimationFrame(loop);
+    startManagedAnimationLoop({
+      frameRef: animationFrameRef,
+      onFrame: loop,
+    });
   }, [loop, assetMgr, getImg, updateDigitLabel]);
 
   // reset back to title screen
   const resetGame = useCallback(() => {
     const cur = state.current;
 
-    if (fishSpawnTimeout.current) {
-      clearScaledTimeout(fishSpawnTimeout.current);
-      fishSpawnTimeout.current = null;
-    }
+    clearManagedTimeout(fishSpawnTimeout, clearScaledTimeout);
 
     cur.phase = "title";
     cur.timer = GAME_TIME;
@@ -1049,15 +1061,8 @@ export default function useGameEngine() {
       accuracy: cur.accuracy,
       cursor: cur.cursor,
     });
-    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    if (spawnTimeoutRef.current) {
-      clearScaledTimeout(spawnTimeoutRef.current);
-      spawnTimeoutRef.current = null;
-    }
-    if (cursorTimeoutRef.current) {
-      clearScaledTimeout(cursorTimeoutRef.current);
-      cursorTimeoutRef.current = null;
-    }
+    cancelAnimationFrameRef(animationFrameRef);
+    clearManagedTimeout(cursorTimeoutRef, clearScaledTimeout);
     audio.pauseAll();
   }, []);
 
@@ -1096,13 +1101,16 @@ export default function useGameEngine() {
 
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const { left, top, width, height } = canvas.getBoundingClientRect();
+      const { x, y } = mapClientPointToWorld({
+        clientX: e.clientX,
+        clientY: e.clientY,
+        bounds: canvas.getBoundingClientRect(),
+        worldWidth: cur.dims.width,
+        worldHeight: cur.dims.height,
+      });
 
-      const x = ((e.clientX - left) / width) * cur.dims.width;
-      const y = ((e.clientY - top) / height) * cur.dims.height;
-
-      const hovering = cur.fish.some(
-        (f) => x >= f.x && x <= f.x + FISH_SIZE && y >= f.y && y <= f.y + FISH_SIZE,
+      const hovering = cur.fish.some((f) =>
+        pointInRect({ x, y }, { x: f.x, y: f.y, width: FISH_SIZE, height: FISH_SIZE }),
       );
 
       const nextCursor = hovering ? TARGET_CURSOR : DEFAULT_CURSOR;
@@ -1137,16 +1145,23 @@ export default function useGameEngine() {
         });
         return;
       }
-      const rect = canvas.getBoundingClientRect();
-      const canvasX = ((e.clientX - rect.left) / rect.width) * cur.dims.width;
-      const canvasY = ((e.clientY - rect.top) / rect.height) * cur.dims.height;
+      const clickPoint = mapClientPointToWorld({
+        clientX: e.clientX,
+        clientY: e.clientY,
+        bounds: canvas.getBoundingClientRect(),
+        worldWidth: cur.dims.width,
+        worldHeight: cur.dims.height,
+      });
+      const { x: canvasX, y: canvasY } = clickPoint;
 
       const bounds = timeTextBounds.current;
       if (
-        canvasX >= bounds.x &&
-        canvasX <= bounds.x + bounds.width &&
-        canvasY >= bounds.y &&
-        canvasY <= bounds.y + bounds.height
+        pointInRect(clickPoint, {
+          x: bounds.x,
+          y: bounds.y,
+          width: bounds.width,
+          height: bounds.height,
+        })
       ) {
         if (cur.phase === "playing" || cur.phase === "paused") {
           cur.phase = cur.phase === "playing" ? "paused" : "playing";
@@ -1166,115 +1181,114 @@ export default function useGameEngine() {
       if (cur.phase !== "playing") return;
 
       syncCursor(SHOT_CURSOR);
-      if (cursorTimeoutRef.current) clearScaledTimeout(cursorTimeoutRef.current);
-      cursorTimeoutRef.current = setScaledTimeout(() => {
-        syncCursor(DEFAULT_CURSOR);
-      }, 100);
+      scheduleManagedTimeout({
+        handleRef: cursorTimeoutRef,
+        callback: () => {
+          syncCursor(DEFAULT_CURSOR);
+        },
+        delayMs: 100,
+        setTimeoutFn: setScaledTimeout,
+        clearTimeoutFn: clearScaledTimeout,
+      });
 
       cur.shots += 1;
       audio.play("shoot");
 
       // check bubbles first so they are popped before fish hits
-      for (let i = cur.bubbles.length - 1; i >= 0; i--) {
-        const b = cur.bubbles[i];
-        if (
-          canvasX >= b.x &&
-          canvasX <= b.x + b.size &&
-          canvasY >= b.y &&
-          canvasY <= b.y + b.size
-        ) {
-          const [removedBubble] = cur.bubbles.splice(i, 1);
-          if (removedBubble) inactiveBubbles.current.push(removedBubble);
-          audio.play("pop");
-          cur.accuracy = cur.shots > 0 ? (cur.hits / cur.shots) * 100 : 0;
-          setUI({
-            phase: cur.phase,
-            timer: cur.timer,
-            shots: cur.shots,
-            hits: cur.hits,
-            score: cur.score,
-            accuracy: cur.accuracy,
-            cursor: cur.cursor,
-          });
-          return;
-        }
+      const bubbleHitIndex = findTopmostHitIndex(cur.bubbles, (bubble) =>
+        pointInCircle(clickPoint, {
+          x: bubble.x + bubble.size / 2,
+          y: bubble.y + bubble.size / 2,
+          radius: bubble.size / 2,
+        }),
+      );
+      if (bubbleHitIndex >= 0) {
+        const [removedBubble] = cur.bubbles.splice(bubbleHitIndex, 1);
+        if (removedBubble) inactiveBubbles.current.push(removedBubble);
+        audio.play("pop");
+        cur.accuracy = cur.shots > 0 ? (cur.hits / cur.shots) * 100 : 0;
+        setUI({
+          phase: cur.phase,
+          timer: cur.timer,
+          shots: cur.shots,
+          hits: cur.hits,
+          score: cur.score,
+          accuracy: cur.accuracy,
+          cursor: cur.cursor,
+        });
+        return;
       }
 
       // iterate fish in reverse draw order so topmost fish are hit first
       let hit = false;
-      for (let i = cur.fish.length - 1; i >= 0; i--) {
-        const f = cur.fish[i];
-        if (
-          canvasX >= f.x &&
-          canvasX <= f.x + FISH_SIZE &&
-          canvasY >= f.y &&
-          canvasY <= f.y + FISH_SIZE
-        ) {
-          cur.hits += 1;
-          cur.hitCounts[f.kind] = (cur.hitCounts[f.kind] || 0) + 1;
-          audio.play("hit");
-          hit = true;
-          const scoreMap: Record<string, number> = {
-            brown: 50,
-            grey_long_a: 5,
-            grey_long_b: 5,
-          };
-          const base = f.isSkeleton ? 20 : (scoreMap[f.kind] ?? 10);
-          const gain = base + cur.conversions;
-          cur.score += gain;
-          updateScoreLabel(scoreLabel.current, cur.score);
-          if (f.kind === "brown") {
-            cur.timer += TIME_BONUS_BROWN_FISH;
-            updateDigitLabel(timerLabel.current, cur.timer, 2);
-            makeText(`+${TIME_BONUS_BROWN_FISH}`, f.x, f.y, "#0f0");
-            const [removed] = cur.fish.splice(i, 1);
-            if (removed) inactiveFish.current.push(removed);
-            audio.play("bonus");
-          } else if (f.kind === "grey_long_a" || f.kind === "grey_long_b") {
-            cur.timer += TIME_BONUS_GREY_LONG;
-            updateDigitLabel(timerLabel.current, cur.timer, 2);
-            makeText(`+${TIME_BONUS_GREY_LONG}`, f.x, f.y, "#f00");
-            const pid = f.pairId;
-            if (pid !== undefined) {
-              const removed = cur.fish.filter((fish) => fish.pairId === pid);
-              cur.fish = cur.fish.filter((fish) => fish.pairId !== pid);
-              inactiveFish.current.push(...removed);
-            } else {
-              const [removed] = cur.fish.splice(i, 1);
-              if (removed) inactiveFish.current.push(removed);
-            }
-            audio.play("bonus");
+      const fishHitIndex = findTopmostHitIndex(cur.fish, (fish) =>
+        pointInRect(clickPoint, { x: fish.x, y: fish.y, width: FISH_SIZE, height: FISH_SIZE }),
+      );
+      if (fishHitIndex >= 0) {
+        const f = cur.fish[fishHitIndex];
+        cur.hits += 1;
+        cur.hitCounts[f.kind] = (cur.hitCounts[f.kind] || 0) + 1;
+        audio.play("hit");
+        hit = true;
+        const scoreMap: Record<string, number> = {
+          brown: 50,
+          grey_long_a: 5,
+          grey_long_b: 5,
+        };
+        const base = f.isSkeleton ? 20 : (scoreMap[f.kind] ?? 10);
+        const gain = base + cur.conversions;
+        cur.score += gain;
+        updateScoreLabel(scoreLabel.current, cur.score);
+        if (f.kind === "brown") {
+          cur.timer += TIME_BONUS_BROWN_FISH;
+          updateDigitLabel(timerLabel.current, cur.timer, 2);
+          makeText(`+${TIME_BONUS_BROWN_FISH}`, f.x, f.y, "#0f0");
+          const [removed] = cur.fish.splice(fishHitIndex, 1);
+          if (removed) inactiveFish.current.push(removed);
+          audio.play("bonus");
+        } else if (f.kind === "grey_long_a" || f.kind === "grey_long_b") {
+          cur.timer += TIME_BONUS_GREY_LONG;
+          updateDigitLabel(timerLabel.current, cur.timer, 2);
+          makeText(`+${TIME_BONUS_GREY_LONG}`, f.x, f.y, "#f00");
+          const pid = f.pairId;
+          if (pid !== undefined) {
+            const removed = cur.fish.filter((fish) => fish.pairId === pid);
+            cur.fish = cur.fish.filter((fish) => fish.pairId !== pid);
+            inactiveFish.current.push(...removed);
           } else {
-            const skeletonCount = cur.fish.filter(
-              (fish) => fish.isSkeleton || fish.pendingSkeleton,
-            ).length;
-            if (!f.isSkeleton) {
-              if (Math.random() < 0.5 && skeletonCount < MAX_SKELETONS) {
-                f.isSkeleton = true;
-                f.health = 1;
-                f.hurtTimer = 0;
-                f.frame = 0;
-                f.frameCounter = 0;
-                delete f.groupId;
-                audio.play("skeleton");
-              } else {
-                const [removed] = cur.fish.splice(i, 1);
-                if (removed) inactiveFish.current.push(removed);
-                audio.play("death");
-              }
+            const [removed] = cur.fish.splice(fishHitIndex, 1);
+            if (removed) inactiveFish.current.push(removed);
+          }
+          audio.play("bonus");
+        } else {
+          const skeletonCount = cur.fish.filter(
+            (fish) => fish.isSkeleton || fish.pendingSkeleton,
+          ).length;
+          if (!f.isSkeleton) {
+            if (Math.random() < 0.5 && skeletonCount < MAX_SKELETONS) {
+              f.isSkeleton = true;
+              f.health = 1;
+              f.hurtTimer = 0;
+              f.frame = 0;
+              f.frameCounter = 0;
+              delete f.groupId;
+              audio.play("skeleton");
             } else {
-              f.health -= 1;
-              if (f.health > 0) {
-                f.hurtTimer = HURT_DURATION_MS;
-                audio.play("skeleton");
-              } else {
-                const [removed] = cur.fish.splice(i, 1);
-                if (removed) inactiveFish.current.push(removed);
-                audio.play("death");
-              }
+              const [removed] = cur.fish.splice(fishHitIndex, 1);
+              if (removed) inactiveFish.current.push(removed);
+              audio.play("death");
+            }
+          } else {
+            f.health -= 1;
+            if (f.health > 0) {
+              f.hurtTimer = HURT_DURATION_MS;
+              audio.play("skeleton");
+            } else {
+              const [removed] = cur.fish.splice(fishHitIndex, 1);
+              if (removed) inactiveFish.current.push(removed);
+              audio.play("death");
             }
           }
-          break;
         }
       }
 
@@ -1350,8 +1364,8 @@ export default function useGameEngine() {
 
     // decide spawning edge with a bias toward left/right entrances
     // omit top/bottom edges to avoid vertically swimming fish
-    const edges = [0, 0, 0, 1, 1, 1];
-    const edge = edges[Math.floor(Math.random() * edges.length)]; // 0:left,1:right
+    const edges = [0, 0, 0, 1, 1, 1] as const;
+    const edge = pickRandom(edges) ?? 0; // 0:left,1:right
     const startX = edge === 0 ? -FISH_SIZE : width + FISH_SIZE;
 
     // generate a velocity based on the entry edge
@@ -1458,18 +1472,20 @@ export default function useGameEngine() {
   useEffect(() => {
     if (ui.phase !== "playing") return;
     const basicKinds = ["blue", "green", "orange", "pink", "red"];
-    const schedule = () => {
-      const { timer, conversions } = state.current;
-      const difficultyFactor = 1 + (1 - timer / GAME_TIME) + conversions * 0.1;
-      // FISH_SPAWN_INTERVAL_* are expressed in frames; convert to ms
-      const min = FISH_SPAWN_INTERVAL_MIN * FRAME_MS;
-      const max = FISH_SPAWN_INTERVAL_MAX * FRAME_MS;
-      const baseDelay = min + Math.random() * (max - min);
-      const delay = Math.max(baseDelay / difficultyFactor, 250);
-
-      fishSpawnTimeout.current = setScaledTimeout(() => {
-        if (state.current.phase !== "playing") return;
-        const kind = basicKinds[Math.floor(Math.random() * basicKinds.length)];
+    scheduleManagedSpawner({
+      handleRef: fishSpawnTimeout,
+      shouldContinue: () => state.current.phase === "playing",
+      getDelayMs: () => {
+        const { timer, conversions } = state.current;
+        const difficultyFactor = 1 + (1 - timer / GAME_TIME) + conversions * 0.1;
+        // FISH_SPAWN_INTERVAL_* are expressed in frames; convert to ms
+        const min = FISH_SPAWN_INTERVAL_MIN * FRAME_MS;
+        const max = FISH_SPAWN_INTERVAL_MAX * FRAME_MS;
+        const baseDelay = randomInRange(min, max);
+        return Math.max(baseDelay / difficultyFactor, 250);
+      },
+      spawn: () => {
+        const kind = pickRandom(basicKinds) ?? "blue";
         const count = Math.floor(Math.random() * 5) + 1;
         spawnFish(kind, count);
 
@@ -1479,22 +1495,20 @@ export default function useGameEngine() {
         } else if (roll < 0.15) {
           spawnFish("grey_long", 1);
         }
-        if (state.current.phase === "playing") schedule();
-      }, delay);
-    };
-    schedule();
+      },
+      setTimeoutFn: setScaledTimeout,
+      clearTimeoutFn: clearScaledTimeout,
+    });
+
     return () => {
-      if (fishSpawnTimeout.current) {
-        clearScaledTimeout(fishSpawnTimeout.current);
-        fishSpawnTimeout.current = null;
-      }
+      clearManagedTimeout(fishSpawnTimeout, clearScaledTimeout);
     };
   }, [ui.phase, spawnFish]);
 
   // cleanup on unmount
   useEffect(() => {
     return () => {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      cancelAnimationFrameRef(animationFrameRef);
     };
   }, []);
 

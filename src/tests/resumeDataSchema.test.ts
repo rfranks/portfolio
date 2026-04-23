@@ -8,7 +8,10 @@ import {
   getPresentationProjectSlugs,
 } from "@/components/portfolio/projectPageData";
 import { parseResumeDataWithSchema } from "@/consts/resumeDataSchema";
-import { migrateResumeData } from "@/utils/data/migrations/resumeDataMigrations";
+import {
+  LATEST_RESUME_DATA_SCHEMA_VERSION,
+  migrateResumeData,
+} from "@/utils/data/migrations/resumeDataMigrations";
 
 function cloneSnapshot() {
   return JSON.parse(JSON.stringify(resumeDataSnapshot)) as Record<string, unknown>;
@@ -55,6 +58,16 @@ function expectSchemaFailure(
   );
 }
 
+function expectSchemaFailureOnCurrentVersion(
+  mutate: (input: Record<string, unknown>) => void,
+  expectedPathPattern: RegExp,
+) {
+  expectSchemaFailure((input) => {
+    input.schemaVersion = LATEST_RESUME_DATA_SCHEMA_VERSION;
+    mutate(input);
+  }, expectedPathPattern);
+}
+
 describe("resumeDataSchema hardening and edge cases", () => {
   it("accepts the actual resumeData.json file from disk", () => {
     const resumeDataPath = path.resolve(
@@ -79,7 +92,7 @@ describe("resumeDataSchema hardening and edge cases", () => {
     delete input.schemaVersion;
 
     const parsed = parseMigrated(input, "resumeDataSchema.test missing version");
-    expect(parsed.schemaVersion).toBe(2);
+    expect(parsed.schemaVersion).toBe(LATEST_RESUME_DATA_SCHEMA_VERSION);
   });
 
   it("migrates legacy github achievement path typo from v1 payloads", () => {
@@ -90,7 +103,7 @@ describe("resumeDataSchema hardening and edge cases", () => {
     achievements[0].imageSrcUrl = "/personal/images/github/achievments/pull-shark-default.png";
 
     const parsed = parseMigrated(input, "resumeDataSchema.test legacy migration");
-    expect(parsed.schemaVersion).toBe(2);
+    expect(parsed.schemaVersion).toBe(LATEST_RESUME_DATA_SCHEMA_VERSION);
     expect(parsed.recognition.githubAchievements?.[0]?.imageSrcUrl).toContain("/achievements/");
   });
 
@@ -134,7 +147,7 @@ describe("resumeDataSchema hardening and edge cases", () => {
   });
 
   it("rejects malformed projects collection type", () => {
-    expectSchemaFailure((input) => {
+    expectSchemaFailureOnCurrentVersion((input) => {
       input.projects = "not-an-array";
     }, /projects/i);
   });
@@ -285,6 +298,32 @@ describe("resumeDataSchema hardening and edge cases", () => {
       }
       delete project.presentationOrigin;
     }, /presentationOrigin/i);
+  });
+
+  it("requires presentation config for presentation projects", () => {
+    expectSchemaFailureOnCurrentVersion((input) => {
+      const project = (input.projects as Array<Record<string, unknown>>).find(
+        (entry) => entry.type === "presentation",
+      );
+      if (!project) {
+        throw new Error("No presentation project available for test.");
+      }
+      delete project.presentation;
+    }, /presentation/i);
+  });
+
+  it("rejects presentation config on non-presentation projects", () => {
+    expectSchemaFailure((input) => {
+      const project = (input.projects as Array<Record<string, unknown>>).find(
+        (entry) => entry.type !== "presentation",
+      );
+      if (!project) {
+        throw new Error("No non-presentation project available for test.");
+      }
+      project.presentation = {
+        useSharedOverviewSlide: true,
+      };
+    }, /presentation/i);
   });
 
   it("rejects presentationOrigin on non-presentation projects", () => {
@@ -503,6 +542,24 @@ describe("resumeDataSchema hardening and edge cases", () => {
         const diagramTarget = contract?.diagrams[entry.diagramIndex];
         expect(diagramTarget?.key).toBe(entry.diagramKey);
       }
+    });
+  });
+
+  it("maintains full deep-link coverage for presentation sections and diagrams", () => {
+    const contracts = getPresentationProjectContracts();
+    const deepLinks = getPresentationProjectDeepLinkIndex();
+    expect(contracts.length).toBeGreaterThan(0);
+
+    contracts.forEach((contract) => {
+      const expectedLinkCount = contract.sections.length + contract.diagrams.length;
+      const actualLinkCount = deepLinks.filter(
+        (entry) => entry.projectSlug === contract.projectSlug,
+      ).length;
+      const coveragePct =
+        expectedLinkCount === 0 ? 100 : Math.round((actualLinkCount / expectedLinkCount) * 100);
+
+      expect(actualLinkCount).toBe(expectedLinkCount);
+      expect(coveragePct).toBe(100);
     });
   });
 

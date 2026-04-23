@@ -16,13 +16,28 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { alpha, styled } from "@mui/material/styles";
 import KeyboardCommandKey from "@mui/icons-material/KeyboardCommandKey";
+import HelpOutline from "@mui/icons-material/HelpOutline";
 import Search from "@mui/icons-material/Search";
 import { usePathname, useSearchParams } from "next/navigation";
 import { projects } from "@/consts/resumeData";
-import { STATIC_QUICK_OPEN_ACTIONS } from "@/components/portfolio/quickOpenIndex";
+import {
+  getPortfolioStaticSearchIndexActions,
+  getPresentationProjectContractBySlug,
+  getPresentationSectionTitle,
+} from "@/components/portfolio/projectPageData";
 import { ToggleColorMode } from "@/components/shared";
 import type { AppBarProps, CommandPaletteAction } from "@/types/components/portfolio";
 import { withBasePath } from "@/utils/basePath";
+import {
+  PORTFOLIO_NAVIGATION_TELEMETRY_ACTION,
+  PORTFOLIO_PAGER_TELEMETRY_ACTION,
+  PORTFOLIO_SHORTCUT_EVENT,
+} from "@/consts/observability/telemetryEvents";
+import {
+  emitPortfolioShortcutEvent,
+  emitPortfolioTelemetryEvent,
+} from "@/utils/observability/telemetryEvents";
+import type { PortfolioTelemetryTrigger } from "@/types/observability/telemetryEvents";
 
 interface StyledAppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -67,15 +82,6 @@ const StyledAppBar = styled(MuiAppBar, {
   }),
 }));
 
-const PROJECT_PRESENTATION_SLIDES = [
-  { key: "overview", label: "Overview" },
-  { key: "why", label: "Why This Interests Me" },
-  { key: "demo", label: "Demo" },
-  { key: "technologies", label: "Technologies" },
-  { key: "specifications", label: "Specifications" },
-  { key: "diagrams", label: "Architecture Diagrams" },
-] as const;
-
 function normalizeActionSearchText(action: CommandPaletteAction) {
   return [action.label, action.subtitle ?? "", action.group ?? "", ...(action.keywords ?? [])]
     .join(" ")
@@ -110,6 +116,7 @@ export default function AppBar({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
   const commandInputRef = useRef<HTMLInputElement | null>(null);
@@ -143,29 +150,36 @@ export default function AppBar({
   }, [pathname, presentationProjectSlugs]);
 
   const projectParam = searchParams?.get("project")?.trim() || inferredProjectParam;
+  const staticSearchIndexActions = useMemo(() => getPortfolioStaticSearchIndexActions(), []);
   const routeAwareActions = useMemo<CommandPaletteAction[]>(() => {
     if (!projectParam) {
       return [];
     }
 
-    const projectAwareActions: CommandPaletteAction[] = PROJECT_PRESENTATION_SLIDES.map(
-      (slide) => ({
-        id: `switch-slide-${slide.key}`,
-        label: `Switch Slide: ${slide.label}`,
+    const projectContract = getPresentationProjectContractBySlug(projectParam);
+    if (!projectContract) {
+      return [];
+    }
+
+    const projectAwareActions: CommandPaletteAction[] = projectContract.sections.map((slideKey) => {
+      const slideLabel = getPresentationSectionTitle(slideKey);
+      return {
+        id: `switch-slide-${slideKey}`,
+        label: `Switch Slide: ${slideLabel}`,
         subtitle: "Jump directly to this section",
         group: "Presentation",
-        keywords: ["slide", "section", slide.key, slide.label, "presentation"],
+        keywords: ["slide", "section", slideKey, slideLabel, "presentation", projectParam],
         onSelect: () => {
           const nextUrl = new URL(window.location.href);
           nextUrl.searchParams.set("project", projectParam);
-          nextUrl.searchParams.set("slide", slide.key);
-          if (slide.key !== "diagrams") {
+          nextUrl.searchParams.set("slide", slideKey);
+          if (slideKey !== "diagrams") {
             nextUrl.searchParams.delete("diagram");
           }
           window.location.assign(nextUrl.toString());
         },
-      }),
-    );
+      };
+    });
 
     projectAwareActions.push({
       id: "jump-to-diagrams",
@@ -228,11 +242,11 @@ export default function AppBar({
     () =>
       dedupeActions([
         homeAction,
-        ...STATIC_QUICK_OPEN_ACTIONS,
+        ...staticSearchIndexActions,
         ...commandPaletteActions,
         ...routeAwareActions,
       ]),
-    [commandPaletteActions, homeAction, routeAwareActions],
+    [commandPaletteActions, homeAction, routeAwareActions, staticSearchIndexActions],
   );
 
   const filteredActions = useMemo(() => {
@@ -252,11 +266,53 @@ export default function AppBar({
     setActiveCommandIndex(0);
   }, []);
 
-  const openCommandPalette = useCallback(() => {
+  const openCommandPalette = useCallback((trigger: PortfolioTelemetryTrigger = "pointer") => {
+    emitPortfolioTelemetryEvent({
+      channel: "navigation",
+      action: PORTFOLIO_NAVIGATION_TELEMETRY_ACTION.COMMAND_PALETTE_OPEN,
+      trigger,
+    });
     setIsCommandPaletteOpen(true);
     setCommandQuery("");
     setActiveCommandIndex(0);
   }, []);
+
+  const openShortcutHelp = useCallback((trigger: PortfolioTelemetryTrigger = "pointer") => {
+    emitPortfolioTelemetryEvent({
+      channel: "navigation",
+      action: PORTFOLIO_NAVIGATION_TELEMETRY_ACTION.SHORTCUT_HELP_OPEN,
+      trigger,
+    });
+    setIsShortcutHelpOpen(true);
+  }, []);
+
+  const closeShortcutHelp = useCallback(() => {
+    setIsShortcutHelpOpen(false);
+  }, []);
+
+  const emitPagerShortcutTelemetry = useCallback(
+    (
+      action: (typeof PORTFOLIO_PAGER_TELEMETRY_ACTION)[keyof typeof PORTFOLIO_PAGER_TELEMETRY_ACTION],
+    ) => {
+      emitPortfolioTelemetryEvent({
+        channel: "pager",
+        action,
+        trigger: "keyboard-shortcut",
+      });
+    },
+    [],
+  );
+
+  const dispatchShortcut = useCallback(
+    (
+      shortcutEventName: (typeof PORTFOLIO_SHORTCUT_EVENT)[keyof typeof PORTFOLIO_SHORTCUT_EVENT],
+      action: (typeof PORTFOLIO_PAGER_TELEMETRY_ACTION)[keyof typeof PORTFOLIO_PAGER_TELEMETRY_ACTION],
+    ) => {
+      emitPortfolioShortcutEvent(shortcutEventName);
+      emitPagerShortcutTelemetry(action);
+    },
+    [emitPagerShortcutTelemetry],
+  );
 
   const executeCommandAction = useCallback(
     (action: CommandPaletteAction) => {
@@ -278,7 +334,67 @@ export default function AppBar({
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setIsCommandPaletteOpen(true);
+        openCommandPalette("keyboard-shortcut");
+        return;
+      }
+
+      if (event.key === "?" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        event.preventDefault();
+        openShortcutHelp("keyboard-shortcut");
+        return;
+      }
+
+      if (event.altKey && !event.shiftKey && event.key === "ArrowLeft") {
+        event.preventDefault();
+        dispatchShortcut(
+          PORTFOLIO_SHORTCUT_EVENT.HOME_PREV,
+          PORTFOLIO_PAGER_TELEMETRY_ACTION.HOME_PREV_SHORTCUT,
+        );
+        return;
+      }
+
+      if (event.altKey && !event.shiftKey && event.key === "ArrowRight") {
+        event.preventDefault();
+        dispatchShortcut(
+          PORTFOLIO_SHORTCUT_EVENT.HOME_NEXT,
+          PORTFOLIO_PAGER_TELEMETRY_ACTION.HOME_NEXT_SHORTCUT,
+        );
+        return;
+      }
+
+      if (event.altKey && event.shiftKey && event.key === "ArrowLeft") {
+        event.preventDefault();
+        dispatchShortcut(
+          PORTFOLIO_SHORTCUT_EVENT.SUB_PREV,
+          PORTFOLIO_PAGER_TELEMETRY_ACTION.SUB_PREV_SHORTCUT,
+        );
+        return;
+      }
+
+      if (event.altKey && event.shiftKey && event.key === "ArrowRight") {
+        event.preventDefault();
+        dispatchShortcut(
+          PORTFOLIO_SHORTCUT_EVENT.SUB_NEXT,
+          PORTFOLIO_PAGER_TELEMETRY_ACTION.SUB_NEXT_SHORTCUT,
+        );
+        return;
+      }
+
+      if (event.altKey && event.ctrlKey && event.key === "ArrowLeft") {
+        event.preventDefault();
+        emitPortfolioShortcutEvent(PORTFOLIO_SHORTCUT_EVENT.MEDIA_PREV);
+        return;
+      }
+
+      if (event.altKey && event.ctrlKey && event.key === "ArrowRight") {
+        event.preventDefault();
+        emitPortfolioShortcutEvent(PORTFOLIO_SHORTCUT_EVENT.MEDIA_NEXT);
+        return;
+      }
+
+      if (event.altKey && event.ctrlKey && event.key.toLowerCase() === "l") {
+        event.preventDefault();
+        emitPortfolioShortcutEvent(PORTFOLIO_SHORTCUT_EVENT.MEDIA_LOOP);
         return;
       }
 
@@ -286,11 +402,24 @@ export default function AppBar({
         event.preventDefault();
         closeCommandPalette();
       }
+
+      if (event.key === "Escape" && isShortcutHelpOpen) {
+        event.preventDefault();
+        closeShortcutHelp();
+      }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeCommandPalette, isCommandPaletteOpen]);
+  }, [
+    closeCommandPalette,
+    closeShortcutHelp,
+    dispatchShortcut,
+    isCommandPaletteOpen,
+    isShortcutHelpOpen,
+    openCommandPalette,
+    openShortcutHelp,
+  ]);
 
   useEffect(() => {
     if (!isCommandPaletteOpen) {
@@ -311,6 +440,12 @@ export default function AppBar({
     }
     setActiveCommandIndex(Math.max(0, filteredActions.length - 1));
   }, [activeCommandIndex, filteredActions.length]);
+
+  const activePreviewAction =
+    filteredActions.length > 0 ? filteredActions[Math.max(0, activeCommandIndex)] : null;
+  const activePreviewTitle = activePreviewAction?.previewTitle ?? activePreviewAction?.label;
+  const activePreviewBody = activePreviewAction?.previewBody ?? activePreviewAction?.subtitle;
+  const activePreviewMeta = activePreviewAction?.previewMeta ?? activePreviewAction?.group;
 
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (filteredActions.length === 0) {
@@ -350,10 +485,20 @@ export default function AppBar({
             <IconButton
               color="inherit"
               aria-label="Open command palette"
-              onClick={openCommandPalette}
+              onClick={() => openCommandPalette("pointer")}
               sx={{ ml: 0.5 }}
             >
               <Search />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Keyboard Shortcuts (?)">
+            <IconButton
+              color="inherit"
+              aria-label="Open keyboard shortcuts help"
+              onClick={() => openShortcutHelp("pointer")}
+              sx={{ ml: 0.25 }}
+            >
+              <HelpOutline />
             </IconButton>
           </Tooltip>
           <Box
@@ -448,6 +593,78 @@ export default function AppBar({
                 </ListItemButton>
               ))
             )}
+          </List>
+          <Box
+            sx={{
+              mt: 1,
+              px: 1.25,
+              py: 1,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1.25,
+              minHeight: 76,
+              display: "flex",
+              flexDirection: "column",
+              gap: 0.25,
+            }}
+          >
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+              Keyboard Preview
+            </Typography>
+            {activePreviewAction ? (
+              <>
+                <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+                  {activePreviewTitle}
+                </Typography>
+                {activePreviewBody ? (
+                  <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.35 }}>
+                    {activePreviewBody}
+                  </Typography>
+                ) : null}
+                {activePreviewMeta ? (
+                  <Typography
+                    variant="caption"
+                    sx={{ lineHeight: 1.3, color: "text.disabled", fontFamily: "monospace" }}
+                  >
+                    {activePreviewMeta}
+                  </Typography>
+                ) : null}
+              </>
+            ) : (
+              <Typography variant="caption" color="text.secondary">
+                Use ↑/↓ to preview results, then press Enter to open.
+              </Typography>
+            )}
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isShortcutHelpOpen}
+        onClose={closeShortcutHelp}
+        fullWidth
+        maxWidth="sm"
+        aria-labelledby="keyboard-shortcuts-help-title"
+      >
+        <DialogTitle id="keyboard-shortcuts-help-title">Keyboard Shortcuts</DialogTitle>
+        <DialogContent sx={{ pt: 0, pb: 1.25 }}>
+          <List dense sx={{ py: 0 }}>
+            {[
+              { combo: "Cmd/Ctrl + K", action: "Open command palette" },
+              { combo: "?", action: "Open keyboard shortcut help" },
+              { combo: "Alt + ← / →", action: "Previous/next home section pager" },
+              { combo: "Alt + Shift + ← / →", action: "Previous/next subsection pager" },
+              { combo: "Alt + Ctrl + ← / →", action: "Previous/next media item" },
+              { combo: "Alt + Ctrl + L", action: "Loop media item to first item" },
+            ].map((entry) => (
+              <ListItemButton key={entry.combo} disableRipple>
+                <ListItemText
+                  primary={entry.combo}
+                  secondary={entry.action}
+                  primaryTypographyProps={{ fontWeight: 700 }}
+                />
+              </ListItemButton>
+            ))}
           </List>
         </DialogContent>
       </Dialog>

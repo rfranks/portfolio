@@ -1,6 +1,7 @@
 import React from "react";
 import { keyframes, css } from "@emotion/react";
 import Box from "@mui/material/Box";
+import type { WaveformProps } from "@/types/components/shared/visualization";
 
 // Keyframes for scaling bar heights
 const wave = keyframes`
@@ -27,11 +28,6 @@ const barStyleDead = () => css`
   transform-origin: bottom;
   transform: scaleY(0.3);
 `;
-
-interface WaveformProps {
-  active: boolean;
-  barsCount?: number;
-}
 
 /**
  * Waveform visualizer: animates bars when `active` is true.

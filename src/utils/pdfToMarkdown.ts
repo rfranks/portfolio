@@ -1,4 +1,4 @@
-type PdfJsModule = typeof import("pdfjs-dist");
+import type { PdfJsModule } from "@/types/pdfToMarkdown";
 
 let pdfJsPromise: Promise<PdfJsModule> | null = null;
 

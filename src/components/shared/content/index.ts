@@ -5,7 +5,11 @@ export type { DemoSlideProps } from "./DemoSlide";
 export { default as EmojiListAvatar } from "./EmojiListAvatar";
 export type { EmojiListAvatarProps } from "./EmojiListAvatar";
 export { default as GridCloudNavigationSlide } from "./GridCloudNavigationSlide";
-export type { GridCloudNavigationSlideProps } from "./GridCloudNavigationSlide";
+export {
+  VirtualizedPanelList,
+  type GridCloudNavigationSlideProps,
+  type VirtualizedPanelListProps,
+} from "./GridCloudNavigationSlide";
 export { default as ImageContent } from "./ImageContent";
 export { default as LogoCollection } from "./LogoCollection";
 export { default as MarkdownContent } from "./MarkdownContent";

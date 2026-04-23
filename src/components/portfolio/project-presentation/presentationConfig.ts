@@ -1,18 +1,16 @@
-import type { ProjectData } from "@/types/components/portfolio";
+import type {
+  ProjectData,
+  ProjectPresentationConfig,
+  ProjectPresentationDemoLayout,
+} from "@/types/components/portfolio";
 
 export type PresentationBehaviorConfig = {
   useSharedOverviewSlide: boolean;
   useSharedDemoSlide: boolean;
   useSharedArchitectureDiagramsSlide: boolean;
   enableWhyThisInterestsSection: boolean;
-  demoLayout: "default" | "podcasts";
+  demoLayout: ProjectPresentationDemoLayout;
 };
-
-type PresentationProjectHref =
-  | "/patientlistpodcasts"
-  | "/aisummary"
-  | "/patientlist"
-  | "/assignmentlist";
 
 const DEFAULT_PRESENTATION_BEHAVIOR: PresentationBehaviorConfig = {
   useSharedOverviewSlide: false,
@@ -22,45 +20,40 @@ const DEFAULT_PRESENTATION_BEHAVIOR: PresentationBehaviorConfig = {
   demoLayout: "default",
 };
 
-const PRESENTATION_BEHAVIOR_BY_HREF: Record<PresentationProjectHref, PresentationBehaviorConfig> = {
-  "/patientlistpodcasts": {
-    useSharedOverviewSlide: true,
-    useSharedDemoSlide: true,
-    useSharedArchitectureDiagramsSlide: true,
-    enableWhyThisInterestsSection: true,
-    demoLayout: "podcasts",
-  },
-  "/aisummary": {
-    useSharedOverviewSlide: true,
-    useSharedDemoSlide: true,
-    useSharedArchitectureDiagramsSlide: true,
-    enableWhyThisInterestsSection: false,
-    demoLayout: "default",
-  },
-  "/patientlist": {
-    useSharedOverviewSlide: false,
-    useSharedDemoSlide: true,
-    useSharedArchitectureDiagramsSlide: true,
-    enableWhyThisInterestsSection: false,
-    demoLayout: "default",
-  },
-  "/assignmentlist": {
-    useSharedOverviewSlide: false,
-    useSharedDemoSlide: true,
-    useSharedArchitectureDiagramsSlide: true,
-    enableWhyThisInterestsSection: false,
-    demoLayout: "default",
-  },
-};
-
 export function resolvePresentationBehavior(project: ProjectData): PresentationBehaviorConfig {
-  const normalizedHref = project.href?.trim().toLowerCase();
-  if (!normalizedHref) {
+  const configured = project.presentation;
+  if (!configured) {
     return DEFAULT_PRESENTATION_BEHAVIOR;
   }
 
-  return (
-    PRESENTATION_BEHAVIOR_BY_HREF[normalizedHref as PresentationProjectHref] ??
-    DEFAULT_PRESENTATION_BEHAVIOR
-  );
+  return {
+    useSharedOverviewSlide: configured.useSharedOverviewSlide ?? false,
+    useSharedDemoSlide: configured.useSharedDemoSlide ?? false,
+    useSharedArchitectureDiagramsSlide: configured.useSharedArchitectureDiagramsSlide ?? false,
+    enableWhyThisInterestsSection: configured.enableWhyThisInterestsSection ?? false,
+    demoLayout: configured.demoLayout ?? "default",
+  };
+}
+
+export function resolvePresentationSectionOrder(
+  project: ProjectData,
+  fallbackOrder: readonly string[],
+): readonly string[] {
+  const configuredOrder = project.presentation?.sectionOrder;
+  if (!configuredOrder || configuredOrder.length === 0) {
+    return fallbackOrder;
+  }
+
+  const deduped = Array.from(new Set(configuredOrder.map((value) => value.trim()).filter(Boolean)));
+  if (deduped.length === 0) {
+    return fallbackOrder;
+  }
+
+  return deduped;
+}
+
+export function resolvePresentationPrefetchPlan(
+  project: ProjectData,
+): ProjectPresentationConfig["prefetchPlan"] {
+  return project.presentation?.prefetchPlan;
 }

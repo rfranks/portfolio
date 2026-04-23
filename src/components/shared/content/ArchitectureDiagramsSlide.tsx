@@ -7,77 +7,18 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import type { SxProps, Theme } from "@mui/material/styles";
 import { alpha } from "@mui/material/styles";
 import SubsectionPager, {
   type SubsectionPagerItem,
 } from "@/components/portfolio/layout/SubsectionPager";
 import { MediaCycler } from "@/components/shared/media";
-import type { MediaCyclerItem } from "@/components/shared/media";
+import {
+  toAlphaOrdinal,
+  stripOrdinalPrefix,
+} from "@/consts/components/shared/architectureDiagrams";
+import type { ArchitectureDiagramsSlideProps } from "@/types/components/shared/architectureDiagramsSlide";
+import { toSxArray } from "@/utils/sx/toSxArray";
 import PortfolioPanelShell from "./PortfolioPanelShell";
-
-type ArchitectureDiagramsSlideProps = {
-  activeDiagramKey?: string;
-  diagramPagerItems: SubsectionPagerItem[];
-  diagramItems: MediaCyclerItem[];
-  hasMultipleDiagrams?: boolean;
-  onSelectDiagram: (key: string) => void;
-  onPreviousDiagram: () => void;
-  onNextDiagram: () => void;
-  setSlideRef?: (node: HTMLElement | null) => void;
-  rootId?: string;
-  rootClassName?: string;
-  rootSx?: SxProps<Theme>;
-  panelClassName?: string;
-  panelSx?: SxProps<Theme>;
-  topRailSx?: SxProps<Theme>;
-  contentSx?: SxProps<Theme>;
-  hostClassName?: string;
-  hostSx?: SxProps<Theme>;
-  menuId?: string;
-  previousAriaLabel?: string;
-  nextAriaLabel?: string;
-  selectorAriaLabel?: string;
-  fallbackTitle?: React.ReactNode;
-  emptyMessage?: React.ReactNode;
-  selectedValueAsTitle?: boolean;
-  selectedVisualSize?: number;
-  mediaCyclerStackSx?: SxProps<Theme>;
-  mediaCyclerShowChevronNavigation?: boolean;
-  mediaCyclerLoopNavigation?: boolean;
-  mediaCyclerAllowSwipe?: boolean;
-  mediaCyclerNavigationControlSx?: SxProps<Theme>;
-  mediaCyclerExpandControlSx?: SxProps<Theme>;
-  suppressMediaHeading?: boolean;
-  showCopyLinkButton?: boolean;
-  onCopyLink?: () => void;
-  copyLinkCopied?: boolean;
-  copyLinkAriaLabel?: string;
-};
-
-const toSxArray = (value?: SxProps<Theme>) => {
-  if (value == null) {
-    return [];
-  }
-  return Array.isArray(value) ? value : [value];
-};
-
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-const toAlphaOrdinal = (index: number) => {
-  let value = Math.max(0, index);
-  let result = "";
-
-  do {
-    result = ALPHABET[value % 26] + result;
-    value = Math.floor(value / 26) - 1;
-  } while (value >= 0);
-
-  return result;
-};
-
-const stripOrdinalPrefix = (text?: string) =>
-  (text ?? "").replace(/^\s*[A-Za-z0-9]+\.\s*/, "").trim();
 
 export default function ArchitectureDiagramsSlide({
   activeDiagramKey,

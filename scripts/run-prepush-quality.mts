@@ -7,7 +7,7 @@ const QUALITY_STEPS = [
   "check:file-budgets",
   "validate:resume:strict",
   "format:check",
-  "typecheck",
+  "typecheck:health",
   "lint",
   "test",
 ] as const;

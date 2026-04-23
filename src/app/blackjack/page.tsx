@@ -197,7 +197,7 @@ export default function BlackjackPage() {
         title: "",
         mediaLightboxTitle: diagram.title,
         lightboxSubtitle: diagram.shortText?.trim() || undefined,
-        type: "diagram",
+        mediaType: "diagram",
         mediaUrl: diagram.diagram,
         onSelect: () => {
           setActiveDiagramKey(diagram.key);

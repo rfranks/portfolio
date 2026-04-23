@@ -3,67 +3,37 @@
 import * as React from "react";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
-import Close from "@mui/icons-material/Close";
 import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import Loop from "@mui/icons-material/Loop";
-import OpenInFull from "@mui/icons-material/OpenInFull";
 import Box from "@mui/material/Box";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
-import type { SxProps, Theme } from "@mui/material/styles";
-import ImageContent from "../content/ImageContent";
 import MarkdownContent from "../content/MarkdownContent";
-import ImageLightbox from "./ImageLightbox";
-import VideoLightbox from "./VideoLightbox";
-import type { MediaCyclerItem, MediaCyclerMediaType } from "./mediaCyclerTypes";
-import { resolveMediaCyclerMediaType } from "./mediaCyclerTypes";
-export type { MediaCyclerItem } from "./mediaCyclerTypes";
-
-const LazyPDFContent = React.lazy(() => import("../content/PDFContent"));
-const LazyDiagramLightBox = React.lazy(() => import("./DiagramLightBox"));
-
-type MediaCyclerProps = {
-  items: MediaCyclerItem[];
-  spacing?: number;
-  stackSx?: SxProps<Theme>;
-  singlePanel?: boolean;
-  singlePanelActiveKey?: string;
-  transitionMs?: number;
-  disableTransition?: boolean;
-  showChevronNavigation?: boolean;
-  loopNavigation?: boolean;
-  loopNavigationLabel?: string;
-  loopNavigationIcon?: "loop" | "leftChevron" | "rightChevron";
-  disableLoopNavigation?: boolean;
-  loopFromBeginning?: boolean;
-  loppFromBeginniner?: boolean;
-  compactMetadataOnSmallScreens?: boolean;
-  showExpandIcon?: boolean;
-  disableChevronPrevious?: boolean;
-  disableChevronNext?: boolean;
-  hideDisabledNextChevron?: boolean;
-  onChevronPrevious?: () => void;
-  onChevronNext?: () => void;
-  onLoopNavigation?: () => void;
-  smallScreenInfoBlurb?: string;
-  navigationControlSx?: SxProps<Theme>;
-  expandControlSx?: SxProps<Theme>;
-  showCompactInfoButton?: boolean;
-  allowSwipe?: boolean;
-};
-
-const toSxArray = (value?: SxProps<Theme>) => {
-  if (value == null) {
-    return [];
-  }
-  return Array.isArray(value) ? value : [value];
-};
+import type { MediaCyclerItem, MediaCyclerMediaType } from "@/types/media/mediaCycler";
+import type { MediaCyclerProps } from "@/types/components/shared/media";
+import { useMediaCyclerController } from "@/hooks/media/useMediaCyclerController";
+import { flattenMediaCyclerSxArray, toMediaCyclerSxArray } from "@/utils/media/mediaCyclerSx";
+import { PORTFOLIO_SHORTCUT_EVENT } from "@/consts/observability/telemetryEvents";
+import { addPortfolioWindowEventListener } from "@/utils/observability/telemetryEvents";
+import type { PortfolioTelemetryTrigger } from "@/types/observability/telemetryEvents";
+import { MEDIA_RENDERER_FALLBACK_SX } from "@/consts/components/shared/mediaCycler";
+import { VISUALIZATION_ANIMATION_TOKENS } from "@/consts/visualization/tokens";
+import { createMediaActivateKeyDownHandler } from "@/utils/components/shared/media";
+import { assertNever, resolveMediaActionContract } from "@/utils/components/shared/mediaCycler";
+import MediaMetadataShell from "./media-cycler/MediaMetadataShell";
+import MediaRenderShell from "./media-cycler/MediaRenderShell";
+import {
+  LazyDiagramRenderer,
+  LazyImageRenderer,
+  LazyPdfRenderer,
+  LazyVideoRenderer,
+  prefetchMediaTypeByIntent,
+  resolveSectionPrefetchOrder,
+} from "./media-cycler/rendererRegistry";
+import { emitMediaActionTelemetry } from "@/utils/media/mediaActionTelemetry";
+export type { MediaCyclerItem } from "@/types/media/mediaCycler";
 
 const renderSource = (label?: string, href?: string) => {
   if (!label) {
@@ -90,376 +60,6 @@ const renderSource = (label?: string, href?: string) => {
   );
 };
 
-const createMediaKeyDownHandler =
-  (onMediaActivate?: () => void) => (event: React.KeyboardEvent<HTMLElement>) => {
-    if (!onMediaActivate) {
-      return;
-    }
-
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      onMediaActivate();
-    }
-  };
-
-type MediaRendererRegistry = Record<MediaCyclerMediaType, () => React.ReactNode>;
-
-function buildMediaRendererRegistry(params: {
-  renderImage: () => React.ReactNode;
-  renderVideo: () => React.ReactNode;
-  renderPdf: () => React.ReactNode;
-  renderDiagram: () => React.ReactNode;
-  renderCustom: () => React.ReactNode;
-  renderMarkdown: () => React.ReactNode;
-}): MediaRendererRegistry {
-  return {
-    image: params.renderImage,
-    video: params.renderVideo,
-    pdf: params.renderPdf,
-    diagram: params.renderDiagram,
-    custom: params.renderCustom,
-    project: params.renderCustom,
-    projectPresentation: params.renderCustom,
-    recognition: params.renderCustom,
-    recommendation: params.renderCustom,
-    markdown: params.renderMarkdown,
-  };
-}
-
-type MediaCyclerControllerArgs = {
-  items: MediaCyclerItem[];
-  singlePanel: boolean;
-  singlePanelActiveKey?: string;
-  disableTransition: boolean;
-  transitionMs: number;
-  loopNavigation: boolean;
-  loopFromBeginning: boolean;
-  loppFromBeginniner: boolean;
-  disableChevronPrevious?: boolean;
-  disableChevronNext?: boolean;
-  hideDisabledNextChevron: boolean;
-  disableLoopNavigation: boolean;
-  onChevronPrevious?: () => void;
-  onChevronNext?: () => void;
-  onLoopNavigation?: () => void;
-  allowSwipe: boolean;
-};
-
-function useMediaCyclerController({
-  items,
-  singlePanel,
-  singlePanelActiveKey,
-  disableTransition,
-  transitionMs,
-  loopNavigation,
-  loopFromBeginning,
-  loppFromBeginniner,
-  disableChevronPrevious,
-  disableChevronNext,
-  hideDisabledNextChevron,
-  disableLoopNavigation,
-  onChevronPrevious,
-  onChevronNext,
-  onLoopNavigation,
-  allowSwipe,
-}: MediaCyclerControllerArgs) {
-  const resolveActiveItem = React.useCallback(() => {
-    if (items.length === 0) {
-      return null;
-    }
-
-    if (singlePanelActiveKey) {
-      return items.find((item) => item.key === singlePanelActiveKey) ?? items[0];
-    }
-
-    return items[0];
-  }, [items, singlePanelActiveKey]);
-
-  const initialItem = resolveActiveItem();
-  const [renderedItem, setRenderedItem] = React.useState<MediaCyclerItem | null>(initialItem);
-  const [isVisible, setIsVisible] = React.useState(true);
-  const [transitionDirection, setTransitionDirection] = React.useState<"left" | "right">("right");
-  const [metadataDialogItemKey, setMetadataDialogItemKey] = React.useState<string | null>(null);
-  const [markdownByKey, setMarkdownByKey] = React.useState<Record<string, string>>({});
-
-  React.useEffect(() => {
-    if (!singlePanel) {
-      return;
-    }
-
-    const nextItem = resolveActiveItem();
-    const currentKey = renderedItem?.key ?? null;
-    const nextKey = nextItem?.key ?? null;
-
-    if (currentKey === nextKey) {
-      return;
-    }
-
-    if (disableTransition) {
-      setRenderedItem(nextItem);
-      setIsVisible(true);
-      return;
-    }
-
-    if (currentKey && nextKey) {
-      const currentIndex = items.findIndex((item) => item.key === currentKey);
-      const nextIndex = items.findIndex((item) => item.key === nextKey);
-      if (currentIndex !== -1 && nextIndex !== -1) {
-        setTransitionDirection(nextIndex > currentIndex ? "right" : "left");
-      }
-    }
-
-    setIsVisible(false);
-    const swapDelay = Math.max(120, Math.floor(transitionMs * 0.45));
-    const timeoutId = window.setTimeout(() => {
-      setRenderedItem(nextItem);
-      window.requestAnimationFrame(() => {
-        setIsVisible(true);
-      });
-    }, swapDelay);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [disableTransition, items, renderedItem, resolveActiveItem, singlePanel, transitionMs]);
-
-  const activeKey = renderedItem?.key ?? null;
-  const activeIndex = activeKey == null ? -1 : items.findIndex((item) => item.key === activeKey);
-  const hasMultipleItems = items.length > 1;
-  const loopFromFirstToLast = loopFromBeginning || loppFromBeginniner;
-  const previousItem = activeIndex > 0 ? items[activeIndex - 1] : null;
-  const nextItem = activeIndex >= 0 ? items[activeIndex + 1] || null : null;
-  const isAtFinalItem = activeIndex >= 0 && activeIndex === Math.max(items.length - 1, 0);
-  const canWrapToFirst = loopNavigation && isAtFinalItem && hasMultipleItems;
-  const canWrapToLast =
-    loopNavigation && loopFromFirstToLast && activeIndex === 0 && hasMultipleItems;
-  const previousDisabledRaw =
-    disableChevronPrevious ?? (!previousItem || !Boolean(previousItem.onSelect));
-  const nextDisabledRaw = disableChevronNext ?? (!nextItem || !Boolean(nextItem.onSelect));
-  const previousDisabled = previousDisabledRaw && !canWrapToLast;
-  const nextDisabled = nextDisabledRaw && !canWrapToFirst;
-  const showLoopAction = canWrapToFirst;
-  const loopDisabled = disableLoopNavigation;
-  const hideNextChevron = hideDisabledNextChevron && !showLoopAction && nextDisabled;
-  const swipeRef = React.useRef<{
-    startX: number;
-    startY: number;
-    blocked: boolean;
-    deltaX: number;
-    deltaY: number;
-  } | null>(null);
-
-  const handleChevronPrevious = React.useCallback(() => {
-    if (previousDisabled) {
-      return;
-    }
-
-    if (onChevronPrevious) {
-      onChevronPrevious();
-      return;
-    }
-
-    if (previousItem?.onSelect) {
-      previousItem.onSelect();
-      return;
-    }
-
-    if (canWrapToLast) {
-      const lastItem = items[items.length - 1];
-      lastItem?.onSelect?.();
-    }
-  }, [canWrapToLast, items, onChevronPrevious, previousDisabled, previousItem]);
-
-  const handleChevronNext = React.useCallback(() => {
-    if (nextDisabled) {
-      return;
-    }
-
-    if (onChevronNext) {
-      onChevronNext();
-      return;
-    }
-
-    nextItem?.onSelect?.();
-  }, [nextDisabled, nextItem, onChevronNext]);
-
-  const handleLoopNavigation = React.useCallback(() => {
-    if (loopDisabled) {
-      return;
-    }
-
-    if (onLoopNavigation) {
-      onLoopNavigation();
-      return;
-    }
-
-    const firstCycleItem = items[0];
-    firstCycleItem?.onSelect?.();
-  }, [items, loopDisabled, onLoopNavigation]);
-
-  const isInteractiveSwipeTarget = React.useCallback((target: EventTarget | null) => {
-    if (!(target instanceof HTMLElement)) {
-      return false;
-    }
-
-    return Boolean(
-      target.closest(
-        "a,button,input,textarea,select,summary,video,[role='button'],[role='link'],[data-no-swipe='true']",
-      ),
-    );
-  }, []);
-
-  const handleSwipeStart = React.useCallback(
-    (event: React.TouchEvent<HTMLElement>) => {
-      if (!allowSwipe || event.touches.length !== 1) {
-        swipeRef.current = null;
-        return;
-      }
-
-      const touch = event.touches[0];
-      swipeRef.current = {
-        startX: touch.clientX,
-        startY: touch.clientY,
-        blocked: isInteractiveSwipeTarget(event.target),
-        deltaX: 0,
-        deltaY: 0,
-      };
-    },
-    [allowSwipe, isInteractiveSwipeTarget],
-  );
-
-  const handleSwipeMove = React.useCallback(
-    (event: React.TouchEvent<HTMLElement>) => {
-      const swipeState = swipeRef.current;
-      if (!allowSwipe || !swipeState || swipeState.blocked || event.touches.length !== 1) {
-        return;
-      }
-
-      const touch = event.touches[0];
-      swipeState.deltaX = touch.clientX - swipeState.startX;
-      swipeState.deltaY = touch.clientY - swipeState.startY;
-
-      if (
-        Math.abs(swipeState.deltaX) > 12 &&
-        Math.abs(swipeState.deltaX) > Math.abs(swipeState.deltaY)
-      ) {
-        event.preventDefault();
-      }
-    },
-    [allowSwipe],
-  );
-
-  const handleSwipeEnd = React.useCallback(() => {
-    const swipeState = swipeRef.current;
-    swipeRef.current = null;
-
-    if (!allowSwipe || !swipeState || swipeState.blocked) {
-      return;
-    }
-
-    const { deltaX, deltaY } = swipeState;
-    if (Math.abs(deltaX) < 72) {
-      return;
-    }
-
-    if (Math.abs(deltaX) <= Math.abs(deltaY) * 1.1) {
-      return;
-    }
-
-    if (deltaX < 0) {
-      handleChevronNext();
-      return;
-    }
-
-    handleChevronPrevious();
-  }, [allowSwipe, handleChevronNext, handleChevronPrevious]);
-
-  const handleSwipeCancel = React.useCallback(() => {
-    swipeRef.current = null;
-  }, []);
-
-  React.useEffect(() => {
-    const markdownItems = items.filter(
-      (item) => resolveMediaCyclerMediaType(item) === "markdown" && item.markdownPath?.trim(),
-    );
-
-    if (markdownItems.length === 0) {
-      return;
-    }
-
-    const abortControllers: AbortController[] = [];
-    let cancelled = false;
-
-    const loadMarkdown = async () => {
-      const entries = await Promise.all(
-        markdownItems.map(async (item) => {
-          const controller = new AbortController();
-          abortControllers.push(controller);
-
-          try {
-            const response = await fetch(item.markdownPath as string, {
-              signal: controller.signal,
-            });
-            if (!response.ok) {
-              return [item.key, ""] as const;
-            }
-            const text = await response.text();
-            return [item.key, text] as const;
-          } catch {
-            return [item.key, ""] as const;
-          }
-        }),
-      );
-
-      if (cancelled) {
-        return;
-      }
-
-      setMarkdownByKey((current) => {
-        const next = { ...current };
-        entries.forEach(([key, content]) => {
-          next[key] = content;
-        });
-        return next;
-      });
-    };
-
-    void loadMarkdown();
-
-    return () => {
-      cancelled = true;
-      abortControllers.forEach((controller) => controller.abort());
-    };
-  }, [items]);
-
-  const metadataDialogItem =
-    metadataDialogItemKey == null
-      ? null
-      : items.find((item) => item.key === metadataDialogItemKey) || null;
-
-  return {
-    renderedItem,
-    isVisible,
-    transitionDirection,
-    metadataDialogItemKey,
-    setMetadataDialogItemKey,
-    metadataDialogItem,
-    markdownByKey,
-    previousDisabled,
-    nextDisabled,
-    showLoopAction,
-    loopDisabled,
-    hideNextChevron,
-    handleChevronPrevious,
-    handleChevronNext,
-    handleLoopNavigation,
-    handleSwipeStart,
-    handleSwipeMove,
-    handleSwipeEnd,
-    handleSwipeCancel,
-  };
-}
-
 export default function MediaCycler({
   items,
   spacing = 2,
@@ -474,7 +74,6 @@ export default function MediaCycler({
   loopNavigationIcon = "loop",
   disableLoopNavigation = false,
   loopFromBeginning = false,
-  loppFromBeginniner = false,
   compactMetadataOnSmallScreens = false,
   showExpandIcon = true,
   disableChevronPrevious,
@@ -489,9 +88,11 @@ export default function MediaCycler({
   showCompactInfoButton = true,
   allowSwipe = false,
 }: MediaCyclerProps) {
-  const stackSxArray = toSxArray(stackSx);
-  const navigationControlSxArray = toSxArray(navigationControlSx);
-  const expandControlSxArray = toSxArray(expandControlSx);
+  const stackSxArray = toMediaCyclerSxArray(stackSx);
+  const stackFlatSxArray = flattenMediaCyclerSxArray(stackSxArray);
+  const navigationControlSxArray = toMediaCyclerSxArray(navigationControlSx);
+  const navigationControlFlatSxArray = flattenMediaCyclerSxArray(navigationControlSxArray);
+  const expandControlSxArray = toMediaCyclerSxArray(expandControlSx);
   const {
     renderedItem,
     isVisible,
@@ -519,7 +120,6 @@ export default function MediaCycler({
     transitionMs,
     loopNavigation,
     loopFromBeginning,
-    loppFromBeginniner,
     disableChevronPrevious,
     disableChevronNext,
     hideDisabledNextChevron,
@@ -530,38 +130,221 @@ export default function MediaCycler({
     allowSwipe,
   });
 
+  const emitMediaTelemetry = React.useCallback(
+    (
+      kind:
+        | "navigate.previous"
+        | "navigate.next"
+        | "navigate.loop"
+        | "details.open"
+        | "details.close",
+      trigger: PortfolioTelemetryTrigger,
+      item: MediaCyclerItem | null | undefined,
+      control?: string,
+    ) => {
+      emitMediaActionTelemetry(
+        resolveMediaActionContract({
+          kind,
+          trigger,
+          control,
+          itemKey: item?.key,
+          mediaType: item?.mediaType,
+          title: item?.title,
+          source: item?.mediaSource,
+        }),
+      );
+    },
+    [],
+  );
+
+  const navigatePrevious = React.useCallback(
+    (trigger: PortfolioTelemetryTrigger, control?: string) => {
+      emitMediaTelemetry("navigate.previous", trigger, renderedItem, control);
+      handleChevronPrevious();
+    },
+    [emitMediaTelemetry, handleChevronPrevious, renderedItem],
+  );
+
+  const navigateNext = React.useCallback(
+    (trigger: PortfolioTelemetryTrigger, control?: string) => {
+      emitMediaTelemetry("navigate.next", trigger, renderedItem, control);
+      handleChevronNext();
+    },
+    [emitMediaTelemetry, handleChevronNext, renderedItem],
+  );
+
+  const navigateLoop = React.useCallback(
+    (trigger: PortfolioTelemetryTrigger, control?: string) => {
+      emitMediaTelemetry("navigate.loop", trigger, renderedItem, control);
+      handleLoopNavigation();
+    },
+    [emitMediaTelemetry, handleLoopNavigation, renderedItem],
+  );
+
+  const openMetadataDialog = React.useCallback(
+    (item: MediaCyclerItem, trigger: PortfolioTelemetryTrigger, control?: string) => {
+      emitMediaTelemetry("details.open", trigger, item, control);
+      setMetadataDialogItemKey(item.key);
+    },
+    [emitMediaTelemetry, setMetadataDialogItemKey],
+  );
+
+  const closeMetadataDialog = React.useCallback(
+    (trigger: PortfolioTelemetryTrigger, control?: string) => {
+      emitMediaTelemetry("details.close", trigger, metadataDialogItem, control);
+      setMetadataDialogItemKey(null);
+    },
+    [emitMediaTelemetry, metadataDialogItem, setMetadataDialogItemKey],
+  );
+
+  const prefetchMediaType = React.useCallback((mediaType: MediaCyclerMediaType) => {
+    prefetchMediaTypeByIntent(mediaType);
+  }, []);
+
+  const prefetchItemMediaByIntent = React.useCallback(
+    (item: MediaCyclerItem) => {
+      prefetchMediaType(item.mediaType);
+    },
+    [prefetchMediaType],
+  );
+
+  React.useEffect(() => {
+    if (!items.length || typeof window === "undefined") {
+      return;
+    }
+
+    const mediaTypes = new Set(items.map((item) => item.mediaType));
+    const prefetch = () => {
+      const sectionPrefetchOrder = resolveSectionPrefetchOrder();
+      sectionPrefetchOrder.forEach((mediaType) => {
+        if (mediaTypes.has(mediaType)) {
+          prefetchMediaType(mediaType);
+        }
+      });
+
+      mediaTypes.forEach((mediaType) => {
+        if (!sectionPrefetchOrder.includes(mediaType)) {
+          prefetchMediaType(mediaType);
+        }
+      });
+    };
+
+    if ("requestIdleCallback" in globalThis) {
+      const idleId = globalThis.requestIdleCallback(prefetch, { timeout: 800 });
+      return () => globalThis.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = globalThis.setTimeout(prefetch, 120);
+    return () => globalThis.clearTimeout(timeoutId);
+  }, [items, prefetchMediaType]);
+
+  React.useEffect(() => {
+    if (!renderedItem) {
+      return;
+    }
+
+    prefetchItemMediaByIntent(renderedItem);
+  }, [prefetchItemMediaByIntent, renderedItem]);
+
+  React.useEffect(() => {
+    if (!singlePanel) {
+      return;
+    }
+
+    const removePreviousShortcut = addPortfolioWindowEventListener(
+      PORTFOLIO_SHORTCUT_EVENT.MEDIA_PREV,
+      () => navigatePrevious("keyboard-shortcut", "media-prev-shortcut"),
+    );
+    const removeNextShortcut = addPortfolioWindowEventListener(
+      PORTFOLIO_SHORTCUT_EVENT.MEDIA_NEXT,
+      () => navigateNext("keyboard-shortcut", "media-next-shortcut"),
+    );
+    const removeLoopShortcut = addPortfolioWindowEventListener(
+      PORTFOLIO_SHORTCUT_EVENT.MEDIA_LOOP,
+      () => navigateLoop("keyboard-shortcut", "media-loop-shortcut"),
+    );
+
+    return () => {
+      removePreviousShortcut();
+      removeNextShortcut();
+      removeLoopShortcut();
+    };
+  }, [navigateLoop, navigateNext, navigatePrevious, singlePanel]);
+
+  const handleSinglePanelKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      navigatePrevious("keyboard", "ArrowLeft");
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      navigateNext("keyboard", "ArrowRight");
+      return;
+    }
+
+    if (event.key.toLowerCase() === "l") {
+      event.preventDefault();
+      navigateLoop("keyboard", "l");
+    }
+  };
+
   const renderItem = (item: MediaCyclerItem, navigationOverlay?: React.ReactNode) => {
-    const resolvedMediaType = resolveMediaCyclerMediaType(item);
-    const mediaUrl = item.mediaUrl ?? "";
-    const isDiagramItem = resolvedMediaType === "diagram";
+    const mediaType = item.mediaType;
+    const isDiagramItem = mediaType === "diagram";
     const canActivate = Boolean(item.onMediaActivate);
     const hasTitle = item.title.trim().length > 0;
     const imageAlt = item.mediaAlt || item.title;
     const lightboxTitle = item.mediaLightboxTitle || item.title;
-    const panelSxArray = toSxArray(item.panelSx);
-    const titleIconSxArray = toSxArray(item.titleIconSx);
-    const titleSxArray = toSxArray(item.titleSx);
-    const assetFrameSxArray = toSxArray(item.assetFrameSx);
-    const previewVideoSxArray = toSxArray(item.previewVideoSx);
-    const markdownSxArray = toSxArray(item.markdownSx);
-    const diagramSxArray = toSxArray(item.diagramSx);
-    const customContentSxArray = toSxArray(item.customContentSx);
-    const pdfContainerSxArray = toSxArray(item.pdfContainerSx);
-    const pdfFrameSxArray = toSxArray(item.pdfFrameSx);
-    const pdfPreviewSxArray = toSxArray(item.pdfPreviewSx);
-    const pdfObjectSxArray = toSxArray(item.pdfObjectSx);
-    const pdfIframeSxArray = toSxArray(item.pdfIframeSx);
+    const panelSxArray = toMediaCyclerSxArray(item.panelSx);
+    const panelFlatSxArray = flattenMediaCyclerSxArray(panelSxArray);
+    const titleIconSxArray = toMediaCyclerSxArray(item.titleIconSx);
+    const titleIconFlatSxArray = flattenMediaCyclerSxArray(titleIconSxArray);
+    const titleSxArray = toMediaCyclerSxArray(item.titleSx);
+    const titleFlatSxArray = flattenMediaCyclerSxArray(titleSxArray);
+    const assetFrameSxArray = toMediaCyclerSxArray(item.assetFrameSx);
+    const assetFrameFlatSxArray = flattenMediaCyclerSxArray(assetFrameSxArray);
+    const previewVideoSxArray = toMediaCyclerSxArray(item.previewVideoSx);
+    const markdownSxArray = toMediaCyclerSxArray(item.markdownSx);
+    const markdownFlatSxArray = flattenMediaCyclerSxArray(markdownSxArray);
+    const diagramSxArray = toMediaCyclerSxArray(item.diagramSx);
+    const customContentSxArray = toMediaCyclerSxArray(item.customContentSx);
+    const customContentFlatSxArray = flattenMediaCyclerSxArray(customContentSxArray);
+    const pdfContainerSxArray = toMediaCyclerSxArray(item.pdfContainerSx);
+    const pdfFrameSxArray = toMediaCyclerSxArray(item.pdfFrameSx);
+    const pdfPreviewSxArray = toMediaCyclerSxArray(item.pdfPreviewSx);
+    const pdfObjectSxArray = toMediaCyclerSxArray(item.pdfObjectSx);
+    const pdfIframeSxArray = toMediaCyclerSxArray(item.pdfIframeSx);
     const hasMetadata = Boolean(item.mediaSource || item.mediaCaption);
     const hasSmallScreenInfoBlurb = Boolean(smallScreenInfoBlurb?.trim());
     const compactMetadata =
       compactMetadataOnSmallScreens && (hasMetadata || hasSmallScreenInfoBlurb);
     const inlineMetadataDisplay = compactMetadata ? { xs: "none", md: "block" } : "block";
     const resolvedMarkdownContent =
-      resolvedMediaType === "markdown"
-        ? ((item.markdownContent ?? markdownByKey[item.key] ?? mediaUrl) as string)
+      mediaType === "markdown"
+        ? (item.markdownContent ?? markdownByKey[item.key] ?? item.mediaUrl ?? "")
         : "";
-    const pdfUrl = mediaUrl;
     const itemIndex = items.findIndex((cycleItem) => cycleItem.key === item.key);
+    const emitRendererMediaAction = (
+      kind: "open" | "copy" | "export" | "zoom",
+      trigger: PortfolioTelemetryTrigger,
+      control?: string,
+      metaAction?: string,
+    ) => {
+      emitMediaActionTelemetry(
+        resolveMediaActionContract({
+          kind,
+          trigger,
+          control,
+          metaAction,
+          itemKey: item.key,
+          mediaType: item.mediaType,
+          title: item.title,
+          source: item.mediaSource,
+        }),
+      );
+    };
     const previousDiagramItem = (() => {
       if (!isDiagramItem || itemIndex < 0) {
         return null;
@@ -569,8 +352,7 @@ export default function MediaCycler({
 
       for (let index = itemIndex - 1; index >= 0; index -= 1) {
         const candidate = items[index];
-        const candidateMediaType = resolveMediaCyclerMediaType(candidate);
-        if (candidateMediaType === "diagram") {
+        if (candidate.mediaType === "diagram") {
           return candidate;
         }
       }
@@ -578,8 +360,7 @@ export default function MediaCycler({
       if (loopNavigation) {
         for (let index = items.length - 1; index > itemIndex; index -= 1) {
           const candidate = items[index];
-          const candidateMediaType = resolveMediaCyclerMediaType(candidate);
-          if (candidateMediaType === "diagram") {
+          if (candidate.mediaType === "diagram") {
             return candidate;
           }
         }
@@ -594,8 +375,7 @@ export default function MediaCycler({
 
       for (let index = itemIndex + 1; index < items.length; index += 1) {
         const candidate = items[index];
-        const candidateMediaType = resolveMediaCyclerMediaType(candidate);
-        if (candidateMediaType === "diagram") {
+        if (candidate.mediaType === "diagram") {
           return candidate;
         }
       }
@@ -603,8 +383,7 @@ export default function MediaCycler({
       if (loopNavigation) {
         for (let index = 0; index < itemIndex; index += 1) {
           const candidate = items[index];
-          const candidateMediaType = resolveMediaCyclerMediaType(candidate);
-          if (candidateMediaType === "diagram") {
+          if (candidate.mediaType === "diagram") {
             return candidate;
           }
         }
@@ -619,13 +398,16 @@ export default function MediaCycler({
       <Box
         key={item.key}
         ref={item.panelRef}
+        onPointerEnter={() => prefetchItemMediaByIntent(item)}
+        onFocusCapture={() => prefetchItemMediaByIntent(item)}
+        onTouchStart={() => prefetchItemMediaByIntent(item)}
         sx={[
           {
             minWidth: 0,
             width: "100%",
             maxWidth: "100%",
           },
-          ...panelSxArray,
+          ...panelFlatSxArray,
         ]}
       >
         {hasTitle || item.description || compactMetadata ? (
@@ -674,7 +456,7 @@ export default function MediaCycler({
                           justifyContent: "center",
                           flexShrink: 0,
                         }),
-                        ...titleIconSxArray,
+                        ...titleIconFlatSxArray,
                       ]}
                     >
                       {item.titleIcon}
@@ -682,7 +464,7 @@ export default function MediaCycler({
                   ) : null}
                   <Typography
                     variant={item.titleVariant ?? "subtitle2"}
-                    sx={[{ minWidth: 0, flex: 1 }, ...titleSxArray]}
+                    sx={[{ minWidth: 0, flex: 1 }, ...titleFlatSxArray]}
                   >
                     {item.title}
                   </Typography>
@@ -692,7 +474,7 @@ export default function MediaCycler({
                 <IconButton
                   size="small"
                   aria-label={`Open media details: ${lightboxTitle}`}
-                  onClick={() => setMetadataDialogItemKey(item.key)}
+                  onClick={() => openMetadataDialog(item, "pointer", "open-media-details")}
                   sx={(theme) => ({
                     display: { xs: "inline-flex", md: "none" },
                     flexShrink: 0,
@@ -727,268 +509,17 @@ export default function MediaCycler({
               maxWidth: "100%",
               position: "relative",
             },
-            ...assetFrameSxArray,
+            ...assetFrameFlatSxArray,
           ]}
         >
           {(() => {
-            const renderImage = () => (
-              <Box
-                sx={{
-                  position: "relative",
-                  width: "100%",
-                  height: "100%",
-                }}
-              >
-                <ImageContent
-                  src={mediaUrl}
-                  alt={imageAlt}
-                  width={item.imageWidth}
-                  height={item.imageHeight}
-                  onLoad={item.onMediaLoaded}
-                  className={item.imageClassName}
-                  style={item.imageStyle}
-                  onMediaActivate={item.onMediaActivate}
-                />
-                {showExpandIcon ? (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      zIndex: 2,
-                    }}
-                  >
-                    <ImageLightbox
-                      src={mediaUrl}
-                      alt={imageAlt}
-                      title={lightboxTitle}
-                      caption={item.lightboxCaption || item.mediaCaption || item.mediaSource}
-                      stopEventPropagation
-                      triggerSx={{
-                        all: "unset",
-                        display: "inline-flex",
-                        cursor: "zoom-in",
-                      }}
-                    >
-                      <Box
-                        component="span"
-                        sx={[
-                          (theme) => ({
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: 40,
-                            height: 40,
-                            borderRadius: "50%",
-                            border: "1px solid",
-                            borderColor: alpha(theme.palette.common.white, 0.32),
-                            color: theme.palette.common.white,
-                            bgcolor: alpha(theme.palette.grey[900], 0.58),
-                            "&:hover": {
-                              bgcolor: alpha(theme.palette.grey[900], 0.76),
-                            },
-                          }),
-                          ...expandControlSxArray,
-                        ]}
-                      >
-                        <OpenInFull fontSize="small" />
-                      </Box>
-                    </ImageLightbox>
-                  </Box>
-                ) : null}
-              </Box>
-            );
-
-            const renderVideo = () => (
-              <Box
-                role={canActivate ? "button" : undefined}
-                tabIndex={canActivate ? 0 : -1}
-                aria-label={canActivate ? `Activate ${item.title}` : undefined}
-                onClick={item.onMediaActivate}
-                onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
-                sx={{
-                  position: "relative",
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: canActivate ? "pointer" : "default",
-                }}
-              >
-                <VideoLightbox
-                  ref={item.videoRef}
-                  src={mediaUrl}
-                  title={lightboxTitle}
-                  caption={item.lightboxCaption || item.mediaCaption}
-                  controls={item.controls}
-                  autoPlay={item.autoPlay}
-                  playsInline={item.playsInline}
-                  loop={item.loop}
-                  muted={item.muted}
-                  stopEventPropagation={canActivate}
-                  showExpandButton={showExpandIcon}
-                  expandButtonSx={expandControlSx}
-                  previewVideoClassName={item.previewVideoClassName}
-                  previewVideoSx={previewVideoSxArray}
-                  onLoadedData={item.onMediaLoaded}
-                  {...item.videoProps}
-                />
-              </Box>
-            );
-
-            const renderPdf = () => (
-              <Box
-                role={canActivate ? "button" : undefined}
-                tabIndex={canActivate ? 0 : -1}
-                aria-label={canActivate ? `Activate ${item.title}` : undefined}
-                onClick={item.onMediaActivate}
-                onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
-                sx={{
-                  position: "relative",
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "stretch",
-                  justifyContent: "center",
-                  cursor: canActivate ? "pointer" : "default",
-                }}
-              >
-                <React.Suspense fallback={<Box sx={{ width: "100%", height: "100%" }} />}>
-                  <LazyPDFContent
-                    src={pdfUrl}
-                    title={lightboxTitle}
-                    onLoad={item.onMediaLoaded}
-                    previewSx={[{ height: "100%" }, ...pdfPreviewSxArray]}
-                    containerSx={pdfContainerSxArray}
-                    frameSx={pdfFrameSxArray}
-                    objectSx={pdfObjectSxArray}
-                    iframeSx={pdfIframeSxArray}
-                    showOpenLink={item.pdfShowOpenLink ?? false}
-                    openLinkLabel={item.pdfOpenLinkLabel}
-                    openLinkHref={item.pdfOpenLinkHref}
-                    openLinkDescription={item.pdfOpenLinkDescription}
-                  />
-                </React.Suspense>
-                {showExpandIcon ? (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      zIndex: 2,
-                    }}
-                  >
-                    <Box
-                      component="a"
-                      href={pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Open full document: ${lightboxTitle}`}
-                      onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
-                        event.stopPropagation();
-                      }}
-                      sx={[
-                        {
-                          all: "unset",
-                          display: "inline-flex",
-                          cursor: "pointer",
-                        },
-                      ]}
-                    >
-                      <Box
-                        component="span"
-                        sx={[
-                          (theme) => ({
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: 40,
-                            height: 40,
-                            borderRadius: "50%",
-                            border: "1px solid",
-                            borderColor: alpha(theme.palette.common.white, 0.32),
-                            color: theme.palette.common.white,
-                            bgcolor: alpha(theme.palette.grey[900], 0.58),
-                            "&:hover": {
-                              bgcolor: alpha(theme.palette.grey[900], 0.76),
-                            },
-                          }),
-                          ...expandControlSxArray,
-                        ]}
-                      >
-                        <OpenInFull fontSize="small" />
-                      </Box>
-                    </Box>
-                  </Box>
-                ) : null}
-              </Box>
-            );
-
-            const renderDiagram = () => (
-              <Box
-                role={canActivate ? "button" : undefined}
-                tabIndex={canActivate ? 0 : -1}
-                aria-label={canActivate ? `Activate ${item.title}` : undefined}
-                onClick={item.onMediaActivate}
-                onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
-                sx={{
-                  position: "relative",
-                  width: "100%",
-                  height: "100%",
-                  minHeight: 0,
-                  cursor: canActivate ? "pointer" : "default",
-                }}
-              >
-                <React.Suspense fallback={<Box sx={{ width: "100%", height: "100%" }} />}>
-                  <LazyDiagramLightBox
-                    diagram={mediaUrl}
-                    title={item.diagramProps?.title ?? item.title}
-                    subtitle={item.lightboxSubtitle}
-                    caption={item.lightboxCaption || item.mediaCaption || item.mediaSource}
-                    showExpandButton={showExpandIcon}
-                    expandButtonSx={expandControlSx}
-                    stopEventPropagation={canActivate}
-                    containerSx={[
-                      {
-                        width: "100%",
-                        height: "100%",
-                        minHeight: 0,
-                        overflow: "hidden",
-                        "& [id$='-container']": {
-                          width: "100% !important",
-                          height: "100% !important",
-                          minHeight: 0,
-                        },
-                        "& .diagram-mermaid svg": {
-                          maxWidth: "100%",
-                          height: "auto",
-                        },
-                      },
-                      ...diagramSxArray,
-                    ]}
-                    diagramProps={{
-                      ...item.diagramProps,
-                      title: item.diagramProps?.title ?? item.title,
-                      height: item.diagramProps?.height ?? "100%",
-                      width: item.diagramProps?.width ?? "100%",
-                      showToolbar: item.diagramProps?.showToolbar ?? true,
-                      showGridDots:
-                        item.diagramProps?.showGridDots ?? item.diagramProps?.showDots ?? false,
-                      showDots: item.diagramProps?.showDots ?? false,
-                    }}
-                  />
-                </React.Suspense>
-              </Box>
-            );
-
             const renderCustom = () => (
               <Box
                 role={canActivate ? "button" : undefined}
                 tabIndex={canActivate ? 0 : -1}
                 aria-label={canActivate ? `Activate ${item.title}` : undefined}
                 onClick={item.onMediaActivate}
-                onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+                onKeyDown={createMediaActivateKeyDownHandler(item.onMediaActivate)}
                 sx={{
                   position: "relative",
                   width: "100%",
@@ -1004,7 +535,7 @@ export default function MediaCycler({
                       height: "100%",
                       minHeight: 0,
                     },
-                    ...customContentSxArray,
+                    ...customContentFlatSxArray,
                   ]}
                 >
                   {item.customContent}
@@ -1018,7 +549,7 @@ export default function MediaCycler({
                 tabIndex={canActivate ? 0 : -1}
                 aria-label={canActivate ? `Activate ${item.title}` : undefined}
                 onClick={item.onMediaActivate}
-                onKeyDown={createMediaKeyDownHandler(item.onMediaActivate)}
+                onKeyDown={createMediaActivateKeyDownHandler(item.onMediaActivate)}
                 sx={{
                   position: "relative",
                   width: "100%",
@@ -1046,22 +577,121 @@ export default function MediaCycler({
                   <MarkdownContent
                     content={resolvedMarkdownContent}
                     variant="body2"
-                    sx={[{ "& p": { mb: 1.1 } }, ...markdownSxArray]}
+                    sx={[{ "& p": { mb: 1.1 } }, ...markdownFlatSxArray]}
                   />
                 </Box>
               </Box>
             );
 
-            const rendererRegistry = buildMediaRendererRegistry({
-              renderImage,
-              renderVideo,
-              renderPdf,
-              renderDiagram,
-              renderCustom,
-              renderMarkdown,
-            });
-            const renderMedia = rendererRegistry[resolvedMediaType];
-            return renderMedia();
+            const renderMedia = () => {
+              switch (item.mediaType) {
+                case "image":
+                  return (
+                    <LazyImageRenderer
+                      item={item}
+                      mediaUrl={item.mediaUrl}
+                      imageAlt={imageAlt}
+                      lightboxTitle={lightboxTitle}
+                      showExpandIcon={showExpandIcon}
+                      expandControlSxArray={expandControlSxArray}
+                      onMediaAction={({ kind, trigger, control, metaAction }) => {
+                        if (
+                          kind === "open" ||
+                          kind === "copy" ||
+                          kind === "export" ||
+                          kind === "zoom"
+                        ) {
+                          emitRendererMediaAction(kind, trigger, control, metaAction);
+                        }
+                      }}
+                    />
+                  );
+                case "video":
+                  return (
+                    <LazyVideoRenderer
+                      item={item}
+                      mediaUrl={item.mediaUrl}
+                      lightboxTitle={lightboxTitle}
+                      canActivate={canActivate}
+                      showExpandIcon={showExpandIcon}
+                      expandControlSx={expandControlSx}
+                      previewVideoSxArray={previewVideoSxArray}
+                      onMediaAction={({ kind, trigger, control, metaAction }) => {
+                        if (
+                          kind === "open" ||
+                          kind === "copy" ||
+                          kind === "export" ||
+                          kind === "zoom"
+                        ) {
+                          emitRendererMediaAction(kind, trigger, control, metaAction);
+                        }
+                      }}
+                    />
+                  );
+                case "pdf":
+                  return (
+                    <LazyPdfRenderer
+                      item={item}
+                      pdfUrl={item.mediaUrl}
+                      lightboxTitle={lightboxTitle}
+                      canActivate={canActivate}
+                      showExpandIcon={showExpandIcon}
+                      expandControlSxArray={expandControlSxArray}
+                      pdfPreviewSxArray={pdfPreviewSxArray}
+                      pdfContainerSxArray={pdfContainerSxArray}
+                      pdfFrameSxArray={pdfFrameSxArray}
+                      pdfObjectSxArray={pdfObjectSxArray}
+                      pdfIframeSxArray={pdfIframeSxArray}
+                      onMediaAction={({ kind, trigger, control, metaAction }) => {
+                        if (
+                          kind === "open" ||
+                          kind === "copy" ||
+                          kind === "export" ||
+                          kind === "zoom"
+                        ) {
+                          emitRendererMediaAction(kind, trigger, control, metaAction);
+                        }
+                      }}
+                    />
+                  );
+                case "diagram":
+                  return (
+                    <LazyDiagramRenderer
+                      item={item}
+                      mediaUrl={item.mediaUrl}
+                      canActivate={canActivate}
+                      showExpandIcon={showExpandIcon}
+                      expandControlSx={expandControlSx}
+                      diagramSxArray={diagramSxArray}
+                      onMediaAction={({ kind, trigger, control, metaAction }) => {
+                        if (
+                          kind === "open" ||
+                          kind === "copy" ||
+                          kind === "export" ||
+                          kind === "zoom"
+                        ) {
+                          emitRendererMediaAction(kind, trigger, control, metaAction);
+                        }
+                      }}
+                    />
+                  );
+                case "markdown":
+                  return renderMarkdown();
+                case "custom":
+                case "project":
+                case "projectPresentation":
+                case "recognition":
+                case "recommendation":
+                  return renderCustom();
+                default:
+                  return assertNever(item);
+              }
+            };
+            return (
+              <React.Suspense fallback={<Box sx={MEDIA_RENDERER_FALLBACK_SX} />}>
+                {renderMedia()}
+              </React.Suspense>
+            );
           })()}
           {navigationOverlay}
         </Box>
@@ -1165,7 +795,7 @@ export default function MediaCycler({
           <IconButton
             type="button"
             aria-label="Previous media panel"
-            onClick={handleChevronPrevious}
+            onClick={() => navigatePrevious("pointer", "Previous media panel")}
             disabled={previousDisabled}
             sx={[
               (theme) => ({
@@ -1183,7 +813,7 @@ export default function MediaCycler({
                     ? "rgba(2,6,23,0.65)"
                     : alpha(theme.palette.background.paper, 0.82),
               }),
-              ...navigationControlSxArray,
+              ...navigationControlFlatSxArray,
             ]}
           >
             <ChevronLeft fontSize="small" />
@@ -1193,7 +823,7 @@ export default function MediaCycler({
           <IconButton
             type="button"
             aria-label={loopNavigationLabel}
-            onClick={handleLoopNavigation}
+            onClick={() => navigateLoop("pointer", loopNavigationLabel)}
             disabled={loopDisabled}
             sx={[
               (theme) => ({
@@ -1217,7 +847,7 @@ export default function MediaCycler({
                       : alpha(theme.palette.background.paper, 0.96),
                 },
               }),
-              ...navigationControlSxArray,
+              ...navigationControlFlatSxArray,
             ]}
           >
             {loopNavigationIcon === "leftChevron" ? (
@@ -1232,7 +862,7 @@ export default function MediaCycler({
           <IconButton
             type="button"
             aria-label="Next media panel"
-            onClick={handleChevronNext}
+            onClick={() => navigateNext("pointer", "Next media panel")}
             disabled={nextDisabled}
             sx={[
               (theme) => ({
@@ -1250,7 +880,7 @@ export default function MediaCycler({
                     ? "rgba(2,6,23,0.65)"
                     : alpha(theme.palette.background.paper, 0.82),
               }),
-              ...navigationControlSxArray,
+              ...navigationControlFlatSxArray,
             ]}
           >
             <ChevronRight fontSize="small" />
@@ -1259,193 +889,48 @@ export default function MediaCycler({
       </Box>
     ) : null;
 
-  if (singlePanel) {
-    return (
-      <>
-        <Stack
-          spacing={spacing}
-          sx={[
-            {
-              minWidth: 0,
-              width: "100%",
-              maxWidth: "100%",
-            },
-            ...stackSxArray,
-          ]}
-        >
-          <Box
-            sx={{ position: "relative", height: "100%", minHeight: 0 }}
-            onTouchStart={handleSwipeStart}
-            onTouchMove={handleSwipeMove}
-            onTouchEnd={handleSwipeEnd}
-            onTouchCancel={handleSwipeCancel}
-          >
-            {renderedItem ? (
-              <Box
-                key={renderedItem.key}
-                sx={{
-                  height: "100%",
-                  minHeight: 0,
-                  opacity: disableTransition ? 1 : isVisible ? 1 : 0,
-                  transform: disableTransition
-                    ? "translateX(0px)"
-                    : isVisible
-                      ? "translateX(0px)"
-                      : transitionDirection === "right"
-                        ? "translateX(24px)"
-                        : "translateX(-24px)",
-                  transition: disableTransition
-                    ? "none"
-                    : `opacity ${transitionMs}ms ease, transform ${transitionMs}ms cubic-bezier(.2,.8,.2,1)`,
-                }}
-              >
-                {renderItem(renderedItem, singlePanelNavigationOverlay)}
-              </Box>
-            ) : null}
-          </Box>
-        </Stack>
-        <Dialog
-          open={Boolean(metadataDialogItem)}
-          onClose={() => setMetadataDialogItemKey(null)}
-          fullWidth
-          maxWidth="xs"
-        >
-          <DialogTitle sx={{ pr: 6 }}>
-            {metadataDialogItem?.mediaLightboxTitle || metadataDialogItem?.title || "Media details"}
-            <IconButton
-              aria-label="Close media details"
-              onClick={() => setMetadataDialogItemKey(null)}
-              sx={{
-                position: "absolute",
-                top: 8,
-                right: 8,
-              }}
-            >
-              <Close fontSize="small" />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent dividers>
-            {smallScreenInfoBlurb?.trim() ? (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  mb:
-                    metadataDialogItem?.mediaSource || metadataDialogItem?.mediaCaption ? 1.25 : 0,
-                }}
-              >
-                {smallScreenInfoBlurb}
-              </Typography>
-            ) : null}
-            {metadataDialogItem?.mediaSource ? (
-              <Typography variant="body2" color="text.secondary">
-                Source:{" "}
-                {metadataDialogItem.mediaSourceHref ? (
-                  <Link
-                    href={metadataDialogItem.mediaSourceHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    underline="hover"
-                    color="primary.main"
-                  >
-                    {metadataDialogItem.mediaSource}
-                  </Link>
-                ) : (
-                  metadataDialogItem.mediaSource
-                )}
-              </Typography>
-            ) : null}
-            {metadataDialogItem?.mediaCaption ? (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: metadataDialogItem.mediaSource ? 1.25 : 0 }}
-              >
-                {metadataDialogItem.mediaCaption}
-              </Typography>
-            ) : null}
-          </DialogContent>
-        </Dialog>
-      </>
-    );
-  }
-
   return (
     <>
-      <Stack
+      <MediaRenderShell
         spacing={spacing}
-        sx={[
-          {
-            minWidth: 0,
-            width: "100%",
-            maxWidth: "100%",
-          },
-          ...stackSxArray,
-        ]}
-      >
-        {items.map((item) => renderItem(item))}
-      </Stack>
-      <Dialog
-        open={Boolean(metadataDialogItem)}
-        onClose={() => setMetadataDialogItemKey(null)}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle sx={{ pr: 6 }}>
-          {metadataDialogItem?.mediaLightboxTitle || metadataDialogItem?.title || "Media details"}
-          <IconButton
-            aria-label="Close media details"
-            onClick={() => setMetadataDialogItemKey(null)}
-            sx={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-            }}
-          >
-            <Close fontSize="small" />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          {smallScreenInfoBlurb?.trim() ? (
-            <Typography
-              variant="body2"
-              color="text.secondary"
+        stackFlatSxArray={stackFlatSxArray}
+        singlePanel={singlePanel}
+        onKeyDown={handleSinglePanelKeyDown}
+        onTouchStart={handleSwipeStart}
+        onTouchMove={handleSwipeMove}
+        onTouchEnd={handleSwipeEnd}
+        onTouchCancel={handleSwipeCancel}
+        singlePanelItem={
+          renderedItem ? (
+            <Box
+              key={renderedItem.key}
               sx={{
-                mb: metadataDialogItem?.mediaSource || metadataDialogItem?.mediaCaption ? 1.25 : 0,
+                height: "100%",
+                minHeight: 0,
+                opacity: disableTransition ? 1 : isVisible ? 1 : 0,
+                transform: disableTransition
+                  ? "translateX(0px)"
+                  : isVisible
+                    ? "translateX(0px)"
+                    : transitionDirection === "right"
+                      ? `translateX(${VISUALIZATION_ANIMATION_TOKENS.mediaTransitionTranslatePx}px)`
+                      : `translateX(-${VISUALIZATION_ANIMATION_TOKENS.mediaTransitionTranslatePx}px)`,
+                transition: disableTransition
+                  ? "none"
+                  : `opacity ${transitionMs}ms ease, transform ${transitionMs}ms cubic-bezier(.2,.8,.2,1)`,
               }}
             >
-              {smallScreenInfoBlurb}
-            </Typography>
-          ) : null}
-          {metadataDialogItem?.mediaSource ? (
-            <Typography variant="body2" color="text.secondary">
-              Source:{" "}
-              {metadataDialogItem.mediaSourceHref ? (
-                <Link
-                  href={metadataDialogItem.mediaSourceHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  underline="hover"
-                  color="primary.main"
-                >
-                  {metadataDialogItem.mediaSource}
-                </Link>
-              ) : (
-                metadataDialogItem.mediaSource
-              )}
-            </Typography>
-          ) : null}
-          {metadataDialogItem?.mediaCaption ? (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: metadataDialogItem.mediaSource ? 1.25 : 0 }}
-            >
-              {metadataDialogItem.mediaCaption}
-            </Typography>
-          ) : null}
-        </DialogContent>
-      </Dialog>
+              {renderItem(renderedItem, singlePanelNavigationOverlay)}
+            </Box>
+          ) : null
+        }
+        multiPanelItems={items.map((item) => renderItem(item))}
+      />
+      <MediaMetadataShell
+        item={metadataDialogItem}
+        smallScreenInfoBlurb={smallScreenInfoBlurb}
+        onClose={closeMetadataDialog}
+      />
     </>
   );
 }

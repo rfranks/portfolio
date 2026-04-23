@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FormatListBulleted from "@mui/icons-material/FormatListBulleted";
 import GridView from "@mui/icons-material/GridView";
 import Box from "@mui/material/Box";
@@ -7,30 +7,149 @@ import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import { keyframes, type SxProps, type Theme } from "@mui/material/styles";
+import {
+  GRID_CLOUD_STAGGER_REVEAL,
+  VIRTUALIZED_LIST_DEFAULT_OVERSCAN,
+} from "@/consts/components/shared/gridCloudNavigationSlide";
 import { useAudio } from "@/hooks/audio/useAudio";
+import type {
+  GridCloudNavigationSlideProps,
+  VirtualizedPanelListProps,
+} from "@/types/components/shared/gridCloudNavigationSlide";
 import { rewindAndPlayAudio } from "@/utils/audio";
+import {
+  buildStaggerNthRules,
+  clampVirtualizedIndex,
+  mergeSx,
+} from "@/utils/components/shared/gridCloudNavigationSlide";
 
-export interface GridCloudNavigationSlideProps {
-  viewMode: "cloud" | "list";
-  onViewModeChange: (nextCloudView: boolean) => void;
-  listContent: ReactNode;
-  cloudContent: ReactNode;
-  isMdUp?: boolean;
-  footerStart?: ReactNode;
-  footerEnd?: ReactNode;
-  showFooterOnMobile?: boolean;
-  showViewToggle?: boolean;
-  rootSx?: SxProps<Theme>;
-  contentSx?: SxProps<Theme>;
-  footerSx?: SxProps<Theme>;
-  listViewAriaLabel?: string;
-  cloudViewAriaLabel?: string;
-  enableStaggeredReveal?: boolean;
-  staggerRevealKey?: string | number;
+export function VirtualizedPanelList<TItem>({
+  items,
+  renderItem,
+  itemKey,
+  estimateItemHeight = 108,
+  overscan = VIRTUALIZED_LIST_DEFAULT_OVERSCAN,
+  virtualizationEnabled = true,
+  sx,
+  contentSx,
+}: VirtualizedPanelListProps<TItem>) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const safeEstimateHeight = Math.max(56, estimateItemHeight);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const measure = () => {
+      setViewportHeight(container.clientHeight);
+    };
+
+    measure();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => {
+        window.removeEventListener("resize", measure);
+      };
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+    if (scrollTop <= container.scrollHeight - container.clientHeight) {
+      return;
+    }
+    setScrollTop(Math.max(0, container.scrollHeight - container.clientHeight));
+  }, [items.length, scrollTop]);
+
+  const visibleRange = useMemo(() => {
+    if (!virtualizationEnabled || items.length === 0) {
+      return {
+        startIndex: 0,
+        endIndexExclusive: items.length,
+      };
+    }
+
+    const computedStart = Math.floor(scrollTop / safeEstimateHeight) - overscan;
+    const startIndex = clampVirtualizedIndex(computedStart, 0, Math.max(0, items.length - 1));
+    const estimatedVisibleCount = Math.ceil(
+      (viewportHeight || safeEstimateHeight) / safeEstimateHeight,
+    );
+    const computedEnd = startIndex + estimatedVisibleCount + overscan * 2;
+    const endIndexExclusive = clampVirtualizedIndex(computedEnd, startIndex + 1, items.length);
+
+    return {
+      startIndex,
+      endIndexExclusive,
+    };
+  }, [
+    items.length,
+    overscan,
+    safeEstimateHeight,
+    scrollTop,
+    viewportHeight,
+    virtualizationEnabled,
+  ]);
+
+  const leadingSpacerHeight = virtualizationEnabled
+    ? visibleRange.startIndex * safeEstimateHeight
+    : 0;
+  const trailingSpacerHeight = virtualizationEnabled
+    ? Math.max(0, (items.length - visibleRange.endIndexExclusive) * safeEstimateHeight)
+    : 0;
+  const visibleItems = virtualizationEnabled
+    ? items.slice(visibleRange.startIndex, visibleRange.endIndexExclusive)
+    : items;
+
+  return (
+    <Box
+      ref={containerRef}
+      onScroll={(event) => {
+        if (!virtualizationEnabled) {
+          return;
+        }
+        setScrollTop(event.currentTarget.scrollTop);
+      }}
+      sx={mergeSx(
+        {
+          minHeight: 0,
+          height: "100%",
+          overflowY: "auto",
+          overflowX: "hidden",
+          overscrollBehavior: "contain",
+        },
+        sx,
+      )}
+    >
+      <Box sx={contentSx}>
+        {virtualizationEnabled ? <Box sx={{ height: leadingSpacerHeight }} aria-hidden /> : null}
+        {visibleItems.map((item, index) => {
+          const actualIndex = virtualizationEnabled ? visibleRange.startIndex + index : index;
+          const key = itemKey ? itemKey(item, actualIndex) : `virtualized-item-${actualIndex}`;
+          return (
+            <Box key={key} data-grid-cloud-stagger-leaf="true">
+              {renderItem(item, actualIndex)}
+            </Box>
+          );
+        })}
+        {virtualizationEnabled ? <Box sx={{ height: trailingSpacerHeight }} aria-hidden /> : null}
+      </Box>
+    </Box>
+  );
 }
-
-const mergeSx = (base: SxProps<Theme>, override?: SxProps<Theme>): SxProps<Theme> =>
-  (override ? [base, override] : base) as SxProps<Theme>;
 
 const gridCloudStackedRevealKeyframes = keyframes`
   0% {
@@ -44,23 +163,6 @@ const gridCloudStackedRevealKeyframes = keyframes`
     filter: blur(0);
   }
 `;
-
-const STAGGER_REVEAL_BASE_DELAY_MS = 130;
-const STAGGER_REVEAL_STEP_MS = 105;
-const STAGGER_REVEAL_MAX_INDEX = 16;
-const STAGGER_REVEAL_SFX_PATH = "/audio/click_004.ogg";
-const STAGGER_REVEAL_SFX_VOLUME = 0.22;
-const STAGGER_REVEAL_SFX_POOL_SIZE = 4;
-
-const buildStaggerNthRules = (selector: string) => {
-  const rules: Record<string, Record<string, string>> = {};
-  for (let index = 1; index <= STAGGER_REVEAL_MAX_INDEX; index += 1) {
-    rules[`& ${selector}:nth-of-type(${index})`] = {
-      animationDelay: `${STAGGER_REVEAL_BASE_DELAY_MS + STAGGER_REVEAL_STEP_MS * (index - 1)}ms`,
-    };
-  }
-  return rules;
-};
 
 export default function GridCloudNavigationSlide({
   viewMode,
@@ -87,15 +189,15 @@ export default function GridCloudNavigationSlide({
   const staggerTargetRef = useRef<HTMLDivElement | null>(null);
   const staggerRevealTimeoutsRef = useRef<number[]>([]);
   const staggerRevealObserverTimeoutRef = useRef<number | null>(null);
-  const staggerRevealSfxA = useAudio(STAGGER_REVEAL_SFX_PATH);
-  const staggerRevealSfxB = useAudio(STAGGER_REVEAL_SFX_PATH);
-  const staggerRevealSfxC = useAudio(STAGGER_REVEAL_SFX_PATH);
-  const staggerRevealSfxD = useAudio(STAGGER_REVEAL_SFX_PATH);
+  const staggerRevealSfxA = useAudio(GRID_CLOUD_STAGGER_REVEAL.SFX_PATH);
+  const staggerRevealSfxB = useAudio(GRID_CLOUD_STAGGER_REVEAL.SFX_PATH);
+  const staggerRevealSfxC = useAudio(GRID_CLOUD_STAGGER_REVEAL.SFX_PATH);
+  const staggerRevealSfxD = useAudio(GRID_CLOUD_STAGGER_REVEAL.SFX_PATH);
   const staggerRevealSfxPool = useMemo(
     () =>
       [staggerRevealSfxA, staggerRevealSfxB, staggerRevealSfxC, staggerRevealSfxD].slice(
         0,
-        STAGGER_REVEAL_SFX_POOL_SIZE,
+        GRID_CLOUD_STAGGER_REVEAL.SFX_POOL_SIZE,
       ),
     [staggerRevealSfxA, staggerRevealSfxB, staggerRevealSfxC, staggerRevealSfxD],
   );
@@ -141,10 +243,11 @@ export default function GridCloudNavigationSlide({
     }
 
     for (let index = 0; index < revealCount; index += 1) {
-      const delay = STAGGER_REVEAL_BASE_DELAY_MS + index * STAGGER_REVEAL_STEP_MS;
+      const delay =
+        GRID_CLOUD_STAGGER_REVEAL.BASE_DELAY_MS + index * GRID_CLOUD_STAGGER_REVEAL.STEP_MS;
       const timeoutId = window.setTimeout(() => {
         const sfxRef = staggerRevealSfxPool[index % staggerRevealSfxPool.length];
-        rewindAndPlayAudio(sfxRef, { volume: STAGGER_REVEAL_SFX_VOLUME });
+        rewindAndPlayAudio(sfxRef, { volume: GRID_CLOUD_STAGGER_REVEAL.SFX_VOLUME });
       }, delay);
       staggerRevealTimeoutsRef.current.push(timeoutId);
     }
@@ -221,17 +324,17 @@ export default function GridCloudNavigationSlide({
     ? {
         "& > *": {
           opacity: 0,
-          animation: `${gridCloudStackedRevealKeyframes} 980ms cubic-bezier(0.22, 1, 0.36, 1) both`,
+          animation: `${gridCloudStackedRevealKeyframes} ${GRID_CLOUD_STAGGER_REVEAL.DURATION_MS}ms ${GRID_CLOUD_STAGGER_REVEAL.EASING} both`,
         },
         "& .MuiAccordion-root, & .MuiListItem-root, & .MuiChip-root, & .MuiPaper-root, & .MuiCard-root":
           {
             opacity: 0,
-            animation: `${gridCloudStackedRevealKeyframes} 980ms cubic-bezier(0.22, 1, 0.36, 1) both`,
+            animation: `${gridCloudStackedRevealKeyframes} ${GRID_CLOUD_STAGGER_REVEAL.DURATION_MS}ms ${GRID_CLOUD_STAGGER_REVEAL.EASING} both`,
           },
         "& [data-grid-cloud-stagger-leaf='true']": {
           opacity: 0,
-          animation: `${gridCloudStackedRevealKeyframes} 980ms cubic-bezier(0.22, 1, 0.36, 1) both`,
-          animationDelay: `calc(${STAGGER_REVEAL_BASE_DELAY_MS}ms + var(--grid-cloud-leaf-index, 0) * ${STAGGER_REVEAL_STEP_MS}ms)`,
+          animation: `${gridCloudStackedRevealKeyframes} ${GRID_CLOUD_STAGGER_REVEAL.DURATION_MS}ms ${GRID_CLOUD_STAGGER_REVEAL.EASING} both`,
+          animationDelay: `calc(${GRID_CLOUD_STAGGER_REVEAL.BASE_DELAY_MS}ms + var(--grid-cloud-leaf-index, 0) * ${GRID_CLOUD_STAGGER_REVEAL.STEP_MS}ms)`,
         },
         ...buildStaggerNthRules("> *"),
         ...buildStaggerNthRules(".MuiAccordion-root"),
@@ -276,6 +379,8 @@ export default function GridCloudNavigationSlide({
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
+              contentVisibility: { xs: "auto", md: "visible" },
+              containIntrinsicSize: { xs: "680px", md: "auto" },
             },
             staggerTargetSx,
           ]}
@@ -341,3 +446,8 @@ export default function GridCloudNavigationSlide({
     </Box>
   );
 }
+
+export type {
+  GridCloudNavigationSlideProps,
+  VirtualizedPanelListProps,
+} from "@/types/components/shared/gridCloudNavigationSlide";

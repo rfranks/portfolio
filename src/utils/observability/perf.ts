@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/observability/logger";
+import type { LongTaskSample } from "@/types/observability/perf";
 
 const perfLogger = createLogger("perf");
 
@@ -40,12 +41,6 @@ export function markEnd(markName: string): number | null {
     return null;
   }
 }
-
-export type LongTaskSample = {
-  name: string;
-  duration: number;
-  startTime: number;
-};
 
 export function observeLongTasks(
   onLongTask: (sample: LongTaskSample) => void,

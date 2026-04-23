@@ -1,6 +1,7 @@
-import { competencies, coreCompetencies, navigation, projects } from "@/consts/resumeData";
+import { competencies, coreCompetencies, projects } from "@/consts/resumeData";
 import type { CommandPaletteAction } from "@/types/components/portfolio";
 import { getPresentationProjectDeepLinkIndex } from "@/components/portfolio/projectPageData";
+import { getAppCapabilityRegistry } from "@/components/portfolio/appCapabilityRegistry";
 
 const normalizeText = (value: string) => value.trim().toLowerCase();
 
@@ -17,37 +18,40 @@ const dedupeActions = (actions: CommandPaletteAction[]) => {
 };
 
 const buildAppActions = (): CommandPaletteAction[] =>
-  navigation.drawerItems
-    .filter((item) => item.href?.trim() && item.href.trim().startsWith("/") && item.href !== "/")
+  getAppCapabilityRegistry()
+    .filter((item) => item.kind === "app" && item.href !== "/")
     .map((item) => ({
-      id: `quick-open-app-${item.href.trim()}`,
+      id: `quick-open-app-${item.href}`,
       label: `Open App: ${item.label}`,
-      subtitle: item.href.trim(),
+      subtitle: item.href,
       group: "Apps",
-      href: item.href.trim(),
-      keywords: ["app", "open", item.label, item.href.trim()],
+      href: item.href,
+      keywords: ["app", "open", item.label, item.href, ...item.features],
     }));
 
 const buildProjectActions = (): CommandPaletteAction[] =>
-  projects
-    .filter((project) => typeof project.href === "string" && project.href.trim().startsWith("/"))
-    .map((project) => {
-      const href = project.href.trim();
-      const projectTitle = project.name.trim() || href.replace(/^\/+/, "");
+  getAppCapabilityRegistry()
+    .filter((item) => item.kind === "project")
+    .map((item) => {
+      const project = projects.find((entry) => entry.href?.trim() === item.href);
+      const projectTitle = item.label;
+      const projectSubtitle =
+        project?.shortText || project?.showcaseSubtitle || project?.description || item.href;
       return {
-        id: `quick-open-project-${href}`,
+        id: `quick-open-project-${item.href}`,
         label: `Open Project: ${projectTitle}`,
-        subtitle: project.shortText || project.showcaseSubtitle || href,
+        subtitle: projectSubtitle,
         group: "Projects",
-        href,
+        href: item.href,
         keywords: [
           "project",
           "open",
           projectTitle,
-          project.name,
-          project.description,
-          project.type ?? "",
-          href,
+          project?.name ?? "",
+          project?.description ?? "",
+          project?.type ?? "",
+          item.href,
+          ...item.features,
         ],
       } satisfies CommandPaletteAction;
     });

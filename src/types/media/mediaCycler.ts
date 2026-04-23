@@ -1,7 +1,7 @@
 import type * as React from "react";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { TypographyProps } from "@mui/material/Typography";
-import type { DiagramProps } from "../visualization";
+import type { DiagramProps } from "@/components/shared/visualization";
 
 export type MediaCyclerMediaType =
   | "image"
@@ -17,7 +17,6 @@ export type MediaCyclerMediaType =
 
 type MediaCyclerDiscriminator<TType extends MediaCyclerMediaType> = {
   mediaType: TType;
-  type?: TType;
 };
 
 type MediaCyclerCommonItem = {
@@ -111,21 +110,10 @@ export type MediaCyclerCustomItem = MediaCyclerCommonItem &
     mediaUrl?: string;
   };
 
-export type MediaCyclerLegacyItem = MediaCyclerCommonItem & {
-  type: MediaCyclerMediaType;
-  mediaType?: never;
-  mediaUrl?: string;
-};
-
 export type MediaCyclerItem =
   | MediaCyclerImageItem
   | MediaCyclerVideoItem
   | MediaCyclerPdfItem
   | MediaCyclerDiagramItem
   | MediaCyclerMarkdownItem
-  | MediaCyclerCustomItem
-  | MediaCyclerLegacyItem;
-
-export function resolveMediaCyclerMediaType(item: MediaCyclerItem): MediaCyclerMediaType {
-  return item.mediaType ?? item.type ?? "markdown";
-}
+  | MediaCyclerCustomItem;

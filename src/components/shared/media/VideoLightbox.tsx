@@ -4,28 +4,8 @@ import * as React from "react";
 import { OpenInFull, Close } from "@mui/icons-material";
 import { alpha } from "@mui/material/styles";
 import { Box, Dialog, IconButton, Typography } from "@mui/material";
-import type { SxProps, Theme } from "@mui/material/styles";
-
-type VideoLightboxProps = Omit<React.ComponentPropsWithoutRef<"video">, "children" | "src"> & {
-  src: string;
-  title: string;
-  caption?: string;
-  triggerSx?: SxProps<Theme>;
-  previewVideoSx?: SxProps<Theme>;
-  previewVideoClassName?: string;
-  lightboxVideoSx?: SxProps<Theme>;
-  stopEventPropagation?: boolean;
-  openAriaLabel?: string;
-  showExpandButton?: boolean;
-  expandButtonSx?: SxProps<Theme>;
-};
-
-function toSxArray(value?: SxProps<Theme>) {
-  if (value == null) {
-    return [];
-  }
-  return Array.isArray(value) ? value : [value];
-}
+import type { VideoLightboxProps } from "@/types/components/shared/media";
+import { toSxArray } from "@/utils/sx/toSxArray";
 
 const VideoLightbox = React.forwardRef<HTMLVideoElement, VideoLightboxProps>(
   function VideoLightbox(props, forwardedRef) {
@@ -41,6 +21,7 @@ const VideoLightbox = React.forwardRef<HTMLVideoElement, VideoLightboxProps>(
       openAriaLabel,
       showExpandButton = true,
       expandButtonSx,
+      onOpen,
       controls = true,
       autoPlay,
       playsInline,
@@ -81,10 +62,12 @@ const VideoLightbox = React.forwardRef<HTMLVideoElement, VideoLightboxProps>(
           event.preventDefault();
           event.stopPropagation();
         }
+        const trigger = event.detail === 0 ? "keyboard" : "pointer";
+        onOpen?.(trigger, "video-lightbox-open");
         previewVideoRef.current?.pause();
         setOpen(true);
       },
-      [stopEventPropagation],
+      [onOpen, stopEventPropagation],
     );
 
     const lightboxLabel = title.trim() || "video";

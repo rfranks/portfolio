@@ -15,16 +15,18 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -p tsconfig.typecheck.json --noEmit",
+    "typecheck:health": "tsx scripts/run-typecheck-with-health.mts",
     "typecheck:strict": "tsc -p tsconfig.strict.json --noEmit",
     "quality": "npm run check:repo-hygiene && npm run check:file-budgets && npm run validate:resume:strict && npm run format:check && npm run typecheck && npm run lint && npm run test",
     "precommit": "lint-staged",
     "prepush": "tsx scripts/run-prepush-quality.mts",
     "prepr": "npm run quality",
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "NEXT_TURBOPACK=1 next dev --turbopack",
+    "build": "NEXT_TURBOPACK=1 next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest"
+    "test": "tsx scripts/run-jest-with-health.mts --suite unit",
+    "test:a11y": "tsx scripts/run-jest-with-health.mts --suite a11y"
   },
   "lint-staged": {
     "{src,scripts}/**/*.{js,jsx,ts,tsx,mjs,cjs,mts}": [
@@ -81,6 +83,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/jest": "^29.5.12",
+    "@types/jest-axe": "^3.5.9",
     "@types/lodash": "^4.17.20",
     "@types/matter-js": "^0.20.0",
     "@types/node": "^20",
@@ -91,6 +94,7 @@
     "eslint-config-next": "15.5.15",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
+    "jest-axe": "^10.0.0",
     "jest-environment-jsdom": "^30.3.0",
     "lint-staged": "^16.1.6",
     "prettier": "^3.6.2",

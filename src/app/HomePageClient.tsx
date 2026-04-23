@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
-import { ThemeProvider, keyframes } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
@@ -27,13 +27,19 @@ import Education from "@/components/portfolio/panels/Education";
 import Recognition from "@/components/portfolio/panels/Recognition";
 import ContactCTA from "@/components/portfolio/panels/ContactCTA";
 import { ImageLightbox } from "@/components/shared";
+import SectionSurfaceTransition from "@/app/home/SectionSurfaceTransition";
 import HomeSectionPager, {
   type HomeSectionPagerItem,
 } from "@/components/portfolio/layout/HomeSectionPager";
+import { renderNavigationIcon } from "@/components/portfolio/layout/navigationIcons";
 import {
-  renderNavigationIcon,
-  type NavigationIconType,
-} from "@/components/portfolio/layout/navigationIcons";
+  LAST_HOME_HASH_STORAGE_KEY,
+  SECTION_SWIPE_THRESHOLD_PX,
+  SECTION_TRANSITION_MS,
+  resolveDrawerItems,
+  resolveHomeSections,
+  type DrawerNavigationItem,
+} from "@/app/homePageClient.config";
 import { GLOBAL_COLOR_MODE_STORAGE_KEY, LEGACY_COLOR_MODE_STORAGE_KEYS } from "@/consts/colorMode";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
@@ -43,61 +49,6 @@ import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import getFabricTheme from "@/themes/fabricTheme";
 import type { CommandPaletteAction } from "@/types/components/portfolio";
-
-const SECTION_TRANSITION_MS = 320;
-const sectionSlideInFromRight = keyframes`
-  0% { opacity: 0.66; transform: translateX(14%); }
-  100% { opacity: 1; transform: translateX(0); }
-`;
-const sectionSlideOutToLeft = keyframes`
-  0% { opacity: 1; transform: translateX(0); }
-  100% { opacity: 0.4; transform: translateX(-14%); }
-`;
-const sectionSlideInFromLeft = keyframes`
-  0% { opacity: 0.66; transform: translateX(-14%); }
-  100% { opacity: 1; transform: translateX(0); }
-`;
-const sectionSlideOutToRight = keyframes`
-  0% { opacity: 1; transform: translateX(0); }
-  100% { opacity: 0.4; transform: translateX(14%); }
-`;
-const SECTION_SWIPE_THRESHOLD_PX = 72;
-const DEFAULT_HOME_SECTIONS: HomeSectionPagerItem[] = [
-  { id: "hero", label: "Summary", icon: "home", iconType: "material" },
-  { id: "education", label: "Education", icon: "school", iconType: "material" },
-  { id: "experience", label: "Experience", icon: "work", iconType: "material" },
-  {
-    id: "competencies",
-    label: "Core Competencies",
-    icon: "build",
-    iconType: "material",
-  },
-  { id: "projects", label: "Projects", icon: "autoStories", iconType: "material" },
-  {
-    id: "recognition",
-    label: "Recognition",
-    icon: "emojiEvents",
-    iconType: "material",
-  },
-  { id: "hobbies", label: "Hobbies", icon: "interests", iconType: "material" },
-  { id: "contact", label: "Contact", icon: "alternateEmail", iconType: "material" },
-];
-
-const DEFAULT_HOME_DRAWER_ITEM = {
-  label: "Home",
-  href: "/",
-  icon: "home",
-  iconType: "material",
-} as const;
-const LAST_HOME_HASH_STORAGE_KEY = "portfolio:last-home-hash";
-type DrawerNavigationItem = {
-  label: string;
-  href: string;
-  icon?: string;
-  iconType?: NavigationIconType;
-};
-const normalizeNavigationIconType = (iconType: unknown): NavigationIconType =>
-  iconType === "emoji" ? "emoji" : "material";
 
 export default function HomePageClient() {
   const { navigation, summary } = useResumeData();
@@ -109,59 +60,10 @@ export default function HomePageClient() {
   const [open, setOpen] = useState(false);
   const drawerWidth = 240;
   const tocSections = useMemo<HomeSectionPagerItem[]>(() => {
-    const configuredSections = navigation.homeSections;
-    if (!Array.isArray(configuredSections) || configuredSections.length === 0) {
-      return DEFAULT_HOME_SECTIONS;
-    }
-
-    const normalizedSections = configuredSections
-      .filter(
-        (section): section is (typeof configuredSections)[number] =>
-          Boolean(section?.id?.trim()) && Boolean(section?.label?.trim()),
-      )
-      .map((section) => ({
-        id: section.id.trim(),
-        label: section.label.trim(),
-        icon: section.icon?.trim(),
-        iconType: normalizeNavigationIconType(section.iconType),
-      }));
-
-    return normalizedSections.length > 0 ? normalizedSections : DEFAULT_HOME_SECTIONS;
+    return resolveHomeSections(navigation.homeSections);
   }, [navigation.homeSections]);
   const drawerItems = useMemo<DrawerNavigationItem[]>(() => {
-    const configuredDrawerItems = Array.isArray(navigation.drawerItems)
-      ? navigation.drawerItems
-      : [];
-    const normalizedDrawerItems = configuredDrawerItems
-      .filter(
-        (item): item is (typeof configuredDrawerItems)[number] =>
-          Boolean(item?.label?.trim()) && Boolean(item?.href?.trim()),
-      )
-      .map((item) => ({
-        ...item,
-        label: item.label.trim(),
-        href: item.href.trim(),
-        icon: item.icon?.trim() || "home",
-        iconType: normalizeNavigationIconType(item.iconType),
-      }));
-    const isHomeDrawerItem = (item: { href: string; label: string }) =>
-      item.href === "/" || item.label.toLowerCase() === "home";
-    const configuredHomeItem = normalizedDrawerItems.find(isHomeDrawerItem);
-    const homeDrawerItem = configuredHomeItem ?? DEFAULT_HOME_DRAWER_ITEM;
-    const remainingDrawerItems = normalizedDrawerItems.filter(
-      (item) => item !== configuredHomeItem && !isHomeDrawerItem(item),
-    );
-
-    return [
-      {
-        ...homeDrawerItem,
-        label: homeDrawerItem.label || "Home",
-        href: "/",
-        icon: homeDrawerItem.icon || "home",
-        iconType: normalizeNavigationIconType(homeDrawerItem.iconType),
-      },
-      ...remainingDrawerItems,
-    ];
+    return resolveDrawerItems(navigation.drawerItems);
   }, [navigation.drawerItems]);
   const [activeSectionId, setActiveSectionId] = useState<string>(tocSections[0]?.id ?? "hero");
   const [displaySectionId, setDisplaySectionId] = useState<string>(tocSections[0]?.id ?? "hero");
@@ -284,9 +186,12 @@ export default function HomePageClient() {
   const homeCommandPaletteActions = useMemo<CommandPaletteAction[]>(() => {
     return tocSections.map((section) => ({
       id: `home-section-${section.id}`,
-      label: `Switch Section: ${section.label}`,
-      subtitle: "Jump to this portfolio section",
-      group: "Home Sections",
+      label: `Jump Section: ${section.label}`,
+      subtitle: "Jump to portfolio section",
+      previewTitle: `${section.label} • Portfolio Section`,
+      previewBody: `Jump to ${section.label} from anywhere in the portfolio home page.`,
+      previewMeta: `/#${section.id}`,
+      group: "Sections",
       keywords: ["home", "section", section.id, section.label, "jump", "switch"],
       onSelect: () => navigateToSection(section.id),
     }));
@@ -807,71 +712,18 @@ export default function HomePageClient() {
                   gap: 0,
                 }}
               >
-                <Box
-                  component="section"
-                  id={activeSection?.id}
-                  sx={{
-                    minHeight: 0,
-                    height: "100%",
-                    flex: "1 1 auto",
-                    overflow: "hidden",
-                    pr: { xs: 0, md: 0.5 },
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Box
-                    onTouchStart={handleSectionSwipeStart}
-                    onTouchMove={handleSectionSwipeMove}
-                    onTouchEnd={handleSectionSwipeEnd}
-                    onTouchCancel={handleSectionSwipeCancel}
-                    sx={{
-                      minHeight: 0,
-                      height: "100%",
-                      flex: "1 1 auto",
-                      overflow: "hidden",
-                      position: "relative",
-                      "& > .home-section-surface": {
-                        display: "flex",
-                        flexDirection: "column",
-                        flex: "1 1 auto",
-                        minHeight: 0,
-                        height: "100%",
-                        overflowY: "auto",
-                        marginBottom: "0 !important",
-                      },
-                    }}
-                  >
-                    {outgoingSectionId ? (
-                      <Box
-                        className="home-section-surface"
-                        sx={{
-                          position: "absolute",
-                          inset: 0,
-                          zIndex: 1,
-                          pointerEvents: "none",
-                          animation: `${sectionDirection > 0 ? sectionSlideOutToLeft : sectionSlideOutToRight} ${SECTION_TRANSITION_MS}ms cubic-bezier(.22,.82,.28,.98) both`,
-                        }}
-                      >
-                        {renderSectionContent(outgoingSectionId)}
-                      </Box>
-                    ) : null}
-                    <Box
-                      className="home-section-surface"
-                      key={`incoming-${displaySectionId}-${sectionDirection}`}
-                      sx={{
-                        position: "absolute",
-                        inset: 0,
-                        zIndex: 2,
-                        animation: isSectionTransitioning
-                          ? `${sectionDirection > 0 ? sectionSlideInFromRight : sectionSlideInFromLeft} ${SECTION_TRANSITION_MS}ms cubic-bezier(.22,.82,.28,.98) both`
-                          : "none",
-                      }}
-                    >
-                      {renderSectionContent(displaySectionId)}
-                    </Box>
-                  </Box>
-                </Box>
+                <SectionSurfaceTransition
+                  sectionId={activeSection?.id}
+                  displaySectionId={displaySectionId}
+                  outgoingSectionId={outgoingSectionId}
+                  sectionDirection={sectionDirection}
+                  isSectionTransitioning={isSectionTransitioning}
+                  onTouchStart={handleSectionSwipeStart}
+                  onTouchMove={handleSectionSwipeMove}
+                  onTouchEnd={handleSectionSwipeEnd}
+                  onTouchCancel={handleSectionSwipeCancel}
+                  renderSectionContent={renderSectionContent}
+                />
               </Box>
             </Box>
           </Container>
