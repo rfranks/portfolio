@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-23T20:52:31.758Z",
+  "generatedAt": "2026-04-23T23:31:36.010Z",
   "overallStatus": "pass",
   "checks": {
     "fileBudgets": "pass",
@@ -10,12 +10,12 @@
     "fileBudgets": {
       "key": "fileBudgets",
       "status": "pass",
-      "generatedAt": "2026-04-23T20:51:36.623Z",
+      "generatedAt": "2026-04-23T23:30:42.558Z",
       "summary": "File budget check passed.",
       "details": {
         "totals": {
-          "scannedFileCount": 561,
-          "codeFileCount": 547,
+          "scannedFileCount": 579,
+          "codeFileCount": 565,
           "violationCount": 0
         },
         "budget": {
@@ -41,7 +41,7 @@
     "schemaValidation": {
       "key": "schemaValidation",
       "status": "pass",
-      "generatedAt": "2026-04-23T20:51:37.404Z",
+      "generatedAt": "2026-04-23T23:30:43.277Z",
       "summary": "resumeData validation passed with no warnings.",
       "details": {
         "strictAssets": true,
@@ -162,7 +162,7 @@
     "testRunner": {
       "key": "testRunner",
       "status": "pass",
-      "generatedAt": "2026-04-23T20:52:31.758Z",
+      "generatedAt": "2026-04-23T23:31:36.010Z",
       "summary": "unit test runner passed.",
       "details": {
         "suite": "unit",
