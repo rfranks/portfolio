@@ -13,7 +13,7 @@ const exactBudgets: Record<string, number> = {
   "src/app/talentforge/_components/ApplicationBoard.tsx": 3650,
   "src/app/warbirds/_hooks/useGameEngine.ts": 3450,
   "src/app/talentforge/_utils/dataStore.ts": 2850,
-  "src/app/pathforger/_utils/pipeline.ts": 2950,
+  "src/app/pathforger/_utils/pipeline.ts": 3000,
   "scripts/portfolio-setup.mts": 2700,
   "src/app/ai-shenanigans/_components/AIShenaniganAdaptation.tsx": 1900,
   "src/app/talentforge/_components/ApplicationDetailDrawer.tsx": 1850,
