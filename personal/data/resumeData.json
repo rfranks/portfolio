@@ -1598,7 +1598,8 @@
         "technologies": "/audio/switch_001.ogg",
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
-      }
+      },
+      "presentationOrigin": "work"
     },
     {
       "name": "Patient Assignment List Project",
@@ -1760,7 +1761,8 @@
         "technologies": "/audio/switch_001.ogg",
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
-      }
+      },
+      "presentationOrigin": "work"
     },
     {
       "name": "AI-Driven Clinical Copilot",
@@ -2012,7 +2014,8 @@
         "technologies": "/audio/switch_001.ogg",
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
-      }
+      },
+      "presentationOrigin": "work"
     },
     {
       "name": "AI Patient List Podcasts",
@@ -2166,7 +2169,8 @@
         "technologies": "/audio/switch_001.ogg",
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
-      }
+      },
+      "presentationOrigin": "work"
     },
     {
       "name": "Petly",
