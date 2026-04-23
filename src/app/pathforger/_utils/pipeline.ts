@@ -992,7 +992,7 @@ function buildProtagonistNameUserPrompt(
     "",
     "Output rules:",
     "- Return only protagonistNames.",
-    "- Provide 6 to 12 distinct candidate names.",
+    "- Provide 1 to 12 distinct candidate names.",
     "- Name should fit genre + tone + premise + age rating.",
     "- Avoid trademarked character names and obvious parody names.",
     "- Prefer pronounceable, human-friendly first + last names.",
@@ -1655,7 +1655,12 @@ async function requestTextStage<TSchema extends z.ZodTypeAny>(params: {
   }
 
   const json = parseJsonResponse(text);
-  return params.schema.parse(json);
+  const parsed = params.schema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("PathForger generated an incomplete structured response. Please try again.");
+  }
+
+  return parsed.data;
 }
 
 type ExtractedImage = {

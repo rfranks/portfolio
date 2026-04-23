@@ -144,7 +144,7 @@ export const runCoverFromPitchStageInputSchema = z.object({
 });
 
 export const protagonistNameResultSchema = z.object({
-  protagonistNames: z.array(z.string().min(1).max(80)).min(6).max(12),
+  protagonistNames: z.array(z.string().min(1).max(80)).min(1).max(12),
 });
 
 export const visualStyleResultSchema = z.object({
