@@ -241,6 +241,7 @@ export default function HomeSectionPager({
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? "home-section-selector-menu" : undefined}
             sx={{
+              display: { xs: "none", sm: "none", md: "inline-flex" },
               p: 0.45,
               color: "inherit",
               borderRadius: "999px",

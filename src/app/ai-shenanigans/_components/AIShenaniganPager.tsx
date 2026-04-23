@@ -166,6 +166,7 @@ export default function AIShenaniganPager({
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? "shenanigan-selector-menu" : undefined}
+            sx={{ display: { xs: "none", sm: "none", md: "inline-flex" } }}
           >
             <MoreVert fontSize="small" />
           </IconButton>

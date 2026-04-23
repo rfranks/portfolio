@@ -1500,12 +1500,17 @@ export default function SubsectionPager({
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? menuId : undefined}
-            sx={getPagerIconButtonSx(
-              selectedValueAsTitle,
-              true,
-              borderlessIconButtons,
-              flatIconButtons,
-            )}
+            sx={[
+              getPagerIconButtonSx(
+                selectedValueAsTitle,
+                true,
+                borderlessIconButtons,
+                flatIconButtons,
+              ),
+              {
+                display: { xs: "none", sm: "none", md: "inline-flex" },
+              },
+            ]}
           >
             <MoreVert fontSize="small" />
           </IconButton>
