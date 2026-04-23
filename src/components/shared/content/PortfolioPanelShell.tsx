@@ -23,9 +23,11 @@ export default function PortfolioPanelShell({
         {
           minHeight: 0,
           height: "100%",
+          maxHeight: "100%",
+          flex: "1 1 0%",
           display: "flex",
           flexDirection: "column",
-          overflow: "visible",
+          overflow: "hidden",
         },
         ...toSxArray(panelSx),
       ]}
@@ -34,8 +36,9 @@ export default function PortfolioPanelShell({
         rootSx={{
           minHeight: 0,
           height: "100%",
-          flex: "1 1 auto",
-          overflow: "visible",
+          maxHeight: "100%",
+          flex: "1 1 0%",
+          overflow: "hidden",
         }}
         {...frameProps}
       >

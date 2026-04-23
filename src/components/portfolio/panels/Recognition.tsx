@@ -101,8 +101,8 @@ function renderSnippetContent(snippet: RecognitionSnippetEntry) {
             sx={{
               alignSelf: "flex-start",
               "& .MuiTypography-root": {
-                fontSize: { xs: "1.08rem", md: "1.22rem" },
-                lineHeight: { xs: 1.65, md: 1.72 },
+                fontSize: { xs: "0.9rem", sm: "1rem", md: "1.22rem" },
+                lineHeight: { xs: 1.5, sm: 1.58, md: 1.72 },
               },
             }}
           />
@@ -380,6 +380,8 @@ export default function Recognition({ topRail }: RecognitionProps) {
           display: "grid",
           gap: 2,
           pt: 0.5,
+          px: { xs: 1, sm: 1.25, md: 0 },
+          pb: { xs: 0.75, sm: 1, md: 0 },
           gridTemplateRows: {
             xs: "minmax(120px, 150px) minmax(0, 1fr)",
             md: "minmax(130px, 165px) minmax(0, 1fr)",

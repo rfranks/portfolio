@@ -20,7 +20,12 @@ export default function Education({ topRail }: EducationProps) {
   return (
     <PortfolioPanelShell
       topRail={topRail}
-      contentSx={{ overflowY: "auto", pt: 0.5, pb: 0.5 }}
+      contentSx={{
+        overflowY: "auto",
+        pt: 0.5,
+        px: { xs: 1, sm: 1.25, md: 0 },
+        pb: { xs: 0.75, sm: 1, md: 0.5 },
+      }}
       useNegativeTopRailMargins
       panelSx={{ overflow: "hidden" }}
     >

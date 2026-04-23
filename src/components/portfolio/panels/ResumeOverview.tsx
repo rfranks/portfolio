@@ -25,15 +25,25 @@ export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
 
   return (
     <Hero
-      className="mb-6 transition-transform duration-300 md:mb-8 hover:-translate-y-0.5"
+      className="transition-transform duration-300 md:hover:-translate-y-0.5"
       sx={{
         p: 0,
+        mb: 0,
         minHeight: 0,
         height: "100%",
+        flex: "1 1 auto",
+        maxHeight: "100%",
         display: "flex",
         flexDirection: "column",
         overflowX: "hidden",
         overflowY: "hidden",
+        borderRadius: { xs: 0, sm: 0, md: "var(--fabric-radius-hero)" },
+        border: { xs: "none", sm: "none", md: "1px solid var(--fabric-surface-border)" },
+        boxShadow: { xs: "none", sm: "none", md: "var(--fabric-shadow-soft)" },
+        backdropFilter: { xs: "none", sm: "none", md: "blur(var(--fabric-blur-md))" },
+        "&::before": {
+          display: { xs: "none", sm: "none", md: "block" },
+        },
       }}
     >
       <PortfolioPanelShell
@@ -169,11 +179,22 @@ export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
             }}
           >
             <Box
-              className="mx-auto w-full max-w-[220px] overflow-hidden rounded-[28px] border border-white/10 bg-white/5 p-2 shadow-lg md:mx-0"
+              className="mx-auto w-full max-w-[220px] overflow-hidden md:mx-0"
               sx={{
                 width: { xs: "100%", md: 220 },
                 minWidth: { xs: 0, md: 220 },
                 flexShrink: 0,
+                borderRadius: { xs: 0, sm: 0, md: "28px" },
+                borderStyle: { xs: "none", sm: "none", md: "solid" },
+                borderWidth: { xs: 0, sm: 0, md: 1 },
+                borderColor: "rgba(255,255,255,0.1)",
+                backgroundColor: {
+                  xs: "transparent",
+                  sm: "transparent",
+                  md: "rgba(255,255,255,0.05)",
+                },
+                p: { xs: 0, sm: 0, md: 1 },
+                boxShadow: { xs: "none", sm: "none", md: "0 14px 26px rgba(2,6,23,0.22)" },
               }}
             >
               <ImageLightbox
@@ -188,7 +209,7 @@ export default function ResumeOverview({ topRail }: ResumeOverviewProps) {
                   alt={`${summary.name} headshot`}
                   width={480}
                   height={640}
-                  className="h-auto w-full rounded-[22px] object-cover"
+                  className="h-auto w-full rounded-none object-cover md:rounded-[22px]"
                 />
               </ImageLightbox>
             </Box>

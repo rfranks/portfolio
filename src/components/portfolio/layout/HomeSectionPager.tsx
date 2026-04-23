@@ -99,6 +99,28 @@ export default function HomeSectionPager({
   const nextItem = currentIndex < items.length - 1 ? items[currentIndex + 1] : null;
   const wrappedPreviousItem = previousItem ?? (hasMultipleItems ? items[items.length - 1] : null);
   const wrappedNextItem = nextItem ?? (hasMultipleItems ? items[0] : null);
+  const pagerIconButtonSx = {
+    p: 0.45,
+    mt: { xs: 0.2, sm: 0.25, md: 0.35 },
+    color: "inherit",
+    borderRadius: "999px",
+    border: "1px solid",
+    borderColor: "rgba(255,255,255,0.28)",
+    bgcolor: "rgba(255,255,255,0.02)",
+    transition: "background-color 160ms ease, border-color 160ms ease, transform 160ms ease",
+    "&:hover": {
+      bgcolor: "rgba(255,255,255,0.1)",
+      borderColor: "rgba(255,255,255,0.52)",
+    },
+    "&:focus-visible": {
+      bgcolor: "rgba(255,255,255,0.12)",
+      borderColor: "rgba(255,255,255,0.6)",
+    },
+    "&.Mui-disabled": {
+      borderColor: "rgba(255,255,255,0.16)",
+      color: "rgba(255,255,255,0.42)",
+    },
+  };
 
   return (
     <>
@@ -131,18 +153,7 @@ export default function HomeSectionPager({
                 onSelectSection(wrappedPreviousItem.id);
               }
             }}
-            sx={{
-              p: 0.45,
-              color: "inherit",
-              borderRadius: "999px",
-              transition: "background-color 160ms ease, transform 160ms ease",
-              "&:hover": {
-                bgcolor: (theme) => alpha(theme.palette.common.white, 0.1),
-              },
-              "&:focus-visible": {
-                bgcolor: (theme) => alpha(theme.palette.common.white, 0.12),
-              },
-            }}
+            sx={pagerIconButtonSx}
           >
             <ChevronLeft />
           </IconButton>
@@ -217,18 +228,7 @@ export default function HomeSectionPager({
                 onSelectSection(wrappedNextItem.id);
               }
             }}
-            sx={{
-              p: 0.45,
-              color: "inherit",
-              borderRadius: "999px",
-              transition: "background-color 160ms ease, transform 160ms ease",
-              "&:hover": {
-                bgcolor: (theme) => alpha(theme.palette.common.white, 0.1),
-              },
-              "&:focus-visible": {
-                bgcolor: (theme) => alpha(theme.palette.common.white, 0.12),
-              },
-            }}
+            sx={pagerIconButtonSx}
           >
             <ChevronRight />
           </IconButton>
@@ -241,17 +241,8 @@ export default function HomeSectionPager({
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? "home-section-selector-menu" : undefined}
             sx={{
+              ...pagerIconButtonSx,
               display: { xs: "none", sm: "none", md: "inline-flex" },
-              p: 0.45,
-              color: "inherit",
-              borderRadius: "999px",
-              transition: "background-color 160ms ease, transform 160ms ease",
-              "&:hover": {
-                bgcolor: (theme) => alpha(theme.palette.common.white, 0.1),
-              },
-              "&:focus-visible": {
-                bgcolor: (theme) => alpha(theme.palette.common.white, 0.12),
-              },
             }}
           >
             <MoreVert fontSize="small" />

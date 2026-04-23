@@ -230,6 +230,7 @@ type SubsectionPagerProps = {
   items: SubsectionPagerItem[];
   currentKey?: string;
   showOrdinal?: boolean;
+  showSelectedVisualOnSmallScreens?: boolean;
   selectedValueAsTitle?: boolean;
   selectedVisualSize?: number;
   selectedIconFontSize?: string;
@@ -1146,6 +1147,7 @@ export default function SubsectionPager({
   items,
   currentKey,
   showOrdinal = true,
+  showSelectedVisualOnSmallScreens = false,
   selectedValueAsTitle = false,
   selectedVisualSize = 24,
   selectedIconFontSize,
@@ -1225,6 +1227,11 @@ export default function SubsectionPager({
     sm: Math.max(30, Math.round(selectedVisualSize * 0.66)),
     md: selectedVisualSize,
   };
+  const selectedEmojiMaxFontSizeResponsive = {
+    xs: `${Math.max(16, Math.round(selectedVisualSizeResponsive.xs * 0.9))}px`,
+    sm: `${Math.max(18, Math.round(selectedVisualSizeResponsive.sm * 0.9))}px`,
+    md: `${Math.max(20, Math.round(selectedVisualSizeResponsive.md * 0.9))}px`,
+  };
   const selectedIconFrameStyleResolved = selectedIconFrameStyle ?? iconFrameStyle;
   const resolvedSelectedEmojiAnimation =
     selectedEmojiAnimation === "random" ? randomResolvedEmojiAnimation : selectedEmojiAnimation;
@@ -1267,6 +1274,9 @@ export default function SubsectionPager({
       src={selectedImageSrc}
       alt={selectedImageAlt}
       sx={{
+        display: showSelectedVisualOnSmallScreens
+          ? { xs: "block", sm: "block", md: "block" }
+          : { xs: "none", sm: "none", md: "block" },
         width: selectedVisualSizeResponsive,
         height: selectedVisualSizeResponsive,
         borderRadius: selectedIconFrameStyleResolved === "none" ? 0 : 1.5,
@@ -1296,6 +1306,9 @@ export default function SubsectionPager({
       className="subsection-pager-selected-visual"
       aria-hidden="true"
       sx={{
+        display: showSelectedVisualOnSmallScreens
+          ? { xs: "inline-flex", sm: "inline-flex", md: "inline-flex" }
+          : { xs: "none", sm: "none", md: "inline-flex" },
         width: selectedVisualSizeResponsive,
         height: selectedVisualSizeResponsive,
         borderRadius: selectedIconFrameStyleResolved === "none" ? 0 : 1.5,
@@ -1313,7 +1326,6 @@ export default function SubsectionPager({
             : selectedValueAsTitle
               ? alpha(theme.palette.common.white, 0.06)
               : theme.palette.background.paper,
-        display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
         color: selectedValueAsTitle ? "currentColor" : "text.secondary",
@@ -1327,9 +1339,9 @@ export default function SubsectionPager({
         },
         "& .MuiTypography-root": {
           fontSize: {
-            xs: "1.12rem",
-            sm: "1.35rem",
-            md: selectedEmojiFontSizeResolved,
+            xs: `min(${selectedEmojiFontSizeResolved}, ${selectedEmojiMaxFontSizeResponsive.xs})`,
+            sm: `min(${selectedEmojiFontSizeResolved}, ${selectedEmojiMaxFontSizeResponsive.sm})`,
+            md: `min(${selectedEmojiFontSizeResolved}, ${selectedEmojiMaxFontSizeResponsive.md})`,
           },
           lineHeight: 1,
           ...selectedEmojiAnimationTypographySx,

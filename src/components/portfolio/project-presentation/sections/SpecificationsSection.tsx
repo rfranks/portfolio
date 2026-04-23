@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -11,6 +11,8 @@ import ListItem from "@mui/material/ListItem";
 import Typography from "@mui/material/Typography";
 import { keyframes } from "@mui/material/styles";
 import { DemoSlide, MarkdownContent } from "@/components/shared";
+import { useAudio } from "@/hooks/audio/useAudio";
+import { rewindAndPlayAudio } from "@/utils/audio";
 
 type SpecificationsSectionProps = {
   specifications: Record<string, unknown>;
@@ -29,6 +31,10 @@ const specificationsStackedReveal = keyframes`
     filter: blur(0);
   }
 `;
+const SPECIFICATIONS_REVEAL_BASE_DELAY_MS = 120;
+const SPECIFICATIONS_REVEAL_STEP_MS = 110;
+const SPECIFICATIONS_REVEAL_SFX_PATH = "/audio/click_004.ogg";
+const SPECIFICATIONS_REVEAL_SFX_VOLUME = 0.16;
 
 const renderSpecification = (value: unknown): ReactNode => {
   if (Array.isArray(value)) {
@@ -61,12 +67,69 @@ export default function SpecificationsSection({
 }: SpecificationsSectionProps) {
   const [revealActive, setRevealActive] = useState(false);
   const specificationEntries = useMemo(() => Object.entries(specifications), [specifications]);
+  const revealTimeoutsRef = useRef<number[]>([]);
+  const specificationRevealSfxA = useAudio(SPECIFICATIONS_REVEAL_SFX_PATH);
+  const specificationRevealSfxB = useAudio(SPECIFICATIONS_REVEAL_SFX_PATH);
+  const specificationRevealSfxC = useAudio(SPECIFICATIONS_REVEAL_SFX_PATH);
+  const specificationRevealSfxD = useAudio(SPECIFICATIONS_REVEAL_SFX_PATH);
+  const specificationRevealSfxPool = useMemo(
+    () => [
+      specificationRevealSfxA,
+      specificationRevealSfxB,
+      specificationRevealSfxC,
+      specificationRevealSfxD,
+    ],
+    [
+      specificationRevealSfxA,
+      specificationRevealSfxB,
+      specificationRevealSfxC,
+      specificationRevealSfxD,
+    ],
+  );
+
+  const clearRevealTimeouts = () => {
+    if (revealTimeoutsRef.current.length === 0) {
+      return;
+    }
+    for (const timeoutId of revealTimeoutsRef.current) {
+      window.clearTimeout(timeoutId);
+    }
+    revealTimeoutsRef.current = [];
+  };
 
   useEffect(() => {
+    clearRevealTimeouts();
     setRevealActive(false);
     const frameId = window.requestAnimationFrame(() => setRevealActive(true));
-    return () => window.cancelAnimationFrame(frameId);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      clearRevealTimeouts();
+    };
   }, [specifications]);
+
+  useEffect(() => {
+    if (
+      !revealActive ||
+      specificationEntries.length === 0 ||
+      specificationRevealSfxPool.length === 0
+    ) {
+      return;
+    }
+
+    clearRevealTimeouts();
+    for (let index = 0; index < specificationEntries.length; index += 1) {
+      const delay = SPECIFICATIONS_REVEAL_BASE_DELAY_MS + index * SPECIFICATIONS_REVEAL_STEP_MS;
+      const timeoutId = window.setTimeout(() => {
+        const sfxRef = specificationRevealSfxPool[index % specificationRevealSfxPool.length];
+        rewindAndPlayAudio(sfxRef, { volume: SPECIFICATIONS_REVEAL_SFX_VOLUME });
+      }, delay);
+      revealTimeoutsRef.current.push(timeoutId);
+    }
+
+    return () => {
+      clearRevealTimeouts();
+    };
+  }, [revealActive, specificationEntries.length, specificationRevealSfxPool]);
 
   const content = (
     <Box sx={{ minHeight: 0, overflow: "hidden" }}>
@@ -78,7 +141,9 @@ export default function SpecificationsSection({
             animation: revealActive
               ? `${specificationsStackedReveal} 980ms cubic-bezier(0.22, 1, 0.36, 1) both`
               : "none",
-            animationDelay: revealActive ? `${120 + index * 110}ms` : "0ms",
+            animationDelay: revealActive
+              ? `${SPECIFICATIONS_REVEAL_BASE_DELAY_MS + index * SPECIFICATIONS_REVEAL_STEP_MS}ms`
+              : "0ms",
           }}
         >
           <Accordion sx={{ backgroundColor: "transparent", my: 0.5 }}>
@@ -95,8 +160,8 @@ export default function SpecificationsSection({
   return (
     <Box
       sx={{
-        px: { xs: 1.5, md: 2 },
-        py: { xs: 1.5, md: 2 },
+        px: { xs: 0, sm: 0, md: 2 },
+        py: { xs: 0, sm: 0, md: 2 },
         minHeight: 0,
         height: "100%",
         overflow: "hidden",

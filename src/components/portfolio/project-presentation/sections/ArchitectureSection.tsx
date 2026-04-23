@@ -45,8 +45,8 @@ export default function ArchitectureSection({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        px: { xs: 1.5, md: 2 },
-        py: { xs: 1.5, md: 2 },
+        px: { xs: 0, sm: 0, md: 2 },
+        py: { xs: 0, sm: 0, md: 2 },
         overflow: "hidden",
       }}
     >

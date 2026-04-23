@@ -3,10 +3,7 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
-import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
-import FormatListBulleted from "@mui/icons-material/FormatListBulleted";
-import GridView from "@mui/icons-material/GridView";
 import CloseIcon from "@mui/icons-material/Close";
 import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
 import WebOutlined from "@mui/icons-material/WebOutlined";
@@ -1393,37 +1390,6 @@ export default function CoreCompetencies({
     </Box>
   );
 
-  const viewToggleFooter = (
-    <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-        View
-      </Typography>
-      <IconButton
-        size="small"
-        aria-label="Show list view"
-        onClick={() => handleViewModeChange(false)}
-        sx={{ p: 0.35 }}
-      >
-        <FormatListBulleted fontSize="small" color={isCloudView ? "disabled" : "primary"} />
-      </IconButton>
-      <Switch
-        checked={isCloudView}
-        onChange={(event) => handleViewModeChange(event.target.checked)}
-        inputProps={{ "aria-label": "Toggle competency view mode" }}
-        color="primary"
-        size="small"
-      />
-      <IconButton
-        size="small"
-        aria-label="Show panel view"
-        onClick={() => handleViewModeChange(true)}
-        sx={{ p: 0.35 }}
-      >
-        <GridView fontSize="small" color={isCloudView ? "primary" : "disabled"} />
-      </IconButton>
-    </Stack>
-  );
-
   if (embedded) {
     return (
       <Box
@@ -1443,21 +1409,15 @@ export default function CoreCompetencies({
             listContent={listContent}
             cloudContent={cloudContent}
             staggerRevealKey={activeBulletCategoryKey}
-            showViewToggle={false}
+            showViewToggle
+            showFooterOnMobile
+            footerSx={{
+              py: { xs: 0.25, sm: 0.5, md: 1.25 },
+              minHeight: "fit-content",
+            }}
             listViewAriaLabel="Show list view"
             cloudViewAriaLabel="Show panel view"
           />
-        </Box>
-        <Box
-          sx={{
-            py: 1.25,
-            minHeight: "fit-content",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {viewToggleFooter}
         </Box>
       </Box>
     );
@@ -1467,18 +1427,11 @@ export default function CoreCompetencies({
     <PortfolioPanelShell
       panelClassName="h-full overflow-hidden"
       panelSx={{ overflow: "hidden" }}
+      rootSx={{ overflow: "hidden" }}
       topRail={topRail}
-      contentSx={{ pt: 0.5 }}
+      contentSx={{ pt: { xs: 0, sm: 0, md: 0.5 } }}
       useNegativeTopRailMargins
       useNegativeFooterMargins
-      footerSx={{
-        py: 1.25,
-        minHeight: "fit-content",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-      footer={viewToggleFooter}
     >
       <GridCloudNavigationSlide
         isMdUp={isMdUp}
@@ -1487,13 +1440,11 @@ export default function CoreCompetencies({
         listContent={listContent}
         cloudContent={cloudContent}
         staggerRevealKey={activeBulletCategoryKey}
-        showViewToggle={false}
+        showViewToggle
+        showFooterOnMobile
         footerSx={{
-          py: 1.25,
+          py: { xs: 0.25, sm: 0.5, md: 1.25 },
           minHeight: "fit-content",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
         }}
         listViewAriaLabel="Show list view"
         cloudViewAriaLabel="Show panel view"

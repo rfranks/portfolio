@@ -214,6 +214,7 @@ export default function ArchitectureDiagramsSlide({
                 currentKey={activeDiagramKey}
                 showOrdinal={false}
                 selectedValueAsTitle={selectedValueAsTitle}
+                showSelectedVisualOnSmallScreens
                 selectedVisualSize={selectedVisualSize}
                 selectedIconFrameStyle="none"
                 borderlessIconButtons

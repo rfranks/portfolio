@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import FormatListBulleted from "@mui/icons-material/FormatListBulleted";
 import GridView from "@mui/icons-material/GridView";
 import Box from "@mui/material/Box";
@@ -7,6 +7,8 @@ import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import { keyframes, type SxProps, type Theme } from "@mui/material/styles";
+import { useAudio } from "@/hooks/audio/useAudio";
+import { rewindAndPlayAudio } from "@/utils/audio";
 
 export interface GridCloudNavigationSlideProps {
   viewMode: "cloud" | "list";
@@ -46,6 +48,9 @@ const gridCloudStackedRevealKeyframes = keyframes`
 const STAGGER_REVEAL_BASE_DELAY_MS = 130;
 const STAGGER_REVEAL_STEP_MS = 105;
 const STAGGER_REVEAL_MAX_INDEX = 16;
+const STAGGER_REVEAL_SFX_PATH = "/audio/click_004.ogg";
+const STAGGER_REVEAL_SFX_VOLUME = 0.22;
+const STAGGER_REVEAL_SFX_POOL_SIZE = 4;
 
 const buildStaggerNthRules = (selector: string) => {
   const rules: Record<string, Record<string, string>> = {};
@@ -79,17 +84,138 @@ export default function GridCloudNavigationSlide({
   const shouldRenderViewToggle = showViewToggle && (isMdUp || showFooterOnMobile);
   const shouldRenderFooter = shouldRenderViewToggle || Boolean(footerStart || footerEnd);
   const [staggerActive, setStaggerActive] = useState(false);
+  const staggerTargetRef = useRef<HTMLDivElement | null>(null);
+  const staggerRevealTimeoutsRef = useRef<number[]>([]);
+  const staggerRevealObserverTimeoutRef = useRef<number | null>(null);
+  const staggerRevealSfxA = useAudio(STAGGER_REVEAL_SFX_PATH);
+  const staggerRevealSfxB = useAudio(STAGGER_REVEAL_SFX_PATH);
+  const staggerRevealSfxC = useAudio(STAGGER_REVEAL_SFX_PATH);
+  const staggerRevealSfxD = useAudio(STAGGER_REVEAL_SFX_PATH);
+  const staggerRevealSfxPool = useMemo(
+    () =>
+      [staggerRevealSfxA, staggerRevealSfxB, staggerRevealSfxC, staggerRevealSfxD].slice(
+        0,
+        STAGGER_REVEAL_SFX_POOL_SIZE,
+      ),
+    [staggerRevealSfxA, staggerRevealSfxB, staggerRevealSfxC, staggerRevealSfxD],
+  );
+
+  const clearStaggerRevealTimeouts = useCallback(() => {
+    if (staggerRevealTimeoutsRef.current.length === 0) {
+      return;
+    }
+    for (const timeoutId of staggerRevealTimeoutsRef.current) {
+      window.clearTimeout(timeoutId);
+    }
+    staggerRevealTimeoutsRef.current = [];
+  }, []);
+
+  const clearObserverTimeout = useCallback(() => {
+    if (staggerRevealObserverTimeoutRef.current == null) {
+      return;
+    }
+    window.clearTimeout(staggerRevealObserverTimeoutRef.current);
+    staggerRevealObserverTimeoutRef.current = null;
+  }, []);
+
+  const scheduleStaggerRevealAudio = useCallback(() => {
+    if (isCloudView || !staggerTargetRef.current) {
+      clearStaggerRevealTimeouts();
+      return;
+    }
+
+    clearStaggerRevealTimeouts();
+    const targetNode = staggerTargetRef.current;
+    const leafNodes = Array.from(
+      targetNode.querySelectorAll("[data-grid-cloud-stagger-leaf='true']"),
+    );
+    const visibleLeafCount = leafNodes.filter(
+      (node) => node instanceof HTMLElement && node.getClientRects().length > 0,
+    ).length;
+    const visibleRootChildrenCount = Array.from(targetNode.children).filter(
+      (node) => node instanceof HTMLElement && node.getClientRects().length > 0,
+    ).length;
+    const revealCount = visibleLeafCount > 0 ? visibleLeafCount : visibleRootChildrenCount;
+    if (revealCount <= 0 || staggerRevealSfxPool.length === 0) {
+      return;
+    }
+
+    for (let index = 0; index < revealCount; index += 1) {
+      const delay = STAGGER_REVEAL_BASE_DELAY_MS + index * STAGGER_REVEAL_STEP_MS;
+      const timeoutId = window.setTimeout(() => {
+        const sfxRef = staggerRevealSfxPool[index % staggerRevealSfxPool.length];
+        rewindAndPlayAudio(sfxRef, { volume: STAGGER_REVEAL_SFX_VOLUME });
+      }, delay);
+      staggerRevealTimeoutsRef.current.push(timeoutId);
+    }
+  }, [clearStaggerRevealTimeouts, isCloudView, staggerRevealSfxPool]);
 
   useEffect(() => {
     if (!enableStaggeredReveal) {
       setStaggerActive(false);
+      clearStaggerRevealTimeouts();
+      clearObserverTimeout();
       return;
     }
 
+    clearStaggerRevealTimeouts();
+    clearObserverTimeout();
     setStaggerActive(false);
     const frameId = window.requestAnimationFrame(() => setStaggerActive(true));
-    return () => window.cancelAnimationFrame(frameId);
-  }, [enableStaggeredReveal, viewMode, staggerRevealKey]);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      clearStaggerRevealTimeouts();
+      clearObserverTimeout();
+    };
+  }, [
+    clearObserverTimeout,
+    clearStaggerRevealTimeouts,
+    enableStaggeredReveal,
+    viewMode,
+    staggerRevealKey,
+  ]);
+
+  useEffect(() => {
+    if (!enableStaggeredReveal || isCloudView || !staggerActive || !staggerTargetRef.current) {
+      clearStaggerRevealTimeouts();
+      clearObserverTimeout();
+      return;
+    }
+
+    scheduleStaggerRevealAudio();
+
+    if (typeof MutationObserver !== "undefined") {
+      const observer = new MutationObserver(() => {
+        clearObserverTimeout();
+        staggerRevealObserverTimeoutRef.current = window.setTimeout(() => {
+          scheduleStaggerRevealAudio();
+          staggerRevealObserverTimeoutRef.current = null;
+        }, 24);
+      });
+      observer.observe(staggerTargetRef.current, {
+        subtree: true,
+        childList: true,
+      });
+
+      return () => {
+        observer.disconnect();
+        clearObserverTimeout();
+        clearStaggerRevealTimeouts();
+      };
+    }
+
+    return () => {
+      clearStaggerRevealTimeouts();
+      clearObserverTimeout();
+    };
+  }, [
+    clearObserverTimeout,
+    clearStaggerRevealTimeouts,
+    enableStaggeredReveal,
+    isCloudView,
+    scheduleStaggerRevealAudio,
+    staggerActive,
+  ]);
 
   const staggerTargetSx: SxProps<Theme> = staggerActive
     ? {
@@ -141,7 +267,21 @@ export default function GridCloudNavigationSlide({
           contentSx,
         )}
       >
-        <Box sx={staggerTargetSx}>{isCloudView ? cloudContent : listContent}</Box>
+        <Box
+          ref={staggerTargetRef}
+          sx={[
+            {
+              minHeight: 0,
+              flex: "1 1 auto",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            },
+            staggerTargetSx,
+          ]}
+        >
+          {isCloudView ? cloudContent : listContent}
+        </Box>
       </Box>
       {shouldRenderFooter ? (
         <Box

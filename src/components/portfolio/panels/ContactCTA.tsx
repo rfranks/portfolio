@@ -16,20 +16,34 @@ export default function ContactCTA({ topRail }: ContactCTAProps) {
   const { contactCTA, summary } = useResumeData();
   return (
     <PortfolioPanelShell
-      panelClassName="text-center"
+      panelClassName="h-full text-center"
       topRail={topRail}
-      contentSx={{ overflowY: "auto", pt: 0.75, pb: 1.5 }}
+      contentSx={{
+        overflowY: "auto",
+        minHeight: 0,
+        pt: { xs: 0, sm: 0.25, md: 0.75 },
+        pb: { xs: 0.5, sm: 0.75, md: 1.5 },
+      }}
       useNegativeTopRailMargins
       useNegativeFooterMargins
       panelSx={{ overflow: "hidden" }}
+      footerSx={{
+        px: { xs: 1, sm: 1.25, md: 3.5 },
+        py: { xs: 0.5, sm: 0.75, md: 1 },
+      }}
       footer={
         <Stack
-          direction="row"
-          spacing={2}
+          direction={{ xs: "column", sm: "row" }}
+          spacing={{ xs: 1, sm: 1.5, md: 2 }}
           justifyContent="center"
+          alignItems="center"
           useFlexGap
-          flexWrap="wrap"
+          flexWrap={{ xs: "nowrap", sm: "wrap" }}
           className="w-full"
+          sx={{
+            py: { xs: 0, sm: 0.25, md: 0.5 },
+            px: { xs: 0.25, sm: 0.5, md: 0 },
+          }}
         >
           <Button
             variant="contained"
@@ -37,6 +51,11 @@ export default function ContactCTA({ topRail }: ContactCTAProps) {
             href={`mailto:${summary.contact.email}`}
             startIcon={<EmailOutlined fontSize="small" />}
             className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+            sx={{
+              width: { xs: "100%", sm: "auto" },
+              maxWidth: { xs: "420px", sm: "none" },
+              py: { xs: 0.55, sm: 0.65, md: 0.8 },
+            }}
           >
             {contactCTA.primaryLabel}
           </Button>
@@ -48,13 +67,18 @@ export default function ContactCTA({ topRail }: ContactCTAProps) {
             color="primary"
             startIcon={<LinkedIn fontSize="small" />}
             className="transition-transform duration-200 ease-out hover:-translate-y-0.5"
+            sx={{
+              width: { xs: "100%", sm: "auto" },
+              maxWidth: { xs: "420px", sm: "none" },
+              py: { xs: 0.55, sm: 0.65, md: 0.8 },
+            }}
           >
             {contactCTA.secondaryLabel}
           </Button>
         </Stack>
       }
     >
-      <Box className="mx-auto flex max-w-2xl flex-col items-center gap-4">
+      <Box className="mx-auto flex max-w-2xl flex-col items-center gap-4" sx={{ minHeight: 0 }}>
         <Typography color="text.secondary" className="leading-7">
           {contactCTA.body}
         </Typography>

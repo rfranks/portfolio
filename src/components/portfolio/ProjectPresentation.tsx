@@ -165,42 +165,29 @@ const TECHNOLOGY_DOMAIN_CONFIG: Record<TechnologyDomainKey, TechnologyDomainConf
   },
 };
 
-const DEFAULT_SECTION_PAGER_SFX: Record<ProjectPresentationSectionKey, string> = {
-  overview: "/audio/click_001.mp3",
-  why: "/audio/question_001.mp3",
-  demo: "/audio/select_001.ogg",
-  technologies: "/audio/switch_001.ogg",
-  specifications: "/audio/tick_002.mp3",
-  diagrams: "/audio/switch_007.ogg",
+const DEFAULT_SECTION_PAGER_SFX: Record<
+  ProjectPresentationSectionKey,
+  ProjectSectionPagerSfxValue
+> = {
+  overview: "random",
+  why: "random",
+  demo: "random",
+  technologies: "random",
+  specifications: "random",
+  diagrams: "random",
 };
-
-const RANDOM_SECTION_PAGER_SFX_POOL = [
-  "/audio/click_001.mp3",
-  "/audio/question_001.mp3",
-  "/audio/select_001.ogg",
-  "/audio/switch_001.ogg",
-  "/audio/tick_002.mp3",
-  "/audio/switch_007.ogg",
-] as const;
-
-const pickRandomSectionPagerSfx = (): string =>
-  RANDOM_SECTION_PAGER_SFX_POOL[Math.floor(Math.random() * RANDOM_SECTION_PAGER_SFX_POOL.length)] ??
-  DEFAULT_SECTION_PAGER_SFX.overview;
 
 const presentationPerfLogger = createLogger("presentation-perf");
 
 const resolveSectionPagerSfxPath = (
   configured: ProjectSectionPagerSfxValue | undefined,
-  fallback: string,
-): string => {
+  fallback: ProjectSectionPagerSfxValue,
+): ProjectSectionPagerSfxValue => {
   const normalized = configured?.trim();
   if (!normalized) {
     return fallback;
   }
-  if (normalized === "random") {
-    return pickRandomSectionPagerSfx();
-  }
-  return normalized;
+  return normalized as ProjectSectionPagerSfxValue;
 };
 
 const normalizeTechnologyName = (technologyName: string) => technologyName.toLowerCase();
@@ -1153,7 +1140,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
     <PortfolioPanel
       sx={{
         px: 0,
-        py: { xs: 1, md: 1.25 },
+        py: { xs: 0, sm: 0, md: 1.25 },
         mb: "0 !important",
         minHeight: 0,
         height: "100%",
@@ -1168,6 +1155,11 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
           minHeight: { xs: 78, md: 86 },
           display: "flex",
           alignItems: "center",
+          bgcolor: "transparent",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          backdropFilter: "none",
+          boxShadow: "none",
         }}
         topRail={
           hasMultipleSections ? (
@@ -1177,6 +1169,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
                 items={pagerItems}
                 currentKey={activeSectionKey}
                 selectedValueAsTitle
+                showSelectedVisualOnSmallScreens
                 selectedVisualSize={56}
                 selectedIconFontSize="1.5rem"
                 selectedEmojiFontSize="2.66rem"

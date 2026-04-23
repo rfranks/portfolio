@@ -716,11 +716,12 @@ export default function HomePageClient() {
           </Box>
           <Toolbar />
           <Container
-            className="py-6 md:py-8"
             sx={{
               height: { xs: "calc(100dvh - 56px)", sm: "calc(100dvh - 64px)" },
               display: "flex",
               flexDirection: "column",
+              px: { xs: 0, sm: 0, md: 3 },
+              py: { xs: 0, sm: 0, md: 4 },
             }}
           >
             <Box

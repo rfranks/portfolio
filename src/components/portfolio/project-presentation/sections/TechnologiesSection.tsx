@@ -17,8 +17,8 @@ export default function TechnologiesSection({
   return (
     <Box
       sx={{
-        px: { xs: 1.5, md: 2 },
-        py: { xs: 1.5, md: 2 },
+        px: { xs: 0, sm: 0, md: 2 },
+        py: { xs: 0, sm: 0, md: 2 },
         minHeight: 0,
         height: "100%",
         display: "flex",

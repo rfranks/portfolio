@@ -425,6 +425,8 @@ export default function ExperienceTimeline({ topRail }: ExperienceTimelineProps)
           items={experiencePickerItems}
           currentKey={activeExperienceKey}
           selectedValueAsTitle
+          borderlessIconButtons
+          flatIconButtons
           previousAriaLabel="Previous experience"
           nextAriaLabel="Next experience"
           selectorAriaLabel="Open experience selector"

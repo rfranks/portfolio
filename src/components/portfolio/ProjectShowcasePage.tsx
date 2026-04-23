@@ -161,7 +161,8 @@ export default function ProjectShowcasePage({
         <Container
           maxWidth="lg"
           sx={{
-            my: 2,
+            my: { xs: 0, sm: 0, md: 2 },
+            px: { xs: 0, sm: 0, md: 3 },
             py: 0,
             height: {
               xs: "calc(100dvh - 56px - 32px)",

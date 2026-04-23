@@ -21,7 +21,7 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
       aspectRatio: { xs: "2 / 3", md: "3 / 4" },
       maxHeight: { xs: "none", md: "clamp(300px, 42dvh, 500px)" },
       overflow: "hidden",
-      borderRadius: "18px",
+      borderRadius: { xs: 0, sm: 0, md: "18px" },
       backgroundColor: "rgba(2,6,23,0.1)",
     }),
     [],
@@ -85,7 +85,7 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
         assetFrameSx: heroFrameSx,
         imageWidth: 960,
         imageHeight: 540,
-        imageClassName: "h-full w-full rounded-[18px] bg-black/10 object-contain",
+        imageClassName: "h-full w-full rounded-none bg-black/10 object-contain md:rounded-[18px]",
       });
     }
 
@@ -107,7 +107,8 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
           onError: handleHeroVideoError,
         },
         assetFrameSx: heroFrameSx,
-        previewVideoClassName: "block h-full w-full rounded-[18px] bg-black/10 object-contain",
+        previewVideoClassName:
+          "block h-full w-full rounded-none bg-black/10 object-contain md:rounded-[18px]",
         previewVideoSx: {
           width: "100%",
           height: "100%",
@@ -134,7 +135,12 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
       panelClassName="h-full"
       panelSx={{ overflow: "hidden" }}
       topRail={topRail}
-      contentSx={{ pt: 0.5, overflowY: "auto" }}
+      contentSx={{
+        pt: 0.5,
+        px: { xs: 1, sm: 1.25, md: 0 },
+        pb: { xs: 0.75, sm: 1, md: 0 },
+        overflowY: "auto",
+      }}
       useNegativeTopRailMargins
     >
       <Stack spacing={2}>
@@ -171,13 +177,25 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
           </Stack>
           {hasHeroMedia && (
             <Box
-              className="mx-auto overflow-hidden rounded-[24px] border border-white/10 bg-white/5 p-2 shadow-lg md:mx-0"
+              className="mx-auto overflow-hidden md:mx-0"
               sx={{
                 width: { xs: "100%", md: "calc(50% - 8px)" },
                 minWidth: 0,
                 maxWidth: { xs: "100%", md: "calc(50% - 8px)" },
                 flex: { xs: "0 1 auto", md: "0 1 calc(50% - 8px)" },
                 flexShrink: 1,
+                boxSizing: "border-box",
+                borderRadius: { xs: 0, sm: 0, md: "24px" },
+                borderStyle: { xs: "none", sm: "none", md: "solid" },
+                borderWidth: { xs: 0, sm: 0, md: 1 },
+                borderColor: "rgba(255,255,255,0.1)",
+                backgroundColor: {
+                  xs: "transparent",
+                  sm: "transparent",
+                  md: "rgba(255,255,255,0.05)",
+                },
+                p: { xs: 0, sm: 0, md: 1 },
+                boxShadow: { xs: "none", sm: "none", md: "0 14px 26px rgba(2,6,23,0.22)" },
               }}
             >
               <MediaCycler
@@ -190,7 +208,7 @@ export default function HobbiesCard({ topRail }: HobbiesCardProps) {
                 showChevronNavigation={false}
                 stackSx={{
                   position: "relative",
-                  borderRadius: "18px",
+                  borderRadius: { xs: 0, sm: 0, md: "18px" },
                   overflow: "hidden",
                 }}
               />

@@ -1033,8 +1033,8 @@ export default function MediaCycler({
                     height: "100%",
                     minHeight: 0,
                     overflow: "auto",
-                    borderRadius: "18px",
-                    border: "1px solid",
+                    borderRadius: { xs: 0, sm: 0, md: "18px" },
+                    border: { xs: 0, sm: 0, md: "1px solid" },
                     borderColor: "var(--fabric-surface-border)",
                     bgcolor:
                       theme.palette.mode === "light"

@@ -32,31 +32,35 @@ export default function PanelFrame({
 }: PanelFrameProps) {
   const topRailDefaults: SxProps<Theme> = {
     flexShrink: 0,
-    mx: useNegativeTopRailMargins ? PANEL_RAIL_OFFSET_X : 0,
-    mt: useNegativeTopRailMargins ? PANEL_RAIL_OFFSET_Y : 0,
+    mx: useNegativeTopRailMargins ? { xs: 0, sm: 0, md: PANEL_RAIL_OFFSET_X } : 0,
+    mt: useNegativeTopRailMargins ? { xs: 0, sm: 0, md: PANEL_RAIL_OFFSET_Y } : 0,
     mb: 0,
     bgcolor: "background.paper",
     borderBottom: "1px solid",
     borderColor: "divider",
     backdropFilter: "blur(8px)",
-    borderTopLeftRadius: "var(--fabric-radius-xl)",
-    borderTopRightRadius: "var(--fabric-radius-xl)",
+    borderTopLeftRadius: { xs: 0, sm: 0, md: "var(--fabric-radius-xl)" },
+    borderTopRightRadius: { xs: 0, sm: 0, md: "var(--fabric-radius-xl)" },
   };
 
   const footerDefaults: SxProps<Theme> = {
     flexShrink: 0,
     zIndex: 5,
     mt: "auto",
-    mx: useNegativeFooterMargins ? PANEL_RAIL_OFFSET_X : 0,
-    mb: useNegativeFooterMargins ? PANEL_RAIL_OFFSET_Y : 0,
-    px: useNegativeFooterMargins ? 3.5 : 0,
-    py: useNegativeFooterMargins ? 1 : 0,
+    mx: useNegativeFooterMargins ? { xs: 0, sm: 0, md: PANEL_RAIL_OFFSET_X } : 0,
+    mb: useNegativeFooterMargins ? { xs: 0, sm: 0, md: PANEL_RAIL_OFFSET_Y } : 0,
+    px: useNegativeFooterMargins ? { xs: 0, sm: 0, md: 3.5 } : 0,
+    py: useNegativeFooterMargins ? { xs: 0, sm: 0, md: 1 } : 0,
     bgcolor: "background.paper",
     borderTop: "1px solid",
     borderColor: "divider",
     backdropFilter: "blur(8px)",
-    borderBottomLeftRadius: useNegativeFooterMargins ? "var(--fabric-radius-xl)" : 0,
-    borderBottomRightRadius: useNegativeFooterMargins ? "var(--fabric-radius-xl)" : 0,
+    borderBottomLeftRadius: useNegativeFooterMargins
+      ? { xs: 0, sm: 0, md: "var(--fabric-radius-xl)" }
+      : 0,
+    borderBottomRightRadius: useNegativeFooterMargins
+      ? { xs: 0, sm: 0, md: "var(--fabric-radius-xl)" }
+      : 0,
   };
 
   return (
@@ -65,9 +69,11 @@ export default function PanelFrame({
         {
           minHeight: 0,
           height: "100%",
+          maxHeight: "100%",
+          flex: "1 1 0%",
           display: "flex",
           flexDirection: "column",
-          overflow: "visible",
+          overflow: "hidden",
         },
         ...toSxArray(rootSx),
       ]}
@@ -77,7 +83,7 @@ export default function PanelFrame({
         sx={[
           {
             minHeight: 0,
-            flex: "1 1 auto",
+            flex: "1 1 0%",
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
