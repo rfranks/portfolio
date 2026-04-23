@@ -31,18 +31,6 @@ function getProjectWithDiagrams(input: Record<string, unknown>) {
   return project;
 }
 
-function getProjectWithLegacyDiagrams(input: Record<string, unknown>) {
-  const project = getProjects(input).find((entry) =>
-    [entry.blockDiagram, entry.componentDiagram, entry.sequenceDiagram].some(
-      (value) => typeof value === "string" && value.trim().length > 0,
-    ),
-  );
-  if (!project) {
-    throw new Error("Expected a project with legacy diagram fields in the fixture payload.");
-  }
-  return project;
-}
-
 function parseMigrated(input: Record<string, unknown>, source = "resumeDataSchema.test") {
   return parseResumeDataWithSchema(migrateResumeData(input), source);
 }
@@ -397,7 +385,10 @@ describe("resumeDataSchema hardening and edge cases", () => {
 
   it("rejects projects with legacy block/component/sequence diagrams but missing normalized diagrams array", () => {
     expectSchemaFailure((input) => {
-      const project = getProjectWithLegacyDiagrams(input);
+      const project = getProjectWithDiagrams(input);
+      project.blockDiagram = "flowchart TD; A-->B;";
+      project.componentDiagram = "flowchart TD; A-->B;";
+      project.sequenceDiagram = "sequenceDiagram\\nA->>B: Hello";
       delete project.diagrams;
     }, /projects\.\d+\.diagrams/i);
   });
