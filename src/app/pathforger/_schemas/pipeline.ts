@@ -55,6 +55,8 @@ export const runPitchStageInputSchema = z.object({
 export const onboardingNameStageInputSchema = onboardingInputSchema.extend({
   protagonistPreference: z.string().optional().default(""),
   visualStyle: z.string().optional().default(""),
+  tone: z.string().optional().default(""),
+  premise: z.string().optional().default(""),
 });
 
 export const runProtagonistNameStageInputSchema = z.object({
@@ -68,6 +70,8 @@ export const runProtagonistNameStageInputSchema = z.object({
 
 export const onboardingVisualStyleStageInputSchema = onboardingInputSchema.extend({
   visualStyle: z.string().optional().default(""),
+  tone: z.string().optional().default(""),
+  premise: z.string().optional().default(""),
 });
 
 export const runVisualStyleStageInputSchema = z.object({
@@ -91,6 +95,7 @@ export const runToneStageInputSchema = z.object({
 });
 
 export const onboardingPremiseStageInputSchema = onboardingInputSchema.extend({
+  tone: z.string().optional().default(""),
   premise: z.string().optional().default(""),
   visualStyle: z.string().optional().default(""),
 });

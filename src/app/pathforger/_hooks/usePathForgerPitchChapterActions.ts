@@ -18,6 +18,7 @@ import {
   PathForgerChapterResult,
 } from "../_types/pipeline";
 import { PathForgerPitchChoice } from "../_types/pitch";
+import { ZodError } from "zod";
 
 type ActiveRunAction =
   | "name"
@@ -105,6 +106,38 @@ type UsePathForgerPitchChapterActionsArgs = {
     React.SetStateAction<Record<string, PathForgerGeneratedImage>>
   >;
 };
+
+function normalizeOnboardingForPipeline(payload: OnboardingPayload): OnboardingPayload {
+  return {
+    ...payload,
+    genre: payload.genre.trim() || "Adventure",
+    tone: payload.tone.trim() || "Cinematic and character-driven",
+    protagonistPreference: payload.protagonistPreference.trim() || "Auto-generate a name",
+    premise: payload.premise.trim(),
+    visualStyle: payload.visualStyle.trim() || "Cinematic concept art",
+    ageRating: payload.ageRating.trim() || "PG-13",
+  };
+}
+
+function resolvePitchChapterErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ZodError) {
+    return "PathForger is missing required story setup fields. Please try auto-generating the setup values again.";
+  }
+
+  if (error instanceof Error) {
+    const normalized = error.message.trim().toLowerCase();
+    if (
+      normalized.includes("too small") ||
+      normalized.includes("invalid_type") ||
+      normalized.includes("required")
+    ) {
+      return "PathForger is missing required story setup fields. Please try auto-generating the setup values again.";
+    }
+    return error.message;
+  }
+
+  return fallback;
+}
 
 export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapterActionsArgs) {
   const {
@@ -194,8 +227,8 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
       return;
     }
 
-    const onboardingPayload = buildOnboardingPayload();
-    if (!onboardingPayload.premise.trim()) {
+    const onboardingPayload = normalizeOnboardingForPipeline(buildOnboardingPayload());
+    if (!onboardingPayload.premise) {
       setErrorMessage("Please provide a premise to start the story pipeline.");
       return;
     }
@@ -228,7 +261,7 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
       selectedPitchRef.current = resolvedPitchChoice;
       setPitchModalOpen(true);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Pitch generation failed.");
+      setErrorMessage(resolvePitchChapterErrorMessage(error, "Pitch generation failed."));
     } finally {
       clearStatusMessages();
       setIsRunning(false);
@@ -262,8 +295,8 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
       return false;
     }
 
-    const onboardingPayload = buildOnboardingPayload();
-    if (!onboardingPayload.premise.trim()) {
+    const onboardingPayload = normalizeOnboardingForPipeline(buildOnboardingPayload());
+    if (!onboardingPayload.premise) {
       setErrorMessage("Please provide a premise to start the story pipeline.");
       return false;
     }
@@ -517,9 +550,7 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
 
       return true;
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Chapter package generation failed.",
-      );
+      setErrorMessage(resolvePitchChapterErrorMessage(error, "Chapter package generation failed."));
       return false;
     } finally {
       if (!backgroundImagesStarted) {
@@ -593,8 +624,8 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
       return;
     }
 
-    const onboardingPayload = buildOnboardingPayload();
-    if (!onboardingPayload.premise.trim()) {
+    const onboardingPayload = normalizeOnboardingForPipeline(buildOnboardingPayload());
+    if (!onboardingPayload.premise) {
       setErrorMessage("Please provide a premise to start the story pipeline.");
       return;
     }
@@ -647,7 +678,7 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
         }));
       }
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "PathForger pipeline failed.");
+      setErrorMessage(resolvePitchChapterErrorMessage(error, "PathForger pipeline failed."));
     } finally {
       clearStatusMessages();
       setIsRunning(false);

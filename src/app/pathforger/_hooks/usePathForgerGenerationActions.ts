@@ -13,8 +13,29 @@ import {
   PathForgerImageType,
   PathForgerPipelineResult,
 } from "@/app/pathforger/_types/pipeline";
+import { ZodError } from "zod";
 
 type OnboardingPayload = Parameters<typeof runPathForgerPremiseStage>[0]["onboarding"];
+
+function resolveGenerationErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ZodError) {
+    return "PathForger needs a bit more input context for this auto-generate action. Please try again.";
+  }
+
+  if (error instanceof Error) {
+    const normalized = error.message.trim().toLowerCase();
+    if (
+      normalized.includes("too small") ||
+      normalized.includes("invalid_type") ||
+      normalized.includes("required")
+    ) {
+      return "PathForger needs a bit more input context for this auto-generate action. Please try again.";
+    }
+    return error.message;
+  }
+
+  return fallback;
+}
 
 export interface UsePathForgerGenerationActionsArgs<TActiveRunAction> {
   premise: string;
@@ -150,11 +171,6 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
       return;
     }
 
-    if (!premise.trim()) {
-      setErrorMessage("Please provide a premise so PathForger can craft a fitting name.");
-      return;
-    }
-
     setIsRunning(true);
     setActiveRunAction("name" as unknown as React.SetStateAction<TActiveRunAction>);
 
@@ -187,9 +203,7 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
         return next.slice(0, 20);
       });
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Protagonist name generation failed.",
-      );
+      setErrorMessage(resolveGenerationErrorMessage(error, "Protagonist name generation failed."));
     } finally {
       clearStatusMessages();
       setIsRunning(false);
@@ -200,7 +214,6 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
     clearStatusMessages,
     enqueueStatusMessage,
     playUiSound,
-    premise,
     protagonistPreference,
     recentGeneratedProtagonistNames,
     resolvedDefaultModel,
@@ -226,11 +239,6 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
       if (!apiKey) {
         setErrorMessage("OpenAI API key is required.");
         setApiKeyReady(false);
-        return null;
-      }
-
-      if (!effectivePremise) {
-        setErrorMessage("Please provide a premise so PathForger can craft a fitting tone.");
         return null;
       }
 
@@ -261,7 +269,7 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
         setTone(nextTone);
         return nextTone;
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "Tone generation failed.");
+        setErrorMessage(resolveGenerationErrorMessage(error, "Tone generation failed."));
         return null;
       } finally {
         clearStatusMessages();
@@ -305,11 +313,6 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
         return;
       }
 
-      if (!effectivePremise) {
-        setErrorMessage("Please provide a premise so PathForger can craft a fitting style.");
-        return;
-      }
-
       setIsRunning(true);
       setActiveRunAction("style" as unknown as React.SetStateAction<TActiveRunAction>);
 
@@ -334,7 +337,7 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
 
         setVisualStyle(generatedStyle.visualStyle);
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "Style generation failed.");
+        setErrorMessage(resolveGenerationErrorMessage(error, "Style generation failed."));
       } finally {
         clearStatusMessages();
         setIsRunning(false);
@@ -460,7 +463,7 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
 
       return nextPremise;
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Premise generation failed.");
+      setErrorMessage(resolveGenerationErrorMessage(error, "Premise generation failed."));
       return null;
     } finally {
       clearStatusMessages();
