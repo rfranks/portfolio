@@ -117,9 +117,6 @@ export function useSectionAudio({
     }
 
     if (activeSectionPagerSfxSetting === "random") {
-      if (randomSectionPagerSfxRefs.length === 0) {
-        return;
-      }
       let randomIndex = Math.floor(Math.random() * randomSectionPagerSfxRefs.length);
       if (randomSectionPagerSfxRefs.length > 1 && lastRandomSfxIndexRef.current != null) {
         while (randomIndex === lastRandomSfxIndexRef.current) {
