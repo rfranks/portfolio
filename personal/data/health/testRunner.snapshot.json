@@ -1,0 +1,11 @@
+{
+  "key": "testRunner",
+  "status": "pass",
+  "generatedAt": "2026-04-23T20:52:31.758Z",
+  "summary": "unit test runner passed.",
+  "details": {
+    "suite": "unit",
+    "exitCode": 0,
+    "jestArgs": []
+  }
+}

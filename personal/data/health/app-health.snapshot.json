@@ -1,0 +1,174 @@
+{
+  "generatedAt": "2026-04-23T20:52:31.758Z",
+  "overallStatus": "pass",
+  "checks": {
+    "fileBudgets": "pass",
+    "schemaValidation": "pass",
+    "testRunner": "pass"
+  },
+  "snapshots": {
+    "fileBudgets": {
+      "key": "fileBudgets",
+      "status": "pass",
+      "generatedAt": "2026-04-23T20:51:36.623Z",
+      "summary": "File budget check passed.",
+      "details": {
+        "totals": {
+          "scannedFileCount": 561,
+          "codeFileCount": 547,
+          "violationCount": 0
+        },
+        "budget": {
+          "defaultBudget": 750,
+          "exactBudgetOverrideCount": 25
+        },
+        "testHealth": {
+          "status": "pass",
+          "totalTestFiles": 14,
+          "violatingTestFiles": 0
+        },
+        "a11yHealth": {
+          "status": "pass",
+          "totalA11yTestFiles": 1,
+          "violatingA11yTestFiles": 0
+        },
+        "schemaValidation": {
+          "schemaTestFileCount": 1
+        },
+        "topViolations": []
+      }
+    },
+    "schemaValidation": {
+      "key": "schemaValidation",
+      "status": "pass",
+      "generatedAt": "2026-04-23T20:51:37.404Z",
+      "summary": "resumeData validation passed with no warnings.",
+      "details": {
+        "strictAssets": true,
+        "issueCounts": {
+          "errors": 0,
+          "warnings": 0
+        },
+        "issues": [],
+        "stats": {
+          "resumeDataPath": "public/personal/data/resumeData.json",
+          "strictAssets": true,
+          "runningInCi": true,
+          "schemaVersion": 3,
+          "schemaMigrationVersion": 3,
+          "schemaChangelogEntryCount": 3,
+          "schemaChangelogLatestVersion": 3,
+          "schemaChangelogLatestDate": "2026-04-23",
+          "schemaChangelogLatestSummary": "Introduced presentation orchestration config with migration defaults and prefetch hints for presentation projects.",
+          "schemaChangelogLatestMigration": "migrateV2ToV3",
+          "schemaChangelogLatestBreakingFieldCount": 0,
+          "schemaBreakingFieldsGuardApproved": false,
+          "schemaBreakingFieldsGuardEnvVar": "ALLOW_RESUME_SCHEMA_BREAKING_FIELDS",
+          "rawTopLevelKeyCount": 14,
+          "topLevelKeyCount": 14,
+          "newTopLevelKeys": [],
+          "removedTopLevelKeys": [],
+          "topLevelKeys": [
+            "schemaVersion",
+            "summary",
+            "contactCTA",
+            "portfolioApps",
+            "navigation",
+            "competencies",
+            "coreCompetencies",
+            "hobbies",
+            "aiShenanigans",
+            "projects",
+            "experience",
+            "recognition",
+            "education",
+            "projectsSection"
+          ],
+          "projectCount": 14,
+          "projectTypeCounts": {
+            "personal": 9,
+            "presentation": 4,
+            "work": 1
+          },
+          "presentationProjectCount": 4,
+          "presentationSlugCount": 4,
+          "projectsWithDiagrams": 5,
+          "diagramCount": 17,
+          "projectsWithTerminalDemo": 5,
+          "experienceCount": 8,
+          "educationCount": 3,
+          "recognitionSnippetCount": 4,
+          "recognitionRecommendationCount": 17,
+          "recognitionGithubAchievementCount": 4,
+          "aiShenaniganCount": 27,
+          "hobbyCount": 6,
+          "assetReferenceCount": 154,
+          "uniqueAssetReferenceCount": 134,
+          "missingAssetCount": 0,
+          "missingOptionalEnrichmentsCount": 42,
+          "missingOptionalEnrichments": [
+            "projects.0.showcaseHeading",
+            "projects.0.showcaseSubtitle",
+            "projects.0.wowFactor",
+            "projects.0.terminalDemo.caption",
+            "projects.1.showcaseHeading",
+            "projects.1.showcaseSubtitle",
+            "projects.1.wowFactor",
+            "projects.1.terminalDemo.caption",
+            "projects.2.showcaseHeading",
+            "projects.2.showcaseSubtitle",
+            "projects.2.wowFactor",
+            "projects.2.terminalDemo.caption",
+            "projects.3.showcaseHeading",
+            "projects.3.showcaseSubtitle",
+            "projects.3.wowFactor",
+            "projects.4.showcaseHeading",
+            "projects.4.showcaseSubtitle",
+            "projects.4.wowFactor",
+            "projects.4.terminalDemo.caption",
+            "projects.5.showcaseHeading",
+            "projects.5.showcaseSubtitle",
+            "projects.5.wowFactor",
+            "projects.5.terminalDemo.caption",
+            "projects.6.showcaseHeading",
+            "projects.6.showcaseSubtitle",
+            "projects.6.wowFactor",
+            "projects.6.terminalDemo.caption",
+            "projects.7.showcaseHeading",
+            "projects.7.showcaseSubtitle",
+            "projects.7.wowFactor",
+            "projects.7.terminalDemo.caption",
+            "projects.8.showcaseHeading",
+            "projects.8.showcaseSubtitle",
+            "projects.8.wowFactor",
+            "projects.8.terminalDemo.caption",
+            "projects.9.wowFactor",
+            "projects.10.wowFactor",
+            "projects.12.wowFactor",
+            "projects.13.showcaseHeading",
+            "projects.13.showcaseSubtitle",
+            "projects.13.wowFactor",
+            "projects.13.terminalDemo.caption"
+          ],
+          "expectedDeepLinkCount": 36,
+          "actualDeepLinkCount": 36,
+          "deepLinkCoveragePct": 100,
+          "migrationWarningCount": 0,
+          "contentLintWarningCount": 0,
+          "contentLintErrorCount": 0
+        }
+      }
+    },
+    "testRunner": {
+      "key": "testRunner",
+      "status": "pass",
+      "generatedAt": "2026-04-23T20:52:31.758Z",
+      "summary": "unit test runner passed.",
+      "details": {
+        "suite": "unit",
+        "exitCode": 0,
+        "jestArgs": []
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "key": "fileBudgets",
+  "status": "pass",
+  "generatedAt": "2026-04-23T20:51:36.623Z",
+  "summary": "File budget check passed.",
+  "details": {
+    "totals": {
+      "scannedFileCount": 561,
+      "codeFileCount": 547,
+      "violationCount": 0
+    },
+    "budget": {
+      "defaultBudget": 750,
+      "exactBudgetOverrideCount": 25
+    },
+    "testHealth": {
+      "status": "pass",
+      "totalTestFiles": 14,
+      "violatingTestFiles": 0
+    },
+    "a11yHealth": {
+      "status": "pass",
+      "totalA11yTestFiles": 1,
+      "violatingA11yTestFiles": 0
+    },
+    "schemaValidation": {
+      "schemaTestFileCount": 1
+    },
+    "topViolations": []
+  }
+}

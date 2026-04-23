@@ -1229,7 +1229,7 @@
     },
     {
       "name": "Rickbert Studio",
-      "description": "Client-side comic strip production studio with parser, validation preflight, react-konva rendering, and PNG export.",
+      "description": "Rickbert Studio is a structured comic-production workspace that turns narrative input into consistent multi-panel outputs with parser validation, preflight checks, react-konva rendering, and export-ready assets. It emphasizes repeatable art direction, layout discipline, and fast iteration from script to publishable strip.",
       "href": "/rickbert-studio",
       "type": "personal",
       "interestsMeWhy": "This project separates domain parsing, checklist validation, and vector rendering so the comic engine can be reused as a shared module across a broader product portfolio. Beyond the rendering itself, it gave me a concrete way to enforce creative constraints in code while still keeping the authoring flow playful and fast. That combination of reusable architecture and creator-friendly UX is exactly the kind of engineering problem I enjoy.",
@@ -1245,7 +1245,7 @@
     },
     {
       "name": "Warbirds",
-      "description": "Dogfight through the skies in this arcade shooter.",
+      "description": "Warbirds is a browser arcade dogfight built for responsive controls, layered enemy behavior, and satisfying moment-to-moment action. The game balances fast input handling, projectile and collision systems, dynamic spawn pacing, and audio-visual feedback so rounds stay readable and intense across desktop and mobile sessions.",
       "href": "/warbirds",
       "type": "personal",
       "interestsMeWhy": "Building an aerial combat game pushed my understanding of canvas rendering and simple AI. It is a fun showcase of real-time physics entirely in the browser, but it also forced disciplined thinking around frame timing, collision handling, and responsive controls. I enjoy projects like this because they make performance tradeoffs visible immediately and reward tight feedback loops.",
@@ -1261,7 +1261,7 @@
     },
     {
       "name": "Blackjack",
-      "description": "Classic twenty-one card game against the dealer.",
+      "description": "Blackjack is a production-style implementation of classic twenty-one with a shared Go rules engine powering multiple clients. The project highlights game-state modeling, deterministic dealer/player logic, and a polished web presentation layer that stays aligned with terminal and debugger flows through the same core decision and payout mechanics.",
       "href": "/blackjack",
       "type": "personal",
       "interestsMeWhy": "This project uses a familiar game to demonstrate serious engineering ideas: state management, probability, and clean separation of concerns. Blackjack works especially well because each round behaves like a compact state machine with meaningful decisions, hidden information, and strict rule evaluation. The Go engine models all of that in one place: card values, hand totals, split/double/insurance eligibility, dealer behavior, payout resolution, side-bet math, and running statistics.\n\nWhat makes it especially compelling is portability. The same Go business logic runs in multiple forms: as a terminal application, inside the VS Code Go debugger, and in the browser via WebAssembly. A thin message bridge translates web UI actions into engine inputs and turns engine state into render-ready output, while keeping rules centralized.\n\nIn practice, this means the web client and terminal client are different presentation layers over one shared rules core, rather than duplicated implementations. It is a practical example of writing business logic once and reusing it across runtime environments.\n\nPlus...it is Blackjack!",
@@ -1360,7 +1360,7 @@
     },
     {
       "name": "Blasteroids",
-      "description": "Classic Asteroids arcade game with a space shooter twist.  Built entirely with HTML, CSS, and JavaScript.",
+      "description": "Blasteroids reimagines classic Asteroids with tighter weapon feel, cleaner movement handling, and modern browser UX polish. Built with HTML, CSS, and JavaScript, it focuses on responsive controls, collision precision, and round pacing that keeps the game accessible for quick sessions while still rewarding skillful play.",
       "href": "/blasteroids",
       "type": "personal",
       "interestsMeWhy": "Recreating a classic arcade title using only web standards was a technical challenge. It demonstrates how far raw HTML, CSS, and JavaScript can go without relying on heavyweight engines. I am especially proud of how much feel and responsiveness we could capture with careful tuning of input, animation timing, and collision behavior.",
@@ -1389,7 +1389,7 @@
     },
     {
       "name": "GeneBoard",
-      "description": "Interactive tools for exploring and visualizing DNA sequences.",
+      "description": "GeneBoard provides interactive tooling for exploring DNA sequences through visual analysis, pattern inspection, and sequence-oriented experimentation. The experience is designed to make biological data easier to navigate with clear UI affordances, fast feedback loops, and practical utilities for understanding sequence structure and composition.",
       "href": "/dna",
       "type": "personal",
       "interestsMeWhy": "Combining biology and interactive graphics makes genomics approachable. It allowed me to explore data visualization beyond typical web apps and translate dense scientific concepts into something people can actually explore. I enjoy this kind of project because it sits at the intersection of domain education, visual design, and engineering clarity.",
@@ -1405,7 +1405,7 @@
     },
     {
       "name": "Bookworm",
-      "description": "AI powered PDF interactive AI chat bot.",
+      "description": "Bookworm is an AI-assisted PDF companion that supports document chat, contextual question answering, and faster information extraction from long-form content. It combines file ingestion, prompt orchestration, and user-friendly interaction patterns so dense documents can be explored conversationally without losing source-grounded context.",
       "href": "/bookworm",
       "type": "personal",
       "interestsMeWhy": "Integrating LLMs with PDF parsing shows how AI can unlock static documents. It was exciting to craft a conversational interface over complex texts, but the deeper value was designing retrieval and grounding behavior so answers stay useful and traceable. Projects like this are compelling because they turn passive reference material into an interactive research experience.",
@@ -1421,7 +1421,7 @@
     },
     {
       "name": "TalentForge",
-      "description": "AI-assisted career and offer strategy workspace for tracking applications, comparing offers, and managing negotiation playbooks.",
+      "description": "TalentForge is an AI-assisted career strategy workspace for managing job applications, offer comparisons, and negotiation planning in one place. It combines workflow organization, decision support, and practical execution tools so candidates can track opportunities with better consistency, clarity, and confidence through each hiring stage.",
       "href": "/talentforge",
       "type": "personal",
       "interestsMeWhy": "It brings together structured workflow design, AI assistance, and practical decision support in a way that feels like a real product rather than just a demo. I like that it balances strategy and execution: helping users track opportunities while also generating concrete next-step guidance. That blend of human decision-making and AI augmentation is exactly where I think productized AI is most valuable.",
@@ -1429,7 +1429,7 @@
     },
     {
       "name": "AI Shenanigans",
-      "description": "Mixed-media AI experiments spanning photo stylization, caricature, motion, and narrative concept development.",
+      "description": "AI Shenanigans is a mixed-media experimentation lab for stylization, character work, motion concepts, and narrative ideation across image-first AI workflows. It is designed as a creative sandbox where visual direction, tone exploration, and rapid iteration can be tested quickly before moving ideas into larger product or storytelling contexts.",
       "href": "/ai-shenanigans",
       "type": "personal",
       "interestsMeWhy": "This route is compelling because it treats AI as a creative pipeline, not a one-shot generator: source capture, visual reinterpretation, motion, and sometimes adaptation into larger story structures. It gives me a sandbox to explore multimodal consistency across image, video, and narrative beats while still shipping polished outputs. I love that each shenanigan can be playful on the surface while still exercising real production patterns underneath.",
@@ -1553,9 +1553,6 @@
           "emoji": "🧜‍♀️"
         }
       ],
-      "blockDiagram": "graph TD;\n  WAR[patient-list-war\\\nBackbone/Handlebars UI] --> REST[patient-list-rest\\\nSpring Controllers];\n  REST --> API[patient-list-api\\\nFacade + DTOs];\n  API <--implements--> SRV[patient-list-services\\\nBusiness Logic, Mapping, Validation];\n  SRV --> DAO[patient-list-dao\\\nRepositories/Queries];\n  DAO --> DB[(Database)];\n  WAR -. static assets .-> ASSETS[Templates JS CSS];",
-      "componentDiagram": "graph TD;\n  subgraph UI patient-list-war\n    Router[VisitRouter]\n    State[VisitListState]\n    Coll[VisitCollection]\n    ListView[VisitListView]\n    ItemView[VisitItemView]\n    Toolbar[ToolbarView]\n    Pager[PaginationView]\n    Wizard[WizardView]\n    TList[visit-list.hbs]\n    TRow[visit-row.hbs]\n  end\n  subgraph REST/API\n    EP[/GET /api/v1/visits/]\n    EPlist[/GET /api/v1/visitLists/id/visits/]\n    DTO[VisitDto]\n  end\n  subgraph Server\n    Ctl[VisitController]\n    Fac[VisitFacade]\n    Svc[VisitServiceImpl]\n    Map[VisitMapper]\n    Repo[VisitRepository]\n    DB[(DB)]\n  end\n  Router --> ListView\n  Router --> State\n  ListView --> Toolbar\n  ListView --> Pager\n  ListView --> Coll\n  Coll -->|reset/sync| ListView\n  ListView -->|each model| ItemView\n  ListView --> TList\n  ItemView --> TRow\n  Toolbar -->|filter:changed| State\n  Pager -->|page:changed| State\n  State -->|toQuery| Coll\n  Coll -->|fetch| EP\n  EP --> Ctl --> Fac --> Svc --> Repo --> DB\n  Repo --> Svc --> Map --> DTO --> Ctl --> EP --> Coll\n  Wizard -->|save list| Ctl",
-      "sequenceDiagram": "sequenceDiagram\n  participant U as User\n  participant R as VisitRouter\n  participant V as VisitListView\n  participant S as VisitListState\n  participant C as VisitCollection\n  participant T as ToolbarView\n  participant H as Handlebars Templates\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as VisitFacade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/visits?listId=123&page=1\n  R->>S: create from query (listId,page,sort,filters)\n  R->>V: new VisitListView({state:S, collection:C})\n  V->>C: fetch({data: S.toQuery()})\n  C->>REST: GET /api/v1/visits?listId=123&page=1&sort=...\n  REST->>CTR: Dispatch controller\n  CTR->>FAC: findVisits(listId,paging,filters)\n  FAC->>DAO: query(listId,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>C: 200 JSON {items:[], paging:{}}\n  C-->>V: reset/sync events\n  V->>H: Render visit-list.hbs + visit-row.hbs\n  H-->>V: HTML table\n  V-->>U: Patient visit list displayed\n  U->>T: Change filter/search\n  T-->>S: event filter:changed\n  S-->>V: change:*\n  V->>C: fetch() (debounced) with new query\n  C->>REST: GET /api/v1/visits?... (repeat)",
       "diagrams": [
         {
           "title": "Component Diagram",
@@ -1599,7 +1596,29 @@
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
       },
-      "presentationOrigin": "work"
+      "presentation": {
+        "useSharedOverviewSlide": false,
+        "useSharedDemoSlide": true,
+        "useSharedArchitectureDiagramsSlide": true,
+        "enableWhyThisInterestsSection": false,
+        "demoLayout": "default",
+        "sectionOrder": ["overview", "demo", "technologies", "specifications", "diagrams"],
+        "prefetchPlan": {
+          "overview": ["markdown", "image", "video"],
+          "demo": ["video", "image"],
+          "technologies": ["markdown"],
+          "specifications": ["markdown", "pdf"],
+          "diagrams": ["diagram", "pdf"]
+        }
+      },
+      "presentationOrigin": "work",
+      "terminalDemo": {
+        "title": "Patient List Project Demo",
+        "subtitle": "Configurable physician visit-list workflow",
+        "caption": "Demonstrates physician list operations end-to-end: routing into list state, configurable filters and sorting, paginated retrieval, and stable REST contract flow through controller, facade, service, mapper, and repository layers.",
+        "mediaUrl": "/personal/demogifs/patient_list_demo.gif",
+        "mediaType": "image"
+      }
     },
     {
       "name": "Patient Assignment List Project",
@@ -1716,9 +1735,6 @@
           "emoji": "🧜‍♀️"
         }
       ],
-      "blockDiagram": "graph TD;\n  WAR[patient-list-war\\\nBackbone/Handlebars UI] --> REST[patient-list-rest\\\nSpring Controllers];\n  REST --> API[patient-list-api\\\nFacade + DTOs];\n  API <--implements--> SRV[patient-list-services\\\nBusiness Logic, Mapping, Validation];\n  SRV --> DAO[patient-list-dao\\\nRepositories/Queries];\n  DAO --> DB[(Database)];\n  WAR -. static assets .-> ASSETS[Templates JS CSS];",
-      "componentDiagram": "graph TD;\n  subgraph UI patient-list-war\n    AR[AssignmentRouter]\n    AS[AssignmentState]\n    ALV[AssignmentListView]\n    VCOL[VisitCollection]\n    VLV[VisitListView]\n    TBV[ToolbarView]\n    PGR[PaginationView]\n    WIZ[WizardView]\n    TLIST[assignment-list.hbs]\n    TROW[visit-row.hbs]\n  end\n  subgraph REST/API\n    EPV[/GET /api/v1/visits/]\n    EPA[/GET /api/v1/assignmentLists/id/summary/]\n    DTOv[VisitDto]\n    DTOa[AssignmentListDto]\n  end\n  subgraph Server\n    CtlV[VisitController]\n    CtlA[AssignmentController]\n    Fac[PatientListFacade]\n    Svc[Facade Impl]\n    Map[DTO Mappers]\n    RepoV[VisitRepository]\n    RepoA[AssignmentRepository]\n    DB[(DB)]\n  end\n  AR --> AS\n  AR --> ALV\n  ALV --> TBV\n  ALV --> PGR\n  ALV --> VCOL\n  ALV -->|subview| VLV\n  VCOL -->|reset/sync| VLV\n  ALV --> TLIST\n  VLV --> TROW\n  TBV -->|filter:changed| AS\n  PGR -->|page:changed| AS\n  AS -->|toQuery| VCOL\n  VCOL -->|fetch| EPV\n  EPV --> CtlV --> Fac --> Svc --> RepoV --> DB\n  RepoV --> Svc --> Map --> DTOv --> CtlV --> EPV --> VCOL\n  ALV -->|load summary| EPA --> CtlA --> Fac --> RepoA --> DB\n  WIZ -->|save list| CtlA",
-      "sequenceDiagram": "sequenceDiagram\n  participant U as User\n  participant R as AssignmentRouter\n  participant S as AssignmentState\n  participant A as AssignmentListView\n  participant VC as VisitCollection\n  participant V as VisitListView\n  participant T as ToolbarView\n  participant REST as /api/v1/visits\n  participant CTR as VisitController\n  participant FAC as Facade(Service)\n  participant DAO as VisitRepository\n  participant DB as Database\n\n  U->>R: Navigate #/assignments/42?assignee=RN1&page=1\n  R->>S: Initialize state (listId=42, assignee=RN1, page=1, sort, filters)\n  R->>A: new AssignmentListView({state:S})\n  A->>VC: fetch({ data: S.toQuery() })\n  VC->>REST: GET /api/v1/visits?listId=42&assignee=RN1&page=1&sort=...\n  REST->>CTR: Dispatch\n  CTR->>FAC: findVisitsForAssignment(listId,assignee,paging,filters)\n  FAC->>DAO: query(listId,assignee,paging,filters)\n  DAO->>DB: Execute SQL\n  DB-->>DAO: rows\n  DAO-->>FAC: entities\n  FAC-->>CTR: List<VisitDto> + paging\n  CTR-->>VC: 200 {items:[], paging:{}}\n  VC-->>A: reset/sync events\n  A->>V: render subview with VC\n  V->>V: render rows using Handlebars (visit-row.hbs)\n  A-->>U: Assignment list with visits displayed\n  U->>T: Change filter/search/assignee\n  T-->>S: filter:changed / assignee:changed\n  S-->>A: change:*\n  A->>VC: fetch() (debounced) with new query\n  VC->>REST: GET /api/v1/visits?... (repeat)",
       "diagrams": [
         {
           "title": "Component Diagram",
@@ -1762,7 +1778,29 @@
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
       },
-      "presentationOrigin": "work"
+      "presentation": {
+        "useSharedOverviewSlide": false,
+        "useSharedDemoSlide": true,
+        "useSharedArchitectureDiagramsSlide": true,
+        "enableWhyThisInterestsSection": false,
+        "demoLayout": "default",
+        "sectionOrder": ["overview", "demo", "technologies", "specifications", "diagrams"],
+        "prefetchPlan": {
+          "overview": ["markdown", "image", "video"],
+          "demo": ["video", "image"],
+          "technologies": ["markdown"],
+          "specifications": ["markdown", "pdf"],
+          "diagrams": ["diagram", "pdf"]
+        }
+      },
+      "presentationOrigin": "work",
+      "terminalDemo": {
+        "title": "Patient Assignment List Project Demo",
+        "subtitle": "Managed assignment workflow with drag-and-drop",
+        "caption": "Shows assignment management in motion: drag-and-drop ownership changes, role-aware filtering, time-window criteria, and coordinated backend updates so team workload can be rebalanced quickly without losing list integrity.",
+        "mediaUrl": "/personal/demogifs/assignment_list_demo.gif",
+        "mediaType": "image"
+      }
     },
     {
       "name": "AI-Driven Clinical Copilot",
@@ -1969,9 +2007,6 @@
           "emoji": "🎤"
         }
       ],
-      "blockDiagram": "graph TD\n  subgraph Browser[Physician Browser]\n    U[/URL with siteId, patientId, userId, chatUri/]\n    Page[Next.js /patientPromptEnum]\n  end\n\n  U --> Page\n  subgraph UI[Next.js App aicopilot]\n    Page --> Params[useAISummaryParams]\n    Page --> Init[useAISummaryInit]\n    Page --> PR[usePromptResources]\n    Page --> Sub[useSubPrompts]\n    Page --> Ans[useAnswer]\n    Page --> Chips[PromptChips]\n    Page --> Modal[AISummaryModal]\n    Page --> Renderer[PromptRenderer]\n    Renderer --> PP[PatientPrompt]\n  end\n\n  subgraph AF[Azure Functions TypeScript]\n    Clients[/GET v1/clients/]:::fn\n    Cats[/GET v1/categories/]:::fn\n    Prompts[/GET v1/prompts/]:::fn\n    Audits[/GET v1/chatAudits/]:::fn\n    DB[(Cosmos DB)]:::db\n    Clients --> DB\n    Cats --> DB\n    Prompts --> DB\n    Audits --> DB\n  end\n\n  subgraph PY[AI Chat Service Flask]\n    Chat[/POST v1/chat_patient/]:::fn\n    LC[LangChain + LLM]\n    Chat --> LC\n  end\n\n  PR -- load prompts --> Prompts\n  Page -- clientType lookup --> Clients\n  Page -- category options --> Cats\n  PP -- POST question/context/data --> Chat\n  Chat -- ChatAnswer(parts,context) --> PP\n  PP -- poll score --> Audits\n\n  classDef fn fill:#eef,stroke:#335,stroke-width:1px;\n  classDef db fill:#efe,stroke:#393,stroke-width:1px;",
-      "componentDiagram": "graph TB\n  A[/patientPromptEnum/page.tsx/]\n  subgraph Hooks\n    P1[useAISummaryParams]\n    P2[useAISummaryInit]\n    P3[usePromptResources]\n    P4[useSubPrompts]\n    P5[useAnswer]\n    P6[usePromptVisibility]\n    P7[usePromptTitle]\n    P8[useModalFocus]\n    P9[useAuth]\n    P10[useOrigin]\n  end\n\n  subgraph UI Components\n    C1[PromptRenderer]\n    C2[PatientPrompt]\n    C3[AISummaryModal]\n    C4[ModalTriggerTextField]\n    C5[PromptChips]\n    C6[BackToTopFab]\n    C7[Loading]\n    C8[SettingsMenu]\n  end\n\n  A --> P1 & P2 & P3 & P4 & P5 & P6 & P7 & P8 & P9 & P10\n  A --> C1 & C3 & C4 & C5 & C6 & C7 & C8\n  C1 --> C2\n  C2 -.->|onPromptFetching/onPromptFetched| A\n  A -.->|postMessage start/stopLoading| ParentApp",
-      "sequenceDiagram": "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Parent as Parent App (optional)\n  participant UI as Next.js /patientPromptEnum\n  participant Hooks as use* hooks\n  participant DP as Refine DataProvider\n  participant AF as Azure Functions (v1/clients, v1/categories, v1/prompts, v1/chatAudits)\n  participant DB as Cosmos DB\n  participant PP as PatientPrompt\n  participant PY as Flask aichat (/v1/chat_patient)\n  participant LLM as LangChain + LLM\n\n  Physician->>UI: Open with ?siteId&patientId&userId&chatUri[=&promptEnum|&interactive]\n  UI->>Hooks: useAISummaryParams() parse flags\n  Note over UI: If no auth and not localhost → notFound()\n  UI->>DP: list('clients', filter: siteId)\n  DP->>AF: GET /v1/clients?siteId=...\n  AF->>DB: query Clients\n  DB-->>AF: Client[] (clientType)\n  AF-->>DP: Client[]\n  UI->>DP: list('categories', filter: clientType)\n  DP->>AF: GET /v1/categories?clientType=...\n  AF->>DB: query Categories\n  DB-->>AF: Category[]\n  AF-->>DP: Category[]\n  UI->>DP: list('prompts', filters: siteId + promptEnum or text)\n  DP->>AF: GET /v1/prompts?siteId=...&promptEnum=...|text=...\n  AF->>DB: query Prompts\n  DB-->>AF: Prompt[]\n  AF-->>DP: Prompt[]\n  DP-->>UI: Prompt[]\n  UI->>UI: useSubPrompts split '<new_question>' → prompts[]\n  UI->>PP: Render for each prompt (or free-text)\n\n  loop For each question\n    PP->>Parent: postMessage startLoading{module}\n    PP->>PY: POST { chatUri=/v1/chat_patient }\\n{ siteID, patientID, userID, queryText, model, category[], context{}, data }\n    PY->>LLM: Build chain and fetch\n    LLM-->>PY: ChatAnswer(parts[], context)\n    PY-->>PP: 200 { answerId, content, parts[], context }\n    PP->>AF: Poll GET /v1/chatAudits?answerId=… (if guardrails on)\n    AF->>DB: Find ChatAudit\n    DB-->>AF: score, valid, reason\n    AF-->>PP: ChatAudit\n    alt score < 7 or !valid and retries < 3\n      PP->>PY: retry POST /v1/chat_patient\n    else success\n      PP->>UI: onPromptFetched(prompt, parts)\n      PP->>Parent: postMessage stopLoading{module}\n    end\n  end\n\n  Physician->>UI: Adjust model/categories/guardrails, then ask again\n  UI->>PP: Re-run with updated settings",
       "diagrams": [
         {
           "title": "Component Diagram",
@@ -2015,7 +2050,29 @@
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
       },
-      "presentationOrigin": "work"
+      "presentation": {
+        "useSharedOverviewSlide": true,
+        "useSharedDemoSlide": true,
+        "useSharedArchitectureDiagramsSlide": true,
+        "enableWhyThisInterestsSection": false,
+        "demoLayout": "default",
+        "sectionOrder": ["overview", "demo", "technologies", "specifications", "diagrams"],
+        "prefetchPlan": {
+          "overview": ["markdown", "image", "video"],
+          "demo": ["video", "image"],
+          "technologies": ["markdown"],
+          "specifications": ["markdown", "pdf"],
+          "diagrams": ["diagram", "pdf"]
+        }
+      },
+      "presentationOrigin": "work",
+      "terminalDemo": {
+        "title": "AI Clinical Copilot Demo",
+        "subtitle": "Citation-grounded physician assistant workflow",
+        "caption": "Walks through prompt-to-answer orchestration for clinical questions: retrieval of patient context, grounded summarization with citations, guardrail scoring, and UI delivery optimized for rapid physician validation during active care workflows.",
+        "mediaUrl": "/personal/demogifs/ai_summary.gif",
+        "mediaType": "image"
+      }
     },
     {
       "name": "AI Patient List Podcasts",
@@ -2124,9 +2181,6 @@
           "emoji": "🪣"
         }
       ],
-      "blockDiagram": "flowchart TB\n  subgraph UI[Next.js PromptJob Page]\n    Q[Physician Question]\n    L[List: Patient Podcasts]\n    P[HTML5 Audio Player]\n    F[Filters: last 12h]\n    S[Status/Progress Chips]\n  end\n\n  subgraph AICHAT[Python Flask aichat]\n    R[v1/chat_patient]\n    AG[LangChain Agent]\n    T1[Tool:getPatientEvents for 12h]\n    T2[Tool:planAndDraftScript]\n    T3[Tool:geminiTTS]\n    T4[Tool:savePodcastItem]\n  end\n\n  subgraph AFNS[Azure Functions-TypeScript]\n    FN1[/GET Patients/]\n    FN2[/GET Events?since=12h/]\n    FN3[/POST PromptJobs/]\n    FN4[/GET PromptJobs/:id/]\n    FN5[/PUT PodcastItems/]\n  end\n\n  subgraph DATA[Azure Resources]\n    COSMOS[(Cosmos DB)]\n    BLOB[[Blob Storage: audio.mp3]]\n  end\n\n  Q -->|POST prompt, window:12h via chatUri| R\n  R --> AG\n  AG -->|invoke| T1 --> FN2 --> COSMOS\n  AG -->|invoke| T2\n  AG -->|invoke| T3 --> BLOB\n  AG -->|invoke| T4 --> FN5 --> COSMOS\n  R -->|create job| FN3 --> COSMOS\n  UI <--> |poll| FN4\n  UI --> |fetch list| FN5\n  COSMOS -->|podcast metadata| UI\n  BLOB -->|audioUrl - SAS | UI\n  UI -.-> L\n  UI -.-> P\n  UI -.-> S\n  UI -.-> F\n",
-      "componentDiagram": "flowchart LR\n  subgraph Page[PromptJobPage.tsx]\n    HOOK0[useInit chatUri, window=12h]\n    HOOK1[usePromptJob-chatUri]\n    HOOK2[usePromptJobStatus-jobId]\n    HOOK3[usePatientPodcasts-window=12h]\n    HOOK4[useAudioPlayer]\n    HOOK5[useFilters]\n    BAR[FiltersBar]\n    LIST[PodcastList]\n    CARD[PatientPodcastCard]\n    PLAYER[PodcastPlayer]\n    EMPTY[EmptyState]\n  end\n\n  HOOK0 --> HOOK1\n  HOOK1 --> HOOK2\n  HOOK2 --> HOOK3\n  HOOK5 --> HOOK3\n  HOOK3 --> LIST\n  LIST --> CARD\n  CARD --> PLAYER\n  PLAYER --> HOOK4\n  BAR --> HOOK5\n\n  subgraph DataLayer\n    API[apiClient using native fetch]\n    STATE[useState/useEffect]\n  end\n\n  HOOK1 -->|POST /v1/chat_patient| API\n  HOOK2 -->|GET /functions/promptjobs/:id| API\n  HOOK3 -->|GET /functions/podcastItems?since=12h| API\n  API --> STATE",
-      "sequenceDiagram": "sequenceDiagram\n  autonumber\n  actor Physician\n  participant Page as Next.js PromptJobPage\n  participant AIC as Flask aichat (/v1/chat_patient)\n  participant AG as LangChain Agent\n  participant AF as Azure Functions (TS)\n  participant DB as Cosmos DB\n  participant BL as Blob Storage\n  participant GM as Gemini TTS\n\n  Physician->>Page: Type question & Submit\n  Note over Page: chatUri prop points to /v1/chat_patient\n  Page->>AIC: POST /v1/chat_patient { prompt, window: last12h }\n  AIC->>AF: POST /promptjobs (create)\n  AF->>DB: Insert PromptJob { jobId, status: queued }\n  AF-->>AIC: 201 { jobId }\n  AIC->>AG: Start agent(jobId, window=12h)\n\n  AG->>AF: GET /events?since=12h&groupBy=patient\n  AF->>DB: Query events (labs, vitals, notes)\n  DB-->>AF: Events by patient\n  AF-->>AG: Events payload\n  AG->>AG: Plan outline + draft script per patient\n  AG->>GM: Synthesize(script, voice)\n  GM-->>AG: Audio bytes\n  AG->>BL: PUT /blobs/podcasts/{jobId}/{patientId}.mp3\n  BL-->>AG: audioUrl (SAS)\n  AG->>AF: PUT /podcastItems { jobId, patientId, audioUrl, transcript, status: ready }\n  AF->>DB: Upsert PodcastItem\n  loop Progress updates\n    AG->>AF: PUT /promptjobs/{jobId}/progress { completed, total }\n    AF->>DB: Update PromptJob\n  end\n  AG-->>AIC: Completed\n  AIC->>AF: PUT /promptjobs/{jobId} { status: complete }\n  AF->>DB: Mark complete\n\n  par UI refresh cycle\n    Page->>AF: GET /promptjobs/{jobId}\n    AF-->>Page: { status, progress }\n    Page->>AF: GET /podcastItems?jobId&since=12h\n    AF->>DB: Query podcast items\n    DB-->>AF: Results (with audioUrl)\n    AF-->>Page: PodcastItems[]\n  end\n\n  Physician->>Page: Click play on a patient\n  Page->>BL: GET audioUrl (SAS)\n  BL-->>Page: MP3 stream\n  Page-->>Physician: Audio playback + transcript + controls",
       "diagrams": [
         {
           "title": "Component Diagram",
@@ -2170,11 +2224,27 @@
         "specifications": "/audio/tick_002.mp3",
         "diagrams": "/audio/switch_007.ogg"
       },
+      "presentation": {
+        "useSharedOverviewSlide": true,
+        "useSharedDemoSlide": true,
+        "useSharedArchitectureDiagramsSlide": true,
+        "enableWhyThisInterestsSection": true,
+        "demoLayout": "podcasts",
+        "sectionOrder": ["overview", "why", "demo", "technologies", "specifications", "diagrams"],
+        "prefetchPlan": {
+          "overview": ["markdown", "image", "video"],
+          "why": ["markdown"],
+          "demo": ["video", "image"],
+          "technologies": ["markdown"],
+          "specifications": ["markdown", "pdf"],
+          "diagrams": ["diagram", "pdf"]
+        }
+      },
       "presentationOrigin": "work"
     },
     {
       "name": "Petly",
-      "description": "Pet owner portal mixing a social feed with full veterinary EHR access including vaccinations, x-rays, visits, and invoices.",
+      "description": "Petly is a pet-owner portal that combines a social-style engagement surface with full veterinary EHR access, including vaccinations, x-rays, visit notes, and invoice history. It is designed to improve continuity between owners and care teams by making essential clinical and administrative information easier to find and act on.",
       "href": "/petly",
       "type": "work",
       "interestsMeWhy": "At IDEXX we reshaped boxy Liferay portals into a playful notebook of sticky notes, lists, and photos, with no square portlets in sight. The work was a strong lesson in translating rigid platform constraints into an experience that felt warm, modern, and consumer-friendly. I am especially interested in these transformations because they prove thoughtful frontend architecture can radically improve how people feel about enterprise software.",
