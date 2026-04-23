@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Loop from "@mui/icons-material/Loop";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -10,50 +10,38 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { alpha, useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import AIShenaniganPanel from "./AIShenaniganPanel";
 import { EmojiGlyph, MediaCycler } from "@/components/shared";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { withBasePath } from "@/utils/basePath";
-import type { AIShenaniganMovieOrientation } from "./AIShenanigan";
-
-type WorkDocumentPart = {
-  src: string;
-  title?: string;
-  source?: string;
-  sourceHref?: string;
-  caption?: string;
-};
-
-type SeriesMediaPart = {
-  src: string;
-  title?: string;
-  source?: string;
-  sourceHref?: string;
-  caption?: string;
-};
-
-type RevealStep = { kind: "work"; index: number } | { kind: "series"; index: number };
-
-type AIShenaniganWorkSeriesProps = {
-  rank: number;
-  title: string;
-  blurb: string;
-  orientation?: AIShenaniganMovieOrientation;
-  intentToCopyright?: boolean;
-  rightsNotice?: string;
-  workPdf?: string;
-  workSource?: string;
-  workSourceHref?: string;
-  workCaption?: string;
-  workParts?: WorkDocumentPart[];
-  seriesMovie?: string;
-  seriesSource?: string;
-  seriesSourceHref?: string;
-  seriesCaption?: string;
-  seriesParts?: SeriesMediaPart[];
-};
+import {
+  buildCondensedChronologyIndices,
+  resolveCurrentRevealIndex,
+} from "../_utils/chronologyUtils";
+import { useRevealScrollStabilizer } from "../_hooks/useRevealScrollStabilizer";
+import type {
+  AIShenaniganWorkSeriesProps,
+  RevealStep,
+  SeriesMediaPart,
+  WorkDocumentPart,
+} from "../_types/workSeries";
+import {
+  buildWorkSeriesChronologySteps,
+  currentRevealStep,
+  getSeriesLabel,
+  getWorkLabel,
+  nextRevealStep,
+  normalizeSeriesParts,
+  normalizeWorkParts,
+} from "../_utils/workSeriesHelpers";
+import {
+  mediaControlSx,
+  mediaPanelSx,
+  panelChromeSx,
+  restartActionSx,
+} from "../_utils/workSeriesStyles";
 
 export default function AIShenaniganWorkSeries({
   rank,
@@ -87,7 +75,7 @@ export default function AIShenaniganWorkSeries({
   const workFooterRefs = useRef<Array<HTMLDivElement | null>>([]);
   const seriesFooterRefs = useRef<Array<HTMLDivElement | null>>([]);
   const seriesVideoRefs = useRef<Array<HTMLVideoElement | null>>([]);
-  const scrollStabilizersRef = useRef<Array<() => void>>([]);
+  const { clearScrollStabilizers, scrollRevealIntoView } = useRevealScrollStabilizer();
   const workSfx = useAudio("/audio/open_003.ogg");
   const seriesSfx = useAudio("/audio/whoosh.ogg");
   const rewindSfx = useAudio("/audio/phaserDown2.ogg");
@@ -99,77 +87,26 @@ export default function AIShenaniganWorkSeries({
   const desktopInfoPanelBasis = "30%";
   const desktopInfoPanelMaxWidth = "36%";
   const desktopMediaPanelHeight = "100%";
-  const normalizedWorkParts =
-    workParts.length > 0
-      ? workParts
-      : workPdf
-        ? [
-            {
-              src: workPdf,
-              source: workSource,
-              sourceHref: workSourceHref,
-              caption: workCaption,
-            },
-          ]
-        : [];
-  const normalizedSeriesParts =
-    seriesParts.length > 0
-      ? seriesParts
-      : seriesMovie
-        ? [
-            {
-              src: seriesMovie,
-              source: seriesSource,
-              sourceHref: seriesSourceHref,
-              caption: seriesCaption,
-            },
-          ]
-        : [];
+  const normalizedWorkParts = normalizeWorkParts({
+    workParts,
+    workPdf,
+    workSource,
+    workSourceHref,
+    workCaption,
+  });
+  const normalizedSeriesParts = normalizeSeriesParts({
+    seriesParts,
+    seriesMovie,
+    seriesSource,
+    seriesSourceHref,
+    seriesCaption,
+  });
   const hasVisibleMedia = revealedWorkCount > 0 || revealedSeriesCount > 0;
   const formattedRank = `#${String(rank).padStart(2, "0")}`;
   const rightsLabel = rightsNotice || "Intent to Copyright";
   const rightsStampAngle = ((rank * 7) % 17) - 8;
-  const panelChromeSx = {
-    borderRadius: "24px",
-    border: "1px solid",
-    borderColor: "var(--fabric-surface-border)",
-    backgroundColor: "var(--fabric-surface-1)",
-    backgroundImage: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
-    boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
-    backdropFilter: "blur(var(--fabric-blur-sm))",
-  } as const;
-  const mediaControlSx = (currentTheme: typeof theme) => ({
-    color: currentTheme.palette.common.black,
-    borderColor: currentTheme.palette.common.black,
-    bgcolor: currentTheme.palette.common.white,
-    "&:hover": {
-      bgcolor: currentTheme.palette.common.white,
-    },
-    "&.Mui-disabled": {
-      color: alpha(currentTheme.palette.common.black, 0.36),
-      borderColor: alpha(currentTheme.palette.common.black, 0.36),
-      bgcolor: alpha(currentTheme.palette.common.white, 0.8),
-    },
-  });
-  const restartActionSx = (currentTheme: typeof theme) => ({
-    border: "1px solid",
-    ...mediaControlSx(currentTheme),
-  });
-  const mediaPanelSx = {
-    ...panelChromeSx,
-    p: 2.5,
-    position: "relative",
-    height: "100%",
-    minHeight: 0,
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-  } as const;
   const totalWorkParts = normalizedWorkParts.length;
   const totalSeriesParts = normalizedSeriesParts.length;
-
-  const clearPendingTransitions = useCallback(() => {}, []);
-
   const stopSeriesVideos = () => {
     seriesVideoRefs.current.forEach((video) => {
       if (!video) {
@@ -180,142 +117,15 @@ export default function AIShenaniganWorkSeries({
       video.currentTime = 0;
     });
   };
-
-  const clearScrollStabilizers = useCallback(() => {
-    scrollStabilizersRef.current.forEach((cleanup) => cleanup());
-    scrollStabilizersRef.current = [];
-  }, []);
-
-  const scrollPanelIntoView = useCallback(
-    (panel: HTMLElement | null, block: ScrollLogicalPosition = "nearest") => {
-      if (!panel) {
-        return;
-      }
-
-      clearScrollStabilizers();
-
-      const scroll = () => {
-        panel.scrollIntoView({
-          behavior: "smooth",
-          block,
-        });
-      };
-
-      scroll();
-
-      const cleanups: Array<() => void> = [];
-      [180, 480, 1080].forEach((delay) => {
-        const timeoutId = window.setTimeout(scroll, delay);
-        cleanups.push(() => window.clearTimeout(timeoutId));
-      });
-
-      if (typeof ResizeObserver !== "undefined") {
-        const observer = new ResizeObserver(() => {
-          scroll();
-        });
-        observer.observe(panel);
-        cleanups.push(() => observer.disconnect());
-
-        const observerTimeoutId = window.setTimeout(() => {
-          observer.disconnect();
-        }, 1600);
-        cleanups.push(() => window.clearTimeout(observerTimeoutId));
-      }
-
-      scrollStabilizersRef.current = cleanups;
-    },
-    [clearScrollStabilizers],
-  );
-
-  const scrollRevealIntoView = useCallback(
-    (
-      panel: HTMLElement | null,
-      footer: HTMLElement | null,
-      block: ScrollLogicalPosition = "center",
-    ) => {
-      if (!panel) {
-        return;
-      }
-
-      const shouldFavorFooter =
-        Boolean(footer) &&
-        typeof window !== "undefined" &&
-        window.matchMedia("(max-width:1199.95px)").matches;
-
-      if (!shouldFavorFooter || !footer) {
-        scrollPanelIntoView(panel, block);
-        return;
-      }
-
-      clearScrollStabilizers();
-
-      const scrollPanel = () => {
-        panel.scrollIntoView({
-          behavior: "smooth",
-          block,
-        });
-      };
-
-      const scrollFooter = () => {
-        footer.scrollIntoView({
-          behavior: "smooth",
-          block: "end",
-        });
-      };
-
-      scrollPanel();
-
-      const cleanups: Array<() => void> = [];
-      [220, 520, 1080].forEach((delay) => {
-        const timeoutId = window.setTimeout(scrollFooter, delay);
-        cleanups.push(() => window.clearTimeout(timeoutId));
-      });
-
-      if (typeof ResizeObserver !== "undefined") {
-        const observer = new ResizeObserver(() => {
-          scrollFooter();
-        });
-        observer.observe(panel);
-        observer.observe(footer);
-        cleanups.push(() => observer.disconnect());
-
-        const observerTimeoutId = window.setTimeout(() => {
-          observer.disconnect();
-        }, 1600);
-        cleanups.push(() => window.clearTimeout(observerTimeoutId));
-      }
-
-      scrollStabilizersRef.current = cleanups;
-    },
-    [clearScrollStabilizers, scrollPanelIntoView],
-  );
-
-  const getWorkLabel = (index: number) => `${title} - Part ${index + 1} of ${totalWorkParts}`;
-  const getSeriesLabel = (index: number) =>
-    `${title} - Series - Part ${index + 1} of ${totalSeriesParts}`;
-
-  const chronologySteps: Array<{
-    key: string;
-    label: string;
-    active: boolean;
-    reached: boolean;
-    step: RevealStep;
-  }> = [
-    ...normalizedWorkParts.map((_, index) => ({
-      key: `work-${index}`,
-      label: getWorkLabel(index),
-      active: revealedWorkCount === index + 1 && revealedSeriesCount === 0,
-      reached: revealedWorkCount > index,
-      step: { kind: "work" as const, index },
-    })),
-    ...normalizedSeriesParts.map((_, index) => ({
-      key: `series-${index}`,
-      label: getSeriesLabel(index),
-      active: revealedSeriesCount === index + 1,
-      reached: revealedSeriesCount > index,
-      step: { kind: "series" as const, index },
-    })),
-  ];
+  const chronologySteps = buildWorkSeriesChronologySteps({
+    title,
+    normalizedWorkParts,
+    normalizedSeriesParts,
+    revealedWorkCount,
+    revealedSeriesCount,
+    totalWorkParts,
+    totalSeriesParts,
+  });
 
   const renderSource = (label?: string, href?: string) => {
     if (!label) {
@@ -519,28 +329,16 @@ export default function AIShenaniganWorkSeries({
     );
   };
 
-  const currentStep = (): RevealStep | null => {
-    if (revealedSeriesCount > 0) {
-      return { kind: "series", index: revealedSeriesCount - 1 };
-    }
-    if (revealedWorkCount > 0) {
-      return { kind: "work", index: revealedWorkCount - 1 };
-    }
-    return null;
-  };
-
-  const nextStep = (): RevealStep | null => {
-    if (revealedWorkCount < totalWorkParts) {
-      return { kind: "work", index: revealedWorkCount };
-    }
-    if (revealedSeriesCount < totalSeriesParts) {
-      return { kind: "series", index: revealedSeriesCount };
-    }
-    return null;
-  };
+  const currentStep = currentRevealStep({ revealedWorkCount, revealedSeriesCount });
+  const nextStep = nextRevealStep({
+    revealedWorkCount,
+    revealedSeriesCount,
+    totalWorkParts,
+    totalSeriesParts,
+  });
 
   const renderNextAction = () => {
-    const step = nextStep();
+    const step = nextStep;
     if (!step) {
       return null;
     }
@@ -553,7 +351,7 @@ export default function AIShenaniganWorkSeries({
           disabled={transitioning !== null}
           endIcon={<EmojiGlyph glyph="📖" slot="end" />}
         >
-          {`Reveal ${getWorkLabel(step.index)}`}
+          {`Reveal ${getWorkLabel(title, step.index, totalWorkParts)}`}
         </Button>
       );
     }
@@ -565,7 +363,7 @@ export default function AIShenaniganWorkSeries({
         disabled={transitioning !== null}
         endIcon={<EmojiGlyph glyph="🎬" slot="end" />}
       >
-        {`Reveal ${getSeriesLabel(step.index)}`}
+        {`Reveal ${getSeriesLabel(title, step.index, totalSeriesParts)}`}
       </Button>
     );
   };
@@ -576,7 +374,6 @@ export default function AIShenaniganWorkSeries({
     }
 
     rewindAndPlayAudio(rewindSfx, { volume: 0.24 });
-    clearPendingTransitions();
     setTransitioning(null);
     stopSeriesVideos();
 
@@ -604,47 +401,12 @@ export default function AIShenaniganWorkSeries({
 
   const renderChronologyChips = (scope: "main" | "panel") => {
     const useCondensedChronology = chronologySteps.length > 3;
-    const activeIndex = chronologySteps.findIndex((item) => item.active);
-    let currentIndex = activeIndex;
-
-    if (currentIndex === -1) {
-      for (let index = chronologySteps.length - 1; index >= 0; index -= 1) {
-        if (chronologySteps[index]?.reached) {
-          currentIndex = index;
-          break;
-        }
-      }
-    }
-
-    if (currentIndex === -1) {
-      currentIndex = 0;
-    }
-
-    const firstIndex = 0;
-    const lastIndex = Math.max(chronologySteps.length - 1, 0);
+    const currentIndex = resolveCurrentRevealIndex(chronologySteps);
     const displayedIndices = useCondensedChronology
-      ? (() => {
-          const condensedIndices = new Set([firstIndex, currentIndex, lastIndex]);
-
-          if (condensedIndices.size < 3) {
-            if (currentIndex === firstIndex && firstIndex + 1 < lastIndex) {
-              condensedIndices.add(firstIndex + 1);
-            }
-
-            if (currentIndex === lastIndex && lastIndex - 1 > firstIndex) {
-              condensedIndices.add(lastIndex - 1);
-            }
-          }
-
-          if (condensedIndices.size < 3) {
-            const middleIndex = Math.floor((firstIndex + lastIndex) / 2);
-            if (middleIndex > firstIndex && middleIndex < lastIndex) {
-              condensedIndices.add(middleIndex);
-            }
-          }
-
-          return Array.from(condensedIndices).sort((left, right) => left - right);
-        })()
+      ? buildCondensedChronologyIndices({
+          labelCount: chronologySteps.length,
+          currentIndex,
+        })
       : chronologySteps.map((_, index) => index);
 
     return displayedIndices.map((index, chipPosition) => {
@@ -745,14 +507,12 @@ export default function AIShenaniganWorkSeries({
 
   useEffect(() => {
     return () => {
-      clearPendingTransitions();
       clearScrollStabilizers();
     };
-  }, [clearPendingTransitions, clearScrollStabilizers]);
+  }, [clearScrollStabilizers]);
 
   const resetReveal = () => {
     rewindAndPlayAudio(rewindSfx, { volume: 0.24 });
-    clearPendingTransitions();
     clearScrollStabilizers();
     setTransitioning(null);
     setRevealedWorkCount(0);
@@ -762,7 +522,7 @@ export default function AIShenaniganWorkSeries({
   };
 
   const handleRevealNextStep = () => {
-    const step = nextStep();
+    const step = nextStep;
     if (!step || transitioning) {
       return;
     }
@@ -819,11 +579,11 @@ export default function AIShenaniganWorkSeries({
       }}
       sx={mediaPanelSx}
     >
-      {renderMobilePanelHeader(getWorkLabel(index), part.source)}
+      {renderMobilePanelHeader(getWorkLabel(title, index, totalWorkParts), part.source)}
       {!isSmDown && (
         <>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            {getWorkLabel(index)}
+            {getWorkLabel(title, index, totalWorkParts)}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Reveal the source document segment that anchors the concept.
@@ -832,7 +592,7 @@ export default function AIShenaniganWorkSeries({
       )}
       {renderPdfFrame(
         part.src,
-        `${title} ${getWorkLabel(index)}`,
+        `${title} ${getWorkLabel(title, index, totalWorkParts)}`,
         () => {
           scrollRevealIntoView(workCardRefs.current[index], workFooterRefs.current[index]);
         },
@@ -843,10 +603,10 @@ export default function AIShenaniganWorkSeries({
         transitioning !== null || index <= 0,
         transitioning !== null ||
           !(
-            (nextStep()?.kind === "work" && nextStep()?.index === index + 1) ||
-            (nextStep()?.kind === "series" && index === totalWorkParts - 1)
+            (nextStep?.kind === "work" && nextStep.index === index + 1) ||
+            (nextStep?.kind === "series" && index === totalWorkParts - 1)
           ),
-        index === revealedWorkCount - 1 && nextStep() === null,
+        index === revealedWorkCount - 1 && nextStep === null,
         () => {
           rewindToStep({ kind: "work", index: 0 });
         },
@@ -873,7 +633,7 @@ export default function AIShenaniganWorkSeries({
       {!isSmDown && (
         <>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            {getSeriesLabel(index)}
+            {getSeriesLabel(title, index, totalSeriesParts)}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Push the written concept into motion as a series adaptation beat.
@@ -907,7 +667,7 @@ export default function AIShenaniganWorkSeries({
             return;
           }
 
-          const upcoming = nextStep();
+          const upcoming = nextStep;
           const isLatestRevealedCard = index === revealedSeriesCount - 1;
           if (isLatestRevealedCard && upcoming?.kind === "series") {
             handleRevealNextStep();
@@ -923,10 +683,10 @@ export default function AIShenaniganWorkSeries({
           transitioning !== null ||
           !(
             index < revealedSeriesCount - 1 ||
-            (index === revealedSeriesCount - 1 && nextStep()?.kind === "series")
+            (index === revealedSeriesCount - 1 && nextStep?.kind === "series")
           )
         }
-        loopNavigation={index === revealedSeriesCount - 1 && nextStep() === null}
+        loopNavigation={index === revealedSeriesCount - 1 && nextStep === null}
         onLoopNavigation={() => {
           if (totalWorkParts > 0) {
             rewindToStep({ kind: "work", index: 0 });
@@ -948,12 +708,12 @@ export default function AIShenaniganWorkSeries({
             title: isSmDown ? title : "",
             description: isSmDown
               ? part.source?.trim()
-                ? `${getSeriesLabel(index)} • ${part.source.trim()}`
-                : getSeriesLabel(index)
+                ? `${getSeriesLabel(title, index, totalSeriesParts)} • ${part.source.trim()}`
+                : getSeriesLabel(title, index, totalSeriesParts)
               : undefined,
             mediaType: "video",
             mediaUrl: withBasePath(part.src),
-            mediaLightboxTitle: `${title} ${getSeriesLabel(index)}`,
+            mediaLightboxTitle: `${title} ${getSeriesLabel(title, index, totalSeriesParts)}`,
             mediaCaption: part.caption,
             mediaSource: part.source,
             mediaSourceHref: part.sourceHref,
@@ -971,7 +731,7 @@ export default function AIShenaniganWorkSeries({
                 return;
               }
 
-              const upcoming = nextStep();
+              const upcoming = nextStep;
               const isLatestRevealedCard = index === revealedSeriesCount - 1;
               const shouldRevealNextSeriesPart =
                 isLatestRevealedCard && upcoming?.kind === "series";
@@ -1011,7 +771,7 @@ export default function AIShenaniganWorkSeries({
     </Box>
   );
 
-  const current = currentStep();
+  const current = currentStep;
 
   return (
     <AIShenaniganPanel className="overflow-hidden">

@@ -40,6 +40,35 @@ import {
   createPortfolioSetupCommandRegistry,
   runPortfolioSetupCommand,
 } from "./portfolio-setup/commands";
+import { createWizardUi, type WizardReadline } from "./portfolio-setup/wizardUi";
+import {
+  defaultCompetencyCategoryTemplate,
+  defaultEducationTemplate,
+  defaultExperienceTemplate,
+  defaultProjectDiagrams,
+  defaultRecognitionSnippetTemplate,
+  defaultRecommendationTemplate,
+  formatRecognitionSnippetPreview,
+  normalizeRecognitionSnippet,
+  parseCompetencyItems,
+  serializeCompetencyItems,
+  type AppAssetFolderMap,
+  type CompetenciesData,
+  type CompetencyCategoryEntry,
+  type ContactInfo,
+  type EducationEntry,
+  type ExperienceEntry,
+  type NavigationRoute,
+  type ProjectEntry,
+  type RecognitionData,
+  type RecognitionSnippetEntry,
+  type RecommendationEntry,
+  type ResumeData,
+  type ScopedAssetOptions,
+  type ShenaniganEntry,
+  type SummaryData,
+} from "./portfolio-setup/setupModels";
+import { clearInitAssets, replaceFaviconWithDefault } from "./portfolio-setup/repoReset";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,6 +86,17 @@ const personalDemoVideosDir = path.join(personalDir, "demovideos");
 const personalPdfsDir = path.join(personalDir, "pdfs");
 const faviconPath = path.join(publicDir, "favicon.ico");
 const faviconDefaultPath = path.join(publicDir, "favicon.ico.default");
+const initResetPaths = [
+  appsPublicDir,
+  personalDataDir,
+  personalDemoGifsDir,
+  personalDemoVideosDir,
+  shenanigansDir,
+  projectsImagesDir,
+  path.join(personalImagesDir, "personal"),
+  path.join(personalImagesDir, "employers"),
+  personalPdfsDir,
+];
 
 const imageExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]);
 const videoExtensions = new Set([".mp4", ".webm", ".mov", ".m4v"]);
@@ -66,199 +106,22 @@ const markdownExtensions = new Set([".md", ".markdown"]);
 const jsExtensions = new Set([".js", ".mjs", ".cjs"]);
 const wasmExtensions = new Set([".wasm"]);
 const dataExtensions = new Set([".json", ".csv", ".tsv", ".txt", ".xml"]);
-const supportsColor =
-  Boolean(output.isTTY) && !("NO_COLOR" in process.env) && process.env.TERM !== "dumb";
-
-const ansi = {
-  reset: "\x1b[0m",
-  bold: "\x1b[1m",
-  dim: "\x1b[2m",
-  cyan: "\x1b[36m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  red: "\x1b[31m",
-  magenta: "\x1b[35m",
-};
-
-const uiIcons = {
-  section: "🧭",
-  prompt: "❯",
-  success: "✅",
-  warning: "⚠️",
-  error: "❌",
-  info: "ℹ️",
-};
 
 const usageMessage =
   "Usage: node scripts/portfolio-setup.mjs <init|update> [--dry-run] [--no-diff]";
 
-type WizardReadline = ReturnType<typeof readline.createInterface>;
-type AnsiKey = keyof typeof ansi;
-
-type AskTextOptions = {
-  defaultValue?: string;
-  required?: boolean;
-  transform?: (value: string) => string;
-};
-
-type ChoiceOption<TValue = string> = {
-  label: string;
-  value: TValue;
-  description?: string;
-};
-
-type ScopedAssetOptions = {
-  title: string;
-  scopeAbsDir: string;
-  webBase: string;
-  extensions: Set<string>;
-  fallbackRelative: string;
-  optional?: boolean;
-};
-
-type ProjectEntry = {
-  href: string;
-  name: string;
-  [key: string]: unknown;
-};
-
-type ShenaniganEntry = {
-  slug: string;
-  title: string;
-  [key: string]: unknown;
-};
-
-type NavigationRoute = {
-  label: string;
-  href: string;
-};
-
-type ExperienceEntry = {
-  company: string;
-  position: string;
-  location: string;
-  start: string;
-  end: string;
-  details: string[];
-  image: string;
-};
-
-type EducationEntry = {
-  school: string;
-  degree: string;
-  year: string;
-  awards: string[];
-  image: string;
-};
-
-type RecommendationEntry = {
-  name: string;
-  title: string;
-  date: string;
-  relationship: string;
-  imageSrcUrl?: string;
-  text: string;
-};
-
-type RecognitionSnippetEntry = string | { text: string; glyph?: string };
-
-type CompetencySkillEntry = {
-  label: string;
-  description: string;
-  [key: string]: unknown;
-};
-
-type CompetencyCategoryEntry = {
-  title: string;
-  shortText?: string;
-  subTitle?: string;
-  icon?: string;
-  items: CompetencySkillEntry[];
-  [key: string]: unknown;
-};
-
-type CompetenciesData = {
-  categories?: CompetencyCategoryEntry[];
-  skills?: string[];
-  [key: string]: unknown;
-};
-
-type AppAssetFolderMap = Record<AppAssetBucket, string>;
-
-type ContactInfo = {
-  email?: string;
-  linkedin?: string;
-  github?: string[];
-};
-
-type SummaryData = {
-  name?: string;
-  title?: string;
-  location?: string;
-  contact?: ContactInfo;
-  heroOverline?: string;
-  documentTitle?: string;
-  metadataTitle?: string;
-  [key: string]: unknown;
-};
-
-type RecognitionData = {
-  snippets?: RecognitionSnippetEntry[];
-  recommendations?: RecommendationEntry[];
-  [key: string]: unknown;
-};
-
-type AIShenanigansData = {
-  items?: ShenaniganEntry[];
-  [key: string]: unknown;
-};
-
-type ResumeData = JsonRecord & {
-  summary?: SummaryData;
-  contactCTA?: JsonRecord;
-  hobbies?: JsonRecord;
-  aiShenanigans?: AIShenanigansData;
-  competencies?: CompetenciesData;
-  projects?: ProjectEntry[];
-  experience?: ExperienceEntry[];
-  education?: EducationEntry[];
-  recognition?: RecognitionData;
-  navigation?: JsonRecord;
-  projectsSection?: JsonRecord;
-};
-
-function paint(text: string, ...styles: AnsiKey[]): string {
-  if (!supportsColor || styles.length === 0) {
-    return text;
-  }
-  const prefix = styles.map((style) => ansi[style]).join("");
-  return `${prefix}${text}${ansi.reset}`;
-}
-
-function writeLine(line = ""): void {
-  output.write(`${line}\n`);
-}
-
-function writeSection(title: string): void {
-  writeLine();
-  writeLine(paint(`${uiIcons.section} ${title}`, "bold", "magenta"));
-}
-
-function writeInfo(message: string): void {
-  writeLine(`${paint(uiIcons.info, "cyan")} ${message}`);
-}
-
-function writeSuccess(message: string): void {
-  writeLine(`${paint(uiIcons.success, "green")} ${paint(message, "green")}`);
-}
-
-function writeWarning(message: string): void {
-  writeLine(`${paint(uiIcons.warning, "yellow")} ${paint(message, "yellow")}`);
-}
-
-function writeError(message: string): void {
-  writeLine(`${paint(uiIcons.error, "red")} ${paint(message, "red")}`);
-}
+const {
+  writeLine,
+  writeSection,
+  writeInfo,
+  writeSuccess,
+  writeWarning,
+  writeError,
+  askText,
+  askYesNo,
+  chooseOne,
+  chooseIndex,
+} = createWizardUi(output);
 
 function toPosix(p: string): string {
   return p.split(path.sep).join("/");
@@ -306,36 +169,6 @@ async function ensureScopedFoldersForAppAssets(slug: string): Promise<AppAssetFo
   }
 
   return folders;
-}
-
-function defaultProjectDiagrams(projectName: string): {
-  blockDiagram: string;
-  componentDiagram: string;
-  sequenceDiagram: string;
-} {
-  const safeName = projectName || "Project";
-  return {
-    blockDiagram:
-      `graph TD;\n` +
-      `  U[User] --> UI[${safeName} UI];\n` +
-      `  UI --> API[Service Layer];\n` +
-      `  API --> DB[(Data Store)];`,
-    componentDiagram:
-      `graph LR;\n` +
-      `  A[Page Route] --> B[Client Components];\n` +
-      `  B --> C[Shared UI];\n` +
-      `  B --> D[Data Adapter];\n` +
-      `  D --> E[Resume Data];`,
-    sequenceDiagram:
-      `sequenceDiagram\n` +
-      `  participant U as User\n` +
-      `  participant P as Page\n` +
-      `  participant D as Data\n\n` +
-      `  U->>P: Open route\n` +
-      `  P->>D: Load project metadata\n` +
-      `  D-->>P: Render payload\n` +
-      `  P-->>U: Display project`,
-  };
 }
 
 function toRepoRelativePath(filePath: string): string {
@@ -409,98 +242,6 @@ async function walkFiles(baseDir: string): Promise<string[]> {
 
 function matchesExtensions(file: string, extSet: Set<string>): boolean {
   return extSet.has(path.extname(file).toLowerCase());
-}
-
-async function askText(
-  rl: WizardReadline,
-  prompt: string,
-  options: AskTextOptions = {},
-): Promise<string> {
-  const { defaultValue = "", required = false, transform } = options;
-  for (;;) {
-    const defaultSuffix = defaultValue ? ` (${defaultValue})` : "";
-    const answer = await rl.question(
-      `${paint(uiIcons.prompt, "cyan")} ${paint(prompt, "bold")}${paint(defaultSuffix, "dim")}: `,
-    );
-    const resolved = answer.trim() || defaultValue;
-    const finalValue = transform ? transform(resolved) : resolved;
-    if (required && !String(finalValue).trim()) {
-      writeError("Please provide a value.");
-      continue;
-    }
-    return finalValue;
-  }
-}
-
-async function askYesNo(rl: WizardReadline, prompt: string, defaultYes = true): Promise<boolean> {
-  const hint = defaultYes ? "Y/n" : "y/N";
-  for (;;) {
-    const answer = (
-      await rl.question(
-        `${paint(uiIcons.prompt, "cyan")} ${paint(prompt, "bold")} ${paint(`[${hint}]`, "dim")}: `,
-      )
-    )
-      .trim()
-      .toLowerCase();
-    if (!answer) {
-      return defaultYes;
-    }
-    if (["y", "yes"].includes(answer)) {
-      return true;
-    }
-    if (["n", "no"].includes(answer)) {
-      return false;
-    }
-    writeError("Please answer yes or no.");
-  }
-}
-
-async function chooseOne<TValue>(
-  rl: WizardReadline,
-  prompt: string,
-  options: ChoiceOption<TValue>[],
-  defaultIndex = 0,
-): Promise<ChoiceOption<TValue>> {
-  writeLine();
-  writeLine(paint(prompt, "bold", "cyan"));
-  options.forEach((option, idx) => {
-    const number = idx + 1;
-    const description = option.description ? ` — ${option.description}` : "";
-    writeLine(`  ${paint(`${number}.`, "bold")} ${option.label}${paint(description, "dim")}`);
-  });
-
-  for (;;) {
-    const answer = await rl.question(
-      `${paint(uiIcons.prompt, "cyan")} ${paint(`Choose [1-${options.length}]`, "bold")} ${paint(`(default ${defaultIndex + 1})`, "dim")}: `,
-    );
-    if (!answer.trim()) {
-      return options[defaultIndex];
-    }
-    const numeric = Number.parseInt(answer.trim(), 10);
-    if (!Number.isNaN(numeric) && numeric >= 1 && numeric <= options.length) {
-      return options[numeric - 1];
-    }
-    writeError("Invalid choice. Try again.");
-  }
-}
-
-async function chooseIndex(rl: WizardReadline, prompt: string, labels: string[]): Promise<number> {
-  writeLine();
-  writeLine(paint(prompt, "bold", "cyan"));
-  labels.forEach((label, idx) => {
-    writeLine(`  ${paint(`${idx + 1}.`, "bold")} ${label}`);
-  });
-
-  for (;;) {
-    const answer = await rl.question(
-      `${paint(uiIcons.prompt, "cyan")} ${paint(`Choose [1-${labels.length}]`, "bold")}: `,
-    );
-    const numeric = Number.parseInt(answer.trim(), 10);
-    if (!Number.isNaN(numeric) && numeric >= 1 && numeric <= labels.length) {
-      return numeric - 1;
-    }
-    writeError("Invalid choice. Try again.");
-  }
 }
 
 async function ensureScopedFoldersForApp(slug: string): Promise<{
@@ -689,257 +430,6 @@ function ensureNavigationItems(resumeData: JsonRecord, projectRoutes: Navigation
     ...existingNavigation,
     drawerItems: [...base, ...projectItems, shenanigans],
   };
-}
-
-function buildGenericFaviconIcoBuffer() {
-  const width = 32;
-  const height = 32;
-  const xorBytes = width * height * 4;
-  const maskRowBytes = Math.ceil(width / 32) * 4;
-  const andMaskBytes = maskRowBytes * height;
-
-  const bitmapInfoHeaderSize = 40;
-  const imageSize = bitmapInfoHeaderSize + xorBytes + andMaskBytes;
-
-  const totalSize = 6 + 16 + imageSize;
-  const buffer = Buffer.alloc(totalSize, 0);
-
-  let offset = 0;
-
-  buffer.writeUInt16LE(0, offset);
-  offset += 2;
-  buffer.writeUInt16LE(1, offset);
-  offset += 2;
-  buffer.writeUInt16LE(1, offset);
-  offset += 2;
-
-  buffer.writeUInt8(width, offset++);
-  buffer.writeUInt8(height, offset++);
-  buffer.writeUInt8(0, offset++);
-  buffer.writeUInt8(0, offset++);
-  buffer.writeUInt16LE(1, offset);
-  offset += 2;
-  buffer.writeUInt16LE(32, offset);
-  offset += 2;
-  buffer.writeUInt32LE(imageSize, offset);
-  offset += 4;
-  buffer.writeUInt32LE(6 + 16, offset);
-  offset += 4;
-
-  buffer.writeUInt32LE(40, offset);
-  offset += 4;
-  buffer.writeInt32LE(width, offset);
-  offset += 4;
-  buffer.writeInt32LE(height * 2, offset);
-  offset += 4;
-  buffer.writeUInt16LE(1, offset);
-  offset += 2;
-  buffer.writeUInt16LE(32, offset);
-  offset += 2;
-  buffer.writeUInt32LE(0, offset);
-  offset += 4;
-  buffer.writeUInt32LE(xorBytes, offset);
-  offset += 4;
-  buffer.writeInt32LE(0, offset);
-  offset += 4;
-  buffer.writeInt32LE(0, offset);
-  offset += 4;
-  buffer.writeUInt32LE(0, offset);
-  offset += 4;
-  buffer.writeUInt32LE(0, offset);
-  offset += 4;
-
-  const pixelStart = offset;
-
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      const drawY = height - 1 - y;
-      const pixelOffset = pixelStart + (drawY * width + x) * 4;
-
-      const radialX = (x - width / 2) / (width / 2);
-      const radialY = (y - height / 2) / (height / 2);
-      const radius = Math.sqrt(radialX * radialX + radialY * radialY);
-
-      const bgBlue = 230;
-      const bgGreen = 145 + Math.max(0, Math.floor((1 - radius) * 70));
-      const bgRed = 60 + Math.max(0, Math.floor((1 - radius) * 50));
-
-      let r = bgRed;
-      let g = bgGreen;
-      let b = bgBlue;
-      let a = 255;
-
-      if (radius > 0.97) {
-        a = 0;
-      }
-
-      const px = x;
-      const py = y;
-      const isPStem = px >= 10 && px <= 13 && py >= 7 && py <= 24;
-      const isPTop = px >= 13 && px <= 21 && py >= 7 && py <= 11;
-      const isPRight = px >= 20 && px <= 23 && py >= 10 && py <= 17;
-      const isPMid = px >= 13 && px <= 20 && py >= 16 && py <= 19;
-      const isCutout = px >= 15 && px <= 19 && py >= 11 && py <= 15;
-
-      if ((isPStem || isPTop || isPRight || isPMid) && !isCutout) {
-        r = 248;
-        g = 252;
-        b = 255;
-        a = 255;
-      }
-
-      buffer[pixelOffset] = b;
-      buffer[pixelOffset + 1] = g;
-      buffer[pixelOffset + 2] = r;
-      buffer[pixelOffset + 3] = a;
-    }
-  }
-
-  return buffer;
-}
-
-async function ensureGenericFaviconDefault() {
-  if (await pathExists(faviconDefaultPath)) {
-    return;
-  }
-  const buffer = buildGenericFaviconIcoBuffer();
-  await fs.writeFile(faviconDefaultPath, buffer);
-}
-
-async function replaceFaviconWithDefault() {
-  await ensureGenericFaviconDefault();
-  await fs.copyFile(faviconDefaultPath, faviconPath);
-}
-
-async function clearInitAssets() {
-  const pathsToReset = [
-    appsPublicDir,
-    personalDataDir,
-    personalDemoGifsDir,
-    personalDemoVideosDir,
-    shenanigansDir,
-    projectsImagesDir,
-    path.join(personalImagesDir, "personal"),
-    path.join(personalImagesDir, "employers"),
-    personalPdfsDir,
-  ];
-
-  for (const target of pathsToReset) {
-    await fs.rm(target, { recursive: true, force: true });
-  }
-
-  const dirsToRecreate = [
-    appsPublicDir,
-    personalDataDir,
-    personalDemoGifsDir,
-    personalDemoVideosDir,
-    shenanigansDir,
-    projectsImagesDir,
-    path.join(personalImagesDir, "personal"),
-    path.join(personalImagesDir, "employers"),
-    personalPdfsDir,
-  ];
-
-  for (const dir of dirsToRecreate) {
-    await ensureDir(dir);
-    await fs.writeFile(path.join(dir, ".gitkeep"), "", "utf8");
-  }
-}
-
-function defaultExperienceTemplate(): ExperienceEntry {
-  return {
-    company: "Example Company",
-    position: "Senior Software Engineer",
-    location: "Remote",
-    start: "January 2022",
-    end: "Present",
-    details: [
-      "Built production-grade full-stack features from concept to release.",
-      "Improved delivery speed through automation, reusable components, and better developer ergonomics.",
-    ],
-    image: "/personal/images/employers/company-logo.png",
-  };
-}
-
-function defaultEducationTemplate(): EducationEntry {
-  return {
-    school: "Example University",
-    degree: "B.S. in Computer Science",
-    year: "2018",
-    awards: ["Dean's List"],
-    image: "/personal/images/personal/education-logo.png",
-  };
-}
-
-function defaultRecognitionSnippetTemplate(): string {
-  return "Recognized for delivering high-quality product engineering with speed and consistency.";
-}
-
-function normalizeRecognitionSnippet(snippet: RecognitionSnippetEntry): {
-  text: string;
-  glyph?: string;
-} {
-  if (typeof snippet === "string") {
-    return { text: snippet };
-  }
-
-  return {
-    text: snippet.text,
-    glyph: snippet.glyph,
-  };
-}
-
-function formatRecognitionSnippetPreview(snippet: RecognitionSnippetEntry): string {
-  const normalized = normalizeRecognitionSnippet(snippet);
-  const previewText =
-    normalized.text.length > 80 ? `${normalized.text.slice(0, 80)}...` : normalized.text;
-  return normalized.glyph ? `${normalized.glyph} ${previewText}` : previewText;
-}
-
-function defaultRecommendationTemplate(): RecommendationEntry {
-  return {
-    name: "Colleague Name",
-    title: "Engineering Leader",
-    date: "January 1, 2026",
-    relationship: "Worked with me on the same team",
-    imageSrcUrl: "/personal/images/colleagues/colleague.jpeg",
-    text: "A short recommendation highlighting impact, collaboration, and technical strength.",
-  };
-}
-
-function defaultCompetencyCategoryTemplate(): CompetencyCategoryEntry {
-  return {
-    title: "New Competency Category",
-    shortText: "Short one-line summary for pager options.",
-    subTitle: "Short one-line summary for pager options.",
-    icon: "web",
-    items: [
-      {
-        label: "Example skill",
-        description: "Describe the capability shown by this skill.",
-      },
-    ],
-  };
-}
-
-function serializeCompetencyItems(items: CompetencySkillEntry[]): string {
-  return (items || []).map((item) => `${item.label}::${item.description}`).join(" | ");
-}
-
-function parseCompetencyItems(inputValue: string): CompetencySkillEntry[] {
-  return inputValue
-    .split("|")
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-    .map((segment) => {
-      const [rawLabel, ...rawDescription] = segment.split("::");
-      const label = rawLabel?.trim() || "";
-      const description = rawDescription.join("::").trim();
-      return {
-        label: label || "Unnamed skill",
-        description: description || "Add a short description.",
-      };
-    });
 }
 
 async function promptProject(
@@ -1882,8 +1372,12 @@ async function runInitMode(runtimeOptions: PortfolioSetupRuntimeOptions): Promis
     if (runtimeOptions.dryRun) {
       writeWarning("Dry run enabled. Skipping destructive asset reset and favicon replacement.");
     } else {
-      await clearInitAssets();
-      await replaceFaviconWithDefault();
+      await clearInitAssets(initResetPaths);
+      await replaceFaviconWithDefault({
+        faviconDefaultPath,
+        faviconPath,
+        pathExists,
+      });
     }
 
     const newProjects: ProjectEntry[] = [];

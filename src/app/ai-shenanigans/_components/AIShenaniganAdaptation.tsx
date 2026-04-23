@@ -10,51 +10,28 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { alpha, useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import AIShenaniganPanel from "./AIShenaniganPanel";
+import {
+  ARROW_REVEAL_MS,
+  buildCondensedChronologyIndices,
+  buildRevealLabels,
+  getEpisodeChronologyLabel,
+  resolveCurrentRevealIndex,
+  type RevealStage,
+} from "../_utils/aiShenaniganAdaptationUtils";
+import { useRevealScrollStabilizer } from "../_hooks/useRevealScrollStabilizer";
+import type { AIShenaniganAdaptationProps } from "../_types/aiShenaniganAdaptation";
+import {
+  mediaControlSx,
+  mediaPanelSx,
+  panelChromeSx,
+  restartActionSx,
+} from "../_utils/workSeriesStyles";
 import { EmojiGlyph, MediaCycler } from "@/components/shared";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { withBasePath } from "@/utils/basePath";
-
-type RevealStage = "intro" | "book" | "manuscript" | "trailer" | "episodes";
-type TrailerOrientation = "landscape" | "portrait" | undefined;
-
-const ARROW_REVEAL_MS = 280;
-
-type AIShenaniganAdaptationProps = {
-  rank: number;
-  title: string;
-  blurb: string;
-  intentToCopyright?: boolean;
-  rightsNotice?: string;
-  bookCoverImage: string;
-  bookSource?: string;
-  bookSourceHref?: string;
-  bookCaption?: string;
-  manuscriptPdf: string;
-  manuscriptSource?: string;
-  manuscriptSourceHref?: string;
-  manuscriptCaption?: string;
-  trailerMovie?: string;
-  trailerOrientation?: TrailerOrientation;
-  trailerSource?: string;
-  trailerSourceHref?: string;
-  trailerCaption?: string;
-  episodesPdf: string;
-  episodesSource?: string;
-  episodesSourceHref?: string;
-  episodesCaption?: string;
-  episodeMedia?: Array<{
-    title: string;
-    episodeNumber?: number;
-    seasonNumber?: number;
-    src: string;
-    source?: string;
-    sourceHref?: string;
-    caption?: string;
-  }>;
-};
 
 export default function AIShenaniganAdaptation({
   rank,
@@ -114,7 +91,9 @@ export default function AIShenaniganAdaptation({
   const episodeFooterRefs = useRef<Array<HTMLDivElement | null>>([]);
   const trailerVideoRef = useRef<HTMLVideoElement | null>(null);
   const episodeVideoRefs = useRef<Array<HTMLVideoElement | null>>([]);
-  const scrollStabilizersRef = useRef<Array<() => void>>([]);
+  const { clearScrollStabilizers, scrollRevealIntoView } = useRevealScrollStabilizer({
+    mobileFooterMediaQuery: "(max-width:899.95px)",
+  });
   const bookSfx = useAudio("/audio/highUp.ogg");
   const manuscriptSfx = useAudio("/audio/open_003.ogg");
   const trailerSfx = useAudio("/audio/whoosh.ogg");
@@ -125,25 +104,6 @@ export default function AIShenaniganAdaptation({
   const rightsLabel = rightsNotice || "Intent to Copyright";
   const rightsStampAngle = ((rank * 7) % 17) - 8;
   const hasVisibleMedia = bookVisible;
-  const panelChromeSx = {
-    borderRadius: "24px",
-    border: "1px solid",
-    borderColor: "var(--fabric-surface-border)",
-    backgroundColor: "var(--fabric-surface-1)",
-    backgroundImage: "linear-gradient(180deg, var(--fabric-inner-glow), transparent 34%)",
-    boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
-    backdropFilter: "blur(var(--fabric-blur-sm))",
-  } as const;
-  const mediaPanelSx = {
-    ...panelChromeSx,
-    p: 2.5,
-    position: "relative",
-    height: "100%",
-    minHeight: 0,
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-  } as const;
   const hasTrailer = Boolean(trailerMovie);
   const isTrailerPortrait = trailerOrientation === "portrait";
   const trailerAspectRatio = isTrailerPortrait ? "9 / 16" : "16 / 9";
@@ -153,23 +113,6 @@ export default function AIShenaniganAdaptation({
   const desktopInfoPanelBasis = "30%";
   const desktopInfoPanelMaxWidth = "36%";
   const desktopMediaPanelHeight = "100%";
-  const mediaControlSx = (currentTheme: typeof theme) => ({
-    color: currentTheme.palette.common.black,
-    borderColor: currentTheme.palette.common.black,
-    bgcolor: currentTheme.palette.common.white,
-    "&:hover": {
-      bgcolor: currentTheme.palette.common.white,
-    },
-    "&.Mui-disabled": {
-      color: alpha(currentTheme.palette.common.black, 0.36),
-      borderColor: alpha(currentTheme.palette.common.black, 0.36),
-      bgcolor: alpha(currentTheme.palette.common.white, 0.8),
-    },
-  });
-  const restartActionSx = (currentTheme: typeof theme) => ({
-    border: "1px solid",
-    ...mediaControlSx(currentTheme),
-  });
   const hasEpisodesPdf = Boolean(episodesPdf);
 
   const clearPendingTransitions = useCallback(() => {
@@ -216,167 +159,18 @@ export default function AIShenaniganAdaptation({
     });
   };
 
-  const clearScrollStabilizers = useCallback(() => {
-    scrollStabilizersRef.current.forEach((cleanup) => cleanup());
-    scrollStabilizersRef.current = [];
-  }, []);
-
-  const scrollPanelIntoView = useCallback(
-    (panel: HTMLElement | null, block: ScrollLogicalPosition = "nearest") => {
-      if (!panel) {
-        return;
-      }
-
-      clearScrollStabilizers();
-
-      const scroll = () => {
-        panel.scrollIntoView({
-          behavior: "smooth",
-          block,
-        });
-      };
-
-      scroll();
-
-      const cleanups: Array<() => void> = [];
-      [180, 480, 1080].forEach((delay) => {
-        const timeoutId = window.setTimeout(scroll, delay);
-        cleanups.push(() => window.clearTimeout(timeoutId));
-      });
-
-      if (typeof ResizeObserver !== "undefined") {
-        const observer = new ResizeObserver(() => {
-          scroll();
-        });
-        observer.observe(panel);
-        cleanups.push(() => observer.disconnect());
-
-        const observerTimeoutId = window.setTimeout(() => {
-          observer.disconnect();
-        }, 1600);
-        cleanups.push(() => window.clearTimeout(observerTimeoutId));
-      }
-
-      scrollStabilizersRef.current = cleanups;
-    },
-    [clearScrollStabilizers],
-  );
-
-  const scrollRevealIntoView = useCallback(
-    (
-      panel: HTMLElement | null,
-      footer: HTMLElement | null,
-      block: ScrollLogicalPosition = "center",
-    ) => {
-      if (!panel) {
-        return;
-      }
-
-      const shouldFavorFooter =
-        Boolean(footer) &&
-        typeof window !== "undefined" &&
-        window.matchMedia("(max-width:899.95px)").matches;
-
-      if (!shouldFavorFooter || !footer) {
-        scrollPanelIntoView(panel, block);
-        return;
-      }
-
-      clearScrollStabilizers();
-
-      const scrollPanel = () => {
-        panel.scrollIntoView({
-          behavior: "smooth",
-          block,
-        });
-      };
-
-      const scrollFooter = () => {
-        footer.scrollIntoView({
-          behavior: "smooth",
-          block: "end",
-        });
-      };
-
-      scrollPanel();
-
-      const cleanups: Array<() => void> = [];
-      [220, 520, 1080].forEach((delay) => {
-        const timeoutId = window.setTimeout(scrollFooter, delay);
-        cleanups.push(() => window.clearTimeout(timeoutId));
-      });
-
-      if (typeof ResizeObserver !== "undefined") {
-        const observer = new ResizeObserver(() => {
-          scrollFooter();
-        });
-        observer.observe(panel);
-        observer.observe(footer);
-        cleanups.push(() => observer.disconnect());
-
-        const observerTimeoutId = window.setTimeout(() => {
-          observer.disconnect();
-        }, 1600);
-        cleanups.push(() => window.clearTimeout(observerTimeoutId));
-      }
-
-      scrollStabilizersRef.current = cleanups;
-    },
-    [clearScrollStabilizers, scrollPanelIntoView],
-  );
-
-  const getEpisodeSeasonNumber = (seasonNumber?: number) => seasonNumber ?? 1;
-
-  const getEpisodeChronologyLabel = (episode: {
-    title: string;
-    episodeNumber?: number;
-    seasonNumber?: number;
-  }) => {
-    if (!episode.episodeNumber) {
-      return episode.title;
-    }
-
-    return `Season ${getEpisodeSeasonNumber(
-      episode.seasonNumber,
-    )}: Episode ${episode.episodeNumber}`;
-  };
-
-  const revealLabels = [
-    {
-      key: "book" as const,
-      label: "Book cover",
-      active: bookVisible,
-      reached: bookVisible,
-    },
-    {
-      key: "manuscript" as const,
-      label: "Manuscript",
-      active: manuscriptVisible || showManuscriptArrow,
-      reached: manuscriptVisible,
-    },
-    ...(hasTrailer
-      ? [
-          {
-            key: "trailer" as const,
-            label: "Trailer",
-            active: trailerVisible || showTrailerArrow,
-            reached: trailerVisible,
-          },
-        ]
-      : []),
-    {
-      key: "episodes" as const,
-      label: "Episodes Draft",
-      active: episodesVisible || showEpisodesArrow,
-      reached: episodesVisible,
-    },
-    ...episodeMedia.map((episode, index) => ({
-      key: `episode-${index}` as const,
-      label: getEpisodeChronologyLabel(episode),
-      active: revealedEpisodeCount > index,
-      reached: revealedEpisodeCount > index,
-    })),
-  ];
+  const revealLabels = buildRevealLabels({
+    bookVisible,
+    manuscriptVisible,
+    showManuscriptArrow,
+    hasTrailer,
+    trailerVisible,
+    showTrailerArrow,
+    episodesVisible,
+    showEpisodesArrow,
+    revealedEpisodeCount,
+    episodeMedia,
+  });
 
   const renderSource = (label?: string, href?: string) => {
     if (!label) {
@@ -729,47 +523,12 @@ export default function AIShenaniganAdaptation({
   const renderChronologyChips = (scope: "main" | "panel") => {
     const visibleLabels = revealLabels;
     const useCondensedChronology = visibleLabels.length > 3;
-    const activeIndex = visibleLabels.findIndex((item) => item.active);
-    let currentIndex = activeIndex;
-
-    if (currentIndex === -1) {
-      for (let index = visibleLabels.length - 1; index >= 0; index -= 1) {
-        if (visibleLabels[index]?.reached) {
-          currentIndex = index;
-          break;
-        }
-      }
-    }
-
-    if (currentIndex === -1) {
-      currentIndex = 0;
-    }
-
-    const firstIndex = 0;
-    const lastIndex = Math.max(visibleLabels.length - 1, 0);
+    const currentIndex = resolveCurrentRevealIndex(visibleLabels);
     const displayedIndices = useCondensedChronology
-      ? (() => {
-          const condensedIndices = new Set([firstIndex, currentIndex, lastIndex]);
-
-          if (condensedIndices.size < 3) {
-            if (currentIndex === firstIndex && firstIndex + 1 < lastIndex) {
-              condensedIndices.add(firstIndex + 1);
-            }
-
-            if (currentIndex === lastIndex && lastIndex - 1 > firstIndex) {
-              condensedIndices.add(lastIndex - 1);
-            }
-          }
-
-          if (condensedIndices.size < 3) {
-            const middleIndex = Math.floor((firstIndex + lastIndex) / 2);
-            if (middleIndex > firstIndex && middleIndex < lastIndex) {
-              condensedIndices.add(middleIndex);
-            }
-          }
-
-          return Array.from(condensedIndices).sort((left, right) => left - right);
-        })()
+      ? buildCondensedChronologyIndices({
+          labelCount: visibleLabels.length,
+          currentIndex,
+        })
       : visibleLabels.map((_, index) => index);
 
     return displayedIndices.map((index, chipPosition) => {

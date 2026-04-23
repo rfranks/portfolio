@@ -17,23 +17,18 @@ import {
 import { ChevronRight, Close, Settings, Tune } from "@mui/icons-material";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { PathForgerGeneratedImage } from "@/app/pathforger/_types/pipeline";
+import type { ActiveRunAction, AdventureLength } from "@/app/pathforger/_types/createStoryPanel";
 import type { JourneyLedgerPlaybackViewModel } from "@/app/pathforger/_types/journeyLedger";
+import {
+  ageRatingOptions,
+  chapterLengthOptionVisuals,
+  genreOptions,
+  genreOptionVisuals,
+  renderDecoratedOption,
+} from "@/app/pathforger/_consts/createStoryPanelOptions";
+import type { AgeRatingOption } from "@/app/pathforger/_consts/createStoryPanelOptions";
 import { ImageLightbox } from "@/components/shared";
 import PathForgerJourneyLedgerCarousel from "@/app/pathforger/_components/PathForgerJourneyLedgerCarousel";
-
-type ActiveRunAction =
-  | "name"
-  | "premise"
-  | "style"
-  | "tone"
-  | "pitch"
-  | "chapter"
-  | "nextChapter"
-  | "pipeline"
-  | "forgePath"
-  | null;
-
-type AdventureLength = "Very short (1-2 lines)" | "Short" | "Medium" | "Long" | "Very long";
 
 type PathForgerCreateStoryPanelProps = {
   hidden: boolean;
@@ -80,121 +75,6 @@ type PathForgerCreateStoryPanelProps = {
   isRunning: boolean;
   onCreateIt: () => void | Promise<void>;
 };
-
-type DecoratedOption = {
-  label: string;
-  emoji: string;
-};
-type AgeRatingOption = {
-  value: string;
-  emoji: string;
-  label: string;
-};
-
-const genreOptionVisuals: DecoratedOption[] = [
-  {
-    label: "Mystery",
-    emoji: "🕵️",
-  },
-  {
-    label: "Sci-fi",
-    emoji: "🛸",
-  },
-  {
-    label: "Children's",
-    emoji: "🧸",
-  },
-  {
-    label: "True Crime",
-    emoji: "🕵️‍♂️",
-  },
-  {
-    label: "Historical Fiction",
-    emoji: "📜",
-  },
-  {
-    label: "Medical Drama",
-    emoji: "🩺",
-  },
-  {
-    label: "Horror",
-    emoji: "👻",
-  },
-  {
-    label: "Thriller",
-    emoji: "🎯",
-  },
-  {
-    label: "Comic / Adventure",
-    emoji: "🦸",
-  },
-  {
-    label: "Gothic",
-    emoji: "🕯️",
-  },
-  {
-    label: "Noir",
-    emoji: "🎬",
-  },
-  {
-    label: "Supernatural",
-    emoji: "🔮",
-  },
-];
-
-const genreOptions = genreOptionVisuals.map((option) => option.label);
-
-const chapterLengthOptionVisuals: Array<DecoratedOption & { label: AdventureLength }> = [
-  {
-    label: "Very short (1-2 lines)",
-    emoji: "⚡",
-  },
-  {
-    label: "Short",
-    emoji: "⏱️",
-  },
-  {
-    label: "Medium",
-    emoji: "📖",
-  },
-  {
-    label: "Long",
-    emoji: "🧭",
-  },
-  {
-    label: "Very long",
-    emoji: "🏔️",
-  },
-];
-
-const ageRatingOptions: AgeRatingOption[] = [
-  { value: "G", emoji: "🧒", label: "G" },
-  { value: "PG", emoji: "👨‍👩‍👧", label: "PG" },
-  { value: "PG-13", emoji: "🎬", label: "PG-13" },
-  { value: "R", emoji: "⚠️", label: "R" },
-  { value: "NC-17", emoji: "⛔", label: "NC-17" },
-];
-function renderDecoratedOption(
-  option: { label: string; emoji: string },
-  variant: "selected" | "menu" = "selected",
-) {
-  const emojiFontSize = variant === "menu" ? "2.2rem" : "2.3rem";
-  const labelFontSize = variant === "menu" ? "1.58rem" : "1.68rem";
-
-  return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-      <Typography component="span" sx={{ lineHeight: 1, fontSize: emojiFontSize }}>
-        {option.emoji}
-      </Typography>
-      <Typography
-        component="span"
-        sx={{ fontSize: labelFontSize, fontWeight: 700, lineHeight: 1.1 }}
-      >
-        {option.label}
-      </Typography>
-    </Box>
-  );
-}
 
 export default function PathForgerCreateStoryPanel(props: PathForgerCreateStoryPanelProps) {
   const {

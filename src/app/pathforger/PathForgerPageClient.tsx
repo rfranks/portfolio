@@ -32,6 +32,13 @@ import { useStatusMessageQueue } from "@/app/pathforger/_hooks/useStatusMessageQ
 import { appTheme, kenBurnsImageSx } from "@/app/pathforger/_theme/theme";
 import { sortModelIds } from "@/app/pathforger/_utils/modelOptions";
 import {
+  isOpenAIAuthFailureMessage,
+  type BranchRevealState,
+  type BranchRevealTickState,
+  type ForgedOutcomeImagesState,
+  type ForgedOutcomesState,
+} from "@/app/pathforger/_utils/pageClientHelpers";
+import {
   DEFAULT_IMAGE_MODEL_ID,
   DEFAULT_ONE_OFF_MODEL_ID,
   DEFAULT_TEXT_MODEL_ID,
@@ -55,32 +62,10 @@ import {
 import {
   PathForgerBranchChoice,
   PathForgerChapterResult,
-  PathForgerGeneratedImage,
   PathForgerImageType,
   PathForgerPipelineResult,
 } from "./_types/pipeline";
 import { PathForgerPitchChoice } from "./_types/pitch";
-
-type BranchRevealState = Record<PathForgerBranchChoice, boolean>;
-type BranchRevealTickState = Record<PathForgerBranchChoice, number>;
-type ForgedOutcomesState = Partial<Record<PathForgerBranchChoice, string>>;
-type ForgedOutcomeImagesState = Partial<Record<PathForgerBranchChoice, PathForgerGeneratedImage>>;
-
-const OPENAI_AUTH_ERROR_MARKERS = [
-  "missing bearer or basic authentication",
-  "missing bearer",
-  "invalid api key",
-  "incorrect api key",
-] as const;
-
-function isOpenAIAuthFailureMessage(message: string): boolean {
-  const normalized = message.trim().toLowerCase();
-  if (!normalized) {
-    return false;
-  }
-
-  return OPENAI_AUTH_ERROR_MARKERS.some((marker) => normalized.includes(marker));
-}
 
 export default function PathForgerPageClient() {
   const { portfolioApps } = useResumeData();
