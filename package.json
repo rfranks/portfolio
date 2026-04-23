@@ -18,7 +18,7 @@
     "typecheck:strict": "tsc -p tsconfig.strict.json --noEmit",
     "quality": "npm run check:repo-hygiene && npm run check:file-budgets && npm run validate:resume:strict && npm run format:check && npm run typecheck && npm run lint && npm run test",
     "precommit": "lint-staged",
-    "prepush": "npm run prepr",
+    "prepush": "tsx scripts/run-prepush-quality.mts",
     "prepr": "npm run quality",
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
