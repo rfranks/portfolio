@@ -47,6 +47,21 @@ export interface PathForgerPipelineStateSnapshot {
   completedAtMs?: number;
   canceledReason?: string;
   lastErrorMessage?: string;
+  events: PathForgerPipelineReplayEvent[];
+}
+
+export interface PathForgerPipelineReplayEvent {
+  atMs: number;
+  type:
+    | "pipeline:start"
+    | "pipeline:complete"
+    | "pipeline:cancel"
+    | "stage:start"
+    | "stage:complete"
+    | "stage:error";
+  stageKey?: string;
+  attempt?: number;
+  message?: string;
 }
 
 function createAbortError(message: string): Error {
@@ -90,6 +105,7 @@ export class PathForgerPipelineStateMachine {
         status: "pending",
         attempts: 0,
       })),
+      events: [],
     };
   }
 
@@ -102,6 +118,7 @@ export class PathForgerPipelineStateMachine {
       canceledReason: undefined,
       lastErrorMessage: undefined,
     };
+    this.appendReplayEvent({ type: "pipeline:start" });
   }
 
   startStage(key: string, attempt: number): void {
@@ -118,6 +135,11 @@ export class PathForgerPipelineStateMachine {
       state: "running",
       currentStageKey: key,
     };
+    this.appendReplayEvent({
+      type: "stage:start",
+      stageKey: key,
+      attempt,
+    });
   }
 
   completeStage(key: string): void {
@@ -125,6 +147,10 @@ export class PathForgerPipelineStateMachine {
       status: "success",
       completedAtMs: Date.now(),
       errorMessage: undefined,
+    });
+    this.appendReplayEvent({
+      type: "stage:complete",
+      stageKey: key,
     });
   }
 
@@ -140,6 +166,11 @@ export class PathForgerPipelineStateMachine {
       state: "failed",
       lastErrorMessage: errorMessage,
     };
+    this.appendReplayEvent({
+      type: "stage:error",
+      stageKey: key,
+      message: errorMessage,
+    });
   }
 
   failUnhandled(errorMessage: string, fallbackStageKey = "unknown"): void {
@@ -170,6 +201,11 @@ export class PathForgerPipelineStateMachine {
       canceledReason: reason,
       lastErrorMessage: reason,
     };
+    this.appendReplayEvent({
+      type: "pipeline:cancel",
+      stageKey: currentStage ?? undefined,
+      message: reason,
+    });
   }
 
   complete(): void {
@@ -179,12 +215,14 @@ export class PathForgerPipelineStateMachine {
       completedAtMs: Date.now(),
       currentStageKey: undefined,
     };
+    this.appendReplayEvent({ type: "pipeline:complete" });
   }
 
   getSnapshot(): PathForgerPipelineStateSnapshot {
     return {
       ...this.snapshot,
       stages: this.snapshot.stages.map((stage) => ({ ...stage })),
+      events: this.snapshot.events.map((event) => ({ ...event })),
     };
   }
 
@@ -202,6 +240,19 @@ export class PathForgerPipelineStateMachine {
       stages: this.snapshot.stages.map((stage, stageIndex) =>
         stageIndex === index ? { ...stage, ...patch } : stage,
       ),
+    };
+  }
+
+  private appendReplayEvent(event: Omit<PathForgerPipelineReplayEvent, "atMs">): void {
+    this.snapshot = {
+      ...this.snapshot,
+      events: [
+        ...this.snapshot.events,
+        {
+          atMs: Date.now(),
+          ...event,
+        },
+      ],
     };
   }
 }

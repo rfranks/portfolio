@@ -4,26 +4,56 @@
 
 Accepted
 
+## Date
+
+2026-04-24
+
+## Decision Drivers
+
+- Prevent silent regressions in a multi-app workspace.
+- Keep oversized files and bundle growth visible and actionable.
+- Provide deterministic pre-push quality enforcement.
+
 ## Context
 
-The repository has grown into a multi-app mono-repo style workspace with large files and increasing risk of regressions.
+Repository growth increased the likelihood of regressions, monolithic files, and performance drift. Prior checks were inconsistent and did not clearly communicate why pushes failed.
 
 ## Decision
 
-Add and enforce:
+Adopt and enforce the following quality gates:
 
-- `typecheck` and `lint`
-- test execution in deploy pipeline
-- repository hygiene checks (`.DS_Store` guard)
-- file line-count budgets (`scripts/check-file-budgets.mts`)
-- bundle size budgets (`scripts/check-bundle-budget.mts`)
+- hygiene: `npm run check:repo-hygiene`
+- file size budgets: `npm run check:file-budgets`
+- resume contract validation: `npm run validate:resume:strict`
+- formatting: `npm run format:check`
+- typing: `npm run typecheck`
+- lint: `npm run lint`
+- tests: `npm run test`
+
+Use `npm run prepr` as the full local readiness gate before handoff/push.
+
+## Enforcement and Validation
+
+- `scripts/check-file-budgets.mts` remains authoritative for line-count budgets.
+- `scripts/check-bundle-budget.mts` remains authoritative for bundle budgets.
+- Oversized files should be reduced through extraction before raising budgets; exact-budget entries require explicit justification.
+- Pre-push output must show the failing step and rerun command.
 
 ## Consequences
 
-- Pros: catches regressions before deploy.
-- Pros: creates pressure to split oversized files.
-- Tradeoff: CI may fail more often initially while debt is reduced.
+### Positive
+
+- Faster root-cause isolation when checks fail.
+- Ongoing pressure toward smaller modules and safer refactors.
+- Better predictability of merge/push quality.
+
+### Tradeoffs
+
+- More frequent early failures during large refactors.
+- Maintenance overhead for budget tuning as architecture evolves.
 
 ## Follow-up
 
-Tune file/bundle thresholds as refactors land; tighten progressively.
+- Periodically tighten exact-budget thresholds after extractions land.
+- Keep pre-push and CI messages explicit and developer-friendly.
+- Add route-level budget reporting where useful.

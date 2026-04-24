@@ -16,7 +16,7 @@ export type PanelFrameProps = {
 };
 
 const PANEL_RAIL_OFFSET_X = -2;
-const PANEL_RAIL_OFFSET_Y = -2;
+const PANEL_RAIL_OFFSET_Y = 0;
 
 export default function PanelFrame({
   topRail,
@@ -49,14 +49,18 @@ export default function PanelFrame({
     flexShrink: 0,
     zIndex: 5,
     mt: "auto",
+    minHeight: { xs: 44, sm: 48, md: 56 },
     mx: useNegativeFooterMargins ? { xs: 0, sm: 0, md: PANEL_RAIL_OFFSET_X } : 0,
     mb: useNegativeFooterMargins ? { xs: 0, sm: 0, md: PANEL_RAIL_OFFSET_Y } : 0,
     px: useNegativeFooterMargins ? { xs: 0, sm: 0, md: 3.5 } : 0,
     py: useNegativeFooterMargins ? { xs: 0, sm: 0, md: 1 } : 0,
-    bgcolor: "background.paper",
+    bgcolor: "transparent",
+    backgroundColor: "transparent",
+    backgroundImage: "none",
     borderTop: "1px solid",
     borderColor: "divider",
-    backdropFilter: "blur(8px)",
+    backdropFilter: "none",
+    filter: "none",
     borderBottomLeftRadius: useNegativeFooterMargins
       ? { xs: 0, sm: 0, md: "var(--fabric-radius-xl)" }
       : 0,

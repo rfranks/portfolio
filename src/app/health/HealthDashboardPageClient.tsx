@@ -7,6 +7,8 @@ import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import type { RouteInteractionBudgetSnapshot } from "@/types/observability/routeInteractionBudgets";
+import { loadRouteInteractionBudgetSnapshotFromStorage } from "@/utils/observability/routeInteractionBudgets";
 
 type HealthStatus = "pass" | "warn" | "fail" | "unknown";
 type HealthSnapshotKey =
@@ -148,6 +150,8 @@ function SnapshotCard({
 
 export default function HealthDashboardPageClient() {
   const [snapshot, setSnapshot] = React.useState<AggregateHealthSnapshot | null>(null);
+  const [routeInteractionBudgets, setRouteInteractionBudgets] =
+    React.useState<RouteInteractionBudgetSnapshot | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
@@ -165,6 +169,7 @@ export default function HealthDashboardPageClient() {
 
       const nextSnapshot = (await response.json()) as AggregateHealthSnapshot;
       setSnapshot(nextSnapshot);
+      setRouteInteractionBudgets(loadRouteInteractionBudgetSnapshotFromStorage());
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       setErrorMessage(message);
@@ -191,6 +196,19 @@ export default function HealthDashboardPageClient() {
     a11yRunnerSnapshot?.status ?? readNestedStatus(fileBudgetDetails, "a11yHealth");
   const totalTests = readNestedCount(fileBudgetDetails, "testHealth", "totalTestFiles");
   const totalA11yTests = readNestedCount(fileBudgetDetails, "a11yHealth", "totalA11yTestFiles");
+  const routeBudgetRoutes = routeInteractionBudgets?.routes ?? [];
+  const routesWithAnyFirstInteraction = routeBudgetRoutes.filter(
+    (route) =>
+      route.firstInteractionMs !== null ||
+      route.firstMediaMs !== null ||
+      route.firstPagerMs !== null,
+  ).length;
+  const interactionBudgetStatus: HealthStatus =
+    routeBudgetRoutes.length === 0
+      ? "unknown"
+      : routesWithAnyFirstInteraction === routeBudgetRoutes.length
+        ? "pass"
+        : "warn";
 
   return (
     <Box
@@ -297,6 +315,28 @@ export default function HealthDashboardPageClient() {
               status={schemaSnapshot?.status ?? "unknown"}
               summary={schemaSnapshot?.summary ?? "No schema validation snapshot yet."}
               updatedAt={formatTimestamp(schemaSnapshot?.generatedAt)}
+            />
+            <SnapshotCard
+              title="Interaction Budgets (local)"
+              status={interactionBudgetStatus}
+              summary={
+                routeBudgetRoutes.length > 0
+                  ? `Captured first interaction timings for ${routeBudgetRoutes.length} route(s).`
+                  : "No local route interaction budget snapshot found."
+              }
+              updatedAt={formatTimestamp(routeInteractionBudgets?.generatedAt)}
+              extraLines={
+                routeBudgetRoutes.length > 0
+                  ? routeBudgetRoutes
+                      .slice(0, 5)
+                      .map(
+                        (route) =>
+                          `${route.route}: interaction ${route.firstInteractionMs ?? "—"}ms · pager ${
+                            route.firstPagerMs ?? "—"
+                          }ms · media ${route.firstMediaMs ?? "—"}ms`,
+                      )
+                  : ["Open portfolio routes in dev mode to populate this local telemetry snapshot."]
+              }
             />
             <Paper
               elevation={0}

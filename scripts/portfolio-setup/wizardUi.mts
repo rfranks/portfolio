@@ -121,7 +121,7 @@ export function createWizardUi(output: NodeJS.WriteStream) {
     }
   };
 
-  const chooseOne = async <TValue>(
+  const chooseOne = async <TValue,>(
     rl: WizardReadline,
     prompt: string,
     options: ChoiceOption<TValue>[],

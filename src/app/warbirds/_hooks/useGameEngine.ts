@@ -79,7 +79,7 @@ import { PowerupType, AntiPowerupType, Duck } from "@/types/game/objects";
 import type { ClickEvent } from "@/types/game/events";
 import { AssetMgr } from "@/types/game/ui";
 import { Enemy } from "@/types/game/vehicles";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   MAX_AMMO,
   DEFAULT_CURSOR,
@@ -124,18 +124,11 @@ import {
   randomTree,
   randomWater,
 } from "@/utils/game/environment";
-import {
-  cancelAnimationFrameRef,
-  clearManagedTimeout,
-  mapClientPointToWorld,
-  pickRandom,
-  rectsOverlap,
-  scheduleManagedSpawner,
-  startManagedAnimationLoop,
-} from "@/utils/game/engine2d";
+import { mapClientPointToWorld, pickRandom, rectsOverlap } from "@/utils/game/engine2d";
 import { drawTextLabels, newTextLabel } from "@/utils/game/ui";
 import { ScaledTimeoutHandle } from "@/types/hooks/time";
 import { runWarbirdsSingleShot } from "./useGameEngineShot";
+import { createGameSimulationRuntime } from "@/utils/game/simulationRuntime";
 
 export function useGameEngine() {
   // ─── REFS & STATE ─────────────────────────────────────────────────────────
@@ -158,6 +151,15 @@ export function useGameEngine() {
   const densityTimeoutRef = useRef<ScaledTimeoutHandle | null>(null);
   const reportIntervalMs = 500;
   useScaledClock();
+  const simulationRuntime = useMemo(
+    () =>
+      createGameSimulationRuntime<ScaledTimeoutHandle>({
+        frameRef: animationFrameRef,
+        setTimeoutFn: setScaledTimeout,
+        clearTimeoutFn: clearScaledTimeout,
+      }),
+    [],
+  );
 
   const [ui, setUI] = useState<GameUIState>({
     ...state.current,
@@ -393,7 +395,7 @@ export function useGameEngine() {
   // ─── GAME INIT + SPLASH ──────────────────────────────────────────────
   // ─── SPLASH + PRELOAD ─────────────────────────────────────────────────────
   const startSplash = useCallback(() => {
-    cancelAnimationFrameRef(animationFrameRef);
+    simulationRuntime.stopLoop();
 
     state.current.countdownTimeouts.forEach(clearScaledTimeout);
     state.current.countdownTimeouts = [];
@@ -496,7 +498,7 @@ export function useGameEngine() {
       }, 3500),
     );
     play("flightSfx");
-  }, [dims, assetMgr, audioMgr, getImg, play]);
+  }, [dims, assetMgr, audioMgr, getImg, play, simulationRuntime]);
 
   // ─── INIT & RENDER LOOP ───────────────────────────────────────────────────
   const initLoop = useCallback(() => {
@@ -509,7 +511,7 @@ export function useGameEngine() {
 
     const waterImgs = getImg("waterImgs") as HTMLImageElement[];
 
-    cancelAnimationFrameRef(animationFrameRef);
+    simulationRuntime.stopLoop();
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -2595,10 +2597,7 @@ export function useGameEngine() {
       // sync ui state
       syncUIFromState();
     };
-    startManagedAnimationLoop({
-      frameRef: animationFrameRef,
-      onFrame: render,
-    });
+    simulationRuntime.startLoop(render);
   }, [
     getImg,
     dims,
@@ -2614,6 +2613,7 @@ export function useGameEngine() {
     spawnCrashSmokeOne,
     makeText,
     spawnNapalmEllipse,
+    simulationRuntime,
   ]);
 
   // ─── START LOOP ON "playing" ─────────────────────────────────────────────
@@ -2628,17 +2628,15 @@ export function useGameEngine() {
       const scheduleDensityIncrease = () => {
         state.current.dynamicDensity += ENEMY_DENSITY_STEP;
       };
-      scheduleManagedSpawner({
+      simulationRuntime.scheduleSpawner({
         handleRef: densityTimeoutRef,
         shouldContinue: () => state.current.phase === "playing",
         getDelayMs: () => 45000,
         spawn: scheduleDensityIncrease,
-        setTimeoutFn: setScaledTimeout,
-        clearTimeoutFn: clearScaledTimeout,
       });
-      return () => clearManagedTimeout(densityTimeoutRef, clearScaledTimeout);
+      return () => simulationRuntime.clearTimeout(densityTimeoutRef);
     }
-  }, [ui.phase, initLoop]);
+  }, [ui.phase, initLoop, simulationRuntime]);
 
   // ─── SIMPLE LOOP FOR READY/GO SPLASH ──────────────────────────────────────
   useEffect(() => {
@@ -2666,13 +2664,10 @@ export function useGameEngine() {
           cull: true,
         });
       };
-      startManagedAnimationLoop({
-        frameRef: animationFrameRef,
-        onFrame: render,
-      });
-      return () => cancelAnimationFrameRef(animationFrameRef);
+      simulationRuntime.startLoop(render);
+      return () => simulationRuntime.stopLoop();
     }
-  }, [ui.phase, screenDims, canvasRef, dims]);
+  }, [ui.phase, screenDims, canvasRef, dims, simulationRuntime]);
 
   // ─── CLICK TO FLAP & FIRE ─────────────────────────────────────────────────
   const handleClick = (e: ClickEvent) => {
@@ -2779,9 +2774,9 @@ export function useGameEngine() {
   useEffect(() => {
     return () => {
       // Cancel all timers, animation frames, etc. on unmount
-      cancelAnimationFrameRef(animationFrameRef);
+      simulationRuntime.stopLoop();
     };
-  }, []);
+  }, [simulationRuntime]);
 
   // ─── PUBLIC API: EXPORTED VALUES AND CALLBACKS ───────────────
   return {

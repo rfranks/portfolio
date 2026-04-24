@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Paper from "@mui/material/Paper";
 import SequenceDisplay from "./SequenceDisplay";
@@ -14,6 +15,7 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Slider from "@mui/material/Slider";
+import TextField from "@mui/material/TextField";
 
 import {
   Brush,
@@ -28,6 +30,11 @@ import {
 import { BasepairHistogram, GatesChart, QiChart, RandicChart, SquiggleChart } from "./charts";
 import { Title } from "@/components/shared";
 import { ChartMethod, Sequence } from "../_types/types";
+import {
+  runSequenceAnalysisRecipe,
+  type SequenceAnalysisRecipeKind,
+  type SequenceAnalysisRecipeResult,
+} from "../_utils/sequenceUtils";
 
 export type SequenceVisualizationsProps = {
   activeSequences?: Sequence[] | null;
@@ -44,6 +51,7 @@ export default function SequenceVisualizations({
   onBpRangeUpdate,
   onChartMethodUpdate,
 }: SequenceVisualizationsProps) {
+  const PRESET_STORAGE_KEY = "dna-analysis-recipes-v1";
   const minBasePair = bpRange?.[0] || 1;
   const maxBasePair = bpRange?.[1] || activeSequences?.[0]?.sequence?.length || 1;
 
@@ -52,6 +60,23 @@ export default function SequenceVisualizations({
   const [displayTooltip, setDisplayTooltip] = useState<boolean>(true);
   const [displayBinary, setDisplayBinary] = useState<boolean>(false);
   const [showProteins, setShowProteins] = useState<boolean>(false);
+  const [recipeKind, setRecipeKind] = useState<SequenceAnalysisRecipeKind>("motif-scan");
+  const [motif, setMotif] = useState("ATG");
+  const [gcWindowSize, setGcWindowSize] = useState(24);
+  const [gcThresholdPct, setGcThresholdPct] = useState(15);
+  const [minOrfCodons, setMinOrfCodons] = useState(10);
+  const [analysisResult, setAnalysisResult] = useState<SequenceAnalysisRecipeResult | null>(null);
+  const [presetName, setPresetName] = useState("");
+  const [savedPresets, setSavedPresets] = useState<
+    Array<{
+      name: string;
+      recipeKind: SequenceAnalysisRecipeKind;
+      motif: string;
+      gcWindowSize: number;
+      gcThresholdPct: number;
+      minOrfCodons: number;
+    }>
+  >([]);
 
   const activeSequence = activeSequences?.[0];
   const isSequenceChart = chartMethod === "sequence";
@@ -74,6 +99,138 @@ export default function SequenceVisualizations({
         return "";
     }
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    try {
+      const raw = window.localStorage.getItem(PRESET_STORAGE_KEY);
+      if (!raw) {
+        return;
+      }
+      const parsed = JSON.parse(raw) as typeof savedPresets;
+      if (Array.isArray(parsed)) {
+        setSavedPresets(parsed);
+      }
+    } catch {
+      // ignore malformed preset storage
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const queryRecipe = (params.get("dnaRecipe") || "").trim().toLowerCase();
+    const queryMotif = (params.get("dnaMotif") || "").trim();
+    const queryWindow = Number(params.get("dnaWindow") || "");
+    const queryThreshold = Number(params.get("dnaGcThreshold") || "");
+    const queryMinOrf = Number(params.get("dnaMinOrfCodons") || "");
+
+    if (
+      queryRecipe === "motif-scan" ||
+      queryRecipe === "gc-anomaly-scan" ||
+      queryRecipe === "orf-scan"
+    ) {
+      setRecipeKind(queryRecipe);
+    }
+    if (queryMotif) {
+      setMotif(queryMotif);
+    }
+    if (Number.isFinite(queryWindow) && queryWindow > 0) {
+      setGcWindowSize(Math.floor(queryWindow));
+    }
+    if (Number.isFinite(queryThreshold) && queryThreshold > 0) {
+      setGcThresholdPct(queryThreshold);
+    }
+    if (Number.isFinite(queryMinOrf) && queryMinOrf > 0) {
+      setMinOrfCodons(Math.floor(queryMinOrf));
+    }
+  }, []);
+
+  const runAnalysisRecipe = () => {
+    if (!activeSequence?.sequence?.length) {
+      setAnalysisResult(null);
+      return;
+    }
+    setAnalysisResult(
+      runSequenceAnalysisRecipe(activeSequence.sequence, {
+        kind: recipeKind,
+        motif,
+        windowSize: gcWindowSize,
+        gcThresholdPct,
+        minOrfCodons,
+      }),
+    );
+  };
+
+  const savePreset = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const normalizedName = presetName.trim();
+    if (!normalizedName) {
+      return;
+    }
+
+    const nextPresets = [
+      {
+        name: normalizedName,
+        recipeKind,
+        motif,
+        gcWindowSize,
+        gcThresholdPct,
+        minOrfCodons,
+      },
+      ...savedPresets.filter(
+        (preset) => preset.name.toLowerCase() !== normalizedName.toLowerCase(),
+      ),
+    ].slice(0, 10);
+    setSavedPresets(nextPresets);
+    window.localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(nextPresets));
+    setPresetName("");
+  };
+
+  const shareRecipeLink = async () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const link = new URL(window.location.href);
+    link.searchParams.set("dnaRecipe", recipeKind);
+    link.searchParams.set("dnaMotif", motif);
+    link.searchParams.set("dnaWindow", String(gcWindowSize));
+    link.searchParams.set("dnaGcThreshold", String(gcThresholdPct));
+    link.searchParams.set("dnaMinOrfCodons", String(minOrfCodons));
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(link.toString());
+    }
+  };
+
+  const analysisRows = useMemo(() => {
+    if (!analysisResult) {
+      return [];
+    }
+
+    if (analysisResult.kind === "motif-scan") {
+      return (analysisResult.motifMatches ?? [])
+        .slice(0, 6)
+        .map((match) => `${match.motif}: bp ${match.start}-${match.end}`);
+    }
+    if (analysisResult.kind === "gc-anomaly-scan") {
+      return (analysisResult.gcAnomalies ?? [])
+        .slice(0, 6)
+        .map(
+          (anomaly) =>
+            `bp ${anomaly.windowStart}-${anomaly.windowEnd} • GC ${anomaly.gcPct.toFixed(1)}% (Δ ${anomaly.deviationPct.toFixed(1)}%)`,
+        );
+    }
+
+    return (analysisResult.orfs ?? [])
+      .slice(0, 6)
+      .map((orf) => `frame ${orf.frame} • bp ${orf.start}-${orf.end} • ${orf.codons} codons`);
+  }, [analysisResult]);
 
   return (
     <Paper
@@ -293,6 +450,134 @@ export default function SequenceVisualizations({
             <Box className="shrink-0">
               <Typography className="inline-block p-2 font-semibold">Type:</Typography>
               <Typography className="inline-block p-2">{activeSequence?.type}</Typography>
+            </Box>
+            <Box
+              sx={{
+                mt: 0.75,
+                mb: 1.25,
+                p: 1.25,
+                borderRadius: 1.5,
+                border: "1px solid",
+                borderColor: "divider",
+                bgcolor: "background.paper",
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                Analysis Recipes
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                <FormControl size="small" sx={{ minWidth: 180 }}>
+                  <InputLabel id="recipe-select-label">Recipe</InputLabel>
+                  <Select
+                    labelId="recipe-select-label"
+                    value={recipeKind}
+                    label="Recipe"
+                    onChange={(event) =>
+                      setRecipeKind(event.target.value as SequenceAnalysisRecipeKind)
+                    }
+                  >
+                    <MenuItem value="motif-scan">motif scan</MenuItem>
+                    <MenuItem value="gc-anomaly-scan">gc anomaly scan</MenuItem>
+                    <MenuItem value="orf-scan">orf scan</MenuItem>
+                  </Select>
+                </FormControl>
+                {recipeKind === "motif-scan" ? (
+                  <TextField
+                    size="small"
+                    label="Motif"
+                    value={motif}
+                    onChange={(event) => setMotif(event.target.value)}
+                    sx={{ minWidth: 130 }}
+                  />
+                ) : null}
+                {recipeKind === "gc-anomaly-scan" ? (
+                  <>
+                    <TextField
+                      size="small"
+                      type="number"
+                      label="Window"
+                      value={gcWindowSize}
+                      onChange={(event) =>
+                        setGcWindowSize(Math.max(8, Math.floor(Number(event.target.value) || 24)))
+                      }
+                      sx={{ width: 110 }}
+                    />
+                    <TextField
+                      size="small"
+                      type="number"
+                      label="GC Δ %"
+                      value={gcThresholdPct}
+                      onChange={(event) =>
+                        setGcThresholdPct(Math.max(1, Number(event.target.value) || 15))
+                      }
+                      sx={{ width: 110 }}
+                    />
+                  </>
+                ) : null}
+                {recipeKind === "orf-scan" ? (
+                  <TextField
+                    size="small"
+                    type="number"
+                    label="Min Codons"
+                    value={minOrfCodons}
+                    onChange={(event) =>
+                      setMinOrfCodons(Math.max(5, Math.floor(Number(event.target.value) || 10)))
+                    }
+                    sx={{ width: 130 }}
+                  />
+                ) : null}
+                <Button size="small" variant="contained" onClick={runAnalysisRecipe}>
+                  Run
+                </Button>
+                <Button size="small" variant="outlined" onClick={() => void shareRecipeLink()}>
+                  Share
+                </Button>
+              </Box>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+                <TextField
+                  size="small"
+                  label="Preset name"
+                  value={presetName}
+                  onChange={(event) => setPresetName(event.target.value)}
+                  sx={{ minWidth: 180 }}
+                />
+                <Button size="small" variant="outlined" onClick={savePreset}>
+                  Save preset
+                </Button>
+                {savedPresets.map((preset) => (
+                  <Button
+                    key={`preset-${preset.name}`}
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setRecipeKind(preset.recipeKind);
+                      setMotif(preset.motif);
+                      setGcWindowSize(preset.gcWindowSize);
+                      setGcThresholdPct(preset.gcThresholdPct);
+                      setMinOrfCodons(preset.minOrfCodons);
+                    }}
+                  >
+                    {preset.name}
+                  </Button>
+                ))}
+              </Box>
+              {analysisResult ? (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    {analysisResult.summary}
+                  </Typography>
+                  {analysisRows.map((row) => (
+                    <Typography
+                      key={row}
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ display: "block" }}
+                    >
+                      {row}
+                    </Typography>
+                  ))}
+                </Box>
+              ) : null}
             </Box>
             <Box className="flex min-h-0 min-w-0 flex-1 flex-col">
               <Divider />

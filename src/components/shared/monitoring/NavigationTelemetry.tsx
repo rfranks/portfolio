@@ -31,154 +31,21 @@ import type {
   AppendTimelineOptions,
   TimelineEvent,
   TimelineEventKind,
-  TimelineMetadata,
 } from "@/types/observability/navigationTelemetry";
+import type {
+  SessionReplayLitePayload,
+  SessionReplayLongTaskSample,
+} from "@/types/observability/sessionReplayLite";
+import { parseSessionReplayLitePayload } from "@/utils/observability/sessionReplayLite";
+import type { RouteInteractionBudgetSnapshot } from "@/types/observability/routeInteractionBudgets";
+import {
+  loadRouteInteractionBudgetSnapshotFromStorage,
+  saveRouteInteractionBudgetSnapshotToStorage,
+  updateRouteInteractionBudgetFromTimelineEvent,
+} from "@/utils/observability/routeInteractionBudgets";
 
 const logger = createLogger("navigation");
 const REPLAY_SPEED_OPTIONS = [0.5, 1, 1.5, 2, 3, 4] as const;
-const TIMELINE_EVENT_KINDS: ReadonlySet<TimelineEventKind> = new Set([
-  "route",
-  "interaction",
-  "long-task",
-  "media",
-  "pager",
-  "navigation",
-]);
-
-type ReplayLongTaskSample = {
-  durationMs: number;
-  atMs: number;
-};
-
-type SessionReplayLitePayload = {
-  exportedAt: string;
-  sessionStartedAt: string;
-  currentRoute: string;
-  metrics: {
-    latestRouteRenderMs: number | null;
-    latestRouteTransitionMs: number | null;
-    latestInteractionMs: number | null;
-  };
-  longTasks: ReplayLongTaskSample[];
-  events: TimelineEvent[];
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
-
-const asFiniteNumberOrNull = (value: unknown): number | null =>
-  typeof value === "number" && Number.isFinite(value) ? value : null;
-
-const asStringOrFallback = (value: unknown, fallback: string): string =>
-  typeof value === "string" && value.trim().length > 0 ? value : fallback;
-
-const isTimelineEventKind = (value: unknown): value is TimelineEventKind =>
-  typeof value === "string" && TIMELINE_EVENT_KINDS.has(value as TimelineEventKind);
-
-const normalizeTimelineMetadata = (value: unknown): TimelineMetadata | undefined => {
-  if (!isRecord(value)) {
-    return undefined;
-  }
-
-  const metadata: TimelineMetadata = {};
-  Object.entries(value).forEach(([key, rawMetadataValue]) => {
-    if (
-      typeof rawMetadataValue === "string" ||
-      typeof rawMetadataValue === "number" ||
-      typeof rawMetadataValue === "boolean" ||
-      rawMetadataValue === null
-    ) {
-      metadata[key] = rawMetadataValue;
-    }
-  });
-
-  return Object.keys(metadata).length > 0 ? metadata : undefined;
-};
-
-const normalizeReplayTimelineEvent = (
-  value: unknown,
-  fallbackId: number,
-  fallbackRoute: string,
-): TimelineEvent | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const kind = isTimelineEventKind(value.kind) ? value.kind : null;
-  const action =
-    typeof value.action === "string" && value.action.trim().length > 0 ? value.action.trim() : null;
-  const relativeMs = asFiniteNumberOrNull(value.relativeMs);
-  if (!kind || !action || relativeMs === null) {
-    return null;
-  }
-
-  const id = asFiniteNumberOrNull(value.id) ?? fallbackId;
-  const atIso = asStringOrFallback(value.atIso, new Date().toISOString());
-  const route = asStringOrFallback(value.route, fallbackRoute);
-  const durationMs = asFiniteNumberOrNull(value.durationMs);
-  const metadata = normalizeTimelineMetadata(value.metadata);
-
-  return {
-    id: Math.max(1, Math.round(id)),
-    atIso,
-    relativeMs: Math.max(0, Math.round(relativeMs)),
-    route,
-    kind,
-    action,
-    durationMs: durationMs === null ? undefined : Math.max(0, Math.round(durationMs)),
-    metadata,
-  };
-};
-
-const normalizeReplayLongTask = (value: unknown): ReplayLongTaskSample | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const durationMs = asFiniteNumberOrNull(value.durationMs);
-  const atMs = asFiniteNumberOrNull(value.atMs);
-  if (durationMs === null || atMs === null) {
-    return null;
-  }
-
-  return {
-    durationMs: Math.max(0, Math.round(durationMs)),
-    atMs: Math.max(0, Math.round(atMs)),
-  };
-};
-
-const parseSessionReplayLitePayload = (raw: unknown): SessionReplayLitePayload | null => {
-  if (!isRecord(raw) || !Array.isArray(raw.events)) {
-    return null;
-  }
-
-  const fallbackRoute = asStringOrFallback(raw.currentRoute, "/");
-  const events = raw.events
-    .map((entry, index) => normalizeReplayTimelineEvent(entry, index + 1, fallbackRoute))
-    .filter((entry): entry is TimelineEvent => entry !== null)
-    .sort((left, right) => left.relativeMs - right.relativeMs)
-    .map((entry, index) => ({ ...entry, id: index + 1 }));
-
-  const metricsRecord = isRecord(raw.metrics) ? raw.metrics : {};
-  const longTasks = Array.isArray(raw.longTasks)
-    ? raw.longTasks
-        .map((entry) => normalizeReplayLongTask(entry))
-        .filter((entry): entry is ReplayLongTaskSample => entry !== null)
-    : [];
-
-  return {
-    exportedAt: asStringOrFallback(raw.exportedAt, new Date().toISOString()),
-    sessionStartedAt: asStringOrFallback(raw.sessionStartedAt, new Date().toISOString()),
-    currentRoute: fallbackRoute,
-    metrics: {
-      latestRouteRenderMs: asFiniteNumberOrNull(metricsRecord.latestRouteRenderMs),
-      latestRouteTransitionMs: asFiniteNumberOrNull(metricsRecord.latestRouteTransitionMs),
-      latestInteractionMs: asFiniteNumberOrNull(metricsRecord.latestInteractionMs),
-    },
-    longTasks,
-    events,
-  };
-};
 
 export default function NavigationTelemetry() {
   const isDev = process.env.NODE_ENV !== "production";
@@ -196,7 +63,7 @@ export default function NavigationTelemetry() {
   const [latestRouteTransitionMs, setLatestRouteTransitionMs] = useState<number | null>(null);
   const [latestInteractionMs, setLatestInteractionMs] = useState<number | null>(null);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
-  const [longTasks, setLongTasks] = useState<Array<{ durationMs: number; atMs: number }>>([]);
+  const [longTasks, setLongTasks] = useState<SessionReplayLongTaskSample[]>([]);
   const [timelineViewMode, setTimelineViewMode] = useState<"live" | "replay">("live");
   const [replayPayload, setReplayPayload] = useState<SessionReplayLitePayload | null>(null);
   const [replayError, setReplayError] = useState<string | null>(null);
@@ -209,6 +76,7 @@ export default function NavigationTelemetry() {
   const replayCursorMsRef = useRef(0);
   const timelinePausedRef = useRef(timelinePaused);
   const timelineEventsRef = useRef<TimelineEvent[]>([]);
+  const routeInteractionBudgetSnapshotRef = useRef<RouteInteractionBudgetSnapshot | null>(null);
   const replayMaxRelativeMs = replayPayload?.events.at(-1)?.relativeMs ?? 0;
 
   useEffect(() => {
@@ -228,6 +96,10 @@ export default function NavigationTelemetry() {
     timelinePausedRef.current = timelinePaused;
   }, [timelinePaused]);
 
+  useEffect(() => {
+    routeInteractionBudgetSnapshotRef.current = loadRouteInteractionBudgetSnapshotFromStorage();
+  }, []);
+
   const appendTimelineEvent = useCallback(
     (kind: TimelineEventKind, action: string, options?: AppendTimelineOptions) => {
       if (!isDev || timelinePausedRef.current) {
@@ -244,6 +116,14 @@ export default function NavigationTelemetry() {
         action,
       };
       nextTimelineEventIdRef.current = timelineEvent.id;
+
+      routeInteractionBudgetSnapshotRef.current = updateRouteInteractionBudgetFromTimelineEvent({
+        current: routeInteractionBudgetSnapshotRef.current,
+        event: timelineEvent,
+      });
+      if (routeInteractionBudgetSnapshotRef.current) {
+        saveRouteInteractionBudgetSnapshotToStorage(routeInteractionBudgetSnapshotRef.current);
+      }
 
       if (options?.durationMs !== undefined && options.durationMs !== null) {
         timelineEvent.durationMs = Math.round(options.durationMs);

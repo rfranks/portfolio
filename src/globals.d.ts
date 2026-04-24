@@ -1,1 +1,1 @@
-declare module "bio-parsers";
+declare module "@teselagen/bio-parsers";

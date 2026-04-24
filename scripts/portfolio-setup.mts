@@ -7,17 +7,14 @@ import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
 import { parseResumeDataWithSchema } from "../src/consts/resumeDataSchema";
-import {
-  migrateResumeData,
-  LATEST_RESUME_DATA_SCHEMA_VERSION,
-} from "../src/utils/data/migrations/resumeDataMigrations";
+import * as resumeDataMigrationsModule from "../src/utils/data/migrations/resumeDataMigrations";
 import {
   buildSingleHunkDiffPreview,
   normalizeProjectEntry,
   parsePortfolioSetupArgs,
   validateProjectsOrThrow,
   type PortfolioSetupRuntimeOptions,
-} from "./portfolio-setup-utils";
+} from "./portfolio-setup-utils.mts";
 import {
   deleteValueAtPath,
   formatValueForDisplay,
@@ -26,21 +23,21 @@ import {
   parseMetadataPath,
   setValueAtPath,
   type JsonRecord,
-} from "./lib/metadata-editor";
+} from "./lib/metadata-editor.mts";
 import {
   inferAppAssetBucket,
   moveFileSafely,
   replacePathReferencesInObject,
   resolvePublicPath,
   type AppAssetBucket,
-} from "./lib/asset-organizer";
-import { ensureDir, pathExists, readJson, writeJson as writeJsonFile } from "./lib/json-io";
-import { competencyOptionIconChoices, shenaniganTypeChoices } from "./lib/prompts";
+} from "./lib/asset-organizer.mts";
+import { ensureDir, pathExists, readJson, writeJson as writeJsonFile } from "./lib/json-io.mts";
+import { competencyOptionIconChoices, shenaniganTypeChoices } from "./lib/prompts.mts";
 import {
   createPortfolioSetupCommandRegistry,
   runPortfolioSetupCommand,
-} from "./portfolio-setup/commands";
-import { createWizardUi, type WizardReadline } from "./portfolio-setup/wizardUi";
+} from "./portfolio-setup/commands/index.mts";
+import { createWizardUi, type WizardReadline } from "./portfolio-setup/wizardUi.mts";
 import {
   defaultCompetencyCategoryTemplate,
   defaultEducationTemplate,
@@ -67,8 +64,8 @@ import {
   type ScopedAssetOptions,
   type ShenaniganEntry,
   type SummaryData,
-} from "./portfolio-setup/setupModels";
-import { clearInitAssets, replaceFaviconWithDefault } from "./portfolio-setup/repoReset";
+} from "./portfolio-setup/setupModels.mts";
+import { clearInitAssets, replaceFaviconWithDefault } from "./portfolio-setup/repoReset.mts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -122,6 +119,35 @@ const {
   chooseOne,
   chooseIndex,
 } = createWizardUi(output);
+
+function resolveModuleExport<T>(moduleNamespace: unknown, name: string): T {
+  if (!moduleNamespace || typeof moduleNamespace !== "object") {
+    throw new Error(`Unable to resolve export '${name}': module is not an object.`);
+  }
+
+  const namespace = moduleNamespace as Record<string, unknown>;
+  if (name in namespace) {
+    return namespace[name] as T;
+  }
+
+  const maybeDefault = namespace.default;
+  if (maybeDefault && typeof maybeDefault === "object") {
+    const defaultObject = maybeDefault as Record<string, unknown>;
+    if (name in defaultObject) {
+      return defaultObject[name] as T;
+    }
+  }
+
+  throw new Error(`Unable to resolve export '${name}' from module namespace.`);
+}
+
+const migrateResumeData = resolveModuleExport<
+  (payload: Record<string, unknown>) => Record<string, unknown>
+>(resumeDataMigrationsModule, "migrateResumeData");
+const LATEST_RESUME_DATA_SCHEMA_VERSION = resolveModuleExport<number>(
+  resumeDataMigrationsModule,
+  "LATEST_RESUME_DATA_SCHEMA_VERSION",
+);
 
 function toPosix(p: string): string {
   return p.split(path.sep).join("/");

@@ -27,6 +27,7 @@ import {
 } from "@/components/portfolio/projectPageData";
 import { ToggleColorMode } from "@/components/shared";
 import type { AppBarProps, CommandPaletteAction } from "@/types/components/portfolio";
+import type { StaticSearchIndexSnapshot } from "@/types/content/searchIndex";
 import { withBasePath } from "@/utils/basePath";
 import {
   PORTFOLIO_NAVIGATION_TELEMETRY_ACTION,
@@ -43,6 +44,8 @@ interface StyledAppBarProps extends MuiAppBarProps {
   open?: boolean;
   drawerWidth?: number;
 }
+
+const STATIC_SEARCH_INDEX_URL = "/personal/data/search/static-search-index.json";
 
 const StyledAppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open" && prop !== "drawerWidth",
@@ -102,6 +105,24 @@ function dedupeActions(actions: CommandPaletteAction[]) {
   return deduped;
 }
 
+function normalizeStaticSearchActions(payload: unknown): CommandPaletteAction[] | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const snapshot = payload as Partial<StaticSearchIndexSnapshot>;
+  if (!Array.isArray(snapshot.actions)) {
+    return null;
+  }
+
+  return snapshot.actions
+    .filter((action): action is CommandPaletteAction => Boolean(action?.id && action?.label))
+    .map((action) => ({
+      ...action,
+      onSelect: undefined,
+    }));
+}
+
 export default function AppBar({
   open,
   drawerWidth,
@@ -119,6 +140,9 @@ export default function AppBar({
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
+  const [staticSearchIndexActions, setStaticSearchIndexActions] = useState<CommandPaletteAction[]>(
+    () => getPortfolioStaticSearchIndexActions(),
+  );
   const commandInputRef = useRef<HTMLInputElement | null>(null);
 
   const presentationProjectSlugs = useMemo(
@@ -150,7 +174,35 @@ export default function AppBar({
   }, [pathname, presentationProjectSlugs]);
 
   const projectParam = searchParams?.get("project")?.trim() || inferredProjectParam;
-  const staticSearchIndexActions = useMemo(() => getPortfolioStaticSearchIndexActions(), []);
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadStaticSearchIndex = async () => {
+      try {
+        const response = await fetch(withBasePath(STATIC_SEARCH_INDEX_URL), {
+          cache: "force-cache",
+        });
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = normalizeStaticSearchActions((await response.json()) as unknown);
+        if (!payload || payload.length === 0 || cancelled) {
+          return;
+        }
+
+        setStaticSearchIndexActions(payload);
+      } catch {
+        // Keep fallback in-memory index.
+      }
+    };
+
+    void loadStaticSearchIndex();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const routeAwareActions = useMemo<CommandPaletteAction[]>(() => {
     if (!projectParam) {
       return [];

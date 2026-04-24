@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { createCliOutput } from "./lib/cli-output";
-import { writeHealthSnapshot } from "./lib/health-dashboard";
+import { createCliOutput } from "./lib/cli-output.mts";
+import { writeHealthSnapshot } from "./lib/health-dashboard.mts";
 
 const rootDir = process.cwd();
 const out = createCliOutput();
@@ -29,6 +29,23 @@ const isCi = process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
 const routeGroupPattern = /^\(.*\)$/;
 const dynamicSegmentPattern = /^\[.*\]$/;
 const chunkReferencePattern = /\/_next\/static\/chunks\/[^"'`\s)]+?\.js(?:\?[^"'`\s)]*)?/g;
+type QualityLane =
+  | "portfolio"
+  | "pathforger"
+  | "warbirds"
+  | "zombiefish"
+  | "rickbert-studio"
+  | "dna"
+  | "ai-shenanigans";
+const validLanes: QualityLane[] = [
+  "portfolio",
+  "pathforger",
+  "warbirds",
+  "zombiefish",
+  "rickbert-studio",
+  "dna",
+  "ai-shenanigans",
+];
 
 type BudgetLimits = {
   maxTotalKb: number;
@@ -67,6 +84,32 @@ type SectionStats = {
   budget: BudgetLimits;
   withinBudget: boolean;
 };
+
+function parseLaneArg(argv: string[]): QualityLane {
+  for (let index = 0; index < argv.length; index += 1) {
+    if (argv[index] !== "--lane") {
+      continue;
+    }
+    const next = argv[index + 1]?.trim() as QualityLane | undefined;
+    if (next && validLanes.includes(next)) {
+      return next;
+    }
+  }
+  return "portfolio";
+}
+
+function laneRouteKey(lane: QualityLane): string | null {
+  if (lane === "portfolio") {
+    return null;
+  }
+  if (lane === "rickbert-studio") {
+    return "/rickbert-studio";
+  }
+  if (lane === "ai-shenanigans") {
+    return "/ai-shenanigans";
+  }
+  return `/${lane}`;
+}
 
 async function collectChunkFiles(dir: string, files: string[]): Promise<void> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -311,6 +354,7 @@ async function writeBundleHealthSnapshot(args: {
 
 async function main(): Promise<void> {
   out.section("Bundle budget scan");
+  const lane = parseLaneArg(process.argv.slice(2));
   let routeBudgetOverrides: BudgetOverrides;
   let sectionBudgetOverrides: BudgetOverrides;
   try {
@@ -328,6 +372,26 @@ async function main(): Promise<void> {
       envName: "BUNDLE_SECTION_BUDGETS_JSON",
       valueLabel: "section",
     });
+    if (lane !== "portfolio") {
+      const routeKey = laneRouteKey(lane);
+      if (routeKey) {
+        routeBudgetOverrides = {
+          ...routeBudgetOverrides,
+          [routeKey]: {
+            maxTotalKb: Number((defaultRouteMaxTotalKb * 0.6).toFixed(0)),
+            maxLargestKb: Number((defaultRouteMaxLargestKb * 0.65).toFixed(0)),
+          },
+        };
+      }
+      const sectionKey = lane === "rickbert-studio" ? "rickbert-studio" : lane;
+      sectionBudgetOverrides = {
+        ...sectionBudgetOverrides,
+        [sectionKey]: {
+          maxTotalKb: Number((defaultSectionMaxTotalKb * 0.7).toFixed(0)),
+          maxLargestKb: Number((defaultSectionMaxLargestKb * 0.75).toFixed(0)),
+        },
+      };
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     out.error(`Bundle budget configuration invalid: ${message}`);
@@ -568,8 +632,11 @@ async function main(): Promise<void> {
 
   await writeBundleHealthSnapshot({
     status: hasFailures ? "fail" : "pass",
-    summary: hasFailures ? "Bundle budget checks failed." : "Bundle budget checks passed.",
+    summary: hasFailures
+      ? `Bundle budget checks failed (${lane} lane).`
+      : `Bundle budget checks passed (${lane} lane).`,
     details: {
+      lane,
       totals: {
         totalKb,
         maxTotalKb,
@@ -592,7 +659,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  out.success("Bundle budget check passed.");
+  out.success(`Bundle budget check passed (${lane} lane).`);
 }
 
 main().catch(async (error: unknown) => {

@@ -38,6 +38,7 @@ export default function ImageLightbox(props: ImageLightboxProps) {
     handlePointerUpOrLeave,
     handleDoubleClick,
   } = usePanZoomViewport({
+    calibrationMediaType: "image",
     shouldIgnorePointerTarget: (target) => Boolean(target.closest("button")),
   });
   const previewContainerSxArray = React.useMemo(

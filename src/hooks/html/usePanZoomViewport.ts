@@ -28,12 +28,29 @@ export type {
 } from "@/types/hooks/panZoomViewport";
 export type { UsePanZoomViewportOptions } from "@/types/hooks/usePanZoomViewport";
 
+const normalizeCalibrationToken = (value: string | null | undefined): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized.length > 0 ? normalized : null;
+};
+
 export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
   const preset = options.preset ?? "media";
   const presetDefaults = INTERACTIVE_VIEWPORT_PRESET_DEFAULTS[preset];
   const {
     initialState = DEFAULT_INITIAL_STATE,
     preferencesStorageKey,
+    calibrationMediaType,
+    calibrationSection,
+    calibrationProfileNamespace,
     initialPreferences,
     minScale = presetDefaults.minScale,
     maxScale = presetDefaults.maxScale,
@@ -106,10 +123,57 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
   const canRedo = historyIndex < history.length - 1;
   const maxGestureStepFactor = Math.max(clickZoomFactor, iconZoomFactor, doubleClickZoomFactor);
   const minGestureStepFactor = 1 / maxGestureStepFactor;
-  const calibrationStorageKey = React.useMemo(
-    () => (preferencesStorageKey ? `${preferencesStorageKey}:gesture-calibration` : null),
-    [preferencesStorageKey],
+  const [resolvedCalibrationSection, setResolvedCalibrationSection] = React.useState<string | null>(
+    () => normalizeCalibrationToken(calibrationSection),
   );
+
+  React.useEffect(() => {
+    const explicitSection = normalizeCalibrationToken(calibrationSection);
+    if (explicitSection) {
+      setResolvedCalibrationSection(explicitSection);
+      return;
+    }
+
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const inferredSection =
+      normalizeCalibrationToken(params.get("section")) ??
+      normalizeCalibrationToken(params.get("slide")) ??
+      normalizeCalibrationToken(params.get("panel")) ??
+      normalizeCalibrationToken(window.location.pathname.split("/").filter(Boolean)[0]);
+    if (inferredSection) {
+      setResolvedCalibrationSection(inferredSection);
+    }
+  }, [calibrationSection]);
+
+  const calibrationStorageKey = React.useMemo(() => {
+    const scopeTokens = [
+      normalizeCalibrationToken(calibrationProfileNamespace),
+      normalizeCalibrationToken(preset),
+      normalizeCalibrationToken(calibrationMediaType),
+      resolvedCalibrationSection,
+    ].filter((token): token is string => Boolean(token));
+
+    const scopeKey = scopeTokens.join(":");
+    if (scopeKey) {
+      return `panzoom:gesture-calibration:${scopeKey}`;
+    }
+
+    if (preferencesStorageKey) {
+      return `${preferencesStorageKey}:gesture-calibration`;
+    }
+
+    return "panzoom:gesture-calibration:default";
+  }, [
+    calibrationMediaType,
+    calibrationProfileNamespace,
+    preferencesStorageKey,
+    preset,
+    resolvedCalibrationSection,
+  ]);
 
   const clampScale = React.useCallback(
     (value: number) => Math.min(maxScale, Math.max(minScale, value)),

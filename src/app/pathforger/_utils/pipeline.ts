@@ -190,6 +190,7 @@ const renderImageDefaults: Record<PathForgerImageType, boolean> = {
 
 export type RunPathForgerPipelineOptions = {
   abortSignal?: AbortSignal;
+  onReplaySnapshot?: (snapshot: ReturnType<PathForgerPipelineStateMachine["getSnapshot"]>) => void;
 };
 
 const PATHFORGER_PIPELINE_ORCHESTRATION_POLICY = createPathForgerPipelineOrchestrationPolicy({
@@ -2658,5 +2659,7 @@ export async function runPathForgerPipeline(
       error,
       machine,
     });
+  } finally {
+    options?.onReplaySnapshot?.(machine.getSnapshot());
   }
 }

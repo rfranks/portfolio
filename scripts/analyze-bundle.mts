@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { createCliOutput } from "./lib/cli-output";
+import { createCliOutput } from "./lib/cli-output.mts";
 
 const rootDir = process.cwd();
 const out = createCliOutput();

@@ -57,7 +57,8 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
       activeSectionKey: controller.activeSectionKey,
       pagerItems: controller.pagerItems,
       prefetchPlan: controller.presentationPrefetchPlan,
-      lookahead: 1,
+      lookahead: controller.sectionNavigationDirection === "neutral" ? 1 : 2,
+      navigationDirection: controller.sectionNavigationDirection,
     });
 
     const prefetch = () => {
@@ -88,6 +89,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
     controller.deepLinkInitialized,
     controller.pagerItems,
     controller.presentationPrefetchPlan,
+    controller.sectionNavigationDirection,
   ]);
 
   const renderActiveSection = () => {

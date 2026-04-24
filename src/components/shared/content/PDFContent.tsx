@@ -75,6 +75,7 @@ export default function PDFContent({
     handleDoubleClick,
   } = usePanZoomViewport({
     preset: "media",
+    calibrationMediaType: "pdf",
     shouldIgnorePointerTarget: (target) => Boolean(target.closest("a") || target.closest("button")),
   });
 

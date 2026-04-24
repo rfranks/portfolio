@@ -33,6 +33,8 @@ import {
   resolveSectionPrefetchOrder,
 } from "./media-cycler/rendererRegistry";
 import { emitMediaActionTelemetry } from "@/utils/media/mediaActionTelemetry";
+import { emitMediaActionBusEvent } from "@/utils/media/mediaActionBus";
+import { copyTextToClipboard } from "@/utils/components/shared/diagram";
 export type { MediaCyclerItem } from "@/types/media/mediaCycler";
 
 const renderSource = (label?: string, href?: string) => {
@@ -100,6 +102,8 @@ export default function MediaCycler({
     metadataDialogItem,
     setMetadataDialogItemKey,
     markdownByKey,
+    previousItem,
+    nextItem,
     previousDisabled,
     nextDisabled,
     showLoopAction,
@@ -137,7 +141,11 @@ export default function MediaCycler({
         | "navigate.next"
         | "navigate.loop"
         | "details.open"
-        | "details.close",
+        | "details.close"
+        | "open"
+        | "copy"
+        | "export"
+        | "zoom",
       trigger: PortfolioTelemetryTrigger,
       item: MediaCyclerItem | null | undefined,
       control?: string,
@@ -153,6 +161,18 @@ export default function MediaCycler({
           source: item?.mediaSource,
         }),
       );
+      emitMediaActionBusEvent({
+        source: "media-cycler",
+        action: resolveMediaActionContract({
+          kind,
+          trigger,
+          control,
+          itemKey: item?.key,
+          mediaType: item?.mediaType,
+          title: item?.title,
+          source: item?.mediaSource,
+        }),
+      });
     },
     [],
   );
@@ -207,6 +227,70 @@ export default function MediaCycler({
     },
     [prefetchMediaType],
   );
+  const pointerIntentPrefetchRef = React.useRef<{
+    itemKey: string;
+    edge: "left" | "right";
+  } | null>(null);
+
+  const prefetchAdjacentItem = React.useCallback(
+    (edge: "left" | "right") => {
+      const targetItem = edge === "right" ? nextItem : previousItem;
+      if (!targetItem) {
+        return;
+      }
+      prefetchItemMediaByIntent(targetItem);
+    },
+    [nextItem, prefetchItemMediaByIntent, previousItem],
+  );
+
+  const handleSinglePanelPointerMove = React.useCallback(
+    (event: React.PointerEvent<HTMLElement>) => {
+      const target = event.currentTarget;
+      const bounds = target.getBoundingClientRect();
+      if (bounds.width <= 1) {
+        return;
+      }
+
+      const pointerX = event.clientX - bounds.left;
+      const ratio = pointerX / bounds.width;
+      const nearLeft = ratio <= 0.22;
+      const nearRight = ratio >= 0.78;
+      if (!nearLeft && !nearRight) {
+        return;
+      }
+
+      const edge: "left" | "right" = nearRight ? "right" : "left";
+      const targetItem = edge === "right" ? nextItem : previousItem;
+      if (!targetItem) {
+        return;
+      }
+
+      const lastIntent = pointerIntentPrefetchRef.current;
+      if (lastIntent && lastIntent.itemKey === targetItem.key && lastIntent.edge === edge) {
+        return;
+      }
+
+      pointerIntentPrefetchRef.current = {
+        itemKey: targetItem.key,
+        edge,
+      };
+      prefetchItemMediaByIntent(targetItem);
+    },
+    [nextItem, prefetchItemMediaByIntent, previousItem],
+  );
+
+  const handleSinglePanelPointerEnter = React.useCallback(() => {
+    if (nextItem) {
+      prefetchItemMediaByIntent(nextItem);
+    }
+    if (previousItem) {
+      prefetchItemMediaByIntent(previousItem);
+    }
+  }, [nextItem, prefetchItemMediaByIntent, previousItem]);
+
+  const handleSinglePanelFocusCapture = React.useCallback(() => {
+    prefetchAdjacentItem("right");
+  }, [prefetchAdjacentItem]);
 
   React.useEffect(() => {
     if (!items.length || typeof window === "undefined") {
@@ -243,6 +327,7 @@ export default function MediaCycler({
       return;
     }
 
+    pointerIntentPrefetchRef.current = null;
     prefetchItemMediaByIntent(renderedItem);
   }, [prefetchItemMediaByIntent, renderedItem]);
 
@@ -287,6 +372,41 @@ export default function MediaCycler({
     if (event.key.toLowerCase() === "l") {
       event.preventDefault();
       navigateLoop("keyboard", "l");
+      return;
+    }
+
+    if (event.key.toLowerCase() === "o") {
+      event.preventDefault();
+      if (renderedItem?.onMediaActivate) {
+        renderedItem.onMediaActivate();
+      }
+      emitMediaTelemetry("open", "keyboard", renderedItem, "open-media-action");
+      return;
+    }
+
+    if (event.key.toLowerCase() === "c") {
+      event.preventDefault();
+      const copyValue =
+        renderedItem?.mediaSourceHref ??
+        renderedItem?.mediaUrl ??
+        renderedItem?.mediaCaption ??
+        renderedItem?.title;
+      if (copyValue?.trim()) {
+        void copyTextToClipboard(copyValue);
+      }
+      emitMediaTelemetry("copy", "keyboard", renderedItem, "copy-media-action");
+      return;
+    }
+
+    if (event.key.toLowerCase() === "e") {
+      event.preventDefault();
+      emitMediaTelemetry("export", "keyboard", renderedItem, "export-media-action");
+      return;
+    }
+
+    if (event.key === "+" || event.key === "=" || event.key === "-") {
+      event.preventDefault();
+      emitMediaTelemetry("zoom", "keyboard", renderedItem, "zoom-media-action");
     }
   };
 
@@ -332,18 +452,21 @@ export default function MediaCycler({
       control?: string,
       metaAction?: string,
     ) => {
-      emitMediaActionTelemetry(
-        resolveMediaActionContract({
-          kind,
-          trigger,
-          control,
-          metaAction,
-          itemKey: item.key,
-          mediaType: item.mediaType,
-          title: item.title,
-          source: item.mediaSource,
-        }),
-      );
+      const actionContract = resolveMediaActionContract({
+        kind,
+        trigger,
+        control,
+        metaAction,
+        itemKey: item.key,
+        mediaType: item.mediaType,
+        title: item.title,
+        source: item.mediaSource,
+      });
+      emitMediaActionTelemetry(actionContract);
+      emitMediaActionBusEvent({
+        source: "media-cycler",
+        action: actionContract,
+      });
     };
     const previousDiagramItem = (() => {
       if (!isDiagramItem || itemIndex < 0) {
@@ -900,6 +1023,9 @@ export default function MediaCycler({
         onTouchMove={handleSwipeMove}
         onTouchEnd={handleSwipeEnd}
         onTouchCancel={handleSwipeCancel}
+        onPointerMove={handleSinglePanelPointerMove}
+        onMouseEnter={handleSinglePanelPointerEnter}
+        onFocusCapture={handleSinglePanelFocusCapture}
         singlePanelItem={
           renderedItem ? (
             <Box

@@ -22,6 +22,9 @@ import {
   normalizeDiagramExportBaseName,
   triggerJsonDownload,
 } from "@/utils/components/shared/diagram";
+import { resolveMediaActionContract } from "@/utils/components/shared/mediaCycler";
+import { emitMediaActionBusEvent } from "@/utils/media/mediaActionBus";
+import { emitMediaActionTelemetry } from "@/utils/media/mediaActionTelemetry";
 
 /**
  * Renders a diagram using the Mermaid library.
@@ -116,6 +119,7 @@ ${steps?.join("\n  ")}
     resetDeviceGestureCalibration,
   } = usePanZoomViewport({
     preset: "diagram",
+    calibrationMediaType: "diagram",
     preferencesStorageKey: "diagram-viewport-preferences",
     initialPreferences: {
       showGridDots: shouldShowGridDots,
@@ -127,6 +131,37 @@ ${steps?.join("\n  ")}
   const resolvedGridDots = viewportPreferences.showGridDots ?? shouldShowGridDots;
   const resolvedAutoFitVerticalAlign =
     viewportPreferences.autoFitVerticalAlign ?? autoFitVerticalAlign;
+  const emitDiagramAction = useCallback(
+    (
+      kind:
+        | "open"
+        | "copy"
+        | "export"
+        | "zoom"
+        | "details.open"
+        | "details.close"
+        | "navigate.next"
+        | "navigate.previous"
+        | "navigate.loop",
+      control?: string,
+      trigger: "keyboard" | "pointer" | "programmatic" = "programmatic",
+    ) => {
+      const action = resolveMediaActionContract({
+        kind,
+        trigger,
+        control,
+        itemKey: resolvedId,
+        mediaType: "diagram",
+        title,
+      });
+      emitMediaActionTelemetry(action);
+      emitMediaActionBusEvent({
+        source: "diagram",
+        action,
+      });
+    },
+    [resolvedId, title],
+  );
 
   const fitDiagramToViewport = useCallback(() => {
     const viewport = diagramViewportRef.current;
@@ -325,6 +360,24 @@ ${steps?.join("\n  ")}
     scheduleAutoFitToViewport();
   }, [scheduleAutoFitToViewport]);
 
+  const handleZoomInAction = useCallback(() => {
+    emitDiagramAction("zoom", "diagram-zoom-in");
+    handleZoomIn();
+  }, [emitDiagramAction, handleZoomIn]);
+
+  const handleZoomOutAction = useCallback(() => {
+    emitDiagramAction("zoom", "diagram-zoom-out");
+    handleZoomOut();
+  }, [emitDiagramAction, handleZoomOut]);
+
+  const { copySucceeded, handleCopyDiagramCode, handleExportSvg, handleExportPng } =
+    useDiagramExports({
+      diagramCode,
+      diagramRef,
+      resolvedId,
+      title,
+    });
+
   const handleCanvasKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       const normalizedKey = event.key.toLowerCase();
@@ -347,10 +400,56 @@ ${steps?.join("\n  ")}
       if (normalizedKey === "r" && event.shiftKey) {
         event.preventDefault();
         resetDeviceGestureCalibration();
+        return;
+      }
+
+      if (normalizedKey === "c") {
+        event.preventDefault();
+        emitDiagramAction("copy", "diagram-copy-code-shortcut", "keyboard");
+        void handleCopyDiagramCode();
+        return;
+      }
+
+      if (normalizedKey === "e") {
+        event.preventDefault();
+        emitDiagramAction("export", "diagram-export-svg-shortcut", "keyboard");
+        void handleExportSvg();
+        return;
+      }
+
+      if (normalizedKey === "p") {
+        event.preventDefault();
+        emitDiagramAction("export", "diagram-export-png-shortcut", "keyboard");
+        void handleExportPng();
+        return;
+      }
+
+      if (normalizedKey === "o") {
+        event.preventDefault();
+        emitDiagramAction("open", "diagram-show-source-shortcut", "keyboard");
+        setShowingText(true);
+        return;
+      }
+
+      if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        handleZoomInAction();
+        return;
+      }
+
+      if (event.key === "-") {
+        event.preventDefault();
+        handleZoomOutAction();
       }
     },
     [
+      emitDiagramAction,
       fitDiagramToViewport,
+      handleCopyDiagramCode,
+      handleExportPng,
+      handleExportSvg,
+      handleZoomInAction,
+      handleZoomOutAction,
       resetDeviceGestureCalibration,
       resolvedAutoFitVerticalAlign,
       resolvedGridDots,
@@ -358,14 +457,6 @@ ${steps?.join("\n  ")}
       setViewportGridEnabledPreference,
     ],
   );
-
-  const { copySucceeded, handleCopyDiagramCode, handleExportSvg, handleExportPng } =
-    useDiagramExports({
-      diagramCode,
-      diagramRef,
-      resolvedId,
-      title,
-    });
 
   const resolveExportFileBaseName = useCallback(
     () => normalizeDiagramExportBaseName(title, resolvedId),
@@ -386,7 +477,23 @@ ${steps?.join("\n  ")}
       exportedAt: new Date().toISOString(),
     };
     triggerJsonDownload(payload, `${resolveExportFileBaseName()}-viewport.json`);
-  }, [getViewportSnapshot, resolveExportFileBaseName, resolvedId, title, type]);
+    emitDiagramAction("export", "diagram-export-viewport-json", "pointer");
+  }, [emitDiagramAction, getViewportSnapshot, resolveExportFileBaseName, resolvedId, title, type]);
+
+  const handleCopyDiagramCodeAction = useCallback(() => {
+    emitDiagramAction("copy", "diagram-copy-code", "pointer");
+    void handleCopyDiagramCode();
+  }, [emitDiagramAction, handleCopyDiagramCode]);
+
+  const handleExportSvgAction = useCallback(() => {
+    emitDiagramAction("export", "diagram-export-svg", "pointer");
+    void handleExportSvg();
+  }, [emitDiagramAction, handleExportSvg]);
+
+  const handleExportPngAction = useCallback(() => {
+    emitDiagramAction("export", "diagram-export-png", "pointer");
+    void handleExportPng();
+  }, [emitDiagramAction, handleExportPng]);
 
   const handleCopyDeepLinkWithViewport = useCallback(async () => {
     if (typeof window === "undefined") {
@@ -405,6 +512,7 @@ ${steps?.join("\n  ")}
 
     try {
       await copyTextToClipboard(deepLink.toString());
+      emitDiagramAction("copy", "diagram-copy-deeplink-viewport", "pointer");
       setDeepLinkCopySucceeded(true);
       if (deepLinkCopyResetTimeoutRef.current !== null) {
         window.clearTimeout(deepLinkCopyResetTimeoutRef.current);
@@ -416,7 +524,7 @@ ${steps?.join("\n  ")}
     } catch {
       // ignore clipboard failures
     }
-  }, [getViewportSnapshot, resolvedId]);
+  }, [emitDiagramAction, getViewportSnapshot, resolvedId]);
 
   useEffect(() => {
     if (!isHydrated || typeof window === "undefined" || deepLinkViewportAppliedRef.current) {
@@ -544,11 +652,11 @@ ${steps?.join("\n  ")}
             return !prev;
           });
         }}
-        onCopyDiagramCode={handleCopyDiagramCode}
-        onExportSvg={handleExportSvg}
-        onExportPng={handleExportPng}
+        onExportSvg={handleExportSvgAction}
+        onExportPng={handleExportPngAction}
         onExportViewportJson={handleExportViewportJson}
         onCopyDeepLinkWithViewport={handleCopyDeepLinkWithViewport}
+        onCopyDiagramCode={handleCopyDiagramCodeAction}
       />
       <DiagramCanvas
         containerId={`${resolvedId}-container`}
@@ -568,7 +676,10 @@ ${steps?.join("\n  ")}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUpOrLeave={handlePointerUpOrLeave}
-        onDoubleClick={handleDoubleClick}
+        onDoubleClick={(event) => {
+          emitDiagramAction("zoom", "diagram-double-click", "pointer");
+          handleDoubleClick(event);
+        }}
         onKeyDown={handleCanvasKeyDown}
         toolbar={
           <DiagramToolbar
@@ -584,15 +695,18 @@ ${steps?.join("\n  ")}
             onPanLeft={handlePanLeft}
             onPanRight={handlePanRight}
             onPanDown={handlePanDown}
-            onZoomOut={handleZoomOut}
-            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOutAction}
+            onZoomIn={handleZoomInAction}
             onReset={handleReset}
-            onCopyCode={handleCopyDiagramCode}
-            onExportSvg={handleExportSvg}
-            onExportPng={handleExportPng}
+            onCopyCode={handleCopyDiagramCodeAction}
+            onExportSvg={handleExportSvgAction}
+            onExportPng={handleExportPngAction}
             onExportViewportJson={handleExportViewportJson}
             onCopyDeepLinkWithViewport={handleCopyDeepLinkWithViewport}
-            onShowSource={() => setShowingText(true)}
+            onShowSource={() => {
+              emitDiagramAction("open", "diagram-show-source-toolbar", "pointer");
+              setShowingText(true);
+            }}
             toolbarActions={toolbarActions}
           />
         }

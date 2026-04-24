@@ -1,5 +1,5 @@
-import type { JsonRecord } from "../lib/metadata-editor";
-import type { AppAssetBucket } from "../lib/asset-organizer";
+import type { JsonRecord } from "../lib/metadata-editor.mts";
+import type { AppAssetBucket } from "../lib/asset-organizer.mts";
 
 export type ScopedAssetOptions = {
   title: string;

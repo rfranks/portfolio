@@ -3,6 +3,7 @@
   "compilerOptions": {
     "allowJs": false,
     "skipLibCheck": false,
+    "allowImportingTsExtensions": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,

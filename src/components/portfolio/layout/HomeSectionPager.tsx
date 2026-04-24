@@ -157,8 +157,8 @@ export default function HomeSectionPager({
         }}
         sx={{
           px: { xs: 1.75, md: 2.5 },
-          py: { xs: 0.8, sm: 0.9, md: 1.15 },
-          minHeight: { xs: 42, sm: 46, md: 68 },
+          py: { xs: 1, sm: 1.05, md: 1.2 },
+          minHeight: { xs: 46, sm: 50, md: 74 },
           border: "none",
           borderRadius: 0,
           bgcolor: "transparent",
@@ -167,6 +167,9 @@ export default function HomeSectionPager({
           boxShadow: "none",
           backdropFilter: "none",
           filter: "none",
+          display: "flex",
+          alignItems: "center",
+          overflow: "visible",
         }}
       >
         <Box
@@ -175,6 +178,8 @@ export default function HomeSectionPager({
             gridTemplateColumns: "auto minmax(0, 1fr) auto auto",
             alignItems: "center",
             gap: 1,
+            width: "100%",
+            overflow: "visible",
           }}
         >
           <IconButton

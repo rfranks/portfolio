@@ -4,26 +4,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import {
-  RESUME_DATA_SCHEMA_CHANGELOG,
-  RESUME_SCHEMA_BREAKING_FIELDS_APPROVAL_ENV,
-  assertResumeSchemaGovernance,
-  getLatestResumeSchemaChangeLogEntry,
-  parseResumeDataWithSchema,
-} from "../src/consts/resumeDataSchema";
-import {
-  getPresentationProjectContracts,
-  getPresentationProjectDeepLinkIndex,
-} from "../src/components/portfolio/projectPageData";
-import {
-  LATEST_RESUME_DATA_SCHEMA_VERSION,
-  collectResumeDataMigrationWarnings,
-  migrateResumeData,
-} from "../src/utils/data/migrations/resumeDataMigrations";
-import { validateProjectsOrThrow } from "./portfolio-setup-utils";
-import { createCliOutput } from "./lib/cli-output";
-import { isPlainObject } from "./lib/metadata-editor";
-import { writeHealthSnapshot } from "./lib/health-dashboard";
+import * as resumeDataSchemaModule from "../src/consts/resumeDataSchema";
+import * as projectPageDataModule from "../src/components/portfolio/projectPageData";
+import * as resumeDataMigrationsModule from "../src/utils/data/migrations/resumeDataMigrations";
+import * as portfolioSetupUtilsModule from "./portfolio-setup-utils.mts";
+import { createCliOutput } from "./lib/cli-output.mts";
+import { isPlainObject } from "./lib/metadata-editor.mts";
+import { writeHealthSnapshot } from "./lib/health-dashboard.mts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +18,69 @@ const repoRoot = path.resolve(__dirname, "..");
 const publicDir = path.join(repoRoot, "public");
 const resumeDataPath = path.join(publicDir, "personal", "data", "resumeData.json");
 const out = createCliOutput();
+
+function resolveModuleExport<T>(moduleNamespace: unknown, name: string): T {
+  if (!moduleNamespace || typeof moduleNamespace !== "object") {
+    throw new Error(`Unable to resolve export '${name}': module is not an object.`);
+  }
+
+  const namespace = moduleNamespace as Record<string, unknown>;
+  if (name in namespace) {
+    return namespace[name] as T;
+  }
+
+  const maybeDefault = namespace.default;
+  if (maybeDefault && typeof maybeDefault === "object") {
+    const defaultObject = maybeDefault as Record<string, unknown>;
+    if (name in defaultObject) {
+      return defaultObject[name] as T;
+    }
+  }
+
+  throw new Error(`Unable to resolve export '${name}' from module namespace.`);
+}
+
+type ResumeDataSchemaModule = typeof import("../src/consts/resumeDataSchema");
+type ProjectPageDataModule = typeof import("../src/components/portfolio/projectPageData");
+type ResumeDataMigrationsModule =
+  typeof import("../src/utils/data/migrations/resumeDataMigrations");
+type PortfolioSetupUtilsModule = typeof import("./portfolio-setup-utils.mts");
+
+const RESUME_DATA_SCHEMA_CHANGELOG = resolveModuleExport<
+  ResumeDataSchemaModule["RESUME_DATA_SCHEMA_CHANGELOG"]
+>(resumeDataSchemaModule, "RESUME_DATA_SCHEMA_CHANGELOG");
+const RESUME_SCHEMA_BREAKING_FIELDS_APPROVAL_ENV = resolveModuleExport<
+  ResumeDataSchemaModule["RESUME_SCHEMA_BREAKING_FIELDS_APPROVAL_ENV"]
+>(resumeDataSchemaModule, "RESUME_SCHEMA_BREAKING_FIELDS_APPROVAL_ENV");
+const assertResumeSchemaGovernance = resolveModuleExport<
+  ResumeDataSchemaModule["assertResumeSchemaGovernance"]
+>(resumeDataSchemaModule, "assertResumeSchemaGovernance");
+const getLatestResumeSchemaChangeLogEntry = resolveModuleExport<
+  ResumeDataSchemaModule["getLatestResumeSchemaChangeLogEntry"]
+>(resumeDataSchemaModule, "getLatestResumeSchemaChangeLogEntry");
+const parseResumeDataWithSchema = resolveModuleExport<
+  ResumeDataSchemaModule["parseResumeDataWithSchema"]
+>(resumeDataSchemaModule, "parseResumeDataWithSchema");
+const getPresentationProjectContracts = resolveModuleExport<
+  ProjectPageDataModule["getPresentationProjectContracts"]
+>(projectPageDataModule, "getPresentationProjectContracts");
+const getPresentationProjectDeepLinkIndex = resolveModuleExport<
+  ProjectPageDataModule["getPresentationProjectDeepLinkIndex"]
+>(projectPageDataModule, "getPresentationProjectDeepLinkIndex");
+const LATEST_RESUME_DATA_SCHEMA_VERSION = resolveModuleExport<number>(
+  resumeDataMigrationsModule,
+  "LATEST_RESUME_DATA_SCHEMA_VERSION",
+);
+const collectResumeDataMigrationWarnings = resolveModuleExport<
+  ResumeDataMigrationsModule["collectResumeDataMigrationWarnings"]
+>(resumeDataMigrationsModule, "collectResumeDataMigrationWarnings");
+const migrateResumeData = resolveModuleExport<ResumeDataMigrationsModule["migrateResumeData"]>(
+  resumeDataMigrationsModule,
+  "migrateResumeData",
+);
+const validateProjectsOrThrow = resolveModuleExport<
+  PortfolioSetupUtilsModule["validateProjectsOrThrow"]
+>(portfolioSetupUtilsModule, "validateProjectsOrThrow");
 
 const mediaKeyPattern =
   /(image|video|audio|pdf|gif|avatar|headshot|logo|icon|thumbnail|watermark|movie|rendering|markdown|path|src|url)$/i;

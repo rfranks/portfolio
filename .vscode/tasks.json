@@ -2,6 +2,25 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Build Blackjack Wasm",
+      "type": "shell",
+      "command": "make",
+      "args": ["wasm"],
+      "options": {
+        "cwd": "${workspaceFolder}/go/blackjack"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
       "label": "gocover",
       "command": "go",
       "type": "shell",

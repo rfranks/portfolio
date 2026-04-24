@@ -29,7 +29,7 @@
       "name": "Build Blackjack Wasm",
       "type": "node-terminal",
       "request": "launch",
-      "command": "make wasm",
+      "command": "make wasm; exit",
       "cwd": "${workspaceFolder}/go/blackjack"
     },
     {

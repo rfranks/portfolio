@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 
 const QUALITY_STEPS = [
   "check:repo-hygiene",
+  "check:asset-integrity",
   "check:file-budgets",
   "validate:resume:strict",
   "format:check",

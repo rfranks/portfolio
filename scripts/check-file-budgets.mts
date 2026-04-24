@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { createCliOutput } from "./lib/cli-output";
-import { writeHealthSnapshot, type HealthStatus } from "./lib/health-dashboard";
+import { createCliOutput } from "./lib/cli-output.mts";
+import { writeHealthSnapshot, type HealthStatus } from "./lib/health-dashboard.mts";
 
 const rootDir = process.cwd();
 const out = createCliOutput();
@@ -11,18 +11,18 @@ const defaultBudget = 750;
 
 const exactBudgets: Record<string, number> = {
   "src/app/talentforge/_components/ApplicationBoard.tsx": 3650,
-  "src/app/warbirds/_hooks/useGameEngine.ts": 2900,
-  "src/app/talentforge/_utils/dataStore.ts": 2850,
-  "src/app/pathforger/_utils/pipeline.ts": 2700,
+  "src/app/warbirds/_hooks/useGameEngine.ts": 2850,
+  "src/app/talentforge/_utils/dataStore.ts": 2550,
+  "src/app/pathforger/_utils/pipeline.ts": 2680,
   "scripts/portfolio-setup.mts": 2150,
   "src/app/ai-shenanigans/_components/AIShenaniganAdaptation.tsx": 1650,
   "src/app/talentforge/_components/ApplicationDetailDrawer.tsx": 1850,
   "src/app/pathforger/PathForgerPageClient.tsx": 1650,
-  "src/app/zombiefish/_hooks/useGameEngine.ts": 1550,
+  "src/app/zombiefish/_hooks/useGameEngine.ts": 1500,
   "src/app/ai-shenanigans/_components/AIShenanigan.tsx": 1400,
   "src/components/portfolio/panels/CoreCompetencies.tsx": 1550,
-  "src/components/shared/media/MediaCycler.tsx": 1300,
-  "src/components/portfolio/project-presentation/hooks/useProjectPresentationController.tsx": 1600,
+  "src/components/shared/media/MediaCycler.tsx": 1150,
+  "src/components/portfolio/project-presentation/hooks/useProjectPresentationController.tsx": 1500,
   "src/app/ai-shenanigans/_components/AIShenaniganWorkSeries.tsx": 1150,
   "src/app/pathforger/_hooks/usePathForgerPersistence.ts": 1150,
   "src/app/pathforger/_components/PathForgerCreateStoryPanel.tsx": 950,
@@ -31,10 +31,11 @@ const exactBudgets: Record<string, number> = {
   "src/app/talentforge/_components/Inbox.tsx": 1050,
   "src/app/talentforge/_components/ChatWorkspace.tsx": 1000,
   "src/app/talentforge/_utils/schemas.ts": 925,
-  "src/components/shared/monitoring/NavigationTelemetry.tsx": 1050,
+  "src/components/shared/monitoring/NavigationTelemetry.tsx": 900,
   "src/hooks/html/usePanZoomViewport.ts": 940,
   "src/consts/resumeDataSchema.ts": 860,
   "scripts/validate-resume-data.mts": 820,
+  "src/app/rickbert-studio/_components/studio/RickbertStudioShell.tsx": 800,
 };
 
 const testFilePattern =

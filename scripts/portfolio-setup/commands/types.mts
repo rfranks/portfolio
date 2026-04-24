@@ -1,4 +1,7 @@
-import type { PortfolioSetupMode, PortfolioSetupRuntimeOptions } from "../../portfolio-setup-utils";
+import type {
+  PortfolioSetupMode,
+  PortfolioSetupRuntimeOptions,
+} from "../../portfolio-setup-utils.mts";
 
 export type PortfolioSetupCommandContext = {
   mode: PortfolioSetupMode;

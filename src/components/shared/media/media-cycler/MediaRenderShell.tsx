@@ -16,6 +16,9 @@ type MediaRenderShellProps = {
   onTouchMove?: (event: React.TouchEvent<HTMLElement>) => void;
   onTouchEnd?: () => void;
   onTouchCancel?: () => void;
+  onPointerMove?: (event: React.PointerEvent<HTMLElement>) => void;
+  onMouseEnter?: () => void;
+  onFocusCapture?: () => void;
 };
 
 export default function MediaRenderShell({
@@ -29,6 +32,9 @@ export default function MediaRenderShell({
   onTouchMove,
   onTouchEnd,
   onTouchCancel,
+  onPointerMove,
+  onMouseEnter,
+  onFocusCapture,
 }: MediaRenderShellProps) {
   if (singlePanel) {
     return (
@@ -51,6 +57,9 @@ export default function MediaRenderShell({
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
           onTouchCancel={onTouchCancel}
+          onPointerMove={onPointerMove}
+          onMouseEnter={onMouseEnter}
+          onFocusCapture={onFocusCapture}
         >
           {singlePanelItem}
         </Box>

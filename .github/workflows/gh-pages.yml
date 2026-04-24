@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-and-deploy:
     permissions:
@@ -13,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
           lfs: true # Fetch large files
@@ -25,9 +28,9 @@ jobs:
           rm .gitattributes;
 
       - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: 📦 Install dependencies
@@ -45,18 +48,17 @@ jobs:
         run: npm run check:bundle-budget
 
       - name: 🐹 Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v6
         with:
-          go-version: "1.18.0"
+          go-version: "1.26.x"
 
       - name: 🃏 Build blackjack wasm
         run: |
           cd ./go/blackjack
-          GOOS=js GOARCH=wasm go build -o ../../out/apps/blackjack/wasm/main.wasm
-          cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../../out/apps/blackjack/js/
+          make wasm BLACKJACK_ASSET_ROOT=../../out/apps/blackjack
 
       - name: 🚀 Deploy to gh-pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out

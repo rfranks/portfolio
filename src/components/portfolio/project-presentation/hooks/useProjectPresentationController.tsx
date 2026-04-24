@@ -19,6 +19,12 @@ import { withBasePath } from "@/utils/basePath";
 import { createLogger } from "@/utils/observability/logger";
 import { markStart, measureAfterNextPaint } from "@/utils/observability/perf";
 import {
+  resolveAliasedParamValue,
+  resolveEntryKeyFromParam,
+  resolveIndexedKeyFromParam,
+  resolveSectionKeyFromParam,
+} from "@/utils/content/presentationDeepLink";
+import {
   resolvePresentationBehavior,
   resolvePresentationPrefetchPlan,
   resolvePresentationSectionOrder,
@@ -67,6 +73,7 @@ export type ProjectPresentationController = {
   isPodcastsLayout: boolean;
   deepLinkInitialized: boolean;
   activeSectionKey: ProjectPresentationSectionKey;
+  sectionNavigationDirection: "forward" | "backward" | "neutral";
   hasMultipleSections: boolean;
   activeSectionWithIcon: {
     key: ProjectPresentationSectionKey;
@@ -160,129 +167,18 @@ const DIAGRAM_ZOOM_PRESET_MULTIPLIERS: Record<DiagramDeepLinkZoomPreset, number>
 
 const buildSectionLabel = (index: number, title: string) => `${index + 1}. ${title}`;
 
-const normalizeParamToken = (value?: string | null) => value?.trim().toLowerCase() ?? "";
-
-const slugifyLoose = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-const resolveSectionKeyFromParam = (
-  paramValue: string | undefined,
-  sections: ReadonlyArray<{ key: ProjectPresentationSectionKey; title: string }>,
-): ProjectPresentationSectionKey | undefined => {
-  const normalized = normalizeParamToken(paramValue);
-  if (!normalized) {
-    return undefined;
-  }
-
-  const byKey = sections.find((section) => section.key === normalized);
-  if (byKey) {
-    return byKey.key;
-  }
-
-  const byTitleSlug = sections.find((section) => {
-    const sectionTitleSlug = slugifyLoose(section.title);
-    return sectionTitleSlug === normalized || sectionTitleSlug.replace(/-/g, "") === normalized;
-  });
-  if (byTitleSlug) {
-    return byTitleSlug.key;
-  }
-
-  const numericIndex = Number.parseInt(normalized, 10);
-  if (Number.isFinite(numericIndex) && numericIndex >= 1 && numericIndex <= sections.length) {
-    return sections[numericIndex - 1]?.key;
-  }
-
-  return undefined;
+const DIAGRAM_DEEP_LINK_MODE_ALIASES: Record<DiagramDeepLinkMode, readonly string[]> = {
+  code: ["source", "text", "src"],
+  render: ["diagram", "visual", "view"],
 };
 
-const resolveIndexedKeyFromParam = (
-  paramValue: string | undefined,
-  keys: readonly string[],
-): string | undefined => {
-  const normalized = normalizeParamToken(paramValue);
-  if (!normalized) {
-    return undefined;
-  }
-
-  const byKey = keys.find((key) => key.toLowerCase() === normalized);
-  if (byKey) {
-    return byKey;
-  }
-
-  const numericIndex = Number.parseInt(normalized, 10);
-  if (Number.isFinite(numericIndex) && numericIndex >= 1 && numericIndex <= keys.length) {
-    return keys[numericIndex - 1];
-  }
-
-  return undefined;
-};
-
-const resolveDiagramKeyFromParam = (
-  paramValue: string | undefined,
-  entries: ReadonlyArray<{ key: string; title: string }>,
-): string | undefined => {
-  const normalized = normalizeParamToken(paramValue);
-  if (!normalized) {
-    return undefined;
-  }
-
-  const byKey = entries.find((entry) => entry.key.toLowerCase() === normalized);
-  if (byKey) {
-    return byKey.key;
-  }
-
-  const byTitle = entries.find((entry) => {
-    const titleSlug = slugifyLoose(entry.title);
-    return titleSlug === normalized || titleSlug.replace(/-/g, "") === normalized;
-  });
-  if (byTitle) {
-    return byTitle.key;
-  }
-
-  const numericIndex = Number.parseInt(normalized, 10);
-  if (Number.isFinite(numericIndex) && numericIndex >= 1 && numericIndex <= entries.length) {
-    return entries[numericIndex - 1]?.key;
-  }
-
-  return undefined;
-};
-
-const resolveDiagramModeFromParam = (
-  paramValue: string | undefined,
-): DiagramDeepLinkMode | undefined => {
-  const normalized = normalizeParamToken(paramValue);
-  if (!normalized) {
-    return undefined;
-  }
-  if (["code", "source", "text", "src"].includes(normalized)) {
-    return "code";
-  }
-  if (["render", "diagram", "visual", "view"].includes(normalized)) {
-    return "render";
-  }
-  return undefined;
-};
-
-const resolveDiagramZoomPresetFromParam = (
-  paramValue: string | undefined,
-): DiagramDeepLinkZoomPreset | undefined => {
-  const normalized = normalizeParamToken(paramValue);
-  if (!normalized) {
-    return undefined;
-  }
-  if (normalized === "fit" || normalized === "default") {
-    return "fit";
-  }
-  if (["wide", "overview", "out", "zoomout"].includes(normalized)) {
-    return "wide";
-  }
-  if (["focus", "focused", "normal", "zoomin"].includes(normalized)) {
-    return "focus";
-  }
-  if (["close", "closeup", "tight", "zoomed"].includes(normalized)) {
-    return "close";
-  }
-  return undefined;
-};
+const DIAGRAM_DEEP_LINK_ZOOM_PRESET_ALIASES: Record<DiagramDeepLinkZoomPreset, readonly string[]> =
+  {
+    fit: ["default"],
+    wide: ["overview", "out", "zoomout"],
+    focus: ["focused", "normal", "zoomin"],
+    close: ["closeup", "tight", "zoomed"],
+  };
 
 const sectionEmojiIcon = (emoji: string) => (
   <Typography
@@ -1046,6 +942,9 @@ export function useProjectPresentationController(
       "diagrams",
     ]) as ProjectPresentationSectionKey[],
   });
+  const [sectionNavigationDirection, setSectionNavigationDirection] = useState<
+    "forward" | "backward" | "neutral"
+  >("neutral");
 
   const pendingInteractionMarkRef = useRef<{
     markName: string;
@@ -1113,7 +1012,7 @@ export function useProjectPresentationController(
 
     if (targetSectionKey === "diagrams" && diagramEntries.length > 0) {
       const diagramParam = subParam || params.get("diagram")?.trim() || mediaParam;
-      const resolvedDiagramKey = resolveDiagramKeyFromParam(diagramParam, diagramEntries);
+      const resolvedDiagramKey = resolveEntryKeyFromParam(diagramParam, diagramEntries);
       if (resolvedDiagramKey) {
         setActiveDiagramKey(resolvedDiagramKey);
       }
@@ -1139,17 +1038,19 @@ export function useProjectPresentationController(
       }
     }
 
-    const resolvedMode = resolveDiagramModeFromParam(
+    const resolvedMode = resolveAliasedParamValue(
       params.get("diagramMode")?.trim() || params.get("mode")?.trim(),
+      DIAGRAM_DEEP_LINK_MODE_ALIASES,
     );
     if (resolvedMode) {
       setDiagramDeepLinkMode(resolvedMode);
     }
 
-    const resolvedZoomPreset = resolveDiagramZoomPresetFromParam(
+    const resolvedZoomPreset = resolveAliasedParamValue(
       params.get("diagramZoom")?.trim() ||
         params.get("zoomPreset")?.trim() ||
         params.get("zoom")?.trim(),
+      DIAGRAM_DEEP_LINK_ZOOM_PRESET_ALIASES,
     );
     if (resolvedZoomPreset) {
       setDiagramDeepLinkZoomPreset(resolvedZoomPreset);
@@ -1319,6 +1220,15 @@ export function useProjectPresentationController(
       if (key === activeSectionKey) {
         return;
       }
+      const currentIndex = sections.findIndex((section) => section.key === activeSectionKey);
+      const nextIndex = sections.findIndex((section) => section.key === key);
+      if (currentIndex >= 0 && nextIndex >= 0 && sections.length > 1) {
+        const forwardDistance = (nextIndex - currentIndex + sections.length) % sections.length;
+        const backwardDistance = (currentIndex - nextIndex + sections.length) % sections.length;
+        setSectionNavigationDirection(forwardDistance <= backwardDistance ? "forward" : "backward");
+      } else {
+        setSectionNavigationDirection("neutral");
+      }
       startInteractionMeasure({
         interactionType: "section",
         from: activeSectionKey,
@@ -1326,7 +1236,7 @@ export function useProjectPresentationController(
       });
       setActiveSectionKey(key);
     },
-    [activeSectionKey, setActiveSectionKey, startInteractionMeasure],
+    [activeSectionKey, sections, setActiveSectionKey, startInteractionMeasure],
   );
 
   const handlePreviousSectionMeasured = useCallback(() => {
@@ -1339,6 +1249,7 @@ export function useProjectPresentationController(
     );
     const previousIndex = currentIndex <= 0 ? sections.length - 1 : currentIndex - 1;
     const previousSectionKey = sections[previousIndex]?.key;
+    setSectionNavigationDirection("backward");
     startInteractionMeasure({
       interactionType: "section",
       from: activeSectionKey,
@@ -1357,6 +1268,7 @@ export function useProjectPresentationController(
     );
     const nextIndex = currentIndex >= sections.length - 1 ? 0 : currentIndex + 1;
     const nextSectionKey = sections[nextIndex]?.key;
+    setSectionNavigationDirection("forward");
     startInteractionMeasure({
       interactionType: "section",
       from: activeSectionKey,
@@ -1474,6 +1386,7 @@ export function useProjectPresentationController(
     isPodcastsLayout,
     deepLinkInitialized,
     activeSectionKey,
+    sectionNavigationDirection,
     hasMultipleSections,
     activeSectionWithIcon,
     pagerItems,

@@ -2,6 +2,9 @@
   "name": "portfolio",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "init": "tsx scripts/portfolio-setup.mts init",
     "update": "tsx scripts/portfolio-setup.mts update",
@@ -9,15 +12,18 @@
     "validate:resume:strict": "tsx scripts/validate-resume-data.mts --strict-assets",
     "postinstall": "tsx scripts/setup-husky.mts",
     "check:repo-hygiene": "tsx scripts/check-repo-hygiene.mts",
+    "check:asset-integrity": "tsx scripts/check-asset-integrity.mts",
     "check:file-budgets": "tsx scripts/check-file-budgets.mts",
     "check:bundle-budget": "tsx scripts/check-bundle-budget.mts",
     "analyze:bundle": "tsx scripts/analyze-bundle.mts",
+    "build:search-index": "tsx scripts/build-search-index.mts",
+    "clean": "tsx scripts/clean.mts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -p tsconfig.typecheck.json --noEmit",
     "typecheck:health": "tsx scripts/run-typecheck-with-health.mts",
     "typecheck:strict": "tsc -p tsconfig.strict.json --noEmit",
-    "quality": "npm run check:repo-hygiene && npm run check:file-budgets && npm run validate:resume:strict && npm run format:check && npm run typecheck && npm run lint && npm run test",
+    "quality": "npm run check:repo-hygiene && npm run check:asset-integrity && npm run check:file-budgets && npm run validate:resume:strict && npm run format:check && npm run typecheck && npm run lint && npm run test",
     "precommit": "lint-staged",
     "prepush": "tsx scripts/run-prepush-quality.mts",
     "prepr": "npm run quality",
@@ -50,15 +56,15 @@
     "@mui/icons-material": "^6.5.0",
     "@mui/lab": "^6.0.1-beta.36",
     "@mui/material": "^6.5.0",
+    "@teselagen/bio-parsers": "^0.4.24",
     "autoprefixer": "^10.4.27",
-    "bio-parsers": "^9.3.6",
     "dnaviz": "^1.1.1",
     "dompurify": "^3.0.6",
     "konva": "^10.2.0",
     "lodash": "^4.17.21",
     "marked": "^12.0.2",
     "matter-js": "^0.20.0",
-    "mermaid": "^11.10.0",
+    "mermaid": "^11.14.0",
     "next": "15.5.15",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.1.392",
@@ -70,9 +76,7 @@
     "react-refresh": "^0.11.0",
     "recharts": "^2.10.3",
     "tailwindcss": "^4.2.1",
-    "uuid": "^11.1.0",
-    "ve-range-utils": "^2.6.6",
-    "ve-sequence-utils": "^5.2.16",
+    "uuid": "^14.0.0",
     "web-vitals": "^2.1.4",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
@@ -104,6 +108,8 @@
     "typescript": "^5"
   },
   "overrides": {
-    "jsondiffpatch": "0.7.3"
+    "jsondiffpatch": "0.7.3",
+    "uuid": "^14.0.0",
+    "fast-xml-parser": "^5.7.0"
   }
 }

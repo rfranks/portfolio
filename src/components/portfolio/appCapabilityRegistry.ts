@@ -10,6 +10,8 @@ export type AppCapability = {
   kind: AppCapabilityKind;
   isPresentationProject: boolean;
   features: string[];
+  dataSources: string[];
+  qualityCoverage: string[];
 };
 
 const normalizeFeature = (value: string) =>
@@ -77,6 +79,37 @@ const toProjectFeatures = (project: CapabilityProjectRecord): string[] => {
   return Array.from(features);
 };
 
+const toProjectDataSources = (project: CapabilityProjectRecord): string[] => {
+  const sources = new Set<string>(["resume-data.projects"]);
+  if (project.terminalDemoMediaType) {
+    sources.add("public-media-assets");
+  }
+  if (project.hasDiagrams) {
+    sources.add("mermaid-diagram-content");
+  }
+  if (project.hasTechnologies) {
+    sources.add("resume-data.technologiesUsed");
+  }
+  if (project.hasInterestsMeWhy) {
+    sources.add("resume-data.interestsMeWhy");
+  }
+  return Array.from(sources);
+};
+
+const toQualityCoverage = (kind: AppCapabilityKind, isPresentationProject: boolean): string[] => {
+  const coverage = new Set<string>(["typecheck", "lint", "file-budgets", "bundle-budgets"]);
+  if (kind === "project") {
+    coverage.add("resume-schema-validation");
+    coverage.add("presentation-routing-contracts");
+  }
+  if (isPresentationProject) {
+    coverage.add("media-integration-tests");
+    coverage.add("diagram-hydration-tests");
+    coverage.add("pager-a11y-tests");
+  }
+  return Array.from(coverage);
+};
+
 export function getAppCapabilityRegistry(): AppCapability[] {
   const capabilities: AppCapability[] = [];
 
@@ -92,6 +125,8 @@ export function getAppCapabilityRegistry(): AppCapability[] {
         kind: "app",
         isPresentationProject: false,
         features: ["launchable-app"],
+        dataSources: ["resume-data.navigation", "app-local-state", "app-local-assets"],
+        qualityCoverage: toQualityCoverage("app", false),
       });
     });
 
@@ -107,6 +142,8 @@ export function getAppCapabilityRegistry(): AppCapability[] {
         kind: "project",
         isPresentationProject: project.type === "presentation",
         features: toProjectFeatures(project),
+        dataSources: toProjectDataSources(project),
+        qualityCoverage: toQualityCoverage("project", project.type === "presentation"),
       });
     });
 
@@ -123,6 +160,8 @@ export function getAppCapabilityRegistry(): AppCapability[] {
       features: Array.from(
         new Set([...existing.features, ...entry.features].map(normalizeFeature)),
       ),
+      dataSources: Array.from(new Set([...existing.dataSources, ...entry.dataSources])),
+      qualityCoverage: Array.from(new Set([...existing.qualityCoverage, ...entry.qualityCoverage])),
     });
   });
 

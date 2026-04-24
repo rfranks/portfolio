@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { isPlainObject } from "./metadata-editor";
+import { isPlainObject } from "./metadata-editor.mts";
 
 export type AppAssetBucket =
   | "images"

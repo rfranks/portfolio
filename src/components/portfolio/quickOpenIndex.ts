@@ -123,6 +123,14 @@ const buildSkillActions = (): CommandPaletteAction[] => {
 };
 
 export const STATIC_QUICK_OPEN_ACTIONS: CommandPaletteAction[] = dedupeActions([
+  {
+    id: "quick-open-capability-matrix",
+    label: "Open Capability Matrix",
+    subtitle: "Per-app features, data sources, and quality coverage",
+    group: "Apps",
+    href: "/capabilities",
+    keywords: ["capability", "matrix", "quality", "coverage", "registry", "apps", "projects"],
+  },
   ...buildAppActions(),
   ...buildProjectActions(),
   ...buildSlideActions(),

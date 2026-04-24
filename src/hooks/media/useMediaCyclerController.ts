@@ -316,6 +316,8 @@ export function useMediaCyclerController({
     metadataDialogItem,
     setMetadataDialogItemKey,
     markdownByKey,
+    previousItem,
+    nextItem,
     previousDisabled,
     nextDisabled,
     showLoopAction,

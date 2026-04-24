@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 
 import { spawn } from "node:child_process";
-import { createCliOutput } from "./lib/cli-output";
-import { writeHealthSnapshot, type HealthStatus } from "./lib/health-dashboard";
+import { createCliOutput } from "./lib/cli-output.mts";
+import { writeHealthSnapshot, type HealthStatus } from "./lib/health-dashboard.mts";
 
 const out = createCliOutput();
 

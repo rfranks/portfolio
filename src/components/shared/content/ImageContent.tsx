@@ -53,6 +53,7 @@ export default function ImageContent({
     handleDoubleClick,
   } = usePanZoomViewport({
     preset: "media",
+    calibrationMediaType: "image",
     shouldIgnorePointerTarget: (target) => Boolean(target.closest("button") || target.closest("a")),
   });
 
@@ -62,6 +63,7 @@ export default function ImageContent({
       viewportRef={viewportRef}
       width="100%"
       height="100%"
+      gridBackgroundColor="transparent"
       role={canActivate ? "button" : undefined}
       tabIndex={canActivate ? 0 : -1}
       ariaLabel={canActivate ? `Activate ${alt}` : undefined}

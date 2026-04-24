@@ -40,7 +40,9 @@ A cross-platform blackjack engine written in Go. The core business rules are sha
    >
    > ```bash
    > GOOS=js GOARCH=wasm go build -o ../../public/apps/blackjack/wasm/main.wasm
-   > cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../../public/apps/blackjack/js/wasm_exec.js
+   > WASM_EXEC_JS="$(go env GOROOT)/lib/wasm/wasm_exec.js"
+   > if [ ! -f "$WASM_EXEC_JS" ]; then WASM_EXEC_JS="$(go env GOROOT)/misc/wasm/wasm_exec.js"; fi
+   > cp "$WASM_EXEC_JS" ../../public/apps/blackjack/js/wasm_exec.js
    > ```
    >
    > Optional one-off override (for generated export output):
@@ -61,7 +63,7 @@ A cross-platform blackjack engine written in Go. The core business rules are sha
 The repository ships with a `.vscode/launch.json` that exposes two handy run targets:
 
 - **Launch BlackJack** – debug the terminal version (press `F5`).
-- **Build Blackjack Wasm** – compile `main.wasm` and refresh `wasm_exec.js` in `public/apps/blackjack/`.
+- **Build Blackjack Wasm** – available as a VS Code task in `.vscode/tasks.json`; compile `main.wasm` and refresh `wasm_exec.js` in `public/apps/blackjack/`.
 
 ## Technologies
 

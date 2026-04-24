@@ -4,24 +4,58 @@
 
 Accepted
 
+## Date
+
+2026-04-24
+
+## Decision Drivers
+
+- Preserve backward compatibility for evolving `resumeData.json`.
+- Keep schema changes explicit, testable, and safe across route/content features.
+- Avoid ad-hoc one-off transforms hidden inside UI code.
+
 ## Context
 
-`resumeData.json` evolves over time. Without explicit migration strategy, schema changes risk breaking static snapshots and updater workflows.
+`public/personal/data/resumeData.json` is the primary content contract for portfolio and presentation pages. Shape changes can break routing, pagers, media rendering, and validation unless migrations are explicit and ordered.
 
 ## Decision
 
-Add migration framework under `src/utils/data/migrations/resumeDataMigrations.ts` with:
+Use a versioned migration pipeline:
 
-- explicit `schemaVersion`
-- linear version upgrades
-- centralized transform logic applied before schema parse
+- schema source: `src/consts/resumeDataSchema.ts`
+- migration chain: `src/utils/data/migrations/resumeDataMigrations.ts`
+- validation/linting: `scripts/validate-resume-data.mts`
+
+Every breaking or structural data shape change must:
+
+1. increment schema version,
+2. add a linear migration step,
+3. update validation behavior/tests.
+
+## Enforcement and Validation
+
+- No UI component may assume new fields without schema support.
+- Deprecated legacy fields should warn first, then migrate/remove on scheduled timeline.
+- Required checks:
+  - `npm run validate:resume:strict`
+  - `npm run typecheck`
+  - `npm run test` (schema/migration tests)
+- Contract tests should cover presentation route/deep-link compatibility when schema changes affect sections/media.
 
 ## Consequences
 
-- Pros: safe forward evolution of data shape.
-- Pros: cleaner updater/validator behavior across schema revisions.
-- Tradeoff: requires migration maintenance with each breaking data change.
+### Positive
+
+- Predictable content evolution and safer deploys.
+- Better resilience for static content updates.
+- Easier governance for deprecations.
+
+### Tradeoffs
+
+- Additional maintenance for migration steps.
+- Slightly slower iteration when data shape changes are frequent.
 
 ## Follow-up
 
-Mirror migration framework for other persisted app datasets where schema drift is expected.
+- Maintain migration changelog/version notes in schema comments and validator output.
+- Expand contract tests for deep-link validity and required section/media constraints.

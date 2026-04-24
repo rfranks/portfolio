@@ -1,4 +1,4 @@
-import { anyToJson } from "bio-parsers";
+import { anyToJson } from "@teselagen/bio-parsers";
 import { blue } from "@mui/material/colors";
 import { Base, CodingCodon, ParsedSequenceResult, Sequence } from "../_types/types";
 import { CODONS_TO_AMINO_ACIDS } from "../_consts/consts";
@@ -288,4 +288,203 @@ export function isMaxBase(sequence: string, base: Base): boolean {
   }
 
   return counts[base] >= maxBasePairCount;
+}
+
+export type SequenceAnalysisRecipeKind = "motif-scan" | "gc-anomaly-scan" | "orf-scan";
+
+export type SequenceAnalysisRecipeConfig = {
+  kind: SequenceAnalysisRecipeKind;
+  motif?: string;
+  windowSize?: number;
+  gcThresholdPct?: number;
+  minOrfCodons?: number;
+};
+
+export type SequenceMotifMatch = {
+  motif: string;
+  start: number;
+  end: number;
+};
+
+export type SequenceGcAnomaly = {
+  windowStart: number;
+  windowEnd: number;
+  gcPct: number;
+  deviationPct: number;
+};
+
+export type SequenceOrfRange = {
+  frame: 0 | 1 | 2;
+  start: number;
+  end: number;
+  codons: number;
+  sequence: string;
+};
+
+export type SequenceAnalysisRecipeResult = {
+  kind: SequenceAnalysisRecipeKind;
+  summary: string;
+  motifMatches?: SequenceMotifMatch[];
+  gcAnomalies?: SequenceGcAnomaly[];
+  orfs?: SequenceOrfRange[];
+};
+
+const normalizeInputSequence = (sequence: string): string =>
+  sequence
+    .toUpperCase()
+    .split("")
+    .filter((base) => validBase(base))
+    .join("");
+
+const normalizeRecipeMotif = (motif: string | undefined): string =>
+  (motif || "")
+    .toUpperCase()
+    .split("")
+    .filter((base) => validBase(base))
+    .join("");
+
+const calculateGcPct = (value: string): number => {
+  if (!value.length) {
+    return 0;
+  }
+  let gcCount = 0;
+  for (const base of value) {
+    if (base === "G" || base === "C") {
+      gcCount += 1;
+    }
+  }
+  return (gcCount / value.length) * 100;
+};
+
+export function runSequenceAnalysisRecipe(
+  sequence: string,
+  config: SequenceAnalysisRecipeConfig,
+): SequenceAnalysisRecipeResult {
+  const normalizedSequence = normalizeInputSequence(sequence);
+
+  if (config.kind === "motif-scan") {
+    const motif = normalizeRecipeMotif(config.motif);
+    if (!motif.length || normalizedSequence.length < motif.length) {
+      return {
+        kind: "motif-scan",
+        summary: "No motif matches found.",
+        motifMatches: [],
+      };
+    }
+
+    const matches: SequenceMotifMatch[] = [];
+    for (
+      let sequenceIndex = 0;
+      sequenceIndex <= normalizedSequence.length - motif.length;
+      sequenceIndex += 1
+    ) {
+      if (normalizedSequence.slice(sequenceIndex, sequenceIndex + motif.length) === motif) {
+        matches.push({
+          motif,
+          start: sequenceIndex + 1,
+          end: sequenceIndex + motif.length,
+        });
+      }
+    }
+
+    return {
+      kind: "motif-scan",
+      summary:
+        matches.length > 0
+          ? `Found ${matches.length} motif match${matches.length === 1 ? "" : "es"} for ${motif}.`
+          : `No motif matches found for ${motif}.`,
+      motifMatches: matches,
+    };
+  }
+
+  if (config.kind === "gc-anomaly-scan") {
+    const windowSize = Math.max(8, Math.floor(config.windowSize ?? 24));
+    const gcThresholdPct = Math.max(1, config.gcThresholdPct ?? 15);
+    if (normalizedSequence.length < windowSize) {
+      return {
+        kind: "gc-anomaly-scan",
+        summary: `Sequence is shorter than the ${windowSize}bp window size.`,
+        gcAnomalies: [],
+      };
+    }
+
+    const globalGcPct = calculateGcPct(normalizedSequence);
+    const anomalies: SequenceGcAnomaly[] = [];
+    for (
+      let sequenceIndex = 0;
+      sequenceIndex <= normalizedSequence.length - windowSize;
+      sequenceIndex += 1
+    ) {
+      const windowStart = sequenceIndex + 1;
+      const windowEnd = sequenceIndex + windowSize;
+      const gcPct = calculateGcPct(
+        normalizedSequence.slice(sequenceIndex, sequenceIndex + windowSize),
+      );
+      const deviationPct = Math.abs(gcPct - globalGcPct);
+      if (deviationPct >= gcThresholdPct) {
+        anomalies.push({
+          windowStart,
+          windowEnd,
+          gcPct: Number(gcPct.toFixed(2)),
+          deviationPct: Number(deviationPct.toFixed(2)),
+        });
+      }
+    }
+
+    return {
+      kind: "gc-anomaly-scan",
+      summary:
+        anomalies.length > 0
+          ? `Detected ${anomalies.length} GC anomaly window${anomalies.length === 1 ? "" : "s"} (threshold ${gcThresholdPct.toFixed(1)}%).`
+          : `No GC anomaly windows exceeded ${gcThresholdPct.toFixed(1)}%.`,
+      gcAnomalies: anomalies,
+    };
+  }
+
+  const minOrfCodons = Math.max(5, Math.floor(config.minOrfCodons ?? 10));
+  const startCodon = "ATG";
+  const stopCodons = new Set(["TAA", "TAG", "TGA"]);
+  const ranges: SequenceOrfRange[] = [];
+
+  for (let frame = 0 as 0 | 1 | 2; frame < 3; frame = (frame + 1) as 0 | 1 | 2) {
+    let index = frame;
+    while (index <= normalizedSequence.length - 3) {
+      const codon = normalizedSequence.slice(index, index + 3);
+      if (codon !== startCodon) {
+        index += 3;
+        continue;
+      }
+
+      let stopIndex = index + 3;
+      while (stopIndex <= normalizedSequence.length - 3) {
+        const stopCodon = normalizedSequence.slice(stopIndex, stopIndex + 3);
+        if (stopCodons.has(stopCodon)) {
+          const endIndex = stopIndex + 3;
+          const codons = (endIndex - index) / 3;
+          if (codons >= minOrfCodons) {
+            ranges.push({
+              frame,
+              start: index + 1,
+              end: endIndex,
+              codons,
+              sequence: normalizedSequence.slice(index, endIndex),
+            });
+          }
+          break;
+        }
+        stopIndex += 3;
+      }
+
+      index += 3;
+    }
+  }
+
+  return {
+    kind: "orf-scan",
+    summary:
+      ranges.length > 0
+        ? `Detected ${ranges.length} ORF candidate${ranges.length === 1 ? "" : "s"} (min ${minOrfCodons} codons).`
+        : `No ORF candidates found with at least ${minOrfCodons} codons.`,
+    orfs: ranges,
+  };
 }

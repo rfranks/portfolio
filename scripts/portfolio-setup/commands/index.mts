@@ -1,6 +1,6 @@
-import { createInitCommand } from "./init";
-import { createUpdateCommand } from "./update";
-import type { PortfolioSetupCommandContext, PortfolioSetupCommandHandler } from "./types";
+import { createInitCommand } from "./init.mts";
+import { createUpdateCommand } from "./update.mts";
+import type { PortfolioSetupCommandContext, PortfolioSetupCommandHandler } from "./types.mts";
 
 export function createPortfolioSetupCommandRegistry(params: {
   runInitMode: (runtimeOptions: { dryRun: boolean; showDiff: boolean }) => Promise<void>;

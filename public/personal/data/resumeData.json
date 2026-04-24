@@ -1225,6 +1225,17 @@
         "width": 320,
         "height": 168,
         "imageClassName": "h-auto w-56 object-contain"
+      },
+      "showcaseHeading": "PathForger",
+      "showcaseSubtitle": "Branching story engine with staged AI orchestration.",
+      "wowFactor": "Generates pitches, chapters, outcomes, and artwork as one cohesive interactive narrative pipeline.",
+      "terminalDemo": {
+        "mediaType": "image",
+        "mediaUrl": "/personal/images/projects/pathforger.svg",
+        "caption": "PathForger storyboard and chapter-forging workspace preview.",
+        "title": "PathForger Demo Preview",
+        "subtitle": "Interactive story forging",
+        "mediaAlt": "PathForger preview"
       }
     },
     {
@@ -1241,6 +1252,17 @@
         "width": 300,
         "height": 200,
         "imageClassName": "h-auto w-56 object-contain"
+      },
+      "showcaseHeading": "Rickbert Studio",
+      "showcaseSubtitle": "Comic-production workflow with parser-safe panel rendering.",
+      "wowFactor": "Transforms narrative beats into consistent multi-panel comics with reusable parser and rendering primitives.",
+      "terminalDemo": {
+        "mediaType": "image",
+        "mediaUrl": "/personal/images/projects/rickbert-studio.png",
+        "caption": "Rickbert Studio comic workspace preview.",
+        "title": "Rickbert Studio Preview",
+        "subtitle": "Narrative-to-comic pipeline",
+        "mediaAlt": "Rickbert Studio preview"
       }
     },
     {
@@ -1257,6 +1279,17 @@
         "width": 240,
         "height": 88,
         "imageClassName": "h-auto w-48 object-contain"
+      },
+      "showcaseHeading": "Warbirds",
+      "showcaseSubtitle": "Canvas dogfight arcade with layered enemy behavior.",
+      "wowFactor": "Delivers high-tempo aerial combat feel in-browser with deterministic loops, collision systems, and responsive controls.",
+      "terminalDemo": {
+        "mediaType": "image",
+        "mediaUrl": "/assets/titles/warbirds_title.png",
+        "caption": "Warbirds gameplay title and combat preview.",
+        "title": "Warbirds Demo Preview",
+        "subtitle": "Browser arcade dogfight",
+        "mediaAlt": "Warbirds preview"
       }
     },
     {
@@ -1356,7 +1389,10 @@
           "type": "stateDiagram-v2",
           "diagram": "stateDiagram-v2\n  [*] --> WaitingToDeal\n  WaitingToDeal --> DealingOpeningCards : Deal / Start\n  DealingOpeningCards --> OfferInsurance : Dealer ace showing\n  DealingOpeningCards --> CheckNaturals : Otherwise\n  OfferInsurance --> CheckNaturals : Insure / Decline\n  CheckNaturals --> RoundSettled : Dealer blackjack or player blackjack resolution\n  CheckNaturals --> PlayerTurn : No naturals\n\n  state PlayerTurn {\n    [*] --> EvaluateHand\n    EvaluateHand --> EvaluateHand : Hit\n    EvaluateHand --> AdvanceSplitHand : Stand\n    EvaluateHand --> AdvanceSplitHand : Double\n    EvaluateHand --> SplitHand : Split\n    SplitHand --> EvaluateHand\n    EvaluateHand --> AdvanceSplitHand : Bust\n    AdvanceSplitHand --> EvaluateHand : Next active split hand\n    AdvanceSplitHand --> [*] : No active hands remain\n  }\n\n  PlayerTurn --> DealerTurn : All player hands locked\n  DealerTurn --> DealerTurn : Draw to rule threshold\n  DealerTurn --> SettleHands : Stand / Bust threshold reached\n  SettleHands --> RoundSettled\n  RoundSettled --> WaitingToDeal : Deal Again"
         }
-      ]
+      ],
+      "showcaseHeading": "Go-Powered Blackjack",
+      "showcaseSubtitle": "Shared rules engine across terminal and WebAssembly clients.",
+      "wowFactor": "One deterministic Go engine powers multiple UI clients without duplicating game-rule logic."
     },
     {
       "name": "Blasteroids",
@@ -1385,6 +1421,17 @@
         "width": 320,
         "height": 220,
         "imageClassName": "h-auto w-56 rounded-2xl object-contain"
+      },
+      "showcaseHeading": "Blasteroids",
+      "showcaseSubtitle": "Modernized Asteroids gameplay with precise browser controls.",
+      "wowFactor": "Rebuilds a classic arcade loop using web standards while preserving responsive feel and satisfying moment-to-moment action.",
+      "terminalDemo": {
+        "mediaType": "image",
+        "mediaUrl": "/personal/images/projects/blasteroids.jpeg",
+        "caption": "Blasteroids gameplay and controls preview.",
+        "title": "Blasteroids Demo Preview",
+        "subtitle": "Classic arcade reimagined",
+        "mediaAlt": "Blasteroids preview"
       }
     },
     {
@@ -1401,6 +1448,17 @@
         "width": 240,
         "height": 72,
         "imageClassName": "h-auto w-52 object-contain"
+      },
+      "showcaseHeading": "GeneBoard",
+      "showcaseSubtitle": "Interactive DNA analysis and sequence exploration workspace.",
+      "wowFactor": "Makes genomic exploration approachable through visual tooling, sequence inspection, and analysis-first interactions.",
+      "terminalDemo": {
+        "mediaType": "image",
+        "mediaUrl": "/apps/dna/images/geneboard_banner.png",
+        "caption": "GeneBoard sequence analysis interface preview.",
+        "title": "GeneBoard Demo Preview",
+        "subtitle": "DNA visualization tooling",
+        "mediaAlt": "GeneBoard preview"
       }
     },
     {
@@ -1417,6 +1475,17 @@
         "width": 192,
         "height": 194,
         "imageClassName": "h-28 w-28 rounded-3xl object-contain"
+      },
+      "showcaseHeading": "Bookworm",
+      "showcaseSubtitle": "AI-assisted PDF companion for chat and extraction workflows.",
+      "wowFactor": "Combines document ingestion, contextual retrieval, and conversational UX to accelerate long-form reading workflows.",
+      "terminalDemo": {
+        "mediaType": "image",
+        "mediaUrl": "/apps/bookworm/images/logo192.png",
+        "caption": "Bookworm document-assistant experience preview.",
+        "title": "Bookworm Demo Preview",
+        "subtitle": "PDF chat companion",
+        "mediaAlt": "Bookworm preview"
       }
     },
     {
@@ -1425,7 +1494,18 @@
       "href": "/talentforge",
       "type": "personal",
       "interestsMeWhy": "It brings together structured workflow design, AI assistance, and practical decision support in a way that feels like a real product rather than just a demo. I like that it balances strategy and execution: helping users track opportunities while also generating concrete next-step guidance. That blend of human decision-making and AI augmentation is exactly where I think productized AI is most valuable.",
-      "watermark": null
+      "watermark": null,
+      "showcaseHeading": "TalentForge",
+      "showcaseSubtitle": "AI-assisted career strategy workspace for job and offer planning.",
+      "wowFactor": "Unifies application tracking, negotiation support, and AI guidance into a single decision-support platform.",
+      "terminalDemo": {
+        "mediaType": "image",
+        "mediaUrl": "/favicon.ico",
+        "caption": "TalentForge workspace preview.",
+        "title": "TalentForge Demo Preview",
+        "subtitle": "Career strategy workspace",
+        "mediaAlt": "TalentForge preview"
+      }
     },
     {
       "name": "AI Shenanigans",
@@ -1441,6 +1521,17 @@
         "width": 280,
         "height": 280,
         "imageClassName": "h-32 w-32 rounded-[28px] object-cover"
+      },
+      "showcaseHeading": "AI Shenanigans",
+      "showcaseSubtitle": "Mixed-media lab for stylization, motion, and creative AI workflows.",
+      "wowFactor": "Treats AI as a production pipeline by chaining source capture, reinterpretation, motion generation, and adaptation experiments.",
+      "terminalDemo": {
+        "mediaType": "image",
+        "mediaUrl": "/personal/images/ai-shenanigans/momma-helen/stylistic.png",
+        "caption": "AI Shenanigans stylization pipeline preview.",
+        "title": "AI Shenanigans Demo Preview",
+        "subtitle": "Creative AI pipeline",
+        "mediaAlt": "AI Shenanigans preview"
       }
     },
     {
@@ -1618,7 +1709,8 @@
         "caption": "Demonstrates physician list operations end-to-end: routing into list state, configurable filters and sorting, paginated retrieval, and stable REST contract flow through controller, facade, service, mapper, and repository layers.",
         "mediaUrl": "/personal/demogifs/patient_list_demo.gif",
         "mediaType": "image"
-      }
+      },
+      "wowFactor": "Balances dense clinical data, filtering, and speed-of-use constraints into a physician-first workflow tuned for real rounding velocity."
     },
     {
       "name": "Patient Assignment List Project",
@@ -1800,7 +1892,8 @@
         "caption": "Shows assignment management in motion: drag-and-drop ownership changes, role-aware filtering, time-window criteria, and coordinated backend updates so team workload can be rebalanced quickly without losing list integrity.",
         "mediaUrl": "/personal/demogifs/assignment_list_demo.gif",
         "mediaType": "image"
-      }
+      },
+      "wowFactor": "Turns complex assignment and handoff operations into an intuitive drag-and-drop workflow without sacrificing state integrity."
     },
     {
       "name": "AI-Driven Clinical Copilot",
@@ -2240,7 +2333,8 @@
           "diagrams": ["diagram", "pdf"]
         }
       },
-      "presentationOrigin": "work"
+      "presentationOrigin": "work",
+      "wowFactor": "Transforms time-critical patient updates into concise, playable briefings that match how clinicians actually consume information."
     },
     {
       "name": "Petly",
@@ -2248,7 +2342,18 @@
       "href": "/petly",
       "type": "work",
       "interestsMeWhy": "At IDEXX we reshaped boxy Liferay portals into a playful notebook of sticky notes, lists, and photos, with no square portlets in sight. The work was a strong lesson in translating rigid platform constraints into an experience that felt warm, modern, and consumer-friendly. I am especially interested in these transformations because they prove thoughtful frontend architecture can radically improve how people feel about enterprise software.",
-      "watermark": null
+      "watermark": null,
+      "showcaseHeading": "Petly",
+      "showcaseSubtitle": "Pet-owner portal blending social UX with veterinary record access.",
+      "wowFactor": "Reframed legacy portal experiences into an approachable product surface while preserving access to clinically important records.",
+      "terminalDemo": {
+        "mediaType": "image",
+        "mediaUrl": "/personal/images/employers/dressagemarket.jpg",
+        "caption": "Petly owner portal experience preview.",
+        "title": "Petly Demo Preview",
+        "subtitle": "Pet-owner engagement platform",
+        "mediaAlt": "Petly preview"
+      }
     }
   ],
   "recognition": {

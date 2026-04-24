@@ -5,6 +5,7 @@ import type {
   ProjectPresentationSectionKey,
 } from "@/types/components/portfolio";
 import { resolvePresentationSectionOrder } from "./project-presentation/presentationConfig";
+import { slugifyLooseToken } from "@/utils/content/presentationDeepLink";
 
 type ProjectPageOverrides = Partial<ProjectData>;
 const PRESENTATION_PROJECT_TYPE = "presentation";
@@ -24,12 +25,8 @@ const normalizeSlugToHref = (slug: string) => {
 
 const normalizeHrefToSlug = (href: string): string => href.replace(/^\/+/, "").trim();
 
-const slugifyDiagramTitle = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-const slugifyToken = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-");
+const slugifyDiagramTitle = (title: string) => slugifyLooseToken(title);
+const slugifyToken = (value: string) => slugifyLooseToken(value.trim());
 
 export type PresentationProjectDiagramTarget = {
   key: string;

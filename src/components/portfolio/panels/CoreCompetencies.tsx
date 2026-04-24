@@ -1418,8 +1418,8 @@ export default function CoreCompetencies({
             showViewToggle
             showFooterOnMobile
             footerSx={{
-              py: { xs: 0.25, sm: 0.5, md: 1.25 },
-              minHeight: "fit-content",
+              py: { xs: 0.65, sm: 0.85, md: 1.25 },
+              minHeight: { xs: 46, sm: 50, md: 58 },
             }}
             listViewAriaLabel="Show list view"
             cloudViewAriaLabel="Show panel view"
@@ -1449,8 +1449,8 @@ export default function CoreCompetencies({
         showViewToggle
         showFooterOnMobile
         footerSx={{
-          py: { xs: 0.25, sm: 0.5, md: 1.25 },
-          minHeight: "fit-content",
+          py: { xs: 0.65, sm: 0.85, md: 1.25 },
+          minHeight: { xs: 46, sm: 50, md: 58 },
         }}
         listViewAriaLabel="Show list view"
         cloudViewAriaLabel="Show panel view"

@@ -18,6 +18,7 @@ import { requestFinalRender } from "@/app/rickbert-studio/_features/finalRender"
 import { useRickbertStudioStore } from "@/app/rickbert-studio/_store";
 import { CHARACTER_CONFIGS } from "@/app/rickbert-studio/_domain/characterConfigs";
 import { setRickbertOpenAIKey } from "@/app/rickbert-studio/_utils/openAIKey";
+import { analyzePanelLayout } from "@/app/rickbert-studio/_utils/panelLayoutAssistant";
 import useCopyToClipboard from "@/hooks/window/useCopyToClipboard";
 
 function JsonView({ data, onCopy }: { data: unknown; onCopy: () => void }) {
@@ -129,6 +130,10 @@ export function RickbertStudioShell() {
       return acc;
     }, base);
   }, [characterMapOverrides, visibleSpec]);
+  const panelLayoutReport = useMemo(
+    () => (visibleSpec ? analyzePanelLayout(visibleSpec) : null),
+    [visibleSpec],
+  );
 
   useEffect(() => {
     setCharacterMapDraft(JSON.stringify(characterMapOverrides, null, 2));
@@ -556,14 +561,60 @@ export function RickbertStudioShell() {
             />
           )}
           {activeTab === "validation" && (
-            <JsonView
-              data={validationReport ?? { status: "Validation not run" }}
-              onCopy={() =>
-                copyText(
-                  JSON.stringify(validationReport ?? { status: "Validation not run" }, null, 2),
-                )
-              }
-            />
+            <div className="space-y-3">
+              <JsonView
+                data={validationReport ?? { status: "Validation not run" }}
+                onCopy={() =>
+                  copyText(
+                    JSON.stringify(validationReport ?? { status: "Validation not run" }, null, 2),
+                  )
+                }
+              />
+              <div className="rounded border border-stone-300 bg-stone-50 p-3 text-sm">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h3 className="text-xs font-bold uppercase tracking-wide text-stone-700">
+                    Layout Assistant
+                  </h3>
+                  <Chip
+                    size="small"
+                    color={
+                      panelLayoutReport
+                        ? panelLayoutReport.score >= 85
+                          ? "success"
+                          : panelLayoutReport.score >= 65
+                            ? "warning"
+                            : "error"
+                        : "default"
+                    }
+                    label={panelLayoutReport ? `Score ${panelLayoutReport.score}` : "No layout"}
+                  />
+                </div>
+                {panelLayoutReport ? (
+                  <div className="space-y-1 text-xs text-stone-700">
+                    <p>
+                      Collisions: {panelLayoutReport.collisionCount} • Snap suggestions:{" "}
+                      {panelLayoutReport.suggestionCount}
+                    </p>
+                    {panelLayoutReport.findings.length === 0 ? (
+                      <p className="text-emerald-700">
+                        Reading order and bubble placement checks passed cleanly.
+                      </p>
+                    ) : (
+                      panelLayoutReport.findings.slice(0, 8).map((finding, index) => (
+                        <p key={`${finding.type}-${finding.panelNumber ?? "global"}-${index}`}>
+                          {finding.panelNumber ? `Panel ${finding.panelNumber}: ` : ""}
+                          {finding.message}
+                        </p>
+                      ))
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-stone-600">
+                    Parse and render a strip to run reading-order and bubble-collision checks.
+                  </p>
+                )}
+              </div>
+            </div>
           )}
           {activeTab === "characters" && (
             <div className="space-y-3 rounded bg-stone-50 p-3 text-sm">

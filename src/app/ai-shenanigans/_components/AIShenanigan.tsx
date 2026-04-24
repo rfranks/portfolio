@@ -284,6 +284,7 @@ function DefaultAIShenanigan({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    backgroundColor: "transparent",
   } as const;
   const stylizedAssetFrameSx = {
     mt: 0.2,
@@ -295,6 +296,7 @@ function DefaultAIShenanigan({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    backgroundColor: "transparent",
   } as const;
 
   const clearPendingTransitions = () => {
@@ -799,6 +801,10 @@ function DefaultAIShenanigan({
           ...realisticPanelSx,
           minWidth: 0,
           opacity: 1,
+          backgroundColor: "transparent",
+          backgroundImage: "none",
+          boxShadow: "none",
+          backdropFilter: "none",
           transform: "translate3d(0, 0, 0)",
           transition:
             "opacity 320ms ease, transform 360ms cubic-bezier(.2,.8,.2,1), flex-basis 360ms cubic-bezier(.2,.8,.2,1), max-width 360ms cubic-bezier(.2,.8,.2,1)",
@@ -806,7 +812,7 @@ function DefaultAIShenanigan({
         assetFrameSx: realisticAssetFrameSx,
         imageWidth: 1200,
         imageHeight: 900,
-        imageClassName: "rounded-[22px] bg-black/10 object-contain",
+        imageClassName: "rounded-[22px] object-contain",
         imageStyle: {
           width: "100%",
           height: "100%",
@@ -815,6 +821,7 @@ function DefaultAIShenanigan({
           objectFit: "contain",
           aspectRatio: stillAspectRatio,
           marginInline: "auto",
+          backgroundColor: "transparent",
         },
         onSelect: () => {
           handleChronologySelect("realistic");
@@ -844,6 +851,10 @@ function DefaultAIShenanigan({
             ...stylizedPanelSx,
             minWidth: 0,
             opacity: 1,
+            backgroundColor: "transparent",
+            backgroundImage: "none",
+            boxShadow: "none",
+            backdropFilter: "none",
             transform: "translate3d(0, 0, 0)",
             transition:
               "opacity 320ms ease, transform 360ms cubic-bezier(.2,.8,.2,1), flex-basis 360ms cubic-bezier(.2,.8,.2,1), max-width 360ms cubic-bezier(.2,.8,.2,1)",
@@ -851,7 +862,7 @@ function DefaultAIShenanigan({
           assetFrameSx: stylizedAssetFrameSx,
           imageWidth: 1200,
           imageHeight: 900,
-          imageClassName: "rounded-[22px] bg-black/10 object-contain",
+          imageClassName: "rounded-[22px] object-contain",
           imageStyle: {
             width: "100%",
             height: "100%",
@@ -860,6 +871,7 @@ function DefaultAIShenanigan({
             objectFit: "contain",
             aspectRatio: stillAspectRatio,
             marginInline: "auto",
+            backgroundColor: "transparent",
           },
           onSelect: () => {
             handleChronologySelect("stylized");

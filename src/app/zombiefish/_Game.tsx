@@ -46,7 +46,7 @@ export default function Game() {
     return (
       <TitleSplash
         onStart={handleStart}
-        titleSrc={withBasePath("/assets/titles/zombiefish_title.png")}
+        titleSrc={withBasePath("/personal/images/projects/zombiefish.svg")}
         backgroundColor={SKY_COLOR}
         cursor={DEFAULT_CURSOR}
       />

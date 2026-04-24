@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { useWindowSize } from "@/hooks/window/useWindowSize";
 import useScaledClock, {
   clockRef,
@@ -11,17 +11,12 @@ import { useGameAssets } from "./useGameAssets";
 import { useGameAudio } from "./useGameAudio";
 import { drawTextLabels, newTextLabel } from "@/utils/game/ui";
 import {
-  cancelAnimationFrameRef,
-  clearManagedTimeout,
   findTopmostHitIndex,
   mapClientPointToWorld,
   pickRandom,
   pointInCircle,
   pointInRect,
   randomInRange,
-  scheduleManagedSpawner,
-  scheduleManagedTimeout,
-  startManagedAnimationLoop,
 } from "@/utils/game/engine2d";
 import { drawRandomTerrainBackground } from "../_drawRandomTerrainBackground";
 import {
@@ -74,6 +69,7 @@ import type { TextLabel } from "@/types/game/ui";
 import type { AudioMgr } from "@/types/audio/audio";
 import type { ClickEvent } from "@/types/game/events";
 import { ScaledTimeoutHandle } from "@/types/hooks/time";
+import { createGameSimulationRuntime } from "@/utils/game/simulationRuntime";
 
 /* eslint-disable react-hooks/exhaustive-deps */
 
@@ -123,6 +119,15 @@ export default function useGameEngine() {
   const fishSpawnTimeout = useRef<ScaledTimeoutHandle | null>(null);
   const reportIntervalMs = 500;
   useScaledClock();
+  const simulationRuntime = useMemo(
+    () =>
+      createGameSimulationRuntime<ScaledTimeoutHandle>({
+        frameRef: animationFrameRef,
+        setTimeoutFn: setScaledTimeout,
+        clearTimeoutFn: clearScaledTimeout,
+      }),
+    [],
+  );
   const backgroundSeed = useRef(Math.random() * 1000);
   const backgroundCanvas = useRef<HTMLCanvasElement | null>(null);
   const accuracyLabel = useRef<TextLabel | null>(null);
@@ -960,17 +965,14 @@ export default function useGameEngine() {
       cursor: cur.cursor,
     });
 
-    startManagedAnimationLoop({
-      frameRef: animationFrameRef,
-      onFrame: loop,
-    });
-  }, [loop, assetMgr, getImg, updateDigitLabel]);
+    simulationRuntime.startLoop(loop);
+  }, [loop, assetMgr, getImg, updateDigitLabel, simulationRuntime]);
 
   // reset back to title screen
   const resetGame = useCallback(() => {
     const cur = state.current;
 
-    clearManagedTimeout(fishSpawnTimeout, clearScaledTimeout);
+    simulationRuntime.clearTimeout(fishSpawnTimeout);
 
     cur.phase = "title";
     cur.timer = GAME_TIME;
@@ -1019,10 +1021,10 @@ export default function useGameEngine() {
       accuracy: cur.accuracy,
       cursor: cur.cursor,
     });
-    cancelAnimationFrameRef(animationFrameRef);
-    clearManagedTimeout(cursorTimeoutRef, clearScaledTimeout);
+    simulationRuntime.stopLoop();
+    simulationRuntime.clearTimeout(cursorTimeoutRef);
     audio.pauseAll();
-  }, []);
+  }, [simulationRuntime, audio]);
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -1139,14 +1141,12 @@ export default function useGameEngine() {
       if (cur.phase !== "playing") return;
 
       syncCursor(SHOT_CURSOR);
-      scheduleManagedTimeout({
+      simulationRuntime.scheduleTimeout({
         handleRef: cursorTimeoutRef,
         callback: () => {
           syncCursor(DEFAULT_CURSOR);
         },
         delayMs: 100,
-        setTimeoutFn: setScaledTimeout,
-        clearTimeoutFn: clearScaledTimeout,
       });
 
       cur.shots += 1;
@@ -1430,7 +1430,7 @@ export default function useGameEngine() {
   useEffect(() => {
     if (ui.phase !== "playing") return;
     const basicKinds = ["blue", "green", "orange", "pink", "red"];
-    scheduleManagedSpawner({
+    simulationRuntime.scheduleSpawner({
       handleRef: fishSpawnTimeout,
       shouldContinue: () => state.current.phase === "playing",
       getDelayMs: () => {
@@ -1454,21 +1454,19 @@ export default function useGameEngine() {
           spawnFish("grey_long", 1);
         }
       },
-      setTimeoutFn: setScaledTimeout,
-      clearTimeoutFn: clearScaledTimeout,
     });
 
     return () => {
-      clearManagedTimeout(fishSpawnTimeout, clearScaledTimeout);
+      simulationRuntime.clearTimeout(fishSpawnTimeout);
     };
-  }, [ui.phase, spawnFish]);
+  }, [ui.phase, spawnFish, simulationRuntime]);
 
   // cleanup on unmount
   useEffect(() => {
     return () => {
-      cancelAnimationFrameRef(animationFrameRef);
+      simulationRuntime.stopLoop();
     };
-  }, []);
+  }, [simulationRuntime]);
 
   return {
     ui,

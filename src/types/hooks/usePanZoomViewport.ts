@@ -6,6 +6,9 @@ import type {
 
 export type UsePanZoomViewportOptions = {
   preset?: InteractiveViewportPreset;
+  calibrationMediaType?: string;
+  calibrationSection?: string;
+  calibrationProfileNamespace?: string;
   initialState?: PanZoomTransformState;
   preferencesStorageKey?: string;
   initialPreferences?: PanZoomViewportPreferences;
