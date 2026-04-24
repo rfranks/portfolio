@@ -15,6 +15,9 @@ const KNOWN_LEGACY_MIGRATION_REFERENCES: Readonly<Record<string, ReadonlySet<str
     "/personal/images/github/achievments/",
   ]),
 };
+const OPTIONAL_GENERATED_ASSET_PATH_PATTERNS = [
+  /^\/personal\/data\/health\/[A-Za-z0-9._-]+\.snapshot\.json$/,
+] as const;
 
 type AssetUsage = {
   path: string;
@@ -127,6 +130,9 @@ async function findMissingAssets(usages: Map<string, AssetUsage[]>): Promise<Ass
         });
       }
     } catch {
+      if (OPTIONAL_GENERATED_ASSET_PATH_PATTERNS.some((pattern) => pattern.test(assetPath))) {
+        continue;
+      }
       issues.push({
         path: assetPath,
         references,
