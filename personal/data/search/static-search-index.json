@@ -1,0 +1,3175 @@
+{
+  "generatedAt": "2026-04-24T07:07:50.093Z",
+  "actionCount": 198,
+  "actions": [
+    {
+      "id": "search-diagram-patientlistpodcasts-2",
+      "label": "Diagram: AI Patient List Podcasts • Block Diagram",
+      "subtitle": "/patientlistpodcasts?project=patientlistpodcasts&slide=diagrams&diagram=3",
+      "previewTitle": "AI Patient List Podcasts • Block Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/patientlistpodcasts • 3",
+      "group": "Diagrams",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=diagrams&diagram=3",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "AI Patient List Podcasts",
+        "patientlistpodcasts",
+        "Block Diagram",
+        "diagram-2-block-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-patientlistpodcasts-0",
+      "label": "Diagram: AI Patient List Podcasts • Component Diagram",
+      "subtitle": "/patientlistpodcasts?project=patientlistpodcasts&slide=diagrams&diagram=1",
+      "previewTitle": "AI Patient List Podcasts • Component Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/patientlistpodcasts • 1",
+      "group": "Diagrams",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=diagrams&diagram=1",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "AI Patient List Podcasts",
+        "patientlistpodcasts",
+        "Component Diagram",
+        "diagram-0-component-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-patientlistpodcasts-1",
+      "label": "Diagram: AI Patient List Podcasts • Sequence Diagram",
+      "subtitle": "/patientlistpodcasts?project=patientlistpodcasts&slide=diagrams&diagram=2",
+      "previewTitle": "AI Patient List Podcasts • Sequence Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/patientlistpodcasts • 2",
+      "group": "Diagrams",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=diagrams&diagram=2",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "AI Patient List Podcasts",
+        "patientlistpodcasts",
+        "Sequence Diagram",
+        "diagram-1-sequence-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-aisummary-2",
+      "label": "Diagram: AI-Driven Clinical Copilot • Block Diagram",
+      "subtitle": "/aisummary?project=aisummary&slide=diagrams&diagram=3",
+      "previewTitle": "AI-Driven Clinical Copilot • Block Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/aisummary • 3",
+      "group": "Diagrams",
+      "href": "/aisummary?project=aisummary&slide=diagrams&diagram=3",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "AI-Driven Clinical Copilot",
+        "aisummary",
+        "Block Diagram",
+        "diagram-2-block-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-aisummary-0",
+      "label": "Diagram: AI-Driven Clinical Copilot • Component Diagram",
+      "subtitle": "/aisummary?project=aisummary&slide=diagrams&diagram=1",
+      "previewTitle": "AI-Driven Clinical Copilot • Component Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/aisummary • 1",
+      "group": "Diagrams",
+      "href": "/aisummary?project=aisummary&slide=diagrams&diagram=1",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "AI-Driven Clinical Copilot",
+        "aisummary",
+        "Component Diagram",
+        "diagram-0-component-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-aisummary-1",
+      "label": "Diagram: AI-Driven Clinical Copilot • Sequence Diagram",
+      "subtitle": "/aisummary?project=aisummary&slide=diagrams&diagram=2",
+      "previewTitle": "AI-Driven Clinical Copilot • Sequence Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/aisummary • 2",
+      "group": "Diagrams",
+      "href": "/aisummary?project=aisummary&slide=diagrams&diagram=2",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "AI-Driven Clinical Copilot",
+        "aisummary",
+        "Sequence Diagram",
+        "diagram-1-sequence-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-assignmentlist-2",
+      "label": "Diagram: Patient Assignment List Project • Block Diagram",
+      "subtitle": "/assignmentlist?project=assignmentlist&slide=diagrams&diagram=3",
+      "previewTitle": "Patient Assignment List Project • Block Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/assignmentlist • 3",
+      "group": "Diagrams",
+      "href": "/assignmentlist?project=assignmentlist&slide=diagrams&diagram=3",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "Patient Assignment List Project",
+        "assignmentlist",
+        "Block Diagram",
+        "diagram-2-block-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-assignmentlist-0",
+      "label": "Diagram: Patient Assignment List Project • Component Diagram",
+      "subtitle": "/assignmentlist?project=assignmentlist&slide=diagrams&diagram=1",
+      "previewTitle": "Patient Assignment List Project • Component Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/assignmentlist • 1",
+      "group": "Diagrams",
+      "href": "/assignmentlist?project=assignmentlist&slide=diagrams&diagram=1",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "Patient Assignment List Project",
+        "assignmentlist",
+        "Component Diagram",
+        "diagram-0-component-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-assignmentlist-1",
+      "label": "Diagram: Patient Assignment List Project • Sequence Diagram",
+      "subtitle": "/assignmentlist?project=assignmentlist&slide=diagrams&diagram=2",
+      "previewTitle": "Patient Assignment List Project • Sequence Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/assignmentlist • 2",
+      "group": "Diagrams",
+      "href": "/assignmentlist?project=assignmentlist&slide=diagrams&diagram=2",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "Patient Assignment List Project",
+        "assignmentlist",
+        "Sequence Diagram",
+        "diagram-1-sequence-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-patientlist-2",
+      "label": "Diagram: Patient List Project • Block Diagram",
+      "subtitle": "/patientlist?project=patientlist&slide=diagrams&diagram=3",
+      "previewTitle": "Patient List Project • Block Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/patientlist • 3",
+      "group": "Diagrams",
+      "href": "/patientlist?project=patientlist&slide=diagrams&diagram=3",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "Patient List Project",
+        "patientlist",
+        "Block Diagram",
+        "diagram-2-block-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-patientlist-0",
+      "label": "Diagram: Patient List Project • Component Diagram",
+      "subtitle": "/patientlist?project=patientlist&slide=diagrams&diagram=1",
+      "previewTitle": "Patient List Project • Component Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/patientlist • 1",
+      "group": "Diagrams",
+      "href": "/patientlist?project=patientlist&slide=diagrams&diagram=1",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "Patient List Project",
+        "patientlist",
+        "Component Diagram",
+        "diagram-0-component-diagram"
+      ]
+    },
+    {
+      "id": "search-diagram-patientlist-1",
+      "label": "Diagram: Patient List Project • Sequence Diagram",
+      "subtitle": "/patientlist?project=patientlist&slide=diagrams&diagram=2",
+      "previewTitle": "Patient List Project • Sequence Diagram",
+      "previewBody": "Jump to this architecture diagram and focus the diagrams slide.",
+      "previewMeta": "/patientlist • 2",
+      "group": "Diagrams",
+      "href": "/patientlist?project=patientlist&slide=diagrams&diagram=2",
+      "keywords": [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        "Patient List Project",
+        "patientlist",
+        "Sequence Diagram",
+        "diagram-1-sequence-diagram"
+      ]
+    },
+    {
+      "id": "search-project-/patientlistpodcasts",
+      "label": "Project: AI Patient List Podcasts",
+      "subtitle": "Concise clinical audio updates",
+      "previewTitle": "AI Patient List Podcasts",
+      "previewBody": "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+      "previewMeta": "PRESENTATION • /patientlistpodcasts",
+      "group": "Projects",
+      "href": "/patientlistpodcasts",
+      "keywords": [
+        "project",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "",
+        "presentation",
+        "/patientlistpodcasts"
+      ]
+    },
+    {
+      "id": "search-project-/ai-shenanigans",
+      "label": "Project: AI Shenanigans",
+      "subtitle": "Mixed-media lab for stylization, motion, and creative AI workflows.",
+      "previewTitle": "AI Shenanigans",
+      "previewBody": "AI Shenanigans is a mixed-media experimentation lab for stylization, character work, motion concepts, and narrative ideation across image-first AI workflows. It is designed as a creative sandbox where visual direction, tone exploration, and rapid iteration can be tested quickly before moving ideas into larger product or storytelling contexts.",
+      "previewMeta": "PERSONAL • /ai-shenanigans",
+      "group": "Projects",
+      "href": "/ai-shenanigans",
+      "keywords": [
+        "project",
+        "AI Shenanigans",
+        "AI Shenanigans",
+        "AI Shenanigans is a mixed-media experimentation lab for stylization, character work, motion concepts, and narrative ideation across image-first AI workflows. It is designed as a creative sandbox where visual direction, tone exploration, and rapid iteration can be tested quickly before moving ideas into larger product or storytelling contexts.",
+        "",
+        "personal",
+        "/ai-shenanigans"
+      ]
+    },
+    {
+      "id": "search-project-/aisummary",
+      "label": "Project: AI-Driven Clinical Copilot",
+      "subtitle": "Physician-facing RAG copilot for concise, citation-backed clinical summaries and Q&A.",
+      "previewTitle": "AI-Driven Clinical Copilot",
+      "previewBody": "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+      "previewMeta": "PRESENTATION • /aisummary",
+      "group": "Projects",
+      "href": "/aisummary",
+      "keywords": [
+        "project",
+        "AI-Driven Clinical Copilot",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "Physician-facing RAG copilot for concise, citation-backed clinical summaries and Q&A.",
+        "presentation",
+        "/aisummary"
+      ]
+    },
+    {
+      "id": "search-project-/blackjack",
+      "label": "Project: Blackjack",
+      "subtitle": "Shared rules engine across terminal and WebAssembly clients.",
+      "previewTitle": "Blackjack",
+      "previewBody": "Blackjack is a production-style implementation of classic twenty-one with a shared Go rules engine powering multiple clients. The project highlights game-state modeling, deterministic dealer/player logic, and a polished web presentation layer that stays aligned with terminal and debugger flows through the same core decision and payout mechanics.",
+      "previewMeta": "PERSONAL • /blackjack",
+      "group": "Projects",
+      "href": "/blackjack",
+      "keywords": [
+        "project",
+        "Blackjack",
+        "Blackjack",
+        "Blackjack is a production-style implementation of classic twenty-one with a shared Go rules engine powering multiple clients. The project highlights game-state modeling, deterministic dealer/player logic, and a polished web presentation layer that stays aligned with terminal and debugger flows through the same core decision and payout mechanics.",
+        "",
+        "personal",
+        "/blackjack"
+      ]
+    },
+    {
+      "id": "search-project-/blasteroids",
+      "label": "Project: Blasteroids",
+      "subtitle": "Modernized Asteroids gameplay with precise browser controls.",
+      "previewTitle": "Blasteroids",
+      "previewBody": "Blasteroids reimagines classic Asteroids with tighter weapon feel, cleaner movement handling, and modern browser UX polish. Built with HTML, CSS, and JavaScript, it focuses on responsive controls, collision precision, and round pacing that keeps the game accessible for quick sessions while still rewarding skillful play.",
+      "previewMeta": "PERSONAL • /blasteroids",
+      "group": "Projects",
+      "href": "/blasteroids",
+      "keywords": [
+        "project",
+        "Blasteroids",
+        "Blasteroids",
+        "Blasteroids reimagines classic Asteroids with tighter weapon feel, cleaner movement handling, and modern browser UX polish. Built with HTML, CSS, and JavaScript, it focuses on responsive controls, collision precision, and round pacing that keeps the game accessible for quick sessions while still rewarding skillful play.",
+        "",
+        "personal",
+        "/blasteroids"
+      ]
+    },
+    {
+      "id": "search-project-/bookworm",
+      "label": "Project: Bookworm",
+      "subtitle": "AI-assisted PDF companion for chat and extraction workflows.",
+      "previewTitle": "Bookworm",
+      "previewBody": "Bookworm is an AI-assisted PDF companion that supports document chat, contextual question answering, and faster information extraction from long-form content. It combines file ingestion, prompt orchestration, and user-friendly interaction patterns so dense documents can be explored conversationally without losing source-grounded context.",
+      "previewMeta": "PERSONAL • /bookworm",
+      "group": "Projects",
+      "href": "/bookworm",
+      "keywords": [
+        "project",
+        "Bookworm",
+        "Bookworm",
+        "Bookworm is an AI-assisted PDF companion that supports document chat, contextual question answering, and faster information extraction from long-form content. It combines file ingestion, prompt orchestration, and user-friendly interaction patterns so dense documents can be explored conversationally without losing source-grounded context.",
+        "",
+        "personal",
+        "/bookworm"
+      ]
+    },
+    {
+      "id": "search-project-/dna",
+      "label": "Project: GeneBoard",
+      "subtitle": "Interactive DNA analysis and sequence exploration workspace.",
+      "previewTitle": "GeneBoard",
+      "previewBody": "GeneBoard provides interactive tooling for exploring DNA sequences through visual analysis, pattern inspection, and sequence-oriented experimentation. The experience is designed to make biological data easier to navigate with clear UI affordances, fast feedback loops, and practical utilities for understanding sequence structure and composition.",
+      "previewMeta": "PERSONAL • /dna",
+      "group": "Projects",
+      "href": "/dna",
+      "keywords": [
+        "project",
+        "GeneBoard",
+        "GeneBoard",
+        "GeneBoard provides interactive tooling for exploring DNA sequences through visual analysis, pattern inspection, and sequence-oriented experimentation. The experience is designed to make biological data easier to navigate with clear UI affordances, fast feedback loops, and practical utilities for understanding sequence structure and composition.",
+        "",
+        "personal",
+        "/dna"
+      ]
+    },
+    {
+      "id": "search-project-/pathforger",
+      "label": "Project: PathForger",
+      "subtitle": "Branching story engine with staged AI orchestration.",
+      "previewTitle": "PathForger",
+      "previewBody": "Story-forging playground for branching adventures with a staged OpenAI pipeline.\n\n- Generates A/B/C pitch candidates before committing to a story arc.\n- Builds chapter markdown, path choices, and a Risk HUD in a dedicated narrative stage.\n- Runs image generation as separate parallel calls so visuals can stream in as they finish.",
+      "previewMeta": "PERSONAL • /pathforger",
+      "group": "Projects",
+      "href": "/pathforger",
+      "keywords": [
+        "project",
+        "PathForger",
+        "PathForger",
+        "Story-forging playground for branching adventures with a staged OpenAI pipeline.\n\n- Generates A/B/C pitch candidates before committing to a story arc.\n- Builds chapter markdown, path choices, and a Risk HUD in a dedicated narrative stage.\n- Runs image generation as separate parallel calls so visuals can stream in as they finish.",
+        "",
+        "personal",
+        "/pathforger"
+      ]
+    },
+    {
+      "id": "search-project-/assignmentlist",
+      "label": "Project: Patient Assignment List Project",
+      "subtitle": "Operational assignment control for clinical teams",
+      "previewTitle": "Patient Assignment List Project",
+      "previewBody": "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+      "previewMeta": "PRESENTATION • /assignmentlist",
+      "group": "Projects",
+      "href": "/assignmentlist",
+      "keywords": [
+        "project",
+        "Patient Assignment List Project",
+        "Patient Assignment List Project",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "",
+        "presentation",
+        "/assignmentlist"
+      ]
+    },
+    {
+      "id": "search-project-/patientlist",
+      "label": "Project: Patient List Project",
+      "subtitle": "Configurable visit intelligence at point of care",
+      "previewTitle": "Patient List Project",
+      "previewBody": "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+      "previewMeta": "PRESENTATION • /patientlist",
+      "group": "Projects",
+      "href": "/patientlist",
+      "keywords": [
+        "project",
+        "Patient List Project",
+        "Patient List Project",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "",
+        "presentation",
+        "/patientlist"
+      ]
+    },
+    {
+      "id": "search-project-/petly",
+      "label": "Project: Petly",
+      "subtitle": "Pet-owner portal blending social UX with veterinary record access.",
+      "previewTitle": "Petly",
+      "previewBody": "Petly is a pet-owner portal that combines a social-style engagement surface with full veterinary EHR access, including vaccinations, x-rays, visit notes, and invoice history. It is designed to improve continuity between owners and care teams by making essential clinical and administrative information easier to find and act on.",
+      "previewMeta": "WORK • /petly",
+      "group": "Projects",
+      "href": "/petly",
+      "keywords": [
+        "project",
+        "Petly",
+        "Petly",
+        "Petly is a pet-owner portal that combines a social-style engagement surface with full veterinary EHR access, including vaccinations, x-rays, visit notes, and invoice history. It is designed to improve continuity between owners and care teams by making essential clinical and administrative information easier to find and act on.",
+        "",
+        "work",
+        "/petly"
+      ]
+    },
+    {
+      "id": "search-project-/rickbert-studio",
+      "label": "Project: Rickbert Studio",
+      "subtitle": "Comic-production workflow with parser-safe panel rendering.",
+      "previewTitle": "Rickbert Studio",
+      "previewBody": "Rickbert Studio is a structured comic-production workspace that turns narrative input into consistent multi-panel outputs with parser validation, preflight checks, react-konva rendering, and export-ready assets. It emphasizes repeatable art direction, layout discipline, and fast iteration from script to publishable strip.",
+      "previewMeta": "PERSONAL • /rickbert-studio",
+      "group": "Projects",
+      "href": "/rickbert-studio",
+      "keywords": [
+        "project",
+        "Rickbert Studio",
+        "Rickbert Studio",
+        "Rickbert Studio is a structured comic-production workspace that turns narrative input into consistent multi-panel outputs with parser validation, preflight checks, react-konva rendering, and export-ready assets. It emphasizes repeatable art direction, layout discipline, and fast iteration from script to publishable strip.",
+        "",
+        "personal",
+        "/rickbert-studio"
+      ]
+    },
+    {
+      "id": "search-project-/talentforge",
+      "label": "Project: TalentForge",
+      "subtitle": "AI-assisted career strategy workspace for job and offer planning.",
+      "previewTitle": "TalentForge",
+      "previewBody": "TalentForge is an AI-assisted career strategy workspace for managing job applications, offer comparisons, and negotiation planning in one place. It combines workflow organization, decision support, and practical execution tools so candidates can track opportunities with better consistency, clarity, and confidence through each hiring stage.",
+      "previewMeta": "PERSONAL • /talentforge",
+      "group": "Projects",
+      "href": "/talentforge",
+      "keywords": [
+        "project",
+        "TalentForge",
+        "TalentForge",
+        "TalentForge is an AI-assisted career strategy workspace for managing job applications, offer comparisons, and negotiation planning in one place. It combines workflow organization, decision support, and practical execution tools so candidates can track opportunities with better consistency, clarity, and confidence through each hiring stage.",
+        "",
+        "personal",
+        "/talentforge"
+      ]
+    },
+    {
+      "id": "search-project-/warbirds",
+      "label": "Project: Warbirds",
+      "subtitle": "Canvas dogfight arcade with layered enemy behavior.",
+      "previewTitle": "Warbirds",
+      "previewBody": "Warbirds is a browser arcade dogfight built for responsive controls, layered enemy behavior, and satisfying moment-to-moment action. The game balances fast input handling, projectile and collision systems, dynamic spawn pacing, and audio-visual feedback so rounds stay readable and intense across desktop and mobile sessions.",
+      "previewMeta": "PERSONAL • /warbirds",
+      "group": "Projects",
+      "href": "/warbirds",
+      "keywords": [
+        "project",
+        "Warbirds",
+        "Warbirds",
+        "Warbirds is a browser arcade dogfight built for responsive controls, layered enemy behavior, and satisfying moment-to-moment action. The game balances fast input handling, projectile and collision systems, dynamic spawn pacing, and audio-visual feedback so rounds stay readable and intense across desktop and mobile sessions.",
+        "",
+        "personal",
+        "/warbirds"
+      ]
+    },
+    {
+      "id": "search-core-skill-agile",
+      "label": "Skill: Agile",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Agile • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Agile.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Agile"]
+    },
+    {
+      "id": "search-core-skill-ajax",
+      "label": "Skill: AJAX",
+      "subtitle": "Core Competencies",
+      "previewTitle": "AJAX • Core Competencies",
+      "previewBody": "Jump to Core Competencies for AJAX.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "AJAX"]
+    },
+    {
+      "id": "search-skill-cloud-devops-amazon-s3",
+      "label": "Skill: Amazon S3",
+      "subtitle": "Cloud & DevOps",
+      "previewTitle": "Amazon S3 • Cloud & DevOps",
+      "previewBody": "Using object storage for application assets, document pipelines, exports, and cloud-native data workflows.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Amazon S3",
+        "Cloud & DevOps",
+        "Using object storage for application assets, document pipelines, exports, and cloud-native data workflows."
+      ]
+    },
+    {
+      "id": "search-core-skill-ant",
+      "label": "Skill: Ant",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Ant • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Ant.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Ant"]
+    },
+    {
+      "id": "search-core-skill-apache",
+      "label": "Skill: Apache",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Apache • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Apache.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Apache"]
+    },
+    {
+      "id": "search-skill-leadership-architecture-board-member",
+      "label": "Skill: Architecture board member",
+      "subtitle": "Leadership",
+      "previewTitle": "Architecture board member • Leadership",
+      "previewBody": "Guiding platform direction, technical standards, and cross-team architectural decisions.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Architecture board member",
+        "Leadership",
+        "Guiding platform direction, technical standards, and cross-team architectural decisions."
+      ]
+    },
+    {
+      "id": "search-skill-ai-llm-rag-systems-assemblyai",
+      "label": "Skill: AssemblyAI",
+      "subtitle": "AI/LLM & RAG Systems",
+      "previewTitle": "AssemblyAI • AI/LLM & RAG Systems",
+      "previewBody": "Integrating speech intelligence services for transcription, insights, and downstream extraction.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "AssemblyAI",
+        "AI/LLM & RAG Systems",
+        "Integrating speech intelligence services for transcription, insights, and downstream extraction."
+      ]
+    },
+    {
+      "id": "search-core-skill-assemblyai",
+      "label": "Skill: AssemblyAI",
+      "subtitle": "Core Competencies",
+      "previewTitle": "AssemblyAI • Core Competencies",
+      "previewBody": "Jump to Core Competencies for AssemblyAI.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "AssemblyAI"]
+    },
+    {
+      "id": "search-skill-cloud-devops-aws",
+      "label": "Skill: AWS",
+      "subtitle": "Cloud & DevOps",
+      "previewTitle": "AWS • Cloud & DevOps",
+      "previewBody": "Using managed AWS services for application hosting, AI integrations, and operational workflows.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "AWS",
+        "Cloud & DevOps",
+        "Using managed AWS services for application hosting, AI integrations, and operational workflows."
+      ]
+    },
+    {
+      "id": "search-skill-ai-llm-rag-systems-aws-comprehend-medical",
+      "label": "Skill: AWS Comprehend Medical",
+      "subtitle": "AI/LLM & RAG Systems",
+      "previewTitle": "AWS Comprehend Medical • AI/LLM & RAG Systems",
+      "previewBody": "Extracting clinical entities, medications, conditions, and relationships from medical text.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "AWS Comprehend Medical",
+        "AI/LLM & RAG Systems",
+        "Extracting clinical entities, medications, conditions, and relationships from medical text."
+      ]
+    },
+    {
+      "id": "search-core-skill-aws-comprehend-medical",
+      "label": "Skill: AWS Comprehend Medical",
+      "subtitle": "Core Competencies",
+      "previewTitle": "AWS Comprehend Medical • Core Competencies",
+      "previewBody": "Jump to Core Competencies for AWS Comprehend Medical.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "AWS Comprehend Medical"]
+    },
+    {
+      "id": "search-skill-ai-llm-rag-systems-aws-transcribe",
+      "label": "Skill: AWS Transcribe",
+      "subtitle": "AI/LLM & RAG Systems",
+      "previewTitle": "AWS Transcribe • AI/LLM & RAG Systems",
+      "previewBody": "Using managed AWS speech recognition for healthcare and general transcription workflows.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "AWS Transcribe",
+        "AI/LLM & RAG Systems",
+        "Using managed AWS speech recognition for healthcare and general transcription workflows."
+      ]
+    },
+    {
+      "id": "search-core-skill-aws-transcribe",
+      "label": "Skill: AWS Transcribe",
+      "subtitle": "Core Competencies",
+      "previewTitle": "AWS Transcribe • Core Competencies",
+      "previewBody": "Jump to Core Competencies for AWS Transcribe.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "AWS Transcribe"]
+    },
+    {
+      "id": "search-skill-cloud-devops-azure-functions",
+      "label": "Skill: Azure Functions",
+      "subtitle": "Cloud & DevOps",
+      "previewTitle": "Azure Functions • Cloud & DevOps",
+      "previewBody": "Deploying event-driven and HTTP-triggered serverless backends on Azure infrastructure.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Azure Functions",
+        "Cloud & DevOps",
+        "Deploying event-driven and HTTP-triggered serverless backends on Azure infrastructure."
+      ]
+    },
+    {
+      "id": "search-core-skill-azure-functions",
+      "label": "Skill: Azure Functions",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Azure Functions • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Azure Functions.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Azure Functions"]
+    },
+    {
+      "id": "search-core-skill-backbone-js",
+      "label": "Skill: Backbone.js",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Backbone.js • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Backbone.js.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Backbone.js"]
+    },
+    {
+      "id": "search-core-skill-cascading-style-sheets-css-",
+      "label": "Skill: Cascading Style Sheets (CSS)",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Cascading Style Sheets (CSS) • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Cascading Style Sheets (CSS).",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Cascading Style Sheets (CSS)"]
+    },
+    {
+      "id": "search-skill-ai-llm-rag-systems-clinical-nlp-with-icd-10-snomed-loinc-rxnorm",
+      "label": "Skill: Clinical NLP with ICD-10/SNOMED/LOINC/RxNorm",
+      "subtitle": "AI/LLM & RAG Systems",
+      "previewTitle": "Clinical NLP with ICD-10/SNOMED/LOINC/RxNorm • AI/LLM & RAG Systems",
+      "previewBody": "Mapping unstructured clinical language into medically relevant vocabularies and concepts.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Clinical NLP with ICD-10/SNOMED/LOINC/RxNorm",
+        "AI/LLM & RAG Systems",
+        "Mapping unstructured clinical language into medically relevant vocabularies and concepts."
+      ]
+    },
+    {
+      "id": "search-skill-cloud-devops-containerized-deployments",
+      "label": "Skill: Containerized deployments",
+      "subtitle": "Cloud & DevOps",
+      "previewTitle": "Containerized deployments • Cloud & DevOps",
+      "previewBody": "Packaging and shipping services consistently with container-based runtime environments.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Containerized deployments",
+        "Cloud & DevOps",
+        "Packaging and shipping services consistently with container-based runtime environments."
+      ]
+    },
+    {
+      "id": "search-skill-cloud-devops-cosmosdb",
+      "label": "Skill: CosmosDB",
+      "subtitle": "Cloud & DevOps",
+      "previewTitle": "CosmosDB • Cloud & DevOps",
+      "previewBody": "Designing globally distributed document persistence for cloud-native application workloads.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "CosmosDB",
+        "Cloud & DevOps",
+        "Designing globally distributed document persistence for cloud-native application workloads."
+      ]
+    },
+    {
+      "id": "search-core-skill-cosmosdb",
+      "label": "Skill: CosmosDB",
+      "subtitle": "Core Competencies",
+      "previewTitle": "CosmosDB • Core Competencies",
+      "previewBody": "Jump to Core Competencies for CosmosDB.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "CosmosDB"]
+    },
+    {
+      "id": "search-skill-leadership-cross-functional-collaboration-with-product-ux-qa-and-devops",
+      "label": "Skill: Cross-functional collaboration with product, UX, QA, and DevOps",
+      "subtitle": "Leadership",
+      "previewTitle": "Cross-functional collaboration with product, UX, QA, and DevOps • Leadership",
+      "previewBody": "Translating business goals into shippable technical plans with strong delivery alignment.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Cross-functional collaboration with product, UX, QA, and DevOps",
+        "Leadership",
+        "Translating business goals into shippable technical plans with strong delivery alignment."
+      ]
+    },
+    {
+      "id": "search-core-skill-css",
+      "label": "Skill: CSS",
+      "subtitle": "Core Competencies",
+      "previewTitle": "CSS • Core Competencies",
+      "previewBody": "Jump to Core Competencies for CSS.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "CSS"]
+    },
+    {
+      "id": "search-skill-ai-llm-rag-systems-deepgram",
+      "label": "Skill: Deepgram",
+      "subtitle": "AI/LLM & RAG Systems",
+      "previewTitle": "Deepgram • AI/LLM & RAG Systems",
+      "previewBody": "Using streaming and batch speech-to-text APIs in multi-model transcription pipelines.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Deepgram",
+        "AI/LLM & RAG Systems",
+        "Using streaming and batch speech-to-text APIs in multi-model transcription pipelines."
+      ]
+    },
+    {
+      "id": "search-core-skill-deepgram",
+      "label": "Skill: Deepgram",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Deepgram • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Deepgram.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Deepgram"]
+    },
+    {
+      "id": "search-skill-frontend-design-systems",
+      "label": "Skill: Design systems",
+      "subtitle": "Frontend",
+      "previewTitle": "Design systems • Frontend",
+      "previewBody": "Creating reusable UI primitives, tokens, and patterns for consistent product experiences.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Design systems",
+        "Frontend",
+        "Creating reusable UI primitives, tokens, and patterns for consistent product experiences."
+      ]
+    },
+    {
+      "id": "search-core-skill-django",
+      "label": "Skill: Django",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Django • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Django.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Django"]
+    },
+    {
+      "id": "search-core-skill-eclipse",
+      "label": "Skill: Eclipse",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Eclipse • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Eclipse.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Eclipse"]
+    },
+    {
+      "id": "search-skill-ai-llm-rag-systems-elevenlabs",
+      "label": "Skill: ElevenLabs",
+      "subtitle": "AI/LLM & RAG Systems",
+      "previewTitle": "ElevenLabs • AI/LLM & RAG Systems",
+      "previewBody": "Integrating voice synthesis and conversational audio capabilities into product workflows.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "ElevenLabs",
+        "AI/LLM & RAG Systems",
+        "Integrating voice synthesis and conversational audio capabilities into product workflows."
+      ]
+    },
+    {
+      "id": "search-core-skill-elevenlabs",
+      "label": "Skill: ElevenLabs",
+      "subtitle": "Core Competencies",
+      "previewTitle": "ElevenLabs • Core Competencies",
+      "previewBody": "Jump to Core Competencies for ElevenLabs.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "ElevenLabs"]
+    },
+    {
+      "id": "search-skill-leadership-engineering-mentor",
+      "label": "Skill: Engineering mentor",
+      "subtitle": "Leadership",
+      "previewTitle": "Engineering mentor • Leadership",
+      "previewBody": "Coaching engineers through design reviews, implementation strategy, and technical growth.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Engineering mentor",
+        "Leadership",
+        "Coaching engineers through design reviews, implementation strategy, and technical growth."
+      ]
+    },
+    {
+      "id": "search-skill-data-integration-event-driven-microservices",
+      "label": "Skill: Event-driven microservices",
+      "subtitle": "Data & Integration",
+      "previewTitle": "Event-driven microservices • Data & Integration",
+      "previewBody": "Building distributed systems that coordinate through asynchronous events and service boundaries.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Event-driven microservices",
+        "Data & Integration",
+        "Building distributed systems that coordinate through asynchronous events and service boundaries."
+      ]
+    },
+    {
+      "id": "search-skill-frontend-expo",
+      "label": "Skill: Expo",
+      "subtitle": "Frontend",
+      "previewTitle": "Expo • Frontend",
+      "previewBody": "Accelerating React Native development, builds, and device feature integration with Expo tooling.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Expo",
+        "Frontend",
+        "Accelerating React Native development, builds, and device feature integration with Expo tooling."
+      ]
+    },
+    {
+      "id": "search-core-skill-expo",
+      "label": "Skill: Expo",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Expo • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Expo.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Expo"]
+    },
+    {
+      "id": "search-core-skill-fastapi",
+      "label": "Skill: FastAPI",
+      "subtitle": "Core Competencies",
+      "previewTitle": "FastAPI • Core Competencies",
+      "previewBody": "Jump to Core Competencies for FastAPI.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "FastAPI"]
+    },
+    {
+      "id": "search-core-skill-git",
+      "label": "Skill: Git",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Git • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Git.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Git"]
+    },
+    {
+      "id": "search-core-skill-github",
+      "label": "Skill: GitHub",
+      "subtitle": "Core Competencies",
+      "previewTitle": "GitHub • Core Competencies",
+      "previewBody": "Jump to Core Competencies for GitHub.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "GitHub"]
+    },
+    {
+      "id": "search-core-skill-github-actions",
+      "label": "Skill: GitHub Actions",
+      "subtitle": "Core Competencies",
+      "previewTitle": "GitHub Actions • Core Competencies",
+      "previewBody": "Jump to Core Competencies for GitHub Actions.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "GitHub Actions"]
+    },
+    {
+      "id": "search-skill-cloud-devops-github-actions-ci-cd",
+      "label": "Skill: GitHub Actions CI/CD",
+      "subtitle": "Cloud & DevOps",
+      "previewTitle": "GitHub Actions CI/CD • Cloud & DevOps",
+      "previewBody": "Automating builds, tests, releases, and deployment workflows directly in GitHub.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "GitHub Actions CI/CD",
+        "Cloud & DevOps",
+        "Automating builds, tests, releases, and deployment workflows directly in GitHub."
+      ]
+    },
+    {
+      "id": "search-core-skill-google-analytics",
+      "label": "Skill: Google Analytics",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Google Analytics • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Google Analytics.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Google Analytics"]
+    },
+    {
+      "id": "search-skill-cloud-devops-google-cloud-storage",
+      "label": "Skill: Google Cloud Storage",
+      "subtitle": "Cloud & DevOps",
+      "previewTitle": "Google Cloud Storage • Cloud & DevOps",
+      "previewBody": "Managing object storage for files, data exchange, and cloud-hosted application workflows in Google Cloud environments.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Google Cloud Storage",
+        "Cloud & DevOps",
+        "Managing object storage for files, data exchange, and cloud-hosted application workflows in Google Cloud environments."
+      ]
+    },
+    {
+      "id": "search-core-skill-handlebars-js",
+      "label": "Skill: Handlebars.js",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Handlebars.js • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Handlebars.js.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Handlebars.js"]
+    },
+    {
+      "id": "search-core-skill-hibernate",
+      "label": "Skill: Hibernate",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Hibernate • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Hibernate.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Hibernate"]
+    },
+    {
+      "id": "search-core-skill-html",
+      "label": "Skill: HTML",
+      "subtitle": "Core Competencies",
+      "previewTitle": "HTML • Core Competencies",
+      "previewBody": "Jump to Core Competencies for HTML.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "HTML"]
+    },
+    {
+      "id": "search-core-skill-intellij-idea",
+      "label": "Skill: IntelliJ IDEA",
+      "subtitle": "Core Competencies",
+      "previewTitle": "IntelliJ IDEA • Core Competencies",
+      "previewBody": "Jump to Core Competencies for IntelliJ IDEA.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "IntelliJ IDEA"]
+    },
+    {
+      "id": "search-core-skill-j2ee",
+      "label": "Skill: J2EE",
+      "subtitle": "Core Competencies",
+      "previewTitle": "J2EE • Core Competencies",
+      "previewBody": "Jump to Core Competencies for J2EE.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "J2EE"]
+    },
+    {
+      "id": "search-core-skill-java",
+      "label": "Skill: Java",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Java • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Java.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Java"]
+    },
+    {
+      "id": "search-skill-backend-java-spring-boot-hibernate-",
+      "label": "Skill: Java (Spring Boot/Hibernate)",
+      "subtitle": "Backend",
+      "previewTitle": "Java (Spring Boot/Hibernate) • Backend",
+      "previewBody": "Designing enterprise service layers, domain models, and persistence-backed applications in Java.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Java (Spring Boot/Hibernate)",
+        "Backend",
+        "Designing enterprise service layers, domain models, and persistence-backed applications in Java."
+      ]
+    },
+    {
+      "id": "search-core-skill-javascript",
+      "label": "Skill: JavaScript",
+      "subtitle": "Core Competencies",
+      "previewTitle": "JavaScript • Core Competencies",
+      "previewBody": "Jump to Core Competencies for JavaScript.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "JavaScript"]
+    },
+    {
+      "id": "search-core-skill-jenkins",
+      "label": "Skill: Jenkins",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Jenkins • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Jenkins.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Jenkins"]
+    },
+    {
+      "id": "search-core-skill-jpa",
+      "label": "Skill: JPA",
+      "subtitle": "Core Competencies",
+      "previewTitle": "JPA • Core Competencies",
+      "previewBody": "Jump to Core Competencies for JPA.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "JPA"]
+    },
+    {
+      "id": "search-core-skill-jquery",
+      "label": "Skill: jQuery",
+      "subtitle": "Core Competencies",
+      "previewTitle": "jQuery • Core Competencies",
+      "previewBody": "Jump to Core Competencies for jQuery.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "jQuery"]
+    },
+    {
+      "id": "search-core-skill-jsp",
+      "label": "Skill: JSP",
+      "subtitle": "Core Competencies",
+      "previewTitle": "JSP • Core Competencies",
+      "previewBody": "Jump to Core Competencies for JSP.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "JSP"]
+    },
+    {
+      "id": "search-core-skill-junit",
+      "label": "Skill: JUnit",
+      "subtitle": "Core Competencies",
+      "previewTitle": "JUnit • Core Competencies",
+      "previewBody": "Jump to Core Competencies for JUnit.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "JUnit"]
+    },
+    {
+      "id": "search-skill-ai-llm-rag-systems-langchain",
+      "label": "Skill: LangChain",
+      "subtitle": "AI/LLM & RAG Systems",
+      "previewTitle": "LangChain • AI/LLM & RAG Systems",
+      "previewBody": "Building TypeScript and Python orchestration pipelines for prompts, tools, retrieval, and evaluation.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "LangChain",
+        "AI/LLM & RAG Systems",
+        "Building TypeScript and Python orchestration pipelines for prompts, tools, retrieval, and evaluation."
+      ]
+    },
+    {
+      "id": "search-core-skill-langchain",
+      "label": "Skill: LangChain",
+      "subtitle": "Core Competencies",
+      "previewTitle": "LangChain • Core Competencies",
+      "previewBody": "Jump to Core Competencies for LangChain.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "LangChain"]
+    },
+    {
+      "id": "search-skill-ai-llm-rag-systems-large-language-models-llm-",
+      "label": "Skill: Large Language Models (LLM)",
+      "subtitle": "AI/LLM & RAG Systems",
+      "previewTitle": "Large Language Models (LLM) • AI/LLM & RAG Systems",
+      "previewBody": "Applying production LLM workflows for summarization, extraction, reasoning, and assistant experiences.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Large Language Models (LLM)",
+        "AI/LLM & RAG Systems",
+        "Applying production LLM workflows for summarization, extraction, reasoning, and assistant experiences."
+      ]
+    },
+    {
+      "id": "search-core-skill-large-language-models-llm-",
+      "label": "Skill: Large Language Models (LLM)",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Large Language Models (LLM) • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Large Language Models (LLM).",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Large Language Models (LLM)"]
+    },
+    {
+      "id": "search-core-skill-leadership",
+      "label": "Skill: Leadership",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Leadership • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Leadership.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Leadership"]
+    },
+    {
+      "id": "search-core-skill-liferay",
+      "label": "Skill: Liferay",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Liferay • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Liferay.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Liferay"]
+    },
+    {
+      "id": "search-core-skill-linux",
+      "label": "Skill: Linux",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Linux • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Linux.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Linux"]
+    },
+    {
+      "id": "search-core-skill-mac-os-x",
+      "label": "Skill: Mac OS X",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Mac OS X • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Mac OS X.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Mac OS X"]
+    },
+    {
+      "id": "search-core-skill-maven",
+      "label": "Skill: Maven",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Maven • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Maven.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Maven"]
+    },
+    {
+      "id": "search-core-skill-mercurial",
+      "label": "Skill: Mercurial",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Mercurial • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Mercurial.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Mercurial"]
+    },
+    {
+      "id": "search-skill-cloud-devops-model-deployment",
+      "label": "Skill: Model deployment",
+      "subtitle": "Cloud & DevOps",
+      "previewTitle": "Model deployment • Cloud & DevOps",
+      "previewBody": "Deploying machine learning and AI models into production workflows with attention to reliability, versioning, and operational monitoring.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Model deployment",
+        "Cloud & DevOps",
+        "Deploying machine learning and AI models into production workflows with attention to reliability, versioning, and operational monitoring."
+      ]
+    },
+    {
+      "id": "search-skill-data-integration-mongodb",
+      "label": "Skill: MongoDB",
+      "subtitle": "Data & Integration",
+      "previewTitle": "MongoDB • Data & Integration",
+      "previewBody": "Working with flexible document models for operational and product-facing application data.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "MongoDB",
+        "Data & Integration",
+        "Working with flexible document models for operational and product-facing application data."
+      ]
+    },
+    {
+      "id": "search-core-skill-mongodb",
+      "label": "Skill: MongoDB",
+      "subtitle": "Core Competencies",
+      "previewTitle": "MongoDB • Core Competencies",
+      "previewBody": "Jump to Core Competencies for MongoDB.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "MongoDB"]
+    },
+    {
+      "id": "search-skill-frontend-monorepos-single-spa-",
+      "label": "Skill: Monorepos (single-spa)",
+      "subtitle": "Frontend",
+      "previewTitle": "Monorepos (single-spa) • Frontend",
+      "previewBody": "Organizing large frontend codebases with shared packages and microfrontend-friendly architecture.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Monorepos (single-spa)",
+        "Frontend",
+        "Organizing large frontend codebases with shared packages and microfrontend-friendly architecture."
+      ]
+    },
+    {
+      "id": "search-core-skill-mvc",
+      "label": "Skill: MVC",
+      "subtitle": "Core Competencies",
+      "previewTitle": "MVC • Core Competencies",
+      "previewBody": "Jump to Core Competencies for MVC.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "MVC"]
+    },
+    {
+      "id": "search-skill-data-integration-mysql",
+      "label": "Skill: MySQL",
+      "subtitle": "Data & Integration",
+      "previewTitle": "MySQL • Data & Integration",
+      "previewBody": "Supporting production relational data stores and integrations in enterprise environments.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "MySQL",
+        "Data & Integration",
+        "Supporting production relational data stores and integrations in enterprise environments."
+      ]
+    },
+    {
+      "id": "search-core-skill-mysql",
+      "label": "Skill: MySQL",
+      "subtitle": "Core Competencies",
+      "previewTitle": "MySQL • Core Competencies",
+      "previewBody": "Jump to Core Competencies for MySQL.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "MySQL"]
+    },
+    {
+      "id": "search-skill-backend-nestjs",
+      "label": "Skill: NestJS",
+      "subtitle": "Backend",
+      "previewTitle": "NestJS • Backend",
+      "previewBody": "Structuring scalable Node.js services with dependency injection, modules, and testable architecture.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "NestJS",
+        "Backend",
+        "Structuring scalable Node.js services with dependency injection, modules, and testable architecture."
+      ]
+    },
+    {
+      "id": "search-core-skill-nestjs",
+      "label": "Skill: NestJS",
+      "subtitle": "Core Competencies",
+      "previewTitle": "NestJS • Core Competencies",
+      "previewBody": "Jump to Core Competencies for NestJS.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "NestJS"]
+    },
+    {
+      "id": "search-skill-frontend-next-js",
+      "label": "Skill: Next.js",
+      "subtitle": "Frontend",
+      "previewTitle": "Next.js • Frontend",
+      "previewBody": "Shipping production React applications with App Router, SSR, SSG, and API integrations.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Next.js",
+        "Frontend",
+        "Shipping production React applications with App Router, SSR, SSG, and API integrations."
+      ]
+    },
+    {
+      "id": "search-core-skill-next-js",
+      "label": "Skill: Next.js",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Next.js • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Next.js.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Next.js"]
+    },
+    {
+      "id": "search-core-skill-oracle-sql",
+      "label": "Skill: Oracle SQL",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Oracle SQL • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Oracle SQL.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Oracle SQL"]
+    },
+    {
+      "id": "search-core-skill-portlets",
+      "label": "Skill: Portlets",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Portlets • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Portlets.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Portlets"]
+    },
+    {
+      "id": "search-skill-data-integration-postgresql",
+      "label": "Skill: PostgreSQL",
+      "subtitle": "Data & Integration",
+      "previewTitle": "PostgreSQL • Data & Integration",
+      "previewBody": "Modeling relational data and tuning queries for reliable transactional application workloads.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "PostgreSQL",
+        "Data & Integration",
+        "Modeling relational data and tuning queries for reliable transactional application workloads."
+      ]
+    },
+    {
+      "id": "search-core-skill-postgresql",
+      "label": "Skill: PostgreSQL",
+      "subtitle": "Core Competencies",
+      "previewTitle": "PostgreSQL • Core Competencies",
+      "previewBody": "Jump to Core Competencies for PostgreSQL.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "PostgreSQL"]
+    },
+    {
+      "id": "search-core-skill-python",
+      "label": "Skill: Python",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Python • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Python.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Python"]
+    },
+    {
+      "id": "search-skill-backend-python-django-flask-fastapi-",
+      "label": "Skill: Python (Django, Flask, FastAPI)",
+      "subtitle": "Backend",
+      "previewTitle": "Python (Django, Flask, FastAPI) • Backend",
+      "previewBody": "Building APIs, services, and data-processing backends across multiple Python frameworks.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Python (Django, Flask, FastAPI)",
+        "Backend",
+        "Building APIs, services, and data-processing backends across multiple Python frameworks."
+      ]
+    },
+    {
+      "id": "search-core-skill-python-programming-language-",
+      "label": "Skill: Python (Programming Language)",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Python (Programming Language) • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Python (Programming Language).",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Python (Programming Language)"]
+    },
+    {
+      "id": "search-skill-frontend-react",
+      "label": "Skill: React",
+      "subtitle": "Frontend",
+      "previewTitle": "React • Frontend",
+      "previewBody": "Building complex interactive UIs with reusable component systems and state-driven rendering.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "React",
+        "Frontend",
+        "Building complex interactive UIs with reusable component systems and state-driven rendering."
+      ]
+    },
+    {
+      "id": "search-skill-frontend-react-native",
+      "label": "Skill: React Native",
+      "subtitle": "Frontend",
+      "previewTitle": "React Native • Frontend",
+      "previewBody": "Delivering mobile application experiences with shared React patterns and native device access.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "React Native",
+        "Frontend",
+        "Delivering mobile application experiences with shared React patterns and native device access."
+      ]
+    },
+    {
+      "id": "search-core-skill-react-native",
+      "label": "Skill: React Native",
+      "subtitle": "Core Competencies",
+      "previewTitle": "React Native • Core Competencies",
+      "previewBody": "Jump to Core Competencies for React Native.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "React Native"]
+    },
+    {
+      "id": "search-core-skill-react-js",
+      "label": "Skill: React.js",
+      "subtitle": "Core Competencies",
+      "previewTitle": "React.js • Core Competencies",
+      "previewBody": "Jump to Core Competencies for React.js.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "React.js"]
+    },
+    {
+      "id": "search-core-skill-rest",
+      "label": "Skill: REST",
+      "subtitle": "Core Competencies",
+      "previewTitle": "REST • Core Competencies",
+      "previewBody": "Jump to Core Competencies for REST.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "REST"]
+    },
+    {
+      "id": "search-skill-data-integration-rest-apis",
+      "label": "Skill: REST APIs",
+      "subtitle": "Data & Integration",
+      "previewTitle": "REST APIs • Data & Integration",
+      "previewBody": "Designing and consuming HTTP APIs with stable contracts, authentication, and versioning.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "REST APIs",
+        "Data & Integration",
+        "Designing and consuming HTTP APIs with stable contracts, authentication, and versioning."
+      ]
+    },
+    {
+      "id": "search-skill-ai-llm-rag-systems-retrieval-augmented-generation",
+      "label": "Skill: Retrieval-augmented generation",
+      "subtitle": "AI/LLM & RAG Systems",
+      "previewTitle": "Retrieval-augmented generation • AI/LLM & RAG Systems",
+      "previewBody": "Designing systems that ground model output in retrieved documents, records, and structured data.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Retrieval-augmented generation",
+        "AI/LLM & RAG Systems",
+        "Designing systems that ground model output in retrieved documents, records, and structured data."
+      ]
+    },
+    {
+      "id": "search-core-skill-retrieval-augmented-generation-rag-",
+      "label": "Skill: Retrieval-Augmented Generation (RAG)",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Retrieval-Augmented Generation (RAG) • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Retrieval-Augmented Generation (RAG).",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Retrieval-Augmented Generation (RAG)"]
+    },
+    {
+      "id": "search-core-skill-servlets",
+      "label": "Skill: Servlets",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Servlets • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Servlets.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Servlets"]
+    },
+    {
+      "id": "search-core-skill-software-architecture",
+      "label": "Skill: Software Architecture",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Software Architecture • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Software Architecture.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Software Architecture"]
+    },
+    {
+      "id": "search-core-skill-spring",
+      "label": "Skill: Spring",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Spring • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Spring.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Spring"]
+    },
+    {
+      "id": "search-core-skill-spring-boot",
+      "label": "Skill: Spring Boot",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Spring Boot • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Spring Boot.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Spring Boot"]
+    },
+    {
+      "id": "search-core-skill-sql",
+      "label": "Skill: SQL",
+      "subtitle": "Core Competencies",
+      "previewTitle": "SQL • Core Competencies",
+      "previewBody": "Jump to Core Competencies for SQL.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "SQL"]
+    },
+    {
+      "id": "search-core-skill-subversion",
+      "label": "Skill: Subversion",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Subversion • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Subversion.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Subversion"]
+    },
+    {
+      "id": "search-core-skill-swagger",
+      "label": "Skill: Swagger",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Swagger • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Swagger.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Swagger"]
+    },
+    {
+      "id": "search-core-skill-team-leadership",
+      "label": "Skill: Team Leadership",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Team Leadership • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Team Leadership.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Team Leadership"]
+    },
+    {
+      "id": "search-core-skill-testng",
+      "label": "Skill: TestNG",
+      "subtitle": "Core Competencies",
+      "previewTitle": "TestNG • Core Competencies",
+      "previewBody": "Jump to Core Competencies for TestNG.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "TestNG"]
+    },
+    {
+      "id": "search-core-skill-tomcat",
+      "label": "Skill: Tomcat",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Tomcat • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Tomcat.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Tomcat"]
+    },
+    {
+      "id": "search-skill-frontend-turborepo",
+      "label": "Skill: Turborepo",
+      "subtitle": "Frontend",
+      "previewTitle": "Turborepo • Frontend",
+      "previewBody": "Managing monorepos with cached builds, shared packages, and coordinated multi-application development workflows.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "Turborepo",
+        "Frontend",
+        "Managing monorepos with cached builds, shared packages, and coordinated multi-application development workflows."
+      ]
+    },
+    {
+      "id": "search-skill-frontend-typescript",
+      "label": "Skill: TypeScript",
+      "subtitle": "Frontend",
+      "previewTitle": "TypeScript • Frontend",
+      "previewBody": "Using static typing to improve correctness, maintainability, and shared contracts across stacks.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "TypeScript",
+        "Frontend",
+        "Using static typing to improve correctness, maintainability, and shared contracts across stacks."
+      ]
+    },
+    {
+      "id": "search-core-skill-typescript",
+      "label": "Skill: TypeScript",
+      "subtitle": "Core Competencies",
+      "previewTitle": "TypeScript • Core Competencies",
+      "previewBody": "Jump to Core Competencies for TypeScript.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "TypeScript"]
+    },
+    {
+      "id": "search-skill-backend-typescript-apis",
+      "label": "Skill: TypeScript APIs",
+      "subtitle": "Backend",
+      "previewTitle": "TypeScript APIs • Backend",
+      "previewBody": "Implementing strongly typed backend services and internal APIs in the TypeScript ecosystem.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": [
+        "skill",
+        "competency",
+        "core competency",
+        "TypeScript APIs",
+        "Backend",
+        "Implementing strongly typed backend services and internal APIs in the TypeScript ecosystem."
+      ]
+    },
+    {
+      "id": "search-core-skill-uml",
+      "label": "Skill: UML",
+      "subtitle": "Core Competencies",
+      "previewTitle": "UML • Core Competencies",
+      "previewBody": "Jump to Core Competencies for UML.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "UML"]
+    },
+    {
+      "id": "search-core-skill-web-services",
+      "label": "Skill: Web Services",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Web Services • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Web Services.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Web Services"]
+    },
+    {
+      "id": "search-core-skill-windows",
+      "label": "Skill: Windows",
+      "subtitle": "Core Competencies",
+      "previewTitle": "Windows • Core Competencies",
+      "previewBody": "Jump to Core Competencies for Windows.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "Windows"]
+    },
+    {
+      "id": "search-core-skill-xml",
+      "label": "Skill: XML",
+      "subtitle": "Core Competencies",
+      "previewTitle": "XML • Core Competencies",
+      "previewBody": "Jump to Core Competencies for XML.",
+      "previewMeta": "/#competencies",
+      "group": "Skills",
+      "href": "/#competencies",
+      "keywords": ["skill", "competency", "core competency", "XML"]
+    },
+    {
+      "id": "search-slide-patientlistpodcasts-diagrams",
+      "label": "Slide: AI Patient List Podcasts • Architecture",
+      "subtitle": "/patientlistpodcasts?project=patientlistpodcasts&slide=diagrams",
+      "previewTitle": "AI Patient List Podcasts • Architecture",
+      "previewBody": "Jump directly to the Architecture slide.",
+      "previewMeta": "/patientlistpodcasts",
+      "group": "Slides",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=diagrams",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI Patient List Podcasts",
+        "patientlistpodcasts",
+        "Architecture",
+        "diagrams"
+      ]
+    },
+    {
+      "id": "search-slide-patientlistpodcasts-demo",
+      "label": "Slide: AI Patient List Podcasts • Demo",
+      "subtitle": "/patientlistpodcasts?project=patientlistpodcasts&slide=demo",
+      "previewTitle": "AI Patient List Podcasts • Demo",
+      "previewBody": "Jump directly to the Demo slide.",
+      "previewMeta": "/patientlistpodcasts",
+      "group": "Slides",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=demo",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI Patient List Podcasts",
+        "patientlistpodcasts",
+        "Demo",
+        "demo"
+      ]
+    },
+    {
+      "id": "search-slide-patientlistpodcasts-overview",
+      "label": "Slide: AI Patient List Podcasts • Overview",
+      "subtitle": "/patientlistpodcasts?project=patientlistpodcasts&slide=overview",
+      "previewTitle": "AI Patient List Podcasts • Overview",
+      "previewBody": "Jump directly to the Overview slide.",
+      "previewMeta": "/patientlistpodcasts",
+      "group": "Slides",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=overview",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI Patient List Podcasts",
+        "patientlistpodcasts",
+        "Overview",
+        "overview"
+      ]
+    },
+    {
+      "id": "search-slide-patientlistpodcasts-specifications",
+      "label": "Slide: AI Patient List Podcasts • Specifications",
+      "subtitle": "/patientlistpodcasts?project=patientlistpodcasts&slide=specifications",
+      "previewTitle": "AI Patient List Podcasts • Specifications",
+      "previewBody": "Jump directly to the Specifications slide.",
+      "previewMeta": "/patientlistpodcasts",
+      "group": "Slides",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=specifications",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI Patient List Podcasts",
+        "patientlistpodcasts",
+        "Specifications",
+        "specifications"
+      ]
+    },
+    {
+      "id": "search-slide-patientlistpodcasts-technologies",
+      "label": "Slide: AI Patient List Podcasts • Technologies Used",
+      "subtitle": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "previewTitle": "AI Patient List Podcasts • Technologies Used",
+      "previewBody": "Jump directly to the Technologies Used slide.",
+      "previewMeta": "/patientlistpodcasts",
+      "group": "Slides",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI Patient List Podcasts",
+        "patientlistpodcasts",
+        "Technologies Used",
+        "technologies"
+      ]
+    },
+    {
+      "id": "search-slide-patientlistpodcasts-why",
+      "label": "Slide: AI Patient List Podcasts • Why This Interests Me",
+      "subtitle": "/patientlistpodcasts?project=patientlistpodcasts&slide=why",
+      "previewTitle": "AI Patient List Podcasts • Why This Interests Me",
+      "previewBody": "Jump directly to the Why This Interests Me slide.",
+      "previewMeta": "/patientlistpodcasts",
+      "group": "Slides",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=why",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI Patient List Podcasts",
+        "patientlistpodcasts",
+        "Why This Interests Me",
+        "why"
+      ]
+    },
+    {
+      "id": "search-slide-aisummary-diagrams",
+      "label": "Slide: AI-Driven Clinical Copilot • Architecture",
+      "subtitle": "/aisummary?project=aisummary&slide=diagrams",
+      "previewTitle": "AI-Driven Clinical Copilot • Architecture",
+      "previewBody": "Jump directly to the Architecture slide.",
+      "previewMeta": "/aisummary",
+      "group": "Slides",
+      "href": "/aisummary?project=aisummary&slide=diagrams",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI-Driven Clinical Copilot",
+        "aisummary",
+        "Architecture",
+        "diagrams"
+      ]
+    },
+    {
+      "id": "search-slide-aisummary-demo",
+      "label": "Slide: AI-Driven Clinical Copilot • Demo",
+      "subtitle": "/aisummary?project=aisummary&slide=demo",
+      "previewTitle": "AI-Driven Clinical Copilot • Demo",
+      "previewBody": "Jump directly to the Demo slide.",
+      "previewMeta": "/aisummary",
+      "group": "Slides",
+      "href": "/aisummary?project=aisummary&slide=demo",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI-Driven Clinical Copilot",
+        "aisummary",
+        "Demo",
+        "demo"
+      ]
+    },
+    {
+      "id": "search-slide-aisummary-overview",
+      "label": "Slide: AI-Driven Clinical Copilot • Overview",
+      "subtitle": "/aisummary?project=aisummary&slide=overview",
+      "previewTitle": "AI-Driven Clinical Copilot • Overview",
+      "previewBody": "Jump directly to the Overview slide.",
+      "previewMeta": "/aisummary",
+      "group": "Slides",
+      "href": "/aisummary?project=aisummary&slide=overview",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI-Driven Clinical Copilot",
+        "aisummary",
+        "Overview",
+        "overview"
+      ]
+    },
+    {
+      "id": "search-slide-aisummary-specifications",
+      "label": "Slide: AI-Driven Clinical Copilot • Specifications",
+      "subtitle": "/aisummary?project=aisummary&slide=specifications",
+      "previewTitle": "AI-Driven Clinical Copilot • Specifications",
+      "previewBody": "Jump directly to the Specifications slide.",
+      "previewMeta": "/aisummary",
+      "group": "Slides",
+      "href": "/aisummary?project=aisummary&slide=specifications",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI-Driven Clinical Copilot",
+        "aisummary",
+        "Specifications",
+        "specifications"
+      ]
+    },
+    {
+      "id": "search-slide-aisummary-technologies",
+      "label": "Slide: AI-Driven Clinical Copilot • Technologies Used",
+      "subtitle": "/aisummary?project=aisummary&slide=technologies",
+      "previewTitle": "AI-Driven Clinical Copilot • Technologies Used",
+      "previewBody": "Jump directly to the Technologies Used slide.",
+      "previewMeta": "/aisummary",
+      "group": "Slides",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI-Driven Clinical Copilot",
+        "aisummary",
+        "Technologies Used",
+        "technologies"
+      ]
+    },
+    {
+      "id": "search-slide-aisummary-why",
+      "label": "Slide: AI-Driven Clinical Copilot • Why This Interests Me",
+      "subtitle": "/aisummary?project=aisummary&slide=why",
+      "previewTitle": "AI-Driven Clinical Copilot • Why This Interests Me",
+      "previewBody": "Jump directly to the Why This Interests Me slide.",
+      "previewMeta": "/aisummary",
+      "group": "Slides",
+      "href": "/aisummary?project=aisummary&slide=why",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "AI-Driven Clinical Copilot",
+        "aisummary",
+        "Why This Interests Me",
+        "why"
+      ]
+    },
+    {
+      "id": "search-slide-assignmentlist-diagrams",
+      "label": "Slide: Patient Assignment List Project • Architecture",
+      "subtitle": "/assignmentlist?project=assignmentlist&slide=diagrams",
+      "previewTitle": "Patient Assignment List Project • Architecture",
+      "previewBody": "Jump directly to the Architecture slide.",
+      "previewMeta": "/assignmentlist",
+      "group": "Slides",
+      "href": "/assignmentlist?project=assignmentlist&slide=diagrams",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient Assignment List Project",
+        "assignmentlist",
+        "Architecture",
+        "diagrams"
+      ]
+    },
+    {
+      "id": "search-slide-assignmentlist-demo",
+      "label": "Slide: Patient Assignment List Project • Demo",
+      "subtitle": "/assignmentlist?project=assignmentlist&slide=demo",
+      "previewTitle": "Patient Assignment List Project • Demo",
+      "previewBody": "Jump directly to the Demo slide.",
+      "previewMeta": "/assignmentlist",
+      "group": "Slides",
+      "href": "/assignmentlist?project=assignmentlist&slide=demo",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient Assignment List Project",
+        "assignmentlist",
+        "Demo",
+        "demo"
+      ]
+    },
+    {
+      "id": "search-slide-assignmentlist-overview",
+      "label": "Slide: Patient Assignment List Project • Overview",
+      "subtitle": "/assignmentlist?project=assignmentlist&slide=overview",
+      "previewTitle": "Patient Assignment List Project • Overview",
+      "previewBody": "Jump directly to the Overview slide.",
+      "previewMeta": "/assignmentlist",
+      "group": "Slides",
+      "href": "/assignmentlist?project=assignmentlist&slide=overview",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient Assignment List Project",
+        "assignmentlist",
+        "Overview",
+        "overview"
+      ]
+    },
+    {
+      "id": "search-slide-assignmentlist-specifications",
+      "label": "Slide: Patient Assignment List Project • Specifications",
+      "subtitle": "/assignmentlist?project=assignmentlist&slide=specifications",
+      "previewTitle": "Patient Assignment List Project • Specifications",
+      "previewBody": "Jump directly to the Specifications slide.",
+      "previewMeta": "/assignmentlist",
+      "group": "Slides",
+      "href": "/assignmentlist?project=assignmentlist&slide=specifications",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient Assignment List Project",
+        "assignmentlist",
+        "Specifications",
+        "specifications"
+      ]
+    },
+    {
+      "id": "search-slide-assignmentlist-technologies",
+      "label": "Slide: Patient Assignment List Project • Technologies Used",
+      "subtitle": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "previewTitle": "Patient Assignment List Project • Technologies Used",
+      "previewBody": "Jump directly to the Technologies Used slide.",
+      "previewMeta": "/assignmentlist",
+      "group": "Slides",
+      "href": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient Assignment List Project",
+        "assignmentlist",
+        "Technologies Used",
+        "technologies"
+      ]
+    },
+    {
+      "id": "search-slide-assignmentlist-why",
+      "label": "Slide: Patient Assignment List Project • Why This Interests Me",
+      "subtitle": "/assignmentlist?project=assignmentlist&slide=why",
+      "previewTitle": "Patient Assignment List Project • Why This Interests Me",
+      "previewBody": "Jump directly to the Why This Interests Me slide.",
+      "previewMeta": "/assignmentlist",
+      "group": "Slides",
+      "href": "/assignmentlist?project=assignmentlist&slide=why",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient Assignment List Project",
+        "assignmentlist",
+        "Why This Interests Me",
+        "why"
+      ]
+    },
+    {
+      "id": "search-slide-patientlist-diagrams",
+      "label": "Slide: Patient List Project • Architecture",
+      "subtitle": "/patientlist?project=patientlist&slide=diagrams",
+      "previewTitle": "Patient List Project • Architecture",
+      "previewBody": "Jump directly to the Architecture slide.",
+      "previewMeta": "/patientlist",
+      "group": "Slides",
+      "href": "/patientlist?project=patientlist&slide=diagrams",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient List Project",
+        "patientlist",
+        "Architecture",
+        "diagrams"
+      ]
+    },
+    {
+      "id": "search-slide-patientlist-demo",
+      "label": "Slide: Patient List Project • Demo",
+      "subtitle": "/patientlist?project=patientlist&slide=demo",
+      "previewTitle": "Patient List Project • Demo",
+      "previewBody": "Jump directly to the Demo slide.",
+      "previewMeta": "/patientlist",
+      "group": "Slides",
+      "href": "/patientlist?project=patientlist&slide=demo",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient List Project",
+        "patientlist",
+        "Demo",
+        "demo"
+      ]
+    },
+    {
+      "id": "search-slide-patientlist-overview",
+      "label": "Slide: Patient List Project • Overview",
+      "subtitle": "/patientlist?project=patientlist&slide=overview",
+      "previewTitle": "Patient List Project • Overview",
+      "previewBody": "Jump directly to the Overview slide.",
+      "previewMeta": "/patientlist",
+      "group": "Slides",
+      "href": "/patientlist?project=patientlist&slide=overview",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient List Project",
+        "patientlist",
+        "Overview",
+        "overview"
+      ]
+    },
+    {
+      "id": "search-slide-patientlist-specifications",
+      "label": "Slide: Patient List Project • Specifications",
+      "subtitle": "/patientlist?project=patientlist&slide=specifications",
+      "previewTitle": "Patient List Project • Specifications",
+      "previewBody": "Jump directly to the Specifications slide.",
+      "previewMeta": "/patientlist",
+      "group": "Slides",
+      "href": "/patientlist?project=patientlist&slide=specifications",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient List Project",
+        "patientlist",
+        "Specifications",
+        "specifications"
+      ]
+    },
+    {
+      "id": "search-slide-patientlist-technologies",
+      "label": "Slide: Patient List Project • Technologies Used",
+      "subtitle": "/patientlist?project=patientlist&slide=technologies",
+      "previewTitle": "Patient List Project • Technologies Used",
+      "previewBody": "Jump directly to the Technologies Used slide.",
+      "previewMeta": "/patientlist",
+      "group": "Slides",
+      "href": "/patientlist?project=patientlist&slide=technologies",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient List Project",
+        "patientlist",
+        "Technologies Used",
+        "technologies"
+      ]
+    },
+    {
+      "id": "search-slide-patientlist-why",
+      "label": "Slide: Patient List Project • Why This Interests Me",
+      "subtitle": "/patientlist?project=patientlist&slide=why",
+      "previewTitle": "Patient List Project • Why This Interests Me",
+      "previewBody": "Jump directly to the Why This Interests Me slide.",
+      "previewMeta": "/patientlist",
+      "group": "Slides",
+      "href": "/patientlist?project=patientlist&slide=why",
+      "keywords": [
+        "slide",
+        "presentation",
+        "section",
+        "Patient List Project",
+        "patientlist",
+        "Why This Interests Me",
+        "why"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-axios",
+      "label": "Technology: Axios",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "Axios • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Axios",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-patient-list-podcasts-azure-blob-storage",
+      "label": "Technology: Azure Blob Storage",
+      "subtitle": "AI Patient List Podcasts",
+      "previewTitle": "Azure Blob Storage • AI Patient List Podcasts",
+      "previewBody": "Used in AI Patient List Podcasts.",
+      "previewMeta": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Azure Blob Storage",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "presentation",
+        "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-azure-cosmos-db",
+      "label": "Technology: Azure Cosmos DB",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "Azure Cosmos DB • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Azure Cosmos DB",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-patient-list-podcasts-azure-cosmos-db-core-sql-",
+      "label": "Technology: Azure Cosmos DB (Core/SQL)",
+      "subtitle": "AI Patient List Podcasts",
+      "previewTitle": "Azure Cosmos DB (Core/SQL) • AI Patient List Podcasts",
+      "previewBody": "Used in AI Patient List Podcasts.",
+      "previewMeta": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Azure Cosmos DB (Core/SQL)",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "presentation",
+        "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-azure-functions-typescript-",
+      "label": "Technology: Azure Functions (TypeScript)",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "Azure Functions (TypeScript) • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Azure Functions (TypeScript)",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-patient-list-podcasts-azure-functions-typescript-",
+      "label": "Technology: Azure Functions (TypeScript)",
+      "subtitle": "AI Patient List Podcasts",
+      "previewTitle": "Azure Functions (TypeScript) • AI Patient List Podcasts",
+      "previewBody": "Used in AI Patient List Podcasts.",
+      "previewMeta": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Azure Functions (TypeScript)",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "presentation",
+        "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-list-project-backbone-js",
+      "label": "Technology: Backbone.js",
+      "subtitle": "Patient List Project",
+      "previewTitle": "Backbone.js • Patient List Project",
+      "previewBody": "Used in Patient List Project.",
+      "previewMeta": "/patientlist?project=patientlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlist?project=patientlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Backbone.js",
+        "Patient List Project",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "presentation",
+        "/patientlist?project=patientlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-assignment-list-project-backbone-js",
+      "label": "Technology: Backbone.js",
+      "subtitle": "Patient Assignment List Project",
+      "previewTitle": "Backbone.js • Patient Assignment List Project",
+      "previewBody": "Used in Patient Assignment List Project.",
+      "previewMeta": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Backbone.js",
+        "Patient Assignment List Project",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "presentation",
+        "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-patient-list-podcasts-flask-aichat-service-",
+      "label": "Technology: Flask (aichat service)",
+      "subtitle": "AI Patient List Podcasts",
+      "previewTitle": "Flask (aichat service) • AI Patient List Podcasts",
+      "previewBody": "Used in AI Patient List Podcasts.",
+      "previewMeta": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Flask (aichat service)",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "presentation",
+        "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-patient-list-podcasts-google-gemini-text-to-speech",
+      "label": "Technology: Google Gemini Text-to-Speech",
+      "subtitle": "AI Patient List Podcasts",
+      "previewTitle": "Google Gemini Text-to-Speech • AI Patient List Podcasts",
+      "previewBody": "Used in AI Patient List Podcasts.",
+      "previewMeta": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Google Gemini Text-to-Speech",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "presentation",
+        "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-gtts-optional-audio-synthesis-",
+      "label": "Technology: gTTS (optional audio synthesis)",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "gTTS (optional audio synthesis) • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "gTTS (optional audio synthesis)",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-list-project-handlebars-js",
+      "label": "Technology: Handlebars.js",
+      "subtitle": "Patient List Project",
+      "previewTitle": "Handlebars.js • Patient List Project",
+      "previewBody": "Used in Patient List Project.",
+      "previewMeta": "/patientlist?project=patientlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlist?project=patientlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Handlebars.js",
+        "Patient List Project",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "presentation",
+        "/patientlist?project=patientlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-assignment-list-project-handlebars-js",
+      "label": "Technology: Handlebars.js",
+      "subtitle": "Patient Assignment List Project",
+      "previewTitle": "Handlebars.js • Patient Assignment List Project",
+      "previewBody": "Used in Patient Assignment List Project.",
+      "previewMeta": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Handlebars.js",
+        "Patient Assignment List Project",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "presentation",
+        "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-list-project-java-maven",
+      "label": "Technology: Java / Maven",
+      "subtitle": "Patient List Project",
+      "previewTitle": "Java / Maven • Patient List Project",
+      "previewBody": "Used in Patient List Project.",
+      "previewMeta": "/patientlist?project=patientlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlist?project=patientlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Java / Maven",
+        "Patient List Project",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "presentation",
+        "/patientlist?project=patientlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-assignment-list-project-java-maven-multi-module-",
+      "label": "Technology: Java / Maven (multi-module)",
+      "subtitle": "Patient Assignment List Project",
+      "previewTitle": "Java / Maven (multi-module) • Patient Assignment List Project",
+      "previewBody": "Used in Patient Assignment List Project.",
+      "previewMeta": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Java / Maven (multi-module)",
+        "Patient Assignment List Project",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "presentation",
+        "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-list-project-junit-mockito",
+      "label": "Technology: JUnit / Mockito",
+      "subtitle": "Patient List Project",
+      "previewTitle": "JUnit / Mockito • Patient List Project",
+      "previewBody": "Used in Patient List Project.",
+      "previewMeta": "/patientlist?project=patientlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlist?project=patientlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "JUnit / Mockito",
+        "Patient List Project",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "presentation",
+        "/patientlist?project=patientlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-assignment-list-project-junit-mockito",
+      "label": "Technology: JUnit / Mockito",
+      "subtitle": "Patient Assignment List Project",
+      "previewTitle": "JUnit / Mockito • Patient Assignment List Project",
+      "previewBody": "Used in Patient Assignment List Project.",
+      "previewMeta": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "JUnit / Mockito",
+        "Patient Assignment List Project",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "presentation",
+        "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-langchain",
+      "label": "Technology: LangChain",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "LangChain • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "LangChain",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-patient-list-podcasts-langchain-agent-tools-",
+      "label": "Technology: LangChain (agent + tools)",
+      "subtitle": "AI Patient List Podcasts",
+      "previewTitle": "LangChain (agent + tools) • AI Patient List Podcasts",
+      "previewBody": "Used in AI Patient List Podcasts.",
+      "previewMeta": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "LangChain (agent + tools)",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "presentation",
+        "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-list-project-mapstruct-optional-mappers-",
+      "label": "Technology: MapStruct (optional mappers)",
+      "subtitle": "Patient List Project",
+      "previewTitle": "MapStruct (optional mappers) • Patient List Project",
+      "previewBody": "Used in Patient List Project.",
+      "previewMeta": "/patientlist?project=patientlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlist?project=patientlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "MapStruct (optional mappers)",
+        "Patient List Project",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "presentation",
+        "/patientlist?project=patientlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-assignment-list-project-mapstruct-optional-mappers-",
+      "label": "Technology: MapStruct (optional mappers)",
+      "subtitle": "Patient Assignment List Project",
+      "previewTitle": "MapStruct (optional mappers) • Patient Assignment List Project",
+      "previewBody": "Used in Patient Assignment List Project.",
+      "previewMeta": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "MapStruct (optional mappers)",
+        "Patient Assignment List Project",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "presentation",
+        "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-material-ui-mui-",
+      "label": "Technology: Material UI (MUI)",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "Material UI (MUI) • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Material UI (MUI)",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-list-project-mermaid-diagrams-",
+      "label": "Technology: Mermaid (diagrams)",
+      "subtitle": "Patient List Project",
+      "previewTitle": "Mermaid (diagrams) • Patient List Project",
+      "previewBody": "Used in Patient List Project.",
+      "previewMeta": "/patientlist?project=patientlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlist?project=patientlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Mermaid (diagrams)",
+        "Patient List Project",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "presentation",
+        "/patientlist?project=patientlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-assignment-list-project-mermaid-diagrams-",
+      "label": "Technology: Mermaid (diagrams)",
+      "subtitle": "Patient Assignment List Project",
+      "previewTitle": "Mermaid (diagrams) • Patient Assignment List Project",
+      "previewBody": "Used in Patient Assignment List Project.",
+      "previewMeta": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Mermaid (diagrams)",
+        "Patient Assignment List Project",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "presentation",
+        "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-patient-list-podcasts-native-fetch-api-next-js-app-router-route-handlers-",
+      "label": "Technology: Native Fetch API (Next.js App Router / Route Handlers)",
+      "subtitle": "AI Patient List Podcasts",
+      "previewTitle": "Native Fetch API (Next.js App Router / Route Handlers) • AI Patient List Podcasts",
+      "previewBody": "Used in AI Patient List Podcasts.",
+      "previewMeta": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Native Fetch API (Next.js App Router / Route Handlers)",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "presentation",
+        "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-next-js-app-router-",
+      "label": "Technology: Next.js (App Router)",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "Next.js (App Router) • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Next.js (App Router)",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-patient-list-podcasts-next-js-react-typescript-",
+      "label": "Technology: Next.js (React + TypeScript)",
+      "subtitle": "AI Patient List Podcasts",
+      "previewTitle": "Next.js (React + TypeScript) • AI Patient List Podcasts",
+      "previewBody": "Used in AI Patient List Podcasts.",
+      "previewMeta": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Next.js (React + TypeScript)",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "presentation",
+        "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-openai-azure-openai-llm-",
+      "label": "Technology: OpenAI / Azure OpenAI (LLM)",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "OpenAI / Azure OpenAI (LLM) • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "OpenAI / Azure OpenAI (LLM)",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-assignment-list-project-pk-common-ui-shared-ui-utilities-",
+      "label": "Technology: pk-common-ui (shared UI utilities)",
+      "subtitle": "Patient Assignment List Project",
+      "previewTitle": "pk-common-ui (shared UI utilities) • Patient Assignment List Project",
+      "previewBody": "Used in Patient Assignment List Project.",
+      "previewMeta": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "pk-common-ui (shared UI utilities)",
+        "Patient Assignment List Project",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "presentation",
+        "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-list-project-pk-common-ui-shared-widgets-utilities-",
+      "label": "Technology: pk-common-ui (shared widgets/utilities)",
+      "subtitle": "Patient List Project",
+      "previewTitle": "pk-common-ui (shared widgets/utilities) • Patient List Project",
+      "previewBody": "Used in Patient List Project.",
+      "previewMeta": "/patientlist?project=patientlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlist?project=patientlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "pk-common-ui (shared widgets/utilities)",
+        "Patient List Project",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "presentation",
+        "/patientlist?project=patientlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-python-flask",
+      "label": "Technology: Python Flask",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "Python Flask • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Python Flask",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-patient-list-podcasts-react",
+      "label": "Technology: React",
+      "subtitle": "AI Patient List Podcasts",
+      "previewTitle": "React • AI Patient List Podcasts",
+      "previewBody": "Used in AI Patient List Podcasts.",
+      "previewMeta": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "React",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "presentation",
+        "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-react-18",
+      "label": "Technology: React 18",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "React 18 • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "React 18",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-refine-headless-",
+      "label": "Technology: Refine (headless)",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "Refine (headless) • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Refine (headless)",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-list-project-spring-boot",
+      "label": "Technology: Spring Boot",
+      "subtitle": "Patient List Project",
+      "previewTitle": "Spring Boot • Patient List Project",
+      "previewBody": "Used in Patient List Project.",
+      "previewMeta": "/patientlist?project=patientlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlist?project=patientlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Spring Boot",
+        "Patient List Project",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "presentation",
+        "/patientlist?project=patientlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-assignment-list-project-spring-boot",
+      "label": "Technology: Spring Boot",
+      "subtitle": "Patient Assignment List Project",
+      "previewTitle": "Spring Boot • Patient Assignment List Project",
+      "previewBody": "Used in Patient Assignment List Project.",
+      "previewMeta": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Spring Boot",
+        "Patient Assignment List Project",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "presentation",
+        "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-list-project-spring-web-mvc",
+      "label": "Technology: Spring Web MVC",
+      "subtitle": "Patient List Project",
+      "previewTitle": "Spring Web MVC • Patient List Project",
+      "previewBody": "Used in Patient List Project.",
+      "previewMeta": "/patientlist?project=patientlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlist?project=patientlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Spring Web MVC",
+        "Patient List Project",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "presentation",
+        "/patientlist?project=patientlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-patient-assignment-list-project-spring-web-mvc",
+      "label": "Technology: Spring Web MVC",
+      "subtitle": "Patient Assignment List Project",
+      "previewTitle": "Spring Web MVC • Patient Assignment List Project",
+      "previewBody": "Used in Patient Assignment List Project.",
+      "previewMeta": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "group": "Technologies",
+      "href": "/assignmentlist?project=assignmentlist&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "Spring Web MVC",
+        "Patient Assignment List Project",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "presentation",
+        "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-driven-clinical-copilot-typescript",
+      "label": "Technology: TypeScript",
+      "subtitle": "AI-Driven Clinical Copilot",
+      "previewTitle": "TypeScript • AI-Driven Clinical Copilot",
+      "previewBody": "Used in AI-Driven Clinical Copilot.",
+      "previewMeta": "/aisummary?project=aisummary&slide=technologies",
+      "group": "Technologies",
+      "href": "/aisummary?project=aisummary&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "TypeScript",
+        "AI-Driven Clinical Copilot",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
+        "presentation",
+        "/aisummary?project=aisummary&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-ai-patient-list-podcasts-typescript",
+      "label": "Technology: TypeScript",
+      "subtitle": "AI Patient List Podcasts",
+      "previewTitle": "TypeScript • AI Patient List Podcasts",
+      "previewBody": "Used in AI Patient List Podcasts.",
+      "previewMeta": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "group": "Technologies",
+      "href": "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies",
+      "keywords": [
+        "technology",
+        "tech",
+        "TypeScript",
+        "AI Patient List Podcasts",
+        "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
+        "presentation",
+        "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    }
+  ]
+}

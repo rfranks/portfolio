@@ -1,10 +1,11 @@
 {
   "key": "testRunner",
   "status": "pass",
-  "generatedAt": "2026-04-23T23:31:36.010Z",
-  "summary": "unit test runner passed.",
+  "generatedAt": "2026-04-24T07:41:04.039Z",
+  "summary": "unit test runner passed for lane portfolio.",
   "details": {
     "suite": "unit",
+    "lane": "portfolio",
     "exitCode": 0,
     "jestArgs": []
   }

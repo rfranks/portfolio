@@ -1,17 +1,17 @@
 {
   "key": "fileBudgets",
   "status": "pass",
-  "generatedAt": "2026-04-23T23:30:42.558Z",
+  "generatedAt": "2026-04-24T07:40:10.992Z",
   "summary": "File budget check passed.",
   "details": {
     "totals": {
-      "scannedFileCount": 579,
-      "codeFileCount": 565,
+      "scannedFileCount": 598,
+      "codeFileCount": 584,
       "violationCount": 0
     },
     "budget": {
       "defaultBudget": 750,
-      "exactBudgetOverrideCount": 25
+      "exactBudgetOverrideCount": 26
     },
     "testHealth": {
       "status": "pass",
