@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-24T07:41:04.039Z",
+  "generatedAt": "2026-04-25T12:07:58.743Z",
   "overallStatus": "pass",
   "checks": {
     "fileBudgets": "pass",
@@ -10,21 +10,21 @@
     "fileBudgets": {
       "key": "fileBudgets",
       "status": "pass",
-      "generatedAt": "2026-04-24T07:40:10.992Z",
+      "generatedAt": "2026-04-25T12:07:07.584Z",
       "summary": "File budget check passed.",
       "details": {
         "totals": {
-          "scannedFileCount": 598,
-          "codeFileCount": 584,
+          "scannedFileCount": 706,
+          "codeFileCount": 679,
           "violationCount": 0
         },
         "budget": {
-          "defaultBudget": 750,
-          "exactBudgetOverrideCount": 26
+          "defaultBudget": 900,
+          "exactBudgetOverrideCount": 23
         },
         "testHealth": {
           "status": "pass",
-          "totalTestFiles": 14,
+          "totalTestFiles": 27,
           "violatingTestFiles": 0
         },
         "a11yHealth": {
@@ -41,7 +41,7 @@
     "schemaValidation": {
       "key": "schemaValidation",
       "status": "pass",
-      "generatedAt": "2026-04-24T07:40:11.706Z",
+      "generatedAt": "2026-04-25T12:07:08.203Z",
       "summary": "resumeData validation passed with no warnings.",
       "details": {
         "strictAssets": true,
@@ -54,13 +54,13 @@
           "resumeDataPath": "public/personal/data/resumeData.json",
           "strictAssets": true,
           "runningInCi": true,
-          "schemaVersion": 3,
-          "schemaMigrationVersion": 3,
-          "schemaChangelogEntryCount": 3,
-          "schemaChangelogLatestVersion": 3,
-          "schemaChangelogLatestDate": "2026-04-23",
-          "schemaChangelogLatestSummary": "Introduced presentation orchestration config with migration defaults and prefetch hints for presentation projects.",
-          "schemaChangelogLatestMigration": "migrateV2ToV3",
+          "schemaVersion": 6,
+          "schemaMigrationVersion": 6,
+          "schemaChangelogEntryCount": 6,
+          "schemaChangelogLatestVersion": 6,
+          "schemaChangelogLatestDate": "2026-04-24",
+          "schemaChangelogLatestSummary": "Normalized portfolioApps into explicit per-route metadata contracts and added non-presentation app route coverage.",
+          "schemaChangelogLatestMigration": "migrateV5ToV6",
           "schemaChangelogLatestBreakingFieldCount": 0,
           "schemaBreakingFieldsGuardApproved": false,
           "schemaBreakingFieldsGuardEnvVar": "ALLOW_RESUME_SCHEMA_BREAKING_FIELDS",
@@ -119,7 +119,7 @@
     "testRunner": {
       "key": "testRunner",
       "status": "pass",
-      "generatedAt": "2026-04-24T07:41:04.039Z",
+      "generatedAt": "2026-04-25T12:07:58.743Z",
       "summary": "unit test runner passed for lane portfolio.",
       "details": {
         "suite": "unit",

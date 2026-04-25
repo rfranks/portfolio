@@ -30,9 +30,11 @@
   },
   "portfolioApps": {
     "site": {
+      "route": "/",
       "description": "Résumé of Richard Franks, Principal Full Stack Engineer and AI-driven systems architect."
     },
     "aiShenanigans": {
+      "route": "/ai-shenanigans",
       "documentTitle": "AI Shenanigans",
       "metadataTitle": "AI Shenanigans",
       "metadataDescription": "AI creative lab for stylized visuals, motion shorts, and narrative adaptation experiments from source image to story-world prototype.",
@@ -40,17 +42,21 @@
       "heroEyebrow": "Portfolio experiment"
     },
     "dna": {
+      "route": "/dna",
       "documentTitle": "GeneBoard"
     },
     "bookworm": {
+      "route": "/bookworm",
       "documentTitle": "Bookworm",
       "interstitialAppName": "Bookworm",
       "interstitialLogoAlt": "Bookworm logo"
     },
     "talentforge": {
+      "route": "/talentforge",
       "documentTitle": "TalentForge"
     },
     "rickbert": {
+      "route": "/rickbert-studio",
       "documentTitle": "Rickbert Studio",
       "metadataTitle": "Rickbert Studio",
       "metadataDescription": "Structured comic strip generation studio for the RICKBERT series.",
@@ -59,12 +65,51 @@
       "interstitialLogoSrc": "/personal/images/projects/rickbert-studio.png"
     },
     "pathforger": {
+      "route": "/pathforger",
       "documentTitle": "PathForger",
       "metadataTitle": "PathForger",
       "metadataDescription": "Interactive story-forging studio that generates A/B/C pitches, chapter packages, and parallel cinematic image outputs through staged OpenAI calls.",
       "interstitialAppName": "PathForger",
       "interstitialLogoAlt": "PathForger logo",
       "interstitialLogoSrc": "/personal/images/projects/pathforger.svg"
+    },
+    "blackjack": {
+      "route": "/blackjack",
+      "documentTitle": "Blackjack"
+    },
+    "warbirds": {
+      "route": "/warbirds",
+      "documentTitle": "Warbirds"
+    },
+    "zombiefish": {
+      "route": "/zombiefish",
+      "documentTitle": "ZombieFish"
+    },
+    "blasteroids": {
+      "route": "/blasteroids",
+      "documentTitle": "Blasteroids"
+    },
+    "petly": {
+      "route": "/petly",
+      "documentTitle": "Petly"
+    },
+    "health": {
+      "route": "/health",
+      "documentTitle": "Portfolio Health Dashboard",
+      "metadataTitle": "Portfolio Health Dashboard",
+      "metadataDescription": "Bundle budget, test and accessibility health, and resume schema validation snapshots."
+    },
+    "replay": {
+      "route": "/replay",
+      "documentTitle": "Session Replay Lite Viewer",
+      "metadataTitle": "Session Replay Lite Viewer",
+      "metadataDescription": "Load and inspect session replay-lite JSON exports with timeline scrubbing and event filters."
+    },
+    "capabilities": {
+      "route": "/capabilities",
+      "documentTitle": "App Capability Matrix",
+      "metadataTitle": "App Capability Matrix",
+      "metadataDescription": "Cross-route capability matrix with measured quality and performance coverage snapshots."
     }
   },
   "navigation": {
@@ -126,6 +171,12 @@
         "href": "/warbirds",
         "iconType": "material",
         "icon": "flight"
+      },
+      {
+        "label": "Blasteroids",
+        "href": "/blasteroids",
+        "iconType": "material",
+        "icon": "sportsEsports"
       }
     ],
     "homeSections": [
@@ -1213,7 +1264,7 @@
   "projects": [
     {
       "name": "PathForger",
-      "description": "Story-forging playground for branching adventures with a staged OpenAI pipeline.\n\n- Generates A/B/C pitch candidates before committing to a story arc.\n- Builds chapter markdown, path choices, and a Risk HUD in a dedicated narrative stage.\n- Runs image generation as separate parallel calls so visuals can stream in as they finish.",
+      "description": "PathForger is an interactive storytelling system built around a staged orchestration pipeline instead of one-shot prompting. It begins with structured A/B/C pitch generation, then advances through chapter drafting, branching choice construction, Risk HUD synthesis, and parallel image generation so text and visuals can complete independently. The design emphasizes schema-first prompt contracts, deterministic stage boundaries, and checkpoint-friendly state so retries and cancellation do not corrupt narrative continuity. In practice, it demonstrates how LLM features become more reliable when pipeline orchestration, guardrails, and UI progress telemetry are treated as first-class product concerns.",
       "href": "/pathforger",
       "type": "personal",
       "interestsMeWhy": "What draws me to PathForger is orchestration design: prompt contracts, schema-first outputs, and phased execution that keeps text and images loosely coupled. It is a practical sandbox for reliability patterns like cached pitch reuse, incremental rendering, and branch-specific outcome generation without rebuilding the whole pipeline. I also love that it makes experimentation safe: I can tune one stage of the workflow without destabilizing the entire storytelling system.",
@@ -1240,7 +1291,7 @@
     },
     {
       "name": "Rickbert Studio",
-      "description": "Rickbert Studio is a structured comic-production workspace that turns narrative input into consistent multi-panel outputs with parser validation, preflight checks, react-konva rendering, and export-ready assets. It emphasizes repeatable art direction, layout discipline, and fast iteration from script to publishable strip.",
+      "description": "Rickbert Studio is a comic-production workspace that converts narrative input into consistent multi-panel outputs through a typed rendering pipeline. The flow separates parsing, validation, and rendering: script input is normalized, preflight rules validate reading order and panel constraints, and React-Konva composition produces export-ready artwork. Instead of ad hoc generation, the app uses explicit contracts between parser, layout engine, and renderer so revisions are predictable and reusable. This project highlights orchestration discipline for creative tooling where repeatability, visual consistency, and fast iteration matter as much as raw generation quality.",
       "href": "/rickbert-studio",
       "type": "personal",
       "interestsMeWhy": "This project separates domain parsing, checklist validation, and vector rendering so the comic engine can be reused as a shared module across a broader product portfolio. Beyond the rendering itself, it gave me a concrete way to enforce creative constraints in code while still keeping the authoring flow playful and fast. That combination of reusable architecture and creator-friendly UX is exactly the kind of engineering problem I enjoy.",
@@ -1267,7 +1318,7 @@
     },
     {
       "name": "Warbirds",
-      "description": "Warbirds is a browser arcade dogfight built for responsive controls, layered enemy behavior, and satisfying moment-to-moment action. The game balances fast input handling, projectile and collision systems, dynamic spawn pacing, and audio-visual feedback so rounds stay readable and intense across desktop and mobile sessions.",
+      "description": "Warbirds is a browser arcade dogfight engineered around a reusable 2D game loop with shared collision and spawn primitives. The gameplay layer combines responsive input handling, projectile and collision updates, dynamic spawn pacing, and power-up state transitions to keep rounds readable under high action density. Asset loading, fallback behavior, and audio feedback are coordinated as part of the runtime loop so the experience remains stable across device classes. Beyond arcade feel, the project demonstrates state machine thinking, deterministic frame updates, and practical performance tuning for real-time canvas gameplay.",
       "href": "/warbirds",
       "type": "personal",
       "interestsMeWhy": "Building an aerial combat game pushed my understanding of canvas rendering and simple AI. It is a fun showcase of real-time physics entirely in the browser, but it also forced disciplined thinking around frame timing, collision handling, and responsive controls. I enjoy projects like this because they make performance tradeoffs visible immediately and reward tight feedback loops.",
@@ -1294,7 +1345,7 @@
     },
     {
       "name": "Blackjack",
-      "description": "Blackjack is a production-style implementation of classic twenty-one with a shared Go rules engine powering multiple clients. The project highlights game-state modeling, deterministic dealer/player logic, and a polished web presentation layer that stays aligned with terminal and debugger flows through the same core decision and payout mechanics.",
+      "description": "Blackjack is a production-style twenty-one implementation where a shared Go rules core powers web and terminal experiences through the same decision logic. The architecture uses a React UI, a postMessage contract boundary, and a Go WASM adapter so state transitions, dealer rules, side-bets, and payouts stay deterministic across clients. Render DTO assembly isolates presentation concerns from domain logic, while diagrammed component, sequence, and state views make behavior traceable for debugging and interviews. It is a practical example of contract-driven integration, state machine modeling, and cross-runtime consistency in a game domain.",
       "href": "/blackjack",
       "type": "personal",
       "interestsMeWhy": "This project uses a familiar game to demonstrate serious engineering ideas: state management, probability, and clean separation of concerns. Blackjack works especially well because each round behaves like a compact state machine with meaningful decisions, hidden information, and strict rule evaluation. The Go engine models all of that in one place: card values, hand totals, split/double/insurance eligibility, dealer behavior, payout resolution, side-bet math, and running statistics.\n\nWhat makes it especially compelling is portability. The same Go business logic runs in multiple forms: as a terminal application, inside the VS Code Go debugger, and in the browser via WebAssembly. A thin message bridge translates web UI actions into engine inputs and turns engine state into render-ready output, while keeping rules centralized.\n\nIn practice, this means the web client and terminal client are different presentation layers over one shared rules core, rather than duplicated implementations. It is a practical example of writing business logic once and reusing it across runtime environments.\n\nPlus...it is Blackjack!",
@@ -1337,6 +1388,13 @@
           "title": "Component Diagram",
           "shortText": "UI, bus, WASM bridge, and engine boundaries.",
           "description": "Shows the high-level architecture and ownership boundaries from React UI into the postMessage bus, Go WASM adapter, and core blackjack engine, including state flow back to rendered controls.",
+          "autoFit": {
+            "padding": 14,
+            "scaleMultiplier": 1,
+            "verticalAlign": "top",
+            "offsetX": 0,
+            "offsetY": 0
+          },
           "selectorOptionVisual": {
             "type": "emoji",
             "icon": "🧩"
@@ -1349,6 +1407,13 @@
           "title": "Sequence Diagram",
           "shortText": "Message flow for start, actions, and mode toggle.",
           "description": "Captures runtime interaction order between player actions, React dispatch, bus transport, Go WASM processing, engine updates, and state broadcasts back to the UI.",
+          "autoFit": {
+            "padding": 14,
+            "scaleMultiplier": 1.25,
+            "verticalAlign": "top",
+            "offsetX": 100,
+            "offsetY": 150
+          },
           "selectorOptionVisual": {
             "type": "emoji",
             "icon": "🔀"
@@ -1360,6 +1425,13 @@
           "title": "Block Diagram",
           "shortText": "Layered system view from presentation to domain.",
           "description": "Presents the application as layered blocks: presentation controls, event-bus boundary, WASM adapter responsibilities, and domain rule components, with directional dependencies across layers.",
+          "autoFit": {
+            "padding": 14,
+            "scaleMultiplier": 1.2,
+            "verticalAlign": "top",
+            "offsetX": 350,
+            "offsetY": 250
+          },
           "selectorOptionVisual": {
             "type": "emoji",
             "icon": "🧱"
@@ -1371,6 +1443,13 @@
           "title": "Render State Model",
           "shortText": "Typed render DTOs for dealer, player, controls, result.",
           "description": "Defines the shape of the render state contract consumed by the frontend, including nested views for controls, dealer cards, player hands, and round result metadata.",
+          "autoFit": {
+            "padding": 14,
+            "scaleMultiplier": 1,
+            "verticalAlign": "top",
+            "offsetX": 0,
+            "offsetY": 0
+          },
           "selectorOptionVisual": {
             "type": "emoji",
             "icon": "🗂️"
@@ -1382,6 +1461,13 @@
           "title": "Game Round State Diagram",
           "shortText": "Lifecycle of a round from deal to settle.",
           "description": "Models the round state machine: dealing, insurance checks, natural resolution, iterative player decisions (including split paths), dealer resolution, settlement, and transition back to waiting state.",
+          "autoFit": {
+            "padding": 14,
+            "scaleMultiplier": 1,
+            "verticalAlign": "top",
+            "offsetX": 0,
+            "offsetY": 0
+          },
           "selectorOptionVisual": {
             "type": "emoji",
             "icon": "🔁"
@@ -1396,7 +1482,7 @@
     },
     {
       "name": "Blasteroids",
-      "description": "Blasteroids reimagines classic Asteroids with tighter weapon feel, cleaner movement handling, and modern browser UX polish. Built with HTML, CSS, and JavaScript, it focuses on responsive controls, collision precision, and round pacing that keeps the game accessible for quick sessions while still rewarding skillful play.",
+      "description": "Blasteroids reinterprets classic Asteroids with a modernized browser architecture focused on deterministic controls and reliable collision behavior. The implementation couples responsive keyboard input, projectile and asteroid update loops, and score/life state transitions into a clear gameplay pipeline that feels crisp on desktop and mobile. Rather than relying on external engines, the project uses core web primitives to prove that disciplined state updates, timing, and feedback loops can deliver polished arcade play. It is a compact showcase of input orchestration, collision tuning, and UX pacing in pure web runtime code.",
       "href": "/blasteroids",
       "type": "personal",
       "interestsMeWhy": "Recreating a classic arcade title using only web standards was a technical challenge. It demonstrates how far raw HTML, CSS, and JavaScript can go without relying on heavyweight engines. I am especially proud of how much feel and responsiveness we could capture with careful tuning of input, animation timing, and collision behavior.",
@@ -1436,7 +1522,7 @@
     },
     {
       "name": "GeneBoard",
-      "description": "GeneBoard provides interactive tooling for exploring DNA sequences through visual analysis, pattern inspection, and sequence-oriented experimentation. The experience is designed to make biological data easier to navigate with clear UI affordances, fast feedback loops, and practical utilities for understanding sequence structure and composition.",
+      "description": "GeneBoard is an interactive DNA analysis workspace designed to make sequence exploration fast, visual, and approachable. The app combines sequence ingestion, composition statistics, and visualization-oriented analysis into a single client workflow, with charts and comparative views that surface structure and pattern changes quickly. Its architecture emphasizes a clear data pipeline and schema-aware transformations so users can move from raw sequence text to actionable interpretation without context switching. The project demonstrates how scientific interfaces benefit from strong interaction design, incremental rendering, and transparent analysis contracts.",
       "href": "/dna",
       "type": "personal",
       "interestsMeWhy": "Combining biology and interactive graphics makes genomics approachable. It allowed me to explore data visualization beyond typical web apps and translate dense scientific concepts into something people can actually explore. I enjoy this kind of project because it sits at the intersection of domain education, visual design, and engineering clarity.",
@@ -1463,7 +1549,7 @@
     },
     {
       "name": "Bookworm",
-      "description": "Bookworm is an AI-assisted PDF companion that supports document chat, contextual question answering, and faster information extraction from long-form content. It combines file ingestion, prompt orchestration, and user-friendly interaction patterns so dense documents can be explored conversationally without losing source-grounded context.",
+      "description": "Bookworm is an AI-assisted PDF companion focused on turning dense documents into navigable conversational workflows. It combines file ingestion, document parsing, and prompt orchestration so users can ask targeted questions while staying grounded in source context. The experience prioritizes fast retrieval loops, clear response framing, and predictable interaction patterns that reduce cognitive overhead for long-form reading. As a product pattern, it demonstrates how LLM features are more useful when ingestion pipeline reliability, context management, and UI feedback are designed together.",
       "href": "/bookworm",
       "type": "personal",
       "interestsMeWhy": "Integrating LLMs with PDF parsing shows how AI can unlock static documents. It was exciting to craft a conversational interface over complex texts, but the deeper value was designing retrieval and grounding behavior so answers stay useful and traceable. Projects like this are compelling because they turn passive reference material into an interactive research experience.",
@@ -1490,7 +1576,7 @@
     },
     {
       "name": "TalentForge",
-      "description": "TalentForge is an AI-assisted career strategy workspace for managing job applications, offer comparisons, and negotiation planning in one place. It combines workflow organization, decision support, and practical execution tools so candidates can track opportunities with better consistency, clarity, and confidence through each hiring stage.",
+      "description": "TalentForge is an AI-assisted career operations platform that centralizes application tracking, offer analysis, and negotiation preparation in one workflow. The system integrates structured data views with prompt-driven assistance so resume iteration, outreach, and decision support share the same operational context instead of fragmented tools. Its architecture emphasizes reusable contracts, a staged orchestration pipeline, and persistence boundaries between panel state and assistant interactions, enabling consistent behavior across high-variance user journeys. The result is a practical model where workflow clarity, decision quality, and execution speed improve together while telemetry and auditability remain intact.",
       "href": "/talentforge",
       "type": "personal",
       "interestsMeWhy": "It brings together structured workflow design, AI assistance, and practical decision support in a way that feels like a real product rather than just a demo. I like that it balances strategy and execution: helping users track opportunities while also generating concrete next-step guidance. That blend of human decision-making and AI augmentation is exactly where I think productized AI is most valuable.",
@@ -1509,7 +1595,7 @@
     },
     {
       "name": "AI Shenanigans",
-      "description": "AI Shenanigans is a mixed-media experimentation lab for stylization, character work, motion concepts, and narrative ideation across image-first AI workflows. It is designed as a creative sandbox where visual direction, tone exploration, and rapid iteration can be tested quickly before moving ideas into larger product or storytelling contexts.",
+      "description": "AI Shenanigans is a mixed-media experimentation platform for turning source concepts into stylized image, narrative, and adaptation workflows. Instead of isolated prompt experiments, it treats creation as a pipeline: capture source intent, iterate visual direction, test motion or adaptation branches, and compare outputs in a structured interface. The project emphasizes orchestration and repeatability so creative exploration can be revisited, audited, and extended into product-ready artifacts. It showcases how playful AI work still benefits from contracts, staged processing, and coherent tooling architecture.",
       "href": "/ai-shenanigans",
       "type": "personal",
       "interestsMeWhy": "This route is compelling because it treats AI as a creative pipeline, not a one-shot generator: source capture, visual reinterpretation, motion, and sometimes adaptation into larger story structures. It gives me a sandbox to explore multimodal consistency across image, video, and narrative beats while still shipping polished outputs. I love that each shenanigan can be playful on the surface while still exercising real production patterns underneath.",
@@ -1538,7 +1624,7 @@
       "name": "Patient List Project",
       "showcaseHeading": "Physician Patient List",
       "showcaseSubtitle": "Configurable visit intelligence at point of care",
-      "description": "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+      "description": "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
       "href": "/patientlist",
       "type": "presentation",
       "interestsMeWhy": "Transforming dense clinical data into a customizable dashboard was both challenging and rewarding. It illustrates the power of modern JavaScript in healthcare, but more importantly it required thoughtful workflow design so physicians could move faster without losing trust in the data. I am drawn to this kind of work because small UX and performance improvements can have outsized real-world impact in clinical settings.",
@@ -1716,7 +1802,7 @@
       "name": "Patient Assignment List Project",
       "showcaseHeading": "Physician Assignment Worklist",
       "showcaseSubtitle": "Operational assignment control for clinical teams",
-      "description": "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+      "description": "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
       "href": "/assignmentlist",
       "type": "presentation",
       "interestsMeWhy": "Designing drag-and-drop assignment logic for clinicians pushed the limits of the UI. The project blends real-time updates with intuitive workflow design, and it required careful state synchronization so assignments remained predictable under heavy use. I enjoy this type of problem because it combines interaction design, concurrency awareness, and domain sensitivity in one product surface.",
@@ -2338,7 +2424,7 @@
     },
     {
       "name": "Petly",
-      "description": "Petly is a pet-owner portal that combines a social-style engagement surface with full veterinary EHR access, including vaccinations, x-rays, visit notes, and invoice history. It is designed to improve continuity between owners and care teams by making essential clinical and administrative information easier to find and act on.",
+      "description": "Petly is a pet-owner portal experience that combines consumer-friendly engagement with clinically important veterinary records, including vaccinations, imaging, visit notes, and billing history. The product focus is continuity: owners should be able to move from everyday pet interactions to high-signal medical context without hunting through fragmented screens. Within a Liferay-based environment, the work emphasized UI modernization, clearer information hierarchy, and stronger API contract alignment between portal surfaces and underlying data integrations. It demonstrates how healthcare-adjacent products can improve trust and usability by pairing approachable design language with reliable record visibility, operational telemetry, and workflow clarity.",
       "href": "/petly",
       "type": "work",
       "interestsMeWhy": "At IDEXX we reshaped boxy Liferay portals into a playful notebook of sticky notes, lists, and photos, with no square portlets in sight. The work was a strong lesson in translating rigid platform constraints into an experience that felt warm, modern, and consumer-friendly. I am especially interested in these transformations because they prove thoughtful frontend architecture can radically improve how people feel about enterprise software.",
