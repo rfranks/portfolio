@@ -4,7 +4,9 @@ import {
   INTERACTIVE_VIEWPORT_PRESET_DEFAULTS,
 } from "@/hooks/html/panZoomViewportDefaults";
 import { normalizeViewportSnapshot } from "@/hooks/html/panZoomViewportSnapshot";
+import { resolveInteractionSensitivityProfile } from "@/consts/visualization/interactionProfiles";
 import type {
+  InteractiveViewportInputType,
   PanZoomTransformState,
   PanZoomViewportAutoFitAlign,
   PanZoomViewportPreferences,
@@ -18,7 +20,10 @@ export {
   deserializePanZoomViewportSnapshot,
   serializePanZoomViewportSnapshot,
 } from "@/hooks/html/panZoomViewportSnapshot";
-export type { InteractiveViewportPreset } from "@/types/hooks/panZoomViewport";
+export type {
+  InteractiveViewportInputType,
+  InteractiveViewportPreset,
+} from "@/types/hooks/panZoomViewport";
 export type {
   PanZoomTransformState,
   PanZoomViewportAutoFitAlign,
@@ -51,24 +56,25 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
     calibrationMediaType,
     calibrationSection,
     calibrationProfileNamespace,
+    interactionInputTypeOverride,
     initialPreferences,
-    minScale = presetDefaults.minScale,
-    maxScale = presetDefaults.maxScale,
-    panStep = presetDefaults.panStep,
-    clickZoomFactor = presetDefaults.clickZoomFactor,
-    iconZoomFactor = presetDefaults.iconZoomFactor,
-    doubleClickZoomFactor = presetDefaults.doubleClickZoomFactor,
-    panCalibrationAlpha = presetDefaults.panCalibrationAlpha,
-    panReferenceDelta = panStep * presetDefaults.panReferenceDeltaMultiplier,
-    minPanEma = presetDefaults.minPanEma,
-    minPanDeltaMultiplier = presetDefaults.minPanDeltaMultiplier,
-    maxPanDeltaMultiplier = presetDefaults.maxPanDeltaMultiplier,
-    wheelCalibrationAlpha = presetDefaults.wheelCalibrationAlpha,
-    wheelNormalizedGain = presetDefaults.wheelNormalizedGain,
-    pinchCalibrationAlpha = presetDefaults.pinchCalibrationAlpha,
-    pinchNormalizedGain = presetDefaults.pinchNormalizedGain,
-    minWheelEma = presetDefaults.minWheelEma,
-    minPinchLogEma = presetDefaults.minPinchLogEma,
+    minScale: minScaleOption,
+    maxScale: maxScaleOption,
+    panStep: panStepOption,
+    clickZoomFactor: clickZoomFactorOption,
+    iconZoomFactor: iconZoomFactorOption,
+    doubleClickZoomFactor: doubleClickZoomFactorOption,
+    panCalibrationAlpha: panCalibrationAlphaOption,
+    panReferenceDelta: panReferenceDeltaOption,
+    minPanEma: minPanEmaOption,
+    minPanDeltaMultiplier: minPanDeltaMultiplierOption,
+    maxPanDeltaMultiplier: maxPanDeltaMultiplierOption,
+    wheelCalibrationAlpha: wheelCalibrationAlphaOption,
+    wheelNormalizedGain: wheelNormalizedGainOption,
+    pinchCalibrationAlpha: pinchCalibrationAlphaOption,
+    pinchNormalizedGain: pinchNormalizedGainOption,
+    minWheelEma: minWheelEmaOption,
+    minPinchLogEma: minPinchLogEmaOption,
     shouldIgnorePointerTarget,
   } = options;
 
@@ -90,7 +96,12 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
   const pinchMidpointRef = React.useRef<{ x: number; y: number } | null>(null);
   const pinchLogEmaRef = React.useRef(0.012);
   const panDeltaEmaRef = React.useRef(8);
-  const deviceProfileRef = React.useRef<"pointer" | "touch">("pointer");
+  const deviceProfileRef = React.useRef<InteractiveViewportInputType>(
+    interactionInputTypeOverride ?? "mouse",
+  );
+  const [resolvedInputType, setResolvedInputType] = React.useState<InteractiveViewportInputType>(
+    interactionInputTypeOverride ?? "mouse",
+  );
 
   const [scale, setScale] = React.useState(initialState.scale);
   const [translateX, setTranslateX] = React.useState(initialState.translateX);
@@ -121,20 +132,82 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
-  const maxGestureStepFactor = Math.max(clickZoomFactor, iconZoomFactor, doubleClickZoomFactor);
-  const minGestureStepFactor = 1 / maxGestureStepFactor;
+  const [resolvedCalibrationAppKey, setResolvedCalibrationAppKey] = React.useState<string | null>(
+    null,
+  );
   const [resolvedCalibrationSection, setResolvedCalibrationSection] = React.useState<string | null>(
     () => normalizeCalibrationToken(calibrationSection),
   );
 
+  const interactionSensitivityProfile = React.useMemo(
+    () =>
+      resolveInteractionSensitivityProfile({
+        inputType: resolvedInputType,
+        appKey: resolvedCalibrationAppKey,
+        section: resolvedCalibrationSection,
+        mediaType: calibrationMediaType,
+      }),
+    [
+      calibrationMediaType,
+      resolvedCalibrationAppKey,
+      resolvedCalibrationSection,
+      resolvedInputType,
+    ],
+  );
+
+  const minScale = minScaleOption ?? presetDefaults.minScale;
+  const maxScale = maxScaleOption ?? presetDefaults.maxScale;
+  const panStep =
+    panStepOption ?? presetDefaults.panStep * interactionSensitivityProfile.panStepMultiplier;
+  const clickZoomFactor = clickZoomFactorOption ?? presetDefaults.clickZoomFactor;
+  const iconZoomFactor = iconZoomFactorOption ?? presetDefaults.iconZoomFactor;
+  const doubleClickZoomFactor = doubleClickZoomFactorOption ?? presetDefaults.doubleClickZoomFactor;
+  const maxGestureStepFactor =
+    Math.max(clickZoomFactor, iconZoomFactor, doubleClickZoomFactor) *
+    interactionSensitivityProfile.gestureStepCapMultiplier;
+  const minGestureStepFactor = 1 / Math.max(1.001, maxGestureStepFactor);
+  const panCalibrationAlpha = panCalibrationAlphaOption ?? presetDefaults.panCalibrationAlpha;
+  const panReferenceDelta =
+    panReferenceDeltaOption ??
+    panStep *
+      presetDefaults.panReferenceDeltaMultiplier *
+      interactionSensitivityProfile.panDeltaMultiplier;
+  const minPanEma = minPanEmaOption ?? presetDefaults.minPanEma;
+  const minPanDeltaMultiplier =
+    minPanDeltaMultiplierOption ??
+    presetDefaults.minPanDeltaMultiplier * interactionSensitivityProfile.panMinDeltaMultiplierScale;
+  const maxPanDeltaMultiplier =
+    maxPanDeltaMultiplierOption ??
+    presetDefaults.maxPanDeltaMultiplier * interactionSensitivityProfile.panMaxDeltaMultiplierScale;
+  const wheelCalibrationAlpha = wheelCalibrationAlphaOption ?? presetDefaults.wheelCalibrationAlpha;
+  const wheelNormalizedGain =
+    wheelNormalizedGainOption ??
+    presetDefaults.wheelNormalizedGain * interactionSensitivityProfile.wheelGainMultiplier;
+  const pinchCalibrationAlpha = pinchCalibrationAlphaOption ?? presetDefaults.pinchCalibrationAlpha;
+  const pinchNormalizedGain =
+    pinchNormalizedGainOption ??
+    presetDefaults.pinchNormalizedGain * interactionSensitivityProfile.pinchGainMultiplier;
+  const minWheelEma = minWheelEmaOption ?? presetDefaults.minWheelEma;
+  const minPinchLogEma = minPinchLogEmaOption ?? presetDefaults.minPinchLogEma;
+
   React.useEffect(() => {
     const explicitSection = normalizeCalibrationToken(calibrationSection);
-    if (explicitSection) {
-      setResolvedCalibrationSection(explicitSection);
+
+    if (typeof window === "undefined") {
+      if (explicitSection) {
+        setResolvedCalibrationSection(explicitSection);
+      }
       return;
     }
 
-    if (typeof window === "undefined") {
+    const pathnameSegments = window.location.pathname.split("/").filter(Boolean);
+    const inferredAppKey = normalizeCalibrationToken(pathnameSegments[0]);
+    if (inferredAppKey) {
+      setResolvedCalibrationAppKey(inferredAppKey);
+    }
+
+    if (explicitSection) {
+      setResolvedCalibrationSection(explicitSection);
       return;
     }
 
@@ -143,7 +216,8 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       normalizeCalibrationToken(params.get("section")) ??
       normalizeCalibrationToken(params.get("slide")) ??
       normalizeCalibrationToken(params.get("panel")) ??
-      normalizeCalibrationToken(window.location.pathname.split("/").filter(Boolean)[0]);
+      normalizeCalibrationToken(pathnameSegments[1]) ??
+      inferredAppKey;
     if (inferredSection) {
       setResolvedCalibrationSection(inferredSection);
     }
@@ -154,6 +228,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       normalizeCalibrationToken(calibrationProfileNamespace),
       normalizeCalibrationToken(preset),
       normalizeCalibrationToken(calibrationMediaType),
+      resolvedCalibrationAppKey,
       resolvedCalibrationSection,
     ].filter((token): token is string => Boolean(token));
 
@@ -172,6 +247,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
     calibrationProfileNamespace,
     preferencesStorageKey,
     preset,
+    resolvedCalibrationAppKey,
     resolvedCalibrationSection,
   ]);
 
@@ -181,13 +257,23 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
   );
 
   React.useEffect(() => {
+    if (interactionInputTypeOverride) {
+      deviceProfileRef.current = interactionInputTypeOverride;
+      setResolvedInputType(interactionInputTypeOverride);
+      return;
+    }
+
     if (typeof window === "undefined") {
       return;
     }
+
     const prefersCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches ?? false;
     const hasTouch = (window.navigator?.maxTouchPoints ?? 0) > 0;
-    deviceProfileRef.current = hasTouch || prefersCoarsePointer ? "touch" : "pointer";
-  }, []);
+    const inferredInputType: InteractiveViewportInputType =
+      hasTouch || prefersCoarsePointer ? "touch" : "mouse";
+    deviceProfileRef.current = inferredInputType;
+    setResolvedInputType(inferredInputType);
+  }, [interactionInputTypeOverride]);
 
   React.useEffect(() => {
     if (!preferencesStorageKey || typeof window === "undefined") {
@@ -469,6 +555,13 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
   const handlePointerDown = React.useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (pinchDistanceRef.current !== null) return;
+      if (!interactionInputTypeOverride && e.pointerType !== "touch") {
+        const nextInputType: InteractiveViewportInputType = "mouse";
+        if (deviceProfileRef.current !== nextInputType) {
+          deviceProfileRef.current = nextInputType;
+          setResolvedInputType(nextInputType);
+        }
+      }
       const target = e.target as HTMLElement;
       if (target && shouldIgnorePointerTarget?.(target)) {
         return;
@@ -500,6 +593,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
     [
       clampScale,
       clickZoomFactor,
+      interactionInputTypeOverride,
       shouldIgnorePointerTarget,
       updateViewportPreferences,
       zoomAtViewportPoint,
@@ -579,6 +673,14 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       e.preventDefault();
       e.stopPropagation();
 
+      const inferredInputType: InteractiveViewportInputType =
+        interactionInputTypeOverride ??
+        (e.deltaMode === 0 && Math.abs(e.deltaY) < 20 ? "trackpad" : "mouse");
+      if (deviceProfileRef.current !== inferredInputType) {
+        deviceProfileRef.current = inferredInputType;
+        setResolvedInputType(inferredInputType);
+      }
+
       const baseScale = pendingWheelScaleRef.current ?? transformRef.current.scale;
       const absDelta = Math.abs(e.deltaY);
       wheelDeltaEmaRef.current =
@@ -654,6 +756,7 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
       wheelCalibrationAlpha,
       wheelNormalizedGain,
       updateViewportPreferences,
+      interactionInputTypeOverride,
     ],
   );
 
@@ -661,6 +764,10 @@ export function usePanZoomViewport(options: UsePanZoomViewportOptions = {}) {
     if (e.touches.length !== 2) return;
     e.preventDefault();
     e.stopPropagation();
+    if (deviceProfileRef.current !== "touch") {
+      deviceProfileRef.current = "touch";
+      setResolvedInputType("touch");
+    }
     pinchDistanceRef.current = getTouchDistance(e.touches[0], e.touches[1]);
     pinchMidpointRef.current = getTouchMidpoint(e.touches[0], e.touches[1]);
     setIsDragging(false);

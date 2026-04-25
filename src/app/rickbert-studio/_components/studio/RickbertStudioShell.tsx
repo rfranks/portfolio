@@ -13,40 +13,25 @@ import Tooltip from "@mui/material/Tooltip";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { ComicStage } from "@/app/rickbert-studio/_components/comic";
+import RickbertJsonView from "@/app/rickbert-studio/_components/studio/RickbertJsonView";
+import RickbertPanelInspector from "@/app/rickbert-studio/_components/studio/RickbertPanelInspector";
 import { exportStageAsPng } from "@/app/rickbert-studio/_export/pngExport";
 import { requestFinalRender } from "@/app/rickbert-studio/_features/finalRender";
 import { useRickbertStudioStore } from "@/app/rickbert-studio/_store";
 import { CHARACTER_CONFIGS } from "@/app/rickbert-studio/_domain/characterConfigs";
 import { setRickbertOpenAIKey } from "@/app/rickbert-studio/_utils/openAIKey";
 import { analyzePanelLayout } from "@/app/rickbert-studio/_utils/panelLayoutAssistant";
+import {
+  downloadComicStripSpecJson,
+  parsePanelLabelsDraft,
+  readComicStripSpecFromFile,
+} from "@/app/rickbert-studio/_utils/specTransfer";
 import useCopyToClipboard from "@/hooks/window/useCopyToClipboard";
-
-function JsonView({ data, onCopy }: { data: unknown; onCopy: () => void }) {
-  return (
-    <div className="overflow-hidden rounded-md bg-slate-900">
-      <div className="flex items-center justify-end border-b border-slate-700 bg-slate-800/70 p-1 text-slate-100">
-        <Tooltip title="Copy JSON">
-          <IconButton
-            size="small"
-            color="inherit"
-            aria-label="Copy JSON"
-            onClick={onCopy}
-            sx={{ color: "inherit" }}
-          >
-            <ContentCopyIcon fontSize="inherit" />
-          </IconButton>
-        </Tooltip>
-      </div>
-      <pre className="max-h-[62vh] overflow-auto p-3 text-xs leading-5 text-slate-100">
-        {JSON.stringify(data, null, 2)}
-      </pre>
-    </div>
-  );
-}
 
 export function RickbertStudioShell() {
   const stageRef = useRef<Konva.Stage>(null);
   const docFileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const specImportInputRef = useRef<HTMLInputElement | null>(null);
   const copyToClipboard = useCopyToClipboard();
   const [runningAction, setRunningAction] = useState<
     null | "parse" | "validate" | "render" | "aiRender"
@@ -91,6 +76,8 @@ export function RickbertStudioShell() {
     completeFinalRender,
     failFinalRender,
     clearFinalRender,
+    setSpecFromImport,
+    updatePanelInspector,
   } = useRickbertStudioStore();
 
   const visibleSpec = renderedSpec ?? parsedSpec;
@@ -98,6 +85,11 @@ export function RickbertStudioShell() {
     JSON.stringify(characterMapOverrides, null, 2),
   );
   const [characterMapDraftError, setCharacterMapDraftError] = useState<string | null>(null);
+  const [selectedPanelNumber, setSelectedPanelNumber] = useState<number>(1);
+  const [panelSceneDraft, setPanelSceneDraft] = useState("");
+  const [panelCameraDraft, setPanelCameraDraft] = useState("");
+  const [panelMoodDraft, setPanelMoodDraft] = useState("");
+  const [panelLabelsDraft, setPanelLabelsDraft] = useState("");
 
   const copyText = (value: string) => {
     void copyToClipboard(value);
@@ -134,10 +126,46 @@ export function RickbertStudioShell() {
     () => (visibleSpec ? analyzePanelLayout(visibleSpec) : null),
     [visibleSpec],
   );
+  const selectedPanel = useMemo(
+    () => visibleSpec?.panels.find((panel) => panel.panelNumber === selectedPanelNumber) ?? null,
+    [selectedPanelNumber, visibleSpec],
+  );
 
   useEffect(() => {
     setCharacterMapDraft(JSON.stringify(characterMapOverrides, null, 2));
   }, [characterMapOverrides]);
+
+  useEffect(() => {
+    if (!visibleSpec?.panels.length) {
+      setSelectedPanelNumber(1);
+      setPanelSceneDraft("");
+      setPanelCameraDraft("");
+      setPanelMoodDraft("");
+      setPanelLabelsDraft("");
+      return;
+    }
+
+    const firstPanelNumber = visibleSpec.panels[0]?.panelNumber ?? 1;
+    const panelExists = visibleSpec.panels.some(
+      (panel) => panel.panelNumber === selectedPanelNumber,
+    );
+    const resolvedPanelNumber = panelExists ? selectedPanelNumber : firstPanelNumber;
+    if (!panelExists) {
+      setSelectedPanelNumber(resolvedPanelNumber);
+    }
+
+    const panel =
+      visibleSpec.panels.find((entry) => entry.panelNumber === resolvedPanelNumber) ??
+      visibleSpec.panels[0];
+    if (!panel) {
+      return;
+    }
+
+    setPanelSceneDraft(panel.sceneText);
+    setPanelCameraDraft(panel.camera);
+    setPanelMoodDraft(panel.mood);
+    setPanelLabelsDraft(panel.labels.join(", "));
+  }, [selectedPanelNumber, visibleSpec]);
 
   useEffect(() => {
     setFinalImageDimensions(null);
@@ -247,6 +275,7 @@ export function RickbertStudioShell() {
     { value: "parsed", label: "Parsed Spec" },
     { value: "validation", label: "Validation Report" },
     { value: "render", label: "Render Settings" },
+    { value: "inspector", label: "Panel Inspector" },
     { value: "characters", label: "Character Map" },
     { value: "final", label: "AI Image" },
   ] as const;
@@ -269,6 +298,35 @@ export function RickbertStudioShell() {
         error instanceof Error ? error.message : "Invalid character map JSON.",
       );
     }
+  };
+
+  const handleImportSpecJson = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      const parsed = await readComicStripSpecFromFile(file);
+      setSpecFromImport(parsed);
+    } catch (error) {
+      failFinalRender(error instanceof Error ? error.message : "Failed to import spec JSON.");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const handleApplyPanelInspector = () => {
+    if (!selectedPanel) {
+      return;
+    }
+
+    updatePanelInspector(selectedPanel.panelNumber, {
+      sceneText: panelSceneDraft,
+      camera: panelCameraDraft.trim() || selectedPanel.camera,
+      mood: panelMoodDraft.trim() || selectedPanel.mood,
+      labels: parsePanelLabelsDraft(panelLabelsDraft),
+    });
   };
 
   return (
@@ -324,12 +382,40 @@ export function RickbertStudioShell() {
           >
             Export PNG
           </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            color="primary"
+            onClick={() => specImportInputRef.current?.click()}
+          >
+            Import Spec JSON
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            color="primary"
+            onClick={() => {
+              if (visibleSpec) {
+                downloadComicStripSpecJson(visibleSpec);
+              }
+            }}
+            disabled={!visibleSpec}
+          >
+            Export Spec JSON
+          </Button>
           <Button variant="outlined" size="small" color="inherit" onClick={reset}>
             Reset
           </Button>
           <Button variant="contained" size="small" color="warning" onClick={loadSample}>
             Load Sample
           </Button>
+          <input
+            ref={specImportInputRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={handleImportSpecJson}
+          />
 
           <div className="ml-auto text-sm">
             Preflight:
@@ -553,7 +639,7 @@ export function RickbertStudioShell() {
           </div>
 
           {activeTab === "parsed" && (
-            <JsonView
+            <RickbertJsonView
               data={parsedSpec ?? { status: "Not parsed" }}
               onCopy={() =>
                 copyText(JSON.stringify(parsedSpec ?? { status: "Not parsed" }, null, 2))
@@ -562,7 +648,7 @@ export function RickbertStudioShell() {
           )}
           {activeTab === "validation" && (
             <div className="space-y-3">
-              <JsonView
+              <RickbertJsonView
                 data={validationReport ?? { status: "Validation not run" }}
                 onCopy={() =>
                   copyText(
@@ -616,6 +702,32 @@ export function RickbertStudioShell() {
               </div>
             </div>
           )}
+          {activeTab === "inspector" && (
+            <RickbertPanelInspector
+              visibleSpec={visibleSpec}
+              selectedPanel={selectedPanel}
+              selectedPanelNumber={selectedPanelNumber}
+              onSelectedPanelNumberChange={setSelectedPanelNumber}
+              panelSceneDraft={panelSceneDraft}
+              onPanelSceneDraftChange={setPanelSceneDraft}
+              panelCameraDraft={panelCameraDraft}
+              onPanelCameraDraftChange={setPanelCameraDraft}
+              panelMoodDraft={panelMoodDraft}
+              onPanelMoodDraftChange={setPanelMoodDraft}
+              panelLabelsDraft={panelLabelsDraft}
+              onPanelLabelsDraftChange={setPanelLabelsDraft}
+              onApply={handleApplyPanelInspector}
+              onResetDraft={() => {
+                if (!selectedPanel) {
+                  return;
+                }
+                setPanelSceneDraft(selectedPanel.sceneText);
+                setPanelCameraDraft(selectedPanel.camera);
+                setPanelMoodDraft(selectedPanel.mood);
+                setPanelLabelsDraft(selectedPanel.labels.join(", "));
+              }}
+            />
+          )}
           {activeTab === "characters" && (
             <div className="space-y-3 rounded bg-stone-50 p-3 text-sm">
               <div className="flex items-center justify-between">
@@ -652,7 +764,7 @@ export function RickbertStudioShell() {
                   {characterMapDraftError}
                 </p>
               )}
-              <JsonView
+              <RickbertJsonView
                 data={characterMap}
                 onCopy={() => copyText(JSON.stringify(characterMap, null, 2))}
               />

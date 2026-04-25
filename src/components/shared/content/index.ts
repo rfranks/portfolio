@@ -1,3 +1,7 @@
+export { default as ArcadeGamePage } from "./ArcadeGamePage";
+export type { ArcadeGamePageProps } from "./ArcadeGamePage";
+export { default as ArcadeGameShell } from "./ArcadeGameShell";
+export type { ArcadeGameShellProps } from "./ArcadeGameShell";
 export { default as ArchitectureDiagramsSlide } from "./ArchitectureDiagramsSlide";
 export type { ArchitectureDiagramsSlideProps } from "./ArchitectureDiagramsSlide";
 export { default as DemoSlide } from "./DemoSlide";
@@ -12,6 +16,8 @@ export {
 } from "./GridCloudNavigationSlide";
 export { default as ImageContent } from "./ImageContent";
 export { default as LogoCollection } from "./LogoCollection";
+export { default as MarkdownDialog } from "./MarkdownDialog";
+export type { MarkdownDialogProps } from "./MarkdownDialog";
 export { default as MarkdownContent } from "./MarkdownContent";
 export { default as OpenAIKeyInterstitialContent } from "./OpenAIKeyInterstitialContent";
 export type { OpenAIKeyInterstitialContentProps } from "./OpenAIKeyInterstitialContent";

@@ -9,6 +9,7 @@ import { useRickbertStudioStore } from "@/app/rickbert-studio/_store";
 import { getRickbertOpenAIKey, setRickbertOpenAIKey } from "@/app/rickbert-studio/_utils/openAIKey";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
+import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 
 const defaultTheme = createTheme({
   palette: {
@@ -18,6 +19,7 @@ const defaultTheme = createTheme({
 
 export default function RickbertPageClient() {
   const { portfolioApps } = useResumeData();
+  const rickbertRoute = getPortfolioAppRouteContract(portfolioApps, "rickbert");
   const setOpenAIKey = useRickbertStudioStore((state) => state.setOpenAIKey);
   const [ready, setReady] = React.useState(false);
   const [apiKeyReady, setApiKeyReady] = React.useState(false);
@@ -33,8 +35,8 @@ export default function RickbertPageClient() {
   }, [setOpenAIKey]);
 
   React.useEffect(() => {
-    document.title = portfolioApps.rickbert.documentTitle;
-  }, [portfolioApps.rickbert.documentTitle]);
+    document.title = rickbertRoute.documentTitle;
+  }, [rickbertRoute.documentTitle]);
 
   React.useEffect(() => {
     if (ready && !apiKeyReady) {
@@ -64,9 +66,9 @@ export default function RickbertPageClient() {
       <ThemeProvider theme={defaultTheme}>
         <CssBaseline enableColorScheme />
         <OpenAIKeyInterstitialContent
-          appName={portfolioApps.rickbert.interstitialAppName}
-          logoAlt={portfolioApps.rickbert.interstitialLogoAlt}
-          logoSrc={withBasePath(portfolioApps.rickbert.interstitialLogoSrc)}
+          appName={rickbertRoute.interstitialAppName}
+          logoAlt={rickbertRoute.interstitialLogoAlt}
+          logoSrc={withBasePath(rickbertRoute.interstitialLogoSrc)}
           value={draftKey}
           onChange={setDraftKey}
           onSubmit={handleSubmit}

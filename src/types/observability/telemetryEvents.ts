@@ -40,12 +40,15 @@ export type PortfolioMediaTelemetryAction =
   | "media:open"
   | "media:copy"
   | "media:export"
-  | "media:zoom";
+  | "media:zoom"
+  | "media:first-render";
 
 export type PortfolioTelemetryAction =
   | PortfolioNavigationTelemetryAction
   | PortfolioPagerTelemetryAction
   | PortfolioMediaTelemetryAction;
+
+export type PortfolioTelemetryMetadataValue = string | number | boolean | null;
 
 export type PortfolioTelemetryEventDetail = {
   channel: PortfolioTelemetryChannel;
@@ -56,6 +59,8 @@ export type PortfolioTelemetryEventDetail = {
   title?: string;
   source?: string;
   control?: string;
+  durationMs?: number;
+  metadata?: Record<string, PortfolioTelemetryMetadataValue>;
 };
 
 export type PortfolioWindowEventDetailMap = {

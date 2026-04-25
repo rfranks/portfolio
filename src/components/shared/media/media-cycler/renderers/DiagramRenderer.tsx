@@ -26,8 +26,35 @@ export default function DiagramRenderer({
   expandControlSx,
   diagramSxArray,
   onMediaAction,
+  onFirstRenderReady,
 }: DiagramRendererProps) {
   const resolvedDiagramSxArray = flattenMediaCyclerSxArray(diagramSxArray);
+  const hasReportedFirstRenderRef = React.useRef(false);
+
+  React.useEffect(() => {
+    hasReportedFirstRenderRef.current = false;
+    let frameOne = 0;
+    let frameTwo = 0;
+    frameOne = window.requestAnimationFrame(() => {
+      frameTwo = window.requestAnimationFrame(() => {
+        if (hasReportedFirstRenderRef.current) {
+          return;
+        }
+        hasReportedFirstRenderRef.current = true;
+        item.onMediaLoaded?.();
+        onFirstRenderReady?.("diagram-mounted");
+      });
+    });
+
+    return () => {
+      if (frameOne) {
+        window.cancelAnimationFrame(frameOne);
+      }
+      if (frameTwo) {
+        window.cancelAnimationFrame(frameTwo);
+      }
+    };
+  }, [item, mediaUrl, onFirstRenderReady]);
 
   return (
     <Box

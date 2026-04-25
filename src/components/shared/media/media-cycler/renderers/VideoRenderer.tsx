@@ -14,8 +14,18 @@ export default function VideoRenderer({
   expandControlSx,
   previewVideoSxArray,
   onMediaAction,
+  onFirstRenderReady,
 }: VideoRendererProps) {
   const resolvedPreviewVideoSxArray = flattenMediaCyclerSxArray(previewVideoSxArray);
+  const hasReportedFirstRenderRef = React.useRef(false);
+
+  const handleVideoLoaded = React.useCallback(() => {
+    item.onMediaLoaded?.();
+    if (!hasReportedFirstRenderRef.current) {
+      hasReportedFirstRenderRef.current = true;
+      onFirstRenderReady?.("video-loaded-data");
+    }
+  }, [item, onFirstRenderReady]);
 
   return (
     <Box
@@ -56,7 +66,7 @@ export default function VideoRenderer({
         }}
         previewVideoClassName={item.previewVideoClassName}
         previewVideoSx={resolvedPreviewVideoSxArray}
-        onLoadedData={item.onMediaLoaded}
+        onLoadedData={handleVideoLoaded}
         {...item.videoProps}
       />
     </Box>

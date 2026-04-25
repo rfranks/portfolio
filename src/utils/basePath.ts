@@ -1,10 +1,109 @@
+const normalizeBasePath = (value: string | null | undefined): string => {
+  const trimmed = value?.trim();
+  if (!trimmed || trimmed === "/") {
+    return "";
+  }
+
+  const withLeadingSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  const withoutTrailingSlash = withLeadingSlash.endsWith("/")
+    ? withLeadingSlash.slice(0, -1)
+    : withLeadingSlash;
+
+  return withoutTrailingSlash === "/" ? "" : withoutTrailingSlash;
+};
+
+const STATIC_BASE_PATH = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
+let cachedRuntimeBasePath: string | null = null;
+
+const inferBasePathFromAssetPath = (assetPath: string): string | null => {
+  const marker = "/_next/";
+  const markerIndex = assetPath.indexOf(marker);
+  if (markerIndex < 0) {
+    return null;
+  }
+
+  return normalizeBasePath(assetPath.slice(0, markerIndex));
+};
+
+const resolveBasePathFromRuntime = (): string => {
+  if (typeof window === "undefined") {
+    return STATIC_BASE_PATH;
+  }
+
+  if (cachedRuntimeBasePath !== null) {
+    return cachedRuntimeBasePath;
+  }
+
+  if (STATIC_BASE_PATH) {
+    cachedRuntimeBasePath = STATIC_BASE_PATH;
+    return cachedRuntimeBasePath;
+  }
+
+  const nextData = (
+    window as typeof window & {
+      __NEXT_DATA__?: {
+        assetPrefix?: string;
+      };
+      __NEXT_ROUTER_BASEPATH?: string;
+    }
+  ).__NEXT_DATA__;
+
+  const fromNextData = normalizeBasePath(nextData?.assetPrefix);
+  if (fromNextData) {
+    cachedRuntimeBasePath = fromNextData;
+    return cachedRuntimeBasePath;
+  }
+
+  const fromRouterBasePath = normalizeBasePath(
+    (window as typeof window & { __NEXT_ROUTER_BASEPATH?: string }).__NEXT_ROUTER_BASEPATH,
+  );
+  if (fromRouterBasePath) {
+    cachedRuntimeBasePath = fromRouterBasePath;
+    return cachedRuntimeBasePath;
+  }
+
+  const assetNodes = document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>(
+    "script[src*='/_next/'],link[href*='/_next/']",
+  );
+  for (const node of assetNodes) {
+    const candidateUrl = node instanceof HTMLScriptElement ? node.src : node.href;
+    if (!candidateUrl) {
+      continue;
+    }
+
+    try {
+      const parsed = new URL(candidateUrl, window.location.origin);
+      const inferred = inferBasePathFromAssetPath(parsed.pathname);
+      if (inferred !== null) {
+        cachedRuntimeBasePath = inferred;
+        return cachedRuntimeBasePath;
+      }
+    } catch {
+      // Skip invalid URLs and continue probing.
+    }
+  }
+
+  const pathSegments = window.location.pathname.split("/").filter(Boolean);
+  if (window.location.hostname.endsWith(".github.io") && pathSegments.length > 0) {
+    cachedRuntimeBasePath = normalizeBasePath(`/${pathSegments[0]}`);
+    return cachedRuntimeBasePath;
+  }
+
+  cachedRuntimeBasePath = "";
+  return cachedRuntimeBasePath;
+};
+
 /**
  * Base path prefix used when the app is deployed under a subdirectory.
  *
- * The value comes from the `NEXT_PUBLIC_BASE_PATH` environment variable. When
- * running locally this defaults to an empty string.
+ * This is the static build-time value from `NEXT_PUBLIC_BASE_PATH`.
+ * For runtime-safe path joining, prefer `withBasePath()`.
  */
-export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "";
+export const BASE_PATH = STATIC_BASE_PATH;
+
+export function getBasePath(): string {
+  return resolveBasePathFromRuntime();
+}
 
 /**
  * Prefix a path with `BASE_PATH` so asset URLs resolve correctly both locally
@@ -21,7 +120,7 @@ export function withBasePath(path: string): string {
     return path;
   }
 
-  const base = BASE_PATH.endsWith("/") ? BASE_PATH.slice(0, -1) : BASE_PATH;
+  const base = getBasePath();
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   if (!base) {

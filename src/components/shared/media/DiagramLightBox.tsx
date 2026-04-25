@@ -119,23 +119,26 @@ export default function DiagramLightBox({
       >
         <Box
           sx={(nextTheme) => ({
-            position: "relative",
             width: "100%",
             height: "100%",
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
             bgcolor: nextTheme.palette.mode === "dark" ? "rgba(0,0,0,0.96)" : "rgba(11,18,30,0.92)",
           })}
         >
           <Box
             sx={{
-              position: "absolute",
-              top: 10,
-              left: 10,
-              right: 10,
+              position: "relative",
               zIndex: 2,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 1.5,
+              flexShrink: 0,
+              px: { xs: 1, md: 1.25 },
+              pt: { xs: 1, md: 1.25 },
+              pb: 0.75,
             }}
           >
             <Box
@@ -204,13 +207,13 @@ export default function DiagramLightBox({
 
           <Box
             sx={{
+              flex: 1,
+              minHeight: 0,
               width: "100%",
-              height: "100%",
               display: "flex",
               alignItems: "stretch",
               justifyContent: "stretch",
               p: { xs: 1.5, md: 3 },
-              pt: { xs: 10, md: 11 },
             }}
           >
             <Box

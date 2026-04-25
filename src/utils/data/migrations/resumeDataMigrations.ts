@@ -4,7 +4,7 @@ import type {
   ResumeDataMigrationPayload,
 } from "@/types/data/migrations/resumeDataMigrations";
 
-export const LATEST_RESUME_DATA_SCHEMA_VERSION = 3;
+export const LATEST_RESUME_DATA_SCHEMA_VERSION = 6;
 
 function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -152,9 +152,272 @@ const migrateV2ToV3: MigrationFn = (input) => {
   };
 };
 
+const migrateV3ToV4: MigrationFn = (input) => {
+  const projects = Array.isArray(input.projects) ? input.projects : [];
+  const nextProjects = projects.map((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      return entry;
+    }
+
+    const project = entry as Record<string, unknown>;
+    const projectDiagrams = Array.isArray(project.diagrams) ? project.diagrams : null;
+    if (!projectDiagrams || projectDiagrams.length === 0) {
+      return project;
+    }
+
+    const nextDiagrams = projectDiagrams.map((diagramEntry) => {
+      if (!diagramEntry || typeof diagramEntry !== "object" || Array.isArray(diagramEntry)) {
+        return diagramEntry;
+      }
+
+      const diagram = diagramEntry as Record<string, unknown>;
+      const existingAutoFit =
+        diagram.autoFit && typeof diagram.autoFit === "object" && !Array.isArray(diagram.autoFit)
+          ? (diagram.autoFit as Record<string, unknown>)
+          : {};
+
+      const resolveNumeric = (value: unknown, fallback: number): number =>
+        typeof value === "number" && Number.isFinite(value) ? value : fallback;
+      const resolveVerticalAlign = (value: unknown): "top" | "center" =>
+        value === "center" || value === "top" ? value : "top";
+
+      const normalizedAutoFit = {
+        padding: resolveNumeric(existingAutoFit.padding ?? diagram.autoFitPadding, 14),
+        scaleMultiplier: resolveNumeric(
+          existingAutoFit.scaleMultiplier ?? diagram.autoFitScaleMultiplier,
+          1,
+        ),
+        verticalAlign: resolveVerticalAlign(
+          existingAutoFit.verticalAlign ?? diagram.autoFitVerticalAlign,
+        ),
+        offsetX: resolveNumeric(existingAutoFit.offsetX ?? diagram.autoFitOffsetX, 0),
+        offsetY: resolveNumeric(existingAutoFit.offsetY ?? diagram.autoFitOffsetY, 0),
+      };
+
+      return {
+        ...diagram,
+        autoFit: normalizedAutoFit,
+      };
+    });
+
+    return {
+      ...project,
+      diagrams: nextDiagrams,
+    };
+  });
+
+  return {
+    ...input,
+    projects: nextProjects,
+    schemaVersion: 4,
+  };
+};
+
+const PRESENTATION_SECTION_KEYS = [
+  "overview",
+  "why",
+  "demo",
+  "technologies",
+  "specifications",
+  "diagrams",
+] as const;
+
+const migrateV4ToV5: MigrationFn = (input) => {
+  const projects = Array.isArray(input.projects) ? input.projects : [];
+  const nextProjects = projects.map((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      return entry;
+    }
+
+    const project = entry as Record<string, unknown>;
+    if (project.type !== "presentation") {
+      return project;
+    }
+
+    const presentation =
+      project.presentation &&
+      typeof project.presentation === "object" &&
+      !Array.isArray(project.presentation)
+        ? (project.presentation as Record<string, unknown>)
+        : {};
+    const sectionPagerSfx =
+      project.sectionPagerSfx &&
+      typeof project.sectionPagerSfx === "object" &&
+      !Array.isArray(project.sectionPagerSfx)
+        ? (project.sectionPagerSfx as Record<string, unknown>)
+        : {};
+    const existingCapabilities =
+      presentation.sectionCapabilities &&
+      typeof presentation.sectionCapabilities === "object" &&
+      !Array.isArray(presentation.sectionCapabilities)
+        ? (presentation.sectionCapabilities as Record<string, unknown>)
+        : {};
+
+    const mergedCapabilities = Object.fromEntries(
+      PRESENTATION_SECTION_KEYS.map((sectionKey) => {
+        const existingEntry =
+          existingCapabilities[sectionKey] &&
+          typeof existingCapabilities[sectionKey] === "object" &&
+          !Array.isArray(existingCapabilities[sectionKey])
+            ? (existingCapabilities[sectionKey] as Record<string, unknown>)
+            : {};
+        const audioProfileValue = sectionPagerSfx[sectionKey];
+
+        return [
+          sectionKey,
+          {
+            enabled: typeof existingEntry.enabled === "boolean" ? existingEntry.enabled : true,
+            pagerActions:
+              existingEntry.pagerActions &&
+              typeof existingEntry.pagerActions === "object" &&
+              !Array.isArray(existingEntry.pagerActions)
+                ? existingEntry.pagerActions
+                : {
+                    allowPrevious: true,
+                    allowNext: true,
+                    allowSelector: true,
+                  },
+            audioProfile:
+              typeof existingEntry.audioProfile === "string" && existingEntry.audioProfile.trim()
+                ? existingEntry.audioProfile
+                : typeof audioProfileValue === "string" && audioProfileValue.trim()
+                  ? audioProfileValue
+                  : "random",
+            deepLinkRestore:
+              existingEntry.deepLinkRestore === "always" ||
+              existingEntry.deepLinkRestore === "if-present" ||
+              existingEntry.deepLinkRestore === "never"
+                ? existingEntry.deepLinkRestore
+                : "always",
+          },
+        ];
+      }),
+    );
+
+    return {
+      ...project,
+      presentation: {
+        ...presentation,
+        sectionCapabilities: mergedCapabilities,
+      },
+    };
+  });
+
+  return {
+    ...input,
+    projects: nextProjects,
+    schemaVersion: 5,
+  };
+};
+
+const DEFAULT_PORTFOLIO_APP_ROUTE_METADATA = {
+  site: {
+    route: "/",
+    description:
+      "Résumé of Richard Franks, Principal Full Stack Engineer and AI-driven systems architect.",
+  },
+  aiShenanigans: {
+    route: "/ai-shenanigans",
+    documentTitle: "AI Shenanigans",
+    metadataTitle: "AI Shenanigans",
+    metadataDescription:
+      "AI creative lab for stylized visuals, motion shorts, and narrative adaptation experiments from source image to story-world prototype.",
+  },
+  dna: {
+    route: "/dna",
+    documentTitle: "GeneBoard",
+  },
+  bookworm: {
+    route: "/bookworm",
+    documentTitle: "Bookworm",
+  },
+  talentforge: {
+    route: "/talentforge",
+    documentTitle: "TalentForge",
+  },
+  rickbert: {
+    route: "/rickbert-studio",
+    documentTitle: "Rickbert Studio",
+    metadataTitle: "Rickbert Studio",
+    metadataDescription: "Structured comic strip generation studio for the RICKBERT series.",
+  },
+  pathforger: {
+    route: "/pathforger",
+    documentTitle: "PathForger",
+    metadataTitle: "PathForger",
+    metadataDescription:
+      "Interactive story-forging studio that generates A/B/C pitches, chapter packages, and parallel cinematic image outputs through staged OpenAI calls.",
+  },
+  blackjack: {
+    route: "/blackjack",
+    documentTitle: "Blackjack",
+  },
+  warbirds: {
+    route: "/warbirds",
+    documentTitle: "Warbirds",
+  },
+  zombiefish: {
+    route: "/zombiefish",
+    documentTitle: "ZombieFish",
+  },
+  blasteroids: {
+    route: "/blasteroids",
+    documentTitle: "Blasteroids",
+  },
+  petly: {
+    route: "/petly",
+    documentTitle: "Petly",
+  },
+  health: {
+    route: "/health",
+    documentTitle: "Portfolio Health Dashboard",
+    metadataTitle: "Portfolio Health Dashboard",
+    metadataDescription:
+      "Bundle budget, test and accessibility health, and resume schema validation snapshots.",
+  },
+  replay: {
+    route: "/replay",
+    documentTitle: "Session Replay Lite Viewer",
+    metadataTitle: "Session Replay Lite Viewer",
+    metadataDescription:
+      "Load and inspect session replay-lite JSON exports with timeline scrubbing and event filters.",
+  },
+  capabilities: {
+    route: "/capabilities",
+    documentTitle: "App Capability Matrix",
+    metadataTitle: "App Capability Matrix",
+    metadataDescription:
+      "Cross-route capability matrix with measured quality and performance coverage snapshots.",
+  },
+} as const;
+
+const toRecord = (value: unknown): Record<string, unknown> =>
+  value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+
+const migrateV5ToV6: MigrationFn = (input) => {
+  const portfolioApps = toRecord(input.portfolioApps);
+  const nextPortfolioApps = Object.fromEntries(
+    Object.entries(DEFAULT_PORTFOLIO_APP_ROUTE_METADATA).map(([appKey, defaults]) => {
+      const existing = toRecord(portfolioApps[appKey]);
+      return [appKey, { ...defaults, ...existing, route: defaults.route }];
+    }),
+  );
+
+  return {
+    ...input,
+    portfolioApps: nextPortfolioApps,
+    schemaVersion: 6,
+  };
+};
+
 const MIGRATIONS: Record<number, MigrationFn> = {
   1: migrateV1ToV2,
   2: migrateV2ToV3,
+  3: migrateV3ToV4,
+  4: migrateV4ToV5,
+  5: migrateV5ToV6,
 };
 
 export function migrateResumeData(payload: ResumeDataMigrationPayload): ResumeDataMigrationPayload {

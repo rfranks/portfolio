@@ -1,5 +1,19 @@
 import { anyToJson } from "@teselagen/bio-parsers";
-import { blue } from "@mui/material/colors";
+import {
+  amber,
+  blue,
+  cyan,
+  deepOrange,
+  deepPurple,
+  green,
+  indigo,
+  lime,
+  orange,
+  pink,
+  purple,
+  red,
+  teal,
+} from "@mui/material/colors";
 import { Base, CodingCodon, ParsedSequenceResult, Sequence } from "../_types/types";
 import { CODONS_TO_AMINO_ACIDS } from "../_consts/consts";
 
@@ -137,39 +151,60 @@ export function getBasepairCounts(seq: string): BPCount[] {
   return bpCounts;
 }
 
+const CONTRAST_FIRST_BLUE_SEQUENCE_PALETTE: string[] = [
+  blue[900],
+  blue[200],
+  blue[700],
+  blue[100],
+  blue[500],
+  blue.A700,
+  blue[300],
+  blue.A100,
+  blue[800],
+  blue[50],
+  blue[600],
+  blue.A400,
+];
+
+const EXTENDED_SEQUENCE_PALETTE: string[] = [
+  teal[600],
+  deepPurple[500],
+  orange[700],
+  cyan[700],
+  pink[500],
+  green[700],
+  indigo[500],
+  red[600],
+  amber[700],
+  purple[700],
+  deepOrange[600],
+  lime[700],
+];
+
+const SEQUENCE_COLOR_PALETTE: string[] = [
+  ...CONTRAST_FIRST_BLUE_SEQUENCE_PALETTE,
+  ...EXTENDED_SEQUENCE_PALETTE,
+];
+
+function getGeneratedSequenceColor(overflowIndex: number): string {
+  const hue = (23 + overflowIndex * 137.508) % 360;
+  const saturation = 70 - (overflowIndex % 3) * 6;
+  const lightness = 44 + (overflowIndex % 2) * 16;
+
+  return `hsl(${Math.round(hue)} ${saturation}% ${lightness}%)`;
+}
+
 export function getSequenceColor(index: number) {
-  return blue[
-    Object.keys(blue)[index % Object.keys(blue).length] as
-      | 50
-      | 100
-      | 200
-      | 300
-      | 400
-      | 500
-      | 600
-      | 700
-      | 800
-      | 900
-      | "A100"
-      | "A200"
-      | "A400"
-      | "A700"
-  ];
+  const normalizedIndex = Number.isFinite(index) && index >= 0 ? Math.floor(index) : 0;
+  if (normalizedIndex < SEQUENCE_COLOR_PALETTE.length) {
+    return SEQUENCE_COLOR_PALETTE[normalizedIndex];
+  }
+
+  return getGeneratedSequenceColor(normalizedIndex - SEQUENCE_COLOR_PALETTE.length);
 }
 
 export function getSequenceStrokeColor(index: number) {
-  const strokePalette = [
-    blue[900],
-    blue[700],
-    blue[500],
-    blue[300],
-    blue.A700,
-    blue.A400,
-    blue[800],
-    blue[600],
-  ];
-
-  return strokePalette[index % strokePalette.length];
+  return getSequenceColor(index);
 }
 
 export function getSequenceStrokeStyle(index: number) {
@@ -329,6 +364,57 @@ export type SequenceAnalysisRecipeResult = {
   orfs?: SequenceOrfRange[];
 };
 
+export type SequenceAnalysisBatchResult = {
+  generatedAtIso: string;
+  sequenceLength: number;
+  recipes: SequenceAnalysisRecipeResult[];
+  summary: string;
+};
+
+export type SequenceCompareHeatmapRecipeCell = {
+  kind: SequenceAnalysisRecipeKind;
+  label: string;
+  value: number;
+  summary: string;
+};
+
+export type SequenceCompareHeatmapRow = {
+  sequenceDescription: string;
+  sequenceType: Sequence["type"];
+  sequenceLength: number;
+  recipeCells: SequenceCompareHeatmapRecipeCell[];
+};
+
+export type SequenceCompareHeatmapReport = {
+  generatedAtIso: string;
+  recipeKinds: SequenceAnalysisRecipeKind[];
+  rows: SequenceCompareHeatmapRow[];
+  summary: string;
+};
+
+export type SequenceCompareDiffMismatch = {
+  position: number;
+  baselineBase: string;
+  comparisonBase: string;
+};
+
+export type SequenceCompareDiffEntry = {
+  baselineDescription: string;
+  comparisonDescription: string;
+  comparedBasepairs: number;
+  mismatchCount: number;
+  mismatchPct: number;
+  lengthDelta: number;
+  firstMismatches: SequenceCompareDiffMismatch[];
+};
+
+export type SequenceCompareDiffReport = {
+  generatedAtIso: string;
+  baselineDescription: string;
+  entries: SequenceCompareDiffEntry[];
+  summary: string;
+};
+
 const normalizeInputSequence = (sequence: string): string =>
   sequence
     .toUpperCase()
@@ -354,6 +440,30 @@ const calculateGcPct = (value: string): number => {
     }
   }
   return (gcCount / value.length) * 100;
+};
+
+const RECIPE_LABELS: Record<SequenceAnalysisRecipeKind, string> = {
+  "motif-scan": "Motif matches",
+  "gc-anomaly-scan": "GC anomaly windows",
+  "orf-scan": "ORF candidates",
+};
+
+const resolveRecipeMetric = (recipeResult: SequenceAnalysisRecipeResult): number => {
+  if (recipeResult.kind === "motif-scan") {
+    return recipeResult.motifMatches?.length ?? 0;
+  }
+  if (recipeResult.kind === "gc-anomaly-scan") {
+    return recipeResult.gcAnomalies?.length ?? 0;
+  }
+  return recipeResult.orfs?.length ?? 0;
+};
+
+const toCsvCell = (value: string | number): string => {
+  if (typeof value === "number") {
+    return String(value);
+  }
+  const escaped = value.replaceAll('"', '""');
+  return `"${escaped}"`;
 };
 
 export function runSequenceAnalysisRecipe(
@@ -487,4 +597,239 @@ export function runSequenceAnalysisRecipe(
         : `No ORF candidates found with at least ${minOrfCodons} codons.`,
     orfs: ranges,
   };
+}
+
+export function runSelectedSequenceAnalysisRecipes(
+  sequence: string,
+  configs: SequenceAnalysisRecipeConfig[],
+): SequenceAnalysisBatchResult {
+  const normalizedSequence = normalizeInputSequence(sequence);
+  const recipes = configs.map((config) => runSequenceAnalysisRecipe(normalizedSequence, config));
+  const summary =
+    recipes.length > 0
+      ? `Ran ${recipes.length} analysis recipe${recipes.length === 1 ? "" : "s"} on ${normalizedSequence.length.toLocaleString("en-US")} basepairs.`
+      : "No analysis recipes were selected.";
+
+  return {
+    generatedAtIso: new Date().toISOString(),
+    sequenceLength: normalizedSequence.length,
+    recipes,
+    summary,
+  };
+}
+
+export function buildSequenceCompareHeatmapReport(
+  sequences: Sequence[],
+  configs: SequenceAnalysisRecipeConfig[],
+): SequenceCompareHeatmapReport {
+  const recipeKinds = Array.from(new Set(configs.map((config) => config.kind)));
+  const rows = sequences.map((sequence) => {
+    const report = runSelectedSequenceAnalysisRecipes(sequence.sequence, configs);
+    const recipeByKind = new Map(report.recipes.map((recipe) => [recipe.kind, recipe] as const));
+
+    return {
+      sequenceDescription: sequence.description,
+      sequenceType: sequence.type,
+      sequenceLength: report.sequenceLength,
+      recipeCells: recipeKinds.map((kind) => {
+        const recipe = recipeByKind.get(kind);
+        const safeRecipe: SequenceAnalysisRecipeResult = recipe ?? {
+          kind,
+          summary: "No recipe data.",
+        };
+        return {
+          kind,
+          label: RECIPE_LABELS[kind],
+          value: resolveRecipeMetric(safeRecipe),
+          summary: safeRecipe.summary,
+        };
+      }),
+    } satisfies SequenceCompareHeatmapRow;
+  });
+
+  return {
+    generatedAtIso: new Date().toISOString(),
+    recipeKinds,
+    rows,
+    summary:
+      rows.length > 0
+        ? `Compared ${rows.length} sequence${rows.length === 1 ? "" : "s"} across ${
+            recipeKinds.length
+          } recipe metric${recipeKinds.length === 1 ? "" : "s"}.`
+        : "No sequences were available for compare workspace output.",
+  };
+}
+
+export function buildSequenceCompareDiffReport(
+  sequences: Sequence[],
+  maxMismatchesPerEntry = 25,
+): SequenceCompareDiffReport {
+  const baseline = sequences[0];
+  const baselineDescription = baseline?.description ?? "n/a";
+  if (!baseline || sequences.length < 2) {
+    return {
+      generatedAtIso: new Date().toISOString(),
+      baselineDescription,
+      entries: [],
+      summary: "Select at least two sequences to build a diff report.",
+    };
+  }
+
+  const baselineSequence = normalizeInputSequence(baseline.sequence);
+  const entries = sequences.slice(1).map((sequence) => {
+    const comparisonSequence = normalizeInputSequence(sequence.sequence);
+    const comparedBasepairs = Math.min(baselineSequence.length, comparisonSequence.length);
+    const firstMismatches: SequenceCompareDiffMismatch[] = [];
+    let mismatchCount = 0;
+
+    for (let index = 0; index < comparedBasepairs; index += 1) {
+      const baselineBase = baselineSequence[index];
+      const comparisonBase = comparisonSequence[index];
+      if (baselineBase === comparisonBase) {
+        continue;
+      }
+      mismatchCount += 1;
+      if (firstMismatches.length < maxMismatchesPerEntry) {
+        firstMismatches.push({
+          position: index + 1,
+          baselineBase,
+          comparisonBase,
+        });
+      }
+    }
+
+    const mismatchPct = comparedBasepairs > 0 ? (mismatchCount / comparedBasepairs) * 100 : 0;
+
+    return {
+      baselineDescription,
+      comparisonDescription: sequence.description,
+      comparedBasepairs,
+      mismatchCount,
+      mismatchPct: Number(mismatchPct.toFixed(2)),
+      lengthDelta: comparisonSequence.length - baselineSequence.length,
+      firstMismatches,
+    } satisfies SequenceCompareDiffEntry;
+  });
+
+  return {
+    generatedAtIso: new Date().toISOString(),
+    baselineDescription,
+    entries,
+    summary: `Compared baseline "${baselineDescription}" against ${entries.length} additional sequence${
+      entries.length === 1 ? "" : "s"
+    }.`,
+  };
+}
+
+export function createSequenceCompareHeatmapCsv(report: SequenceCompareHeatmapReport): string {
+  const header = [
+    "Sequence",
+    "Type",
+    "Length",
+    ...report.recipeKinds.map((kind) => RECIPE_LABELS[kind]),
+  ];
+  const lines = [header.map(toCsvCell).join(",")];
+
+  report.rows.forEach((row) => {
+    const metricsByKind = new Map(row.recipeCells.map((cell) => [cell.kind, cell.value] as const));
+    lines.push(
+      [
+        row.sequenceDescription,
+        row.sequenceType,
+        row.sequenceLength,
+        ...report.recipeKinds.map((kind) => metricsByKind.get(kind) ?? 0),
+      ]
+        .map(toCsvCell)
+        .join(","),
+    );
+  });
+
+  return lines.join("\n");
+}
+
+export function createSequenceCompareDiffCsv(report: SequenceCompareDiffReport): string {
+  const header = [
+    "Baseline",
+    "Comparison",
+    "ComparedBasepairs",
+    "MismatchCount",
+    "MismatchPct",
+    "LengthDelta",
+    "FirstMismatches",
+  ];
+  const lines = [header.map(toCsvCell).join(",")];
+
+  report.entries.forEach((entry) => {
+    const mismatchPreview = entry.firstMismatches
+      .map(
+        (mismatch) => `bp ${mismatch.position} ${mismatch.baselineBase}>${mismatch.comparisonBase}`,
+      )
+      .join("; ");
+
+    lines.push(
+      [
+        report.baselineDescription,
+        entry.comparisonDescription,
+        entry.comparedBasepairs,
+        entry.mismatchCount,
+        entry.mismatchPct,
+        entry.lengthDelta,
+        mismatchPreview,
+      ]
+        .map(toCsvCell)
+        .join(","),
+    );
+  });
+
+  return lines.join("\n");
+}
+
+export function createSequenceAnalysisReportMarkdown(report: SequenceAnalysisBatchResult): string {
+  const sections: string[] = [
+    "# DNA Analysis Report",
+    "",
+    `Generated: ${report.generatedAtIso}`,
+    `Sequence Length: ${report.sequenceLength.toLocaleString("en-US")} basepairs`,
+    "",
+    report.summary,
+    "",
+  ];
+
+  report.recipes.forEach((recipe, index) => {
+    sections.push(`## ${index + 1}. ${recipe.kind}`);
+    sections.push("");
+    sections.push(recipe.summary);
+    sections.push("");
+
+    if (recipe.kind === "motif-scan" && recipe.motifMatches?.length) {
+      sections.push("| Motif | Start | End |");
+      sections.push("| --- | ---: | ---: |");
+      recipe.motifMatches.forEach((match) => {
+        sections.push(`| ${match.motif} | ${match.start} | ${match.end} |`);
+      });
+      sections.push("");
+    }
+
+    if (recipe.kind === "gc-anomaly-scan" && recipe.gcAnomalies?.length) {
+      sections.push("| Window Start | Window End | GC % | Deviation % |");
+      sections.push("| ---: | ---: | ---: | ---: |");
+      recipe.gcAnomalies.forEach((anomaly) => {
+        sections.push(
+          `| ${anomaly.windowStart} | ${anomaly.windowEnd} | ${anomaly.gcPct.toFixed(2)} | ${anomaly.deviationPct.toFixed(2)} |`,
+        );
+      });
+      sections.push("");
+    }
+
+    if (recipe.kind === "orf-scan" && recipe.orfs?.length) {
+      sections.push("| Frame | Start | End | Codons |");
+      sections.push("| ---: | ---: | ---: | ---: |");
+      recipe.orfs.forEach((orf) => {
+        sections.push(`| ${orf.frame} | ${orf.start} | ${orf.end} | ${orf.codons} |`);
+      });
+      sections.push("");
+    }
+  });
+
+  return sections.join("\n").trimEnd();
 }

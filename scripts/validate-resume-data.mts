@@ -265,6 +265,50 @@ function normalizeForDuplicateCheck(value: string): string {
   return value.replace(/\s+/g, " ").trim().toLowerCase();
 }
 
+const NARRATIVE_SPECIFICITY_SIGNAL_PATTERN =
+  /\b(api|schema|migration|latency|wasm|webassembly|telemetry|retry|cache|pipeline|vector|embedding|llm|rag|state machine|observability|contract|prefetch|hydration|fallback|orchestration|checkpoint)\b/gi;
+const PRESENTATION_SECTION_KEYS = [
+  "overview",
+  "why",
+  "demo",
+  "technologies",
+  "specifications",
+  "diagrams",
+] as const;
+
+function countNarrativeSpecificitySignals(args: {
+  description: string;
+  technologyNames: string[];
+}): number {
+  const lowered = args.description.toLowerCase();
+  const keywordSignals = args.description.match(NARRATIVE_SPECIFICITY_SIGNAL_PATTERN)?.length ?? 0;
+  const technologySignals = args.technologyNames.filter((technologyName) => {
+    const normalized = technologyName.trim().toLowerCase();
+    if (!normalized || normalized.length < 3) {
+      return false;
+    }
+    return lowered.includes(normalized);
+  }).length;
+  return keywordSignals + technologySignals;
+}
+
+function collectRepeatedSentences(description: string): string[] {
+  const normalizedSentences = description
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => normalizeForDuplicateCheck(sentence))
+    .filter((sentence) => sentence.length >= 20);
+  const seen = new Map<string, number>();
+  const duplicates: string[] = [];
+  normalizedSentences.forEach((sentence) => {
+    const nextCount = (seen.get(sentence) ?? 0) + 1;
+    seen.set(sentence, nextCount);
+    if (nextCount === 2) {
+      duplicates.push(sentence);
+    }
+  });
+  return duplicates;
+}
+
 function lintResumeContent(
   parsed: Awaited<ReturnType<typeof parseResumeDataWithSchema>>,
 ): ContentLintIssue[] {
@@ -309,6 +353,44 @@ function lintResumeContent(
       descriptionFingerprintToProject.set(normalizedFingerprint, project.name);
     }
 
+    const repeatedSentences = collectRepeatedSentences(description);
+    if (repeatedSentences.length > 0) {
+      issues.push({
+        severity: "warning",
+        rule: "markdown.redundancy",
+        message: `projects.${index}.description repeats one or more normalized sentences. Consider tightening narrative repetition.`,
+      });
+    }
+
+    const specificitySignalCount = countNarrativeSpecificitySignals({
+      description,
+      technologyNames: project.technologiesUsed?.map((technology) => technology.name) ?? [],
+    });
+    const minimumSpecificitySignals = isPresentation ? 4 : 2;
+    if (specificitySignalCount < minimumSpecificitySignals) {
+      issues.push({
+        severity: "warning",
+        rule: "markdown.specificity",
+        message: `projects.${index}.description has low specificity (${specificitySignalCount} signals, target >= ${minimumSpecificitySignals}). Add concrete architecture/implementation details.`,
+      });
+    }
+
+    if (isPresentation && !project.showcaseHeading?.trim()) {
+      issues.push({
+        severity: "warning",
+        rule: "presentation.missing-showcase-heading",
+        message: `projects.${index}.showcaseHeading is missing for project '${project.name}'.`,
+      });
+    }
+
+    if (isPresentation && !project.showcaseSubtitle?.trim()) {
+      issues.push({
+        severity: "warning",
+        rule: "presentation.missing-showcase-subtitle",
+        message: `projects.${index}.showcaseSubtitle is missing for project '${project.name}'.`,
+      });
+    }
+
     if (isPresentation) {
       if (!project.presentation) {
         issues.push({
@@ -346,6 +428,35 @@ function lintResumeContent(
           severity: "warning",
           rule: "presentation.missing-caption",
           message: `projects.${index}.terminalDemo.caption is missing for presentation project '${project.name}'.`,
+        });
+      }
+
+      const hasAnyDemoCaption = Boolean(
+        project.demoCaption?.trim() || project.terminalDemo?.caption?.trim(),
+      );
+      if (!hasAnyDemoCaption) {
+        issues.push({
+          severity: "warning",
+          rule: "presentation.missing-demo-caption",
+          message: `projects.${index} is missing demo caption text (demoCaption or terminalDemo.caption).`,
+        });
+      }
+
+      if (!project.presentation?.sectionCapabilities) {
+        issues.push({
+          severity: "warning",
+          rule: "presentation.section-capabilities-missing",
+          message: `projects.${index}.presentation.sectionCapabilities is missing. Add explicit section capability policy for availability/pager/audio/deep-link rules.`,
+        });
+      } else {
+        PRESENTATION_SECTION_KEYS.forEach((sectionKey) => {
+          if (!project.presentation?.sectionCapabilities?.[sectionKey]) {
+            issues.push({
+              severity: "warning",
+              rule: "presentation.section-capabilities-incomplete",
+              message: `projects.${index}.presentation.sectionCapabilities.${sectionKey} is missing.`,
+            });
+          }
         });
       }
 

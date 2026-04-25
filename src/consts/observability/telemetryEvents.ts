@@ -42,4 +42,5 @@ export const PORTFOLIO_MEDIA_TELEMETRY_ACTION = {
   COPY: "media:copy",
   EXPORT: "media:export",
   ZOOM: "media:zoom",
+  FIRST_RENDER: "media:first-render",
 } as const satisfies Record<string, PortfolioMediaTelemetryAction>;

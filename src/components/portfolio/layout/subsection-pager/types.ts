@@ -78,6 +78,9 @@ export type SubsectionPagerProps = {
   nextAriaLabel: string;
   selectorAriaLabel: string;
   previousButtonSx?: SxProps<Theme>;
+  disablePrevious?: boolean;
+  disableNext?: boolean;
+  disableSelector?: boolean;
   onSelect: (key: string) => void;
   onPrevious: () => void;
   onNext: () => void;

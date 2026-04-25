@@ -2,6 +2,12 @@
 
 import packageJson from "../../../../package.json";
 import { loadItem, saveItem, deleteItem } from "@/utils/storage";
+import {
+  clearOpenAIKeyForApp,
+  getOpenAIKeyStorageConfigForApp,
+  getOpenAIKeyForApp,
+  setOpenAIKeyForApp,
+} from "@/utils/openai/keyService";
 import { v4 as uuid } from "uuid";
 import { ConnectorToken } from "@/app/talentforge/_types/connector";
 import type {
@@ -91,6 +97,9 @@ export interface StoreSchema {
   customPromptTiles: CustomPromptTile[];
 }
 
+const TALENTFORGE_KEY_STORAGE_KEY =
+  getOpenAIKeyStorageConfigForApp("talentforge").primaryStorageKey;
+
 // Storage keys for each entity
 const KEYS: { [K in keyof StoreSchema]: string } = {
   user: "userProfile",
@@ -100,7 +109,7 @@ const KEYS: { [K in keyof StoreSchema]: string } = {
   applications: "jobApplications",
   recruiters: "recruiters",
   onboarding: "onboardingStep",
-  openai: "talentforge-openai-key",
+  openai: TALENTFORGE_KEY_STORAGE_KEY,
   connectorTokens: "connectorTokens",
   connectorSyncSnapshot: "connectorSyncSnapshot",
   linkedinProfileSnapshot: "linkedinProfileSnapshot",
@@ -785,6 +794,14 @@ const DEFAULTS: { [K in keyof StoreSchema]: StoreSchema[K] } = {
 } as const;
 
 function load<K extends keyof StoreSchema>(key: K, fallback: StoreSchema[K]): StoreSchema[K] {
+  if (key === "openai") {
+    const openAIKey = getOpenAIKeyForApp("talentforge", {
+      includeFallbackStorageKeys: false,
+      includeEnvFallback: false,
+    });
+    return (openAIKey || fallback) as StoreSchema[K];
+  }
+
   const value = loadItem<StoreSchema[K]>(KEYS[key], VERSION[key], MIGRATORS[key]);
   if (value !== undefined) {
     const schema = storeSchemas[key];
@@ -802,10 +819,29 @@ function load<K extends keyof StoreSchema>(key: K, fallback: StoreSchema[K]): St
 }
 
 function save<K extends keyof StoreSchema>(key: K, value: StoreSchema[K]): void {
+  if (key === "openai") {
+    const openAIKey = typeof value === "string" ? value.trim() : "";
+    if (openAIKey.length > 0) {
+      setOpenAIKeyForApp("talentforge", openAIKey);
+    } else {
+      clearOpenAIKeyForApp("talentforge", {
+        includeFallbackStorageKeys: false,
+      });
+    }
+    return;
+  }
+
   saveItem(KEYS[key], value, VERSION[key]);
 }
 
 function remove<K extends keyof StoreSchema>(key: K): void {
+  if (key === "openai") {
+    clearOpenAIKeyForApp("talentforge", {
+      includeFallbackStorageKeys: false,
+    });
+    return;
+  }
+
   deleteItem(KEYS[key]);
 }
 
@@ -2339,6 +2375,17 @@ export function exportToJson(options?: ExportOptions): string {
   }
   const data: Record<string, unknown> = {};
   for (const key of Object.values(KEYS)) {
+    if (key === KEYS.openai) {
+      const openAIKey = getOpenAIKeyForApp("talentforge", {
+        includeFallbackStorageKeys: false,
+        includeEnvFallback: false,
+      });
+      if (openAIKey.trim().length > 0) {
+        data[key] = openAIKey;
+      }
+      continue;
+    }
+
     const raw = window.localStorage.getItem(key);
     if (raw !== null) {
       try {

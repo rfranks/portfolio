@@ -7,7 +7,6 @@ import {
   initialRenderImages,
 } from "@/app/pathforger/_consts/consts";
 import type {
-  PathForgerBranchChoice,
   PathForgerGeneratedImage,
   PathForgerImageType,
   PathForgerPipelineResult,
@@ -15,18 +14,6 @@ import type {
   PathForgerChapterResult,
 } from "@/app/pathforger/_types/pipeline";
 import type { PitchSelectionState } from "@/app/pathforger/_types/pitch";
-
-type ActiveRunAction =
-  | "name"
-  | "premise"
-  | "style"
-  | "tone"
-  | "pitch"
-  | "chapter"
-  | "nextChapter"
-  | "pipeline"
-  | "forgePath"
-  | null;
 
 export function usePathForgerFormState() {
   const [genre, setGenre] = React.useState("Sci-fi");
@@ -59,7 +46,6 @@ export function usePathForgerFormState() {
 
   const [selectedPitch, setSelectedPitch] = React.useState<PitchSelectionState>("auto");
   const selectedPitchRef = React.useRef<PitchSelectionState>("auto");
-  const [selectedBranch, setSelectedBranch] = React.useState<"" | PathForgerBranchChoice>("");
   const [defaultModel, setDefaultModel] = React.useState(DEFAULT_ONE_OFF_MODEL_ID);
   const [textModel, setTextModel] = React.useState(DEFAULT_TEXT_MODEL_ID);
   const [imageModel, setImageModel] = React.useState(DEFAULT_IMAGE_MODEL_ID);
@@ -72,14 +58,6 @@ export function usePathForgerFormState() {
 
   const [selfieDataUrl, setSelfieDataUrl] = React.useState<string | undefined>();
   const [selfieName, setSelfieName] = React.useState("");
-
-  const [isRunning, setIsRunning] = React.useState(false);
-  const [isGeneratingChapterImages, setIsGeneratingChapterImages] = React.useState(false);
-  const chapterImageGenerationRunIdRef = React.useRef(0);
-  const coverImageGenerationRunIdRef = React.useRef(0);
-  const [activeRunAction, setActiveRunAction] = React.useState<ActiveRunAction>(null);
-
-  const [errorMessage, setErrorMessage] = React.useState("");
   const [coverImageByPitchKey, setCoverImageByPitchKey] = React.useState<
     Record<string, PathForgerGeneratedImage>
   >({});
@@ -98,23 +76,6 @@ export function usePathForgerFormState() {
   const [editingImagePromptType, setEditingImagePromptType] =
     React.useState<PathForgerImageType | null>(null);
   const [imagePromptEditorValue, setImagePromptEditorValue] = React.useState("");
-  const [activeOptionBranch, setActiveOptionBranch] = React.useState<PathForgerBranchChoice | null>(
-    null,
-  );
-  const [revealedOptionBranches, setRevealedOptionBranches] = React.useState({
-    A: false,
-    B: false,
-  });
-  const [optionRevealTick, setOptionRevealTick] = React.useState({
-    A: 0,
-    B: 0,
-  });
-  const [forgedOutcomes, setForgedOutcomes] = React.useState<
-    Partial<Record<PathForgerBranchChoice, string>>
-  >({});
-  const [forgedOutcomeImages, setForgedOutcomeImages] = React.useState<
-    Partial<Record<PathForgerBranchChoice, PathForgerGeneratedImage>>
-  >({});
 
   const createStoryInputSignature = React.useMemo(
     () =>
@@ -169,8 +130,6 @@ export function usePathForgerFormState() {
     selectedPitch,
     setSelectedPitch,
     selectedPitchRef,
-    selectedBranch,
-    setSelectedBranch,
     defaultModel,
     setDefaultModel,
     textModel,
@@ -190,16 +149,6 @@ export function usePathForgerFormState() {
     setSelfieDataUrl,
     selfieName,
     setSelfieName,
-    isRunning,
-    setIsRunning,
-    isGeneratingChapterImages,
-    setIsGeneratingChapterImages,
-    chapterImageGenerationRunIdRef,
-    coverImageGenerationRunIdRef,
-    activeRunAction,
-    setActiveRunAction,
-    errorMessage,
-    setErrorMessage,
     coverImageByPitchKey,
     setCoverImageByPitchKey,
     pitchInputSignature,
@@ -218,16 +167,6 @@ export function usePathForgerFormState() {
     setEditingImagePromptType,
     imagePromptEditorValue,
     setImagePromptEditorValue,
-    activeOptionBranch,
-    setActiveOptionBranch,
-    revealedOptionBranches,
-    setRevealedOptionBranches,
-    optionRevealTick,
-    setOptionRevealTick,
-    forgedOutcomes,
-    setForgedOutcomes,
-    forgedOutcomeImages,
-    setForgedOutcomeImages,
     createStoryInputSignature,
   };
 }

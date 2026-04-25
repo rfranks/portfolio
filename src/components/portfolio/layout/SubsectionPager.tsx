@@ -68,6 +68,9 @@ export default function SubsectionPager({
   nextAriaLabel,
   selectorAriaLabel,
   previousButtonSx,
+  disablePrevious = false,
+  disableNext = false,
+  disableSelector = false,
   onSelect,
   onPrevious,
   onNext,
@@ -85,6 +88,9 @@ export default function SubsectionPager({
   } = useSubsectionPagerCore({
     items,
     currentKey,
+    disablePrevious,
+    disableNext,
+    disableSelector,
     onSelect,
     onPrevious,
     onNext,
@@ -281,6 +287,7 @@ export default function SubsectionPager({
             size="small"
             aria-label={previousAriaLabel}
             onClick={onPrevious}
+            disabled={disablePrevious}
             sx={previousButtonMergedSx}
           >
             <ChevronLeft fontSize="small" />
@@ -290,6 +297,7 @@ export default function SubsectionPager({
             color="primary"
             variant="outlined"
             onClick={handleSelectorOpen}
+            disabled={disableSelector}
             label={
               <Box
                 sx={{
@@ -315,6 +323,7 @@ export default function SubsectionPager({
             size="small"
             aria-label={nextAriaLabel}
             onClick={onNext}
+            disabled={disableNext}
             sx={[pagerIconButtonBaseSx, pagerIconButtonFrameSx]}
           >
             <ChevronRight fontSize="small" />
@@ -323,6 +332,7 @@ export default function SubsectionPager({
             aria-label={selectorAriaLabel}
             size="small"
             onClick={handleSelectorOpen}
+            disabled={disableSelector}
             aria-haspopup="menu"
             aria-expanded={selectorOpen ? "true" : undefined}
             aria-controls={selectorOpen ? menuId : undefined}

@@ -28,6 +28,11 @@ type SequenceAIProps = {
 
 const TYPEWRITER_CHARS_PER_TICK = 10;
 const TYPEWRITER_INTERVAL_MS = 16;
+const EXPLAIN_REQUEST_MAX_TOTAL_BASES = 12_000;
+
+function getTotalBaseCount(sequences: Sequence[]): number {
+  return sequences.reduce((total, sequence) => total + sequence.sequence.length, 0);
+}
 
 function totalChars(segments: string[]): number {
   return segments.reduce((sum, segment) => sum + segment.length, 0);
@@ -97,6 +102,10 @@ export default function SequenceAI({ activeSequences, sequences }: SequenceAIPro
   }, [activeSequences, allSequences]);
   const hasSequences = requestSequences.length > 0;
   const isSingleSequence = requestSequences.length === 1;
+  const shouldRunExplainRequest = React.useMemo(
+    () => getTotalBaseCount(requestSequences) <= EXPLAIN_REQUEST_MAX_TOTAL_BASES,
+    [requestSequences],
+  );
 
   React.useEffect(() => {
     setResponse(null);
@@ -265,17 +274,19 @@ export default function SequenceAI({ activeSequences, sequences }: SequenceAIPro
 
     let answerWon = false;
 
-    void explainHowToAnswerSequencePromptWithAI(requestSequences)
-      .then((nextExplainResponse) => {
-        if (requestIdRef.current !== requestId || answerWon) {
-          return;
-        }
+    if (shouldRunExplainRequest) {
+      void explainHowToAnswerSequencePromptWithAI(requestSequences)
+        .then((nextExplainResponse) => {
+          if (requestIdRef.current !== requestId || answerWon) {
+            return;
+          }
 
-        setExplainResponse(nextExplainResponse);
-      })
-      .catch(() => {
-        // The explainer is opportunistic. The full answer remains authoritative.
-      });
+          setExplainResponse(nextExplainResponse);
+        })
+        .catch(() => {
+          // The explainer is opportunistic. The full answer remains authoritative.
+        });
+    }
 
     try {
       const nextResponse = await explainSequencesWithAI(requestSequences);

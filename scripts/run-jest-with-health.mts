@@ -13,8 +13,10 @@ type Suite = "unit" | "a11y";
 type QualityLane =
   | "portfolio"
   | "pathforger"
+  | "blackjack"
   | "warbirds"
   | "zombiefish"
+  | "games"
   | "rickbert-studio"
   | "dna"
   | "ai-shenanigans";
@@ -29,17 +31,21 @@ const out = createCliOutput();
 const VALID_LANES: QualityLane[] = [
   "portfolio",
   "pathforger",
+  "blackjack",
   "warbirds",
   "zombiefish",
+  "games",
   "rickbert-studio",
   "dna",
   "ai-shenanigans",
 ];
 const LANE_TEST_PATTERN: Record<QualityLane, string | null> = {
   portfolio: null,
-  pathforger: "pathforger",
+  pathforger: "pathforger|PathForger",
+  blackjack: "blackjack|Blackjack",
   warbirds: "warbirds",
   zombiefish: "zombiefish",
+  games: "warbirds|zombiefish|blasteroids|bookworm|games",
   "rickbert-studio": "rickbert",
   dna: "dna",
   "ai-shenanigans": "ai-shenanigans|AIShenanigan",

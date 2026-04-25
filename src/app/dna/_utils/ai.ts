@@ -3,6 +3,7 @@ import { toJSONSchema, z } from "zod";
 import { ensureOpenAIKey } from "@/contexts/OpenAIKeyContext";
 import type { AIPrompt } from "@/types/ai/prompt";
 import { requestOpenAIChatCompletions } from "@/utils/openai/client";
+import type { HttpRequestProfileOverrides } from "@/types/network/httpClient";
 import { sequenceListSchema, sequenceSchema, type Sequence } from "../_types/types";
 
 const fastaPayloadSchema = z.object({
@@ -34,6 +35,18 @@ export const sequenceAnalysisExplainOutputSchema = z.object({
 export type SequenceAnalysisInput = z.infer<typeof sequenceAnalysisInputSchema>;
 export type SequenceAnalysisOutput = z.infer<typeof sequenceAnalysisOutputSchema>;
 export type SequenceAnalysisExplainOutput = z.infer<typeof sequenceAnalysisExplainOutputSchema>;
+
+const DNA_SEQUENCE_ANALYSIS_MODEL = "gpt-5-2025-08-07";
+const DNA_ANALYSIS_REQUEST_PROFILE_OVERRIDES: HttpRequestProfileOverrides = {
+  timeoutMs: 240_000,
+  retries: 3,
+  retryDelayMs: 1_000,
+};
+const DNA_EXPLAIN_REQUEST_PROFILE_OVERRIDES: HttpRequestProfileOverrides = {
+  timeoutMs: 45_000,
+  retries: 1,
+  retryDelayMs: 600,
+};
 
 export const sequenceAnalysisPrompt: AIPrompt<
   typeof sequenceAnalysisInputSchema,
@@ -166,35 +179,62 @@ export async function runAIPrompt<
 >(
   prompt: AIPrompt<TInputSchema, TOutputSchema>,
   rawInput: z.input<TInputSchema>,
+  options?: {
+    requestProfileOverrides?: HttpRequestProfileOverrides;
+    maxTokens?: number;
+  },
 ): Promise<z.infer<TOutputSchema>> {
   const apiKey = ensureOpenAIKey();
   const input = prompt.inputSchema.parse(rawInput);
   const outputJsonSchema = toJSONSchema(prompt.outputSchema);
-  const data = await requestOpenAIChatCompletions(apiKey, {
-    model: "gpt-5-2025-08-07",
-    messages: [
+  let data;
+
+  try {
+    data = await requestOpenAIChatCompletions(
+      apiKey,
       {
-        role: "system",
-        content: [
-          "You are a careful bioinformatics assistant.",
-          "Return only valid JSON.",
-          "The JSON must satisfy the provided output schema exactly.",
-        ].join(" "),
+        model: DNA_SEQUENCE_ANALYSIS_MODEL,
+        max_completion_tokens: options?.maxTokens,
+        messages: [
+          {
+            role: "system",
+            content: [
+              "You are a careful bioinformatics assistant.",
+              "Return only valid JSON.",
+              "The JSON must satisfy the provided output schema exactly.",
+            ].join(" "),
+          },
+          {
+            role: "user",
+            content: [
+              prompt.promptText(input),
+              "",
+              "Input payload:",
+              JSON.stringify(input, null, 2),
+              "",
+              "Output JSON schema:",
+              JSON.stringify(outputJsonSchema, null, 2),
+            ].join("\n"),
+          },
+        ],
       },
-      {
-        role: "user",
-        content: [
-          prompt.promptText(input),
-          "",
-          "Input payload:",
-          JSON.stringify(input, null, 2),
-          "",
-          "Output JSON schema:",
-          JSON.stringify(outputJsonSchema, null, 2),
-        ].join("\n"),
-      },
-    ],
-  });
+      options?.requestProfileOverrides,
+    );
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.name === "TimeoutError" ||
+        error.name === "AbortError" ||
+        error.message.toLowerCase().includes("timed out"))
+    ) {
+      throw new Error(
+        "GeneBoard AI request timed out before analysis completed. Retry or reduce the analysis scope.",
+      );
+    }
+
+    throw error;
+  }
+
   const content = extractTextContent(data?.choices?.[0]?.message?.content);
 
   if (!content) {
@@ -216,12 +256,18 @@ export async function explainSequencesWithAI(
   sequences: Sequence[],
 ): Promise<SequenceAnalysisOutput> {
   const input = buildSequenceAnalysisInput(sequences);
-  return runAIPrompt(sequenceAnalysisPrompt, input);
+  return runAIPrompt(sequenceAnalysisPrompt, input, {
+    requestProfileOverrides: DNA_ANALYSIS_REQUEST_PROFILE_OVERRIDES,
+    maxTokens: 1_200,
+  });
 }
 
 export async function explainHowToAnswerSequencePromptWithAI(
   sequences: Sequence[],
 ): Promise<SequenceAnalysisExplainOutput> {
   const input = buildSequenceAnalysisInput(sequences);
-  return runAIPrompt(sequenceAnalysisExplainPrompt, input);
+  return runAIPrompt(sequenceAnalysisExplainPrompt, input, {
+    requestProfileOverrides: DNA_EXPLAIN_REQUEST_PROFILE_OVERRIDES,
+    maxTokens: 420,
+  });
 }

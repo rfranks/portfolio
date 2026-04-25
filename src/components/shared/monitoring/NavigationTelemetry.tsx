@@ -24,7 +24,10 @@ import {
   getTimestampMs,
   mapTelemetryChannelToTimelineKind,
 } from "@/utils/observability/navigationTelemetry";
-import { PORTFOLIO_TELEMETRY_EVENT } from "@/consts/observability/telemetryEvents";
+import {
+  PORTFOLIO_MEDIA_TELEMETRY_ACTION,
+  PORTFOLIO_TELEMETRY_EVENT,
+} from "@/consts/observability/telemetryEvents";
 import { addPortfolioWindowEventListener } from "@/utils/observability/telemetryEvents";
 import type { PortfolioTelemetryEventDetail } from "@/types/observability/telemetryEvents";
 import type {
@@ -43,6 +46,11 @@ import {
   saveRouteInteractionBudgetSnapshotToStorage,
   updateRouteInteractionBudgetFromTimelineEvent,
 } from "@/utils/observability/routeInteractionBudgets";
+import {
+  loadMediaRenderPerfSnapshotFromStorage,
+  saveMediaRenderPerfSnapshotToStorage,
+  updateMediaRenderPerfSnapshot,
+} from "@/utils/observability/mediaRenderPerf";
 
 const logger = createLogger("navigation");
 const REPLAY_SPEED_OPTIONS = [0.5, 1, 1.5, 2, 3, 4] as const;
@@ -77,6 +85,7 @@ export default function NavigationTelemetry() {
   const timelinePausedRef = useRef(timelinePaused);
   const timelineEventsRef = useRef<TimelineEvent[]>([]);
   const routeInteractionBudgetSnapshotRef = useRef<RouteInteractionBudgetSnapshot | null>(null);
+  const mediaRenderPerfSnapshotRef = useRef(loadMediaRenderPerfSnapshotFromStorage());
   const replayMaxRelativeMs = replayPayload?.events.at(-1)?.relativeMs ?? 0;
 
   useEffect(() => {
@@ -98,6 +107,7 @@ export default function NavigationTelemetry() {
 
   useEffect(() => {
     routeInteractionBudgetSnapshotRef.current = loadRouteInteractionBudgetSnapshotFromStorage();
+    mediaRenderPerfSnapshotRef.current = loadMediaRenderPerfSnapshotFromStorage();
   }, []);
 
   const appendTimelineEvent = useCallback(
@@ -288,6 +298,7 @@ export default function NavigationTelemetry() {
 
         const timelineKind = mapTelemetryChannelToTimelineKind(detail.channel);
         appendTimelineEvent(timelineKind, detail.action.trim(), {
+          durationMs: detail.durationMs ?? null,
           metadata: {
             trigger: detail.trigger ?? null,
             control: detail.control ?? null,
@@ -295,8 +306,32 @@ export default function NavigationTelemetry() {
             mediaType: detail.mediaType ?? null,
             title: detail.title ?? null,
             source: detail.source ?? null,
+            durationMs:
+              typeof detail.durationMs === "number" && Number.isFinite(detail.durationMs)
+                ? Math.round(detail.durationMs)
+                : null,
           },
         });
+
+        if (
+          detail.action === PORTFOLIO_MEDIA_TELEMETRY_ACTION.FIRST_RENDER &&
+          typeof detail.mediaType === "string" &&
+          typeof detail.durationMs === "number" &&
+          Number.isFinite(detail.durationMs)
+        ) {
+          mediaRenderPerfSnapshotRef.current = updateMediaRenderPerfSnapshot({
+            current: mediaRenderPerfSnapshotRef.current,
+            mediaType: detail.mediaType,
+            durationMs: detail.durationMs,
+            itemKey: detail.itemKey ?? null,
+            route: currentPathRef.current,
+            atIso: new Date().toISOString(),
+          });
+
+          if (mediaRenderPerfSnapshotRef.current) {
+            saveMediaRenderPerfSnapshotToStorage(mediaRenderPerfSnapshotRef.current);
+          }
+        }
       },
     );
 

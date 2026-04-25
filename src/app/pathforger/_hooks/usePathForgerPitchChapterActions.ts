@@ -1,5 +1,6 @@
 import * as React from "react";
 import { initialOptionRevealState, initialOptionRevealTick } from "@/app/pathforger/_consts/consts";
+import { usePathForgerReplayFromCheckpoint } from "@/app/pathforger/_hooks/usePathForgerReplayFromCheckpoint";
 import { getPathForgerOpenAIKey } from "@/app/pathforger/_utils/openAIKey";
 import { buildPitchCoverCacheKey } from "@/app/pathforger/_utils/pitchHelpers";
 import {
@@ -18,8 +19,16 @@ import {
   PathForgerChapterResult,
 } from "../_types/pipeline";
 import { PathForgerPitchChoice } from "../_types/pitch";
+import type {
+  PathForgerBranchOutcomeSnapshot,
+  PathForgerPipelineReplayCheckpoint,
+  PathForgerPipelineRunDiagnostics,
+} from "../_types/pipelineRunInspector";
+import type {
+  PathForgerPipelineStageKey,
+  PathForgerPipelineStateSnapshot,
+} from "../_utils/pipeline/orchestrationStateMachine";
 import { ZodError } from "zod";
-
 type ActiveRunAction =
   | "name"
   | "premise"
@@ -31,7 +40,6 @@ type ActiveRunAction =
   | "pipeline"
   | "forgePath"
   | null;
-
 type OnboardingPayload = {
   genre: string;
   tone: string;
@@ -64,13 +72,10 @@ type UsePathForgerPitchChapterActionsArgs = {
   activeOptionBranch: PathForgerBranchChoice | null;
   forgedOutcomes: Partial<Record<PathForgerBranchChoice, string>>;
   createStoryInputSignature: string;
-
   chapterImageGenerationRunIdRef: React.MutableRefObject<number>;
   coverImageGenerationRunIdRef: React.MutableRefObject<number>;
-
   enqueueStatusMessage: (message: string) => void;
   clearStatusMessages: () => void;
-
   setApiKeyReady: (value: boolean) => void;
   setErrorMessage: (value: string) => void;
   setIsGeneratingChapterImages: (value: boolean) => void;
@@ -105,6 +110,7 @@ type UsePathForgerPitchChapterActionsArgs = {
   setCoverImageByPitchKey: React.Dispatch<
     React.SetStateAction<Record<string, PathForgerGeneratedImage>>
   >;
+  onPipelineRunDiagnostics?: (diagnostics: PathForgerPipelineRunDiagnostics) => void;
 };
 
 function normalizeOnboardingForPipeline(payload: OnboardingPayload): OnboardingPayload {
@@ -147,6 +153,69 @@ function resolvePitchChapterErrorMessage(error: unknown, fallback: string): stri
   }
 
   return fallback;
+}
+
+const checkpointLabelByStageKey: Record<PathForgerPipelineStageKey, string> = {
+  loadKnowledge: "Knowledge loaded",
+  generatePitches: "Pitches generated",
+  generateChapter: "Chapter generated",
+  generateImages: "Images generated",
+};
+
+function buildBranchOutcomeSnapshot(
+  pipelineResult: PathForgerPipelineResult | null,
+): PathForgerBranchOutcomeSnapshot | null {
+  if (!pipelineResult) {
+    return null;
+  }
+
+  return {
+    chapterNumber: pipelineResult.chapter.chapterNumber,
+    selectedPitch: pipelineResult.selectedPitch,
+    chapterTitle: pipelineResult.chapter.chapterTitle,
+    outcomeA: pipelineResult.chapter.outcomeAMarkdown,
+    outcomeB: pipelineResult.chapter.outcomeBMarkdown,
+    pathLedgerMarkdown: pipelineResult.chapter.pathLedgerMarkdown,
+  };
+}
+
+function buildReplayCheckpoints(params: {
+  runId: string;
+  snapshot: PathForgerPipelineStateSnapshot | null;
+  pipelineResult: PathForgerPipelineResult | null;
+  selectedBranch: "" | PathForgerBranchChoice;
+}): PathForgerPipelineReplayCheckpoint[] {
+  if (!params.snapshot) {
+    return [];
+  }
+
+  return params.snapshot.events
+    .filter(
+      (
+        event,
+      ): event is { type: "stage:complete"; stageKey: PathForgerPipelineStageKey; atMs: number } =>
+        event.type === "stage:complete" && Boolean(event.stageKey),
+    )
+    .map((event, index) => {
+      const hasPitches = Boolean(params.pipelineResult?.pitches);
+      const hasChapter = Boolean(params.pipelineResult?.chapter);
+      const selectedPitch = params.pipelineResult?.selectedPitch;
+
+      return {
+        checkpointId: `${params.runId}-${event.stageKey}-${event.atMs}-${index}`,
+        stageKey: event.stageKey,
+        capturedAtMs: event.atMs,
+        label: checkpointLabelByStageKey[event.stageKey] ?? event.stageKey,
+        selectedPitch,
+        selectedBranch: params.selectedBranch || undefined,
+        pitches: hasPitches ? params.pipelineResult?.pitches : undefined,
+        chapter:
+          hasChapter &&
+          (event.stageKey === "generateChapter" || event.stageKey === "generateImages")
+            ? params.pipelineResult?.chapter
+            : undefined,
+      };
+    });
 }
 
 export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapterActionsArgs) {
@@ -194,6 +263,7 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
     setChapterOutcomeModalOpen,
     setResult,
     setCoverImageByPitchKey,
+    onPipelineRunDiagnostics,
   } = args;
 
   const resolveCurrentPitchSelection = (pitches: PathForgerPitchResult): PathForgerPitchChoice => {
@@ -615,6 +685,13 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
   };
 
   const handleRunPipeline = async () => {
+    const runId = `pathforger-run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const runStartIso = new Date().toISOString();
+    let replaySnapshot: PathForgerPipelineStateSnapshot | null = null;
+    let pipelineResultForDiagnostics: PathForgerPipelineResult | null = null;
+    let resolvedTextModelForTrace = textModel || resolvedDefaultModel;
+    let resolvedImageModelForTrace = imageModel || resolvedDefaultModel;
+
     setErrorMessage("");
     setResult(null);
     setChapterOnlyResult(null);
@@ -667,7 +744,16 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
         (progress) => {
           enqueueStatusMessage(progress.message);
         },
+        {
+          onReplaySnapshot: (snapshot) => {
+            replaySnapshot = snapshot;
+          },
+        },
       );
+
+      resolvedTextModelForTrace = pipelineResult.textModel;
+      resolvedImageModelForTrace = pipelineResult.imageModel;
+      pipelineResultForDiagnostics = pipelineResult;
 
       setResult(pipelineResult);
       setPitchOnlyResult(pipelineResult.pitches);
@@ -690,11 +776,110 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
     } catch (error) {
       setErrorMessage(resolvePitchChapterErrorMessage(error, "PathForger pipeline failed."));
     } finally {
+      if (replaySnapshot && onPipelineRunDiagnostics) {
+        const branchOutcomeSnapshot = buildBranchOutcomeSnapshot(pipelineResultForDiagnostics);
+        const replayCheckpoints = buildReplayCheckpoints({
+          runId,
+          snapshot: replaySnapshot,
+          pipelineResult: pipelineResultForDiagnostics,
+          selectedBranch,
+        });
+        onPipelineRunDiagnostics({
+          runId,
+          capturedAtIso: new Date().toISOString(),
+          requestedTextModel: textModel || resolvedDefaultModel,
+          requestedImageModel: imageModel || resolvedDefaultModel,
+          resolvedTextModel: resolvedTextModelForTrace,
+          resolvedImageModel: resolvedImageModelForTrace,
+          snapshot: replaySnapshot,
+          stageModelTrace: [
+            {
+              stageKey: "loadKnowledge",
+              traceType: "knowledge",
+              model: "local knowledge docs",
+            },
+            {
+              stageKey: "generatePitches",
+              traceType: "text",
+              model: resolvedTextModelForTrace,
+            },
+            {
+              stageKey: "generateChapter",
+              traceType: "text",
+              model: resolvedTextModelForTrace,
+            },
+            {
+              stageKey: "generateImages",
+              traceType: "image",
+              model: resolvedImageModelForTrace,
+            },
+          ],
+          checkpoints: replayCheckpoints,
+          branchOutcomeSnapshot,
+        });
+      } else if (onPipelineRunDiagnostics) {
+        onPipelineRunDiagnostics({
+          runId,
+          capturedAtIso: runStartIso,
+          requestedTextModel: textModel || resolvedDefaultModel,
+          requestedImageModel: imageModel || resolvedDefaultModel,
+          resolvedTextModel: resolvedTextModelForTrace,
+          resolvedImageModel: resolvedImageModelForTrace,
+          snapshot: {
+            state: "failed",
+            startedAtMs: Date.now(),
+            completedAtMs: Date.now(),
+            stages: [],
+            events: [],
+            lastErrorMessage: "Pipeline run exited before replay snapshot was captured.",
+          },
+          stageModelTrace: [],
+          checkpoints: [],
+          branchOutcomeSnapshot: null,
+        });
+      }
+
       clearStatusMessages();
       setIsRunning(false);
       setActiveRunAction(null);
     }
   };
+
+  const handleReplayFromCheckpoint = usePathForgerReplayFromCheckpoint({
+    buildOnboardingPayload,
+    normalizeOnboardingForPipeline,
+    resolvedDefaultModel,
+    imageModel,
+    selfieDataUrl,
+    renderImages,
+    coverImageByPitchKey,
+    createStoryInputSignature,
+    chapterImageGenerationRunIdRef,
+    selectedPitchRef,
+    handleGenerateChapterPackageForPitch,
+    enqueueStatusMessage,
+    clearStatusMessages,
+    setApiKeyReady,
+    setErrorMessage,
+    setIsGeneratingChapterImages,
+    setActiveOptionBranch,
+    setRevealedOptionBranches,
+    setOptionRevealTick,
+    setForgedOutcomes,
+    setForgedOutcomeImages,
+    setIsRunning,
+    setActiveRunAction,
+    setPitchOnlyResult,
+    setPitchInputSignature,
+    setSelectedPitch,
+    setChapterOnlyResult,
+    setImagePromptDrafts,
+    setImagePromptOverrides,
+    setSelectedBranch,
+    setContinueModalOpen,
+    setChapterOutcomeModalOpen,
+    setResult,
+  });
 
   const handleSelectPitchFromModal = (pitchChoice: PathForgerPitchChoice) => {
     setSelectedPitch(pitchChoice);
@@ -707,6 +892,7 @@ export function usePathForgerPitchChapterActions(args: UsePathForgerPitchChapter
     handleGenerateNextChapter,
     handlePitchModalOk,
     handleRunPipeline,
+    handleReplayFromCheckpoint,
     handleSelectPitchFromModal,
     resolveCurrentPitchSelection,
   };

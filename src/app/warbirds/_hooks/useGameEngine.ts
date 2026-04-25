@@ -44,10 +44,6 @@ import {
   HOMING_MISSILE_SIZE,
   SCORE_HOMING_BONUS,
   SCORE_MACHINE_GUN_BONUS,
-  SPRAY_DECREMENTS_AMMO,
-  SPRAY_COUNT,
-  SPRAY_SPREAD,
-  SPRAY_INTERVAL,
   AUTO_RELOAD_INTERVAL,
 } from "@/consts/game/powerups";
 import { SCORE_DIGIT_WIDTH, SCORE_DIGIT_HEIGHT } from "@/consts/game/ui";
@@ -66,17 +62,17 @@ import {
   AIRSHIP_MIN_SPEED,
   AIRSHIP_MAX_SPEED,
 } from "@/consts/game/vehicles";
-import { useWindowSize } from "@/hooks/window/useWindowSize";
-import useScaledClock, {
+import {
   clockRef,
   setScaledTimeout,
   clearScaledTimeout,
   advanceClock,
 } from "@/hooks/time/useScaledClock";
+import { useArcadeEngineCore } from "@/hooks/game/useArcadeEngineCore";
+import { useArcadeUiSnapshotSync } from "@/hooks/game/useArcadeUiSnapshotSync";
 import { AudioMgr } from "@/types/audio/audio";
 import { Puff } from "@/types/game/effects";
 import { PowerupType, AntiPowerupType, Duck } from "@/types/game/objects";
-import type { ClickEvent } from "@/types/game/events";
 import { AssetMgr } from "@/types/game/ui";
 import { Enemy } from "@/types/game/vehicles";
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
@@ -109,10 +105,8 @@ import {
   DEBUG_PLAYER_CRASH,
   INITIAL_ENEMY_DENSITY,
   ENEMY_DENSITY_STEP,
-  SHOT_CURSOR,
   DEBUG_FPS_SCALE,
 } from "../_constants";
-import { BASE_DIMS } from "@/consts/game/dimensions";
 import { GameState, GameUIState } from "../_types";
 import { initState } from "../_utils";
 import { useGameAssets } from "./useGameAssets";
@@ -124,16 +118,81 @@ import {
   randomTree,
   randomWater,
 } from "@/utils/game/environment";
-import { mapClientPointToWorld, pickRandom, rectsOverlap } from "@/utils/game/engine2d";
+import { pickRandom, rectsOverlap } from "@/utils/game/engine2d";
 import { drawTextLabels, newTextLabel } from "@/utils/game/ui";
 import { ScaledTimeoutHandle } from "@/types/hooks/time";
 import { runWarbirdsSingleShot } from "./useGameEngineShot";
-import { createGameSimulationRuntime } from "@/utils/game/simulationRuntime";
+import { createWarbirdsInputStage } from "./stages/inputStage";
+import { runWarbirdsPlayerCollisionStage } from "./stages/collisionStage";
+import { configureWarbirdsCanvasRenderingStage } from "./stages/renderingStage";
+import { startWarbirdsDynamicDensitySimulationStage } from "./stages/simulationStage";
+import { applyWarbirdsScoreDelta, runWarbirdsMedalAutoCollectStage } from "./stages/scoringStage";
+
+const cloneWarbirdsActivePowerups = (activePowerups: GameState["activePowerups"]) =>
+  Object.fromEntries(
+    Object.entries(activePowerups).map(([type, powerup]) => [
+      type as PowerupType,
+      { expires: powerup.expires },
+    ]),
+  ) as Record<PowerupType, { expires: number }>;
+
+const calculateWarbirdsAccuracyPct = (state: GameState): number =>
+  state.shotsFired > 0 ? (state.shotsHit / state.shotsFired) * 100 : 0;
+
+const selectWarbirdsUiSnapshot = (state: GameState): GameUIState => ({
+  score: state.score,
+  medalCount: state.medalCount,
+  duckCount: state.duckCount,
+  enemyCount: state.enemyCount,
+  ammo: state.ammo,
+  crashed: state.crashed,
+  activePowerups: cloneWarbirdsActivePowerups(state.activePowerups),
+  frameCount: state.frameCount,
+  cursor: state.cursor,
+  countdown: state.countdown,
+  phase: state.phase,
+});
+
+const isWarbirdsUiSnapshotEqual = (prev: GameUIState, next: GameUIState) => {
+  if (
+    prev.score !== next.score ||
+    prev.medalCount !== next.medalCount ||
+    prev.duckCount !== next.duckCount ||
+    prev.enemyCount !== next.enemyCount ||
+    prev.ammo !== next.ammo ||
+    prev.crashed !== next.crashed ||
+    prev.frameCount !== next.frameCount ||
+    prev.cursor !== next.cursor ||
+    prev.countdown !== next.countdown ||
+    prev.phase !== next.phase
+  ) {
+    return false;
+  }
+
+  const prevPowerupKeys = Object.keys(prev.activePowerups) as PowerupType[];
+  const nextPowerupKeys = Object.keys(next.activePowerups) as PowerupType[];
+  if (prevPowerupKeys.length !== nextPowerupKeys.length) {
+    return false;
+  }
+
+  for (const key of prevPowerupKeys) {
+    if (prev.activePowerups[key]?.expires !== next.activePowerups[key]?.expires) {
+      return false;
+    }
+  }
+
+  return true;
+};
 
 export function useGameEngine() {
   // ─── REFS & STATE ─────────────────────────────────────────────────────────
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number | null>(null);
+  const { arcadeProfile, canvasRef, screenDims, dims, simulationRuntime } = useArcadeEngineCore({
+    arcadeGameId: "warbirds",
+    debugName: "warbirds",
+    debugFps: DEBUG_FPS_SCALE,
+  });
+  const startArcadeSession = arcadeProfile.startSession;
+  const finishArcadeSession = arcadeProfile.finishSession;
 
   const audioMgr: AudioMgr = useGameAudio();
   const { play, pause } = audioMgr;
@@ -141,98 +200,34 @@ export function useGameEngine() {
   const assetMgr: AssetMgr = useGameAssets();
   const { getImg, ready } = assetMgr;
 
-  // ─── WINDOW RESIZE ────────────────────────────────────────────────────────
-  const screenDims = useWindowSize();
-  const dims = BASE_DIMS;
-
   const state = useRef<GameState>(initState(dims, assetMgr, audioMgr));
 
   const loopStartedRef = useRef(false);
   const densityTimeoutRef = useRef<ScaledTimeoutHandle | null>(null);
-  const reportIntervalMs = 500;
-  useScaledClock();
-  const simulationRuntime = useMemo(
-    () =>
-      createGameSimulationRuntime<ScaledTimeoutHandle>({
-        frameRef: animationFrameRef,
-        setTimeoutFn: setScaledTimeout,
-        clearTimeoutFn: clearScaledTimeout,
-      }),
-    [],
-  );
+  const sessionCompletedRef = useRef(false);
+  const arcadeSessionActiveRef = useRef(arcadeProfile.isSessionActive);
 
   const [ui, setUI] = useState<GameUIState>({
     ...state.current,
   } as GameUIState);
 
   useEffect(() => {
-    if (!DEBUG_FPS_SCALE) return;
-    const id = setInterval(() => {
-      const { deltaMs, scale } = clockRef.current;
-      const fps = 1000 / deltaMs;
-      console.debug(`[warbirds] fps: ${fps.toFixed(1)} scale: ${scale.toFixed(2)}`);
-    }, reportIntervalMs);
-    return () => clearInterval(id);
-  }, [reportIntervalMs]);
+    arcadeSessionActiveRef.current = arcadeProfile.isSessionActive;
+  }, [arcadeProfile.isSessionActive]);
 
   // --- Helper Functions ---
 
   // ─── GAME STATE HELPERS ──────────────────────────────────────────────
-  const syncUIFromState = useCallback(() => {
-    const cur = state.current;
-    // Only update if something changed
-    if (
-      ui.score !== cur.score ||
-      ui.medalCount !== cur.medalCount ||
-      ui.duckCount !== cur.duckCount ||
-      ui.enemyCount !== cur.enemyCount ||
-      ui.ammo !== cur.ammo ||
-      ui.crashed !== cur.crashed ||
-      ui.frameCount !== cur.frameCount ||
-      JSON.stringify(ui.activePowerups) !== JSON.stringify(cur.activePowerups) ||
-      ui.cursor !== cur.cursor ||
-      ui.countdown !== cur.countdown ||
-      ui.phase !== cur.phase
-    ) {
-      setUI({
-        score: cur.score,
-        medalCount: cur.medalCount,
-        duckCount: cur.duckCount,
-        enemyCount: cur.enemyCount,
-        ammo: cur.ammo,
-        crashed: cur.crashed,
-        activePowerups: Object.fromEntries(
-          Object.entries(cur.activePowerups).map(([type, powerup]) => [
-            type as PowerupType,
-            { expires: powerup.expires },
-          ]),
-        ) as Record<PowerupType, { expires: number }>,
-        frameCount: cur.frameCount,
-        cursor: cur.cursor,
-        countdown: cur.countdown,
-        phase: cur.phase,
-      });
-    }
-  }, [
-    ui.score,
-    ui.medalCount,
-    ui.duckCount,
-    ui.enemyCount,
-    ui.ammo,
-    ui.crashed,
-    ui.frameCount,
-    ui.activePowerups,
-    ui.cursor,
-    ui.countdown,
-    ui.phase,
-  ]);
+  const syncUIFromState = useArcadeUiSnapshotSync({
+    stateRef: state,
+    setUI,
+    selectSnapshot: selectWarbirdsUiSnapshot,
+    isEqual: isWarbirdsUiSnapshotEqual,
+  });
 
   const changeScore = useCallback(
     (delta: number) => {
-      const doubleScore = state.current.isActive("coin2x", state.current.frameCount) && delta > 0;
-      const final = doubleScore ? delta * 2 : delta;
-
-      state.current.score += Math.max(final, 0);
+      applyWarbirdsScoreDelta(state, delta);
     },
     [state],
   );
@@ -395,6 +390,24 @@ export function useGameEngine() {
   // ─── GAME INIT + SPLASH ──────────────────────────────────────────────
   // ─── SPLASH + PRELOAD ─────────────────────────────────────────────────────
   const startSplash = useCallback(() => {
+    if (arcadeSessionActiveRef.current && !sessionCompletedRef.current) {
+      finishArcadeSession({
+        completed: false,
+        score: state.current.score,
+        accuracyPct: calculateWarbirdsAccuracyPct(state.current),
+        medalsCollected: state.current.medalCount,
+        stats: {
+          shotsFired: state.current.shotsFired,
+          hits: state.current.shotsHit,
+          ducksCollected: state.current.duckCount,
+          enemiesDowned: state.current.enemyCount,
+        },
+      });
+    }
+    startArcadeSession();
+    arcadeSessionActiveRef.current = true;
+    sessionCompletedRef.current = false;
+
     simulationRuntime.stopLoop();
 
     state.current.countdownTimeouts.forEach(clearScaledTimeout);
@@ -498,7 +511,17 @@ export function useGameEngine() {
       }, 3500),
     );
     play("flightSfx");
-  }, [dims, assetMgr, audioMgr, getImg, play, simulationRuntime]);
+  }, [
+    arcadeSessionActiveRef,
+    dims,
+    assetMgr,
+    audioMgr,
+    finishArcadeSession,
+    getImg,
+    play,
+    simulationRuntime,
+    startArcadeSession,
+  ]);
 
   // ─── INIT & RENDER LOOP ───────────────────────────────────────────────────
   const initLoop = useCallback(() => {
@@ -519,14 +542,13 @@ export function useGameEngine() {
 
     const { width, height } = dims;
     const { width: screenW, height: screenH } = screenDims;
-    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-    const scaleX = screenW / width;
-    const scaleY = screenH / height;
-    canvas.width = screenW * dpr;
-    canvas.height = screenH * dpr;
-    canvas.style.width = `${screenW}px`;
-    canvas.style.height = `${screenH}px`;
-    ctx.scale(scaleX * dpr, scaleY * dpr);
+    configureWarbirdsCanvasRenderingStage({
+      canvas,
+      ctx,
+      screenWidth: screenW,
+      screenHeight: screenH,
+      dims,
+    });
 
     resetState();
     // ensure we stay in the playing phase after resetting state
@@ -1187,140 +1209,25 @@ export function useGameEngine() {
         autoFlap();
       }
 
-      // physics + collision
-      if (!state.current.crashed) {
-        state.current.vy += gravity;
-        state.current.y += state.current.vy;
+      runWarbirdsPlayerCollisionStage({
+        stateRef: state,
+        gravity,
+        groundY,
+        play,
+        pause,
+        getImg,
+        onAutoFlap: autoFlap,
+        debugPlayerCrash: DEBUG_PLAYER_CRASH,
+        enableAutoFlap: ENABLE_AUTO_FLAP,
+      });
 
-        if (state.current.isActive("turbulence", state.current.frameCount)) {
-          state.current.vy += (Math.random() * 2 - 1) * 0.5;
-          state.current.y += (Math.random() * 2 - 1) * SCRAMBLE_INTENSITY;
-          state.current.planeAngle += (Math.random() * 2 - 1) * 0.2;
-        }
-
-        // collision with ground
-        if (state.current.y + PLANE_HEIGHT >= groundY) {
-          if (ENABLE_AUTO_FLAP) {
-            autoFlap(); // flap to avoid crash
-          } else {
-            // just sit on the ground (but never “die”)
-            state.current.y = groundY - PLANE_HEIGHT;
-            // you can still emit smoke once
-            if (!state.current.crashHandled) {
-              state.current.groundCrashPuffsLeft = SMOKE_TRAIL_COUNT;
-              state.current.crashHandled = true;
-            }
-          }
-        }
-
-        // collision between player & any enemy ⇒ both go on fire & fall
-        if (!state.current.isActive("ghost", state.current.frameCount) && !state.current.crashed) {
-          state.current.enemies.forEach((e) => {
-            const px = PLANE_OFFSET_X + PLANE_WIDTH / 2;
-            const py = state.current.y + PLANE_HEIGHT / 2;
-
-            if (
-              e.x < px + PLANE_WIDTH / 2 &&
-              e.x + ENEMY_WIDTH > px - PLANE_WIDTH / 2 &&
-              e.y < py + PLANE_HEIGHT / 2 &&
-              e.y + ENEMY_HEIGHT > py - PLANE_HEIGHT / 2
-            ) {
-              state.current.crashed = true;
-              state.current.groundContactFrames = 0;
-
-              e.alive = false;
-              const explosionImgs = getImg("explosionImgs") as HTMLImageElement[];
-
-              // spawn enemy falling-on-fire
-              const randExpE = explosionImgs[Math.floor(Math.random() * explosionImgs.length)];
-              state.current.falling.push({
-                x: e.x,
-                y: e.y,
-                vy: 0,
-                img: randExpE,
-              });
-              // spawn player falling-on-fire
-              const randExpP = explosionImgs[Math.floor(Math.random() * explosionImgs.length)];
-              state.current.falling.push({
-                x: PLANE_OFFSET_X,
-                y: state.current.y,
-                vy: 0,
-                img: randExpP,
-              });
-            }
-          });
-        }
-
-        if (
-          state.current.crashed &&
-          !DEBUG_PLAYER_CRASH &&
-          !state.current.isActive("ghost", state.current.frameCount)
-        ) {
-          if (
-            state.current.isActive("shield", state.current.frameCount) ||
-            state.current.isActive("supershield", state.current.frameCount)
-          ) {
-            // consume regular shield once
-            if (state.current.isActive("shield", state.current.frameCount)) {
-              state.current.activePowerups.shield.expires = 0;
-            }
-            // trigger shield flash
-            state.current.shieldFlash = 10;
-            // shielded so no crash
-            state.current.crashed = false;
-            // play shield sound
-            play("shieldSfx");
-          } else {
-            state.current.crashed = true;
-
-            Object.keys(state.current.activePowerups).forEach((key) => {
-              state.current.activePowerups[key as PowerupType].expires = 0; // one‐time use
-            });
-
-            play("crashSfx");
-            pause("flightSfx");
-          }
-        }
-      }
-
-      // ─── AUTO-COLLECT MEDALS ON PLANE COLLISION ───────────────────────────────
-      const planeX = PLANE_OFFSET_X;
-      const planeY = state.current.y;
-      const planeW = PLANE_WIDTH;
-      const planeH = PLANE_HEIGHT;
-
-      const planeCenter = {
-        x: PLANE_OFFSET_X + PLANE_WIDTH / 2,
-        y: state.current.y + PLANE_HEIGHT / 2,
-      };
-
-      for (let i = state.current.medals.length - 1; i >= 0; i--) {
-        const m = state.current.medals[i];
-        // bounding‐box test
-        if (
-          m.x < planeX + planeW &&
-          m.x + MEDAL_SIZE > planeX &&
-          m.y < planeY + planeH &&
-          m.y + MEDAL_SIZE > planeY
-        ) {
-          // collect it!
-          play("medalSfx");
-
-          changeScore(MEDAL_SCORE);
-          state.current.floatingScores.push({
-            x: m.x + MEDAL_SIZE / 2,
-            y: m.y + MEDAL_SIZE / 2,
-            vy: -1,
-            amount: MEDAL_SCORE,
-            age: 0,
-            maxAge: 60,
-          });
-
-          state.current.medals.splice(i, 1);
-
-          state.current.medalCount++;
-        }
-      }
+      const planeCenter = runWarbirdsMedalAutoCollectStage({
+        stateRef: state,
+        play,
+        changeScore,
+        medalSize: MEDAL_SIZE,
+        medalScore: MEDAL_SCORE,
+      });
 
       // ─── draw medals ─────────────────────────────────────────────────
       state.current.medals.forEach((m, idx) => {
@@ -2348,8 +2255,11 @@ export function useGameEngine() {
 
         if (state.current.isActive("coin2x", state.current.frameCount)) {
           const powerupImgs = getImg("powerupImgs") as Record<string, HTMLImageElement>;
+          const coin2xImg = powerupImgs.coin2x ?? powerupImgs.shield;
           // after pushing +final, also push a little coin2x sprite
-          ctx.drawImage(powerupImgs.coin2x, dx, fs.y - 64, SCORE_DIGIT_HEIGHT, SCORE_DIGIT_HEIGHT);
+          if (coin2xImg) {
+            ctx.drawImage(coin2xImg, dx, fs.y - 64, SCORE_DIGIT_HEIGHT, SCORE_DIGIT_HEIGHT);
+          }
         }
 
         // move & age
@@ -2600,6 +2510,7 @@ export function useGameEngine() {
     simulationRuntime.startLoop(render);
   }, [
     getImg,
+    canvasRef,
     dims,
     screenDims,
     resetState,
@@ -2621,20 +2532,14 @@ export function useGameEngine() {
     if (ui.phase === "playing" && state.current.frameCount === 0) {
       loopStartedRef.current = false; // <-- RESET guard on new game
       initLoop();
-
-      // reset and ramp up spawn rate
-      state.current.dynamicDensity = INITIAL_ENEMY_DENSITY;
-
-      const scheduleDensityIncrease = () => {
-        state.current.dynamicDensity += ENEMY_DENSITY_STEP;
-      };
-      simulationRuntime.scheduleSpawner({
-        handleRef: densityTimeoutRef,
-        shouldContinue: () => state.current.phase === "playing",
-        getDelayMs: () => 45000,
-        spawn: scheduleDensityIncrease,
+      return startWarbirdsDynamicDensitySimulationStage({
+        stateRef: state,
+        densityTimeoutRef,
+        simulationRuntime,
+        initialEnemyDensity: INITIAL_ENEMY_DENSITY,
+        enemyDensityStep: ENEMY_DENSITY_STEP,
+        delayMs: 45000,
       });
-      return () => simulationRuntime.clearTimeout(densityTimeoutRef);
     }
   }, [ui.phase, initLoop, simulationRuntime]);
 
@@ -2646,14 +2551,13 @@ export function useGameEngine() {
       if (!canvas || !ctx) return;
       const { width: screenW, height: screenH } = screenDims;
       const { width, height } = dims;
-      const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-      const scaleX = screenW / width;
-      const scaleY = screenH / height;
-      canvas.width = screenW * dpr;
-      canvas.height = screenH * dpr;
-      canvas.style.width = `${screenW}px`;
-      canvas.style.height = `${screenH}px`;
-      ctx.scale(scaleX * dpr, scaleY * dpr);
+      configureWarbirdsCanvasRenderingStage({
+        canvas,
+        ctx,
+        screenWidth: screenW,
+        screenHeight: screenH,
+        dims,
+      });
       const render = ({ deltaMs }: { deltaMs: number }) => {
         advanceClock(deltaMs);
         ctx.fillStyle = SKY_COLOR;
@@ -2669,95 +2573,50 @@ export function useGameEngine() {
     }
   }, [ui.phase, screenDims, canvasRef, dims, simulationRuntime]);
 
-  // ─── CLICK TO FLAP & FIRE ─────────────────────────────────────────────────
-  const handleClick = (e: ClickEvent) => {
-    // out of play or no ammo → reload flash
-    if (ui.phase !== "playing" || ui.crashed || ui.ammo <= 0) {
-      if (state.current.ammo <= 1) {
-        const x = 100,
-          y = dims.height / 2;
-        for (let i = 0; i < 3; i++) {
-          setScaledTimeout(() => makeText("RELOAD", 2, true, true, x, y, 30), i * 200);
-        }
-      }
-      return;
-    }
-
-    // determine spray vs single
-    const isSpray = state.current.isActive("spray", state.current.frameCount);
-    const decrement = isSpray
-      ? Math.min(SPRAY_DECREMENTS_AMMO ? SPRAY_COUNT : 1, state.current.ammo)
-      : 1;
-    const newAmmo = state.current.isActive("infiniteAmmo", state.current.frameCount)
-      ? state.current.ammo
-      : Math.max(0, state.current.ammo - decrement);
-
-    state.current.ammo = newAmmo;
-    const blindActive = state.current.isActive("blindfold", state.current.frameCount);
-    if (!blindActive) {
-      state.current.cursor = SHOT_CURSOR;
-
-      // reset cursor after a short delay
-      setScaledTimeout(() => {
-        if (!state.current.isActive("blindfold", state.current.frameCount)) {
-          state.current.cursor = DEFAULT_CURSOR;
-        }
-      }, 100);
-    }
-
-    // compute base click coords
-    const worldPoint = mapClientPointToWorld({
-      clientX: e.clientX,
-      clientY: e.clientY,
-      bounds: canvasRef.current!.getBoundingClientRect(),
-      worldWidth: dims.width,
-      worldHeight: dims.height,
-    });
-    const baseX = worldPoint.x;
-    const baseY = worldPoint.y;
-
-    if (isSpray) {
-      // fire that many pellets, each random‐offset & delayed
-      for (let i = 0; i < SPRAY_COUNT; i++) {
-        const dx = (Math.random() * 2 - 1) * SPRAY_SPREAD;
-        const dy = (Math.random() * 2 - 1) * SPRAY_SPREAD;
-        setScaledTimeout(() => doSingleShot(baseX + dx, baseY + dy), i * SPRAY_INTERVAL);
-      }
-    } else {
-      // single shot
-      doSingleShot(baseX, baseY);
-    }
-  };
-
-  // ─── RIGHT-CLICK TO RELOAD ───────────────────────────────────────────────
-  const handleContext = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (
-      state.current.phase === "playing" &&
-      !state.current.crashed &&
-      state.current.ammo < MAX_AMMO
-    ) {
-      play("reloadSfx");
-
-      changeScore(SCORE_RELOAD);
-
-      state.current.ammo = MAX_AMMO;
-      state.current.floatingScores.push({
-        x: Math.random() * dims.width,
-        y: Math.random() * dims.height,
-        vy: -1,
-        amount: SCORE_RELOAD,
-        age: 0,
-        maxAge: 60,
-      });
-    }
-  };
+  const { handleClick, handleContext } = useMemo(
+    () =>
+      createWarbirdsInputStage({
+        ui,
+        stateRef: state,
+        canvasRef,
+        dims,
+        makeText,
+        doSingleShot,
+        play,
+        changeScore,
+      }),
+    [ui, state, canvasRef, dims, makeText, doSingleShot, play, changeScore],
+  );
 
   // ─── RESET ON GAME OVER ───────────────────────────────────────────────────
   const resetGame = useCallback(() => {
     play("gameOverSfx");
     startSplash();
   }, [play, startSplash]);
+
+  useEffect(() => {
+    if (!ui.crashed || sessionCompletedRef.current) {
+      return;
+    }
+
+    sessionCompletedRef.current = true;
+    finishArcadeSession({
+      completed: true,
+      score: state.current.score,
+      accuracyPct: calculateWarbirdsAccuracyPct(state.current),
+      medalsCollected: state.current.medalCount,
+      stats: {
+        shotsFired: state.current.shotsFired,
+        hits: state.current.shotsHit,
+        ducksCollected: state.current.duckCount,
+        enemiesDowned: state.current.enemyCount,
+        activePowerupCount: Object.values(state.current.activePowerups).filter(
+          (powerup) => powerup.expires > state.current.frameCount,
+        ).length,
+      },
+    });
+    arcadeSessionActiveRef.current = false;
+  }, [finishArcadeSession, ui.crashed]);
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -2770,16 +2629,29 @@ export function useGameEngine() {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [resetGame, startSplash]);
 
-  // ─── CLEANUP ─────────────────────────────────────────────
   useEffect(() => {
     return () => {
-      // Cancel all timers, animation frames, etc. on unmount
-      simulationRuntime.stopLoop();
+      if (!arcadeSessionActiveRef.current || sessionCompletedRef.current) {
+        return;
+      }
+      finishArcadeSession({
+        completed: false,
+        score: state.current.score,
+        accuracyPct: calculateWarbirdsAccuracyPct(state.current),
+        medalsCollected: state.current.medalCount,
+        stats: {
+          shotsFired: state.current.shotsFired,
+          hits: state.current.shotsHit,
+          ducksCollected: state.current.duckCount,
+          enemiesDowned: state.current.enemyCount,
+        },
+      });
     };
-  }, [simulationRuntime]);
+  }, [finishArcadeSession]);
 
   // ─── PUBLIC API: EXPORTED VALUES AND CALLBACKS ───────────────
   return {
+    arcadeProfile,
     ui,
     setUI,
     canvasRef,

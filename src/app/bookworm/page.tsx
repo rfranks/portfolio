@@ -19,6 +19,7 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import "@fontsource/gloria-hallelujah/400.css";
 
 import "./page.css"; // Ensure global styles are applied
 import { hasOpenAIKey, setOpenAIKey } from "@/app/bookworm/_utils/utils";
@@ -27,10 +28,12 @@ import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
 import { useResumeData } from "@/providers/ResumeDataProvider";
+import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 import getBookwormLandingTheme from "@/app/bookworm/_theme/getBookwormLandingTheme";
 
 export default function BookwormPage() {
   const { portfolioApps } = useResumeData();
+  const bookwormRoute = getPortfolioAppRouteContract(portfolioApps, "bookworm");
   const { mode, toggleColorMode, isReady } = useColorModePreference({
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
   });
@@ -40,8 +43,8 @@ export default function BookwormPage() {
   const { setDocumentTitle } = useDocumentTitle();
 
   React.useEffect(() => {
-    setDocumentTitle(portfolioApps.bookworm.documentTitle);
-  }, [portfolioApps.bookworm.documentTitle, setDocumentTitle]);
+    setDocumentTitle(bookwormRoute.documentTitle);
+  }, [bookwormRoute.documentTitle, setDocumentTitle]);
 
   if (!isReady) {
     return null;
@@ -62,8 +65,8 @@ export default function BookwormPage() {
       <ThemeProvider theme={defaultTheme}>
         <CssBaseline enableColorScheme />
         <OpenAIKeyInterstitialContent
-          appName={portfolioApps.bookworm.interstitialAppName}
-          logoAlt={portfolioApps.bookworm.interstitialLogoAlt}
+          appName={bookwormRoute.interstitialAppName}
+          logoAlt={bookwormRoute.interstitialLogoAlt}
           value={draftKey}
           onChange={setDraftKey}
           onSubmit={handleSubmit}

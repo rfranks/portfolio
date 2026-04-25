@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import Autocomplete from "@mui/material/Autocomplete";
 import Badge from "@mui/material/Badge";
@@ -39,6 +39,7 @@ import SequencesTable from "./SequencesTable";
 import AddSequenceCard from "./AddSequenceCard";
 import SequenceAI from "./SequenceAI";
 import { ChartMethod, Sequence } from "../_types/types";
+import { useSequencePlaybackLoop } from "../_hooks/useSequencePlaybackLoop";
 import { withBasePath } from "@/utils/basePath";
 import AppBar from "@/components/portfolio/layout/AppBar";
 import Drawer from "@/components/portfolio/layout/Drawer";
@@ -58,10 +59,7 @@ export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardP
   const [open, setOpen] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<"table" | "visualization" | "ai">("table");
   const [isAddSequenceModalOpen, setIsAddSequenceModalOpen] = useState<boolean>(false);
-  const [playInterval, setPlayInterval] = useState<ReturnType<typeof setInterval> | null>(null);
   const [sequences, setSequences] = useState<Record<string, Sequence>>({});
-
-  const playRef = useRef<HTMLButtonElement | null>(null);
 
   const firstActiveSequence = activeSequences?.[0];
   const maxBasePair = bpRange?.[1] || firstActiveSequence?.sequence.length || 1;
@@ -72,6 +70,11 @@ export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardP
       : activeSequenceTitle;
 
   const sequenceKeys = Object.keys(sequences || {});
+  const { isPlaying, startPlayback, stopPlayback } = useSequencePlaybackLoop({
+    sequenceLength: firstActiveSequence?.sequence.length || 0,
+    bpRange,
+    onBpRangeUpdate: (nextBpRange) => setBpRange(nextBpRange),
+  });
 
   function toggleDrawer() {
     setOpen(!open);
@@ -125,10 +128,7 @@ export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardP
   }
 
   function handleDeleteSequence(sequenceToDelete: Sequence) {
-    if (playInterval) {
-      clearInterval(playInterval);
-      setPlayInterval(null);
-    }
+    stopPlayback();
 
     setSequences((currentSequences) => {
       const nextSequences = { ...currentSequences };
@@ -225,45 +225,22 @@ export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardP
           {firstActiveSequence && (
             <>
               <IconButton
-                ref={playRef}
                 color="inherit"
                 onClick={() => {
-                  if (playInterval) {
-                    clearInterval(playInterval);
-                    setPlayInterval(null);
-                  }
+                  stopPlayback();
                 }}
-                disabled={!playInterval}
+                disabled={!isPlaying}
               >
-                <Badge badgeContent={playInterval ? maxBasePair : 0} color="secondary" max={10000}>
+                <Badge badgeContent={isPlaying ? maxBasePair : 0} color="secondary" max={10000}>
                   <PauseCircle />
                 </Badge>
               </IconButton>
               <IconButton
-                ref={playRef}
                 color="inherit"
                 sx={{
-                  display: playInterval ? "none" : undefined,
+                  display: isPlaying ? "none" : undefined,
                 }}
-                onClick={() => {
-                  if (maxBasePair === firstActiveSequence.sequence?.length && playInterval) {
-                    clearInterval(playInterval);
-                    setPlayInterval(null);
-                  } else if (playInterval) {
-                    setBpRange([
-                      1,
-                      Math.min(maxBasePair + 10, firstActiveSequence.sequence.length),
-                    ]);
-                  } else {
-                    setBpRange([1, Math.min(2, firstActiveSequence.sequence.length)]);
-
-                    setPlayInterval(
-                      setInterval(() => {
-                        playRef?.current?.click();
-                      }, 0),
-                    );
-                  }
-                }}
+                onClick={startPlayback}
               >
                 <Badge badgeContent={0} color="secondary">
                   <PlayCircleOutline />
@@ -299,6 +276,7 @@ export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardP
                 };
               })}
               onChange={(_, newValue: { label: string; id: string }[] | null) => {
+                stopPlayback();
                 if (newValue) {
                   const ids = newValue?.map((value) => value.id);
 
@@ -375,6 +353,7 @@ export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardP
                         color="primary"
                         href="#"
                         onClick={() => {
+                          stopPlayback();
                           setSequences({});
 
                           setActiveSequences([]);
@@ -388,6 +367,7 @@ export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardP
                         color="primary"
                         href="#"
                         onClick={() => {
+                          stopPlayback();
                           Object.keys(sequences).forEach((key) => {
                             if (sequences[key] && sequences[key].hasAmbiguous) {
                               delete sequences[key];

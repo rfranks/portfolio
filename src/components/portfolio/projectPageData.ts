@@ -4,8 +4,20 @@ import type {
   ProjectData,
   ProjectPresentationSectionKey,
 } from "@/types/components/portfolio";
-import { resolvePresentationSectionOrder } from "./project-presentation/presentationConfig";
+import {
+  createPresentationDiagramActionTargets,
+  createPresentationSlideActionTargets,
+  createProjectRouteActionTargets,
+  type PresentationDiagramActionTarget,
+  type PresentationSlideActionTarget,
+  type ProjectRouteActionTarget,
+} from "@/components/portfolio/actionIndexFactory";
+import {
+  resolvePresentationSectionCapabilities,
+  resolvePresentationSectionOrder,
+} from "./project-presentation/presentationConfig";
 import { slugifyLooseToken } from "@/utils/content/presentationDeepLink";
+import { getAppCapabilityRegistry } from "./appCapabilityRegistry";
 
 type ProjectPageOverrides = Partial<ProjectData>;
 const PRESENTATION_PROJECT_TYPE = "presentation";
@@ -144,14 +156,15 @@ function resolvePresentationSections(project: ProjectData): ProjectPresentationS
   const hasWhySection = Boolean(project.interestsMeWhy?.trim());
   const hasDemoSection = hasPresentationDemoMedia(project);
   const hasDiagramsSection = resolvePresentationDiagramTargets(project).length > 0;
+  const sectionCapabilities = resolvePresentationSectionCapabilities(project);
 
   const availabilityByKey: Record<ProjectPresentationSectionKey, boolean> = {
-    overview: true,
-    why: hasWhySection,
-    demo: hasDemoSection,
-    technologies: true,
-    specifications: true,
-    diagrams: hasDiagramsSection,
+    overview: sectionCapabilities.overview.enabled,
+    why: hasWhySection && sectionCapabilities.why.enabled,
+    demo: hasDemoSection && sectionCapabilities.demo.enabled,
+    technologies: sectionCapabilities.technologies.enabled,
+    specifications: sectionCapabilities.specifications.enabled,
+    diagrams: hasDiagramsSection && sectionCapabilities.diagrams.enabled,
   };
 
   const defaultOrder: readonly ProjectPresentationSectionKey[] = [
@@ -289,6 +302,18 @@ export function getPresentationProjectDeepLinkIndex(): PresentationProjectDeepLi
   return deepLinks;
 }
 
+export function getProjectRouteActionTargets(): ProjectRouteActionTarget[] {
+  return createProjectRouteActionTargets(projects);
+}
+
+export function getPresentationSlideActionTargets(): PresentationSlideActionTarget[] {
+  return createPresentationSlideActionTargets(getPresentationProjectDeepLinkIndex());
+}
+
+export function getPresentationDiagramActionTargets(): PresentationDiagramActionTarget[] {
+  return createPresentationDiagramActionTargets(getPresentationProjectDeepLinkIndex());
+}
+
 export function createPresentationProjectPageData(
   slug: string,
   overrides: ProjectPageOverrides = {},
@@ -325,83 +350,73 @@ const dedupeCommandPaletteActions = (actions: CommandPaletteAction[]) => {
 };
 
 const buildStaticProjectSearchActions = (): CommandPaletteAction[] =>
-  projects
-    .filter((project) => typeof project.href === "string" && project.href.trim().startsWith("/"))
-    .map((project) => {
-      const href = project.href.trim();
-      const projectTitle = project.name.trim() || href.replace(/^\/+/, "");
-      const projectSummary =
-        project.shortText?.trim() || project.showcaseSubtitle?.trim() || project.description.trim();
-      return {
-        id: `search-project-${href}`,
-        label: `Project: ${projectTitle}`,
-        subtitle: projectSummary,
-        previewTitle: projectTitle,
-        previewBody: project.description.trim() || projectSummary,
-        previewMeta: `${project.type?.toUpperCase() ?? "PROJECT"} • ${href}`,
-        group: "Projects",
-        href,
-        keywords: [
-          "project",
-          projectTitle,
-          project.name,
-          project.description,
-          project.shortText ?? "",
-          project.type ?? "",
-          href,
-        ],
-      } satisfies CommandPaletteAction;
-    });
+  getProjectRouteActionTargets().map((target) => {
+    const previewMeta = `${target.projectType.toUpperCase()} • ${target.href}`;
+    return {
+      id: `search-project-${target.href}`,
+      label: `Project: ${target.projectTitle}`,
+      subtitle: target.projectSummary,
+      previewTitle: target.projectTitle,
+      previewBody: target.projectDescription || target.projectSummary,
+      previewMeta,
+      group: "Projects",
+      href: target.href,
+      keywords: [
+        "project",
+        target.projectTitle,
+        target.projectSummary,
+        target.projectDescription,
+        target.projectType,
+        target.href,
+      ],
+    } satisfies CommandPaletteAction;
+  });
 
 const buildStaticSlideSearchActions = (): CommandPaletteAction[] =>
-  getPresentationProjectDeepLinkIndex()
-    .filter((entry) => entry.diagramIndex === undefined)
-    .map((entry) => ({
-      id: `search-slide-${entry.projectSlug}-${entry.slideKey}`,
-      label: `Slide: ${entry.projectTitle} • ${entry.slideTitle}`,
-      subtitle: entry.href,
-      previewTitle: `${entry.projectTitle} • ${entry.slideTitle}`,
-      previewBody: `Jump directly to the ${entry.slideTitle} slide.`,
-      previewMeta: `/${entry.projectSlug}`,
-      group: "Slides",
-      href: entry.href,
-      keywords: [
-        "slide",
-        "presentation",
-        "section",
-        entry.projectTitle,
-        entry.projectSlug,
-        entry.slideTitle,
-        entry.slideKey,
-      ],
-    }));
+  getPresentationSlideActionTargets().map((entry) => ({
+    id: `search-slide-${entry.projectSlug}-${entry.slideKey}`,
+    label: `Slide: ${entry.projectTitle} • ${entry.slideTitle}`,
+    subtitle: entry.href,
+    previewTitle: `${entry.projectTitle} • ${entry.slideTitle}`,
+    previewBody: `Jump directly to the ${entry.slideTitle} slide.`,
+    previewMeta: `/${entry.projectSlug}`,
+    group: "Slides",
+    href: entry.href,
+    keywords: [
+      "slide",
+      "presentation",
+      "section",
+      entry.projectTitle,
+      entry.projectSlug,
+      entry.slideTitle,
+      entry.slideKey,
+    ],
+  }));
 
 const buildStaticDiagramSearchActions = (): CommandPaletteAction[] =>
-  getPresentationProjectDeepLinkIndex()
-    .filter((entry) => entry.diagramIndex !== undefined)
-    .map((entry) => {
-      const diagramTitle = entry.diagramTitle ?? `Diagram ${entry.diagramIndex! + 1}`;
-      return {
-        id: `search-diagram-${entry.projectSlug}-${entry.diagramIndex}`,
-        label: `Diagram: ${entry.projectTitle} • ${diagramTitle}`,
-        subtitle: entry.href,
-        previewTitle: `${entry.projectTitle} • ${diagramTitle}`,
-        previewBody: "Jump to this architecture diagram and focus the diagrams slide.",
-        previewMeta: `/${entry.projectSlug} • ${entry.diagramIndex! + 1}`,
-        group: "Diagrams",
-        href: entry.href,
-        keywords: [
-          "diagram",
-          "architecture",
-          "mermaid",
-          "presentation",
-          entry.projectTitle,
-          entry.projectSlug,
-          diagramTitle,
-          entry.diagramKey ?? "",
-        ],
-      } satisfies CommandPaletteAction;
-    });
+  getPresentationDiagramActionTargets().map((entry) => {
+    const diagramTitle = entry.diagramTitle;
+    return {
+      id: `search-diagram-${entry.projectSlug}-${entry.diagramIndex}`,
+      label: `Diagram: ${entry.projectTitle} • ${diagramTitle}`,
+      subtitle: entry.href,
+      previewTitle: `${entry.projectTitle} • ${diagramTitle}`,
+      previewBody: "Jump to this architecture diagram and focus the diagrams slide.",
+      previewMeta: `/${entry.projectSlug} • ${entry.diagramIndex + 1}`,
+      group: "Diagrams",
+      href: entry.href,
+      keywords: [
+        "diagram",
+        "architecture",
+        "mermaid",
+        "presentation",
+        entry.projectTitle,
+        entry.projectSlug,
+        diagramTitle,
+        entry.diagramKey ?? "",
+      ],
+    } satisfies CommandPaletteAction;
+  });
 
 const buildStaticTechnologySearchActions = (): CommandPaletteAction[] =>
   projects.flatMap((project) => {
@@ -480,7 +495,31 @@ const buildStaticSkillSearchActions = (): CommandPaletteAction[] => {
   return [...categorySkills, ...coreSkills];
 };
 
+const buildStaticAppRouteSearchActions = (): CommandPaletteAction[] =>
+  getAppCapabilityRegistry()
+    .filter((entry) => entry.kind === "app" && entry.href !== "/")
+    .map((entry) => ({
+      id: `search-app-route-${slugifyToken(entry.href)}`,
+      label: `App Route: ${entry.label}`,
+      subtitle: entry.href,
+      previewTitle: `${entry.label} • App Route`,
+      previewBody: `Open ${entry.label} and jump directly into its app surface.`,
+      previewMeta: entry.href,
+      group: entry.commandGroup,
+      href: entry.href,
+      keywords: [
+        "app",
+        "route",
+        "open",
+        entry.label,
+        entry.href,
+        ...entry.features,
+        ...entry.dataSources,
+      ],
+    }));
+
 const STATIC_SEARCH_INDEX_ACTIONS = dedupeCommandPaletteActions([
+  ...buildStaticAppRouteSearchActions(),
   ...buildStaticSkillSearchActions(),
   ...buildStaticTechnologySearchActions(),
   ...buildStaticProjectSearchActions(),

@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import * as React from "react";
 import { DEFAULT_CURSOR, SKY_COLOR } from "./_constants";
 import { withBasePath } from "@/utils/basePath";
 import { TitleSplash } from "./_components/TitleSplash";
 import GameUI from "./_components/GameUI";
 import useZombiefishEngine from "./_hooks/useGameEngine";
 import useDisableDrag from "@/hooks/event/useDisableDrag";
+import { ArcadeGameShell } from "@/components/shared";
 
 export default function Game() {
   const engine = useZombiefishEngine();
   useDisableDrag();
 
   const {
+    arcadeProfile,
     ui,
     canvasRef,
     handleMouseMove,
@@ -21,46 +23,32 @@ export default function Game() {
     startSplash,
     ready: assetsReady,
   } = engine;
-
-  const [startRequested, setStartRequested] = useState(false);
-
-  const handleStart = useCallback(() => {
-    if (assetsReady) {
-      startSplash();
-    } else {
-      setStartRequested(true);
-    }
-  }, [assetsReady, startSplash]);
-
-  useEffect(() => {
-    if (assetsReady && startRequested) {
-      startSplash();
-      setStartRequested(false);
-    }
-  }, [assetsReady, startRequested, startSplash]);
-
   const { phase } = ui;
 
-  // ─── RENDER SPLASH ────────────────────────────────────────────────────────
-  if (phase === "title") {
-    return (
-      <TitleSplash
-        onStart={handleStart}
-        titleSrc={withBasePath("/personal/images/projects/zombiefish.svg")}
-        backgroundColor={SKY_COLOR}
-        cursor={DEFAULT_CURSOR}
-      />
-    );
-  }
-
   return (
-    <GameUI
-      ui={ui}
-      canvasRef={canvasRef}
-      handleClick={handleClick}
-      handleContext={handleContext}
-      handleMouseMove={handleMouseMove}
-    />
+    <ArcadeGameShell
+      arcadeGameId="zombiefish"
+      arcadeProfile={arcadeProfile.profile}
+      showTitleSplash={phase === "title"}
+      assetsReady={assetsReady}
+      onStart={startSplash}
+      renderTitleSplash={({ onStart }) => (
+        <TitleSplash
+          onStart={onStart}
+          titleSrc={withBasePath("/personal/images/projects/zombiefish.svg")}
+          backgroundColor={SKY_COLOR}
+          cursor={DEFAULT_CURSOR}
+        />
+      )}
+    >
+      <GameUI
+        ui={ui}
+        canvasRef={canvasRef}
+        handleClick={handleClick}
+        handleContext={handleContext}
+        handleMouseMove={handleMouseMove}
+      />
+    </ArcadeGameShell>
   );
 }
 

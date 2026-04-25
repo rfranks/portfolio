@@ -12,17 +12,19 @@ import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 import insertMockData from "@/app/talentforge/_utils/mockData";
 import { getOnboardingStep } from "@/app/talentforge/_utils/dataStore";
 import { useResumeData } from "@/providers/ResumeDataProvider";
+import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 
 export default function TalentForgePage() {
   const { portfolioApps } = useResumeData();
+  const talentforgeRoute = getPortfolioAppRouteContract(portfolioApps, "talentforge");
   const { setDocumentTitle } = useDocumentTitle();
   const [step, setStep] = React.useState(getOnboardingStep());
   const { hasKey } = useOpenAIKey();
 
   React.useEffect(() => {
     insertMockData();
-    setDocumentTitle(portfolioApps.talentforge.documentTitle);
-  }, [portfolioApps.talentforge.documentTitle, setDocumentTitle]);
+    setDocumentTitle(talentforgeRoute.documentTitle);
+  }, [setDocumentTitle, talentforgeRoute.documentTitle]);
 
   if (!hasKey) {
     return <OpenAIKeyInterstitial />;

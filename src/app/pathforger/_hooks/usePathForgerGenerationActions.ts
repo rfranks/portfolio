@@ -37,6 +37,22 @@ function resolveGenerationErrorMessage(error: unknown, fallback: string): string
   return fallback;
 }
 
+function rememberRecentGeneratedValue(
+  historyRef: React.MutableRefObject<string[]>,
+  value: string,
+  maxItems = 20,
+) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return;
+  }
+
+  historyRef.current = [trimmed, ...historyRef.current.filter((entry) => entry !== trimmed)].slice(
+    0,
+    maxItems,
+  );
+}
+
 export interface UsePathForgerGenerationActionsArgs<TActiveRunAction> {
   premise: string;
   setPremise: React.Dispatch<React.SetStateAction<string>>;
@@ -104,6 +120,13 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
   setChapterOnlyResult,
   handleCloseImagePromptEditor,
 }: UsePathForgerGenerationActionsArgs<TActiveRunAction>) {
+  const recentGeneratedToneHistoryRef = React.useRef<string[]>([]);
+  const recentGeneratedVisualStyleHistoryRef = React.useRef<string[]>([]);
+
+  React.useEffect(() => {
+    rememberRecentGeneratedValue(recentGeneratedToneHistoryRef, tone);
+  }, [tone]);
+
   const handleUpdateImagePrompt = React.useCallback(() => {
     if (!editingImagePromptType) {
       return;
@@ -247,6 +270,13 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
 
       try {
         const base = buildOnboardingPayload();
+        const blockedTonePhrases = Array.from(
+          new Set(
+            [tone, ...recentGeneratedToneHistoryRef.current]
+              .map((value) => value.trim())
+              .filter((value) => value.length > 0),
+          ),
+        ).slice(0, 20);
         const onboarding: OnboardingPayload = {
           ...base,
           premise: effectivePremise,
@@ -259,6 +289,8 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
             apiKey,
             onboarding,
             defaultModel: resolvedDefaultModel,
+            forbiddenPhrases: blockedTonePhrases,
+            previousTones: blockedTonePhrases,
           },
           (progress) => {
             enqueueStatusMessage(progress.message);
@@ -267,6 +299,7 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
 
         const nextTone = generatedTone.tone.trim();
         setTone(nextTone);
+        rememberRecentGeneratedValue(recentGeneratedToneHistoryRef, nextTone);
         return nextTone;
       } catch (error) {
         setErrorMessage(resolveGenerationErrorMessage(error, "Tone generation failed."));
@@ -289,6 +322,7 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
       setErrorMessage,
       setIsRunning,
       setTone,
+      tone,
       wandActionAudioRef,
     ],
   );
@@ -318,6 +352,13 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
 
       try {
         const base = buildOnboardingPayload();
+        const blockedStylePhrases = Array.from(
+          new Set(
+            [base.visualStyle, ...recentGeneratedVisualStyleHistoryRef.current]
+              .map((value) => value.trim())
+              .filter((value) => value.length > 0),
+          ),
+        ).slice(0, 20);
         const onboarding: OnboardingPayload = {
           ...base,
           premise: effectivePremise,
@@ -329,13 +370,17 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
             apiKey,
             onboarding,
             defaultModel: resolvedDefaultModel,
+            forbiddenPhrases: blockedStylePhrases,
+            previousVisualStyles: blockedStylePhrases,
           },
           (progress) => {
             enqueueStatusMessage(progress.message);
           },
         );
 
-        setVisualStyle(generatedStyle.visualStyle);
+        const nextVisualStyle = generatedStyle.visualStyle.trim();
+        setVisualStyle(nextVisualStyle);
+        rememberRecentGeneratedValue(recentGeneratedVisualStyleHistoryRef, nextVisualStyle);
       } catch (error) {
         setErrorMessage(resolveGenerationErrorMessage(error, "Style generation failed."));
       } finally {
@@ -407,10 +452,19 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
             .filter((value) => value.length > 0),
         ),
       ).slice(0, 12);
+      const previousPremises = Array.from(
+        new Set(
+          [premise, ...recentGeneratedPremises]
+            .map((value) => value.trim())
+            .filter((value) => value.length > 0),
+        ),
+      ).slice(0, 8);
 
       const onboarding: OnboardingPayload = {
         ...buildOnboardingPayload(),
         premise: "",
+        tone: "",
+        visualStyle: "",
       };
 
       const generatedPremise = await runPathForgerPremiseStage(
@@ -419,6 +473,7 @@ export function usePathForgerGenerationActions<TActiveRunAction>({
           onboarding,
           defaultModel: resolvedDefaultModel,
           forbiddenPhrases: blockedPremisePhrases,
+          previousPremises,
           randomnessSeed: `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
         },
         (progress) => {

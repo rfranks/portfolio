@@ -21,7 +21,7 @@ import type { MediaCyclerItem } from "@/components/shared";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { withBasePath } from "@/utils/basePath";
 import { rewindAndPlayAudio } from "@/utils/audio";
-import type { AIShenaniganProps } from "../_types/aiShenanigan";
+import type { AIShenaniganDefaultProps, AIShenaniganProps } from "../_types/aiShenanigan";
 export type { AIShenaniganMovieOrientation, AIShenaniganType } from "../_types/aiShenanigan";
 
 type RevealStage = "intro" | "realistic" | "stylized" | "movie" | "alternateMovie";
@@ -36,11 +36,11 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         blurb={props.blurb}
         intentToCopyright={props.intentToCopyright}
         rightsNotice={props.rightsNotice}
-        bookCoverImage={props.bookCoverImage || props.realisticImage}
-        bookSource={props.bookSource || props.realisticSource}
-        bookSourceHref={props.bookSourceHref || props.realisticSourceHref}
-        bookCaption={props.bookCaption || props.realisticCaption}
-        manuscriptPdf={props.manuscriptPdf || ""}
+        bookCoverImage={props.bookCoverImage}
+        bookSource={props.bookSource}
+        bookSourceHref={props.bookSourceHref}
+        bookCaption={props.bookCaption}
+        manuscriptPdf={props.manuscriptPdf}
         manuscriptSource={props.manuscriptSource}
         manuscriptSourceHref={props.manuscriptSourceHref}
         manuscriptCaption={props.manuscriptCaption}
@@ -49,7 +49,7 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         trailerSource={props.trailerSource}
         trailerSourceHref={props.trailerSourceHref}
         trailerCaption={props.trailerCaption}
-        episodesPdf={props.episodesPdf || ""}
+        episodesPdf={props.episodesPdf}
         episodesSource={props.episodesSource}
         episodesSourceHref={props.episodesSourceHref}
         episodesCaption={props.episodesCaption}
@@ -67,15 +67,15 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         orientation={props.orientation}
         intentToCopyright={props.intentToCopyright}
         rightsNotice={props.rightsNotice}
-        workPdf={props.workPdf || ""}
-        workSource={props.workSource || props.realisticSource}
-        workSourceHref={props.workSourceHref || props.realisticSourceHref}
-        workCaption={props.workCaption || props.realisticCaption}
+        workPdf={props.workPdf}
+        workSource={props.workSource}
+        workSourceHref={props.workSourceHref}
+        workCaption={props.workCaption}
         workParts={props.workParts}
-        seriesMovie={props.seriesMovie || props.movieRendering || ""}
-        seriesSource={props.seriesSource || props.movieSource}
-        seriesSourceHref={props.seriesSourceHref || props.movieSourceHref}
-        seriesCaption={props.seriesCaption || props.movieCaption}
+        seriesMovie={props.seriesMovie}
+        seriesSource={props.seriesSource}
+        seriesSourceHref={props.seriesSourceHref}
+        seriesCaption={props.seriesCaption}
         seriesParts={props.seriesParts}
       />
     );
@@ -89,18 +89,18 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         blurb={props.blurb}
         intentToCopyright={props.intentToCopyright}
         rightsNotice={props.rightsNotice}
-        rawImage={props.rawImage || props.realisticImage}
-        rawSource={props.rawSource || props.realisticSource}
-        rawSourceHref={props.rawSourceHref || props.realisticSourceHref}
-        rawCaption={props.rawCaption || props.realisticCaption}
-        analyzedImage={props.analyzedImage || props.stylizedRendering || ""}
-        analyzedSource={props.analyzedSource || props.stylizedSource}
-        analyzedSourceHref={props.analyzedSourceHref || props.stylizedSourceHref}
-        analyzedCaption={props.analyzedCaption || props.stylizedCaption}
-        palmLineAnalysisImage={props.palmLineAnalysisImage || props.movieRendering || ""}
-        palmLineAnalysisSource={props.palmLineAnalysisSource || props.movieSource}
-        palmLineAnalysisSourceHref={props.palmLineAnalysisSourceHref || props.movieSourceHref}
-        palmLineAnalysisCaption={props.palmLineAnalysisCaption || props.movieCaption}
+        rawImage={props.rawImage}
+        rawSource={props.rawSource}
+        rawSourceHref={props.rawSourceHref}
+        rawCaption={props.rawCaption}
+        analyzedImage={props.analyzedImage}
+        analyzedSource={props.analyzedSource}
+        analyzedSourceHref={props.analyzedSourceHref}
+        analyzedCaption={props.analyzedCaption}
+        palmLineAnalysisImage={props.palmLineAnalysisImage}
+        palmLineAnalysisSource={props.palmLineAnalysisSource}
+        palmLineAnalysisSourceHref={props.palmLineAnalysisSourceHref}
+        palmLineAnalysisCaption={props.palmLineAnalysisCaption}
         palmReadingTitle={props.palmReadingTitle}
         palmReadingText={props.palmReadingText || props.blurb}
         palmReadingMarkdownPath={props.palmReadingMarkdownPath}
@@ -118,11 +118,11 @@ export default function AIShenanigan(props: AIShenaniganProps) {
         blurb={props.blurb}
         intentToCopyright={props.intentToCopyright}
         rightsNotice={props.rightsNotice}
-        songAlbumImage={props.songAlbumImage || props.realisticImage}
-        songAlbumSource={props.songAlbumSource || props.realisticSource}
-        songAlbumSourceHref={props.songAlbumSourceHref || props.realisticSourceHref}
-        songAlbumCaption={props.songAlbumCaption || props.realisticCaption}
-        songAudio={props.songAudio || ""}
+        songAlbumImage={props.songAlbumImage}
+        songAlbumSource={props.songAlbumSource}
+        songAlbumSourceHref={props.songAlbumSourceHref}
+        songAlbumCaption={props.songAlbumCaption}
+        songAudio={props.songAudio}
         songAudioSource={props.songAudioSource}
         songAudioSourceHref={props.songAudioSourceHref}
         songAudioCaption={props.songAudioCaption}
@@ -161,7 +161,7 @@ function DefaultAIShenanigan({
   movieSource2,
   movieSourceHref2,
   movieCaption2,
-}: AIShenaniganProps) {
+}: AIShenaniganDefaultProps) {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));

@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import {
-  deleteOpenAIKey as removePersistedKey,
-  getOpenAIKey as loadPersistedKey,
-  setOpenAIKey as persistOpenAIKey,
-} from "@/app/talentforge/_utils/dataStore";
+  clearOpenAIKeyForApp,
+  getOpenAIKeyForApp,
+  setOpenAIKeyForApp,
+} from "@/utils/openai/keyService";
 
-const SESSION_STORAGE_KEY = "talentforge-openai-key";
+const TALENTFORGE_APP_ID = "talentforge";
 const PERSIST_STORAGE_KEY = "talentforge-openai-key-persist";
 
 export type OpenAIKeyValidity = "unknown" | "checking" | "valid" | "invalid";
@@ -31,17 +31,15 @@ class OpenAIKeyStore {
   }
 
   private readInitialState(): OpenAIKeyState {
-    const envKey = (process.env.NEXT_PUBLIC_OPENAI_API_KEY || "").trim();
+    const resolvedKey = getOpenAIKeyForApp(TALENTFORGE_APP_ID).trim();
 
     if (typeof window === "undefined") {
-      return { key: envKey, persist: false, validity: "unknown" };
+      return { key: resolvedKey, persist: false, validity: "unknown" };
     }
 
     const storedPersist = window.localStorage.getItem(PERSIST_STORAGE_KEY);
     const persist = storedPersist === "true";
-    const sessionKey = window.sessionStorage.getItem(SESSION_STORAGE_KEY) || "";
-    const persistedKey = persist ? loadPersistedKey() || "" : "";
-    const key = (sessionKey || persistedKey || envKey).trim();
+    const key = resolvedKey;
 
     return {
       key,
@@ -55,20 +53,15 @@ class OpenAIKeyStore {
 
     const { key, persist } = this.state;
     const trimmed = key.trim();
-
-    if (trimmed) {
-      window.sessionStorage.setItem(SESSION_STORAGE_KEY, trimmed);
-    } else {
-      window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    }
-
     window.localStorage.setItem(PERSIST_STORAGE_KEY, persist ? "true" : "false");
-
-    if (persist && trimmed) {
-      persistOpenAIKey(trimmed);
-    } else {
-      removePersistedKey();
+    if (trimmed) {
+      setOpenAIKeyForApp(TALENTFORGE_APP_ID, trimmed, {
+        persistInSessionStorage: true,
+        persistInLocalStorage: persist,
+      });
+      return;
     }
+    clearOpenAIKeyForApp(TALENTFORGE_APP_ID);
   }
 
   getState = (): OpenAIKeyState => this.state;

@@ -15,8 +15,18 @@ export default function ImageRenderer({
   showExpandIcon,
   expandControlSxArray,
   onMediaAction,
+  onFirstRenderReady,
 }: ImageRendererProps) {
   const resolvedExpandControlSxArray = flattenMediaCyclerSxArray(expandControlSxArray);
+  const hasReportedFirstRenderRef = React.useRef(false);
+
+  const handleImageLoaded = React.useCallback(() => {
+    item.onMediaLoaded?.();
+    if (!hasReportedFirstRenderRef.current) {
+      hasReportedFirstRenderRef.current = true;
+      onFirstRenderReady?.("image-onload");
+    }
+  }, [item, onFirstRenderReady]);
 
   return (
     <Box
@@ -31,7 +41,7 @@ export default function ImageRenderer({
         alt={imageAlt}
         width={item.imageWidth}
         height={item.imageHeight}
-        onLoad={item.onMediaLoaded}
+        onLoad={handleImageLoaded}
         className={item.imageClassName}
         style={item.imageStyle}
         onMediaActivate={item.onMediaActivate}

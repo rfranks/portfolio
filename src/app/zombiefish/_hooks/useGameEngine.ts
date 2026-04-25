@@ -1,91 +1,71 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from "react";
-import { useWindowSize } from "@/hooks/window/useWindowSize";
-import useScaledClock, {
-  clockRef,
-  setScaledTimeout,
-  clearScaledTimeout,
-  advanceClock,
-} from "@/hooks/time/useScaledClock";
-import { BASE_DIMS } from "@/consts/game/dimensions";
+import { clockRef, advanceClock } from "@/hooks/time/useScaledClock";
+import { useArcadeEngineCore } from "@/hooks/game/useArcadeEngineCore";
+import { useArcadeUiSnapshotSync } from "@/hooks/game/useArcadeUiSnapshotSync";
 import { useGameAssets } from "./useGameAssets";
 import { useGameAudio } from "./useGameAudio";
 import { drawTextLabels, newTextLabel } from "@/utils/game/ui";
-import {
-  findTopmostHitIndex,
-  mapClientPointToWorld,
-  pickRandom,
-  pointInCircle,
-  pointInRect,
-  randomInRange,
-} from "@/utils/game/engine2d";
+import { randomInRange } from "@/utils/game/engine2d";
 import { drawRandomTerrainBackground } from "../_drawRandomTerrainBackground";
 import {
-  BUBBLE_MAX,
-  BUBBLE_MIN,
-  BUBBLE_VX_MAX,
-  BUBBLE_VY_MAX,
-  BUBBLE_VY_MIN,
-  CONVERT_FLASH_DURATION_MS,
-  FISH_FRAME_DURATION,
   FISH_SIZE,
   FRAME_MS,
   GAME_TIME,
-  HURT_DURATION_MS,
-  MAX_BUBBLES,
-  MAX_SCHOOL_SIZE,
   MISS_FADE,
   MISS_GROWTH,
   NES_BGM_SEQUENCE,
-  SKELETON_CONVERT_DISTANCE,
-  SKELETON_DETECTION_RADIUS,
-  SKELETON_REPEL_DISTANCE,
-  SKELETON_REPEL_FORCE,
   STAT_LABEL_PY,
-  WANDER_TIMER_MAX_MS,
-  WANDER_TIMER_MIN_MS,
-  clampIncline,
-  orientFish,
 } from "../_utils/gameConfig";
 
-import type { GameState, GameUIState, Fish, Bubble, MissParticle } from "../_types";
-import {
-  FISH_SPEED_MIN,
-  FISH_SPEED_MAX,
-  FISH_SPAWN_INTERVAL_MIN,
-  FISH_SPAWN_INTERVAL_MAX,
-  SKELETON_SPEED,
-  MAX_SKELETONS,
-  MAX_FISH,
-  MAX_SPECIAL_FISH,
-  TIME_BONUS_BROWN_FISH,
-  TIME_BONUS_GREY_LONG,
-  DEFAULT_CURSOR,
-  SHOT_CURSOR,
-  TARGET_CURSOR,
-  DEBUG_FPS_SCALE,
-} from "../_constants";
+import type { GameState, GameUIState, Fish, Bubble } from "../_types";
+import { DEFAULT_CURSOR, DEBUG_FPS_SCALE } from "../_constants";
 import type { AssetMgr } from "@/types/game/ui";
 import type { TextLabel } from "@/types/game/ui";
 import type { AudioMgr } from "@/types/audio/audio";
-import type { ClickEvent } from "@/types/game/events";
 import { ScaledTimeoutHandle } from "@/types/hooks/time";
-import { createGameSimulationRuntime } from "@/utils/game/simulationRuntime";
+import { configureZombiefishCanvasRenderingStage } from "./stages/renderingStage";
+import { createZombiefishInputStage } from "./stages/inputStage";
+import {
+  runZombiefishFishSimulationStage,
+  spawnZombiefishBubbleStage,
+  spawnZombiefishFishStage,
+} from "./stages/simulation/fishStage";
+import { startZombiefishSpawnSimulationStage } from "./stages/simulationStage";
 
 /* eslint-disable react-hooks/exhaustive-deps */
 
+const selectZombiefishUiSnapshot = (state: GameState): GameUIState => ({
+  phase: state.phase,
+  timer: state.timer,
+  shots: state.shots,
+  hits: state.hits,
+  score: state.score,
+  accuracy: state.accuracy,
+  cursor: state.cursor,
+});
+
+const isZombiefishUiSnapshotEqual = (prev: GameUIState, next: GameUIState) =>
+  prev.phase === next.phase &&
+  prev.timer === next.timer &&
+  prev.shots === next.shots &&
+  prev.hits === next.hits &&
+  prev.score === next.score &&
+  prev.accuracy === next.accuracy &&
+  prev.cursor === next.cursor;
+
 export default function useGameEngine() {
-  // canvas and animation frame refs
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number | null>(null);
+  const { arcadeProfile, canvasRef, screenDims, dims, simulationRuntime } = useArcadeEngineCore({
+    arcadeGameId: "zombiefish",
+    debugName: "zombiefish",
+    debugFps: DEBUG_FPS_SCALE,
+  });
+  const startArcadeSession = arcadeProfile.startSession;
+  const finishArcadeSession = arcadeProfile.finishSession;
 
   // assets
   const assetMgr = useGameAssets();
   const { getImg, ready } = assetMgr;
   const audio: AudioMgr = useGameAudio();
-
-  // window dimensions
-  const screenDims = useWindowSize();
-  const dims = BASE_DIMS;
 
   // main game state stored in a ref so we can mutate without re-render
   const state = useRef<GameState>({
@@ -117,29 +97,14 @@ export default function useGameEngine() {
   const cursorTimeoutRef = useRef<ScaledTimeoutHandle | null>(null);
   const frameRef = useRef(0); // track milliseconds for one-second ticks
   const fishSpawnTimeout = useRef<ScaledTimeoutHandle | null>(null);
-  const reportIntervalMs = 500;
-  useScaledClock();
-  const simulationRuntime = useMemo(
-    () =>
-      createGameSimulationRuntime<ScaledTimeoutHandle>({
-        frameRef: animationFrameRef,
-        setTimeoutFn: setScaledTimeout,
-        clearTimeoutFn: clearScaledTimeout,
-      }),
-    [],
-  );
   const backgroundSeed = useRef(Math.random() * 1000);
   const backgroundCanvas = useRef<HTMLCanvasElement | null>(null);
   const accuracyLabel = useRef<TextLabel | null>(null);
   const accuracyStatLabel = useRef<TextLabel | null>(null);
   const finalAccuracy = useRef(0);
   const displayAccuracy = useRef(0);
-  const updateBestAccuracy = (score: number) => {
-    const best = Number(localStorage.getItem("bestAccuracy") || 0);
-    if (score > best) {
-      localStorage.setItem("bestAccuracy", score.toString());
-    }
-  };
+  const sessionCompletedRef = useRef(false);
+  const arcadeSessionActiveRef = useRef(arcadeProfile.isSessionActive);
   const bestAccuracyLabel = useRef<TextLabel | null>(null);
   const timerLabel = useRef<TextLabel | null>(null);
   const scoreLabel = useRef<TextLabel | null>(null);
@@ -161,15 +126,12 @@ export default function useGameEngine() {
     cursor: DEFAULT_CURSOR,
   });
 
-  useEffect(() => {
-    if (!DEBUG_FPS_SCALE) return;
-    const id = setInterval(() => {
-      const { deltaMs, scale } = clockRef.current;
-      const fps = 1000 / deltaMs;
-      console.debug(`[zombiefish] fps: ${fps.toFixed(1)} scale: ${scale.toFixed(2)}`);
-    }, reportIntervalMs);
-    return () => clearInterval(id);
-  }, [reportIntervalMs]);
+  const syncUIFromState = useArcadeUiSnapshotSync({
+    stateRef: state,
+    setUI,
+    selectSnapshot: selectZombiefishUiSnapshot,
+    isEqual: isZombiefishUiSnapshotEqual,
+  });
 
   // sync base dims once and resize canvas on window changes
   useEffect(() => {
@@ -177,32 +139,29 @@ export default function useGameEngine() {
   }, []);
 
   useEffect(() => {
+    arcadeSessionActiveRef.current = arcadeProfile.isSessionActive;
+  }, [arcadeProfile.isSessionActive]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
-    const { width: screenW, height: screenH } = screenDims;
-    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-    const scaleX = screenW / dims.width;
-    const scaleY = screenH / dims.height;
-    canvas.width = screenW * dpr;
-    canvas.height = screenH * dpr;
-    canvas.style.width = `${screenW}px`;
-    canvas.style.height = `${screenH}px`;
-    ctx.setTransform(scaleX * dpr, 0, 0, scaleY * dpr, 0, 0);
+    configureZombiefishCanvasRenderingStage({
+      canvas,
+      ctx,
+      screenWidth: screenDims.width,
+      screenHeight: screenDims.height,
+      dims,
+    });
   }, [screenDims, dims]);
 
-  const syncCursor = useCallback((cursor: string) => {
-    state.current.cursor = cursor;
-    setUI({
-      phase: state.current.phase,
-      timer: state.current.timer,
-      shots: state.current.shots,
-      hits: state.current.hits,
-      score: state.current.score,
-      accuracy: state.current.accuracy,
-      cursor,
-    });
-  }, []);
+  const syncCursor = useCallback(
+    (cursor: string) => {
+      state.current.cursor = cursor;
+      syncUIFromState();
+    },
+    [syncUIFromState],
+  );
 
   const makeText = useCallback(
     (text: string, x: number, y: number, color?: string) => {
@@ -283,245 +242,27 @@ export default function useGameEngine() {
 
   const updateFish = useCallback(
     (deltaMs: number, scale: number) => {
-      const cur = state.current;
-      const { width, height } = cur.dims;
-
-      // handle conversion flashes
-      const flashImg = getImg("fishFlashImg") as HTMLImageElement | undefined;
-      const canvas = canvasRef.current;
-      const ctx = canvas?.getContext("2d");
-      cur.fish.forEach((f) => {
-        const frameMap = getImg(f.isSkeleton ? "skeletonFrames" : "fishFrames") as Record<
-          string,
-          HTMLImageElement[]
-        >;
-        const frames = frameMap[f.kind as keyof typeof frameMap];
-        if (frames && frames.length > 0) {
-          f.frameCounter += deltaMs;
-          if (f.frameCounter >= FISH_FRAME_DURATION) {
-            f.frameCounter = 0;
-            f.frame = (f.frame + 1) % frames.length;
-          }
-        }
-
-        if (f.pendingSkeleton) {
-          if (ctx && flashImg) {
-            ctx.drawImage(flashImg, f.x, f.y, FISH_SIZE, FISH_SIZE);
-          }
-          f.flashTimer = (f.flashTimer || 0) - deltaMs;
-          if (f.flashTimer <= 0) {
-            f.isSkeleton = true;
-            f.health = 2;
-            f.hurtTimer = 0;
-            f.pendingSkeleton = undefined;
-            f.flashTimer = undefined;
-          }
-        }
-      });
-
-      // For each group, compute the average velocity and apply it to members.
-      const groups: Record<number, { vx: number; vy: number; members: Fish[] }> = {};
-      cur.fish.forEach((f) => {
-        if (f.groupId === undefined) return;
-        const g = (groups[f.groupId] ||= { vx: 0, vy: 0, members: [] });
-        g.vx += f.vx;
-        g.vy += f.vy;
-        g.members.push(f);
-      });
-      const prevGroupVel = groupVelocityRef.current;
-      Object.entries(groups).forEach(([idStr, g]) => {
-        const id = Number(idStr);
-        const avgVx = g.vx / g.members.length;
-        const avgVy = g.vy / g.members.length;
-        const limited = clampIncline(avgVx, avgVy);
-        const prev = prevGroupVel[id];
-        const angleChanged =
-          prev &&
-          Math.abs(
-            Math.atan2(
-              limited.vx * prev.vy - limited.vy * prev.vx,
-              limited.vx * prev.vx + limited.vy * prev.vy,
-            ),
-          ) > 0.2;
-        g.members.forEach((f) => {
-          f.vx = limited.vx;
-          f.vy = limited.vy;
-          if (angleChanged) {
-            f.wanderTimer =
-              Math.random() * (WANDER_TIMER_MAX_MS - WANDER_TIMER_MIN_MS) + WANDER_TIMER_MIN_MS;
-          }
-        });
-        prevGroupVel[id] = { vx: limited.vx, vy: limited.vy };
-      });
-      // Remove velocities for groups that no longer exist.
-      Object.keys(prevGroupVel).forEach((idStr) => {
-        const id = Number(idStr);
-        if (!groups[id]) delete prevGroupVel[id];
-      });
-
-      // Keep multi-segment fish aligned. For each pairId, ensure the "b" segment
-      // trails the "a" segment at roughly one FISH_SIZE distance.
-      const pairs: Record<number, { a?: Fish; b?: Fish }> = {};
-      cur.fish.forEach((f) => {
-        if (f.pairId === undefined) return;
-        const p = (pairs[f.pairId] ||= {});
-        if (f.kind === "grey_long_a") p.a = f;
-        else if (f.kind === "grey_long_b") p.b = f;
-      });
-      Object.values(pairs).forEach(({ a, b }) => {
-        if (!a || !b) return;
-        // synchronize vertical velocity
-        b.vy = a.vy;
-        // small corrective horizontal velocity to maintain spacing
-        const sign = a.vx >= 0 ? 1 : -1;
-        const desiredX = a.x + FISH_SIZE * sign;
-        const dx = desiredX - b.x;
-        b.vx += dx * 0.05 * scale;
-      });
-
-      // skeleton behavior
-      const immuneKinds = new Set(["brown", "grey_long_a", "grey_long_b"]);
-      const detectionRadius2 = SKELETON_DETECTION_RADIUS * SKELETON_DETECTION_RADIUS;
-      let skeletonCount = cur.fish.filter((f) => f.isSkeleton || f.pendingSkeleton).length;
-      const skeletons = cur.fish.filter((f) => f.isSkeleton);
-      skeletons.forEach((s, idx) => {
-        let target: Fish | undefined;
-        let targetDist2 = detectionRadius2;
-        for (const t of cur.fish) {
-          if (t.isSkeleton || t.pendingSkeleton) continue;
-          if (immuneKinds.has(t.kind)) continue;
-          const dx = t.x - s.x;
-          const dy = t.y - s.y;
-          const dist2 = dx * dx + dy * dy;
-          if (dist2 < targetDist2) {
-            targetDist2 = dist2;
-            target = t;
-          }
-        }
-
-        if (!target) {
-          // No valid target nearby; stop pursuing
-          s.vx = 0;
-          s.vy = 0;
-          return;
-        }
-
-        const dx = target.x - s.x;
-        const dy = target.y - s.y;
-        const dist = Math.sqrt(targetDist2);
-        if (dist > 0) {
-          s.vx = (dx / dist) * SKELETON_SPEED;
-          s.vy = (dy / dist) * SKELETON_SPEED;
-        }
-
-        if (
-          dist < SKELETON_CONVERT_DISTANCE &&
-          skeletonCount < MAX_SKELETONS &&
-          !target.pendingSkeleton
-        ) {
-          // Spawn a brief text effect before converting the fish
-          makeText("POOF", target.x, target.y);
-          target.pendingSkeleton = true;
-          target.flashTimer = CONVERT_FLASH_DURATION_MS;
-          target.vx = 0;
-          target.vy = 0;
-          target.frame = 0;
-          target.frameCounter = 0;
-          delete target.groupId;
-          cur.conversions += 1;
-          audio.play("convert");
-          skeletonCount += 1;
-        }
-
-        // repel nearby skeletons
-        for (let i = 0; i < skeletons.length; i++) {
-          if (i === idx) continue;
-          const other = skeletons[i];
-          const rdx = other.x - s.x;
-          const rdy = other.y - s.y;
-          const rdist = Math.sqrt(rdx * rdx + rdy * rdy);
-          if (rdist > 0 && rdist < SKELETON_REPEL_DISTANCE) {
-            s.vx -= (rdx / rdist) * SKELETON_REPEL_FORCE * scale;
-            s.vy -= (rdy / rdist) * SKELETON_REPEL_FORCE * scale;
-          }
-        }
-        const limited = clampIncline(s.vx, s.vy);
-        s.vx = limited.vx;
-        s.vy = limited.vy;
-      });
-
-      // natural wandering for non-skeleton fish
-      cur.fish.forEach((f) => {
-        if (f.isSkeleton) return;
-        f.wanderTimer -= deltaMs;
-        if (f.wanderTimer <= 0) {
-          const range = FISH_SPEED_MAX - FISH_SPEED_MIN;
-          const speed = (Math.random() * range + FISH_SPEED_MIN) * difficultyFactor();
-          let vx: number;
-          let vy: number;
-          if (Math.abs(f.vx) >= Math.abs(f.vy)) {
-            // mostly horizontal – keep heading and add slight vertical drift
-            const dir = f.vx >= 0 ? 1 : -1;
-            vx = dir * speed;
-            vy = (Math.random() * 2 - 1) * speed * 0.25;
-          } else {
-            // mostly vertical – keep heading and add slight horizontal drift
-            const dir = f.vy >= 0 ? 1 : -1;
-            vy = dir * speed;
-            vx = (Math.random() * 2 - 1) * speed * 0.25;
-          }
-          const limited = clampIncline(vx, vy);
-          f.vx = limited.vx;
-          f.vy = limited.vy;
-          // reset timer
-          f.wanderTimer =
-            Math.random() * (WANDER_TIMER_MAX_MS - WANDER_TIMER_MIN_MS) + WANDER_TIMER_MIN_MS;
-        }
-      });
-
-      // move fish with a slight oscillation and update their angle
-      cur.fish.forEach((f) => {
-        if (f.hurtTimer > 0) f.hurtTimer -= deltaMs;
-        const osc = Math.sin((frameRef.current / FRAME_MS + f.id) / 20) * 0.5;
-        const limited = clampIncline(f.vx, f.vy + osc);
-        f.x += limited.vx * scale;
-        f.y += limited.vy * scale;
-        const orient = orientFish(limited.vx, limited.vy);
-        f.angle = orient.angle;
-        f.flipped = orient.flipped;
-        if (f.isSkeleton) {
-          f.x = Math.max(0, Math.min(f.x, width - FISH_SIZE));
-          f.y = Math.max(0, Math.min(f.y, height - FISH_SIZE));
-        }
+      runZombiefishFishSimulationStage({
+        stateRef: state,
+        groupVelocityRef,
+        frameRef,
+        canvasRef,
+        getImg,
+        makeText,
+        play: audio.play,
+        deltaMs,
+        scale,
       });
     },
     [audio, makeText, getImg],
   );
 
   const spawnBubble = useCallback(() => {
-    const { width, height } = state.current.dims;
-    const kinds = ["bubble_a", "bubble_b", "bubble_c"];
-    const kind = pickRandom(kinds);
-    if (!kind) return;
-    const size = randomInRange(BUBBLE_MIN, BUBBLE_MAX);
-    const x = randomInRange(0, Math.max(0, width - size));
-    const y = height + size;
-    const vx = randomInRange(-BUBBLE_VX_MAX, BUBBLE_VX_MAX);
-    const vy = randomInRange(BUBBLE_VY_MIN, BUBBLE_VY_MAX); // upward
-    const amp = randomInRange(0.5, 2.5);
-    const freq = randomInRange(0.01, 0.06);
-    if (state.current.bubbles.length >= MAX_BUBBLES) return;
-    const bubble = inactiveBubbles.current.pop() || ({} as Bubble);
-    bubble.id = nextBubbleId.current++;
-    bubble.kind = kind;
-    bubble.x = x;
-    bubble.y = y;
-    bubble.vx = vx;
-    bubble.vy = vy;
-    bubble.size = size;
-    bubble.amp = amp;
-    bubble.freq = freq;
-    state.current.bubbles.push(bubble);
+    spawnZombiefishBubbleStage({
+      stateRef: state,
+      inactiveBubblesRef: inactiveBubbles,
+      nextBubbleIdRef: nextBubbleId,
+    });
   }, []);
 
   // main loop updates timer and fish
@@ -592,7 +333,21 @@ export default function useGameEngine() {
         if (cur.timer === 0) {
           cur.phase = "gameover";
           finalAccuracy.current = cur.shots > 0 ? Math.round((cur.hits / cur.shots) * 100) : 0;
-          updateBestAccuracy(finalAccuracy.current);
+          if (!sessionCompletedRef.current) {
+            sessionCompletedRef.current = true;
+            finishArcadeSession({
+              completed: true,
+              score: cur.score,
+              accuracyPct: finalAccuracy.current,
+              stats: {
+                shotsFired: cur.shots,
+                hits: cur.hits,
+                conversions: cur.conversions,
+                fishTagged: Object.values(cur.hitCounts).reduce((total, count) => total + count, 0),
+              },
+            });
+            arcadeSessionActiveRef.current = false;
+          }
           displayAccuracy.current = 0;
           audio.pauseAll();
           if (accuracyStatLabel.current) {
@@ -654,7 +409,12 @@ export default function useGameEngine() {
           gameoverScoreLabel.current = makeStat(`SCORE ${cur.score}`, baseY + 120);
         }
         if (!bestAccuracyLabel.current) {
-          const best = Number(localStorage.getItem("bestAccuracy") || 0);
+          const best = Math.round(
+            Math.max(
+              finalAccuracy.current,
+              arcadeProfile.profile.games.zombiefish.highestAccuracyPct,
+            ),
+          );
           const pctImg = getImg("pctImg") as HTMLImageElement;
           const digitImgs = getImg("digitImgs") as Record<string, HTMLImageElement>;
           const lbl = newTextLabel(
@@ -847,21 +607,38 @@ export default function useGameEngine() {
         lbl.x = cur.dims.width - totalWidth - 16;
       }
 
-      setUI({
-        phase: cur.phase,
-        timer: cur.timer,
-        shots: cur.shots,
-        hits: cur.hits,
-        score: cur.score,
-        accuracy: cur.accuracy,
-        cursor: cur.cursor,
-      });
+      syncUIFromState();
     },
-    [updateFish, getImg, assetMgr, spawnBubble, updateDigitLabel],
+    [
+      updateFish,
+      getImg,
+      assetMgr,
+      spawnBubble,
+      updateDigitLabel,
+      arcadeProfile.profile,
+      audio,
+      finishArcadeSession,
+    ],
   );
 
   // start the game
   const startSplash = useCallback(() => {
+    if (arcadeSessionActiveRef.current && !sessionCompletedRef.current) {
+      finishArcadeSession({
+        completed: false,
+        score: state.current.score,
+        accuracyPct: state.current.accuracy,
+        stats: {
+          shotsFired: state.current.shots,
+          hits: state.current.hits,
+          conversions: state.current.conversions,
+        },
+      });
+    }
+    startArcadeSession();
+    arcadeSessionActiveRef.current = true;
+    sessionCompletedRef.current = false;
+
     const cur = state.current;
     cur.phase = "playing";
     cur.timer = GAME_TIME;
@@ -955,22 +732,37 @@ export default function useGameEngine() {
 
     state.current.textLabels = [timerLabel.current!, scoreLabel.current!, accLbl];
     cur.cursor = DEFAULT_CURSOR;
-    setUI({
-      phase: cur.phase,
-      timer: cur.timer,
-      shots: cur.shots,
-      hits: cur.hits,
-      score: cur.score,
-      accuracy: cur.accuracy,
-      cursor: cur.cursor,
-    });
+    syncUIFromState();
 
     simulationRuntime.startLoop(loop);
-  }, [loop, assetMgr, getImg, updateDigitLabel, simulationRuntime]);
+  }, [
+    finishArcadeSession,
+    loop,
+    assetMgr,
+    getImg,
+    startArcadeSession,
+    updateDigitLabel,
+    simulationRuntime,
+  ]);
 
   // reset back to title screen
   const resetGame = useCallback(() => {
     const cur = state.current;
+
+    if (arcadeSessionActiveRef.current && !sessionCompletedRef.current) {
+      finishArcadeSession({
+        completed: false,
+        score: cur.score,
+        accuracyPct: cur.accuracy,
+        stats: {
+          shotsFired: cur.shots,
+          hits: cur.hits,
+          conversions: cur.conversions,
+        },
+      });
+      sessionCompletedRef.current = true;
+      arcadeSessionActiveRef.current = false;
+    }
 
     simulationRuntime.clearTimeout(fishSpawnTimeout);
 
@@ -1012,34 +804,18 @@ export default function useGameEngine() {
     backgroundCanvas.current = null;
     pausedLabel.current = null;
 
-    setUI({
-      phase: cur.phase,
-      timer: cur.timer,
-      shots: cur.shots,
-      hits: cur.hits,
-      score: cur.score,
-      accuracy: cur.accuracy,
-      cursor: cur.cursor,
-    });
+    syncUIFromState();
     simulationRuntime.stopLoop();
     simulationRuntime.clearTimeout(cursorTimeoutRef);
     audio.pauseAll();
-  }, [simulationRuntime, audio]);
+  }, [finishArcadeSession, simulationRuntime, audio]);
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       const cur = state.current;
       if (e.code === "Escape" && (cur.phase === "playing" || cur.phase === "paused")) {
         cur.phase = cur.phase === "playing" ? "paused" : "playing";
-        setUI({
-          phase: cur.phase,
-          timer: cur.timer,
-          shots: cur.shots,
-          hits: cur.hits,
-          score: cur.score,
-          accuracy: cur.accuracy,
-          cursor: cur.cursor,
-        });
+        syncUIFromState();
         return;
       }
       if (cur.phase === "gameover" && e.code === "Space") {
@@ -1053,422 +829,94 @@ export default function useGameEngine() {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [resetGame, startSplash]);
 
-  // handle mouse move – change cursor when hovering over fish
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      const cur = state.current;
-      if (cur.phase !== "playing" || cur.cursor === SHOT_CURSOR) return;
-
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const { x, y } = mapClientPointToWorld({
-        clientX: e.clientX,
-        clientY: e.clientY,
-        bounds: canvas.getBoundingClientRect(),
-        worldWidth: cur.dims.width,
-        worldHeight: cur.dims.height,
-      });
-
-      const hovering = cur.fish.some((f) =>
-        pointInRect({ x, y }, { x: f.x, y: f.y, width: FISH_SIZE, height: FISH_SIZE }),
-      );
-
-      const nextCursor = hovering ? TARGET_CURSOR : DEFAULT_CURSOR;
-      if (nextCursor !== cur.cursor) {
-        syncCursor(nextCursor);
-      }
-    },
-    [syncCursor],
-  );
-
-  // handle left click – detect and affect fish
-  const handleClick = useCallback(
-    (e: ClickEvent) => {
-      e.preventDefault?.();
-      const cur = state.current;
-      if (cur.phase === "gameover") {
-        resetGame();
-        startSplash();
+  useEffect(() => {
+    return () => {
+      if (!arcadeSessionActiveRef.current || sessionCompletedRef.current) {
         return;
       }
-
-      const canvas = canvasRef.current;
-      if (!canvas) {
-        setUI({
-          phase: cur.phase,
-          timer: cur.timer,
-          shots: cur.shots,
-          hits: cur.hits,
-          score: cur.score,
-          accuracy: cur.accuracy,
-          cursor: cur.cursor,
-        });
-        return;
-      }
-      const clickPoint = mapClientPointToWorld({
-        clientX: e.clientX,
-        clientY: e.clientY,
-        bounds: canvas.getBoundingClientRect(),
-        worldWidth: cur.dims.width,
-        worldHeight: cur.dims.height,
-      });
-      const { x: canvasX, y: canvasY } = clickPoint;
-
-      const bounds = timeTextBounds.current;
-      if (
-        pointInRect(clickPoint, {
-          x: bounds.x,
-          y: bounds.y,
-          width: bounds.width,
-          height: bounds.height,
-        })
-      ) {
-        if (cur.phase === "playing" || cur.phase === "paused") {
-          cur.phase = cur.phase === "playing" ? "paused" : "playing";
-          setUI({
-            phase: cur.phase,
-            timer: cur.timer,
-            shots: cur.shots,
-            hits: cur.hits,
-            score: cur.score,
-            accuracy: cur.accuracy,
-            cursor: cur.cursor,
-          });
-        }
-        return;
-      }
-
-      if (cur.phase !== "playing") return;
-
-      syncCursor(SHOT_CURSOR);
-      simulationRuntime.scheduleTimeout({
-        handleRef: cursorTimeoutRef,
-        callback: () => {
-          syncCursor(DEFAULT_CURSOR);
+      finishArcadeSession({
+        completed: false,
+        score: state.current.score,
+        accuracyPct: state.current.accuracy,
+        stats: {
+          shotsFired: state.current.shots,
+          hits: state.current.hits,
+          conversions: state.current.conversions,
         },
-        delayMs: 100,
       });
+    };
+  }, [finishArcadeSession]);
 
-      cur.shots += 1;
-      audio.play("shoot");
-
-      // check bubbles first so they are popped before fish hits
-      const bubbleHitIndex = findTopmostHitIndex(cur.bubbles, (bubble) =>
-        pointInCircle(clickPoint, {
-          x: bubble.x + bubble.size / 2,
-          y: bubble.y + bubble.size / 2,
-          radius: bubble.size / 2,
-        }),
-      );
-      if (bubbleHitIndex >= 0) {
-        const [removedBubble] = cur.bubbles.splice(bubbleHitIndex, 1);
-        if (removedBubble) inactiveBubbles.current.push(removedBubble);
-        audio.play("pop");
-        cur.accuracy = cur.shots > 0 ? (cur.hits / cur.shots) * 100 : 0;
-        setUI({
-          phase: cur.phase,
-          timer: cur.timer,
-          shots: cur.shots,
-          hits: cur.hits,
-          score: cur.score,
-          accuracy: cur.accuracy,
-          cursor: cur.cursor,
-        });
-        return;
-      }
-
-      // iterate fish in reverse draw order so topmost fish are hit first
-      let hit = false;
-      const fishHitIndex = findTopmostHitIndex(cur.fish, (fish) =>
-        pointInRect(clickPoint, { x: fish.x, y: fish.y, width: FISH_SIZE, height: FISH_SIZE }),
-      );
-      if (fishHitIndex >= 0) {
-        const f = cur.fish[fishHitIndex];
-        cur.hits += 1;
-        cur.hitCounts[f.kind] = (cur.hitCounts[f.kind] || 0) + 1;
-        audio.play("hit");
-        hit = true;
-        const scoreMap: Record<string, number> = {
-          brown: 50,
-          grey_long_a: 5,
-          grey_long_b: 5,
-        };
-        const base = f.isSkeleton ? 20 : (scoreMap[f.kind] ?? 10);
-        const gain = base + cur.conversions;
-        cur.score += gain;
-        updateScoreLabel(scoreLabel.current, cur.score);
-        if (f.kind === "brown") {
-          cur.timer += TIME_BONUS_BROWN_FISH;
-          updateDigitLabel(timerLabel.current, cur.timer, 2);
-          makeText(`+${TIME_BONUS_BROWN_FISH}`, f.x, f.y, "#0f0");
-          const [removed] = cur.fish.splice(fishHitIndex, 1);
-          if (removed) inactiveFish.current.push(removed);
-          audio.play("bonus");
-        } else if (f.kind === "grey_long_a" || f.kind === "grey_long_b") {
-          cur.timer += TIME_BONUS_GREY_LONG;
-          updateDigitLabel(timerLabel.current, cur.timer, 2);
-          makeText(`+${TIME_BONUS_GREY_LONG}`, f.x, f.y, "#f00");
-          const pid = f.pairId;
-          if (pid !== undefined) {
-            const removed = cur.fish.filter((fish) => fish.pairId === pid);
-            cur.fish = cur.fish.filter((fish) => fish.pairId !== pid);
-            inactiveFish.current.push(...removed);
-          } else {
-            const [removed] = cur.fish.splice(fishHitIndex, 1);
-            if (removed) inactiveFish.current.push(removed);
-          }
-          audio.play("bonus");
-        } else {
-          const skeletonCount = cur.fish.filter(
-            (fish) => fish.isSkeleton || fish.pendingSkeleton,
-          ).length;
-          if (!f.isSkeleton) {
-            if (Math.random() < 0.5 && skeletonCount < MAX_SKELETONS) {
-              f.isSkeleton = true;
-              f.health = 1;
-              f.hurtTimer = 0;
-              f.frame = 0;
-              f.frameCounter = 0;
-              delete f.groupId;
-              audio.play("skeleton");
-            } else {
-              const [removed] = cur.fish.splice(fishHitIndex, 1);
-              if (removed) inactiveFish.current.push(removed);
-              audio.play("death");
-            }
-          } else {
-            f.health -= 1;
-            if (f.health > 0) {
-              f.hurtTimer = HURT_DURATION_MS;
-              audio.play("skeleton");
-            } else {
-              const [removed] = cur.fish.splice(fishHitIndex, 1);
-              if (removed) inactiveFish.current.push(removed);
-              audio.play("death");
-            }
-          }
-        }
-      }
-
-      if (!hit) {
-        cur.missParticles.push({
-          x: canvasX,
-          y: canvasY,
-          radius: 0,
-          alpha: 1,
-        } as MissParticle);
-      }
-
-      cur.accuracy = cur.shots > 0 ? (cur.hits / cur.shots) * 100 : 0;
-      setUI({
-        phase: cur.phase,
-        timer: cur.timer,
-        shots: cur.shots,
-        hits: cur.hits,
-        score: cur.score,
-        accuracy: cur.accuracy,
-        cursor: cur.cursor,
-      });
-    },
-    [audio, makeText, updateDigitLabel, resetGame, startSplash],
+  const spawnFish = useCallback(
+    (kind: string, count: number): Fish[] =>
+      spawnZombiefishFishStage({
+        stateRef: state,
+        inactiveFishRef: inactiveFish,
+        nextFishIdRef: nextFishId,
+        nextGroupIdRef: nextGroupId,
+        nextPairIdRef: nextPairId,
+        kind,
+        count,
+      }),
+    [],
   );
 
-  // suppress context menu
-  const handleContext = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-  }, []);
+  const { handleMouseMove, handleClick, handleContext } = useMemo(
+    () =>
+      createZombiefishInputStage({
+        stateRef: state,
+        canvasRef,
+        inactiveFishRef: inactiveFish,
+        inactiveBubblesRef: inactiveBubbles,
+        cursorTimeoutRef,
+        timeTextBoundsRef: timeTextBounds,
+        simulationRuntime,
+        audio,
+        syncCursor,
+        syncUiFromState: syncUIFromState,
+        updateDigitLabel,
+        updateScoreLabel,
+        timerLabelRef: timerLabel,
+        scoreLabelRef: scoreLabel,
+        makeText,
+        resetGame,
+        startSplash,
+      }),
+    [
+      audio,
+      canvasRef,
+      cursorTimeoutRef,
+      inactiveBubbles,
+      inactiveFish,
+      makeText,
+      resetGame,
+      scoreLabel,
+      simulationRuntime,
+      startSplash,
+      state,
+      syncCursor,
+      syncUIFromState,
+      timeTextBounds,
+      timerLabel,
+      updateDigitLabel,
+      updateScoreLabel,
+    ],
+  );
 
-  // factor that ramps up difficulty as time runs out
-  function difficultyFactor() {
-    return 1 + (1 - state.current.timer / GAME_TIME);
-  }
-
-  // spawn a group of fish just outside the viewport edges
-  const spawnFish = useCallback((kind: string, count: number): Fish[] => {
-    if (kind === "skeleton") return [];
-    const spawned: Fish[] = [];
-    const { width, height } = state.current.dims;
-    // keep school member velocity variance tied to the configured speed range
-    const speedVariance = (FISH_SPEED_MAX - FISH_SPEED_MIN) / 4;
-
-    const specialSingles = ["brown"] as string[];
-    const specialPairs: Record<string, string[]> = {
-      grey_long: ["grey_long_a", "grey_long_b"],
-    };
-    const specialPairParts = Object.values(specialPairs).flat();
-    const isSpecial = specialSingles.includes(kind) || !!specialPairs[kind];
-
-    const specialsOnScreen = state.current.fish.filter(
-      (f) => specialSingles.includes(f.kind) || specialPairParts.includes(f.kind),
-    ).length;
-    const basicsOnScreen = state.current.fish.filter(
-      (f) =>
-        !f.isSkeleton && !specialSingles.includes(f.kind) && !specialPairParts.includes(f.kind),
-    ).length;
-
-    if (isSpecial) {
-      if (specialsOnScreen >= MAX_SPECIAL_FISH) return [];
-      const needed = specialPairs[kind]?.length ?? 1;
-      if (specialsOnScreen + needed > MAX_SPECIAL_FISH) return [];
-      count = 1;
-    } else {
-      const available = MAX_FISH - basicsOnScreen;
-      if (available <= 0) return [];
-      count = Math.min(count, available);
-    }
-    count = Math.min(count, MAX_SCHOOL_SIZE);
-
-    const reuseFish = () => inactiveFish.current.pop() || ({} as Fish);
-
-    // decide spawning edge with a bias toward left/right entrances
-    // omit top/bottom edges to avoid vertically swimming fish
-    const edges = [0, 0, 0, 1, 1, 1] as const;
-    const edge = pickRandom(edges) ?? 0; // 0:left,1:right
-    const startX = edge === 0 ? -FISH_SIZE : width + FISH_SIZE;
-
-    // generate a velocity based on the entry edge
-    const genVelocity = () => {
-      const factor = difficultyFactor();
-      const range = FISH_SPEED_MAX - FISH_SPEED_MIN;
-      const main = (Math.random() * range + FISH_SPEED_MIN) * factor;
-      const cross = (Math.random() * range - range / 2) * factor;
-      let vx: number;
-      let vy: number;
-      if (edge === 0) {
-        vx = main;
-        vy = cross;
-      } else {
-        vx = -main;
-        vy = cross;
-      }
-      return clampIncline(vx, vy);
-    };
-
-    // helper to create a fish
-    const makeFish = (
-      k: string,
-      x: number,
-      y: number,
-      vx: number,
-      vy: number,
-      groupId?: number,
-      highlight = false,
-    ) => {
-      const f = reuseFish();
-      f.id = nextFishId.current++;
-      f.kind = k;
-      f.x = x;
-      f.y = y;
-      f.vx = vx;
-      f.vy = vy;
-      const orient = orientFish(vx, vy);
-      f.angle = orient.angle;
-      f.flipped = orient.flipped;
-      f.frame = 0;
-      f.frameCounter = 0;
-      f.health = 0;
-      f.hurtTimer = 0;
-      f.isSkeleton = false;
-      f.groupId = groupId;
-      f.pairId = undefined;
-      f.highlight = highlight ? true : undefined;
-      f.pendingSkeleton = undefined;
-      f.flashTimer = undefined;
-      f.wanderTimer =
-        Math.random() * (WANDER_TIMER_MAX_MS - WANDER_TIMER_MIN_MS) + WANDER_TIMER_MIN_MS;
-      return f;
-    };
-
-    if (specialPairs[kind]) {
-      // grey_long spawns as two pieces that move together
-      const pairId = nextPairId.current++;
-      const { vx, vy } = genVelocity(); // keep pair aligned
-      const pairStart = edge === 0 ? -2 * FISH_SIZE : width - FISH_SIZE;
-      const y = Math.random() * height;
-      specialPairs[kind].forEach((name, idx) => {
-        const x = pairStart + idx * FISH_SIZE;
-        const f = makeFish(name, x, y, vx, vy);
-        f.pairId = pairId;
-        spawned.push(f);
-      });
-    } else {
-      // non-special fish
-      const baseX = startX;
-      const baseY = Math.random() * height;
-      const baseVel = genVelocity();
-      const groupId =
-        count > 1 && !specialSingles.includes(kind) ? nextGroupId.current++ : undefined;
-
-      for (let i = 0; i < count; i++) {
-        let px = baseX;
-        let py = baseY;
-        let vx = baseVel.vx;
-        let vy = baseVel.vy;
-
-        if (groupId !== undefined && i > 0) {
-          py += (Math.random() - 0.5) * FISH_SIZE;
-          px += edge === 0 ? -Math.random() * (FISH_SIZE / 2) : Math.random() * (FISH_SIZE / 2);
-          vx += (Math.random() - 0.5) * speedVariance;
-          vy += (Math.random() - 0.5) * speedVariance;
-          const limited = clampIncline(vx, vy);
-          vx = limited.vx;
-          vy = limited.vy;
-        } else {
-          py = Math.random() * height;
-        }
-
-        const fish = makeFish(kind, px, py, vx, vy, groupId, isSpecial && i === 0);
-        spawned.push(fish);
-      }
-    }
-
-    state.current.fish.push(...spawned);
-    return spawned;
-  }, []);
-
-  // spawn scheduler
   useEffect(() => {
-    if (ui.phase !== "playing") return;
-    const basicKinds = ["blue", "green", "orange", "pink", "red"];
-    simulationRuntime.scheduleSpawner({
-      handleRef: fishSpawnTimeout,
-      shouldContinue: () => state.current.phase === "playing",
-      getDelayMs: () => {
-        const { timer, conversions } = state.current;
-        const difficultyFactor = 1 + (1 - timer / GAME_TIME) + conversions * 0.1;
-        // FISH_SPAWN_INTERVAL_* are expressed in frames; convert to ms
-        const min = FISH_SPAWN_INTERVAL_MIN * FRAME_MS;
-        const max = FISH_SPAWN_INTERVAL_MAX * FRAME_MS;
-        const baseDelay = randomInRange(min, max);
-        return Math.max(baseDelay / difficultyFactor, 250);
-      },
-      spawn: () => {
-        const kind = pickRandom(basicKinds) ?? "blue";
-        const count = Math.floor(Math.random() * 5) + 1;
-        spawnFish(kind, count);
-
-        const roll = Math.random();
-        if (roll < 0.1) {
-          spawnFish("brown", 1);
-        } else if (roll < 0.15) {
-          spawnFish("grey_long", 1);
-        }
-      },
+    if (ui.phase !== "playing") {
+      return;
+    }
+    return startZombiefishSpawnSimulationStage({
+      stateRef: state,
+      fishSpawnTimeoutRef: fishSpawnTimeout,
+      simulationRuntime,
+      spawnFish,
     });
-
-    return () => {
-      simulationRuntime.clearTimeout(fishSpawnTimeout);
-    };
-  }, [ui.phase, spawnFish, simulationRuntime]);
-
-  // cleanup on unmount
-  useEffect(() => {
-    return () => {
-      simulationRuntime.stopLoop();
-    };
-  }, [simulationRuntime]);
+  }, [ui.phase, simulationRuntime, spawnFish]);
 
   return {
+    arcadeProfile,
     ui,
     canvasRef,
     handleMouseMove,

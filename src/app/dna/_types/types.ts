@@ -148,6 +148,7 @@ export type ChartMethod =
   | ""
   | "bpcontent"
   | "sequence"
+  | "analysis"
   | "squiggle"
   | "gates"
   | "qi"

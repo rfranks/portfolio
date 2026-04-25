@@ -1,6 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createCliOutput } from "./lib/cli-output.mts";
+import * as powerupsModule from "../src/consts/game/powerups";
+import * as warbirdsPowerupSpritesModule from "../src/app/warbirds/_utils/powerupSprites";
 
 const out = createCliOutput();
 const rootDir = process.cwd();
@@ -29,6 +31,46 @@ type AssetIssue = {
   path: string;
   references: AssetUsage[];
 };
+
+type PowerupAssetIssue = {
+  path: string;
+  reason: string;
+};
+
+function resolveModuleExport<T>(moduleNamespace: unknown, name: string): T {
+  if (!moduleNamespace || typeof moduleNamespace !== "object") {
+    throw new Error(`Unable to resolve export '${name}': module is not an object.`);
+  }
+
+  const namespace = moduleNamespace as Record<string, unknown>;
+  if (name in namespace) {
+    return namespace[name] as T;
+  }
+
+  const maybeDefault = namespace.default;
+  if (maybeDefault && typeof maybeDefault === "object") {
+    const defaultObject = maybeDefault as Record<string, unknown>;
+    if (name in defaultObject) {
+      return defaultObject[name] as T;
+    }
+  }
+
+  throw new Error(`Unable to resolve export '${name}' from module namespace.`);
+}
+
+const POWERUP_TYPES = resolveModuleExport<ReadonlyArray<string>>(powerupsModule, "POWERUP_TYPES");
+const resolveWarbirdsPowerupAssetPath = resolveModuleExport<(type: string) => string>(
+  warbirdsPowerupSpritesModule,
+  "resolveWarbirdsPowerupAssetPath",
+);
+const resolveWarbirdsPowerupFallbackAssetPaths = resolveModuleExport<(type: string) => string[]>(
+  warbirdsPowerupSpritesModule,
+  "resolveWarbirdsPowerupFallbackAssetPaths",
+);
+const WARBIRDS_POWERUP_DEFAULT_FALLBACK_ASSET_PATH = resolveModuleExport<string>(
+  warbirdsPowerupSpritesModule,
+  "WARBIRDS_POWERUP_DEFAULT_FALLBACK_ASSET_PATH",
+);
 
 async function walkFiles(dir: string, collector: string[]): Promise<void> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -142,17 +184,63 @@ async function findMissingAssets(usages: Map<string, AssetUsage[]>): Promise<Ass
   return issues.sort((left, right) => left.path.localeCompare(right.path));
 }
 
+async function findMissingWarbirdsPowerupAssets(): Promise<PowerupAssetIssue[]> {
+  const missing: PowerupAssetIssue[] = [];
+  const checkedPaths = new Set<string>();
+  const pushMissingPath = async (assetPath: string, reason: string) => {
+    if (checkedPaths.has(assetPath)) {
+      return;
+    }
+    checkedPaths.add(assetPath);
+    const assetAbsolutePath = path.join(rootDir, "public", assetPath.replace(/^\/+/, ""));
+    try {
+      const stat = await fs.stat(assetAbsolutePath);
+      if (!stat.isFile()) {
+        missing.push({ path: assetPath, reason });
+      }
+    } catch {
+      missing.push({ path: assetPath, reason });
+    }
+  };
+
+  await pushMissingPath(
+    WARBIRDS_POWERUP_DEFAULT_FALLBACK_ASSET_PATH,
+    "Warbirds default fallback sprite is missing.",
+  );
+
+  for (const powerupType of POWERUP_TYPES) {
+    const primaryPath = resolveWarbirdsPowerupAssetPath(powerupType);
+    await pushMissingPath(
+      primaryPath,
+      `Warbirds powerup '${powerupType}' primary sprite is missing.`,
+    );
+
+    const fallbackPaths = resolveWarbirdsPowerupFallbackAssetPaths(powerupType);
+    for (const fallbackPath of fallbackPaths) {
+      await pushMissingPath(
+        fallbackPath,
+        `Warbirds powerup '${powerupType}' fallback sprite '${fallbackPath}' is missing.`,
+      );
+    }
+  }
+
+  return missing.sort((left, right) => left.path.localeCompare(right.path));
+}
+
 async function main(): Promise<void> {
   out.section("Asset integrity scan");
   const usages = await collectAssetUsages();
   const missingAssets = await findMissingAssets(usages);
+  const missingWarbirdsPowerupAssets = await findMissingWarbirdsPowerupAssets();
 
-  if (missingAssets.length === 0) {
+  if (missingAssets.length === 0 && missingWarbirdsPowerupAssets.length === 0) {
     out.success(`Asset integrity check passed (${usages.size} referenced assets verified).`);
     return;
   }
 
-  out.error(`Asset integrity check failed: ${missingAssets.length} missing asset reference(s).`);
+  out.error(
+    `Asset integrity check failed: ${missingAssets.length + missingWarbirdsPowerupAssets.length} missing asset reference(s).`,
+  );
   for (const issue of missingAssets) {
     out.listItem(`Missing ${issue.path}`);
     issue.references.slice(0, 5).forEach((usage) => {
@@ -161,6 +249,11 @@ async function main(): Promise<void> {
     if (issue.references.length > 5) {
       out.listItem(`↳ +${issue.references.length - 5} more`);
     }
+  }
+  for (const issue of missingWarbirdsPowerupAssets) {
+    out.listItem(`Missing ${issue.path}`);
+    out.listItem(`↳ ${issue.reason}`);
+    out.listItem("↳ src/app/warbirds/_utils/powerupSprites.ts:1");
   }
   process.exit(1);
 }

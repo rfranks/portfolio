@@ -27,9 +27,17 @@ export interface ProjectDiagramConfig extends Pick<
   | "type"
   | "autoFitPadding"
   | "autoFitScaleMultiplier"
+  | "autoFitVerticalAlign"
   | "autoFitOffsetX"
   | "autoFitOffsetY"
 > {
+  autoFit?: {
+    padding?: number;
+    scaleMultiplier?: number;
+    verticalAlign?: "top" | "center";
+    offsetX?: number;
+    offsetY?: number;
+  };
   shortText?: string;
   description?: string;
   selectorOptionVisual?: ProjectDiagramVisualConfig;
@@ -57,6 +65,21 @@ export type ProjectSectionPagerSfxValue = "random" | `/${string}`;
 export type ProjectSectionPagerSfxConfig = Partial<
   Record<ProjectPresentationSectionKey, ProjectSectionPagerSfxValue>
 >;
+export type ProjectSectionDeepLinkRestoreMode = "always" | "if-present" | "never";
+export type ProjectSectionPagerActionsConfig = {
+  allowPrevious?: boolean;
+  allowNext?: boolean;
+  allowSelector?: boolean;
+};
+export type ProjectSectionCapabilityConfig = {
+  enabled?: boolean;
+  pagerActions?: ProjectSectionPagerActionsConfig;
+  audioProfile?: ProjectSectionPagerSfxValue;
+  deepLinkRestore?: ProjectSectionDeepLinkRestoreMode;
+};
+export type ProjectSectionCapabilitiesConfig = Partial<
+  Record<ProjectPresentationSectionKey, ProjectSectionCapabilityConfig>
+>;
 
 export type ProjectPresentationDemoLayout = "default" | "podcasts";
 export type ProjectPresentationPrefetchPlan = Partial<
@@ -70,6 +93,7 @@ export interface ProjectPresentationConfig {
   enableWhyThisInterestsSection?: boolean;
   demoLayout?: ProjectPresentationDemoLayout;
   sectionOrder?: ProjectPresentationSectionKey[];
+  sectionCapabilities?: ProjectSectionCapabilitiesConfig;
   prefetchPlan?: ProjectPresentationPrefetchPlan;
 }
 

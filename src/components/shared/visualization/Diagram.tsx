@@ -15,6 +15,7 @@ import DiagramCanvas from "./diagram/DiagramCanvas";
 import DiagramCodePanel from "./diagram/DiagramCodePanel";
 import DiagramToolbar from "./diagram/DiagramToolbar";
 import { useDiagramExports } from "@/hooks/visualization/useDiagramExports";
+import { useMermaidScaleSyncRedraw } from "@/hooks/visualization/useMermaidScaleSyncRedraw";
 import { DIAGRAM_VIEWPORT_DEEPLINK_PARAM } from "@/consts/components/shared/diagram";
 import { VISUALIZATION_ANIMATION_TOKENS } from "@/consts/visualization/tokens";
 import {
@@ -162,6 +163,16 @@ ${steps?.join("\n  ")}
     },
     [resolvedId, title],
   );
+  const { markMermaidRenderComplete } = useMermaidScaleSyncRedraw({
+    diagramCode,
+    diagramRef,
+    isHydrated,
+    isVisible,
+    mermaidModuleRef,
+    scale,
+    showingText,
+    syntax,
+  });
 
   const fitDiagramToViewport = useCallback(() => {
     const viewport = diagramViewportRef.current;
@@ -590,6 +601,7 @@ ${steps?.join("\n  ")}
         nodes: [currentDiagramRef],
         querySelector: ".diagram-mermaid",
       });
+      markMermaidRenderComplete(transformRef.current.scale);
 
       if (!cancelled && autoFitOnRender && !deepLinkViewportAppliedRef.current) {
         scheduleAutoFitAfterRenderSettle();
@@ -609,6 +621,8 @@ ${steps?.join("\n  ")}
     scheduleAutoFitAfterRenderSettle,
     showingText,
     syntax,
+    markMermaidRenderComplete,
+    transformRef,
   ]);
 
   useEffect(() => {

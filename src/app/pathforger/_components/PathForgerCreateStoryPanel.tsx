@@ -314,6 +314,11 @@ export default function PathForgerCreateStoryPanel(props: PathForgerCreateStoryP
 
   if (showMainCreateSpinner) {
     const normalizedStatusText = statusText.trim().toLowerCase();
+    const hideCoverDuringPitchGeneration =
+      showPitchSelectionAnimation ||
+      activeRunAction === "pitch" ||
+      (activeRunAction === "pipeline" &&
+        normalizedStatusText.includes("selection of potential stories"));
     const showPathForgingAnimation =
       activeRunAction === "forgePath" ||
       normalizedStatusText.includes("forging option") ||
@@ -374,7 +379,7 @@ export default function PathForgerCreateStoryPanel(props: PathForgerCreateStoryP
             }}
           >
             <Stack spacing={2} alignItems="center">
-              {coverImage ? (
+              {coverImage && !hideCoverDuringPitchGeneration ? (
                 <Paper
                   variant="outlined"
                   sx={{

@@ -1,24 +1,14 @@
-import { toJSONSchema, z } from "zod";
-import { withBasePath } from "@/utils/basePath";
-import { fetchText } from "@/utils/network/httpClient";
+import { z } from "zod";
 import { requestOpenAIJsonRaw } from "@/utils/openai/client";
 import {
-  KnowledgeDocFile,
   OpenAIErrorPayload,
-  OpenAIInputContentPart,
-  PathForgerBranchChoice,
   PathForgerChapterResult,
   PathForgerGeneratedImage,
-  PathForgerImageStageUpdate,
-  PathForgerImageType,
-  PathForgerOnboardingInput,
   PathForgerPipelineProgress,
   PathForgerPipelineResult,
   PathForgerPitchResult,
   RunPathForgerChapterStageInput,
   RunPathForgerCoverFromPitchStageInput,
-  RunPathForgerImageStageInput,
-  RunPathForgerOutcomeImageStageInput,
   RunPathForgerPathLedgerUpdateStageInput,
   RunPathForgerPipelineInput,
   RunPathForgerPitchStageInput,
@@ -27,10 +17,8 @@ import {
   RunPathForgerToneStageInput,
   RunPathForgerVisualStyleStageInput,
 } from "../_types/pipeline";
-import { KNOWLEDGE_DOC_FILES } from "../_consts/knowledge";
 import { PathForgerPitchChoice } from "../_types/pitch";
 import {
-  imagePromptSetSchema,
   pathForgerChapterCoreResultSchema,
   pathForgerChapterResultSchema,
   pathForgerPitchResultSchema,
@@ -39,8 +27,6 @@ import {
   protagonistNameResultSchema,
   runChapterStageInputSchema,
   runCoverFromPitchStageInputSchema,
-  runImageStageInputSchema,
-  runOutcomeImageStageInputSchema,
   runPathLedgerUpdateStageInputSchema,
   runPipelineInputSchema,
   runPitchStageInputSchema,
@@ -59,7 +45,6 @@ import {
 import { createPathForgerPipelineOrchestrationPolicy } from "./pipeline/orchestrationPolicyMap";
 import {
   type PathForgerImageStageResult,
-  type PathForgerKnowledge,
   type PathForgerPipelineOrchestrationContext,
 } from "../_types/orchestrationTypes";
 import { coerceStageModuleOutput, runPathForgerStageSequence } from "./pipeline/stageModules";
@@ -68,125 +53,56 @@ import { createGenerateImagesStage } from "./pipeline/stages/generateImagesStage
 import { createGeneratePitchesStage } from "./pipeline/stages/generatePitchesStage";
 import { createLoadKnowledgeStage } from "./pipeline/stages/loadKnowledgeStage";
 import {
+  renderImageDefaults,
+  runPathForgerImageStage,
+  runPathForgerOutcomeImageStage,
+} from "./pipeline/imageOrchestration";
+import {
+  DEFAULT_TEXT_MODEL,
+  resolveImageModel,
+  resolveTextModel,
+  resolveTextModelFallbackCandidates,
+} from "./pipeline/modelPolicy";
+import { loadPathForgerKnowledgeForStage } from "./pipeline/knowledgeCache";
+import {
   buildCoverPromptFromPitch,
-  buildCoverPromptFromTitle,
-  extractCoverTitleHintFromPrompt,
-  markdownToPlainText,
   normalizeChoiceRiskHud,
   normalizePitchResultTitles,
   resolvePitchDisplayTitle,
   stripChapterChoicesTail,
 } from "./pipeline/textFormatting";
+import { extractTextFromResponse, parseJsonResponse } from "./pipeline/responseParser";
+import {
+  buildPitchSystemPrompt,
+  buildPitchUserPrompt,
+  buildPremiseSystemPrompt,
+  buildPremiseUserPrompt,
+  buildProtagonistNameSystemPrompt,
+  buildProtagonistNameUserPrompt,
+  buildToneSystemPrompt,
+  buildToneUserPrompt,
+  buildVisualStyleSystemPrompt,
+  buildVisualStyleUserPrompt,
+  compactPromptHistoryValue,
+  containsOverusedNeonDescriptor,
+  findSimilarPremise,
+  matchesBlockedPhrase,
+  pickNameFromCandidates,
+  sanitizePromptHistoryValues,
+  softenOverusedNeonDescriptor,
+} from "./pipeline/promptBuilders";
+import {
+  buildChapterCoreSystemPrompt,
+  buildChapterCoreUserPrompt,
+  buildChapterSystemPrompt,
+  buildChapterUserPrompt,
+  buildPathLedgerUpdateSystemPrompt,
+  buildPathLedgerUpdateUserPrompt,
+} from "./pipeline/chapterPromptBuilders";
 
-const DEFAULT_TEXT_MODEL = "gpt-4.1-mini";
-const DEFAULT_IMAGE_MODEL = "gpt-5.2";
-const RESPONSES_IMAGE_FALLBACK_MODELS = [DEFAULT_IMAGE_MODEL, "gpt-4.1-mini"] as const;
-const RESPONSES_TEXT_FALLBACK_MODELS = [DEFAULT_TEXT_MODEL, "gpt-5.2", "gpt-4.1"] as const;
-const TARGET_IMAGE_SIZE = "1024x1024";
-const MAX_PARALLEL_IMAGE_CALLS = 3;
-const IMAGE_REQUEST_TIMEOUT_MS = 180_000;
+export { renderImageDefaults, runPathForgerImageStage, runPathForgerOutcomeImageStage };
+
 const TEXT_REQUEST_TIMEOUT_MS = 180_000;
-const CONTINUATION_CHAPTER_MAX_CHARS = 10_000;
-const CONTINUATION_OUTCOME_MAX_CHARS = 4_000;
-const CONTINUATION_LEDGER_MAX_CHARS = 5_000;
-const IMAGE_RATE_LIMIT_MAX_RETRIES = 3;
-const IMAGE_RATE_LIMIT_BASE_DELAY_MS = 1_500;
-const SELFIE_REFERENCE_IMAGE_TYPES: ReadonlySet<PathForgerImageType> = new Set([
-  "choicePreviewA",
-  "choicePreviewB",
-  "outcomeA",
-  "outcomeB",
-]);
-const OVERUSED_NEON_PHRASES = [
-  "neon-lit",
-  "neon lit",
-  "neon-drenched",
-  "neon drenched",
-  "neon-soaked",
-  "neon soaked",
-] as const;
-
-function isImageModelId(modelId: string): boolean {
-  return /^gpt-image/i.test(modelId.trim());
-}
-
-function resolveImageModelFallbackCandidates(model: string): string[] {
-  const normalized = model.trim().toLowerCase();
-  return RESPONSES_IMAGE_FALLBACK_MODELS.filter(
-    (candidate) => candidate.trim().toLowerCase() !== normalized,
-  );
-}
-
-function resolveTextModelFallbackCandidates(model: string): string[] {
-  const normalized = model.trim().toLowerCase();
-  return RESPONSES_TEXT_FALLBACK_MODELS.filter((candidate) => {
-    const trimmed = candidate.trim();
-    if (!trimmed || isImageModelId(trimmed)) {
-      return false;
-    }
-
-    return trimmed.toLowerCase() !== normalized;
-  });
-}
-
-function resolveTextModel(
-  explicitModel: string | undefined,
-  defaultModel: string | undefined,
-): string {
-  const explicit = explicitModel?.trim() ?? "";
-  if (explicit.length > 0 && !isImageModelId(explicit)) {
-    return explicit;
-  }
-
-  const fallback = defaultModel?.trim() ?? "";
-  if (fallback.length > 0 && !isImageModelId(fallback)) {
-    return fallback;
-  }
-
-  return DEFAULT_TEXT_MODEL;
-}
-
-function resolveImageModel(
-  explicitModel: string | undefined,
-  defaultModel: string | undefined,
-): string {
-  const explicit = explicitModel?.trim() ?? "";
-  if (explicit.length > 0 && isImageModelId(explicit)) {
-    return explicit;
-  }
-
-  const fallback = defaultModel?.trim() ?? "";
-  if (fallback.length > 0 && isImageModelId(fallback)) {
-    return fallback;
-  }
-
-  return DEFAULT_IMAGE_MODEL;
-}
-
-function shouldUseSelfieReferenceImage(params: {
-  imageType: PathForgerImageType;
-  personalizedImages: boolean;
-  selfieDataUrl?: string;
-}): boolean {
-  if (!params.personalizedImages) {
-    return false;
-  }
-
-  if (!params.selfieDataUrl?.trim()) {
-    return false;
-  }
-
-  return SELFIE_REFERENCE_IMAGE_TYPES.has(params.imageType);
-}
-
-const renderImageDefaults: Record<PathForgerImageType, boolean> = {
-  cover: true,
-  chapterSpread: true,
-  choicePreviewA: true,
-  choicePreviewB: true,
-  outcomeA: true,
-  outcomeB: true,
-};
 
 export type RunPathForgerPipelineOptions = {
   abortSignal?: AbortSignal;
@@ -196,160 +112,6 @@ export type RunPathForgerPipelineOptions = {
 const PATHFORGER_PIPELINE_ORCHESTRATION_POLICY = createPathForgerPipelineOrchestrationPolicy({
   retryDelayMs: (attempt) => attempt * 650,
 });
-
-type PathForgerKnowledgeCachePayload = {
-  version: string;
-  knowledge: PathForgerKnowledge;
-};
-
-const PATHFORGER_KNOWLEDGE_CACHE_KEY = "pathforger-knowledge-cache-v1";
-const PATHFORGER_KNOWLEDGE_CACHE_VERSION = `v2:docs:${KNOWLEDGE_DOC_FILES.join("|")}`;
-
-let knowledgePromise: Promise<PathForgerKnowledge> | null = null;
-let knowledgeCache: PathForgerKnowledge | null = null;
-
-function isPathForgerKnowledge(value: unknown): value is PathForgerKnowledge {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Partial<PathForgerKnowledge>;
-  if (typeof candidate.mainPrompt !== "string") {
-    return false;
-  }
-  if (!candidate.docs || typeof candidate.docs !== "object") {
-    return false;
-  }
-
-  for (const docFile of KNOWLEDGE_DOC_FILES) {
-    if (typeof candidate.docs[docFile] !== "string") {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function readKnowledgeFromSessionCache(): PathForgerKnowledge | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  try {
-    const raw = window.sessionStorage.getItem(PATHFORGER_KNOWLEDGE_CACHE_KEY);
-    if (!raw) {
-      return null;
-    }
-
-    const parsed = JSON.parse(raw) as PathForgerKnowledgeCachePayload;
-    if (
-      !parsed ||
-      parsed.version !== PATHFORGER_KNOWLEDGE_CACHE_VERSION ||
-      !isPathForgerKnowledge(parsed.knowledge)
-    ) {
-      window.sessionStorage.removeItem(PATHFORGER_KNOWLEDGE_CACHE_KEY);
-      return null;
-    }
-
-    return parsed.knowledge;
-  } catch {
-    return null;
-  }
-}
-
-function hasKnowledgeSessionCache(): boolean {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  try {
-    const raw = window.sessionStorage.getItem(PATHFORGER_KNOWLEDGE_CACHE_KEY);
-    return Boolean(raw);
-  } catch {
-    return false;
-  }
-}
-
-function writeKnowledgeToSessionCache(knowledge: PathForgerKnowledge): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    const payload: PathForgerKnowledgeCachePayload = {
-      version: PATHFORGER_KNOWLEDGE_CACHE_VERSION,
-      knowledge,
-    };
-    window.sessionStorage.setItem(PATHFORGER_KNOWLEDGE_CACHE_KEY, JSON.stringify(payload));
-  } catch {
-    // Ignore storage failures (private mode/quota).
-  }
-}
-
-async function readStaticText(path: string): Promise<string> {
-  const { data } = await fetchText(withBasePath(path), {
-    method: "GET",
-    cache: "force-cache",
-  });
-  return data.trim();
-}
-
-async function loadPathForgerKnowledge(): Promise<PathForgerKnowledge> {
-  if (knowledgeCache) {
-    return knowledgeCache;
-  }
-
-  if (!knowledgePromise) {
-    knowledgePromise = (async () => {
-      const cachedKnowledge = readKnowledgeFromSessionCache();
-      if (cachedKnowledge) {
-        knowledgeCache = cachedKnowledge;
-        return cachedKnowledge;
-      }
-
-      const [mainPrompt, ...docContents] = await Promise.all([
-        readStaticText("/apps/pathforger/MAIN_PROMPT.txt"),
-        ...KNOWLEDGE_DOC_FILES.map((file) =>
-          readStaticText(`/apps/pathforger/knowledge-files/${file}`),
-        ),
-      ]);
-
-      const docs = KNOWLEDGE_DOC_FILES.reduce<Record<KnowledgeDocFile, string>>(
-        (acc, file, index) => {
-          acc[file] = docContents[index];
-          return acc;
-        },
-        {} as Record<KnowledgeDocFile, string>,
-      );
-
-      const knowledge: PathForgerKnowledge = {
-        mainPrompt,
-        docs,
-      };
-
-      knowledgeCache = knowledge;
-      writeKnowledgeToSessionCache(knowledge);
-
-      return knowledge;
-    })();
-  }
-
-  return knowledgePromise;
-}
-
-async function loadPathForgerKnowledgeForStage(
-  onProgress?: (progress: PathForgerPipelineProgress) => void,
-): Promise<PathForgerKnowledge> {
-  const shouldAnnounceLoading = !knowledgeCache && !knowledgePromise && !hasKnowledgeSessionCache();
-  if (shouldAnnounceLoading) {
-    onProgress?.({
-      stage: "loadingKnowledge",
-      message: "Loading PathForger knowledge files...",
-    });
-  }
-
-  return loadPathForgerKnowledge();
-}
 
 function extractErrorMessage(payload: Record<string, unknown>): string {
   const errorPayload =
@@ -368,853 +130,19 @@ function extractErrorMessage(payload: Record<string, unknown>): string {
   return "";
 }
 
-function extractErrorCode(payload: Record<string, unknown>): string {
-  const errorPayload =
-    typeof payload.error === "object" && payload.error
-      ? (payload.error as Record<string, unknown>)
-      : null;
-
-  if (typeof errorPayload?.code === "string") {
-    return errorPayload.code;
+function isTextTimeoutLikeError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
   }
 
-  return "";
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-function parseRetryAfterMs(value: string | null): number | null {
-  if (!value) {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  if (trimmed.length === 0) {
-    return null;
-  }
-
-  const numeric = Number(trimmed);
-  if (Number.isFinite(numeric) && numeric > 0) {
-    return Math.ceil(numeric * 1_000);
-  }
-
-  const dateMs = Date.parse(trimmed);
-  if (!Number.isNaN(dateMs)) {
-    const delta = dateMs - Date.now();
-    return delta > 0 ? delta : null;
-  }
-
-  return null;
-}
-
-function isRateLimitResponse(
-  status: number,
-  payload: Record<string, unknown>,
-  message: string,
-): boolean {
-  if (status === 429) {
+  if (error.name === "TimeoutError") {
     return true;
   }
 
-  const code = extractErrorCode(payload).toLowerCase();
-  if (code === "rate_limit_exceeded") {
-    return true;
-  }
-
-  const lower = message.toLowerCase();
-  return lower.includes("rate limit");
-}
-
-function resolveRateLimitDelayMs(response: Response, message: string, attempt: number): number {
-  const headerDelayMs = parseRetryAfterMs(response.headers.get("retry-after"));
-  if (headerDelayMs !== null) {
-    return Math.max(500, headerDelayMs);
-  }
-
-  const retryInMatch = message.match(
-    /try again in\s+(\d+(?:\.\d+)?)\s*(ms|millisecond|milliseconds|s|sec|secs|second|seconds)?/i,
+  const normalized = error.message.trim().toLowerCase();
+  return (
+    normalized.includes("timed out") || normalized.includes("signal is aborted without reason")
   );
-  if (retryInMatch) {
-    const numeric = Number(retryInMatch[1]);
-    if (Number.isFinite(numeric) && numeric > 0) {
-      const unit = (retryInMatch[2] ?? "s").toLowerCase();
-      const multiplier = unit.startsWith("ms") || unit.startsWith("millisecond") ? 1 : 1_000;
-      return Math.max(500, Math.ceil(numeric * multiplier));
-    }
-  }
-
-  const exponential = IMAGE_RATE_LIMIT_BASE_DELAY_MS * Math.pow(2, attempt);
-  const jitter = Math.floor(Math.random() * 450);
-  return exponential + jitter;
-}
-
-function extractTextFromResponse(payload: unknown): string {
-  if (!payload || typeof payload !== "object") {
-    return "";
-  }
-
-  const value = payload as Record<string, unknown>;
-  if (typeof value.output_text === "string" && value.output_text.trim().length > 0) {
-    return value.output_text.trim();
-  }
-
-  const chunks: string[] = [];
-
-  if (Array.isArray(value.output)) {
-    for (const item of value.output as Array<Record<string, unknown>>) {
-      if (typeof item?.text === "string") {
-        chunks.push(item.text);
-      }
-
-      if (Array.isArray(item?.content)) {
-        for (const entry of item.content as Array<Record<string, unknown>>) {
-          if (typeof entry?.text === "string") {
-            chunks.push(entry.text);
-          }
-          if (typeof entry?.output_text === "string") {
-            chunks.push(entry.output_text);
-          }
-        }
-      }
-    }
-  }
-
-  return chunks.join("\n").trim();
-}
-
-function extractJsonCandidate(raw: string): string {
-  const fencedMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const maybeJson = fencedMatch?.[1]?.trim() ?? raw.trim();
-
-  if (maybeJson.startsWith("{") && maybeJson.endsWith("}")) {
-    return maybeJson;
-  }
-
-  const firstBrace = maybeJson.indexOf("{");
-  const lastBrace = maybeJson.lastIndexOf("}");
-
-  if (firstBrace >= 0 && lastBrace > firstBrace) {
-    return maybeJson.slice(firstBrace, lastBrace + 1);
-  }
-
-  return maybeJson;
-}
-
-function parseJsonResponse(rawText: string): unknown {
-  const candidate = extractJsonCandidate(rawText);
-
-  try {
-    return JSON.parse(candidate);
-  } catch {
-    throw new Error("PathForger text stage returned invalid JSON.");
-  }
-}
-
-function buildKnowledgeSection(
-  knowledge: PathForgerKnowledge,
-  selectedDocs: readonly KnowledgeDocFile[],
-): string {
-  return selectedDocs.map((docName) => `## ${docName}\n${knowledge.docs[docName]}`).join("\n\n");
-}
-
-const PITCH_STAGE_DOCS: readonly KnowledgeDocFile[] = [
-  "00_OVERVIEW.md",
-  "10_ONBOARDING.md",
-  "20_ADVENTURE_PITCHES.md",
-  "70_GENRES.md",
-  "90_EXAMPLES.md",
-] as const;
-
-const NAME_STAGE_DOCS: readonly KnowledgeDocFile[] = [
-  "00_OVERVIEW.md",
-  "10_ONBOARDING.md",
-  "70_GENRES.md",
-] as const;
-
-const PREMISE_STAGE_DOCS: readonly KnowledgeDocFile[] = [
-  "00_OVERVIEW.md",
-  "10_ONBOARDING.md",
-  "70_GENRES.md",
-] as const;
-
-const CHAPTER_STAGE_DOCS: readonly KnowledgeDocFile[] = [
-  "00_OVERVIEW.md",
-  "30_CHAPTER_ENGINE.md",
-  "40_RISK_SYSTEM.md",
-  "50_CONTINUITY.md",
-  "60_IMAGE_SYSTEM.md",
-  "70_GENRES.md",
-  "80_ENDINGS.md",
-  "90_EXAMPLES.md",
-] as const;
-
-function buildPitchSystemPrompt(knowledge: PathForgerKnowledge): string {
-  return [
-    "You are PathForger's text pipeline (stage 1: onboarding + A/B/C pitches).",
-    "Produce polished markdown-forward narrative outputs and strict JSON only.",
-    "Follow MAIN_PROMPT and selected knowledge docs as your operating manual.",
-    "Return JSON only. Do not include markdown fences.",
-    "",
-    "MAIN_PROMPT:",
-    knowledge.mainPrompt,
-    "",
-    "KNOWLEDGE DOCS:",
-    buildKnowledgeSection(knowledge, PITCH_STAGE_DOCS),
-  ].join("\n");
-}
-
-function buildPitchUserPrompt(onboarding: PathForgerOnboardingInput): string {
-  return [
-    "Generate PathForger startup content from this onboarding payload.",
-    "",
-    "Output JSON schema:",
-    JSON.stringify(toJSONSchema(pathForgerPitchResultSchema), null, 2),
-    "",
-    "Output rules:",
-    "- onboardingRecapMarkdown should be concise and cinematic (markdown).",
-    "- pitches must contain exactly A/B/C and each pitch markdown should be 3-5 paragraphs.",
-    "- Each pitch title must be short and punchy like a book title (2-6 words preferred).",
-    "- Do not use parentheses in pitch titles.",
-    "- Avoid verbose subtitle-style title suffixes or explanatory labels.",
-    "- recommendedPitch should be the strongest fit for the provided onboarding.",
-    "- choosePromptMarkdown should end by asking for A, B, or C.",
-    "",
-    "Onboarding JSON:",
-    JSON.stringify(onboarding, null, 2),
-  ].join("\n");
-}
-
-function buildProtagonistNameSystemPrompt(knowledge: PathForgerKnowledge): string {
-  return [
-    "You are PathForger's story setup assistant.",
-    "Generate exactly one memorable protagonist name based on the onboarding payload.",
-    "Use genre, tone, premise, age rating, and style cues to fit the story world.",
-    "Avoid reusing names from examples and avoid obvious repeated defaults.",
-    "Return JSON only. Do not include markdown fences.",
-    "",
-    "MAIN_PROMPT:",
-    knowledge.mainPrompt,
-    "",
-    "KNOWLEDGE DOCS:",
-    buildKnowledgeSection(knowledge, NAME_STAGE_DOCS),
-  ].join("\n");
-}
-
-function buildProtagonistNameUserPrompt(
-  onboarding: PathForgerOnboardingInput,
-  options?: {
-    forbiddenNames?: string[];
-    randomnessSeed?: string;
-  },
-): string {
-  const forbiddenList = options?.forbiddenNames?.filter((name) => name.trim().length > 0) ?? [];
-
-  return [
-    "Generate one protagonist name for this adventure setup.",
-    "",
-    "Output JSON schema:",
-    JSON.stringify(toJSONSchema(protagonistNameResultSchema), null, 2),
-    "",
-    "Output rules:",
-    "- Return only protagonistNames.",
-    "- Provide 1 to 12 distinct candidate names.",
-    "- Name should fit genre + tone + premise + age rating.",
-    "- Avoid trademarked character names and obvious parody names.",
-    "- Prefer pronounceable, human-friendly first + last names.",
-    "- Make this a fresh option each time; avoid overused defaults.",
-    ...(forbiddenList.length > 0
-      ? [
-          `- Do not include any of these names (case-insensitive exact match): ${forbiddenList
-            .map((name) => `"${name}"`)
-            .join(", ")}.`,
-        ]
-      : []),
-    ...(options?.randomnessSeed
-      ? [`- Freshness seed for variation: ${options.randomnessSeed}.`]
-      : []),
-    "",
-    "Onboarding JSON:",
-    JSON.stringify(onboarding, null, 2),
-  ].join("\n");
-}
-
-function containsOverusedNeonDescriptor(value: string): boolean {
-  return /\bneon[-\s]?(lit|drenched|soaked)\b/i.test(value);
-}
-
-function softenOverusedNeonDescriptor(value: string): string {
-  return value
-    .replace(/\bneon[-\s]?lit\b/gi, "low-light")
-    .replace(/\bneon[-\s]?drenched\b/gi, "atmospheric")
-    .replace(/\bneon[-\s]?soaked\b/gi, "stylized")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function buildVisualStyleSystemPrompt(knowledge: PathForgerKnowledge): string {
-  return [
-    "You are PathForger's story setup assistant.",
-    "Generate exactly one short visual style phrase based on the onboarding payload.",
-    "The style should feel cinematic, specific, and suitable for chapter storytelling imagery.",
-    "Treat age rating as a hard boundary for visual intensity and thematic edge.",
-    "Avoid overused stylistic filler terms, especially repetitive neon phrasing.",
-    "Return JSON only. Do not include markdown fences.",
-    "",
-    "MAIN_PROMPT:",
-    knowledge.mainPrompt,
-    "",
-    "KNOWLEDGE DOCS:",
-    buildKnowledgeSection(knowledge, PITCH_STAGE_DOCS),
-  ].join("\n");
-}
-
-function buildToneSystemPrompt(knowledge: PathForgerKnowledge): string {
-  return [
-    "You are PathForger's story setup assistant.",
-    "Generate exactly one short tone phrase based on the onboarding payload.",
-    "Tone must match genre, premise, age rating, danger level, chapter length, romance preference, and visual style intent.",
-    "Keep it expressive but concise, and avoid stale default wording.",
-    "Return JSON only. Do not include markdown fences.",
-    "",
-    "MAIN_PROMPT:",
-    knowledge.mainPrompt,
-    "",
-    "KNOWLEDGE DOCS:",
-    buildKnowledgeSection(knowledge, PITCH_STAGE_DOCS),
-  ].join("\n");
-}
-
-function buildVisualStyleUserPrompt(onboarding: PathForgerOnboardingInput): string {
-  return [
-    "Generate one short visual style phrase for this adventure setup.",
-    "Treat the selected age rating as a hard style/content constraint.",
-    "",
-    "Output JSON schema:",
-    JSON.stringify(toJSONSchema(visualStyleResultSchema), null, 2),
-    "",
-    "Output rules:",
-    "- Return only one value in visualStyle.",
-    "- Keep it short: ideally 3 to 8 words.",
-    "- No punctuation-heavy lists, no slashes, no em-dashes.",
-    "- Must match genre + tone + premise + age rating.",
-    "- Adjust imagery intensity and edge to fit the rating.",
-    "- For G/PG, keep wording family-safe and avoid graphic/explicit terms.",
-    "- For PG-13, allow heightened tension without explicit brutality.",
-    "- For R/NC-17, mature intensity is allowed but still avoid gratuitous shock phrasing.",
-    `- Avoid these overused descriptors: ${OVERUSED_NEON_PHRASES.map((phrase) => `"${phrase}"`).join(", ")}.`,
-    "- Prefer varied visual language instead of default cyberpunk shorthand.",
-    "",
-    "Hard constraints:",
-    `- Genre: ${onboarding.genre}`,
-    `- Age rating: ${onboarding.ageRating}`,
-    "",
-    "Onboarding JSON:",
-    JSON.stringify(onboarding, null, 2),
-  ].join("\n");
-}
-
-function buildToneUserPrompt(onboarding: PathForgerOnboardingInput): string {
-  return [
-    "Generate one short tone phrase for this adventure setup.",
-    "Treat the selected age rating as a hard tone/content boundary.",
-    "",
-    "Output JSON schema:",
-    JSON.stringify(toJSONSchema(toneResultSchema), null, 2),
-    "",
-    "Output rules:",
-    "- Return only one value in tone.",
-    "- Keep it short: ideally 2 to 8 words.",
-    "- Must reflect genre + premise + age rating + danger level + chapter length + romance mode + visual style.",
-    "- Describe narrative/emotional voice, not camera or rendering techniques.",
-    '- Avoid repetitive defaults like "cinematic, tense, emotionally grounded".',
-    "- For G/PG, prefer lighter/family-safe wording.",
-    "- For PG-13, allow elevated suspense without explicit brutality.",
-    "- For R/NC-17, mature intensity is allowed when fitting the setup.",
-    "",
-    "Hard constraints:",
-    `- Genre: ${onboarding.genre}`,
-    `- Age rating: ${onboarding.ageRating}`,
-    "",
-    "Onboarding JSON:",
-    JSON.stringify(onboarding, null, 2),
-  ].join("\n");
-}
-
-function buildPremiseSystemPrompt(knowledge: PathForgerKnowledge): string {
-  return [
-    "You are PathForger's story setup assistant.",
-    "Generate exactly one fresh story premise based primarily on the selected genre.",
-    "Keep the premise concise, vivid, and suitable for a branching adventure.",
-    "Avoid reusing stale motifs from prior outputs unless explicitly requested.",
-    "Return JSON only. Do not include markdown fences.",
-    "",
-    "MAIN_PROMPT:",
-    knowledge.mainPrompt,
-    "",
-    "KNOWLEDGE DOCS:",
-    buildKnowledgeSection(knowledge, PREMISE_STAGE_DOCS),
-  ].join("\n");
-}
-
-function buildPremiseUserPrompt(
-  onboarding: PathForgerOnboardingInput,
-  options?: {
-    forbiddenPhrases?: string[];
-    randomnessSeed?: string;
-  },
-): string {
-  const forbidden = Array.from(
-    new Set([...OVERUSED_NEON_PHRASES, ...(options?.forbiddenPhrases ?? [])]),
-  )
-    .map((phrase) => phrase.trim())
-    .filter((phrase) => phrase.length > 0);
-
-  return [
-    "Generate one new premise for this adventure setup.",
-    "Treat the selected age rating as a hard content constraint.",
-    "",
-    "Output JSON schema:",
-    JSON.stringify(toJSONSchema(premiseResultSchema), null, 2),
-    "",
-    "Output rules:",
-    "- Return both premise and protagonistName.",
-    "- Write 1 to 2 sentences only (target 25-55 words total).",
-    "- Keep it loose and high-concept; do not over-specify scene beats or micro-details.",
-    "- Anchor it strongly to the selected genre first.",
-    "- Respect age rating and tone.",
-    "- Keep violence, horror intensity, language, and mature themes appropriate for the provided age rating.",
-    "- Avoid naming famous IP characters or settings.",
-    "- Keep it specific and story-ready, while leaving room for chapter generation to explore details.",
-    "- protagonistName should be a fresh, memorable first + last name that fits the premise and genre.",
-    "- If genre is Sci-fi, vary widely across subgenres. Choose a fresh direction (for example: space opera, cyberpunk, first contact, biotech, time travel, military SF, climate SF, posthuman, multiverse, colony politics, alien anthropology, hard-SF mystery).",
-    "- Avoid defaulting to repeated neon-forward imagery language.",
-    ...(forbidden.length > 0
-      ? [
-          `- Avoid repeating these motifs/phrases: ${forbidden
-            .map((phrase) => `"${phrase}"`)
-            .join(", ")}.`,
-        ]
-      : []),
-    ...(options?.randomnessSeed
-      ? [`- Freshness seed for variation: ${options.randomnessSeed}.`]
-      : []),
-    "",
-    "Hard constraints:",
-    `- Genre: ${onboarding.genre}`,
-    `- Age rating: ${onboarding.ageRating}`,
-    "",
-    "Onboarding JSON:",
-    JSON.stringify(onboarding, null, 2),
-  ].join("\n");
-}
-
-function buildChapterSystemPrompt(knowledge: PathForgerKnowledge): string {
-  return [
-    "You are PathForger's text pipeline (stage 2: chapter + risk + image briefs).",
-    "Write novel-quality markdown and maintain continuity.",
-    "Return JSON only. Do not include markdown fences.",
-    "",
-    "MAIN_PROMPT:",
-    knowledge.mainPrompt,
-    "",
-    "KNOWLEDGE DOCS:",
-    buildKnowledgeSection(knowledge, CHAPTER_STAGE_DOCS),
-  ].join("\n");
-}
-
-function buildChapterCoreSystemPrompt(knowledge: PathForgerKnowledge): string {
-  return [
-    "You are PathForger's text pipeline (stage 2a: chapter core).",
-    "Write novel-quality markdown and maintain continuity.",
-    "Return JSON only. Do not include markdown fences.",
-    "",
-    "MAIN_PROMPT:",
-    knowledge.mainPrompt,
-    "",
-    "KNOWLEDGE DOCS:",
-    buildKnowledgeSection(knowledge, CHAPTER_STAGE_DOCS),
-  ].join("\n");
-}
-
-function buildPathLedgerUpdateSystemPrompt(knowledge: PathForgerKnowledge): string {
-  return [
-    "You are PathForger's continuity ledger engine.",
-    "Update the path ledger after a newly chosen branch and resolved outcome.",
-    "Keep continuity-aware details concise and actionable for future chapter generation.",
-    "Return JSON only. Do not include markdown fences.",
-    "",
-    "MAIN_PROMPT:",
-    knowledge.mainPrompt,
-    "",
-    "KNOWLEDGE DOCS:",
-    buildKnowledgeSection(knowledge, CHAPTER_STAGE_DOCS),
-  ].join("\n");
-}
-
-function normalizeName(value: string): string {
-  return value.replace(/\s+/g, " ").trim();
-}
-
-function hashSeed(seed: string): number {
-  let hash = 2166136261;
-  for (let index = 0; index < seed.length; index += 1) {
-    hash ^= seed.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return Math.abs(hash >>> 0);
-}
-
-function pickNameFromCandidates(params: {
-  candidates: string[];
-  forbiddenNames: Set<string>;
-  seed: string;
-}): string | null {
-  const unique = Array.from(
-    new Set(
-      params.candidates
-        .map((candidate) => normalizeName(candidate))
-        .filter((candidate) => candidate.length > 0),
-    ),
-  );
-
-  const allowed = unique.filter((candidate) => !params.forbiddenNames.has(candidate.toLowerCase()));
-
-  if (allowed.length === 0) {
-    return null;
-  }
-
-  const index = hashSeed(params.seed) % allowed.length;
-  return allowed[index];
-}
-
-function buildChapterLengthRule(
-  adventureLength: PathForgerOnboardingInput["adventureLength"],
-): string {
-  if (adventureLength === "Very short (1-2 lines)") {
-    return "- chapterMarkdown length: VERY SHORT. Return only 1-2 lines total.";
-  }
-  if (adventureLength === "Short") {
-    return "- chapterMarkdown length: short chapter, roughly 180-420 words.";
-  }
-  if (adventureLength === "Long") {
-    return "- chapterMarkdown length: long chapter, roughly 1200-1800 words.";
-  }
-  if (adventureLength === "Very long") {
-    return "- chapterMarkdown length: very long chapter, roughly 1800-2600 words.";
-  }
-
-  return "- chapterMarkdown length: medium chapter, roughly 700-1200 words.";
-}
-
-function buildChapterAgeRatingRule(ageRating: PathForgerOnboardingInput["ageRating"]): string[] {
-  const normalized = ageRating.trim().toUpperCase();
-
-  if (normalized === "G") {
-    return [
-      "- Age rating is G: keep content family-safe with no graphic violence, profanity, sexual content, or intense horror.",
-      "- Favor hopeful tone, gentle peril, and safe-to-young-readers imagery.",
-    ];
-  }
-
-  if (normalized === "PG") {
-    return [
-      "- Age rating is PG: allow mild peril/intensity but avoid graphic violence, explicit sexual content, and strong profanity.",
-      "- Keep darker themes brief, implied, and non-explicit.",
-    ];
-  }
-
-  if (normalized === "PG-13") {
-    return [
-      "- Age rating is PG-13: moderate peril, tension, and thematic intensity are allowed; avoid explicit gore and explicit sexual content.",
-      "- Language and violence can be stronger than PG but should remain non-graphic.",
-    ];
-  }
-
-  if (normalized === "R") {
-    return [
-      "- Age rating is R: mature tone allowed, including stronger violence/language/themes where relevant.",
-      "- Keep content coherent and purposeful; avoid gratuitous shock-only detail.",
-    ];
-  }
-
-  if (normalized === "NC-17") {
-    return [
-      "- Age rating is NC-17: adult intensity allowed, including explicit mature themes and extreme content where narratively justified.",
-      "- Preserve narrative quality and avoid incoherent gratuitous escalation.",
-    ];
-  }
-
-  return [
-    "- Treat the provided age rating as a hard content boundary for violence, horror intensity, language, and sexual themes.",
-  ];
-}
-
-function buildChapterStyleTextRules(
-  onboarding: Pick<PathForgerOnboardingInput, "visualStyle" | "tone">,
-): string[] {
-  const style = onboarding.visualStyle.trim();
-  const tone = onboarding.tone.trim();
-
-  return [
-    "- Treat onboarding.visualStyle as a hard narrative style lock for text outputs.",
-    "- Apply the style lock to chapterMarkdown, choices (label + description), continuePromptMarkdown, outcomeAMarkdown, and outcomeBMarkdown.",
-    "- Keep diction, imagery, pacing, and sentence rhythm aligned with the requested style and tone.",
-    "- Do not drift into default dark/moody/cinematic prose unless the requested style or tone explicitly calls for it.",
-    "- Preserve stakes and tension through events and decisions, not by overriding the requested style voice.",
-    style ? `- Required style reference: "${style}".` : "",
-    tone ? `- Required tone reference: "${tone}".` : "",
-  ].filter(Boolean);
-}
-
-function truncateContinuationContextText(value: string | undefined, maxChars: number): string {
-  const source = (value ?? "").trim();
-  if (source.length <= maxChars) {
-    return source;
-  }
-
-  const tail = source.slice(-maxChars);
-  return `[truncated to last ${maxChars} chars]\n${tail}`;
-}
-
-function buildContinuationContext(params: {
-  previousChapterMarkdown?: string;
-  previousOutcomeMarkdown?: string;
-  currentPathLedgerMarkdown?: string;
-}): {
-  previousChapterMarkdown: string;
-  previousOutcomeMarkdown: string;
-  currentPathLedgerMarkdown: string;
-} {
-  return {
-    previousChapterMarkdown: truncateContinuationContextText(
-      params.previousChapterMarkdown,
-      CONTINUATION_CHAPTER_MAX_CHARS,
-    ),
-    previousOutcomeMarkdown: truncateContinuationContextText(
-      params.previousOutcomeMarkdown,
-      CONTINUATION_OUTCOME_MAX_CHARS,
-    ),
-    currentPathLedgerMarkdown: truncateContinuationContextText(
-      params.currentPathLedgerMarkdown,
-      CONTINUATION_LEDGER_MAX_CHARS,
-    ),
-  };
-}
-
-function buildChapterUserPrompt(params: {
-  onboarding: PathForgerOnboardingInput;
-  pitchResult: PathForgerPitchResult;
-  selectedPitch: PathForgerPitchChoice;
-  selectedBranch?: PathForgerBranchChoice;
-  chapterNumber?: number;
-  previousChapterMarkdown?: string;
-  previousOutcomeMarkdown?: string;
-  currentPathLedgerMarkdown?: string;
-}): string {
-  const selectedPitch = params.pitchResult.pitches.find(
-    (pitch) => pitch.id === params.selectedPitch,
-  );
-
-  if (!selectedPitch) {
-    throw new Error(`Unable to resolve selected pitch: ${params.selectedPitch}`);
-  }
-
-  const chapterNumber = params.chapterNumber ?? 1;
-  const chapterLengthRule = buildChapterLengthRule(params.onboarding.adventureLength);
-  const chapterAgeRatingRules = buildChapterAgeRatingRule(params.onboarding.ageRating);
-  const chapterStyleTextRules = buildChapterStyleTextRules(params.onboarding);
-  const continuationContext = buildContinuationContext({
-    previousChapterMarkdown: params.previousChapterMarkdown,
-    previousOutcomeMarkdown: params.previousOutcomeMarkdown,
-    currentPathLedgerMarkdown: params.currentPathLedgerMarkdown,
-  });
-
-  return [
-    `Generate Chapter ${chapterNumber} package for PathForger.`,
-    "",
-    "Output JSON schema:",
-    JSON.stringify(toJSONSchema(pathForgerChapterResultSchema), null, 2),
-    "",
-    "Output rules:",
-    `- chapterNumber must be ${chapterNumber}.`,
-    "- chapterTitle: concise cinematic title text for this chapter (plain text, no markdown, no 'Chapter N' prefix).",
-    chapterLengthRule,
-    "- Treat the selected age rating as a strict content policy for chapter prose, options, risk HUD wording, and outcomes.",
-    ...chapterAgeRatingRules,
-    ...chapterStyleTextRules,
-    "- chapterMarkdown must not include a 'Your Choices' section.",
-    "- choices: provide 2 strong options (3 only if absolutely necessary).",
-    "- riskHudMarkdown: include success probability, threat level, injury risk, resource cost, reward potential, key risk factors.",
-    "- Do not prepend riskHudMarkdown with titles like 'Risk HUD - Option A/B'.",
-    "- pathLedgerMarkdown: concise and continuity-aware.",
-    "- continuePromptMarkdown: urgent call to choose a path.",
-    "- imagePrompts: production-ready prompts for cover, chapter spread, choice preview A, choice preview B, outcome A, and outcome B visuals.",
-    "- imagePrompts for all image types must strongly reflect onboarding.visualStyle + onboarding.tone (treat style as a hard visual constraint).",
-    "- Do not default to dark/gritty cinematic grading unless the requested style explicitly asks for it.",
-    "- imagePrompts.chapterSpread must describe a cinematic chapter SCENE (environment + characters + mood), not a printed page or book layout.",
-    "- imagePrompts.chapterSpread must explicitly avoid open books, page borders, paper textures, and text-on-page framing.",
-    "- imagePrompts.cover must explicitly include the exact book title text to render and require large, high-contrast, legible typography on a professional front cover composition.",
-    "- imagePrompts.choicePreviewA/B must depict PRE-DECISION tension before consequences occur.",
-    "- For imagePrompts.choicePreviewA/B, represent tension via composition/staging/expressions; do not force dark/gritty lighting unless style explicitly requests it.",
-    "- imagePrompts.outcomeA/B must depict AFTERMATH with concrete consequences of the corresponding option.",
-    "- Each outcome prompt must be visually and temporally distinct from its corresponding choice preview prompt.",
-    "- outcomeAMarkdown: resolve Option A in 1-2 vivid paragraphs.",
-    "- outcomeBMarkdown: resolve Option B in 1-2 vivid paragraphs.",
-    "- Keep Outcome A and Outcome B distinct and faithful to their corresponding options.",
-    "",
-    "Onboarding JSON:",
-    JSON.stringify(params.onboarding, null, 2),
-    "",
-    "Selected pitch:",
-    JSON.stringify(
-      {
-        id: selectedPitch.id,
-        title: selectedPitch.title,
-        markdown: selectedPitch.markdown,
-      },
-      null,
-      2,
-    ),
-    "",
-    "Selected branch context (for canon emphasis only; still provide both Outcome A and Outcome B):",
-    params.selectedBranch ? `Option ${params.selectedBranch}` : "None selected",
-    ...(chapterNumber > 1
-      ? [
-          "",
-          "Continuation context:",
-          JSON.stringify(continuationContext, null, 2),
-          "",
-          `Write a true continuation into Chapter ${chapterNumber}. Preserve continuity from the prior chapter, resolved branch outcome, and path ledger.`,
-        ]
-      : []),
-  ].join("\n");
-}
-
-function buildChapterCoreUserPrompt(params: {
-  onboarding: PathForgerOnboardingInput;
-  pitchResult: PathForgerPitchResult;
-  selectedPitch: PathForgerPitchChoice;
-  selectedBranch?: PathForgerBranchChoice;
-  chapterNumber?: number;
-  previousChapterMarkdown?: string;
-  previousOutcomeMarkdown?: string;
-  currentPathLedgerMarkdown?: string;
-}): string {
-  const selectedPitch = params.pitchResult.pitches.find(
-    (pitch) => pitch.id === params.selectedPitch,
-  );
-
-  if (!selectedPitch) {
-    throw new Error(`Unable to resolve selected pitch: ${params.selectedPitch}`);
-  }
-
-  const chapterNumber = params.chapterNumber ?? 1;
-  const chapterLengthRule = buildChapterLengthRule(params.onboarding.adventureLength);
-  const chapterAgeRatingRules = buildChapterAgeRatingRule(params.onboarding.ageRating);
-  const chapterStyleTextRules = buildChapterStyleTextRules(params.onboarding);
-  const continuationContext = buildContinuationContext({
-    previousChapterMarkdown: params.previousChapterMarkdown,
-    previousOutcomeMarkdown: params.previousOutcomeMarkdown,
-    currentPathLedgerMarkdown: params.currentPathLedgerMarkdown,
-  });
-
-  return [
-    `Generate Chapter ${chapterNumber} package for PathForger.`,
-    "",
-    "Output JSON schema:",
-    JSON.stringify(toJSONSchema(pathForgerChapterCoreResultSchema), null, 2),
-    "",
-    "Output rules:",
-    `- chapterNumber must be ${chapterNumber}.`,
-    "- chapterTitle: concise cinematic title text for this chapter (plain text, no markdown, no 'Chapter N' prefix).",
-    chapterLengthRule,
-    "- Treat the selected age rating as a strict content policy for chapter prose, options, risk HUD wording, and outcomes.",
-    ...chapterAgeRatingRules,
-    ...chapterStyleTextRules,
-    "- chapterMarkdown must not include a 'Your Choices' section.",
-    "- choices: provide 2 strong options (3 only if absolutely necessary).",
-    "- riskHudMarkdown: include success probability, threat level, injury risk, resource cost, reward potential, key risk factors.",
-    "- Do not prepend riskHudMarkdown with titles like 'Risk HUD - Option A/B'.",
-    "- pathLedgerMarkdown: concise and continuity-aware.",
-    "- outcomeAMarkdown: resolve Option A in 1-2 vivid paragraphs.",
-    "- outcomeBMarkdown: resolve Option B in 1-2 vivid paragraphs.",
-    "- Keep Outcome A and Outcome B distinct and faithful to their corresponding options.",
-    "- continuePromptMarkdown: urgent call to choose a path.",
-    "- imagePrompts: production-ready prompts for cover, chapter spread, choice preview A, choice preview B, outcome A, and outcome B visuals.",
-    "- imagePrompts for all image types must strongly reflect onboarding.visualStyle + onboarding.tone (treat style as a hard visual constraint).",
-    "- Do not default to dark/gritty cinematic grading unless the requested style explicitly asks for it.",
-    "- imagePrompts.chapterSpread must describe a cinematic chapter SCENE (environment + characters + mood), not a printed page or book layout.",
-    "- imagePrompts.chapterSpread must explicitly avoid open books, page borders, paper textures, and text-on-page framing.",
-    "- imagePrompts.cover must explicitly include the exact book title text to render and require large, high-contrast, legible typography on a professional front cover composition.",
-    "- imagePrompts.choicePreviewA/B must depict PRE-DECISION tension before consequences occur.",
-    "- For imagePrompts.choicePreviewA/B, represent tension via composition/staging/expressions; do not force dark/gritty lighting unless style explicitly requests it.",
-    "- imagePrompts.outcomeA/B must depict AFTERMATH with concrete consequences of the corresponding option.",
-    "- Each outcome prompt must be visually and temporally distinct from its corresponding choice preview prompt.",
-    "",
-    "Onboarding JSON:",
-    JSON.stringify(params.onboarding, null, 2),
-    "",
-    "Selected pitch:",
-    JSON.stringify(
-      {
-        id: selectedPitch.id,
-        title: selectedPitch.title,
-        markdown: selectedPitch.markdown,
-      },
-      null,
-      2,
-    ),
-    "",
-    "Selected branch context (for canon emphasis only):",
-    params.selectedBranch ? `Option ${params.selectedBranch}` : "None selected",
-    ...(chapterNumber > 1
-      ? [
-          "",
-          "Continuation context:",
-          JSON.stringify(continuationContext, null, 2),
-          "",
-          `Write a true continuation into Chapter ${chapterNumber}. Preserve continuity from the prior chapter, resolved branch outcome, and path ledger.`,
-        ]
-      : []),
-  ].join("\n");
-}
-
-function buildPathLedgerUpdateUserPrompt(params: RunPathForgerPathLedgerUpdateStageInput): string {
-  return [
-    "Update Path Ledger markdown for the latest resolved branch.",
-    "",
-    "Output JSON schema:",
-    JSON.stringify(toJSONSchema(pathLedgerUpdateResultSchema), null, 2),
-    "",
-    "Output rules:",
-    "- Preserve important existing continuity from currentPathLedgerMarkdown.",
-    "- Add a concise update for the selected branch and its resolved outcome.",
-    "- Include concrete consequences: injuries/resources/trust/location/objective shifts.",
-    "- Keep it compact and skimmable markdown.",
-    "",
-    "Onboarding JSON:",
-    JSON.stringify(params.onboarding, null, 2),
-    "",
-    "Ledger update context JSON:",
-    JSON.stringify(
-      {
-        chapterNumber: params.chapterNumber,
-        currentPathLedgerMarkdown: params.currentPathLedgerMarkdown,
-        selectedBranch: params.selectedBranch,
-        selectedChoiceLabel: params.selectedChoiceLabel,
-        selectedChoiceDescription: params.selectedChoiceDescription,
-        selectedChoiceRiskHudMarkdown: params.selectedChoiceRiskHudMarkdown,
-        outcomeMarkdown: params.outcomeMarkdown,
-      },
-      null,
-      2,
-    ),
-  ].join("\n");
 }
 
 async function requestTextStage<TSchema extends z.ZodTypeAny>(params: {
@@ -1339,583 +267,6 @@ async function requestTextStage<TSchema extends z.ZodTypeAny>(params: {
   return parsed.data;
 }
 
-type ExtractedImage = {
-  base64: string;
-  mimeType: string;
-};
-
-function parseImageCandidate(raw: string): ExtractedImage | null {
-  const value = raw.trim();
-  if (!value) {
-    return null;
-  }
-
-  const dataUrlMatch = value.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
-  if (dataUrlMatch) {
-    return {
-      mimeType: dataUrlMatch[1],
-      base64: dataUrlMatch[2],
-    };
-  }
-
-  return {
-    mimeType: "image/png",
-    base64: value,
-  };
-}
-
-function pushImageCandidate(bucket: ExtractedImage[], raw: unknown): void {
-  if (typeof raw !== "string") {
-    return;
-  }
-
-  const parsed = parseImageCandidate(raw);
-  if (parsed) {
-    bucket.push(parsed);
-  }
-}
-
-function extractImageBase64(payload: unknown): ExtractedImage | null {
-  if (!payload || typeof payload !== "object") {
-    return null;
-  }
-
-  const value = payload as Record<string, unknown>;
-  const candidates: ExtractedImage[] = [];
-
-  pushImageCandidate(candidates, value.image_base64);
-
-  if (Array.isArray(value.data)) {
-    for (const entry of value.data as Array<Record<string, unknown>>) {
-      pushImageCandidate(candidates, entry?.b64_json);
-      pushImageCandidate(candidates, entry?.image_base64);
-    }
-  }
-
-  if (Array.isArray(value.output)) {
-    for (const entry of value.output as Array<Record<string, unknown>>) {
-      if (entry?.type === "image_generation_call") {
-        pushImageCandidate(candidates, entry.result);
-        if (entry.result && typeof entry.result === "object") {
-          const nested = entry.result as Record<string, unknown>;
-          pushImageCandidate(candidates, nested.b64_json);
-          pushImageCandidate(candidates, nested.image_base64);
-        }
-      }
-
-      if (Array.isArray(entry?.content)) {
-        for (const item of entry.content as Array<Record<string, unknown>>) {
-          pushImageCandidate(candidates, item?.image_base64);
-          pushImageCandidate(candidates, item?.b64_json);
-        }
-      }
-    }
-  }
-
-  if (candidates.length === 0) {
-    return null;
-  }
-
-  return candidates.reduce((largest, current) =>
-    current.base64.length > largest.base64.length ? current : largest,
-  );
-}
-
-function shouldRetryWithMinimalToolOptions(status: number, apiMessage: string): boolean {
-  if (status !== 400 || !apiMessage) {
-    return false;
-  }
-
-  const lower = apiMessage.toLowerCase();
-  return (
-    lower.includes("unknown parameter") ||
-    lower.includes("invalid tool") ||
-    lower.includes("tool_choice")
-  );
-}
-
-function buildImageTypePromptRequirements(imageType: PathForgerImageType): string[] {
-  if (imageType === "choicePreviewA" || imageType === "choicePreviewB") {
-    const optionLabel = imageType === "choicePreviewA" ? "A" : "B";
-    return [
-      `This is a CHOICE PREVIEW for Option ${optionLabel}.`,
-      "Show the moment BEFORE a decision is executed: tension, uncertainty, and setup.",
-      "Express tension through composition, staging, and character body language instead of automatically darkening the scene.",
-      "Do not depict final aftermath, post-battle debris, or resolved consequences.",
-      "Composition should read as an anticipatory fork-in-the-road moment.",
-    ];
-  }
-
-  if (imageType === "outcomeA" || imageType === "outcomeB") {
-    const optionLabel = imageType === "outcomeA" ? "A" : "B";
-    return [
-      `This is an OUTCOME image for Option ${optionLabel}.`,
-      "Show the moment AFTER the decision with concrete consequences and world-state change.",
-      "Include clear aftermath signals (environment shift, character condition, gained/lost resources, or threat escalation/reduction).",
-      "Do not render this as a neutral decision moment or fork-in-the-road preview.",
-      "Must be clearly visually distinct from the corresponding choice preview (different timing, framing, and consequence details).",
-    ];
-  }
-
-  if (imageType === "chapterSpread") {
-    return [
-      "This is a chapter scene image (not a printed spread layout).",
-      "Prioritize a broad in-world scene that captures chapter state instead of a single close-up beat.",
-      "Do not depict open books, visible page edges, paper textures, panel borders, or any book mockup framing.",
-      "Compose this as an in-world scene, not as pages in a book.",
-    ];
-  }
-
-  return [];
-}
-
-function buildStyleAdherenceRequirements(params: {
-  styleHint?: string;
-  toneHint?: string;
-  genreHint?: string;
-  ageRatingHint?: string;
-}): string[] {
-  const style = params.styleHint?.trim() ?? "";
-  const tone = params.toneHint?.trim() ?? "";
-  const genre = params.genreHint?.trim() ?? "";
-  const ageRating = params.ageRatingHint?.trim() ?? "";
-
-  const hasAnyHint = Boolean(style || tone || genre || ageRating);
-  if (!hasAnyHint) {
-    return [];
-  }
-
-  const rules = [
-    "Style adherence rules (hard constraints):",
-    style ? `- Visual Style: ${style}` : "",
-    tone ? `- Tone: ${tone}` : "",
-    genre ? `- Genre: ${genre}` : "",
-    ageRating ? `- Age Rating: ${ageRating}` : "",
-    "- Follow these hints exactly; do not drift to a default moody photoreal look unless explicitly requested.",
-    "- Keep palette, rendering medium, lighting, and line/shape language consistent with the style hint.",
-    "- Do not inject a cinematic/photoreal/dark treatment unless the provided style or tone explicitly requests it.",
-  ].filter(Boolean);
-
-  return rules;
-}
-
-function shouldRetryWithFallbackImageModel(params: {
-  status: number;
-  payload: Record<string, unknown>;
-  errorMessage: string;
-}): boolean {
-  if (params.status < 400 || params.status >= 500) {
-    return false;
-  }
-
-  const normalizedMessage = params.errorMessage.trim().toLowerCase();
-  if (normalizedMessage.includes("model not found")) {
-    return true;
-  }
-
-  const errorObj = params.payload.error;
-  if (!errorObj || typeof errorObj !== "object") {
-    return false;
-  }
-
-  const errorRecord = errorObj as Record<string, unknown>;
-  const errorParam = typeof errorRecord.param === "string" ? errorRecord.param.trim() : "";
-  if (errorParam.toLowerCase() === "model") {
-    return true;
-  }
-
-  return false;
-}
-
-function isTextTimeoutLikeError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-
-  if (error.name === "TimeoutError") {
-    return true;
-  }
-
-  const normalized = error.message.trim().toLowerCase();
-  return (
-    normalized.includes("timed out") || normalized.includes("signal is aborted without reason")
-  );
-}
-
-function isImageTimeoutLikeError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-
-  if (error.name === "TimeoutError") {
-    return true;
-  }
-
-  const normalized = error.message.trim().toLowerCase();
-  return (
-    normalized.includes("timed out") || normalized.includes("signal is aborted without reason")
-  );
-}
-
-function normalizeImageGenerationErrorMessage(message: string): string {
-  const normalized = message.trim().toLowerCase();
-  if (
-    normalized.includes("signal is aborted without reason") ||
-    normalized.includes("request timed out")
-  ) {
-    return "Image generation timed out while waiting for the model. Please retry.";
-  }
-
-  return message;
-}
-
-async function requestImageAsset(params: {
-  apiKey: string;
-  model: string;
-  prompt: string;
-  imageType: PathForgerImageType;
-  selfieDataUrl?: string;
-  includeSelfieReferenceImage?: boolean;
-  styleHint?: string;
-  toneHint?: string;
-  genreHint?: string;
-  ageRatingHint?: string;
-  signal?: AbortSignal;
-}): Promise<Omit<PathForgerGeneratedImage, "prompt">> {
-  const coverTitleHint =
-    params.imageType === "cover" ? extractCoverTitleHintFromPrompt(params.prompt) : null;
-  const coverPromptRequirements =
-    params.imageType === "cover"
-      ? [
-          "This render MUST look like a professional front-facing novel book cover.",
-          "Use clear visual hierarchy with title area prioritized for readability.",
-          coverTitleHint
-            ? `Render this exact title text clearly and legibly: "${coverTitleHint}".`
-            : "Render the story title from the prompt clearly and legibly in large high-contrast text.",
-          "Do not include any other words besides that exact title text.",
-          "Do not include character names, subtitles, taglines, author names, logos, or stray lettering.",
-          "Do not output warped, mirrored, misspelled, tiny, or illegible title text.",
-        ]
-      : [];
-  const imageTypeRequirements = buildImageTypePromptRequirements(params.imageType);
-  const styleRequirements = buildStyleAdherenceRequirements({
-    styleHint: params.styleHint,
-    toneHint: params.toneHint,
-    genreHint: params.genreHint,
-    ageRatingHint: params.ageRatingHint,
-  });
-  const userContent: OpenAIInputContentPart[] = [
-    {
-      type: "input_text",
-      text: [
-        "Generate one premium story illustration.",
-        `Output size must be ${TARGET_IMAGE_SIZE}.`,
-        "Do not include unreadable dense text overlays.",
-        ...imageTypeRequirements,
-        ...coverPromptRequirements,
-        "",
-        "Base scene brief:",
-        params.prompt,
-        ...(styleRequirements.length > 0
-          ? [
-              "",
-              "Final style lock (highest priority, overrides conflicting wording above):",
-              ...styleRequirements,
-            ]
-          : []),
-      ].join("\n"),
-    },
-  ];
-
-  if (params.includeSelfieReferenceImage && params.selfieDataUrl) {
-    userContent.push({
-      type: "input_image",
-      image_url: params.selfieDataUrl,
-    });
-  }
-
-  const runRequestWithRateLimitRetry = async (body: Record<string, unknown>) => {
-    let attempt = 0;
-
-    while (true) {
-      try {
-        const result = await requestOpenAIJsonRaw<Record<string, unknown>>({
-          apiKey: params.apiKey,
-          path: "/responses",
-          method: "POST",
-          body,
-          signal: params.signal,
-          profile: "responses",
-          profileOverrides: {
-            timeoutMs: IMAGE_REQUEST_TIMEOUT_MS,
-          },
-        });
-        const message = extractErrorMessage(result.data);
-        if (
-          !isRateLimitResponse(result.response.status, result.data, message) ||
-          attempt >= IMAGE_RATE_LIMIT_MAX_RETRIES
-        ) {
-          return result;
-        }
-
-        const delayMs = resolveRateLimitDelayMs(result.response, message, attempt);
-        await sleep(delayMs);
-        attempt += 1;
-      } catch (error) {
-        if (!isImageTimeoutLikeError(error) || attempt >= IMAGE_RATE_LIMIT_MAX_RETRIES) {
-          throw error;
-        }
-
-        await sleep(IMAGE_RATE_LIMIT_BASE_DELAY_MS * (attempt + 1));
-        attempt += 1;
-      }
-    }
-  };
-
-  const runWithModel = async (model: string) => {
-    const baseRequestBody = {
-      model,
-      input: [
-        {
-          role: "system",
-          content: [
-            {
-              type: "input_text",
-              text: [
-                "You are PathForger's image renderer.",
-                "Produce one polished image that follows the user prompt exactly.",
-                "If a headshot reference image is provided, preserve identity cues while following the requested visual style.",
-                "Return only the image result.",
-              ].join("\n"),
-            },
-          ],
-        },
-        {
-          role: "user",
-          content: userContent,
-        },
-      ],
-    };
-
-    const requestWithPreferredToolOptions = {
-      ...baseRequestBody,
-      tools: [{ type: "image_generation", size: TARGET_IMAGE_SIZE }],
-      tool_choice: { type: "image_generation" },
-    };
-
-    const requestWithMinimalToolOptions = {
-      ...baseRequestBody,
-      tools: [{ type: "image_generation", size: TARGET_IMAGE_SIZE }],
-    };
-
-    const requestWithBareToolOptions = {
-      ...baseRequestBody,
-      tools: [{ type: "image_generation" }],
-    };
-
-    let { response, data } = await runRequestWithRateLimitRetry(
-      requestWithPreferredToolOptions as unknown as Record<string, unknown>,
-    );
-
-    const firstAttemptMessage = extractErrorMessage(data);
-    if (shouldRetryWithMinimalToolOptions(response.status, firstAttemptMessage)) {
-      ({ response, data } = await runRequestWithRateLimitRetry(
-        requestWithMinimalToolOptions as unknown as Record<string, unknown>,
-      ));
-
-      const secondAttemptMessage = extractErrorMessage(data);
-      if (shouldRetryWithMinimalToolOptions(response.status, secondAttemptMessage)) {
-        ({ response, data } = await runRequestWithRateLimitRetry(
-          requestWithBareToolOptions as unknown as Record<string, unknown>,
-        ));
-      }
-    }
-
-    return { response, data };
-  };
-
-  const requestedModel = params.model.trim() || DEFAULT_IMAGE_MODEL;
-  let resolvedModel = requestedModel;
-  let { response, data } = await runWithModel(resolvedModel);
-
-  const firstModelError = extractErrorMessage(data);
-  if (
-    !response.ok &&
-    shouldRetryWithFallbackImageModel({
-      status: response.status,
-      payload: data,
-      errorMessage: firstModelError,
-    })
-  ) {
-    const fallbackCandidates = resolveImageModelFallbackCandidates(resolvedModel);
-    for (const fallbackModel of fallbackCandidates) {
-      resolvedModel = fallbackModel;
-      ({ response, data } = await runWithModel(resolvedModel));
-      if (response.ok) {
-        break;
-      }
-    }
-  }
-
-  if (!response.ok) {
-    const apiMessage = extractErrorMessage(data);
-    throw new Error(
-      apiMessage.length > 0
-        ? apiMessage
-        : `PathForger image generation failed (${response.status}).`,
-    );
-  }
-
-  const image = extractImageBase64(data);
-  if (!image) {
-    throw new Error("PathForger image stage returned no image.");
-  }
-
-  return {
-    imageDataUrl: `data:${image.mimeType};base64,${image.base64}`,
-    responseId: typeof data.id === "string" ? data.id : null,
-    model: resolvedModel,
-  };
-}
-
-function buildImageJobList(
-  prompts: z.infer<typeof imagePromptSetSchema>,
-  renderImages: Record<PathForgerImageType, boolean>,
-): Array<{ type: PathForgerImageType; prompt: string }> {
-  const orderedTypes: PathForgerImageType[] = [
-    "cover",
-    "chapterSpread",
-    "choicePreviewA",
-    "choicePreviewB",
-    "outcomeA",
-    "outcomeB",
-  ];
-
-  return orderedTypes
-    .filter((type) => renderImages[type])
-    .map((type) => ({ type, prompt: prompts[type] }));
-}
-
-async function runImageJobsParallel(params: {
-  jobs: Array<{ type: PathForgerImageType; prompt: string }>;
-  apiKey: string;
-  onboarding: PathForgerOnboardingInput;
-  imageModel: string;
-  selfieDataUrl?: string;
-  onProgress?: (progress: PathForgerPipelineProgress) => void;
-  onImageUpdate?: (update: PathForgerImageStageUpdate) => void;
-  abortSignal?: AbortSignal;
-}): Promise<{
-  images: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>>;
-  imageErrors: Partial<Record<PathForgerImageType, string>>;
-}> {
-  const images: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>> = {};
-  const imageErrors: Partial<Record<PathForgerImageType, string>> = {};
-
-  if (params.jobs.length === 0) {
-    return { images, imageErrors };
-  }
-
-  let nextJobIndex = 0;
-  let completed = 0;
-  const workerCount = Math.max(1, Math.min(MAX_PARALLEL_IMAGE_CALLS, params.jobs.length));
-  const inFlight = new Set<Promise<void>>();
-
-  const runOneJob = async (
-    jobIndex: number,
-    job: { type: PathForgerImageType; prompt: string },
-  ) => {
-    params.onProgress?.({
-      stage: "generatingImages",
-      message: `Rendering ${job.type} image (${jobIndex + 1}/${params.jobs.length})...`,
-    });
-
-    try {
-      const image = await requestImageAsset({
-        apiKey: params.apiKey,
-        model: params.imageModel,
-        prompt: job.prompt,
-        imageType: job.type,
-        selfieDataUrl: params.selfieDataUrl,
-        includeSelfieReferenceImage: shouldUseSelfieReferenceImage({
-          imageType: job.type,
-          personalizedImages: params.onboarding.personalizedImages,
-          selfieDataUrl: params.selfieDataUrl,
-        }),
-        styleHint: params.onboarding.visualStyle,
-        toneHint: params.onboarding.tone,
-        genreHint: params.onboarding.genre,
-        ageRatingHint: params.onboarding.ageRating,
-        signal: params.abortSignal,
-      });
-
-      images[job.type] = {
-        prompt: job.prompt,
-        ...image,
-      };
-      params.onImageUpdate?.({
-        type: job.type,
-        status: "success",
-        image: images[job.type],
-        completed: completed + 1,
-        total: params.jobs.length,
-      });
-    } catch (error) {
-      const rawErrorMessage = error instanceof Error ? error.message : "Image generation failed.";
-      const errorMessage = normalizeImageGenerationErrorMessage(rawErrorMessage);
-      imageErrors[job.type] = errorMessage;
-      params.onImageUpdate?.({
-        type: job.type,
-        status: "error",
-        errorMessage,
-        completed: completed + 1,
-        total: params.jobs.length,
-      });
-    } finally {
-      completed += 1;
-      params.onProgress?.({
-        stage: "generatingImages",
-        message: `Completed ${completed}/${params.jobs.length} image calls...`,
-      });
-    }
-  };
-
-  const startNext = () => {
-    if (nextJobIndex >= params.jobs.length) {
-      return false;
-    }
-
-    const jobIndex = nextJobIndex;
-    nextJobIndex += 1;
-    const job = params.jobs[jobIndex];
-    if (!job) {
-      return false;
-    }
-
-    const task = runOneJob(jobIndex, job).finally(() => {
-      inFlight.delete(task);
-    });
-    inFlight.add(task);
-    return true;
-  };
-
-  while (inFlight.size < workerCount && startNext()) {
-    // Prime initial worker window.
-  }
-
-  while (inFlight.size > 0) {
-    await Promise.race(inFlight);
-    while (inFlight.size < workerCount && startNext()) {
-      // Immediately backfill open worker slots.
-    }
-  }
-
-  return {
-    images,
-    imageErrors,
-  };
-}
-
 export async function runPathForgerPitchStage(
   rawInput: RunPathForgerPitchStageInput,
   onProgress?: (progress: PathForgerPipelineProgress) => void,
@@ -1966,31 +317,50 @@ export async function runPathForgerCoverFromPitchStage(
     message: "Rendering cover image...",
   });
 
-  const imageAsset = await requestImageAsset({
-    apiKey: input.apiKey,
-    model: requestedImageModel,
-    prompt,
-    imageType: "cover",
-    selfieDataUrl: input.selfieDataUrl,
-    includeSelfieReferenceImage: shouldUseSelfieReferenceImage({
-      imageType: "cover",
-      personalizedImages: input.onboarding.personalizedImages,
+  const imageStageResult = await runPathForgerImageStage(
+    {
+      apiKey: input.apiKey,
+      onboarding: input.onboarding,
+      imagePrompts: {
+        cover: prompt,
+        chapterSpread: prompt,
+        choicePreviewA: prompt,
+        choicePreviewB: prompt,
+        outcomeA: prompt,
+        outcomeB: prompt,
+      },
+      coverTitle: resolvePitchDisplayTitle({
+        pitchResult: input.pitchResult,
+        selectedPitch: input.selectedPitch,
+      }),
+      selectedBranch: undefined,
+      defaultModel: input.defaultModel,
+      imageModel: requestedImageModel,
       selfieDataUrl: input.selfieDataUrl,
-    }),
-    styleHint: input.onboarding.visualStyle,
-    toneHint: input.onboarding.tone,
-    genreHint: input.onboarding.genre,
-    ageRatingHint: input.onboarding.ageRating,
-  });
+      renderImages: {
+        cover: true,
+        chapterSpread: false,
+        choicePreviewA: false,
+        choicePreviewB: false,
+        outcomeA: false,
+        outcomeB: false,
+      },
+    },
+    onProgress,
+  );
+
+  const imageAsset = imageStageResult.images.cover;
+  if (!imageAsset) {
+    throw new Error(
+      imageStageResult.imageErrors.cover || "PathForger image stage returned no cover image.",
+    );
+  }
 
   return {
     selectedPitch: input.selectedPitch,
     prompt,
-    image: {
-      prompt,
-      ...imageAsset,
-    },
-    imageModel: imageAsset.model || requestedImageModel,
+    image: imageAsset,
+    imageModel: imageStageResult.imageModel || requestedImageModel,
   };
 }
 
@@ -2075,6 +445,10 @@ export async function runPathForgerVisualStyleStage(
 ): Promise<{ visualStyle: string; textModel: string }> {
   const input = runVisualStyleStageInputSchema.parse(rawInput);
   const textModel = resolveTextModel(input.textModel, input.defaultModel);
+  const blockedVisualStyles = sanitizePromptHistoryValues(
+    [...(input.previousVisualStyles ?? []), ...(input.forbiddenPhrases ?? [])],
+    20,
+  );
 
   const knowledge = await loadPathForgerKnowledgeForStage(onProgress);
 
@@ -2082,26 +456,41 @@ export async function runPathForgerVisualStyleStage(
     stage: "generatingStyle",
     message: "Forging a visual style...",
   });
+  const basePrompt = buildVisualStyleUserPrompt(input.onboarding, {
+    forbiddenPhrases: input.forbiddenPhrases,
+    previousVisualStyles: input.previousVisualStyles,
+  });
   const generated = await requestTextStage({
     apiKey: input.apiKey,
     model: textModel,
     systemPrompt: buildVisualStyleSystemPrompt(knowledge),
-    userPrompt: buildVisualStyleUserPrompt(input.onboarding),
+    userPrompt: basePrompt,
     schema: visualStyleResultSchema,
   });
 
   let visualStyle = generated.visualStyle.trim();
+  const matchedBlockedVisualStyle = matchesBlockedPhrase(visualStyle, blockedVisualStyles);
 
-  if (containsOverusedNeonDescriptor(visualStyle)) {
+  if (containsOverusedNeonDescriptor(visualStyle) || matchedBlockedVisualStyle) {
     const fallback = await requestTextStage({
       apiKey: input.apiKey,
       model: textModel,
       systemPrompt: buildVisualStyleSystemPrompt(knowledge),
       userPrompt: [
-        buildVisualStyleUserPrompt(input.onboarding),
+        basePrompt,
         "",
-        `The previous candidate was "${visualStyle}" and it overused neon-style wording.`,
-        "Return a different visualStyle with no neon-lit/neon-drenched/neon-soaked phrasing.",
+        ...(containsOverusedNeonDescriptor(visualStyle)
+          ? [
+              `The previous candidate was "${visualStyle}" and it overused neon-style wording.`,
+              "Return a different visualStyle with no neon-lit/neon-drenched/neon-soaked phrasing.",
+            ]
+          : []),
+        ...(matchedBlockedVisualStyle
+          ? [
+              `The previous candidate "${visualStyle}" repeated blocked wording ("${matchedBlockedVisualStyle}").`,
+              "Return a clearly different visualStyle instead of rephrasing that prior style.",
+            ]
+          : []),
       ].join("\n"),
       schema: visualStyleResultSchema,
     });
@@ -2125,6 +514,10 @@ export async function runPathForgerToneStage(
 ): Promise<{ tone: string; textModel: string }> {
   const input = runToneStageInputSchema.parse(rawInput);
   const textModel = resolveTextModel(input.textModel, input.defaultModel);
+  const blockedTones = sanitizePromptHistoryValues(
+    [...(input.previousTones ?? []), ...(input.forbiddenPhrases ?? [])],
+    20,
+  );
 
   const knowledge = await loadPathForgerKnowledgeForStage(onProgress);
 
@@ -2132,16 +525,38 @@ export async function runPathForgerToneStage(
     stage: "generatingTone",
     message: "Forging story tone...",
   });
+  const basePrompt = buildToneUserPrompt(input.onboarding, {
+    forbiddenPhrases: input.forbiddenPhrases,
+    previousTones: input.previousTones,
+  });
   const generated = await requestTextStage({
     apiKey: input.apiKey,
     model: textModel,
     systemPrompt: buildToneSystemPrompt(knowledge),
-    userPrompt: buildToneUserPrompt(input.onboarding),
+    userPrompt: basePrompt,
     schema: toneResultSchema,
   });
+  let tone = generated.tone.trim();
+
+  const matchedBlockedTone = matchesBlockedPhrase(tone, blockedTones);
+  if (matchedBlockedTone) {
+    const fallback = await requestTextStage({
+      apiKey: input.apiKey,
+      model: textModel,
+      systemPrompt: buildToneSystemPrompt(knowledge),
+      userPrompt: [
+        basePrompt,
+        "",
+        `The previous candidate "${tone}" repeated blocked wording ("${matchedBlockedTone}").`,
+        "Return a clearly different tone phrase, not a light rephrase of prior tones.",
+      ].join("\n"),
+      schema: toneResultSchema,
+    });
+    tone = fallback.tone.trim();
+  }
 
   return {
-    tone: generated.tone.trim(),
+    tone,
     textModel,
   };
 }
@@ -2152,8 +567,22 @@ export async function runPathForgerPremiseStage(
 ): Promise<{ premise: string; protagonistName: string; textModel: string }> {
   const input = runPremiseStageInputSchema.parse(rawInput);
   const textModel = resolveTextModel(input.textModel, input.defaultModel);
+  const priorPremises = sanitizePromptHistoryValues(input.previousPremises, 8);
+  const baseSeed = input.randomnessSeed?.trim().length
+    ? input.randomnessSeed.trim()
+    : `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 
   const knowledge = await loadPathForgerKnowledgeForStage(onProgress);
+  const systemPrompt = buildPremiseSystemPrompt(knowledge);
+  const buildPrompt = (seed: string, extraLines?: string[]): string =>
+    [
+      buildPremiseUserPrompt(input.onboarding, {
+        forbiddenPhrases: input.forbiddenPhrases,
+        previousPremises: priorPremises,
+        randomnessSeed: seed,
+      }),
+      ...(extraLines && extraLines.length > 0 ? ["", ...extraLines] : []),
+    ].join("\n");
 
   onProgress?.({
     stage: "generatingPremise",
@@ -2162,44 +591,67 @@ export async function runPathForgerPremiseStage(
   const generated = await requestTextStage({
     apiKey: input.apiKey,
     model: textModel,
-    systemPrompt: buildPremiseSystemPrompt(knowledge),
-    userPrompt: buildPremiseUserPrompt(input.onboarding, {
-      forbiddenPhrases: input.forbiddenPhrases,
-      randomnessSeed: input.randomnessSeed?.trim().length
-        ? input.randomnessSeed.trim()
-        : `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
-    }),
+    systemPrompt,
+    userPrompt: buildPrompt(baseSeed),
     schema: premiseResultSchema,
   });
 
   let premise = generated.premise.trim();
   let protagonistName = generated.protagonistName.trim();
+  let similarityMatch = findSimilarPremise(premise, priorPremises);
 
-  if (containsOverusedNeonDescriptor(premise)) {
+  if (containsOverusedNeonDescriptor(premise) || similarityMatch) {
+    const retrySeed = `${baseSeed}-retry-1`;
     const fallback = await requestTextStage({
       apiKey: input.apiKey,
       model: textModel,
-      systemPrompt: buildPremiseSystemPrompt(knowledge),
-      userPrompt: [
-        buildPremiseUserPrompt(input.onboarding, {
-          forbiddenPhrases: input.forbiddenPhrases,
-          randomnessSeed: input.randomnessSeed?.trim().length
-            ? `${input.randomnessSeed.trim()}-retry-neon`
-            : `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}-retry-neon`,
-        }),
-        "",
-        `The previous premise was "${premise}" and used overused neon wording.`,
-        "Return a different premise and protagonistName without neon-lit/neon-drenched/neon-soaked phrasing.",
-      ].join("\n"),
+      systemPrompt,
+      userPrompt: buildPrompt(retrySeed, [
+        ...(containsOverusedNeonDescriptor(premise)
+          ? [
+              `The previous premise was "${premise}" and used overused neon wording.`,
+              "Return a different premise and protagonistName without neon-lit/neon-drenched/neon-soaked phrasing.",
+            ]
+          : []),
+        ...(similarityMatch
+          ? [
+              `The previous premise was too similar to this earlier premise snapshot: "${compactPromptHistoryValue(similarityMatch.previousPremise)}".`,
+              "Return a distinctly different premise and protagonistName with a different setting, central conflict, and narrative hook.",
+            ]
+          : []),
+      ]),
       schema: premiseResultSchema,
     });
 
     premise = fallback.premise.trim();
     protagonistName = fallback.protagonistName.trim();
+    similarityMatch = findSimilarPremise(premise, priorPremises);
+  }
+
+  if (similarityMatch) {
+    const finalRetry = await requestTextStage({
+      apiKey: input.apiKey,
+      model: textModel,
+      systemPrompt,
+      userPrompt: buildPrompt(`${baseSeed}-retry-2`, [
+        `Your previous candidate "${premise}" was still too close to earlier premise history: "${compactPromptHistoryValue(similarityMatch.previousPremise)}".`,
+        "Return a clearly distinct premise and protagonistName. Do not reuse that setting, conflict, or hook.",
+      ]),
+      schema: premiseResultSchema,
+    });
+    premise = finalRetry.premise.trim();
+    protagonistName = finalRetry.protagonistName.trim();
+    similarityMatch = findSimilarPremise(premise, priorPremises);
   }
 
   if (containsOverusedNeonDescriptor(premise)) {
     premise = softenOverusedNeonDescriptor(premise);
+  }
+
+  if (similarityMatch) {
+    throw new Error(
+      "PathForger could not generate a premise distinct enough from recent suggestions. Please try regenerating.",
+    );
   }
 
   return {
@@ -2340,152 +792,6 @@ export async function runPathForgerChapterStage(
     chapter: normalizedChapter,
     selectedPitch: input.selectedPitch,
     textModel,
-  };
-}
-
-export async function runPathForgerImageStage(
-  rawInput: RunPathForgerImageStageInput,
-  onProgress?: (progress: PathForgerPipelineProgress) => void,
-  onImageUpdate?: (update: PathForgerImageStageUpdate) => void,
-  options?: { abortSignal?: AbortSignal },
-): Promise<{
-  images: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>>;
-  imageErrors: Partial<Record<PathForgerImageType, string>>;
-  imageModel: string;
-  resolvedImagePrompts: z.infer<typeof imagePromptSetSchema>;
-}> {
-  const input = runImageStageInputSchema.parse(rawInput);
-  const renderImages = {
-    ...renderImageDefaults,
-    ...(input.renderImages ?? {}),
-  };
-  const requestedImageModel = resolveImageModel(input.imageModel, input.defaultModel);
-  const resolvedImagePrompts = {
-    ...input.imagePrompts,
-  };
-
-  const orderedImageTypes: PathForgerImageType[] = [
-    "cover",
-    "outcomeB",
-    "outcomeA",
-    "choicePreviewB",
-    "choicePreviewA",
-    "chapterSpread",
-  ];
-
-  for (const type of orderedImageTypes) {
-    const overridePrompt = input.imagePromptOverrides?.[type];
-    if (typeof overridePrompt === "string" && overridePrompt.trim().length > 0) {
-      resolvedImagePrompts[type] = overridePrompt.trim();
-    }
-  }
-
-  if (renderImages.cover) {
-    const coverTitle =
-      input.coverTitle?.trim() || extractCoverTitleHintFromPrompt(resolvedImagePrompts.cover) || "";
-    if (coverTitle.length > 0) {
-      resolvedImagePrompts.cover = buildCoverPromptFromTitle({
-        onboarding: input.onboarding,
-        coverTitle,
-        teaserMarkdown: resolvedImagePrompts.cover,
-      });
-    }
-  }
-
-  const imageJobs = buildImageJobList(resolvedImagePrompts, renderImages);
-  const { images, imageErrors } = await runImageJobsParallel({
-    jobs: imageJobs,
-    apiKey: input.apiKey,
-    onboarding: input.onboarding,
-    imageModel: requestedImageModel,
-    selfieDataUrl: input.selfieDataUrl,
-    onProgress,
-    onImageUpdate,
-    abortSignal: options?.abortSignal,
-  });
-
-  const resolvedImageModel =
-    Object.values(images).find((image): image is PathForgerGeneratedImage => Boolean(image))
-      ?.model || requestedImageModel;
-
-  return {
-    images,
-    imageErrors,
-    imageModel: resolvedImageModel,
-    resolvedImagePrompts,
-  };
-}
-
-export async function runPathForgerOutcomeImageStage(
-  rawInput: RunPathForgerOutcomeImageStageInput,
-  onProgress?: (progress: PathForgerPipelineProgress) => void,
-): Promise<{
-  branch: PathForgerBranchChoice;
-  imageType: "outcomeA" | "outcomeB";
-  prompt: string;
-  image: PathForgerGeneratedImage;
-  imageModel: string;
-}> {
-  const input = runOutcomeImageStageInputSchema.parse(rawInput);
-  const requestedImageModel = resolveImageModel(input.imageModel, input.defaultModel);
-  const imageType = input.branch === "A" ? "outcomeA" : "outcomeB";
-  const overridePrompt = input.imagePromptOverrides?.[imageType];
-  const prompt =
-    typeof overridePrompt === "string" && overridePrompt.trim().length > 0
-      ? overridePrompt.trim()
-      : input.imagePrompts[imageType];
-  const choicePreviewPrompt =
-    input.branch === "A" ? input.imagePrompts.choicePreviewA : input.imagePrompts.choicePreviewB;
-  const outcomeNarrative = markdownToPlainText(input.outcomeMarkdown, 1200);
-  const outcomePrompt = [
-    prompt,
-    "",
-    "Outcome narrative context (must be reflected in the image):",
-    `Option ${input.branch}${input.selectedChoiceLabel ? ` — ${input.selectedChoiceLabel}` : ""}`,
-    outcomeNarrative,
-    "",
-    "Choice preview reference for this same option (do NOT mirror this composition):",
-    markdownToPlainText(choicePreviewPrompt, 700),
-    "",
-    "Outcome image hard constraints:",
-    "- Show post-decision aftermath with visible consequences.",
-    "- Do not reuse the same camera angle, framing, beat timing, or neutral setup vibe from the choice preview image.",
-    "- Make the world-state change legible at a glance (damage, injury/safety change, resource gain/loss, threat escalation/de-escalation).",
-    "",
-    "Render the aftermath and consequences from this outcome narrative, not the pre-choice setup.",
-  ].join("\n");
-
-  onProgress?.({
-    stage: "generatingImages",
-    message: `Rendering ${imageType} image...`,
-  });
-
-  const imageAsset = await requestImageAsset({
-    apiKey: input.apiKey,
-    model: requestedImageModel,
-    prompt: outcomePrompt,
-    imageType,
-    selfieDataUrl: input.selfieDataUrl,
-    includeSelfieReferenceImage: shouldUseSelfieReferenceImage({
-      imageType,
-      personalizedImages: input.onboarding.personalizedImages,
-      selfieDataUrl: input.selfieDataUrl,
-    }),
-    styleHint: input.onboarding.visualStyle,
-    toneHint: input.onboarding.tone,
-    genreHint: input.onboarding.genre,
-    ageRatingHint: input.onboarding.ageRating,
-  });
-
-  return {
-    branch: input.branch,
-    imageType,
-    prompt: outcomePrompt,
-    image: {
-      prompt: outcomePrompt,
-      ...imageAsset,
-    },
-    imageModel: imageAsset.model || requestedImageModel,
   };
 }
 

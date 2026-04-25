@@ -21,6 +21,7 @@ export default function PdfRenderer({
   pdfObjectSxArray,
   pdfIframeSxArray,
   onMediaAction,
+  onFirstRenderReady,
 }: PdfRendererProps) {
   const resolvedExpandControlSxArray = flattenMediaCyclerSxArray(expandControlSxArray);
   const resolvedPdfPreviewSxArray = flattenMediaCyclerSxArray(pdfPreviewSxArray);
@@ -28,6 +29,15 @@ export default function PdfRenderer({
   const resolvedPdfFrameSxArray = flattenMediaCyclerSxArray(pdfFrameSxArray);
   const resolvedPdfObjectSxArray = flattenMediaCyclerSxArray(pdfObjectSxArray);
   const resolvedPdfIframeSxArray = flattenMediaCyclerSxArray(pdfIframeSxArray);
+  const hasReportedFirstRenderRef = React.useRef(false);
+
+  const handlePdfLoaded = React.useCallback(() => {
+    item.onMediaLoaded?.();
+    if (!hasReportedFirstRenderRef.current) {
+      hasReportedFirstRenderRef.current = true;
+      onFirstRenderReady?.("pdf-onload");
+    }
+  }, [item, onFirstRenderReady]);
 
   return (
     <Box
@@ -50,7 +60,7 @@ export default function PdfRenderer({
         <LazyPDFContent
           src={pdfUrl}
           title={lightboxTitle}
-          onLoad={item.onMediaLoaded}
+          onLoad={handlePdfLoaded}
           previewSx={[{ height: "100%" }, ...resolvedPdfPreviewSxArray]}
           containerSx={resolvedPdfContainerSxArray}
           frameSx={resolvedPdfFrameSxArray}

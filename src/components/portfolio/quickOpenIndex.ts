@@ -1,6 +1,10 @@
-import { competencies, coreCompetencies, projects } from "@/consts/resumeData";
+import { competencies, coreCompetencies } from "@/consts/resumeData";
 import type { CommandPaletteAction } from "@/types/components/portfolio";
-import { getPresentationProjectDeepLinkIndex } from "@/components/portfolio/projectPageData";
+import {
+  getPresentationDiagramActionTargets,
+  getPresentationSlideActionTargets,
+  getProjectRouteActionTargets,
+} from "@/components/portfolio/projectPageData";
 import { getAppCapabilityRegistry } from "@/components/portfolio/appCapabilityRegistry";
 
 const normalizeText = (value: string) => value.trim().toLowerCase();
@@ -17,6 +21,10 @@ const dedupeActions = (actions: CommandPaletteAction[]) => {
   });
 };
 
+const projectRouteTargetsByHref = new Map(
+  getProjectRouteActionTargets().map((entry) => [entry.href, entry] as const),
+);
+
 const buildAppActions = (): CommandPaletteAction[] =>
   getAppCapabilityRegistry()
     .filter((item) => item.kind === "app" && item.href !== "/")
@@ -24,7 +32,7 @@ const buildAppActions = (): CommandPaletteAction[] =>
       id: `quick-open-app-${item.href}`,
       label: `Open App: ${item.label}`,
       subtitle: item.href,
-      group: "Apps",
+      group: item.commandGroup,
       href: item.href,
       keywords: ["app", "open", item.label, item.href, ...item.features],
     }));
@@ -33,10 +41,9 @@ const buildProjectActions = (): CommandPaletteAction[] =>
   getAppCapabilityRegistry()
     .filter((item) => item.kind === "project")
     .map((item) => {
-      const project = projects.find((entry) => entry.href?.trim() === item.href);
-      const projectTitle = item.label;
-      const projectSubtitle =
-        project?.shortText || project?.showcaseSubtitle || project?.description || item.href;
+      const target = projectRouteTargetsByHref.get(item.href);
+      const projectTitle = target?.projectTitle || item.label;
+      const projectSubtitle = target?.projectSummary || item.href;
       return {
         id: `quick-open-project-${item.href}`,
         label: `Open Project: ${projectTitle}`,
@@ -47,9 +54,8 @@ const buildProjectActions = (): CommandPaletteAction[] =>
           "project",
           "open",
           projectTitle,
-          project?.name ?? "",
-          project?.description ?? "",
-          project?.type ?? "",
+          target?.projectDescription ?? "",
+          target?.projectType ?? "",
           item.href,
           ...item.features,
         ],
@@ -57,45 +63,41 @@ const buildProjectActions = (): CommandPaletteAction[] =>
     });
 
 const buildSlideActions = (): CommandPaletteAction[] =>
-  getPresentationProjectDeepLinkIndex()
-    .filter((entry) => entry.diagramIndex === undefined)
-    .map((entry) => ({
-      id: `quick-open-slide-${entry.projectSlug}-${entry.slideKey}`,
-      label: `Slide: ${entry.projectTitle} • ${entry.slideTitle}`,
-      subtitle: entry.href,
-      group: "Slides",
-      href: entry.href,
-      keywords: [
-        "slide",
-        "presentation",
-        "section",
-        entry.projectTitle,
-        entry.projectSlug,
-        entry.slideKey,
-        entry.slideTitle,
-      ],
-    }));
+  getPresentationSlideActionTargets().map((entry) => ({
+    id: `quick-open-slide-${entry.projectSlug}-${entry.slideKey}`,
+    label: `Slide: ${entry.projectTitle} • ${entry.slideTitle}`,
+    subtitle: entry.href,
+    group: "Slides",
+    href: entry.href,
+    keywords: [
+      "slide",
+      "presentation",
+      "section",
+      entry.projectTitle,
+      entry.projectSlug,
+      entry.slideKey,
+      entry.slideTitle,
+    ],
+  }));
 
 const buildDiagramActions = (): CommandPaletteAction[] =>
-  getPresentationProjectDeepLinkIndex()
-    .filter((entry) => entry.diagramIndex !== undefined)
-    .map((entry) => ({
-      id: `quick-open-diagram-${entry.projectSlug}-${entry.diagramIndex}`,
-      label: `Diagram: ${entry.projectTitle} • ${entry.diagramTitle ?? `Diagram ${entry.diagramIndex! + 1}`}`,
-      subtitle: entry.href,
-      group: "Diagrams",
-      href: entry.href,
-      keywords: [
-        "diagram",
-        "architecture",
-        "mermaid",
-        "presentation",
-        entry.projectTitle,
-        entry.projectSlug,
-        entry.diagramTitle ?? "",
-        entry.diagramKey ?? "",
-      ],
-    }));
+  getPresentationDiagramActionTargets().map((entry) => ({
+    id: `quick-open-diagram-${entry.projectSlug}-${entry.diagramIndex}`,
+    label: `Diagram: ${entry.projectTitle} • ${entry.diagramTitle}`,
+    subtitle: entry.href,
+    group: "Diagrams",
+    href: entry.href,
+    keywords: [
+      "diagram",
+      "architecture",
+      "mermaid",
+      "presentation",
+      entry.projectTitle,
+      entry.projectSlug,
+      entry.diagramTitle,
+      entry.diagramKey ?? "",
+    ],
+  }));
 
 const buildSkillActions = (): CommandPaletteAction[] => {
   const categorySkills =
@@ -127,7 +129,7 @@ export const STATIC_QUICK_OPEN_ACTIONS: CommandPaletteAction[] = dedupeActions([
     id: "quick-open-capability-matrix",
     label: "Open Capability Matrix",
     subtitle: "Per-app features, data sources, and quality coverage",
-    group: "Apps",
+    group: "Apps • Portfolio",
     href: "/capabilities",
     keywords: ["capability", "matrix", "quality", "coverage", "registry", "apps", "projects"],
   },

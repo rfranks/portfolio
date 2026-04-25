@@ -1,16 +1,13 @@
 import * as React from "react";
 import {
-  DEFAULT_IMAGE_MODEL_ID,
-  DEFAULT_ONE_OFF_MODEL_ID,
-  DEFAULT_TEXT_MODEL_ID,
   DEV_MODE,
-  imageTypeOrder,
-  pathForgerSampleImageByType,
-  pathForgerSampleStorageArtifactPath,
+  pathForgerRecoveryTimelineLimit,
+  pathForgerRecoveryTimelineStorageKey,
+  pathForgerSaveSlotLimit,
+  pathForgerSaveSlotsStorageKey,
   pathForgerStateStorageKey,
   pitchCacheStorageKey,
 } from "@/app/pathforger/_consts/consts";
-import { withBasePath } from "@/utils/basePath";
 import {
   getPathForgerOpenAIKey,
   getPathForgerOpenAIKeyForInterstitial,
@@ -19,278 +16,44 @@ import { isPathForgerPitchResult } from "@/app/pathforger/_utils/pitchHelpers";
 import { runPathForgerImageStage } from "@/app/pathforger/_utils/pipeline";
 import type {
   PathForgerBranchChoice,
-  PathForgerChapterResult,
-  PathForgerGeneratedImage,
-  PathForgerImageType,
   PathForgerPipelineResult,
-  PathForgerPitchResult,
 } from "@/app/pathforger/_types/pipeline";
-import type { PathForgerPitchChoice } from "@/app/pathforger/_types/pitch";
 import type {
+  PathForgerCreateSaveSlotOptions,
+  PathForgerPersistedEnvelopeV2,
   PathForgerPersistedStateV1,
+  PathForgerRecoveryTimelineEntry,
+  PathForgerResumeConflict,
+  PathForgerSaveSlot,
   UsePathForgerPersistenceArgs,
+  UsePathForgerPersistenceResult,
 } from "@/app/pathforger/_types/persistence";
+import {
+  adventureLengthValues,
+  buildAutoCheckpointSignature,
+  buildCheckpointLabel,
+  buildDevSampleImages,
+  buildFallbackPitchResultFromChapter,
+  createPersistenceId,
+  dangerLevelValues,
+  extractPersistedStateSnapshot,
+  isValidChapterResult,
+  loadDevSampleStorageArtifactIfNeeded,
+  romanceModeValues,
+  sanitizeDefaultModel,
+  sanitizeImageModel,
+  sanitizeImagePromptMap,
+  isRecord,
+  isStringArray,
+  sanitizeRecoveryTimeline,
+  sanitizeRenderImages,
+  sanitizeSaveSlots,
+  sanitizeTextModel,
+} from "@/app/pathforger/_utils/persistenceHelpers";
 
-const dangerLevelValues = ["Forgiving", "Risky", "Deadly"] as const;
-const adventureLengthValues = [
-  "Very short (1-2 lines)",
-  "Short",
-  "Medium",
-  "Long",
-  "Very long",
-] as const;
-const romanceModeValues = ["No romance", "Optional romance", "Romance-forward"] as const;
-
-function isImageModelId(value: string): boolean {
-  return /^gpt-image/i.test(value.trim());
-}
-
-function sanitizeDefaultModel(value: string): string {
-  const normalized = value.trim();
-  if (!normalized || isImageModelId(normalized)) {
-    return DEFAULT_ONE_OFF_MODEL_ID;
-  }
-
-  return normalized;
-}
-
-function sanitizeTextModel(value: string): string {
-  const normalized = value.trim();
-  if (!normalized || isImageModelId(normalized)) {
-    return DEFAULT_TEXT_MODEL_ID;
-  }
-
-  return normalized;
-}
-
-function sanitizeImageModel(value: string): string {
-  const normalized = value.trim();
-  if (!normalized || isImageModelId(normalized)) {
-    return DEFAULT_IMAGE_MODEL_ID;
-  }
-
-  return normalized;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
-}
-
-function sanitizeImagePromptMap(value: unknown): Partial<Record<PathForgerImageType, string>> {
-  if (!isRecord(value)) {
-    return {};
-  }
-
-  const next: Partial<Record<PathForgerImageType, string>> = {};
-  for (const key of imageTypeOrder) {
-    const candidate = value[key];
-    if (typeof candidate === "string") {
-      next[key] = candidate;
-    }
-  }
-
-  return next;
-}
-
-function sanitizeRenderImages(value: unknown): Record<PathForgerImageType, boolean> | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const next = {} as Record<PathForgerImageType, boolean>;
-  for (const key of imageTypeOrder) {
-    const candidate = value[key];
-    if (typeof candidate !== "boolean") {
-      return null;
-    }
-    next[key] = candidate;
-  }
-
-  return next;
-}
-
-function isValidChapterResult(value: unknown): value is PathForgerChapterResult {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  if (
-    typeof value.chapterNumber !== "number" ||
-    !Number.isInteger(value.chapterNumber) ||
-    value.chapterNumber < 1
-  ) {
-    return false;
-  }
-
-  if (
-    typeof value.chapterTitle !== "string" ||
-    typeof value.chapterMarkdown !== "string" ||
-    typeof value.pathLedgerMarkdown !== "string" ||
-    typeof value.outcomeAMarkdown !== "string" ||
-    typeof value.outcomeBMarkdown !== "string" ||
-    typeof value.continuePromptMarkdown !== "string"
-  ) {
-    return false;
-  }
-
-  if (!Array.isArray(value.choices) || value.choices.length < 2) {
-    return false;
-  }
-
-  const imagePrompts = value.imagePrompts;
-  if (!isRecord(imagePrompts)) {
-    return false;
-  }
-
-  for (const key of imageTypeOrder) {
-    if (typeof imagePrompts[key] !== "string") {
-      return false;
-    }
-  }
-
-  return value.choices.every(
-    (choice) =>
-      isRecord(choice) &&
-      (choice.id === "A" || choice.id === "B" || choice.id === "C") &&
-      typeof choice.label === "string" &&
-      typeof choice.description === "string" &&
-      typeof choice.riskHudMarkdown === "string",
-  );
-}
-
-function buildFallbackPitchResultFromChapter(
-  chapter: PathForgerChapterResult,
-  selectedPitch: "auto" | PathForgerPitchChoice,
-): PathForgerPitchResult {
-  const recommendedPitch: PathForgerPitchChoice = selectedPitch === "auto" ? "A" : selectedPitch;
-  const chapterTitle = chapter.chapterTitle?.trim() || "Restored Adventure";
-  const teaser = chapter.continuePromptMarkdown?.trim() || chapterTitle;
-
-  return {
-    adventureTitle: chapterTitle,
-    protagonistName: "Protagonist",
-    onboardingRecapMarkdown: "Restored PathForger session.",
-    pitches: [
-      { id: "A", title: chapterTitle, markdown: teaser },
-      { id: "B", title: `${chapterTitle} II`, markdown: teaser },
-      { id: "C", title: `${chapterTitle} III`, markdown: teaser },
-    ],
-    recommendedPitch,
-    choosePromptMarkdown: "Select your adventure.",
-  };
-}
-
-function isPersistedStateV1Like(value: unknown): value is PathForgerPersistedStateV1 {
-  return isRecord(value) && value.version === 1 && isRecord(value.form) && isRecord(value.story);
-}
-
-async function loadDevSampleStorageArtifactIfNeeded(): Promise<void> {
-  if (typeof window === "undefined" || !DEV_MODE) {
-    return;
-  }
-
-  const maybeMigrateLegacyDevImageModel = () => {
-    const persistedRaw = window.localStorage.getItem(pathForgerStateStorageKey);
-    if (!persistedRaw) {
-      return;
-    }
-
-    try {
-      const parsedUnknown: unknown = JSON.parse(persistedRaw);
-      if (!isPersistedStateV1Like(parsedUnknown)) {
-        return;
-      }
-
-      const persisted = parsedUnknown;
-      const legacyDefaultImageModel =
-        persisted.form.imageModel === "gpt-4.1" &&
-        persisted.form.defaultModel === "gpt-4.1-mini" &&
-        persisted.form.textModel === "gpt-4.1-mini";
-      const unavailableDevSampleImageModel =
-        persisted.form.imageModel === "gpt-image-1-mini" ||
-        persisted.form.imageModel === "gpt-image-1";
-      if (!legacyDefaultImageModel && !unavailableDevSampleImageModel) {
-        return;
-      }
-
-      const migrated: PathForgerPersistedStateV1 = {
-        ...persisted,
-        form: {
-          ...persisted.form,
-          imageModel: DEFAULT_IMAGE_MODEL_ID,
-        },
-      };
-      window.localStorage.setItem(pathForgerStateStorageKey, JSON.stringify(migrated));
-    } catch {
-      // Ignore malformed persisted state during migration.
-    }
-  };
-
-  maybeMigrateLegacyDevImageModel();
-
-  const hasPersistedState = Boolean(window.localStorage.getItem(pathForgerStateStorageKey));
-  const hasPersistedPitchCache = Boolean(window.localStorage.getItem(pitchCacheStorageKey));
-  if (hasPersistedState && hasPersistedPitchCache) {
-    return;
-  }
-
-  try {
-    const response = await fetch(withBasePath(pathForgerSampleStorageArtifactPath), {
-      cache: "no-store",
-    });
-    if (!response.ok) {
-      return;
-    }
-
-    const parsed = (await response.json()) as Record<string, unknown>;
-    const sampleState = parsed[pathForgerStateStorageKey];
-    const samplePitchCache = parsed[pitchCacheStorageKey];
-
-    if (
-      !hasPersistedState &&
-      isPersistedStateV1Like(sampleState) &&
-      isValidChapterResult(sampleState.story.chapterOnlyResult) &&
-      (sampleState.story.pitchOnlyResult === null ||
-        isPathForgerPitchResult(sampleState.story.pitchOnlyResult))
-    ) {
-      window.localStorage.setItem(pathForgerStateStorageKey, JSON.stringify(sampleState));
-    }
-
-    if (!hasPersistedPitchCache && isPathForgerPitchResult(samplePitchCache)) {
-      window.localStorage.setItem(pitchCacheStorageKey, JSON.stringify(samplePitchCache));
-    }
-  } catch {
-    // Ignore sample artifact load failures in dev mode.
-  }
-}
-
-function buildDevSampleImages(args: {
-  chapter: PathForgerChapterResult;
-  renderImages: Record<PathForgerImageType, boolean>;
-}): Partial<Record<PathForgerImageType, PathForgerGeneratedImage>> {
-  const nextImages: Partial<Record<PathForgerImageType, PathForgerGeneratedImage>> = {};
-
-  for (const type of imageTypeOrder) {
-    if (!args.renderImages[type]) {
-      continue;
-    }
-
-    nextImages[type] = {
-      prompt: args.chapter.imagePrompts[type] ?? `DEV sample image for ${type}`,
-      imageDataUrl: withBasePath(pathForgerSampleImageByType[type]),
-      responseId: `dev-sample-${type}`,
-      model: "dev-sample",
-    };
-  }
-
-  return nextImages;
-}
-
-export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
+export function usePathForgerPersistence(
+  args: UsePathForgerPersistenceArgs,
+): UsePathForgerPersistenceResult {
   const {
     ready,
     setReady,
@@ -389,6 +152,91 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
   const useDevSampleForHydratedImageRestoreRef = React.useRef(false);
   const [pendingRestoredChapterImageRefresh, setPendingRestoredChapterImageRefresh] =
     React.useState(false);
+  const sessionIdRef = React.useRef(createPersistenceId("pathforger-session"));
+  const revisionRef = React.useRef(0);
+  const lastAutoCheckpointSignatureRef = React.useRef("");
+  const incomingEnvelopeRef = React.useRef<PathForgerPersistedEnvelopeV2 | null>(null);
+  const [saveSlots, setSaveSlots] = React.useState<PathForgerSaveSlot[]>([]);
+  const [recoveryTimeline, setRecoveryTimeline] = React.useState<PathForgerRecoveryTimelineEntry[]>(
+    [],
+  );
+  const [resumeConflict, setResumeConflict] = React.useState<PathForgerResumeConflict | null>(null);
+
+  const buildPersistedState = React.useCallback(
+    (): PathForgerPersistedStateV1 => ({
+      version: 1,
+      form: {
+        genre,
+        tone,
+        dangerLevel,
+        adventureLength,
+        protagonistPreference,
+        recentGeneratedProtagonistNames,
+        recentGeneratedPremises,
+        premise,
+        visualStyle,
+        romanceMode,
+        allowPermanentDeath,
+        ageRating,
+        personalizedImages,
+        selectedPitch,
+        selectedBranch,
+        defaultModel,
+        textModel,
+        imageModel,
+        renderImages,
+        selfieDataUrl,
+        selfieName,
+      },
+      story: {
+        pitchInputSignature,
+        pitchOnlyResult,
+        chapterOnlyResult,
+        imagePromptDrafts,
+        imagePromptOverrides,
+        activeOptionBranch,
+        revealedOptionBranches,
+        optionRevealTick,
+        forgedOutcomes,
+        journeyTabValue,
+        lastForgedLedgerTransition,
+      },
+    }),
+    [
+      activeOptionBranch,
+      adventureLength,
+      ageRating,
+      allowPermanentDeath,
+      chapterOnlyResult,
+      dangerLevel,
+      defaultModel,
+      forgedOutcomes,
+      genre,
+      imageModel,
+      imagePromptDrafts,
+      imagePromptOverrides,
+      journeyTabValue,
+      lastForgedLedgerTransition,
+      optionRevealTick,
+      personalizedImages,
+      pitchInputSignature,
+      pitchOnlyResult,
+      premise,
+      protagonistPreference,
+      recentGeneratedPremises,
+      recentGeneratedProtagonistNames,
+      renderImages,
+      revealedOptionBranches,
+      romanceMode,
+      selectedBranch,
+      selectedPitch,
+      selfieDataUrl,
+      selfieName,
+      textModel,
+      tone,
+      visualStyle,
+    ],
+  );
 
   React.useEffect(() => {
     let isCancelled = false;
@@ -412,11 +260,33 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
         }
 
         try {
+          const saveSlotsRaw = window.localStorage.getItem(pathForgerSaveSlotsStorageKey);
+          if (saveSlotsRaw) {
+            const parsedSlots: unknown = JSON.parse(saveSlotsRaw);
+            setSaveSlots(sanitizeSaveSlots(parsedSlots));
+          }
+
+          const recoveryTimelineRaw = window.localStorage.getItem(
+            pathForgerRecoveryTimelineStorageKey,
+          );
+          if (recoveryTimelineRaw) {
+            const parsedTimeline: unknown = JSON.parse(recoveryTimelineRaw);
+            setRecoveryTimeline(sanitizeRecoveryTimeline(parsedTimeline));
+          }
+
           const persistedRaw = window.localStorage.getItem(pathForgerStateStorageKey);
           if (persistedRaw) {
             const parsedUnknown: unknown = JSON.parse(persistedRaw);
-            if (isPersistedStateV1Like(parsedUnknown)) {
-              const persisted = parsedUnknown;
+            const extracted = extractPersistedStateSnapshot(parsedUnknown);
+            if (extracted) {
+              const persisted = extracted.state;
+              if (
+                extracted.envelope &&
+                Number.isFinite(extracted.envelope.revision) &&
+                extracted.envelope.revision > revisionRef.current
+              ) {
+                revisionRef.current = extracted.envelope.revision;
+              }
               const { form, story } = persisted;
 
               if (typeof form.genre === "string") {
@@ -688,86 +558,54 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
       return;
     }
 
-    const persistedState: PathForgerPersistedStateV1 = {
-      version: 1,
-      form: {
-        genre,
-        tone,
-        dangerLevel,
-        adventureLength,
-        protagonistPreference,
-        recentGeneratedProtagonistNames,
-        recentGeneratedPremises,
-        premise,
-        visualStyle,
-        romanceMode,
-        allowPermanentDeath,
-        ageRating,
-        personalizedImages,
-        selectedPitch,
-        selectedBranch,
-        defaultModel,
-        textModel,
-        imageModel,
-        renderImages,
-        selfieDataUrl,
-        selfieName,
-      },
-      story: {
-        pitchInputSignature,
-        pitchOnlyResult,
-        chapterOnlyResult,
-        imagePromptDrafts,
-        imagePromptOverrides,
-        activeOptionBranch,
-        revealedOptionBranches,
-        optionRevealTick,
-        forgedOutcomes,
-        journeyTabValue,
-        lastForgedLedgerTransition,
-      },
+    const persistedState = buildPersistedState();
+    revisionRef.current += 1;
+    const envelope: PathForgerPersistedEnvelopeV2 = {
+      version: 2,
+      sessionId: sessionIdRef.current,
+      revision: revisionRef.current,
+      updatedAt: Date.now(),
+      state: persistedState,
     };
 
     try {
-      window.localStorage.setItem(pathForgerStateStorageKey, JSON.stringify(persistedState));
+      window.localStorage.setItem(pathForgerStateStorageKey, JSON.stringify(envelope));
     } catch {
       // Ignore storage write failures (quota, privacy mode, etc.).
     }
-  }, [
-    activeOptionBranch,
-    adventureLength,
-    ageRating,
-    allowPermanentDeath,
-    chapterOnlyResult,
-    dangerLevel,
-    defaultModel,
-    forgedOutcomes,
-    genre,
-    imageModel,
-    imagePromptDrafts,
-    imagePromptOverrides,
-    journeyTabValue,
-    lastForgedLedgerTransition,
-    optionRevealTick,
-    personalizedImages,
-    pitchInputSignature,
-    pitchOnlyResult,
-    premise,
-    protagonistPreference,
-    ready,
-    recentGeneratedPremises,
-    recentGeneratedProtagonistNames,
-    renderImages,
-    revealedOptionBranches,
-    romanceMode,
-    selectedBranch,
-    selectedPitch,
-    selfieDataUrl,
-    selfieName,
-    textModel,
-    tone,
-    visualStyle,
-  ]);
+
+    const hasStoryCheckpoint =
+      Boolean(persistedState.story.pitchOnlyResult) ||
+      Boolean(persistedState.story.chapterOnlyResult) ||
+      Boolean(persistedState.story.forgedOutcomes.A) ||
+      Boolean(persistedState.story.forgedOutcomes.B);
+    if (!hasStoryCheckpoint) {
+      return;
+    }
+
+    const checkpointSignature = buildAutoCheckpointSignature(persistedState);
+    if (checkpointSignature === lastAutoCheckpointSignatureRef.current) {
+      return;
+    }
+
+    lastAutoCheckpointSignatureRef.current = checkpointSignature;
+    setRecoveryTimeline((current) => {
+      const entry: PathForgerRecoveryTimelineEntry = {
+        id: createPersistenceId("pathforger-checkpoint"),
+        createdAt: Date.now(),
+        label: buildCheckpointLabel(persistedState),
+        reason: "auto-checkpoint",
+        chapterNumber: persistedState.story.chapterOnlyResult?.chapterNumber ?? null,
+        selectedPitch: persistedState.form.selectedPitch,
+        snapshot: persistedState,
+      };
+      const next: PathForgerRecoveryTimelineEntry[] = [entry, ...current].slice(
+        0,
+        pathForgerRecoveryTimelineLimit,
+      );
+      return next;
+    });
+  }, [buildPersistedState, ready]);
 
   React.useEffect(() => {
     if (!ready || !apiKeyReady) {
@@ -1040,4 +878,271 @@ export function usePathForgerPersistence(args: UsePathForgerPersistenceArgs) {
     setPendingRestoredChapterImageRefresh,
     textModel,
   ]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !ready) {
+      return;
+    }
+    if (!didHydratePersistedStateRef.current) {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(pathForgerSaveSlotsStorageKey, JSON.stringify(saveSlots));
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, [ready, saveSlots]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !ready) {
+      return;
+    }
+    if (!didHydratePersistedStateRef.current) {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        pathForgerRecoveryTimelineStorageKey,
+        JSON.stringify(recoveryTimeline),
+      );
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, [ready, recoveryTimeline]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== pathForgerStateStorageKey || !event.newValue) {
+        return;
+      }
+
+      try {
+        const parsedUnknown: unknown = JSON.parse(event.newValue);
+        const extracted = extractPersistedStateSnapshot(parsedUnknown);
+        if (!extracted?.envelope) {
+          return;
+        }
+
+        if (extracted.envelope.sessionId === sessionIdRef.current) {
+          return;
+        }
+
+        if (extracted.envelope.revision <= revisionRef.current) {
+          return;
+        }
+
+        incomingEnvelopeRef.current = extracted.envelope;
+        setResumeConflict({
+          incomingUpdatedAt: extracted.envelope.updatedAt,
+          incomingRevision: extracted.envelope.revision,
+          incomingSessionId: extracted.envelope.sessionId,
+        });
+      } catch {
+        // Ignore malformed cross-tab storage payloads.
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
+  const persistCurrentStateEnvelope = React.useCallback(
+    (stateOverride?: PathForgerPersistedStateV1): PathForgerPersistedEnvelopeV2 | null => {
+      if (typeof window === "undefined") {
+        return null;
+      }
+
+      const state = stateOverride ?? buildPersistedState();
+      revisionRef.current += 1;
+      const envelope: PathForgerPersistedEnvelopeV2 = {
+        version: 2,
+        sessionId: sessionIdRef.current,
+        revision: revisionRef.current,
+        updatedAt: Date.now(),
+        state,
+      };
+
+      try {
+        window.localStorage.setItem(pathForgerStateStorageKey, JSON.stringify(envelope));
+      } catch {
+        return null;
+      }
+
+      return envelope;
+    },
+    [buildPersistedState],
+  );
+
+  const createSaveSlot = React.useCallback(
+    (name: string, options?: PathForgerCreateSaveSlotOptions) => {
+      const snapshot = buildPersistedState();
+      const trimmedName = name.trim();
+      const overwriteTarget = options?.overwriteSlotId
+        ? (saveSlots.find((candidate) => candidate.id === options.overwriteSlotId) ?? null)
+        : null;
+      const slotName = trimmedName || overwriteTarget?.name || `Save ${saveSlots.length + 1}`;
+      const now = Date.now();
+
+      setSaveSlots((current) =>
+        (overwriteTarget
+          ? [
+              {
+                ...overwriteTarget,
+                name: slotName,
+                updatedAt: now,
+                revision: revisionRef.current,
+                snapshot,
+              },
+              ...current.filter((slot) => slot.id !== overwriteTarget.id),
+            ]
+          : [
+              {
+                id: createPersistenceId("pathforger-slot"),
+                name: slotName,
+                createdAt: now,
+                updatedAt: now,
+                revision: revisionRef.current,
+                snapshot,
+              },
+              ...current,
+            ]
+        ).slice(0, pathForgerSaveSlotLimit),
+      );
+
+      setRecoveryTimeline((current) => {
+        const entry: PathForgerRecoveryTimelineEntry = {
+          id: createPersistenceId("pathforger-timeline"),
+          createdAt: now,
+          label: `${overwriteTarget ? "Overwrote slot" : "Saved slot"} · ${slotName}`,
+          reason: "save-slot",
+          chapterNumber: snapshot.story.chapterOnlyResult?.chapterNumber ?? null,
+          selectedPitch: snapshot.form.selectedPitch,
+          snapshot,
+        };
+
+        return [entry, ...current].slice(0, pathForgerRecoveryTimelineLimit);
+      });
+    },
+    [buildPersistedState, saveSlots],
+  );
+
+  const restoreSnapshotAndReload = React.useCallback(
+    (
+      snapshot: PathForgerPersistedStateV1,
+      label: string,
+      reason: PathForgerRecoveryTimelineEntry["reason"],
+    ) => {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      setResumeConflict(null);
+      incomingEnvelopeRef.current = null;
+      const now = Date.now();
+      const envelope = persistCurrentStateEnvelope(snapshot);
+      if (!envelope) {
+        return;
+      }
+
+      const timelineEntry: PathForgerRecoveryTimelineEntry = {
+        id: createPersistenceId("pathforger-timeline"),
+        createdAt: now,
+        label,
+        reason,
+        chapterNumber: snapshot.story.chapterOnlyResult?.chapterNumber ?? null,
+        selectedPitch: snapshot.form.selectedPitch,
+        snapshot,
+      };
+      const nextTimeline = [timelineEntry, ...recoveryTimeline].slice(
+        0,
+        pathForgerRecoveryTimelineLimit,
+      );
+      setRecoveryTimeline(nextTimeline);
+
+      try {
+        window.localStorage.setItem(
+          pathForgerRecoveryTimelineStorageKey,
+          JSON.stringify(nextTimeline),
+        );
+      } catch {
+        // Ignore storage write failures.
+      }
+
+      try {
+        if (snapshot.story.pitchOnlyResult) {
+          window.localStorage.setItem(
+            pitchCacheStorageKey,
+            JSON.stringify(snapshot.story.pitchOnlyResult),
+          );
+        } else {
+          window.localStorage.removeItem(pitchCacheStorageKey);
+        }
+      } catch {
+        // Ignore storage write failures.
+      }
+
+      window.location.reload();
+    },
+    [persistCurrentStateEnvelope, recoveryTimeline],
+  );
+
+  const restoreSaveSlot = React.useCallback(
+    (slotId: string) => {
+      const slot = saveSlots.find((candidate) => candidate.id === slotId);
+      if (!slot) return;
+      restoreSnapshotAndReload(slot.snapshot, `Restored slot · ${slot.name}`, "restore-slot");
+    },
+    [restoreSnapshotAndReload, saveSlots],
+  );
+
+  const deleteSaveSlot = React.useCallback(
+    (slotId: string) => setSaveSlots((current) => current.filter((slot) => slot.id !== slotId)),
+    [],
+  );
+
+  const restoreTimelineEntry = React.useCallback(
+    (entryId: string) => {
+      const entry = recoveryTimeline.find((candidate) => candidate.id === entryId);
+      if (!entry) return;
+      restoreSnapshotAndReload(
+        entry.snapshot,
+        `Restored timeline · ${entry.label}`,
+        "restore-timeline",
+      );
+    },
+    [recoveryTimeline, restoreSnapshotAndReload],
+  );
+  const clearRecoveryTimeline = React.useCallback(() => setRecoveryTimeline([]), []);
+  const acceptIncomingResumeConflict = React.useCallback(() => {
+    const incoming = incomingEnvelopeRef.current;
+    if (!incoming || typeof window === "undefined") return;
+    setResumeConflict(null);
+    restoreSnapshotAndReload(incoming.state, "Resumed incoming session", "resume-conflict");
+  }, [restoreSnapshotAndReload]);
+  const keepLocalResumeState = React.useCallback(() => {
+    setResumeConflict(null);
+    incomingEnvelopeRef.current = null;
+    void persistCurrentStateEnvelope();
+  }, [persistCurrentStateEnvelope]);
+
+  return {
+    saveSlots,
+    recoveryTimeline,
+    resumeConflict,
+    createSaveSlot,
+    restoreSaveSlot,
+    deleteSaveSlot,
+    restoreTimelineEntry,
+    clearRecoveryTimeline,
+    acceptIncomingResumeConflict,
+    keepLocalResumeState,
+  };
 }

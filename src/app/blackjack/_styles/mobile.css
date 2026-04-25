@@ -287,8 +287,30 @@
     margin-top: 0.875rem;
   }
 
+  .blackjack-controls-shell {
+    margin-top: 0.875rem;
+  }
+
+  .blackjack-controls--primary,
+  .blackjack-controls--insights {
+    margin-top: 0;
+  }
+
+  .blackjack-controls--compact {
+    margin-top: 0;
+    gap: 0.45rem;
+    justify-content: center;
+  }
+
   .blackjack-button {
     padding: 0.6rem 1rem;
+  }
+
+  .blackjack-controls--compact .blackjack-button {
+    padding: 0.56rem 0.68rem;
+    min-width: 2.45rem;
+    font-size: 1.04rem;
+    line-height: 1;
   }
 
   .blackjack-progressives span {

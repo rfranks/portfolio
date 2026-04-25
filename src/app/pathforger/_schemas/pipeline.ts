@@ -79,6 +79,8 @@ export const runVisualStyleStageInputSchema = z.object({
   onboarding: onboardingVisualStyleStageInputSchema,
   defaultModel: z.string().optional(),
   textModel: z.string().optional(),
+  forbiddenPhrases: z.array(z.string().min(1)).max(20).optional(),
+  previousVisualStyles: z.array(z.string().min(1).max(120)).max(20).optional(),
 });
 
 export const onboardingToneStageInputSchema = onboardingInputSchema.extend({
@@ -92,6 +94,8 @@ export const runToneStageInputSchema = z.object({
   onboarding: onboardingToneStageInputSchema,
   defaultModel: z.string().optional(),
   textModel: z.string().optional(),
+  forbiddenPhrases: z.array(z.string().min(1)).max(20).optional(),
+  previousTones: z.array(z.string().min(1).max(120)).max(20).optional(),
 });
 
 export const onboardingPremiseStageInputSchema = onboardingInputSchema.extend({
@@ -106,6 +110,7 @@ export const runPremiseStageInputSchema = z.object({
   defaultModel: z.string().optional(),
   textModel: z.string().optional(),
   forbiddenPhrases: z.array(z.string().min(1)).max(20).optional(),
+  previousPremises: z.array(z.string().min(1).max(800)).max(20).optional(),
   randomnessSeed: z.string().optional(),
 });
 

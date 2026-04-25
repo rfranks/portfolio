@@ -12,6 +12,7 @@ type UsePresentationSectionsParams = {
   hasDemoSection: boolean;
   hasDiagramsSection: boolean;
   sectionOrder?: readonly ProjectPresentationSectionKey[];
+  sectionCapabilityEnabledByKey?: Partial<Record<ProjectPresentationSectionKey, boolean>>;
 };
 
 export function usePresentationSections({
@@ -19,6 +20,7 @@ export function usePresentationSections({
   hasDemoSection,
   hasDiagramsSection,
   sectionOrder,
+  sectionCapabilityEnabledByKey,
 }: UsePresentationSectionsParams) {
   const sections = useMemo<PresentationSectionDescriptor[]>(() => {
     const descriptorByKey: Record<ProjectPresentationSectionKey, PresentationSectionDescriptor> = {
@@ -54,13 +56,24 @@ export function usePresentationSections({
       },
     };
 
-    const availabilityByKey: Record<ProjectPresentationSectionKey, boolean> = {
+    const baseAvailabilityByKey: Record<ProjectPresentationSectionKey, boolean> = {
       overview: true,
       why: useWhyThisInterestsSlide,
       demo: hasDemoSection,
       technologies: true,
       specifications: true,
       diagrams: hasDiagramsSection,
+    };
+    const availabilityByKey: Record<ProjectPresentationSectionKey, boolean> = {
+      overview: baseAvailabilityByKey.overview && (sectionCapabilityEnabledByKey?.overview ?? true),
+      why: baseAvailabilityByKey.why && (sectionCapabilityEnabledByKey?.why ?? true),
+      demo: baseAvailabilityByKey.demo && (sectionCapabilityEnabledByKey?.demo ?? true),
+      technologies:
+        baseAvailabilityByKey.technologies && (sectionCapabilityEnabledByKey?.technologies ?? true),
+      specifications:
+        baseAvailabilityByKey.specifications &&
+        (sectionCapabilityEnabledByKey?.specifications ?? true),
+      diagrams: baseAvailabilityByKey.diagrams && (sectionCapabilityEnabledByKey?.diagrams ?? true),
     };
 
     const defaultOrder: readonly ProjectPresentationSectionKey[] = [
@@ -77,7 +90,13 @@ export function usePresentationSections({
     const mergedOrder = [...orderedUniqueKeys, ...fallbackKeys];
 
     return mergedOrder.filter((key) => availabilityByKey[key]).map((key) => descriptorByKey[key]);
-  }, [hasDemoSection, hasDiagramsSection, sectionOrder, useWhyThisInterestsSlide]);
+  }, [
+    hasDemoSection,
+    hasDiagramsSection,
+    sectionCapabilityEnabledByKey,
+    sectionOrder,
+    useWhyThisInterestsSlide,
+  ]);
 
   const [activeSectionKey, setActiveSectionKey] = useState<ProjectPresentationSectionKey>(
     sections[0]?.key ?? "overview",

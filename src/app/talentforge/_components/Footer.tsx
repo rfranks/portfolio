@@ -144,7 +144,7 @@ export default function Footer() {
           <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
             <Box sx={{ ml: "-15px" }}>
               <Image
-                src="/apps/bookworm/images/logo192.png"
+                src="/apps/talentforge/images/logo192.png"
                 style={logoStyle}
                 alt="talentforge logo"
                 width={192}

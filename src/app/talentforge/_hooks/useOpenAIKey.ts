@@ -3,8 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { hasOpenAIKey } from "@/app/talentforge/_utils/utils";
+import { getOpenAIKeyStorageConfigForApp } from "@/utils/openai/keyService";
 
-const STORAGE_KEYS = ["talentforge-openai-key", "talentforge-openai-key-persist"];
+const TALENTFORGE_KEY_STORAGE_CONFIG = getOpenAIKeyStorageConfigForApp("talentforge");
+const STORAGE_KEYS = [
+  TALENTFORGE_KEY_STORAGE_CONFIG.primaryStorageKey,
+  ...(TALENTFORGE_KEY_STORAGE_CONFIG.fallbackStorageKeys ?? []),
+  "talentforge-openai-key-persist",
+];
 
 export function useOpenAIKey() {
   const [hasKey, setHasKey] = useState<boolean | null>(null);

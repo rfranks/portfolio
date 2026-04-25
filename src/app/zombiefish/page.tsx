@@ -1,28 +1,19 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Container } from "@mui/material";
+import * as React from "react";
 import Game from "./_Game";
-import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
+import { ArcadeGamePage } from "@/components/shared";
+import { useResumeData } from "@/providers/ResumeDataProvider";
+import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 import "./page.css";
 
 export default function ZombieFishPage() {
-  const { setDocumentTitle } = useDocumentTitle();
-  useEffect(() => {
-    setDocumentTitle("ZombieFish");
-  }, [setDocumentTitle]);
+  const { portfolioApps } = useResumeData();
+  const zombiefishRoute = getPortfolioAppRouteContract(portfolioApps, "zombiefish");
 
   return (
-    <Container
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <ArcadeGamePage documentTitle={zombiefishRoute.documentTitle}>
       <Game />
-    </Container>
+    </ArcadeGamePage>
   );
 }

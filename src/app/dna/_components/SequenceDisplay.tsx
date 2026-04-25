@@ -129,7 +129,7 @@ export default function SequenceDisplay({
 
     return (
       <Box
-        data-proteinCode={`${protein?.charCode}`}
+        data-protein-code={`${protein?.charCode}`}
         data-index={index}
         key={index}
         sx={{
@@ -424,6 +424,7 @@ export default function SequenceDisplay({
         sx={{
           fontFamily: "Anonymous Pro",
           fontSize: "16px",
+          backgroundColor: showText ? "#ffffff" : "transparent",
           height: fillHeight ? "100%" : `${defaultViewportHeight}px`,
           overflow: "auto",
           paddingBottom: showProteins ? 3 : 0,

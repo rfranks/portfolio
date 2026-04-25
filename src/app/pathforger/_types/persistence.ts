@@ -80,6 +80,50 @@ export type PathForgerPersistedStateV1 = {
   };
 };
 
+export type PathForgerPersistedEnvelopeV2 = {
+  version: 2;
+  sessionId: string;
+  revision: number;
+  updatedAt: number;
+  state: PathForgerPersistedStateV1;
+};
+
+export type PathForgerRecoveryReason =
+  | "auto-checkpoint"
+  | "save-slot"
+  | "restore-slot"
+  | "restore-timeline"
+  | "resume-conflict";
+
+export type PathForgerRecoveryTimelineEntry = {
+  id: string;
+  createdAt: number;
+  label: string;
+  reason: PathForgerRecoveryReason;
+  chapterNumber: number | null;
+  selectedPitch: "auto" | PathForgerPitchChoice;
+  snapshot: PathForgerPersistedStateV1;
+};
+
+export type PathForgerSaveSlot = {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+  revision: number;
+  snapshot: PathForgerPersistedStateV1;
+};
+
+export type PathForgerCreateSaveSlotOptions = {
+  overwriteSlotId?: string;
+};
+
+export type PathForgerResumeConflict = {
+  incomingUpdatedAt: number;
+  incomingRevision: number;
+  incomingSessionId: string;
+};
+
 export type UsePathForgerPersistenceArgs = {
   ready: boolean;
   setReady: (value: boolean) => void;
@@ -190,4 +234,17 @@ export type UsePathForgerPersistenceArgs = {
   setRenderImages: React.Dispatch<React.SetStateAction<Record<PathForgerImageType, boolean>>>;
   setSelfieDataUrl: (value: string | undefined) => void;
   setSelfieName: (value: string) => void;
+};
+
+export type UsePathForgerPersistenceResult = {
+  saveSlots: PathForgerSaveSlot[];
+  recoveryTimeline: PathForgerRecoveryTimelineEntry[];
+  resumeConflict: PathForgerResumeConflict | null;
+  createSaveSlot: (name: string, options?: PathForgerCreateSaveSlotOptions) => void;
+  restoreSaveSlot: (slotId: string) => void;
+  deleteSaveSlot: (slotId: string) => void;
+  restoreTimelineEntry: (entryId: string) => void;
+  clearRecoveryTimeline: () => void;
+  acceptIncomingResumeConflict: () => void;
+  keepLocalResumeState: () => void;
 };

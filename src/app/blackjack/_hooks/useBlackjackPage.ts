@@ -22,8 +22,10 @@ import type {
   BlackjackUiAction,
 } from "../_types/messages";
 import type {
+  BlackjackAnalyticsRound,
   BlackjackCarouselSlideId,
   BlackjackConfettiPiece,
+  BlackjackRoundTimelineEntry,
   WinningChipFx,
 } from "../_types/page";
 import {
@@ -42,9 +44,27 @@ import {
   getResultTransitionKey,
   pickStatusEmojis,
 } from "../_utils/helpers";
+import { getRoundTimelineCardEvents } from "../_utils/roundTimelineCards";
 import { BLACKJACK_CAROUSEL_SLIDES } from "../_consts/blackjack";
 
-export function useBlackjackPage() {
+const BLACKJACK_ACTION_TIMELINE_LABEL: Record<BlackjackUiAction, string> = {
+  deal: "Start Round",
+  hit: "Hit",
+  stand: "Stand",
+  double: "Double Down",
+  split: "Split",
+  insure: "Insure",
+  decline: "Decline Insurance",
+};
+
+const formatCurrency = (value: number) =>
+  value.toLocaleString("en-US", {
+    currency: "USD",
+    maximumFractionDigits: 0,
+    style: "currency",
+  });
+
+export function useBlackjackPage(documentTitle: string) {
   const { setDocumentTitle } = useDocumentTitle();
   const pageRef = React.useRef<HTMLElement | null>(null);
   const tableShellRef = React.useRef<HTMLDivElement | null>(null);
@@ -63,6 +83,11 @@ export function useBlackjackPage() {
   const [blackjackConfettiPieces, setBlackjackConfettiPieces] = React.useState<
     BlackjackConfettiPiece[]
   >([]);
+  const [analyticsRounds, setAnalyticsRounds] = React.useState<BlackjackAnalyticsRound[]>([]);
+  const [roundTimelineEntries, setRoundTimelineEntries] = React.useState<
+    BlackjackRoundTimelineEntry[]
+  >([]);
+  const [activeRoundNumber, setActiveRoundNumber] = React.useState(0);
   const [modeTransitionMessageVisible, setModeTransitionMessageVisible] = React.useState(false);
   const [soundsEnabled, setSoundsEnabled] = React.useState(() => {
     if (typeof window === "undefined") {
@@ -83,6 +108,9 @@ export function useBlackjackPage() {
   const blackjackConfettiWaveTimeoutRef = React.useRef<number | null>(null);
   const previousActiveHandIndexRef = React.useRef<number | null>(null);
   const musicStartedRef = React.useRef(false);
+  const timelineEntryIdRef = React.useRef(0);
+  const activeRoundRef = React.useRef(0);
+  const pendingActionLabelRef = React.useRef<string | null>(null);
 
   const blackjackSfx = useAudio("/audio/jingles_STEEL16.ogg");
   const bustSfx = useAudio("/audio/lowDown.ogg");
@@ -151,6 +179,54 @@ export function useBlackjackPage() {
     },
     [soundsEnabled],
   );
+
+  const createTimelineEntry = React.useCallback(
+    (entry: Omit<BlackjackRoundTimelineEntry, "id">): BlackjackRoundTimelineEntry => {
+      timelineEntryIdRef.current += 1;
+      return {
+        ...entry,
+        id: `blackjack-round-${entry.round}-step-${timelineEntryIdRef.current}`,
+      };
+    },
+    [],
+  );
+
+  const appendTimelineEntry = React.useCallback(
+    (
+      kind: BlackjackRoundTimelineEntry["kind"],
+      title: string,
+      options?: {
+        amountDisplay?: string;
+        card?: BlackjackRoundTimelineEntry["card"];
+        detail?: string;
+      },
+    ) => {
+      const round = Math.max(1, activeRoundRef.current);
+      const nextEntry = createTimelineEntry({
+        kind,
+        round,
+        title,
+        detail: options?.detail,
+        amountDisplay: options?.amountDisplay,
+        card: options?.card,
+      });
+      setRoundTimelineEntries((current) => [...current, nextEntry].slice(-28));
+    },
+    [createTimelineEntry],
+  );
+
+  const startNewRoundTimeline = React.useCallback(() => {
+    const nextRound = activeRoundRef.current + 1;
+    activeRoundRef.current = nextRound;
+    setActiveRoundNumber(nextRound);
+    setRoundTimelineEntries([
+      createTimelineEntry({
+        round: nextRound,
+        kind: "action",
+        title: "Start Round",
+      }),
+    ]);
+  }, [createTimelineEntry]);
 
   const playWagerChipSfx = React.useCallback(() => {
     const wagerToggleSound =
@@ -313,6 +389,7 @@ export function useBlackjackPage() {
     (action: BlackjackUiAction) => {
       startMusic();
       playSfx(actionSfx, undefined, { volume: 0.4 });
+      pendingActionLabelRef.current = BLACKJACK_ACTION_TIMELINE_LABEL[action];
       postBlackjackAction(action);
     },
     [actionSfx, playSfx, startMusic],
@@ -329,6 +406,11 @@ export function useBlackjackPage() {
       startMusic();
       setStartRequested(true);
       setControlsArmed(false);
+      activeRoundRef.current = 0;
+      setActiveRoundNumber(0);
+      setAnalyticsRounds([]);
+      setRoundTimelineEntries([]);
+      pendingActionLabelRef.current = null;
       playSfx(dealSfx);
       postBlackjackStart();
     },
@@ -347,6 +429,8 @@ export function useBlackjackPage() {
       if (!autoDeal) {
         pendingModeChangeAutoDealRef.current = false;
       }
+      pendingActionLabelRef.current =
+        direction === "prev" ? "Switch to Previous Mode" : "Switch to Next Mode";
 
       postBlackjackToggleGameMode(direction);
     },
@@ -434,8 +518,8 @@ export function useBlackjackPage() {
   );
 
   React.useEffect(() => {
-    setDocumentTitle("Blackjack");
-  }, [setDocumentTitle]);
+    setDocumentTitle(documentTitle);
+  }, [documentTitle, setDocumentTitle]);
 
   React.useEffect(() => {
     return () => {
@@ -542,6 +626,62 @@ export function useBlackjackPage() {
     }
 
     const previousState = previousEngineStateRef.current;
+    const enteredNewRound = Boolean(previousState?.askingToDeal && !engineState.askingToDeal);
+    if (enteredNewRound) {
+      startNewRoundTimeline();
+    }
+
+    const pendingActionLabel = pendingActionLabelRef.current;
+    const shouldSuppressStartRoundAction =
+      enteredNewRound && pendingActionLabel === BLACKJACK_ACTION_TIMELINE_LABEL.deal;
+    let shouldAppendPendingAction = Boolean(pendingActionLabel && !shouldSuppressStartRoundAction);
+
+    if (previousState && activeRoundRef.current > 0) {
+      const cardEvents = getRoundTimelineCardEvents({
+        enteredNewRound,
+        previousState,
+        nextState: engineState,
+      });
+
+      if (pendingActionLabel && shouldAppendPendingAction) {
+        const canMergeActionIntoDeal =
+          pendingActionLabel === "Hit" || pendingActionLabel === "Double Down";
+        const firstDealEventIndex = cardEvents.findIndex(
+          (event) => event.kind === "state" && event.title.includes("Dealt"),
+        );
+        if (canMergeActionIntoDeal && firstDealEventIndex >= 0) {
+          const firstDealEvent = cardEvents[firstDealEventIndex];
+          cardEvents[firstDealEventIndex] = {
+            ...firstDealEvent,
+            kind: "action",
+            title: `${pendingActionLabel} - ${firstDealEvent.title}`,
+          };
+          shouldAppendPendingAction = false;
+        }
+      }
+
+      for (const event of cardEvents) {
+        appendTimelineEntry(event.kind, event.title, { detail: event.detail, card: event.card });
+      }
+    }
+
+    if (pendingActionLabel && shouldAppendPendingAction) {
+      appendTimelineEntry("action", pendingActionLabel);
+    }
+    pendingActionLabelRef.current = null;
+
+    const previousStatusText = previousState?.statusText?.trim() ?? "";
+    const nextStatusText = engineState.statusText?.trim() ?? "";
+    if (nextStatusText && nextStatusText !== previousStatusText) {
+      appendTimelineEntry("decision", "Status Update", { detail: nextStatusText });
+    }
+
+    const previousHintText = previousState?.hintText?.trim() ?? "";
+    const nextHintText = engineState.hintText?.trim() ?? "";
+    if (nextHintText && nextHintText !== previousHintText) {
+      appendTimelineEntry("decision", "Hint", { detail: nextHintText });
+    }
+
     const currentPlayerStack = engineState.player?.stack ?? 0;
     if (displayedPlayerStack === null) {
       setDisplayedPlayerStack(currentPlayerStack);
@@ -597,6 +737,42 @@ export function useBlackjackPage() {
           handledWinningStackAnimation = true;
           syncDisplayedPlayerStack(currentPlayerStack);
         }
+
+        appendTimelineEntry("decision", "Round Resolved", {
+          detail: engineState.result?.summary || "Hand completed.",
+        });
+        if (engineState.result?.detailLines.length) {
+          appendTimelineEntry("decision", "Rule Decisions", {
+            detail: engineState.result.detailLines.join(" • "),
+          });
+        }
+        if (stackDelta !== 0 || netDiff !== 0) {
+          const payoutDelta = stackDelta !== 0 ? stackDelta : netDiff;
+          appendTimelineEntry("payout", payoutDelta >= 0 ? "Payout Applied" : "Loss Applied", {
+            amountDisplay: `${payoutDelta >= 0 ? "+" : ""}${formatCurrency(payoutDelta)}`,
+            detail: `Stack: ${formatCurrency(previousPlayerStack)} → ${formatCurrency(currentPlayerStack)}`,
+          });
+        }
+
+        const roundOutcome: BlackjackAnalyticsRound["outcome"] =
+          engineState.result?.badge === "Won!"
+            ? "win"
+            : engineState.result?.badge === "Push"
+              ? "push"
+              : "loss";
+        setAnalyticsRounds((current) =>
+          [
+            ...current,
+            {
+              round: activeRoundRef.current,
+              outcome: roundOutcome,
+              netDelta: stackDelta !== 0 ? stackDelta : netDiff,
+              bustedHands: currentBusts.filter(Boolean).length,
+              dealerBusted: Boolean(engineState.dealer.busted),
+              blackjackWin: isBlackjackWin,
+            },
+          ].slice(-80),
+        );
       }
     }
 
@@ -621,6 +797,8 @@ export function useBlackjackPage() {
     triggerBlackjackCelebration,
     triggerWinningChipFx,
     winSfx,
+    appendTimelineEntry,
+    startNewRoundTimeline,
   ]);
 
   React.useEffect(() => {
@@ -703,6 +881,9 @@ export function useBlackjackPage() {
     pageRef,
     playerStackRef,
     resultEmojis,
+    analyticsRounds,
+    roundTimelineEntries,
+    activeRoundNumber,
     scrollToSlide,
     setHandRef,
     setSlideRef,

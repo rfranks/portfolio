@@ -92,6 +92,7 @@ export type MediaRendererActionHandler = (params: {
   control?: string;
   metaAction?: string;
 }) => void;
+export type MediaRendererFirstRenderHandler = (control?: string) => void;
 
 export type DiagramRendererProps = {
   item: MediaCyclerDiagramItem;
@@ -101,6 +102,7 @@ export type DiagramRendererProps = {
   expandControlSx?: SxProps<Theme>;
   diagramSxArray: MediaCyclerSxArray;
   onMediaAction?: MediaRendererActionHandler;
+  onFirstRenderReady?: MediaRendererFirstRenderHandler;
 };
 
 export type ImageRendererProps = {
@@ -111,6 +113,7 @@ export type ImageRendererProps = {
   showExpandIcon: boolean;
   expandControlSxArray: MediaCyclerSxArray;
   onMediaAction?: MediaRendererActionHandler;
+  onFirstRenderReady?: MediaRendererFirstRenderHandler;
 };
 
 export type VideoRendererProps = {
@@ -122,6 +125,7 @@ export type VideoRendererProps = {
   expandControlSx?: SxProps<Theme>;
   previewVideoSxArray: MediaCyclerSxArray;
   onMediaAction?: MediaRendererActionHandler;
+  onFirstRenderReady?: MediaRendererFirstRenderHandler;
 };
 
 export type PdfRendererProps = {
@@ -137,4 +141,35 @@ export type PdfRendererProps = {
   pdfObjectSxArray: MediaCyclerSxArray;
   pdfIframeSxArray: MediaCyclerSxArray;
   onMediaAction?: MediaRendererActionHandler;
+  onFirstRenderReady?: MediaRendererFirstRenderHandler;
+};
+
+export type MediaCyclerItemRendererProps = {
+  item: MediaCyclerItem;
+  items: MediaCyclerItem[];
+  loopNavigation: boolean;
+  markdownByKey: Record<string, string>;
+  smallScreenInfoBlurb?: string;
+  compactMetadataOnSmallScreens: boolean;
+  showCompactInfoButton: boolean;
+  showExpandIcon: boolean;
+  expandControlSx?: SxProps<Theme>;
+  expandControlSxArray: MediaCyclerSxArray;
+  navigationOverlay?: React.ReactNode;
+  prefetchItemMediaByIntent: (item: MediaCyclerItem) => void;
+  openMetadataDialog: (
+    item: MediaCyclerItem,
+    trigger: PortfolioTelemetryTrigger,
+    control?: string,
+  ) => void;
+  handleRendererFirstRenderReady: (item: MediaCyclerItem, control?: string) => void;
+  emitRendererMediaAction: (
+    item: MediaCyclerItem,
+    params: {
+      kind: MediaActionKind;
+      trigger: PortfolioTelemetryTrigger;
+      control?: string;
+      metaAction?: string;
+    },
+  ) => void;
 };

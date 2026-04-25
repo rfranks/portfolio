@@ -3,6 +3,7 @@ import { parseResumeDataWithSchema } from "@/consts/resumeDataSchema";
 import type { ResumeDataMigrationPayload } from "@/types/data/migrations/resumeDataMigrations";
 import { fetchJson } from "@/utils/network/httpClient";
 import { migrateResumeData } from "@/utils/data/migrations/resumeDataMigrations";
+import { withBasePath } from "@/utils/basePath";
 
 export const resumeDataPath = "/personal/data/resumeData.json";
 
@@ -26,7 +27,7 @@ const resolveResumeDataUrl = (baseUrl?: string) => {
     }
   }
 
-  return resumeDataPath;
+  return withBasePath(resumeDataPath);
 };
 
 export async function fetchResumeData(options?: {

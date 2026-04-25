@@ -18,6 +18,7 @@ export type ResolvedProjectTerminalDemo = {
 type DemoSectionProps = {
   useSharedDemoSlide: boolean;
   isPodcastsLayout: boolean;
+  useTightDemoCaptionLayout: boolean;
   terminalDemo: ResolvedProjectTerminalDemo | null;
   demoItems: MediaCyclerItem[];
   activeDemoMediaKey?: string;
@@ -32,6 +33,7 @@ type DemoSectionProps = {
 export default function DemoSection({
   useSharedDemoSlide,
   isPodcastsLayout,
+  useTightDemoCaptionLayout,
   terminalDemo,
   demoItems,
   activeDemoMediaKey,
@@ -122,11 +124,12 @@ export default function DemoSection({
             media={sharedDemoMedia}
             contentSx={{
               minHeight: 0,
-              flex: isPodcastsLayout ? "0 0 auto" : "1 1 auto",
+              flex: isPodcastsLayout || useTightDemoCaptionLayout ? "0 0 auto" : "1 1 auto",
               display: "flex",
-              alignItems: isPodcastsLayout ? "flex-start" : "center",
-              justifyContent: isPodcastsLayout ? "flex-start" : "center",
-              overflow: isPodcastsLayout ? "visible" : "hidden",
+              alignItems: isPodcastsLayout || useTightDemoCaptionLayout ? "flex-start" : "center",
+              justifyContent:
+                isPodcastsLayout || useTightDemoCaptionLayout ? "flex-start" : "center",
+              overflow: isPodcastsLayout || useTightDemoCaptionLayout ? "visible" : "hidden",
             }}
             captionSlotSx={captionSlotSx}
             captionTextSx={captionTextSx}

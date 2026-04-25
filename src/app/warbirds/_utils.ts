@@ -67,6 +67,8 @@ export function initState(dims: Dims, assets: AssetMgr, audio: AudioMgr): GameSt
 
     frameCount: 0,
     gameOver: false,
+    shotsFired: 0,
+    shotsHit: 0,
 
     y: dims.height * 0.2,
     vy: 0,

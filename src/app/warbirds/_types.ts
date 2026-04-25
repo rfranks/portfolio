@@ -42,6 +42,8 @@ export interface GameState extends GameUIState {
   audio: AudioMgr;
 
   gameOver: boolean;
+  shotsFired: number;
+  shotsHit: number;
 
   // player physics & position
   y: number;

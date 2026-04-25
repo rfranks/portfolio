@@ -33,11 +33,11 @@ type OpenAIContentPart =
   | { type: "input_text"; text: string }
   | { type: "input_image"; image_url: string };
 const TARGET_LANDSCAPE_SIZE = "1536x1024";
+const FINAL_RENDER_TIMEOUT_MS = 240_000;
 const IMAGE_TOOL_CONFIG = {
   type: "image_generation",
   size: TARGET_LANDSCAPE_SIZE,
   quality: "high",
-  format: "png",
 } as const;
 
 const REQUIRED_REFERENCE_DOCS = [
@@ -339,6 +339,10 @@ export async function requestFinalRender(
       path: "/responses",
       method: "POST",
       body,
+      profileOverrides: {
+        timeoutMs: FINAL_RENDER_TIMEOUT_MS,
+        retries: 0,
+      },
     });
   };
 

@@ -1,4 +1,5 @@
 import type {
+  InteractiveViewportInputType,
   InteractiveViewportPreset,
   PanZoomTransformState,
   PanZoomViewportPreferences,
@@ -9,6 +10,7 @@ export type UsePanZoomViewportOptions = {
   calibrationMediaType?: string;
   calibrationSection?: string;
   calibrationProfileNamespace?: string;
+  interactionInputTypeOverride?: InteractiveViewportInputType;
   initialState?: PanZoomTransformState;
   preferencesStorageKey?: string;
   initialPreferences?: PanZoomViewportPreferences;

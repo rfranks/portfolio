@@ -1,7 +1,175 @@
 {
-  "generatedAt": "2026-04-24T07:07:50.093Z",
-  "actionCount": 198,
+  "generatedAt": "2026-04-24T13:34:01.007Z",
+  "actionCount": 206,
   "actions": [
+    {
+      "id": "search-app-route--ai-shenanigans",
+      "label": "App Route: AI Shenanigans",
+      "subtitle": "/ai-shenanigans",
+      "previewTitle": "AI Shenanigans • App Route",
+      "previewBody": "Open AI Shenanigans and jump directly into its app surface.",
+      "previewMeta": "/ai-shenanigans",
+      "group": "Apps • Portfolio",
+      "href": "/ai-shenanigans",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "AI Shenanigans",
+        "/ai-shenanigans",
+        "launchable-app",
+        "resume-data.navigation",
+        "app-local-state",
+        "app-local-assets"
+      ]
+    },
+    {
+      "id": "search-app-route--blackjack",
+      "label": "App Route: Blackjack",
+      "subtitle": "/blackjack",
+      "previewTitle": "Blackjack • App Route",
+      "previewBody": "Open Blackjack and jump directly into its app surface.",
+      "previewMeta": "/blackjack",
+      "group": "Apps • Arcade",
+      "href": "/blackjack",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "Blackjack",
+        "/blackjack",
+        "launchable-app",
+        "resume-data.navigation",
+        "app-local-state",
+        "app-local-assets"
+      ]
+    },
+    {
+      "id": "search-app-route--bookworm",
+      "label": "App Route: Bookworm",
+      "subtitle": "/bookworm",
+      "previewTitle": "Bookworm • App Route",
+      "previewBody": "Open Bookworm and jump directly into its app surface.",
+      "previewMeta": "/bookworm",
+      "group": "Apps • AI",
+      "href": "/bookworm",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "Bookworm",
+        "/bookworm",
+        "launchable-app",
+        "resume-data.navigation",
+        "app-local-state",
+        "app-local-assets"
+      ]
+    },
+    {
+      "id": "search-app-route--dna",
+      "label": "App Route: GeneBoard",
+      "subtitle": "/dna",
+      "previewTitle": "GeneBoard • App Route",
+      "previewBody": "Open GeneBoard and jump directly into its app surface.",
+      "previewMeta": "/dna",
+      "group": "Apps • Portfolio",
+      "href": "/dna",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "GeneBoard",
+        "/dna",
+        "launchable-app",
+        "resume-data.navigation",
+        "app-local-state",
+        "app-local-assets"
+      ]
+    },
+    {
+      "id": "search-app-route--pathforger",
+      "label": "App Route: PathForger",
+      "subtitle": "/pathforger",
+      "previewTitle": "PathForger • App Route",
+      "previewBody": "Open PathForger and jump directly into its app surface.",
+      "previewMeta": "/pathforger",
+      "group": "Apps • AI",
+      "href": "/pathforger",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "PathForger",
+        "/pathforger",
+        "launchable-app",
+        "resume-data.navigation",
+        "app-local-state",
+        "app-local-assets"
+      ]
+    },
+    {
+      "id": "search-app-route--rickbert-studio",
+      "label": "App Route: Rickbert Studio",
+      "subtitle": "/rickbert-studio",
+      "previewTitle": "Rickbert Studio • App Route",
+      "previewBody": "Open Rickbert Studio and jump directly into its app surface.",
+      "previewMeta": "/rickbert-studio",
+      "group": "Apps • AI",
+      "href": "/rickbert-studio",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "Rickbert Studio",
+        "/rickbert-studio",
+        "launchable-app",
+        "resume-data.navigation",
+        "app-local-state",
+        "app-local-assets"
+      ]
+    },
+    {
+      "id": "search-app-route--talentforge",
+      "label": "App Route: TalentForge",
+      "subtitle": "/talentforge",
+      "previewTitle": "TalentForge • App Route",
+      "previewBody": "Open TalentForge and jump directly into its app surface.",
+      "previewMeta": "/talentforge",
+      "group": "Apps • AI",
+      "href": "/talentforge",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "TalentForge",
+        "/talentforge",
+        "launchable-app",
+        "resume-data.navigation",
+        "app-local-state",
+        "app-local-assets"
+      ]
+    },
+    {
+      "id": "search-app-route--warbirds",
+      "label": "App Route: Warbirds",
+      "subtitle": "/warbirds",
+      "previewTitle": "Warbirds • App Route",
+      "previewBody": "Open Warbirds and jump directly into its app surface.",
+      "previewMeta": "/warbirds",
+      "group": "Apps • Arcade",
+      "href": "/warbirds",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "Warbirds",
+        "/warbirds",
+        "launchable-app",
+        "resume-data.navigation",
+        "app-local-state",
+        "app-local-assets"
+      ]
+    },
     {
       "id": "search-diagram-patientlistpodcasts-2",
       "label": "Diagram: AI Patient List Podcasts • Block Diagram",
@@ -266,7 +434,7 @@
       "label": "Project: AI Shenanigans",
       "subtitle": "Mixed-media lab for stylization, motion, and creative AI workflows.",
       "previewTitle": "AI Shenanigans",
-      "previewBody": "AI Shenanigans is a mixed-media experimentation lab for stylization, character work, motion concepts, and narrative ideation across image-first AI workflows. It is designed as a creative sandbox where visual direction, tone exploration, and rapid iteration can be tested quickly before moving ideas into larger product or storytelling contexts.",
+      "previewBody": "AI Shenanigans is a mixed-media experimentation platform for turning source concepts into stylized image, narrative, and adaptation workflows. Instead of isolated prompt experiments, it treats creation as a pipeline: capture source intent, iterate visual direction, test motion or adaptation branches, and compare outputs in a structured interface. The project emphasizes orchestration and repeatability so creative exploration can be revisited, audited, and extended into product-ready artifacts. It showcases how playful AI work still benefits from contracts, staged processing, and coherent tooling architecture.",
       "previewMeta": "PERSONAL • /ai-shenanigans",
       "group": "Projects",
       "href": "/ai-shenanigans",
@@ -274,7 +442,7 @@
         "project",
         "AI Shenanigans",
         "AI Shenanigans",
-        "AI Shenanigans is a mixed-media experimentation lab for stylization, character work, motion concepts, and narrative ideation across image-first AI workflows. It is designed as a creative sandbox where visual direction, tone exploration, and rapid iteration can be tested quickly before moving ideas into larger product or storytelling contexts.",
+        "AI Shenanigans is a mixed-media experimentation platform for turning source concepts into stylized image, narrative, and adaptation workflows. Instead of isolated prompt experiments, it treats creation as a pipeline: capture source intent, iterate visual direction, test motion or adaptation branches, and compare outputs in a structured interface. The project emphasizes orchestration and repeatability so creative exploration can be revisited, audited, and extended into product-ready artifacts. It showcases how playful AI work still benefits from contracts, staged processing, and coherent tooling architecture.",
         "",
         "personal",
         "/ai-shenanigans"
@@ -304,7 +472,7 @@
       "label": "Project: Blackjack",
       "subtitle": "Shared rules engine across terminal and WebAssembly clients.",
       "previewTitle": "Blackjack",
-      "previewBody": "Blackjack is a production-style implementation of classic twenty-one with a shared Go rules engine powering multiple clients. The project highlights game-state modeling, deterministic dealer/player logic, and a polished web presentation layer that stays aligned with terminal and debugger flows through the same core decision and payout mechanics.",
+      "previewBody": "Blackjack is a production-style twenty-one implementation where a shared Go rules core powers web and terminal experiences through the same decision logic. The architecture uses a React UI, a postMessage contract boundary, and a Go WASM adapter so state transitions, dealer rules, side-bets, and payouts stay deterministic across clients. Render DTO assembly isolates presentation concerns from domain logic, while diagrammed component, sequence, and state views make behavior traceable for debugging and interviews. It is a practical example of contract-driven integration, state machine modeling, and cross-runtime consistency in a game domain.",
       "previewMeta": "PERSONAL • /blackjack",
       "group": "Projects",
       "href": "/blackjack",
@@ -312,7 +480,7 @@
         "project",
         "Blackjack",
         "Blackjack",
-        "Blackjack is a production-style implementation of classic twenty-one with a shared Go rules engine powering multiple clients. The project highlights game-state modeling, deterministic dealer/player logic, and a polished web presentation layer that stays aligned with terminal and debugger flows through the same core decision and payout mechanics.",
+        "Blackjack is a production-style twenty-one implementation where a shared Go rules core powers web and terminal experiences through the same decision logic. The architecture uses a React UI, a postMessage contract boundary, and a Go WASM adapter so state transitions, dealer rules, side-bets, and payouts stay deterministic across clients. Render DTO assembly isolates presentation concerns from domain logic, while diagrammed component, sequence, and state views make behavior traceable for debugging and interviews. It is a practical example of contract-driven integration, state machine modeling, and cross-runtime consistency in a game domain.",
         "",
         "personal",
         "/blackjack"
@@ -323,7 +491,7 @@
       "label": "Project: Blasteroids",
       "subtitle": "Modernized Asteroids gameplay with precise browser controls.",
       "previewTitle": "Blasteroids",
-      "previewBody": "Blasteroids reimagines classic Asteroids with tighter weapon feel, cleaner movement handling, and modern browser UX polish. Built with HTML, CSS, and JavaScript, it focuses on responsive controls, collision precision, and round pacing that keeps the game accessible for quick sessions while still rewarding skillful play.",
+      "previewBody": "Blasteroids reinterprets classic Asteroids with a modernized browser architecture focused on deterministic controls and reliable collision behavior. The implementation couples responsive keyboard input, projectile and asteroid update loops, and score/life state transitions into a clear gameplay pipeline that feels crisp on desktop and mobile. Rather than relying on external engines, the project uses core web primitives to prove that disciplined state updates, timing, and feedback loops can deliver polished arcade play. It is a compact showcase of input orchestration, collision tuning, and UX pacing in pure web runtime code.",
       "previewMeta": "PERSONAL • /blasteroids",
       "group": "Projects",
       "href": "/blasteroids",
@@ -331,7 +499,7 @@
         "project",
         "Blasteroids",
         "Blasteroids",
-        "Blasteroids reimagines classic Asteroids with tighter weapon feel, cleaner movement handling, and modern browser UX polish. Built with HTML, CSS, and JavaScript, it focuses on responsive controls, collision precision, and round pacing that keeps the game accessible for quick sessions while still rewarding skillful play.",
+        "Blasteroids reinterprets classic Asteroids with a modernized browser architecture focused on deterministic controls and reliable collision behavior. The implementation couples responsive keyboard input, projectile and asteroid update loops, and score/life state transitions into a clear gameplay pipeline that feels crisp on desktop and mobile. Rather than relying on external engines, the project uses core web primitives to prove that disciplined state updates, timing, and feedback loops can deliver polished arcade play. It is a compact showcase of input orchestration, collision tuning, and UX pacing in pure web runtime code.",
         "",
         "personal",
         "/blasteroids"
@@ -342,7 +510,7 @@
       "label": "Project: Bookworm",
       "subtitle": "AI-assisted PDF companion for chat and extraction workflows.",
       "previewTitle": "Bookworm",
-      "previewBody": "Bookworm is an AI-assisted PDF companion that supports document chat, contextual question answering, and faster information extraction from long-form content. It combines file ingestion, prompt orchestration, and user-friendly interaction patterns so dense documents can be explored conversationally without losing source-grounded context.",
+      "previewBody": "Bookworm is an AI-assisted PDF companion focused on turning dense documents into navigable conversational workflows. It combines file ingestion, document parsing, and prompt orchestration so users can ask targeted questions while staying grounded in source context. The experience prioritizes fast retrieval loops, clear response framing, and predictable interaction patterns that reduce cognitive overhead for long-form reading. As a product pattern, it demonstrates how LLM features are more useful when ingestion pipeline reliability, context management, and UI feedback are designed together.",
       "previewMeta": "PERSONAL • /bookworm",
       "group": "Projects",
       "href": "/bookworm",
@@ -350,7 +518,7 @@
         "project",
         "Bookworm",
         "Bookworm",
-        "Bookworm is an AI-assisted PDF companion that supports document chat, contextual question answering, and faster information extraction from long-form content. It combines file ingestion, prompt orchestration, and user-friendly interaction patterns so dense documents can be explored conversationally without losing source-grounded context.",
+        "Bookworm is an AI-assisted PDF companion focused on turning dense documents into navigable conversational workflows. It combines file ingestion, document parsing, and prompt orchestration so users can ask targeted questions while staying grounded in source context. The experience prioritizes fast retrieval loops, clear response framing, and predictable interaction patterns that reduce cognitive overhead for long-form reading. As a product pattern, it demonstrates how LLM features are more useful when ingestion pipeline reliability, context management, and UI feedback are designed together.",
         "",
         "personal",
         "/bookworm"
@@ -361,7 +529,7 @@
       "label": "Project: GeneBoard",
       "subtitle": "Interactive DNA analysis and sequence exploration workspace.",
       "previewTitle": "GeneBoard",
-      "previewBody": "GeneBoard provides interactive tooling for exploring DNA sequences through visual analysis, pattern inspection, and sequence-oriented experimentation. The experience is designed to make biological data easier to navigate with clear UI affordances, fast feedback loops, and practical utilities for understanding sequence structure and composition.",
+      "previewBody": "GeneBoard is an interactive DNA analysis workspace designed to make sequence exploration fast, visual, and approachable. The app combines sequence ingestion, composition statistics, and visualization-oriented analysis into a single client workflow, with charts and comparative views that surface structure and pattern changes quickly. Its architecture emphasizes a clear data pipeline and schema-aware transformations so users can move from raw sequence text to actionable interpretation without context switching. The project demonstrates how scientific interfaces benefit from strong interaction design, incremental rendering, and transparent analysis contracts.",
       "previewMeta": "PERSONAL • /dna",
       "group": "Projects",
       "href": "/dna",
@@ -369,7 +537,7 @@
         "project",
         "GeneBoard",
         "GeneBoard",
-        "GeneBoard provides interactive tooling for exploring DNA sequences through visual analysis, pattern inspection, and sequence-oriented experimentation. The experience is designed to make biological data easier to navigate with clear UI affordances, fast feedback loops, and practical utilities for understanding sequence structure and composition.",
+        "GeneBoard is an interactive DNA analysis workspace designed to make sequence exploration fast, visual, and approachable. The app combines sequence ingestion, composition statistics, and visualization-oriented analysis into a single client workflow, with charts and comparative views that surface structure and pattern changes quickly. Its architecture emphasizes a clear data pipeline and schema-aware transformations so users can move from raw sequence text to actionable interpretation without context switching. The project demonstrates how scientific interfaces benefit from strong interaction design, incremental rendering, and transparent analysis contracts.",
         "",
         "personal",
         "/dna"
@@ -380,7 +548,7 @@
       "label": "Project: PathForger",
       "subtitle": "Branching story engine with staged AI orchestration.",
       "previewTitle": "PathForger",
-      "previewBody": "Story-forging playground for branching adventures with a staged OpenAI pipeline.\n\n- Generates A/B/C pitch candidates before committing to a story arc.\n- Builds chapter markdown, path choices, and a Risk HUD in a dedicated narrative stage.\n- Runs image generation as separate parallel calls so visuals can stream in as they finish.",
+      "previewBody": "PathForger is an interactive storytelling system built around a staged orchestration pipeline instead of one-shot prompting. It begins with structured A/B/C pitch generation, then advances through chapter drafting, branching choice construction, Risk HUD synthesis, and parallel image generation so text and visuals can complete independently. The design emphasizes schema-first prompt contracts, deterministic stage boundaries, and checkpoint-friendly state so retries and cancellation do not corrupt narrative continuity. In practice, it demonstrates how LLM features become more reliable when pipeline orchestration, guardrails, and UI progress telemetry are treated as first-class product concerns.",
       "previewMeta": "PERSONAL • /pathforger",
       "group": "Projects",
       "href": "/pathforger",
@@ -388,7 +556,7 @@
         "project",
         "PathForger",
         "PathForger",
-        "Story-forging playground for branching adventures with a staged OpenAI pipeline.\n\n- Generates A/B/C pitch candidates before committing to a story arc.\n- Builds chapter markdown, path choices, and a Risk HUD in a dedicated narrative stage.\n- Runs image generation as separate parallel calls so visuals can stream in as they finish.",
+        "PathForger is an interactive storytelling system built around a staged orchestration pipeline instead of one-shot prompting. It begins with structured A/B/C pitch generation, then advances through chapter drafting, branching choice construction, Risk HUD synthesis, and parallel image generation so text and visuals can complete independently. The design emphasizes schema-first prompt contracts, deterministic stage boundaries, and checkpoint-friendly state so retries and cancellation do not corrupt narrative continuity. In practice, it demonstrates how LLM features become more reliable when pipeline orchestration, guardrails, and UI progress telemetry are treated as first-class product concerns.",
         "",
         "personal",
         "/pathforger"
@@ -399,7 +567,7 @@
       "label": "Project: Patient Assignment List Project",
       "subtitle": "Operational assignment control for clinical teams",
       "previewTitle": "Patient Assignment List Project",
-      "previewBody": "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+      "previewBody": "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
       "previewMeta": "PRESENTATION • /assignmentlist",
       "group": "Projects",
       "href": "/assignmentlist",
@@ -407,7 +575,7 @@
         "project",
         "Patient Assignment List Project",
         "Patient Assignment List Project",
-        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "",
         "presentation",
         "/assignmentlist"
@@ -418,7 +586,7 @@
       "label": "Project: Patient List Project",
       "subtitle": "Configurable visit intelligence at point of care",
       "previewTitle": "Patient List Project",
-      "previewBody": "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+      "previewBody": "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
       "previewMeta": "PRESENTATION • /patientlist",
       "group": "Projects",
       "href": "/patientlist",
@@ -426,7 +594,7 @@
         "project",
         "Patient List Project",
         "Patient List Project",
-        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
         "",
         "presentation",
         "/patientlist"
@@ -437,7 +605,7 @@
       "label": "Project: Petly",
       "subtitle": "Pet-owner portal blending social UX with veterinary record access.",
       "previewTitle": "Petly",
-      "previewBody": "Petly is a pet-owner portal that combines a social-style engagement surface with full veterinary EHR access, including vaccinations, x-rays, visit notes, and invoice history. It is designed to improve continuity between owners and care teams by making essential clinical and administrative information easier to find and act on.",
+      "previewBody": "Petly is a pet-owner portal experience that combines consumer-friendly engagement with clinically important veterinary records, including vaccinations, imaging, visit notes, and billing history. The product focus is continuity: owners should be able to move from everyday pet interactions to high-signal medical context without hunting through fragmented screens. Within a Liferay-based environment, the work emphasized UI modernization, clearer information hierarchy, and stronger API contract alignment between portal surfaces and underlying data integrations. It demonstrates how healthcare-adjacent products can improve trust and usability by pairing approachable design language with reliable record visibility, operational telemetry, and workflow clarity.",
       "previewMeta": "WORK • /petly",
       "group": "Projects",
       "href": "/petly",
@@ -445,7 +613,7 @@
         "project",
         "Petly",
         "Petly",
-        "Petly is a pet-owner portal that combines a social-style engagement surface with full veterinary EHR access, including vaccinations, x-rays, visit notes, and invoice history. It is designed to improve continuity between owners and care teams by making essential clinical and administrative information easier to find and act on.",
+        "Petly is a pet-owner portal experience that combines consumer-friendly engagement with clinically important veterinary records, including vaccinations, imaging, visit notes, and billing history. The product focus is continuity: owners should be able to move from everyday pet interactions to high-signal medical context without hunting through fragmented screens. Within a Liferay-based environment, the work emphasized UI modernization, clearer information hierarchy, and stronger API contract alignment between portal surfaces and underlying data integrations. It demonstrates how healthcare-adjacent products can improve trust and usability by pairing approachable design language with reliable record visibility, operational telemetry, and workflow clarity.",
         "",
         "work",
         "/petly"
@@ -456,7 +624,7 @@
       "label": "Project: Rickbert Studio",
       "subtitle": "Comic-production workflow with parser-safe panel rendering.",
       "previewTitle": "Rickbert Studio",
-      "previewBody": "Rickbert Studio is a structured comic-production workspace that turns narrative input into consistent multi-panel outputs with parser validation, preflight checks, react-konva rendering, and export-ready assets. It emphasizes repeatable art direction, layout discipline, and fast iteration from script to publishable strip.",
+      "previewBody": "Rickbert Studio is a comic-production workspace that converts narrative input into consistent multi-panel outputs through a typed rendering pipeline. The flow separates parsing, validation, and rendering: script input is normalized, preflight rules validate reading order and panel constraints, and React-Konva composition produces export-ready artwork. Instead of ad hoc generation, the app uses explicit contracts between parser, layout engine, and renderer so revisions are predictable and reusable. This project highlights orchestration discipline for creative tooling where repeatability, visual consistency, and fast iteration matter as much as raw generation quality.",
       "previewMeta": "PERSONAL • /rickbert-studio",
       "group": "Projects",
       "href": "/rickbert-studio",
@@ -464,7 +632,7 @@
         "project",
         "Rickbert Studio",
         "Rickbert Studio",
-        "Rickbert Studio is a structured comic-production workspace that turns narrative input into consistent multi-panel outputs with parser validation, preflight checks, react-konva rendering, and export-ready assets. It emphasizes repeatable art direction, layout discipline, and fast iteration from script to publishable strip.",
+        "Rickbert Studio is a comic-production workspace that converts narrative input into consistent multi-panel outputs through a typed rendering pipeline. The flow separates parsing, validation, and rendering: script input is normalized, preflight rules validate reading order and panel constraints, and React-Konva composition produces export-ready artwork. Instead of ad hoc generation, the app uses explicit contracts between parser, layout engine, and renderer so revisions are predictable and reusable. This project highlights orchestration discipline for creative tooling where repeatability, visual consistency, and fast iteration matter as much as raw generation quality.",
         "",
         "personal",
         "/rickbert-studio"
@@ -475,7 +643,7 @@
       "label": "Project: TalentForge",
       "subtitle": "AI-assisted career strategy workspace for job and offer planning.",
       "previewTitle": "TalentForge",
-      "previewBody": "TalentForge is an AI-assisted career strategy workspace for managing job applications, offer comparisons, and negotiation planning in one place. It combines workflow organization, decision support, and practical execution tools so candidates can track opportunities with better consistency, clarity, and confidence through each hiring stage.",
+      "previewBody": "TalentForge is an AI-assisted career operations platform that centralizes application tracking, offer analysis, and negotiation preparation in one workflow. The system integrates structured data views with prompt-driven assistance so resume iteration, outreach, and decision support share the same operational context instead of fragmented tools. Its architecture emphasizes reusable contracts, a staged orchestration pipeline, and persistence boundaries between panel state and assistant interactions, enabling consistent behavior across high-variance user journeys. The result is a practical model where workflow clarity, decision quality, and execution speed improve together while telemetry and auditability remain intact.",
       "previewMeta": "PERSONAL • /talentforge",
       "group": "Projects",
       "href": "/talentforge",
@@ -483,7 +651,7 @@
         "project",
         "TalentForge",
         "TalentForge",
-        "TalentForge is an AI-assisted career strategy workspace for managing job applications, offer comparisons, and negotiation planning in one place. It combines workflow organization, decision support, and practical execution tools so candidates can track opportunities with better consistency, clarity, and confidence through each hiring stage.",
+        "TalentForge is an AI-assisted career operations platform that centralizes application tracking, offer analysis, and negotiation preparation in one workflow. The system integrates structured data views with prompt-driven assistance so resume iteration, outreach, and decision support share the same operational context instead of fragmented tools. Its architecture emphasizes reusable contracts, a staged orchestration pipeline, and persistence boundaries between panel state and assistant interactions, enabling consistent behavior across high-variance user journeys. The result is a practical model where workflow clarity, decision quality, and execution speed improve together while telemetry and auditability remain intact.",
         "",
         "personal",
         "/talentforge"
@@ -494,7 +662,7 @@
       "label": "Project: Warbirds",
       "subtitle": "Canvas dogfight arcade with layered enemy behavior.",
       "previewTitle": "Warbirds",
-      "previewBody": "Warbirds is a browser arcade dogfight built for responsive controls, layered enemy behavior, and satisfying moment-to-moment action. The game balances fast input handling, projectile and collision systems, dynamic spawn pacing, and audio-visual feedback so rounds stay readable and intense across desktop and mobile sessions.",
+      "previewBody": "Warbirds is a browser arcade dogfight engineered around a reusable 2D game loop with shared collision and spawn primitives. The gameplay layer combines responsive input handling, projectile and collision updates, dynamic spawn pacing, and power-up state transitions to keep rounds readable under high action density. Asset loading, fallback behavior, and audio feedback are coordinated as part of the runtime loop so the experience remains stable across device classes. Beyond arcade feel, the project demonstrates state machine thinking, deterministic frame updates, and practical performance tuning for real-time canvas gameplay.",
       "previewMeta": "PERSONAL • /warbirds",
       "group": "Projects",
       "href": "/warbirds",
@@ -502,7 +670,7 @@
         "project",
         "Warbirds",
         "Warbirds",
-        "Warbirds is a browser arcade dogfight built for responsive controls, layered enemy behavior, and satisfying moment-to-moment action. The game balances fast input handling, projectile and collision systems, dynamic spawn pacing, and audio-visual feedback so rounds stay readable and intense across desktop and mobile sessions.",
+        "Warbirds is a browser arcade dogfight engineered around a reusable 2D game loop with shared collision and spawn primitives. The gameplay layer combines responsive input handling, projectile and collision updates, dynamic spawn pacing, and power-up state transitions to keep rounds readable under high action density. Asset loading, fallback behavior, and audio feedback are coordinated as part of the runtime loop so the experience remains stable across device classes. Beyond arcade feel, the project demonstrates state machine thinking, deterministic frame updates, and practical performance tuning for real-time canvas gameplay.",
         "",
         "personal",
         "/warbirds"
@@ -2539,7 +2707,7 @@
         "tech",
         "Backbone.js",
         "Patient List Project",
-        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
         "presentation",
         "/patientlist?project=patientlist&slide=technologies"
       ]
@@ -2558,7 +2726,7 @@
         "tech",
         "Backbone.js",
         "Patient Assignment List Project",
-        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
       ]
@@ -2634,7 +2802,7 @@
         "tech",
         "Handlebars.js",
         "Patient List Project",
-        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
         "presentation",
         "/patientlist?project=patientlist&slide=technologies"
       ]
@@ -2653,7 +2821,7 @@
         "tech",
         "Handlebars.js",
         "Patient Assignment List Project",
-        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
       ]
@@ -2672,7 +2840,7 @@
         "tech",
         "Java / Maven",
         "Patient List Project",
-        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
         "presentation",
         "/patientlist?project=patientlist&slide=technologies"
       ]
@@ -2691,7 +2859,7 @@
         "tech",
         "Java / Maven (multi-module)",
         "Patient Assignment List Project",
-        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
       ]
@@ -2710,7 +2878,7 @@
         "tech",
         "JUnit / Mockito",
         "Patient List Project",
-        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
         "presentation",
         "/patientlist?project=patientlist&slide=technologies"
       ]
@@ -2729,7 +2897,7 @@
         "tech",
         "JUnit / Mockito",
         "Patient Assignment List Project",
-        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
       ]
@@ -2786,7 +2954,7 @@
         "tech",
         "MapStruct (optional mappers)",
         "Patient List Project",
-        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
         "presentation",
         "/patientlist?project=patientlist&slide=technologies"
       ]
@@ -2805,7 +2973,7 @@
         "tech",
         "MapStruct (optional mappers)",
         "Patient Assignment List Project",
-        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
       ]
@@ -2843,7 +3011,7 @@
         "tech",
         "Mermaid (diagrams)",
         "Patient List Project",
-        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
         "presentation",
         "/patientlist?project=patientlist&slide=technologies"
       ]
@@ -2862,7 +3030,7 @@
         "tech",
         "Mermaid (diagrams)",
         "Patient Assignment List Project",
-        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
       ]
@@ -2957,7 +3125,7 @@
         "tech",
         "pk-common-ui (shared UI utilities)",
         "Patient Assignment List Project",
-        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
       ]
@@ -2976,7 +3144,7 @@
         "tech",
         "pk-common-ui (shared widgets/utilities)",
         "Patient List Project",
-        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
         "presentation",
         "/patientlist?project=patientlist&slide=technologies"
       ]
@@ -3071,7 +3239,7 @@
         "tech",
         "Spring Boot",
         "Patient List Project",
-        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
         "presentation",
         "/patientlist?project=patientlist&slide=technologies"
       ]
@@ -3090,7 +3258,7 @@
         "tech",
         "Spring Boot",
         "Patient Assignment List Project",
-        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
       ]
@@ -3109,7 +3277,7 @@
         "tech",
         "Spring Web MVC",
         "Patient List Project",
-        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput.\n\nThe frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared `pk-common-ui` components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve.\n\nOn the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows.\n\nThe system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and instrumentation around route/filter activity and query performance. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
+        "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
         "presentation",
         "/patientlist?project=patientlist&slide=technologies"
       ]
@@ -3128,7 +3296,7 @@
         "tech",
         "Spring Web MVC",
         "Patient Assignment List Project",
-        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care.\n\nThe frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared `pk-common-ui` controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use.\n\nOn the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer.\n\nThe implementation emphasizes reliability and predictability: debounced query flows, server-side pagination/sort/filter semantics, authorization checks scoped to assignment context, and telemetry around assignee switches, filter behavior, and query timing. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
+        "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
       ]

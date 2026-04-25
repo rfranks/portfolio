@@ -8,6 +8,7 @@ export type AppCapability = {
   href: string;
   label: string;
   kind: AppCapabilityKind;
+  commandGroup: string;
   isPresentationProject: boolean;
   features: string[];
   dataSources: string[];
@@ -19,6 +20,22 @@ const normalizeFeature = (value: string) =>
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-");
+
+function resolveCommandGroup(href: string, kind: AppCapabilityKind): string {
+  if (kind === "project") {
+    return "Projects";
+  }
+
+  if (["/blackjack", "/warbirds", "/zombiefish", "/blasteroids"].includes(href)) {
+    return "Apps • Arcade";
+  }
+
+  if (["/bookworm", "/talentforge", "/pathforger", "/rickbert-studio"].includes(href)) {
+    return "Apps • AI";
+  }
+
+  return "Apps • Portfolio";
+}
 
 type CapabilityProjectRecord = {
   href: string;
@@ -123,6 +140,7 @@ export function getAppCapabilityRegistry(): AppCapability[] {
         href: item.href.trim(),
         label: item.label.trim(),
         kind: "app",
+        commandGroup: resolveCommandGroup(item.href.trim(), "app"),
         isPresentationProject: false,
         features: ["launchable-app"],
         dataSources: ["resume-data.navigation", "app-local-state", "app-local-assets"],
@@ -140,6 +158,7 @@ export function getAppCapabilityRegistry(): AppCapability[] {
         href,
         label: project.name,
         kind: "project",
+        commandGroup: resolveCommandGroup(href, "project"),
         isPresentationProject: project.type === "presentation",
         features: toProjectFeatures(project),
         dataSources: toProjectDataSources(project),

@@ -4,9 +4,16 @@ import ThemeRegistry from "../providers/ThemeRegistry";
 import { portfolioApps } from "@/consts/resumeData";
 import ResumeDataProvider from "@/providers/ResumeDataProvider";
 import NavigationTelemetry from "@/components/shared/monitoring/NavigationTelemetry";
+import { withBasePath } from "@/utils/basePath";
 
 export const metadata: Metadata = {
   description: portfolioApps.site.description,
+  icons: {
+    icon: withBasePath("/favicon.ico"),
+    shortcut: withBasePath("/favicon.ico"),
+    apple: withBasePath("/favicon.ico"),
+  },
+  manifest: withBasePath("/manifest.json"),
 };
 
 export default function RootLayout({

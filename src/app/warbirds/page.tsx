@@ -1,28 +1,19 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Container } from "@mui/material";
+import * as React from "react";
 import Game from "./_Game";
-import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
+import { ArcadeGamePage } from "@/components/shared";
+import { useResumeData } from "@/providers/ResumeDataProvider";
+import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 import "./page.css";
 
 export default function WarbirdsPage() {
-  const { setDocumentTitle } = useDocumentTitle();
-  useEffect(() => {
-    setDocumentTitle("Warbirds");
-  }, [setDocumentTitle]);
+  const { portfolioApps } = useResumeData();
+  const warbirdsRoute = getPortfolioAppRouteContract(portfolioApps, "warbirds");
 
   return (
-    <Container
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <ArcadeGamePage documentTitle={warbirdsRoute.documentTitle}>
       <Game />
-    </Container>
+    </ArcadeGamePage>
   );
 }

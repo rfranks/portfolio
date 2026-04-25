@@ -25,18 +25,23 @@ export type AIShenaniganWorkOrSeriesPart = {
   caption?: string;
 };
 
-export type AIShenaniganProps = {
-  type?: AIShenaniganType;
+type AIShenaniganCoreProps = {
   rank: number;
   title: string;
   blurb: string;
-  orientation?: AIShenaniganMovieOrientation;
   intentToCopyright?: boolean;
   rightsNotice?: string;
+};
+
+type AIShenaniganRealisticMediaProps = {
   realisticImage: string;
   realisticSource?: string;
   realisticSourceHref?: string;
   realisticCaption?: string;
+};
+
+type AIShenaniganDefaultMediaProps = {
+  orientation?: AIShenaniganMovieOrientation;
   stylizedRendering?: string;
   stylizedSource?: string;
   stylizedSourceHref?: string;
@@ -49,11 +54,14 @@ export type AIShenaniganProps = {
   movieSource2?: string;
   movieSourceHref2?: string;
   movieCaption2?: string;
-  bookCoverImage?: string;
+};
+
+type AIShenaniganAdaptationMediaProps = {
+  bookCoverImage: string;
   bookSource?: string;
   bookSourceHref?: string;
   bookCaption?: string;
-  manuscriptPdf?: string;
+  manuscriptPdf: string;
   manuscriptSource?: string;
   manuscriptSourceHref?: string;
   manuscriptCaption?: string;
@@ -62,30 +70,37 @@ export type AIShenaniganProps = {
   trailerSource?: string;
   trailerSourceHref?: string;
   trailerCaption?: string;
-  episodesPdf?: string;
+  episodesPdf: string;
   episodesSource?: string;
   episodesSourceHref?: string;
   episodesCaption?: string;
   episodeMedia?: AIShenaniganEpisodeMedia[];
+};
+
+type AIShenaniganWorkSeriesMediaProps = {
+  orientation?: AIShenaniganMovieOrientation;
   workPdf?: string;
   workSource?: string;
   workSourceHref?: string;
   workCaption?: string;
-  workParts?: AIShenaniganWorkOrSeriesPart[];
+  workParts: AIShenaniganWorkOrSeriesPart[];
   seriesMovie?: string;
   seriesSource?: string;
   seriesSourceHref?: string;
   seriesCaption?: string;
-  seriesParts?: AIShenaniganWorkOrSeriesPart[];
-  rawImage?: string;
+  seriesParts: AIShenaniganWorkOrSeriesPart[];
+};
+
+type AIShenaniganPalmReadingMediaProps = {
+  rawImage: string;
   rawSource?: string;
   rawSourceHref?: string;
   rawCaption?: string;
-  analyzedImage?: string;
+  analyzedImage: string;
   analyzedSource?: string;
   analyzedSourceHref?: string;
   analyzedCaption?: string;
-  palmLineAnalysisImage?: string;
+  palmLineAnalysisImage: string;
   palmLineAnalysisSource?: string;
   palmLineAnalysisSourceHref?: string;
   palmLineAnalysisCaption?: string;
@@ -94,11 +109,14 @@ export type AIShenaniganProps = {
   palmReadingMarkdownPath?: string;
   palmReadingSource?: string;
   palmReadingSourceHref?: string;
-  songAlbumImage?: string;
+};
+
+type AIShenaniganSongRecordingMediaProps = {
+  songAlbumImage: string;
   songAlbumSource?: string;
   songAlbumSourceHref?: string;
   songAlbumCaption?: string;
-  songAudio?: string;
+  songAudio: string;
   songAudioSource?: string;
   songAudioSourceHref?: string;
   songAudioCaption?: string;
@@ -108,3 +126,63 @@ export type AIShenaniganProps = {
   songLyricsSource?: string;
   songLyricsSourceHref?: string;
 };
+
+type AIShenaniganAllMediaKeys =
+  | keyof AIShenaniganRealisticMediaProps
+  | keyof AIShenaniganDefaultMediaProps
+  | keyof AIShenaniganAdaptationMediaProps
+  | keyof AIShenaniganWorkSeriesMediaProps
+  | keyof AIShenaniganPalmReadingMediaProps
+  | keyof AIShenaniganSongRecordingMediaProps;
+
+type AIShenaniganNeverProps<Keys extends PropertyKey> = {
+  [K in Keys]?: never;
+};
+
+type AIShenaniganDefaultAllowedMediaKeys =
+  | keyof AIShenaniganRealisticMediaProps
+  | keyof AIShenaniganDefaultMediaProps;
+type AIShenaniganBookAllowedMediaKeys = keyof AIShenaniganAdaptationMediaProps;
+type AIShenaniganWorkSeriesAllowedMediaKeys = keyof AIShenaniganWorkSeriesMediaProps;
+type AIShenaniganPalmAllowedMediaKeys = keyof AIShenaniganPalmReadingMediaProps;
+type AIShenaniganSongAllowedMediaKeys = keyof AIShenaniganSongRecordingMediaProps;
+
+export type AIShenaniganDefaultProps = AIShenaniganCoreProps &
+  AIShenaniganRealisticMediaProps &
+  AIShenaniganDefaultMediaProps &
+  AIShenaniganNeverProps<Exclude<AIShenaniganAllMediaKeys, AIShenaniganDefaultAllowedMediaKeys>> & {
+    type: "default";
+  };
+
+export type AIShenaniganBookToLimitedSeriesProps = AIShenaniganCoreProps &
+  AIShenaniganAdaptationMediaProps &
+  AIShenaniganNeverProps<Exclude<AIShenaniganAllMediaKeys, AIShenaniganBookAllowedMediaKeys>> & {
+    type: "book-to-limited-series";
+  };
+
+export type AIShenaniganWorkToSeriesAdaptationProps = AIShenaniganCoreProps &
+  AIShenaniganWorkSeriesMediaProps &
+  AIShenaniganNeverProps<
+    Exclude<AIShenaniganAllMediaKeys, AIShenaniganWorkSeriesAllowedMediaKeys>
+  > & {
+    type: "work-to-series-adaptation";
+  };
+
+export type AIShenaniganPalmylyzerProProps = AIShenaniganCoreProps &
+  AIShenaniganPalmReadingMediaProps &
+  AIShenaniganNeverProps<Exclude<AIShenaniganAllMediaKeys, AIShenaniganPalmAllowedMediaKeys>> & {
+    type: "palmylyzer-pro";
+  };
+
+export type AIShenaniganSongRecordingProps = AIShenaniganCoreProps &
+  AIShenaniganSongRecordingMediaProps &
+  AIShenaniganNeverProps<Exclude<AIShenaniganAllMediaKeys, AIShenaniganSongAllowedMediaKeys>> & {
+    type: "song-recording";
+  };
+
+export type AIShenaniganProps =
+  | AIShenaniganDefaultProps
+  | AIShenaniganBookToLimitedSeriesProps
+  | AIShenaniganWorkToSeriesAdaptationProps
+  | AIShenaniganPalmylyzerProProps
+  | AIShenaniganSongRecordingProps;

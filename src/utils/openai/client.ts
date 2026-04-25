@@ -21,6 +21,32 @@ function buildHeaders(apiKey: string): HeadersInit {
   };
 }
 
+function isGpt5ChatModel(model: string): boolean {
+  return /^gpt-5(?:-|$)/i.test(model.trim());
+}
+
+function normalizeChatCompletionsRequestBody(
+  body: OpenAIChatCompletionRequest,
+): OpenAIChatCompletionRequest {
+  if (!isGpt5ChatModel(body.model)) {
+    return body;
+  }
+
+  const { max_tokens, ...rest } = body;
+  if (typeof max_tokens !== "number" || Number.isNaN(max_tokens)) {
+    return rest;
+  }
+
+  if (typeof body.max_completion_tokens === "number" && !Number.isNaN(body.max_completion_tokens)) {
+    return rest;
+  }
+
+  return {
+    ...rest,
+    max_completion_tokens: max_tokens,
+  };
+}
+
 async function requestOpenAIJson<TPayload = Record<string, unknown>>(params: {
   apiKey: string;
   path: OpenAIEndpointPath;
@@ -78,11 +104,12 @@ export async function requestOpenAIChatCompletions(
   body: OpenAIChatCompletionRequest,
   options?: OpenAIRequestOverrides,
 ): Promise<OpenAIChatCompletionResult> {
+  const normalizedBody = normalizeChatCompletionsRequestBody(body);
   const { data } = await requestOpenAIJson<OpenAIChatCompletionResult>({
     apiKey,
     path: "/chat/completions",
     method: "POST",
-    body,
+    body: normalizedBody,
     profile: "chatCompletions",
     options,
   });

@@ -11,24 +11,8 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import { ChevronLeft, ChevronRight, MoreVert, InfoOutlined, Close } from "@mui/icons-material";
-import { useResumeData } from "@/providers/ResumeDataProvider";
+import type { AIShenaniganPagerItem } from "../_types/aiShenaniganModels";
 import { withBasePath } from "@/utils/basePath";
-
-type AIShenaniganPagerItem = {
-  analyzedImage?: string;
-  blurb: string;
-  bookCoverImage?: string;
-  pagerOptionImage?: string;
-  palmLineAnalysisImage?: string;
-  rawImage?: string;
-  realisticImage?: string;
-  shortText?: string;
-  slug: string;
-  songAlbumImage?: string;
-  stylizedRendering?: string;
-  title: string;
-  type?: string;
-};
 
 type AIShenaniganPagerProps = {
   currentIndex: number;
@@ -36,29 +20,6 @@ type AIShenaniganPagerProps = {
   onNext: () => void;
   onPrevious: () => void;
   onSelectShenanigan: (index: number) => void;
-};
-
-const getPagerOptionImage = (item: AIShenaniganPagerItem, fallbackImage: string) => {
-  if (item.pagerOptionImage) {
-    return item.pagerOptionImage;
-  }
-
-  const isDefaultShenanigan = !item.type || item.type === "default";
-
-  if (isDefaultShenanigan && item.stylizedRendering) {
-    return item.stylizedRendering;
-  }
-
-  return (
-    item.bookCoverImage ||
-    item.songAlbumImage ||
-    item.analyzedImage ||
-    item.stylizedRendering ||
-    item.realisticImage ||
-    item.rawImage ||
-    item.palmLineAnalysisImage ||
-    fallbackImage
-  );
 };
 
 const formatPagerOptionLabel = (index: number, title: string) => `${index + 1}. ${title}`;
@@ -71,7 +32,6 @@ export default function AIShenaniganPager({
   onPrevious,
   onSelectShenanigan,
 }: AIShenaniganPagerProps) {
-  const { summary } = useResumeData();
   const [selectorAnchorEl, setSelectorAnchorEl] = useState<HTMLElement | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
 
@@ -202,7 +162,7 @@ export default function AIShenaniganPager({
           >
             <Box
               component="img"
-              src={withBasePath(getPagerOptionImage(item, summary.avatarImage))}
+              src={withBasePath(item.previewImage)}
               alt={`${item.title} preview`}
               sx={{
                 width: 69,

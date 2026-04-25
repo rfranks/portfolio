@@ -7,94 +7,22 @@ import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import type { RouteInteractionBudgetSnapshot } from "@/types/observability/routeInteractionBudgets";
-import { loadRouteInteractionBudgetSnapshotFromStorage } from "@/utils/observability/routeInteractionBudgets";
-
-type HealthStatus = "pass" | "warn" | "fail" | "unknown";
-type HealthSnapshotKey =
-  | "bundleBudget"
-  | "fileBudgets"
-  | "schemaValidation"
-  | "testRunner"
-  | "a11yRunner"
-  | "typecheckRunner";
-
-type HealthSnapshotEnvelope = {
-  key: HealthSnapshotKey;
-  status: HealthStatus;
-  generatedAt: string;
-  summary: string;
-  details: Record<string, unknown>;
-};
-
-type AggregateHealthSnapshot = {
-  generatedAt: string;
-  overallStatus: HealthStatus;
-  checks: Partial<Record<HealthSnapshotKey, HealthStatus>>;
-  snapshots: Partial<Record<HealthSnapshotKey, HealthSnapshotEnvelope>>;
-};
-
-const aggregateSnapshotUrl = "/personal/data/health/app-health.snapshot.json";
-
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return null;
-  }
-  return value as Record<string, unknown>;
-}
-
-function statusToChipColor(status: HealthStatus): "success" | "warning" | "error" | "default" {
-  if (status === "pass") {
-    return "success";
-  }
-  if (status === "warn") {
-    return "warning";
-  }
-  if (status === "fail") {
-    return "error";
-  }
-  return "default";
-}
-
-function formatTimestamp(value: string | undefined): string {
-  if (!value) {
-    return "Not available";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleString();
-}
-
-function readNestedStatus(details: Record<string, unknown>, key: string): HealthStatus {
-  const nested = asRecord(details[key]);
-  const status = nested?.status;
-  if (status === "pass" || status === "warn" || status === "fail" || status === "unknown") {
-    return status;
-  }
-  return "unknown";
-}
-
-function readNestedCount(
-  details: Record<string, unknown>,
-  key: string,
-  countKey: string,
-): number | null {
-  const nested = asRecord(details[key]);
-  const countValue = nested?.[countKey];
-  if (typeof countValue === "number" && Number.isFinite(countValue)) {
-    return countValue;
-  }
-  return null;
-}
+import { useHealthSnapshots } from "@/hooks/observability/useHealthSnapshots";
+import type { HealthStatus } from "@/types/observability/healthSnapshots";
+import {
+  deriveMediaRenderPerfStatus,
+  deriveRouteInteractionBudgetStatus,
+  formatHealthTimestamp,
+  healthStatusToChipColor,
+  readNestedFiniteCount,
+  readNestedStatus,
+} from "@/utils/observability/healthSnapshots";
 
 function StatusChip({ status }: { status: HealthStatus }) {
   return (
     <Chip
       label={status.toUpperCase()}
-      color={statusToChipColor(status)}
+      color={healthStatusToChipColor(status)}
       size="small"
       sx={{ fontWeight: 700 }}
     />
@@ -149,39 +77,14 @@ function SnapshotCard({
 }
 
 export default function HealthDashboardPageClient() {
-  const [snapshot, setSnapshot] = React.useState<AggregateHealthSnapshot | null>(null);
-  const [routeInteractionBudgets, setRouteInteractionBudgets] =
-    React.useState<RouteInteractionBudgetSnapshot | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-
-  const loadSnapshot = React.useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const response = await fetch(`${aggregateSnapshotUrl}?t=${Date.now()}`, {
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        throw new Error(`Unable to load health snapshot (${response.status})`);
-      }
-
-      const nextSnapshot = (await response.json()) as AggregateHealthSnapshot;
-      setSnapshot(nextSnapshot);
-      setRouteInteractionBudgets(loadRouteInteractionBudgetSnapshotFromStorage());
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      setErrorMessage(message);
-      setSnapshot(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    void loadSnapshot();
-  }, [loadSnapshot]);
+  const {
+    aggregateSnapshot: snapshot,
+    routeInteractionSnapshot: routeInteractionBudgets,
+    mediaRenderPerfSnapshot,
+    isLoading,
+    errorMessage,
+    refresh,
+  } = useHealthSnapshots();
 
   const bundleSnapshot = snapshot?.snapshots.bundleBudget;
   const fileBudgetSnapshot = snapshot?.snapshots.fileBudgets;
@@ -189,26 +92,21 @@ export default function HealthDashboardPageClient() {
   const typecheckSnapshot = snapshot?.snapshots.typecheckRunner;
   const testRunnerSnapshot = snapshot?.snapshots.testRunner;
   const a11yRunnerSnapshot = snapshot?.snapshots.a11yRunner;
-  const fileBudgetDetails = asRecord(fileBudgetSnapshot?.details) ?? {};
+  const fileBudgetDetails = fileBudgetSnapshot?.details ?? {};
   const testStatus =
     testRunnerSnapshot?.status ?? readNestedStatus(fileBudgetDetails, "testHealth");
   const a11yStatus =
     a11yRunnerSnapshot?.status ?? readNestedStatus(fileBudgetDetails, "a11yHealth");
-  const totalTests = readNestedCount(fileBudgetDetails, "testHealth", "totalTestFiles");
-  const totalA11yTests = readNestedCount(fileBudgetDetails, "a11yHealth", "totalA11yTestFiles");
+  const totalTests = readNestedFiniteCount(fileBudgetDetails, "testHealth", "totalTestFiles");
+  const totalA11yTests = readNestedFiniteCount(
+    fileBudgetDetails,
+    "a11yHealth",
+    "totalA11yTestFiles",
+  );
   const routeBudgetRoutes = routeInteractionBudgets?.routes ?? [];
-  const routesWithAnyFirstInteraction = routeBudgetRoutes.filter(
-    (route) =>
-      route.firstInteractionMs !== null ||
-      route.firstMediaMs !== null ||
-      route.firstPagerMs !== null,
-  ).length;
-  const interactionBudgetStatus: HealthStatus =
-    routeBudgetRoutes.length === 0
-      ? "unknown"
-      : routesWithAnyFirstInteraction === routeBudgetRoutes.length
-        ? "pass"
-        : "warn";
+  const interactionBudgetStatus = deriveRouteInteractionBudgetStatus(routeInteractionBudgets);
+  const mediaRenderEntries = mediaRenderPerfSnapshot?.entries ?? [];
+  const mediaRenderStatus = deriveMediaRenderPerfStatus(mediaRenderPerfSnapshot);
 
   return (
     <Box
@@ -235,7 +133,7 @@ export default function HealthDashboardPageClient() {
           </Box>
           <Stack direction="row" alignItems="center" gap={1}>
             <StatusChip status={snapshot?.overallStatus ?? "unknown"} />
-            <Button variant="outlined" size="small" onClick={() => void loadSnapshot()}>
+            <Button variant="outlined" size="small" onClick={() => void refresh()}>
               Refresh
             </Button>
           </Stack>
@@ -276,13 +174,13 @@ export default function HealthDashboardPageClient() {
               title="Bundle Budget"
               status={bundleSnapshot?.status ?? "unknown"}
               summary={bundleSnapshot?.summary ?? "No bundle budget snapshot yet."}
-              updatedAt={formatTimestamp(bundleSnapshot?.generatedAt)}
+              updatedAt={formatHealthTimestamp(bundleSnapshot?.generatedAt)}
             />
             <SnapshotCard
               title="Typecheck Health"
               status={typecheckSnapshot?.status ?? "unknown"}
               summary={typecheckSnapshot?.summary ?? "No typecheck snapshot yet."}
-              updatedAt={formatTimestamp(typecheckSnapshot?.generatedAt)}
+              updatedAt={formatHealthTimestamp(typecheckSnapshot?.generatedAt)}
             />
             <SnapshotCard
               title="Test Health"
@@ -293,7 +191,7 @@ export default function HealthDashboardPageClient() {
                   ? "No test-health inventory available yet."
                   : `Detected ${totalTests} test file(s) in repository scan.`)
               }
-              updatedAt={formatTimestamp(
+              updatedAt={formatHealthTimestamp(
                 testRunnerSnapshot?.generatedAt ?? fileBudgetSnapshot?.generatedAt,
               )}
             />
@@ -306,7 +204,7 @@ export default function HealthDashboardPageClient() {
                   ? "No a11y-health inventory available yet."
                   : `Detected ${totalA11yTests} accessibility test file(s).`)
               }
-              updatedAt={formatTimestamp(
+              updatedAt={formatHealthTimestamp(
                 a11yRunnerSnapshot?.generatedAt ?? fileBudgetSnapshot?.generatedAt,
               )}
             />
@@ -314,7 +212,7 @@ export default function HealthDashboardPageClient() {
               title="Schema Validation"
               status={schemaSnapshot?.status ?? "unknown"}
               summary={schemaSnapshot?.summary ?? "No schema validation snapshot yet."}
-              updatedAt={formatTimestamp(schemaSnapshot?.generatedAt)}
+              updatedAt={formatHealthTimestamp(schemaSnapshot?.generatedAt)}
             />
             <SnapshotCard
               title="Interaction Budgets (local)"
@@ -324,7 +222,7 @@ export default function HealthDashboardPageClient() {
                   ? `Captured first interaction timings for ${routeBudgetRoutes.length} route(s).`
                   : "No local route interaction budget snapshot found."
               }
-              updatedAt={formatTimestamp(routeInteractionBudgets?.generatedAt)}
+              updatedAt={formatHealthTimestamp(routeInteractionBudgets?.generatedAt)}
               extraLines={
                 routeBudgetRoutes.length > 0
                   ? routeBudgetRoutes
@@ -338,6 +236,24 @@ export default function HealthDashboardPageClient() {
                   : ["Open portfolio routes in dev mode to populate this local telemetry snapshot."]
               }
             />
+            <SnapshotCard
+              title="Media First-Render Latency (local)"
+              status={mediaRenderStatus}
+              summary={
+                mediaRenderEntries.length === 0
+                  ? "No media first-render samples captured yet."
+                  : `${mediaRenderEntries.length} tracked media type(s) with renderer-level latency budgets.`
+              }
+              updatedAt={formatHealthTimestamp(mediaRenderPerfSnapshot?.generatedAt)}
+              extraLines={
+                mediaRenderEntries.length > 0
+                  ? mediaRenderEntries.map(
+                      (entry) =>
+                        `${entry.mediaType}: avg ${entry.avgMs.toFixed(0)}ms (last ${entry.lastMs.toFixed(0)}ms, budget ${entry.budgetMs}ms, status ${entry.status.toUpperCase()})`,
+                    )
+                  : ["Open media panels in dev mode to populate renderer first-render telemetry."]
+              }
+            />
             <Paper
               elevation={0}
               sx={{
@@ -348,7 +264,7 @@ export default function HealthDashboardPageClient() {
               }}
             >
               <Typography variant="caption" color="text.secondary">
-                Aggregate updated: {formatTimestamp(snapshot?.generatedAt)}
+                Aggregate updated: {formatHealthTimestamp(snapshot?.generatedAt)}
               </Typography>
             </Paper>
           </Stack>

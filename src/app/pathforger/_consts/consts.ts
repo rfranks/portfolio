@@ -44,6 +44,10 @@ export const imageTypeOrder: PathForgerImageType[] = [
 export const pitchPanelBorderRadius = "8px";
 export const pitchCacheStorageKey = "pathforger-last-pitches-v1";
 export const pathForgerStateStorageKey = "pathforger-state-v1";
+export const pathForgerSaveSlotsStorageKey = "pathforger-save-slots-v1";
+export const pathForgerRecoveryTimelineStorageKey = "pathforger-recovery-timeline-v1";
+export const pathForgerSaveSlotLimit = 8;
+export const pathForgerRecoveryTimelineLimit = 20;
 export const pathForgerSampleStorageArtifactPath =
   "/apps/pathforger/sample/localStorage.sample.json";
 export const pathForgerSampleImageByType: Record<PathForgerImageType, string> = {

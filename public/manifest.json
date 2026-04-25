@@ -8,12 +8,12 @@
       "type": "image/x-icon"
     },
     {
-      "src": "talentforge-logo.png",
+      "src": "apps/talentforge/images/logo192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "apps/bookworm/images/logo512.png",
+      "src": "apps/talentforge/images/logo512.png",
       "type": "image/png",
       "sizes": "512x512"
     }

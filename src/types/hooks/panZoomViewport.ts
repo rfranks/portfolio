@@ -13,6 +13,16 @@ export type PanZoomViewportSnapshot = {
 };
 
 export type InteractiveViewportPreset = "media" | "diagram";
+export type InteractiveViewportInputType = "mouse" | "trackpad" | "touch";
+export type InteractiveViewportSensitivityProfile = {
+  panDeltaMultiplier: number;
+  panStepMultiplier: number;
+  pinchGainMultiplier: number;
+  wheelGainMultiplier: number;
+  gestureStepCapMultiplier: number;
+  panMinDeltaMultiplierScale: number;
+  panMaxDeltaMultiplierScale: number;
+};
 export type PanZoomViewportZoomMode = "icon" | "click" | "doubleClick" | "wheel" | "pinch";
 export type PanZoomViewportAutoFitAlign = "top" | "center";
 export type PanZoomViewportPreferences = {

@@ -9,10 +9,11 @@ const renderWithTheme = (ui: React.ReactElement) =>
   render(<ThemeProvider theme={createTheme()}>{ui}</ThemeProvider>);
 
 describe("Timeline component", () => {
+  const baseEventContent = ["Eggs", "Salad", "Pasta"] as const;
   const baseEvents: TimelineEvent[] = [
-    { label: "08:00", title: "Breakfast", content: <div>Eggs</div> },
-    { label: "12:00", title: "Lunch", content: <div>Salad</div> },
-    { label: "18:00", title: "Dinner", content: <div>Pasta</div> },
+    { label: "08:00", title: "Breakfast", content: <div>{baseEventContent[0]}</div> },
+    { label: "12:00", title: "Lunch", content: <div>{baseEventContent[1]}</div> },
+    { label: "18:00", title: "Dinner", content: <div>{baseEventContent[2]}</div> },
   ];
 
   it("renders skeletons and children when loading", () => {
@@ -42,11 +43,10 @@ describe("Timeline component", () => {
   it("renders events with correct labels, titles, and content", () => {
     renderWithTheme(<Timeline events={baseEvents} />);
 
-    baseEvents.forEach(({ label, title, content }) => {
+    baseEvents.forEach(({ label, title }, index) => {
       expect(screen.getByText(label)).toBeInTheDocument();
       expect(screen.getByText(title)).toBeInTheDocument();
-      // content is <div>Eggs</div>, <div>Salad</div>, etc.
-      expect(screen.getByText((content as React.ReactElement).props.children)).toBeInTheDocument();
+      expect(screen.getByText(baseEventContent[index])).toBeInTheDocument();
     });
   });
 

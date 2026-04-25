@@ -57,6 +57,287 @@
   text-transform: uppercase;
 }
 
+.roundTimeline {
+  margin-top: 0.72rem;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(15, 23, 42, 0.42);
+  padding: 0.62rem 0.7rem;
+}
+
+.roundTimelinePanel {
+  background: rgba(15, 23, 42, 0.33);
+}
+
+.roundTimelineModal {
+  background: rgba(15, 23, 42, 0.52);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+}
+
+.roundTimelineHeading {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.96);
+  margin-bottom: 0.48rem;
+}
+
+.roundTimelineList {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.roundTimelineListModal {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.2rem;
+  overscroll-behavior: contain;
+}
+
+.roundTimelineItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.42rem;
+}
+
+.roundTimelineItem + .roundTimelineItem {
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  padding-top: 0.42rem;
+}
+
+.roundTimelineItemNoMarker {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.roundTimelineMarker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  line-height: 1;
+}
+
+.roundTimelineBody {
+  min-width: 0;
+  display: grid;
+  gap: 0.14rem;
+}
+
+.roundTimelineTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.94);
+  line-height: 1.24;
+}
+
+.roundTimelineAmount {
+  color: rgba(134, 239, 172, 0.94);
+  font-weight: 800;
+}
+
+.roundTimelineDetail {
+  font-size: 0.74rem;
+  line-height: 1.3;
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.roundTimelineCardThumb {
+  width: 22px;
+  height: 32px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.44);
+  box-shadow: 0 4px 8px rgba(2, 8, 23, 0.24);
+  display: inline-flex;
+  margin-top: 0.1rem;
+}
+
+.roundTimelineCardThumb img {
+  display: block;
+}
+
+.roundTimelineCardThumbButton {
+  appearance: none;
+  padding: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.roundTimelinePlayByPlay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  line-height: 1.3;
+  color: rgba(203, 213, 225, 0.92);
+}
+
+.roundHandsSnapshot {
+  margin-top: 0.72rem;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background: rgba(15, 23, 42, 0.36);
+  padding: 0.64rem 0.72rem;
+}
+
+.roundHandsSnapshotHeading {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.96);
+  margin-bottom: 0.48rem;
+}
+
+.roundHandsList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.roundHandsItem {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.roundHandsMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.roundHandsLabel {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: rgba(248, 250, 252, 0.95);
+}
+
+.roundHandsMetaChip {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: rgba(226, 232, 240, 0.94);
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  background: rgba(30, 41, 59, 0.62);
+  padding: 0.12rem 0.4rem;
+  line-height: 1.2;
+}
+
+.roundHandsCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+}
+
+.roundHandsCard {
+  width: 30px;
+  height: 44px;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.44);
+  box-shadow: 0 4px 10px rgba(2, 8, 23, 0.24);
+  background: rgba(15, 23, 42, 0.62);
+  display: inline-flex;
+}
+
+.roundHandsCard img {
+  display: block;
+}
+
+.roundHandsCardButton {
+  appearance: none;
+  padding: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.strategyTrainer {
+  margin-top: 0.7rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  display: grid;
+  gap: 0.48rem;
+}
+
+.strategyTrainerHeading {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(191, 219, 254, 0.98);
+}
+
+.strategyTrainerScenario {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.strategyTrainerRecommendation {
+  color: rgba(134, 239, 172, 0.98);
+  font-weight: 700;
+}
+
+.strategyTrainerRationale {
+  margin: 0;
+  font-size: 0.71rem;
+  line-height: 1.42;
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.strategyActionList {
+  display: grid;
+  gap: 0.44rem;
+}
+
+.strategyActionItem {
+  border-radius: 10px;
+  border: 1px solid rgba(100, 116, 139, 0.34);
+  background: rgba(15, 23, 42, 0.52);
+  padding: 0.44rem 0.52rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.strategyActionItemRecommended {
+  border-color: rgba(74, 222, 128, 0.58);
+  background: rgba(21, 128, 61, 0.18);
+}
+
+.strategyActionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.97);
+}
+
+.strategyActionDelta {
+  color: rgba(165, 243, 252, 0.97);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.strategyActionExplanation {
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: rgba(203, 213, 225, 0.9);
+}
+
 @media (max-width: 768px) {
   .bannerControls {
     width: 100%;
@@ -76,5 +357,54 @@
   .settingsTriggerIcon {
     width: 0.82rem;
     height: 0.82rem;
+  }
+
+  .roundTimeline {
+    padding: 0.58rem 0.62rem;
+  }
+
+  .roundTimelineHeading {
+    font-size: 0.68rem;
+  }
+
+  .roundTimelineTitle {
+    font-size: 0.74rem;
+  }
+
+  .roundTimelineDetail {
+    font-size: 0.68rem;
+  }
+
+  .roundHandsSnapshot {
+    padding: 0.56rem 0.6rem;
+  }
+
+  .roundHandsSnapshotHeading {
+    font-size: 0.66rem;
+  }
+
+  .roundHandsLabel {
+    font-size: 0.7rem;
+  }
+
+  .roundHandsMetaChip {
+    font-size: 0.62rem;
+  }
+
+  .roundHandsCard {
+    width: 26px;
+    height: 38px;
+  }
+
+  .strategyTrainerScenario {
+    font-size: 0.7rem;
+  }
+
+  .strategyActionHeader {
+    font-size: 0.7rem;
+  }
+
+  .strategyActionExplanation {
+    font-size: 0.64rem;
   }
 }

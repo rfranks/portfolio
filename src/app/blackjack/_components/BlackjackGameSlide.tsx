@@ -5,6 +5,7 @@ import Image from "next/image";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { createPortal } from "react-dom";
 import { withBasePath } from "@/utils/basePath";
+import { useBlackjackModalTransitions } from "../_hooks/useBlackjackModalTransitions";
 import {
   BLACKJACK_START_CARD_ACE_SRC,
   BLACKJACK_START_CARD_BACK_SRC,
@@ -15,7 +16,11 @@ import {
   CHIP_WHITE_BLUE_SRC,
 } from "../_consts/blackjack";
 import type { BlackjackRenderState, BlackjackUiAction } from "../_types/messages";
-import type { WinningChipFx } from "../_types/page";
+import type {
+  BlackjackAnalyticsRound,
+  BlackjackRoundTimelineEntry,
+  WinningChipFx,
+} from "../_types/page";
 import {
   decorateResultDetailLine,
   getResultBadgeLabel,
@@ -31,9 +36,14 @@ import {
   getWinningsClass,
   hasCurrencyValue,
 } from "../_utils/helpers";
+import { buildRoundSnapshot } from "../_utils/roundDetails";
+import { buildBlackjackStrategyTrainerInsight } from "../_utils/strategyTrainer";
 import AnimatedBlackjackCard from "./AnimatedBlackjackCard";
 import AnimatedTotalLabel from "./AnimatedTotalLabel";
+import BlackjackActionControls from "./BlackjackActionControls";
+import BlackjackAnalyticsModal from "./BlackjackAnalyticsModal";
 import BlackjackBonusWagerChip from "./BlackjackBonusWagerChip";
+import BlackjackRoundDetailsModal from "./BlackjackRoundDetailsModal";
 import BlackjackGameModeChip from "./BlackjackGameModeChip";
 import BlackjackSettingsModal from "./BlackjackSettingsModal";
 import BlackjackWagerChip from "./BlackjackWagerChip";
@@ -63,6 +73,9 @@ type BlackjackGameSlideProps = {
   onToggleSounds: () => void;
   playerStackRef: React.RefObject<HTMLSpanElement | null>;
   resultEmojis: [string, string] | null;
+  analyticsRounds: BlackjackAnalyticsRound[];
+  roundTimelineEntries: BlackjackRoundTimelineEntry[];
+  activeRoundNumber: number;
   setSlideRef: (node: HTMLElement | null) => void;
   soundsEnabled: boolean;
   stackTickerActive: boolean;
@@ -70,8 +83,6 @@ type BlackjackGameSlideProps = {
   winningChipFx: WinningChipFx[];
   bgmEnabled: boolean;
 };
-
-const MODAL_EXIT_ANIMATION_MS = 280;
 
 export default function BlackjackGameSlide({
   activeVisualHandIndex,
@@ -97,6 +108,9 @@ export default function BlackjackGameSlide({
   onToggleSounds,
   playerStackRef,
   resultEmojis,
+  analyticsRounds,
+  roundTimelineEntries,
+  activeRoundNumber,
   setSlideRef,
   soundsEnabled,
   stackTickerActive,
@@ -109,15 +123,25 @@ export default function BlackjackGameSlide({
   const hintSuggestedAction = engineState?.hintText
     ? getHintSuggestedAction(engineState.hintText)
     : null;
-  const [hintModalOpen, setHintModalOpen] = React.useState(false);
-  const [hintModalVisible, setHintModalVisible] = React.useState(false);
-  const [hintModalClosing, setHintModalClosing] = React.useState(false);
-  const [gameModeModalOpen, setGameModeModalOpen] = React.useState(false);
-  const [gameModeModalVisible, setGameModeModalVisible] = React.useState(false);
-  const [gameModeModalClosing, setGameModeModalClosing] = React.useState(false);
-  const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
-  const [settingsModalVisible, setSettingsModalVisible] = React.useState(false);
-  const [settingsModalClosing, setSettingsModalClosing] = React.useState(false);
+  const strategyTrainerInsight = React.useMemo(
+    () => buildBlackjackStrategyTrainerInsight(engineState),
+    [engineState],
+  );
+  const roundSnapshot = buildRoundSnapshot(engineState, dealerOutcomeStampLabel);
+  const hasHintText = Boolean(engineState?.hintText);
+  const hasRoundTimelineEntries = roundTimelineEntries.length > 0;
+  const hasEngineState = Boolean(engineState);
+  const {
+    analyticsModal,
+    gameModeModal: gameModeModalTransition,
+    hintModal: hintModalTransition,
+    roundDetailsModal: roundDetailsModalTransition,
+    settingsModal: settingsModalTransition,
+  } = useBlackjackModalTransitions({
+    hasHintText,
+    hasRoundTimelineEntries,
+    hasEngineState,
+  });
   const shouldShowRoundEndModal = Boolean(
     gameStarted && useRoundEndModalLayout && engineState?.askingToDeal && engineState?.result,
   );
@@ -139,98 +163,17 @@ export default function BlackjackGameSlide({
   }, [shouldShowRoundEndModal]);
 
   const showRoundEndModal = shouldShowRoundEndModal && roundEndModalVisible;
-  const showHintModal = Boolean(
-    hintModalVisible && hintModalOpen && engineState?.hintText && typeof document !== "undefined",
-  );
-  const showGameModeModal = Boolean(
-    gameModeModalVisible && gameModeModalOpen && engineState && typeof document !== "undefined",
-  );
-  const showSettingsModal = Boolean(
-    settingsModalVisible && settingsModalOpen && typeof document !== "undefined",
-  );
+  const showHintModal = hintModalTransition.shouldRender;
+  const showRoundDetailsModal = roundDetailsModalTransition.shouldRender;
+  const showAnalyticsModal = analyticsModal.shouldRender;
+  const showGameModeModal = gameModeModalTransition.shouldRender;
+  const showSettingsModal = settingsModalTransition.shouldRender;
 
-  React.useEffect(() => {
-    if (!engineState?.hintText) {
-      setHintModalOpen(false);
-    }
-  }, [engineState?.hintText]);
-
-  React.useEffect(() => {
-    if (hintModalOpen) {
-      setHintModalVisible(true);
-      setHintModalClosing(false);
-      return;
-    }
-
-    if (!hintModalVisible) {
-      return;
-    }
-
-    setHintModalClosing(true);
-    const timeoutId = window.setTimeout(() => {
-      setHintModalVisible(false);
-      setHintModalClosing(false);
-    }, MODAL_EXIT_ANIMATION_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [hintModalOpen, hintModalVisible]);
-
-  React.useEffect(() => {
-    if (gameModeModalOpen) {
-      setGameModeModalVisible(true);
-      setGameModeModalClosing(false);
-      return;
-    }
-
-    if (!gameModeModalVisible) {
-      return;
-    }
-
-    setGameModeModalClosing(true);
-    const timeoutId = window.setTimeout(() => {
-      setGameModeModalVisible(false);
-      setGameModeModalClosing(false);
-    }, MODAL_EXIT_ANIMATION_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [gameModeModalOpen, gameModeModalVisible]);
-
-  React.useEffect(() => {
-    if (settingsModalOpen) {
-      setSettingsModalVisible(true);
-      setSettingsModalClosing(false);
-      return;
-    }
-
-    if (!settingsModalVisible) {
-      return;
-    }
-
-    setSettingsModalClosing(true);
-    const timeoutId = window.setTimeout(() => {
-      setSettingsModalVisible(false);
-      setSettingsModalClosing(false);
-    }, MODAL_EXIT_ANIMATION_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [settingsModalOpen, settingsModalVisible]);
-
-  const closeHintModal = React.useCallback(() => {
-    setHintModalOpen(false);
-  }, []);
-
-  const closeGameModeModal = React.useCallback(() => {
-    setGameModeModalOpen(false);
-  }, []);
-  const closeSettingsModal = React.useCallback(() => {
-    setSettingsModalOpen(false);
-  }, []);
+  const closeHintModal = hintModalTransition.close;
+  const closeRoundDetailsModal = roundDetailsModalTransition.close;
+  const closeAnalyticsModal = analyticsModal.close;
+  const closeGameModeModal = gameModeModalTransition.close;
+  const closeSettingsModal = settingsModalTransition.close;
   const renderActionButtonLabel = React.useCallback(
     (actionLabel: string) =>
       hintSuggestedAction === actionLabel ? (
@@ -266,7 +209,7 @@ export default function BlackjackGameSlide({
     showGameModeModal && engineState
       ? createPortal(
           <div
-            className={`blackjack-round-end-modal blackjack-game-mode-modal${gameModeModalClosing ? " blackjack-round-end-modal--closing" : ""}`}
+            className={`blackjack-round-end-modal blackjack-game-mode-modal${gameModeModalTransition.isClosing ? " blackjack-round-end-modal--closing" : ""}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="blackjack-game-mode-title"
@@ -364,7 +307,7 @@ export default function BlackjackGameSlide({
     showHintModal && engineState
       ? createPortal(
           <div
-            className={`blackjack-round-end-modal blackjack-hint-modal${hintModalClosing ? " blackjack-round-end-modal--closing" : ""}`}
+            className={`blackjack-round-end-modal blackjack-hint-modal${hintModalTransition.isClosing ? " blackjack-round-end-modal--closing" : ""}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="blackjack-hint-modal-title"
@@ -382,6 +325,39 @@ export default function BlackjackGameSlide({
               <p className="blackjack-hint-modal__body">
                 {renderHintContent(engineState.hintText)}
               </p>
+              {strategyTrainerInsight ? (
+                <div className={styles.strategyTrainer}>
+                  <div className={styles.strategyTrainerHeading}>Strategy Trainer</div>
+                  <div className={styles.strategyTrainerScenario}>
+                    <span>{strategyTrainerInsight.scenarioLabel}</span>
+                    <span className={styles.strategyTrainerRecommendation}>
+                      Best action: {strategyTrainerInsight.recommendationLabel}
+                    </span>
+                  </div>
+                  <p className={styles.strategyTrainerRationale}>
+                    {strategyTrainerInsight.rationale}
+                  </p>
+                  <div className={styles.strategyActionList}>
+                    {strategyTrainerInsight.actionInsights.map((insight) => (
+                      <div
+                        key={`strategy-action-${insight.action}`}
+                        className={`${styles.strategyActionItem}${insight.isRecommended ? ` ${styles.strategyActionItemRecommended}` : ""}`}
+                      >
+                        <div className={styles.strategyActionHeader}>
+                          <span>{insight.label}</span>
+                          <span className={styles.strategyActionDelta}>
+                            EV {insight.evDeltaPct >= 0 ? "+" : ""}
+                            {insight.evDeltaPct.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className={styles.strategyActionExplanation}>
+                          {insight.explanation}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <div className="blackjack-hint-modal__actions">
                 <button
                   type="button"
@@ -446,6 +422,39 @@ export default function BlackjackGameSlide({
                   </div>
                 ) : null,
               )}
+              <div className="blackjack-round-end-modal__secondary-actions">
+                <button
+                  type="button"
+                  className="blackjack-button blackjack-button-subtle"
+                  style={{
+                    display: roundTimelineEntries.length > 0 ? "inline-flex" : "none",
+                  }}
+                  onClick={() => {
+                    onModalOk();
+                    setRoundEndModalVisible(false);
+                    roundDetailsModalTransition.open();
+                  }}
+                >
+                  <span className="blackjack-button-start-icon" aria-hidden="true">
+                    🧾
+                  </span>
+                  <span>Review Round Details</span>
+                </button>
+                <button
+                  type="button"
+                  className="blackjack-button blackjack-button-subtle"
+                  onClick={() => {
+                    onModalOk();
+                    setRoundEndModalVisible(false);
+                    analyticsModal.open();
+                  }}
+                >
+                  <span className="blackjack-button-start-icon" aria-hidden="true">
+                    📈
+                  </span>
+                  <span>Session Analytics</span>
+                </button>
+              </div>
               <div
                 className={`blackjack-result-status-row${engineState?.askingToDeal ? " blackjack-result-status-row--deal-again" : ""}`}
               >
@@ -571,14 +580,14 @@ export default function BlackjackGameSlide({
               <div className={styles.bannerControls}>
                 <BlackjackGameModeChip
                   engineState={engineState}
-                  onToggleGameMode={() => setGameModeModalOpen(true)}
+                  onToggleGameMode={gameModeModalTransition.open}
                   className={styles.bannerModeChip}
                   allowWhenLocked
                 />
                 <button
                   type="button"
                   className={styles.settingsTrigger}
-                  onClick={() => setSettingsModalOpen(true)}
+                  onClick={settingsModalTransition.open}
                   aria-label="Open settings"
                 >
                   <svg
@@ -885,90 +894,16 @@ export default function BlackjackGameSlide({
                     </button>
                   ) : null}
                 </div>
-                <div id="controls" className="blackjack-controls">
-                  {!engineState?.askingToDeal ? (
-                    <button
-                      id="deal"
-                      className="blackjack-button blackjack-button-primary"
-                      style={{
-                        display: getControlDisplay(engineState?.controls.deal),
-                      }}
-                      onClick={() => onAction("deal")}
-                    >
-                      🃏 <span className="blackjack-shimmer-text">Deal</span>
-                    </button>
-                  ) : null}
-                  <button
-                    id="double"
-                    className="blackjack-button"
-                    style={{
-                      display: getControlDisplay(engineState?.controls.double),
-                    }}
-                    onClick={() => onAction("double")}
-                  >
-                    💥 {renderActionButtonLabel("DOUBLE DOWN")}
-                  </button>
-                  <button
-                    id="split"
-                    className="blackjack-button"
-                    style={{
-                      display: getControlDisplay(engineState?.controls.split),
-                    }}
-                    onClick={() => onAction("split")}
-                  >
-                    ✂️ {renderActionButtonLabel("SPLIT")}
-                  </button>
-                  <button
-                    id="hit"
-                    className="blackjack-button"
-                    style={{
-                      display: getControlDisplay(engineState?.controls.hit),
-                    }}
-                    onClick={() => onAction("hit")}
-                  >
-                    ➕ {renderActionButtonLabel("HIT")}
-                  </button>
-                  <button
-                    id="stand"
-                    className="blackjack-button"
-                    style={{
-                      display: getControlDisplay(engineState?.controls.stand),
-                    }}
-                    onClick={() => onAction("stand")}
-                  >
-                    ✋ {renderActionButtonLabel("STAND")}
-                  </button>
-                  <button
-                    id="insure"
-                    className="blackjack-button"
-                    style={{
-                      display: getControlDisplay(engineState?.controls.insure),
-                    }}
-                    onClick={() => onAction("insure")}
-                  >
-                    🛡️ Insure
-                  </button>
-                  <button
-                    id="hint-action"
-                    className="blackjack-button blackjack-button-subtle"
-                    style={{
-                      display: engineState?.hintText ? "inline-flex" : "none",
-                    }}
-                    onClick={() => setHintModalOpen(true)}
-                  >
-                    💡 <span className="blackjack-shimmer-text">Hint</span>
-                  </button>
-                  <button
-                    id="decline"
-                    className="blackjack-button blackjack-button-subtle"
-                    style={{
-                      display: getControlDisplay(engineState?.controls.decline),
-                    }}
-                    onClick={() => onAction("decline")}
-                  >
-                    Decline
-                  </button>
-                </div>
+                <BlackjackActionControls
+                  engineState={engineState}
+                  onAction={onAction}
+                  onOpenHint={hintModalTransition.open}
+                  onOpenAnalytics={analyticsModal.open}
+                  onOpenRoundDetails={roundDetailsModalTransition.open}
+                  renderActionButtonLabel={renderActionButtonLabel}
+                  showAnalyticsAction
+                  showRoundDetailsAction={roundTimelineEntries.length > 0}
+                />
               </div>
             </>
           ) : null}
@@ -976,7 +911,7 @@ export default function BlackjackGameSlide({
       </section>
       <BlackjackSettingsModal
         open={showSettingsModal}
-        closing={settingsModalClosing}
+        closing={settingsModalTransition.isClosing}
         onClose={closeSettingsModal}
         onModalOk={onModalOk}
         bgmEnabled={bgmEnabled}
@@ -988,6 +923,22 @@ export default function BlackjackGameSlide({
         onToggleSounds={onToggleSounds}
       />
       {hintModal}
+      <BlackjackRoundDetailsModal
+        open={showRoundDetailsModal}
+        closing={roundDetailsModalTransition.isClosing}
+        activeRoundNumber={activeRoundNumber}
+        entries={roundTimelineEntries}
+        onClose={closeRoundDetailsModal}
+        onModalOk={onModalOk}
+        snapshot={roundSnapshot}
+      />
+      <BlackjackAnalyticsModal
+        open={showAnalyticsModal}
+        closing={analyticsModal.isClosing}
+        rounds={analyticsRounds}
+        onClose={closeAnalyticsModal}
+        onModalOk={onModalOk}
+      />
       {gameModeModal}
       {roundEndModal}
     </>

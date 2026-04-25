@@ -3,18 +3,22 @@
 import { useEffect } from "react";
 import { Container, Typography } from "@mui/material";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
+import { useResumeData } from "@/providers/ResumeDataProvider";
+import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 import { withBasePath } from "@/utils/basePath";
 
 export default function PetlyPage() {
+  const { portfolioApps } = useResumeData();
+  const petlyRoute = getPortfolioAppRouteContract(portfolioApps, "petly");
   const { setDocumentTitle } = useDocumentTitle();
   useEffect(() => {
-    setDocumentTitle("Petly");
-  }, [setDocumentTitle]);
+    setDocumentTitle(petlyRoute.documentTitle);
+  }, [petlyRoute.documentTitle, setDocumentTitle]);
 
   return (
     <Container sx={{ py: 8 }}>
       <Typography variant="h4" gutterBottom>
-        Petly
+        {petlyRoute.documentTitle}
       </Typography>
       <video
         src={withBasePath("/personal/demovideos/petly.mov")}

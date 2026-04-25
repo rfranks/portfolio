@@ -129,6 +129,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
           <DemoSection
             useSharedDemoSlide={controller.useSharedDemoSlide}
             isPodcastsLayout={controller.isPodcastsLayout}
+            useTightDemoCaptionLayout={controller.useTightDemoCaptionLayout}
             terminalDemo={controller.projectTerminalDemo}
             demoItems={controller.demoItems}
             activeDemoMediaKey={controller.activeDemoMediaKey}
@@ -224,6 +225,9 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
                 previousButtonSx={{
                   ml: { xs: 1, md: 1.25 },
                 }}
+                disablePrevious={!controller.allowPreviousSectionAction}
+                disableNext={!controller.allowNextSectionAction}
+                disableSelector={!controller.allowSectionSelectorAction}
                 onSelect={(key) =>
                   controller.handleSelectSection(key as ProjectPresentationSectionKey)
                 }

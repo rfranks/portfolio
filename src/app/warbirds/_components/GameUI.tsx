@@ -14,6 +14,7 @@ import { useWindowSize } from "@/hooks/window/useWindowSize";
 import { BASE_DIMS } from "@/consts/game/dimensions";
 import { withBasePath } from "@/utils/basePath";
 import { GameUIState } from "../_types";
+import { WARBIRDS_POWERUP_DEFAULT_FALLBACK_ASSET_PATH } from "../_utils/powerupSprites";
 
 /**
  * Props for GameUI component.
@@ -238,7 +239,10 @@ export function GameUI({
               const timeLeft = activePowerups[t].expires - frameCount;
               const flash = timeLeft < 60 && timeLeft % 10 < 5;
               const powerupImgs = getImg("powerupImgs") as Record<string, HTMLImageElement>;
-              const imgSrc = powerupImgs[t].src;
+              const fallbackImgSrc =
+                powerupImgs.shield?.src ||
+                withBasePath(WARBIRDS_POWERUP_DEFAULT_FALLBACK_ASSET_PATH);
+              const imgSrc = powerupImgs[t]?.src || fallbackImgSrc;
 
               return (
                 <Box

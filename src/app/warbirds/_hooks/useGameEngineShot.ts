@@ -133,6 +133,9 @@ export function runWarbirdsSingleShot(params: RunSingleShotParams): void {
   }
 
   let hit = false;
+  if (!didFlap) {
+    state.current.shotsFired += 1;
+  }
 
   // ─── AIRSHIP SHOOTING ─────────────────────────────────────────────────────
   for (let i = 0; i < state.current.airships.length; i++) {
@@ -485,6 +488,10 @@ export function runWarbirdsSingleShot(params: RunSingleShotParams): void {
   }
 
   // MISS → bullet hole & penalty
+  if (hit && !didFlap) {
+    state.current.shotsHit += 1;
+  }
+
   if (!hit && !didFlap) {
     changeScore(-25);
     state.current.streak = 0;

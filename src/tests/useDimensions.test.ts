@@ -10,6 +10,39 @@ import { useDimensions } from "@/hooks/html/useDimensions";
 
 jest.useFakeTimers();
 
+type DimensionsState = {
+  width: number;
+  height: number;
+  breakpoint: string;
+};
+
+const isDimensionsState = (value: unknown): value is DimensionsState => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const candidate = value as Partial<DimensionsState>;
+  return (
+    typeof candidate.width === "number" &&
+    typeof candidate.height === "number" &&
+    typeof candidate.breakpoint === "string"
+  );
+};
+
+const mockDimensionsUseState = (setSpy: jest.Mock) => {
+  const originalUseState = React.useState as unknown as (
+    init?: unknown,
+  ) => [unknown, React.Dispatch<unknown>];
+  const setState = setSpy as unknown as React.Dispatch<unknown>;
+
+  jest.spyOn(React, "useState").mockImplementation((init?: unknown) => {
+    const resolvedInit = typeof init === "function" ? (init as () => unknown)() : init;
+    if (isDimensionsState(resolvedInit)) {
+      return [resolvedInit, setState];
+    }
+    return originalUseState(init);
+  });
+};
+
 describe("useDimensions cleanup", () => {
   afterEach(() => {
     jest.restoreAllMocks();
@@ -37,19 +70,7 @@ describe("useDimensions cleanup", () => {
     } as React.RefObject<HTMLElement>;
 
     const setSpy = jest.fn();
-    const originalUseState = React.useState;
-    jest.spyOn(React, "useState").mockImplementation((init: unknown) => {
-      if (
-        typeof init === "object" &&
-        init !== null &&
-        "width" in (init as Record<string, unknown>) &&
-        "height" in (init as Record<string, unknown>) &&
-        "breakpoint" in (init as Record<string, unknown>)
-      ) {
-        return [init, setSpy];
-      }
-      return originalUseState(init);
-    });
+    mockDimensionsUseState(setSpy);
 
     let cleanup: (() => void) | undefined;
     jest.spyOn(React, "useEffect").mockImplementation((effect: () => void | (() => void)) => {
@@ -98,19 +119,7 @@ describe("useDimensions resize updates", () => {
     } as React.RefObject<HTMLElement>;
 
     const setSpy = jest.fn();
-    const originalUseState = React.useState;
-    jest.spyOn(React, "useState").mockImplementation((init: unknown) => {
-      if (
-        typeof init === "object" &&
-        init !== null &&
-        "width" in (init as Record<string, unknown>) &&
-        "height" in (init as Record<string, unknown>) &&
-        "breakpoint" in (init as Record<string, unknown>)
-      ) {
-        return [init, setSpy];
-      }
-      return originalUseState(init);
-    });
+    mockDimensionsUseState(setSpy);
 
     jest.spyOn(React, "useEffect").mockImplementation((effect: () => void | (() => void)) => {
       effect();
@@ -156,19 +165,7 @@ describe("useDimensions breakpoints", () => {
     } as React.RefObject<HTMLElement>;
 
     const setSpy = jest.fn();
-    const originalUseState = React.useState;
-    jest.spyOn(React, "useState").mockImplementation((init: unknown) => {
-      if (
-        typeof init === "object" &&
-        init !== null &&
-        "width" in (init as Record<string, unknown>) &&
-        "height" in (init as Record<string, unknown>) &&
-        "breakpoint" in (init as Record<string, unknown>)
-      ) {
-        return [init, setSpy];
-      }
-      return originalUseState(init);
-    });
+    mockDimensionsUseState(setSpy);
 
     jest.spyOn(React, "useEffect").mockImplementation((effect: () => void | (() => void)) => {
       effect();
@@ -198,19 +195,7 @@ describe("useDimensions with null ref", () => {
     const addEventListenerSpy = jest.spyOn(window, "addEventListener");
 
     const setSpy = jest.fn();
-    const originalUseState = React.useState;
-    jest.spyOn(React, "useState").mockImplementation((init: unknown) => {
-      if (
-        typeof init === "object" &&
-        init !== null &&
-        "width" in (init as Record<string, unknown>) &&
-        "height" in (init as Record<string, unknown>) &&
-        "breakpoint" in (init as Record<string, unknown>)
-      ) {
-        return [init, setSpy];
-      }
-      return originalUseState(init);
-    });
+    mockDimensionsUseState(setSpy);
 
     jest.spyOn(React, "useEffect").mockImplementation((effect: () => void) => {
       effect();
@@ -246,19 +231,7 @@ describe("useDimensions visibility polling", () => {
     } as React.RefObject<HTMLElement>;
 
     const setSpy = jest.fn();
-    const originalUseState = React.useState;
-    jest.spyOn(React, "useState").mockImplementation((init: unknown) => {
-      if (
-        typeof init === "object" &&
-        init !== null &&
-        "width" in (init as Record<string, unknown>) &&
-        "height" in (init as Record<string, unknown>) &&
-        "breakpoint" in (init as Record<string, unknown>)
-      ) {
-        return [init, setSpy];
-      }
-      return originalUseState(init);
-    });
+    mockDimensionsUseState(setSpy);
 
     jest.spyOn(React, "useEffect").mockImplementation((effect: () => void | (() => void)) => {
       effect();

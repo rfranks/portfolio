@@ -108,6 +108,29 @@ describe("resumeDataSchema hardening and edge cases", () => {
     expect(() => parseMigrated(input, "resumeDataSchema.test optional omissions")).not.toThrow();
   });
 
+  it("requires explicit non-presentation portfolio app route contracts", () => {
+    expectSchemaFailureOnCurrentVersion((input) => {
+      const portfolioApps = input.portfolioApps as Record<string, unknown>;
+      delete portfolioApps.warbirds;
+    }, /portfolioApps\.warbirds/i);
+  });
+
+  it("rejects mismatched literal routes in portfolioApps metadata contracts", () => {
+    expectSchemaFailureOnCurrentVersion((input) => {
+      const portfolioApps = input.portfolioApps as Record<string, unknown>;
+      const blackjack = portfolioApps.blackjack as Record<string, unknown>;
+      blackjack.route = "/blackjack-classic";
+    }, /portfolioApps\.blackjack\.route/i);
+  });
+
+  it("requires metadata contract fields for capabilities route", () => {
+    expectSchemaFailureOnCurrentVersion((input) => {
+      const portfolioApps = input.portfolioApps as Record<string, unknown>;
+      const capabilities = portfolioApps.capabilities as Record<string, unknown>;
+      delete capabilities.metadataDescription;
+    }, /portfolioApps\.capabilities\.metadataDescription/i);
+  });
+
   it("rejects unknown top-level keys because schema is strict", () => {
     expectSchemaFailure((input) => {
       input.unexpectedTopLevelKey = true;

@@ -10,7 +10,27 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  app-smoke-lanes:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [pathforger, blackjack, dna, games]
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v5
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+      - name: 📦 Install dependencies
+        run: npm install --legacy-peer-deps
+      - name: 🧪 Run ${{ matrix.lane }} smoke lane
+        run: npm run test -- --lane ${{ matrix.lane }}
+
   build-and-deploy:
+    needs: app-smoke-lanes
     permissions:
       contents: write
     runs-on: ubuntu-latest

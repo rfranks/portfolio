@@ -2,20 +2,15 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
-import { renderNavigationIcon } from "@/components/portfolio/layout/navigationIcons";
 import type { SubsectionPagerItem } from "@/components/portfolio/layout/SubsectionPager";
 import type { CompetencyCategory } from "@/components/portfolio/panels/CoreCompetencies";
 import type { MediaCyclerItem } from "@/components/shared";
-import { MarkdownContent } from "@/components/shared/content";
 import type {
   ProjectData,
-  ProjectDiagramConfig,
-  ProjectDiagramVisualConfig,
-  ProjectPresentationPrefetchPlan,
   ProjectPresentationSectionKey,
+  ProjectPresentationPrefetchPlan,
   ProjectSectionPagerSfxValue,
 } from "@/types/components/portfolio";
-import { withBasePath } from "@/utils/basePath";
 import { createLogger } from "@/utils/observability/logger";
 import { markStart, measureAfterNextPaint } from "@/utils/observability/perf";
 import {
@@ -27,50 +22,33 @@ import {
 import {
   resolvePresentationBehavior,
   resolvePresentationPrefetchPlan,
+  resolvePresentationSectionCapabilities,
   resolvePresentationSectionOrder,
 } from "../presentationConfig";
+import {
+  type DiagramDeepLinkMode,
+  type DiagramDeepLinkZoomPreset,
+  type ProjectDiagramEntry,
+  resolveDiagramEntries,
+  resolveDiagramItems,
+  resolveDiagramPagerItems,
+} from "../resolvers/diagramSectionResolver";
+import { resolveDemoItems, resolveTerminalDemo } from "../resolvers/demoSectionResolver";
+import {
+  resolveOverviewItems,
+  resolveOverviewMarkdownContent,
+} from "../resolvers/overviewSectionResolver";
+import { resolveTechnologyCompetencyCategories } from "../resolvers/technologiesSectionResolver";
 import { usePresentationSections } from "./usePresentationSections";
 import { useSectionAudio } from "./useSectionAudio";
 import type { ResolvedProjectTerminalDemo } from "../sections/DemoSection";
-
-export type ProjectDiagramEntry = {
-  key: string;
-  title: string;
-  shortText: string;
-  description: string;
-  diagram: string;
-  type?: ProjectDiagramConfig["type"];
-  height?: ProjectDiagramConfig["height"];
-  autoFitPadding?: number;
-  autoFitScaleMultiplier?: number;
-  autoFitOffsetX?: number;
-  autoFitOffsetY?: number;
-  selectorOptionVisual?: ProjectDiagramVisualConfig;
-  selectorSelectedVisual?: ProjectDiagramVisualConfig;
-};
-
-type ResolvedDiagramVisual = {
-  iconNode?: ReactNode;
-  imageSrc?: string;
-  imageAlt?: string;
-};
-
-type TechnologyDomainKey = "frontend" | "backend" | "aiData" | "cloud" | "quality" | "other";
-
-type DiagramDeepLinkMode = "render" | "code";
-type DiagramDeepLinkZoomPreset = "fit" | "wide" | "focus" | "close";
-
-type TechnologyDomainConfig = {
-  title: string;
-  shortText: string;
-  pagerEmoji: string;
-};
 
 export type ProjectPresentationController = {
   useSharedOverviewSlide: boolean;
   useSharedDemoSlide: boolean;
   useSharedArchitectureDiagramsSlide: boolean;
   isPodcastsLayout: boolean;
+  useTightDemoCaptionLayout: boolean;
   deepLinkInitialized: boolean;
   activeSectionKey: ProjectPresentationSectionKey;
   sectionNavigationDirection: "forward" | "backward" | "neutral";
@@ -82,6 +60,9 @@ export type ProjectPresentationController = {
     icon: ReactNode;
   } | null;
   pagerItems: SubsectionPagerItem[];
+  allowPreviousSectionAction: boolean;
+  allowNextSectionAction: boolean;
+  allowSectionSelectorAction: boolean;
   handleSelectSection: (key: ProjectPresentationSectionKey) => void;
   handlePreviousSectionMeasured: () => void;
   handleNextSectionMeasured: () => void;
@@ -123,47 +104,9 @@ const DEFAULT_SECTION_PAGER_SFX: Record<
   diagrams: "random",
 };
 
-const TECHNOLOGY_DOMAIN_CONFIG: Record<TechnologyDomainKey, TechnologyDomainConfig> = {
-  frontend: {
-    title: "Frontend & UX",
-    shortText: "UI frameworks and client-side rendering",
-    pagerEmoji: "🖥️",
-  },
-  backend: {
-    title: "Backend & APIs",
-    shortText: "Services, application logic, and transport",
-    pagerEmoji: "⚙️",
-  },
-  aiData: {
-    title: "AI & Data",
-    shortText: "LLM tooling, storage, and data systems",
-    pagerEmoji: "🤖",
-  },
-  cloud: {
-    title: "Cloud & Platform",
-    shortText: "Hosting, serverless, and infrastructure",
-    pagerEmoji: "☁️",
-  },
-  quality: {
-    title: "Quality & Tooling",
-    shortText: "Testing, build, and developer workflow",
-    pagerEmoji: "🧪",
-  },
-  other: {
-    title: "Integrations",
-    shortText: "Supporting frameworks and connectors",
-    pagerEmoji: "🧩",
-  },
-};
-
 const presentationPerfLogger = createLogger("presentation-perf");
-
-const DIAGRAM_ZOOM_PRESET_MULTIPLIERS: Record<DiagramDeepLinkZoomPreset, number> = {
-  fit: 1,
-  wide: 0.9,
-  focus: 1.15,
-  close: 1.35,
-};
+const TIGHT_DEMO_CAPTION_HREFS = new Set(["/aisummary", "/patientlist", "/assignmentlist"]);
+const TIGHT_DEMO_CAPTION_SHOWCASE_HEADINGS = new Set(["ai clinical copilot"]);
 
 const buildSectionLabel = (index: number, title: string) => `${index + 1}. ${title}`;
 
@@ -195,49 +138,6 @@ const sectionEmojiIcon = (emoji: string) => (
   </Typography>
 );
 
-const hasResolvedDiagramVisual = (visual: ResolvedDiagramVisual) =>
-  Boolean(visual.imageSrc || visual.iconNode);
-
-const resolveDiagramVisual = (
-  visual: ProjectDiagramVisualConfig | undefined,
-  fallbackLabel: string,
-): ResolvedDiagramVisual => {
-  if (!visual) {
-    return {};
-  }
-
-  if (visual.type === "image") {
-    const source = visual.src?.trim();
-    if (!source) {
-      return {};
-    }
-    return {
-      imageSrc: withBasePath(source),
-      imageAlt: visual.alt?.trim() || `${fallbackLabel} diagram visual`,
-    };
-  }
-
-  if (visual.type === "emoji") {
-    const icon = visual.icon?.trim();
-    if (!icon) {
-      return {};
-    }
-    return {
-      iconNode: renderNavigationIcon(
-        { iconType: "emoji", icon },
-        { fallbackIconKey: "science", emojiSize: "1rem" },
-      ),
-    };
-  }
-
-  return {
-    iconNode: renderNavigationIcon(
-      { iconType: "material", icon: visual.icon?.trim() || "science" },
-      { fallbackIconKey: "science", fontSize: "small" },
-    ),
-  };
-};
-
 const resolveSectionPagerSfxPath = (
   configured: ProjectSectionPagerSfxValue | undefined,
   fallback: ProjectSectionPagerSfxValue,
@@ -247,122 +147,6 @@ const resolveSectionPagerSfxPath = (
     return fallback;
   }
   return normalized as ProjectSectionPagerSfxValue;
-};
-
-const normalizeTechnologyName = (technologyName: string) => technologyName.toLowerCase();
-
-const classifyTechnologyDomain = (technologyName: string): TechnologyDomainKey => {
-  const normalized = normalizeTechnologyName(technologyName);
-
-  if (
-    /(react|next\.?js|vue|angular|material ui|mui|tailwind|css|html|handlebars|backbone|expo|react native|frontend|ui)/i.test(
-      normalized,
-    )
-  ) {
-    return "frontend";
-  }
-
-  if (
-    /(langchain|openai|gemini|llm|ai|nlp|postgres|postgresql|mysql|sql|cosmos|mongodb|redis|vector|embedding|data)/i.test(
-      normalized,
-    )
-  ) {
-    return "aiData";
-  }
-
-  if (
-    /(azure|aws|gcp|google cloud|cloud|s3|serverless|functions|docker|kubernetes|container)/i.test(
-      normalized,
-    )
-  ) {
-    return "cloud";
-  }
-
-  if (
-    /(jest|junit|mockito|vitest|cypress|playwright|eslint|prettier|lint|test|maven|turborepo|webpack|github actions|ci\/cd|pipeline|build)/i.test(
-      normalized,
-    )
-  ) {
-    return "quality";
-  }
-
-  if (
-    /(spring|flask|fastapi|nestjs|express|java|python|go|node|api|rest|axios)/i.test(normalized)
-  ) {
-    return "backend";
-  }
-
-  return "other";
-};
-
-const resolveTechnologyEmoji = (technologyName: string, configuredEmoji?: string) => {
-  const explicit = configuredEmoji?.trim();
-  if (explicit) {
-    return explicit;
-  }
-
-  const normalized = normalizeTechnologyName(technologyName);
-  if (/(react|next|frontend|ui|material|tailwind|html|css)/i.test(normalized)) {
-    return "🖥️";
-  }
-  if (/(typescript|javascript|node|npm|yarn|pnpm|turborepo|webpack|vite|build)/i.test(normalized)) {
-    return "🛠️";
-  }
-  if (/(langchain|openai|gemini|llm|ai|rag|nlp|vector|embedding|audio|speech)/i.test(normalized)) {
-    return "🤖";
-  }
-  if (/(azure|aws|cloud|serverless|functions|blob|storage|s3)/i.test(normalized)) {
-    return "☁️";
-  }
-  if (/(postgres|mysql|sql|cosmos|mongo|redis|db|database)/i.test(normalized)) {
-    return "🗄️";
-  }
-  if (/(python|java|flask|spring|nestjs|express|api|rest|axios|fetch)/i.test(normalized)) {
-    return "⚙️";
-  }
-  if (/(jest|junit|mockito|cypress|playwright|test|lint|prettier|eslint)/i.test(normalized)) {
-    return "✅";
-  }
-  if (/(mermaid|diagram)/i.test(normalized)) {
-    return "🧭";
-  }
-  return "✨";
-};
-
-const resolveTerminalDemo = (project: ProjectData): ResolvedProjectTerminalDemo | null => {
-  const configured = project.terminalDemo;
-  const configuredMediaUrl = configured?.mediaUrl?.trim();
-  const fallbackVideoUrl = project.demoVideoUrl?.trim();
-  const fallbackImageUrl = project.demoGifUrl?.trim();
-  const fallbackMediaType: "video" | "image" | null = fallbackVideoUrl
-    ? "video"
-    : fallbackImageUrl
-      ? "image"
-      : null;
-  const mediaType = configured?.mediaType ?? fallbackMediaType;
-
-  if (!mediaType) {
-    return null;
-  }
-
-  const mediaUrl =
-    configuredMediaUrl ||
-    (mediaType === "video" ? fallbackVideoUrl : fallbackImageUrl) ||
-    fallbackVideoUrl ||
-    fallbackImageUrl;
-
-  if (!mediaUrl) {
-    return null;
-  }
-
-  return {
-    title: configured?.title?.trim() || `${project.project} Demo`,
-    subtitle: configured?.subtitle?.trim(),
-    caption: configured?.caption?.trim() || project.demoCaption?.trim() || "",
-    mediaType,
-    mediaUrl,
-    mediaAlt: configured?.mediaAlt?.trim() || `${project.project} demo`,
-  };
 };
 
 export function useProjectPresentationController(
@@ -378,6 +162,14 @@ export function useProjectPresentationController(
   const useSharedArchitectureDiagramsSlide =
     presentationBehavior.useSharedArchitectureDiagramsSlide;
   const isPodcastsLayout = presentationBehavior.demoLayout === "podcasts";
+  const useTightDemoCaptionLayout = useMemo(() => {
+    const normalizedHref = project.href?.trim().toLowerCase() ?? "";
+    const normalizedShowcaseHeading = project.showcaseHeading?.trim().toLowerCase() ?? "";
+    return (
+      TIGHT_DEMO_CAPTION_HREFS.has(normalizedHref) ||
+      TIGHT_DEMO_CAPTION_SHOWCASE_HEADINGS.has(normalizedShowcaseHeading)
+    );
+  }, [project.href, project.showcaseHeading]);
   const useWhyThisInterestsSlide =
     presentationBehavior.enableWhyThisInterestsSection &&
     (project.interestsMeWhy?.trim().length ?? 0) > 0;
@@ -390,93 +182,49 @@ export function useProjectPresentationController(
     return projectMenuIdBase.toLowerCase();
   }, [project.href, projectMenuIdBase]);
 
+  const sectionCapabilitiesByKey = useMemo(
+    () => resolvePresentationSectionCapabilities(project),
+    [project],
+  );
+
   const sectionPagerSfxPaths = useMemo(
     () => ({
       overview: resolveSectionPagerSfxPath(
-        project.sectionPagerSfx?.overview,
+        sectionCapabilitiesByKey.overview.audioProfile,
         DEFAULT_SECTION_PAGER_SFX.overview,
       ),
-      why: resolveSectionPagerSfxPath(project.sectionPagerSfx?.why, DEFAULT_SECTION_PAGER_SFX.why),
+      why: resolveSectionPagerSfxPath(
+        sectionCapabilitiesByKey.why.audioProfile,
+        DEFAULT_SECTION_PAGER_SFX.why,
+      ),
       demo: resolveSectionPagerSfxPath(
-        project.sectionPagerSfx?.demo,
+        sectionCapabilitiesByKey.demo.audioProfile,
         DEFAULT_SECTION_PAGER_SFX.demo,
       ),
       technologies: resolveSectionPagerSfxPath(
-        project.sectionPagerSfx?.technologies,
+        sectionCapabilitiesByKey.technologies.audioProfile,
         DEFAULT_SECTION_PAGER_SFX.technologies,
       ),
       specifications: resolveSectionPagerSfxPath(
-        project.sectionPagerSfx?.specifications,
+        sectionCapabilitiesByKey.specifications.audioProfile,
         DEFAULT_SECTION_PAGER_SFX.specifications,
       ),
       diagrams: resolveSectionPagerSfxPath(
-        project.sectionPagerSfx?.diagrams,
+        sectionCapabilitiesByKey.diagrams.audioProfile,
         DEFAULT_SECTION_PAGER_SFX.diagrams,
       ),
     }),
-    [project.sectionPagerSfx],
+    [sectionCapabilitiesByKey],
   );
   const presentationPrefetchPlan = useMemo(
     () => resolvePresentationPrefetchPlan(project),
     [project],
   );
 
-  const diagramEntries = useMemo<ProjectDiagramEntry[]>(() => {
-    const configuredDiagrams = Array.isArray(project.diagrams) ? project.diagrams : undefined;
-    if (configuredDiagrams && configuredDiagrams.length > 0) {
-      return configuredDiagrams
-        .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
-        .map((entry, index) => {
-          const title = entry.title?.trim() || `Diagram ${index + 1}`;
-          const diagramCode = entry.diagram?.trim() || "";
-          return {
-            key: `diagram-${index}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-            title,
-            shortText: entry.shortText?.trim() || "",
-            description: entry.description?.trim() || "",
-            type: entry.type,
-            height: entry.height,
-            diagram: diagramCode,
-            autoFitPadding: entry.autoFitPadding,
-            autoFitScaleMultiplier: entry.autoFitScaleMultiplier,
-            autoFitOffsetX: entry.autoFitOffsetX,
-            autoFitOffsetY: entry.autoFitOffsetY,
-            selectorOptionVisual: entry.selectorOptionVisual,
-            selectorSelectedVisual: entry.selectorSelectedVisual,
-          };
-        })
-        .filter((entry) => entry.diagram.length > 0);
-    }
-
-    const fallbackDiagrams: ProjectDiagramEntry[] = [
-      {
-        key: "block-diagram",
-        title: "Block Diagram",
-        shortText: "High-level system boundaries and major data flow.",
-        description: "High-level system boundaries and major data flow.",
-        diagram: project.blockDiagram?.trim() || "",
-        selectorOptionVisual: { type: "emoji" as const, icon: "🧱" },
-      },
-      {
-        key: "component-diagram",
-        title: "Component Diagram",
-        shortText: "Core modules, responsibilities, and integrations.",
-        description: "Core modules, responsibilities, and integrations.",
-        diagram: project.componentDiagram?.trim() || "",
-        selectorOptionVisual: { type: "emoji" as const, icon: "🧩" },
-      },
-      {
-        key: "sequence-diagram",
-        title: "Sequence Diagram",
-        shortText: "Runtime interaction flow across the stack.",
-        description: "Runtime interaction flow across the stack.",
-        diagram: project.sequenceDiagram?.trim() || "",
-        selectorOptionVisual: { type: "emoji" as const, icon: "🔀" },
-      },
-    ];
-
-    return fallbackDiagrams.filter((entry) => entry.diagram.length > 0);
-  }, [project]);
+  const diagramEntries = useMemo<ProjectDiagramEntry[]>(
+    () => resolveDiagramEntries(project),
+    [project],
+  );
 
   const [activeDiagramKey, setActiveDiagramKey] = useState<string | undefined>(
     diagramEntries[0]?.key,
@@ -490,30 +238,7 @@ export function useProjectPresentationController(
   const hasMultipleArchitectureDiagrams = diagramEntries.length > 1;
 
   const diagramPagerItems = useMemo<SubsectionPagerItem[]>(
-    () =>
-      diagramEntries.map((entry, index) => {
-        const optionVisual = resolveDiagramVisual(entry.selectorOptionVisual, entry.title);
-        const selectedVisualCandidate = resolveDiagramVisual(
-          entry.selectorSelectedVisual ?? entry.selectorOptionVisual,
-          entry.title,
-        );
-        const selectedVisual = hasResolvedDiagramVisual(selectedVisualCandidate)
-          ? selectedVisualCandidate
-          : optionVisual;
-        return {
-          key: entry.key,
-          title: entry.title,
-          selectedTitle: entry.title,
-          selectedImageSrc: selectedVisual.imageSrc,
-          selectedImageAlt: selectedVisual.imageAlt,
-          selectedIcon: selectedVisual.iconNode,
-          optionTitle: buildSectionLabel(index, entry.title),
-          optionSubtitle: entry.shortText || entry.description || undefined,
-          optionImageSrc: optionVisual.imageSrc,
-          optionImageAlt: optionVisual.imageAlt,
-          optionIcon: optionVisual.iconNode,
-        };
-      }),
+    () => resolveDiagramPagerItems(diagramEntries),
     [diagramEntries],
   );
 
@@ -541,10 +266,12 @@ export function useProjectPresentationController(
 
   const demoCaptionSlotSx = useMemo<SxProps<Theme>>(
     () => ({
-      mt: isPodcastsLayout ? 0 : 0.75,
-      flexShrink: 0,
+      mt: isPodcastsLayout || useTightDemoCaptionLayout ? 0 : 0.75,
+      flex: useTightDemoCaptionLayout ? "1 1 0%" : undefined,
+      flexBasis: useTightDemoCaptionLayout ? 0 : undefined,
+      flexShrink: useTightDemoCaptionLayout ? 1 : 0,
       width: "100%",
-      minHeight: isPodcastsLayout ? { xs: 44, md: 58 } : { xs: 40, md: 52 },
+      minHeight: isPodcastsLayout || useTightDemoCaptionLayout ? 0 : { xs: 40, md: 52 },
       display: "flex",
       alignItems: "flex-start",
       justifyContent: "flex-start",
@@ -552,7 +279,7 @@ export function useProjectPresentationController(
       pt: 0,
       pb: 0,
     }),
-    [isPodcastsLayout],
+    [isPodcastsLayout, useTightDemoCaptionLayout],
   );
 
   const demoCaptionTextSx = useMemo<SxProps<Theme>>(
@@ -596,155 +323,12 @@ export function useProjectPresentationController(
     [projectMenuIdBase],
   );
 
-  const overviewMarkdownContent = useMemo(() => {
-    const markdownSections: string[] = [];
-
-    if (project.wowFactor?.trim()) {
-      markdownSections.push(`> ${project.wowFactor.trim()}`);
-    }
-
-    if (project.description?.trim()) {
-      markdownSections.push(project.description.trim());
-    }
-
-    const topTechnologies = project.technologiesUsed.slice(0, 8);
-    if (topTechnologies.length > 0) {
-      const technologyLines = topTechnologies.map((tech) =>
-        tech.url ? `- [${tech.name}](${tech.url})` : `- ${tech.name}`,
-      );
-      markdownSections.push("### Tech Snapshot", technologyLines.join("\n"));
-    }
-
-    const specificationKeys = Object.keys(project.specifications || {}).slice(0, 8);
-    if (specificationKeys.length > 0) {
-      markdownSections.push(
-        "### Implementation Scope",
-        specificationKeys.map((key) => `- ${key}`).join("\n"),
-      );
-    }
-
-    return markdownSections.filter(Boolean).join("\n\n");
-  }, [project.description, project.specifications, project.technologiesUsed, project.wowFactor]);
-
-  const overviewItems = useMemo<MediaCyclerItem[]>(() => {
-    const items: MediaCyclerItem[] = [
-      {
-        key: "overview-details",
-        title: "",
-        mediaType: "custom",
-        mediaUrl: "",
-        customContent: (
-          <MarkdownContent
-            content={overviewMarkdownContent}
-            variant="body1"
-            sx={{
-              "& p": { mb: 1.25, lineHeight: 1.55 },
-              "& h3": { mt: 1.2, mb: 0.6, fontSize: "1.02rem", fontWeight: 700 },
-              "& ul": { my: 0.4, pl: 2.3 },
-              "& li": { mb: 0.35 },
-            }}
-          />
-        ),
-        panelSx: {
-          minHeight: 0,
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-        },
-        assetFrameSx: {
-          width: "100%",
-          minHeight: 0,
-          height: "100%",
-        },
-        customContentSx: {
-          width: "100%",
-          height: "100%",
-          minHeight: 0,
-          overflowY: "auto",
-          overflowX: "hidden",
-          overscrollBehavior: "contain",
-          pr: 0.4,
-        },
-      },
-    ];
-
-    return items;
-  }, [overviewMarkdownContent]);
-
-  const demoItems = useMemo<MediaCyclerItem[]>(() => {
-    const items: MediaCyclerItem[] = [];
-
-    if (project.demoGifUrl) {
-      items.push({
-        key: "demo-image",
-        title: "",
-        mediaType: "image",
-        mediaUrl: withBasePath(project.demoGifUrl),
-        mediaAlt: `${project.project} demo`,
-        mediaLightboxTitle: `${project.project} demo`,
-        panelSx: {
-          minHeight: 0,
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-        },
-        assetFrameSx: {
-          width: "100%",
-          minHeight: 0,
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        },
-        imageWidth: 800,
-        imageHeight: 450,
-        imageStyle: {
-          width: "100%",
-          height: "100%",
-          maxWidth: "100%",
-          maxHeight: "100%",
-          objectFit: "contain",
-          borderRadius: 0,
-        },
-      });
-    }
-
-    if (project.demoVideoUrl) {
-      items.push({
-        key: "demo-video",
-        title: "",
-        mediaType: "video",
-        mediaUrl: withBasePath(project.demoVideoUrl),
-        mediaLightboxTitle: `${project.project} demo video`,
-        controls: true,
-        playsInline: true,
-        panelSx: {
-          minHeight: 0,
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-        },
-        assetFrameSx: {
-          width: "100%",
-          minHeight: 0,
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        },
-        previewVideoSx: {
-          width: "100%",
-          height: "100%",
-          maxHeight: "100%",
-          maxWidth: "100%",
-          objectFit: "contain",
-          borderRadius: 0,
-        },
-      });
-    }
-
-    return items;
-  }, [project.demoGifUrl, project.demoVideoUrl, project.project]);
+  const overviewMarkdownContent = useMemo(() => resolveOverviewMarkdownContent(project), [project]);
+  const overviewItems = useMemo<MediaCyclerItem[]>(
+    () => resolveOverviewItems(overviewMarkdownContent),
+    [overviewMarkdownContent],
+  );
+  const demoItems = useMemo<MediaCyclerItem[]>(() => resolveDemoItems(project), [project]);
 
   const [activeOverviewMediaKey, setActiveOverviewMediaKey] = useState<string | undefined>(
     overviewItems[0]?.key,
@@ -759,58 +343,9 @@ export function useProjectPresentationController(
   const [copyDeepLinkSucceeded, setCopyDeepLinkSucceeded] = useState(false);
   const copyDeepLinkResetTimeoutRef = useRef<number | null>(null);
 
-  const technologyDomainBuckets = useMemo(() => {
-    const grouped = project.technologiesUsed.reduce<
-      Record<TechnologyDomainKey, ProjectData["technologiesUsed"]>
-    >(
-      (accumulator, technology) => {
-        const domainKey = classifyTechnologyDomain(technology.name);
-        accumulator[domainKey].push(technology);
-        return accumulator;
-      },
-      {
-        frontend: [],
-        backend: [],
-        aiData: [],
-        cloud: [],
-        quality: [],
-        other: [],
-      },
-    );
-
-    return (Object.keys(TECHNOLOGY_DOMAIN_CONFIG) as TechnologyDomainKey[])
-      .map((domainKey) => {
-        const technologies = grouped[domainKey];
-        if (technologies.length === 0) {
-          return null;
-        }
-
-        const config = TECHNOLOGY_DOMAIN_CONFIG[domainKey];
-        return {
-          key: domainKey,
-          title: config.title,
-          shortText: config.shortText,
-          pagerEmoji: config.pagerEmoji,
-          technologies,
-        };
-      })
-      .filter((domain): domain is NonNullable<typeof domain> => Boolean(domain));
-  }, [project.technologiesUsed]);
-
   const technologyCompetencyCategories = useMemo<CompetencyCategory[]>(
-    () =>
-      technologyDomainBuckets.map((domain) => ({
-        title: domain.title,
-        shortText: domain.shortText,
-        emoji: domain.pagerEmoji,
-        items: domain.technologies.map((technology) => ({
-          label: technology.name,
-          description: `${domain.shortText}.`,
-          emoji: resolveTechnologyEmoji(technology.name, technology.emoji),
-          sourceLink: technology.url,
-        })),
-      })),
-    [technologyDomainBuckets],
+    () => resolveTechnologyCompetencyCategories(project.technologiesUsed),
+    [project.technologiesUsed],
   );
 
   const projectPresentationNavigationControlSx: SxProps<Theme> = (theme) => ({
@@ -843,69 +378,12 @@ export function useProjectPresentationController(
 
   const diagramItems = useMemo<MediaCyclerItem[]>(
     () =>
-      diagramEntries.map((entry) => ({
-        key: entry.key,
-        title: "",
-        mediaType: "diagram",
-        mediaUrl: entry.diagram,
-        mediaLightboxTitle: entry.title,
-        lightboxSubtitle: entry.shortText || undefined,
-        onSelect: () => {
-          setActiveDiagramKey(entry.key);
-        },
-        panelSx: {
-          display: "flex",
-          flexDirection: "column",
-          minHeight: 0,
-          height: "100%",
-          flex: "1 1 auto",
-        },
-        assetFrameSx: {
-          width: "100%",
-          minHeight: 0,
-          height: "100%",
-          flex: "1 1 auto",
-          display: "flex",
-          overflow: "hidden",
-        },
-        diagramProps: {
-          title: entry.title,
-          type: entry.type,
-          syntax: diagramDeepLinkMode === "code" ? "text" : "mermaid",
-          height: "100%",
-          width: "100%",
-          showToolbar: true,
-          showGridDots: true,
-          autoFitPadding: entry.autoFitPadding ?? 14,
-          autoFitScaleMultiplier:
-            (entry.autoFitScaleMultiplier ?? 1) *
-            (DIAGRAM_ZOOM_PRESET_MULTIPLIERS[diagramDeepLinkZoomPreset] ?? 1),
-          autoFitOffsetX: entry.autoFitOffsetX ?? 0,
-          autoFitOffsetY: entry.autoFitOffsetY ?? 0,
-        },
-        extraContent: entry.description ? (
-          <Typography
-            component="div"
-            variant="body2"
-            sx={{
-              mt: 0.75,
-              width: "100%",
-              minHeight: { xs: 40, md: 52 },
-              fontSize: { xs: "0.96rem", md: "1.06rem", lg: "1.12rem" },
-              fontWeight: 500,
-              lineHeight: 1.45,
-              textAlign: "left",
-              color: (theme) => alpha(theme.palette.common.white, 0.9),
-              display: "-webkit-box",
-              WebkitLineClamp: { xs: 2, md: 3 },
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {entry.description}
-          </Typography>
-        ) : undefined,
-      })),
+      resolveDiagramItems({
+        diagramEntries,
+        diagramDeepLinkMode,
+        diagramDeepLinkZoomPreset,
+        onSelectDiagram: setActiveDiagramKey,
+      }),
     [diagramDeepLinkMode, diagramDeepLinkZoomPreset, diagramEntries],
   );
 
@@ -933,6 +411,14 @@ export function useProjectPresentationController(
     useWhyThisInterestsSlide,
     hasDemoSection: demoItems.length > 0,
     hasDiagramsSection: diagramItems.length > 0,
+    sectionCapabilityEnabledByKey: {
+      overview: sectionCapabilitiesByKey.overview.enabled,
+      why: sectionCapabilitiesByKey.why.enabled,
+      demo: sectionCapabilitiesByKey.demo.enabled,
+      technologies: sectionCapabilitiesByKey.technologies.enabled,
+      specifications: sectionCapabilitiesByKey.specifications.enabled,
+      diagrams: sectionCapabilitiesByKey.diagrams.enabled,
+    },
     sectionOrder: resolvePresentationSectionOrder(project, [
       "overview",
       "why",
@@ -978,6 +464,10 @@ export function useProjectPresentationController(
     () => sectionsWithIcons.find((section) => section.key === activeSection?.key) ?? null,
     [activeSection?.key, sectionsWithIcons],
   );
+  const activeSectionCapability = sectionCapabilitiesByKey[activeSectionKey];
+  const allowPreviousSectionAction = activeSectionCapability.pagerActions.allowPrevious;
+  const allowNextSectionAction = activeSectionCapability.pagerActions.allowNext;
+  const allowSectionSelectorAction = activeSectionCapability.pagerActions.allowSelector;
 
   const activeOverviewMediaIndex = useMemo(
     () => overviewItems.findIndex((item) => item.key === activeOverviewMediaKey),
@@ -986,6 +476,20 @@ export function useProjectPresentationController(
   const activeDemoMediaIndex = useMemo(
     () => demoItems.findIndex((item) => item.key === activeDemoMediaKey),
     [activeDemoMediaKey, demoItems],
+  );
+
+  const canRestoreDeepLinkForSection = useCallback(
+    (sectionKey: ProjectPresentationSectionKey, hasParam: boolean) => {
+      const mode = sectionCapabilitiesByKey[sectionKey]?.deepLinkRestore ?? "always";
+      if (mode === "never") {
+        return false;
+      }
+      if (mode === "if-present") {
+        return hasParam;
+      }
+      return true;
+    },
+    [sectionCapabilitiesByKey],
   );
 
   useEffect(() => {
@@ -1001,16 +505,26 @@ export function useProjectPresentationController(
     }
 
     const sectionParam = params.get("section")?.trim() || params.get("slide")?.trim();
+    const hasSectionParam = Boolean(sectionParam);
     const resolvedSectionKey = resolveSectionKeyFromParam(sectionParam, sections);
-    const targetSectionKey = resolvedSectionKey ?? activeSectionKey;
-    if (resolvedSectionKey) {
+    const shouldRestoreResolvedSection = resolvedSectionKey
+      ? canRestoreDeepLinkForSection(resolvedSectionKey, hasSectionParam)
+      : false;
+    const targetSectionKey =
+      resolvedSectionKey && shouldRestoreResolvedSection ? resolvedSectionKey : activeSectionKey;
+    if (resolvedSectionKey && shouldRestoreResolvedSection) {
       setActiveSectionKey(resolvedSectionKey);
     }
 
     const subParam = params.get("sub")?.trim();
     const mediaParam = params.get("media")?.trim();
+    const hasSubParam = Boolean(subParam || mediaParam);
 
-    if (targetSectionKey === "diagrams" && diagramEntries.length > 0) {
+    if (
+      targetSectionKey === "diagrams" &&
+      diagramEntries.length > 0 &&
+      canRestoreDeepLinkForSection("diagrams", hasSubParam || Boolean(params.get("diagram")))
+    ) {
       const diagramParam = subParam || params.get("diagram")?.trim() || mediaParam;
       const resolvedDiagramKey = resolveEntryKeyFromParam(diagramParam, diagramEntries);
       if (resolvedDiagramKey) {
@@ -1018,7 +532,11 @@ export function useProjectPresentationController(
       }
     }
 
-    if (targetSectionKey === "overview" && overviewItems.length > 0) {
+    if (
+      targetSectionKey === "overview" &&
+      overviewItems.length > 0 &&
+      canRestoreDeepLinkForSection("overview", hasSubParam)
+    ) {
       const overviewKeys = overviewItems.map((item) => item.key);
       const resolvedOverviewKey =
         resolveIndexedKeyFromParam(subParam, overviewKeys) ||
@@ -1028,7 +546,11 @@ export function useProjectPresentationController(
       }
     }
 
-    if (targetSectionKey === "demo" && demoItems.length > 0) {
+    if (
+      targetSectionKey === "demo" &&
+      demoItems.length > 0 &&
+      canRestoreDeepLinkForSection("demo", hasSubParam)
+    ) {
       const demoKeys = demoItems.map((item) => item.key);
       const resolvedDemoKey =
         resolveIndexedKeyFromParam(subParam, demoKeys) ||
@@ -1042,7 +564,13 @@ export function useProjectPresentationController(
       params.get("diagramMode")?.trim() || params.get("mode")?.trim(),
       DIAGRAM_DEEP_LINK_MODE_ALIASES,
     );
-    if (resolvedMode) {
+    if (
+      resolvedMode &&
+      canRestoreDeepLinkForSection(
+        "diagrams",
+        Boolean(params.get("diagramMode")?.trim() || params.get("mode")?.trim()),
+      )
+    ) {
       setDiagramDeepLinkMode(resolvedMode);
     }
 
@@ -1052,7 +580,17 @@ export function useProjectPresentationController(
         params.get("zoom")?.trim(),
       DIAGRAM_DEEP_LINK_ZOOM_PRESET_ALIASES,
     );
-    if (resolvedZoomPreset) {
+    if (
+      resolvedZoomPreset &&
+      canRestoreDeepLinkForSection(
+        "diagrams",
+        Boolean(
+          params.get("diagramZoom")?.trim() ||
+          params.get("zoomPreset")?.trim() ||
+          params.get("zoom")?.trim(),
+        ),
+      )
+    ) {
       setDiagramDeepLinkZoomPreset(resolvedZoomPreset);
     }
 
@@ -1065,6 +603,7 @@ export function useProjectPresentationController(
     overviewItems,
     projectSlug,
     sections,
+    canRestoreDeepLinkForSection,
     setActiveDemoMediaKey,
     setActiveDiagramKey,
     setActiveOverviewMediaKey,
@@ -1217,6 +756,12 @@ export function useProjectPresentationController(
 
   const handleSelectSection = useCallback(
     (key: ProjectPresentationSectionKey) => {
+      if (!allowSectionSelectorAction) {
+        return;
+      }
+      if (!sectionCapabilitiesByKey[key].enabled) {
+        return;
+      }
       if (key === activeSectionKey) {
         return;
       }
@@ -1236,10 +781,20 @@ export function useProjectPresentationController(
       });
       setActiveSectionKey(key);
     },
-    [activeSectionKey, sections, setActiveSectionKey, startInteractionMeasure],
+    [
+      activeSectionKey,
+      allowSectionSelectorAction,
+      sectionCapabilitiesByKey,
+      sections,
+      setActiveSectionKey,
+      startInteractionMeasure,
+    ],
   );
 
   const handlePreviousSectionMeasured = useCallback(() => {
+    if (!allowPreviousSectionAction) {
+      return;
+    }
     if (!sections.length) {
       return;
     }
@@ -1256,9 +811,18 @@ export function useProjectPresentationController(
       to: previousSectionKey,
     });
     handlePreviousSection();
-  }, [activeSectionKey, handlePreviousSection, sections, startInteractionMeasure]);
+  }, [
+    activeSectionKey,
+    allowPreviousSectionAction,
+    handlePreviousSection,
+    sections,
+    startInteractionMeasure,
+  ]);
 
   const handleNextSectionMeasured = useCallback(() => {
+    if (!allowNextSectionAction) {
+      return;
+    }
     if (!sections.length) {
       return;
     }
@@ -1275,7 +839,13 @@ export function useProjectPresentationController(
       to: nextSectionKey,
     });
     handleNextSection();
-  }, [activeSectionKey, handleNextSection, sections, startInteractionMeasure]);
+  }, [
+    activeSectionKey,
+    allowNextSectionAction,
+    handleNextSection,
+    sections,
+    startInteractionMeasure,
+  ]);
 
   const handleSelectArchitectureDiagramMeasured = useCallback(
     (key: string) => {
@@ -1384,12 +954,16 @@ export function useProjectPresentationController(
     useSharedDemoSlide,
     useSharedArchitectureDiagramsSlide,
     isPodcastsLayout,
+    useTightDemoCaptionLayout,
     deepLinkInitialized,
     activeSectionKey,
     sectionNavigationDirection,
     hasMultipleSections,
     activeSectionWithIcon,
     pagerItems,
+    allowPreviousSectionAction,
+    allowNextSectionAction,
+    allowSectionSelectorAction,
     handleSelectSection,
     handlePreviousSectionMeasured,
     handleNextSectionMeasured,

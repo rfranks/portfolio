@@ -11,6 +11,9 @@ import type { SubsectionPagerItem } from "./types";
 type UseSubsectionPagerCoreArgs = {
   items: SubsectionPagerItem[];
   currentKey?: string;
+  disablePrevious?: boolean;
+  disableNext?: boolean;
+  disableSelector?: boolean;
   onSelect: (key: string) => void;
   onPrevious: () => void;
   onNext: () => void;
@@ -34,6 +37,9 @@ export const formatLabel = (index: number, title: string, showOrdinal: boolean) 
 export function useSubsectionPagerCore({
   items,
   currentKey,
+  disablePrevious = false,
+  disableNext = false,
+  disableSelector = false,
   onSelect,
   onPrevious,
   onNext,
@@ -53,9 +59,15 @@ export function useSubsectionPagerCore({
     }
 
     const handleShortcutPrevious = () => {
+      if (disablePrevious) {
+        return;
+      }
       onPrevious();
     };
     const handleShortcutNext = () => {
+      if (disableNext) {
+        return;
+      }
       onNext();
     };
 
@@ -65,11 +77,17 @@ export function useSubsectionPagerCore({
       window.removeEventListener("portfolio:shortcut:sub-prev", handleShortcutPrevious);
       window.removeEventListener("portfolio:shortcut:sub-next", handleShortcutNext);
     };
-  }, [hasMultipleItems, onNext, onPrevious]);
+  }, [disableNext, disablePrevious, hasMultipleItems, onNext, onPrevious]);
 
-  const handleSelectorOpen = useCallback((event: MouseEvent<HTMLElement>) => {
-    setSelectorAnchorEl(event.currentTarget);
-  }, []);
+  const handleSelectorOpen = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      if (disableSelector) {
+        return;
+      }
+      setSelectorAnchorEl(event.currentTarget);
+    },
+    [disableSelector],
+  );
 
   const handleSelectorClose = useCallback(() => {
     setSelectorAnchorEl(null);
@@ -87,20 +105,29 @@ export function useSubsectionPagerCore({
     (event: KeyboardEvent<HTMLElement>) => {
       if (event.key === "ArrowLeft") {
         event.preventDefault();
+        if (disablePrevious) {
+          return;
+        }
         onPrevious();
         return;
       }
       if (event.key === "ArrowRight") {
         event.preventDefault();
+        if (disableNext) {
+          return;
+        }
         onNext();
         return;
       }
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
+        if (disableSelector) {
+          return;
+        }
         setSelectorAnchorEl(event.currentTarget);
       }
     },
-    [onNext, onPrevious],
+    [disableNext, disablePrevious, disableSelector, onNext, onPrevious],
   );
 
   return {

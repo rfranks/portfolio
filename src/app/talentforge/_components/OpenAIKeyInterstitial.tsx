@@ -59,6 +59,7 @@ export default function OpenAIKeyInterstitial() {
     <OpenAIKeyInterstitialContent
       appName="TalentForge"
       logoAlt="TalentForge logo"
+      logoSrc="/apps/talentforge/images/logo192.png"
       value={value}
       onChange={setValue}
       onSubmit={handleSubmit}

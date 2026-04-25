@@ -7,112 +7,18 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import { ArrowBack, Close, DarkMode, LightMode } from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material/styles";
-import AIShenanigan, {
-  AIShenaniganMovieOrientation,
-  AIShenaniganType,
-} from "./_components/AIShenanigan";
+import AIShenanigan from "./_components/AIShenanigan";
 import AIShenaniganPager from "./_components/AIShenaniganPager";
+import type { AIShenaniganDataItem } from "./_types/aiShenaniganModels";
+import { normalizeAIShenaniganItems } from "./_utils/aiShenaniganRegistry";
 import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
-import type { ResumeData } from "@/consts/resumeData";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import getFabricTheme from "@/themes/fabricTheme";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
 import { withBasePath } from "@/utils/basePath";
+import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 import useMediaQuery from "@mui/material/useMediaQuery";
-
-type AIShenaniganItemWithLinks = ResumeData["aiShenanigans"]["items"][number] & {
-  type?: AIShenaniganType;
-  shortText?: string;
-  pagerOptionImage?: string;
-  realisticSourceHref?: string;
-  stylizedSourceHref?: string;
-  movieSourceHref?: string;
-  movieRendering2?: string;
-  movieSource2?: string;
-  movieSourceHref2?: string;
-  movieCaption2?: string;
-  rawImage?: string;
-  rawSource?: string;
-  rawSourceHref?: string;
-  rawCaption?: string;
-  analyzedImage?: string;
-  analyzedSource?: string;
-  analyzedSourceHref?: string;
-  analyzedCaption?: string;
-  palmLineAnalysisImage?: string;
-  palmLineAnalysisSource?: string;
-  palmLineAnalysisSourceHref?: string;
-  palmLineAnalysisCaption?: string;
-  palmReadingTitle?: string;
-  palmReadingText?: string;
-  palmReadingMarkdownPath?: string;
-  palmReadingSource?: string;
-  palmReadingSourceHref?: string;
-  songAlbumImage?: string;
-  songAlbumSource?: string;
-  songAlbumSourceHref?: string;
-  songAlbumCaption?: string;
-  songAudio?: string;
-  songAudioSource?: string;
-  songAudioSourceHref?: string;
-  songAudioCaption?: string;
-  songWrittenBy?: string;
-  songPerformedBy?: string;
-  songLyricsMarkdownPath?: string;
-  songLyricsSource?: string;
-  songLyricsSourceHref?: string;
-  intentToCopyright?: boolean;
-  rightsNotice?: string;
-  bookCoverImage?: string;
-  bookSource?: string;
-  bookSourceHref?: string;
-  bookCaption?: string;
-  manuscriptPdf?: string;
-  manuscriptSource?: string;
-  manuscriptSourceHref?: string;
-  manuscriptCaption?: string;
-  trailerMovie?: string;
-  trailerOrientation?: AIShenaniganMovieOrientation;
-  trailerSource?: string;
-  trailerSourceHref?: string;
-  trailerCaption?: string;
-  episodesPdf?: string;
-  episodesSource?: string;
-  episodesSourceHref?: string;
-  episodesCaption?: string;
-  workPdf?: string;
-  workSource?: string;
-  workSourceHref?: string;
-  workCaption?: string;
-  workParts?: Array<{
-    src: string;
-    title?: string;
-    source?: string;
-    sourceHref?: string;
-    caption?: string;
-  }>;
-  seriesMovie?: string;
-  seriesSource?: string;
-  seriesSourceHref?: string;
-  seriesCaption?: string;
-  seriesParts?: Array<{
-    src: string;
-    title?: string;
-    source?: string;
-    sourceHref?: string;
-    caption?: string;
-  }>;
-  episodeMedia?: Array<{
-    title: string;
-    episodeNumber?: number;
-    seasonNumber?: number;
-    src: string;
-    source?: string;
-    sourceHref?: string;
-    caption?: string;
-  }>;
-};
 
 const decodeHashSlug = (hash: string) => {
   const raw = hash.replace(/^#/, "").trim();
@@ -127,58 +33,17 @@ const decodeHashSlug = (hash: string) => {
   }
 };
 
-const buildLinkProps = (item: AIShenaniganItemWithLinks) => ({
-  ...(item.type ? { type: item.type } : {}),
-  ...(item.realisticSourceHref ? { realisticSourceHref: item.realisticSourceHref } : {}),
-  ...(item.stylizedSourceHref ? { stylizedSourceHref: item.stylizedSourceHref } : {}),
-  ...(item.movieSourceHref ? { movieSourceHref: item.movieSourceHref } : {}),
-  ...(item.movieSourceHref2 ? { movieSourceHref2: item.movieSourceHref2 } : {}),
-  ...(item.rawSourceHref ? { rawSourceHref: item.rawSourceHref } : {}),
-  ...(item.analyzedSourceHref ? { analyzedSourceHref: item.analyzedSourceHref } : {}),
-  ...(item.palmLineAnalysisSourceHref
-    ? {
-        palmLineAnalysisSourceHref: item.palmLineAnalysisSourceHref,
-      }
-    : {}),
-  ...(item.palmReadingSourceHref ? { palmReadingSourceHref: item.palmReadingSourceHref } : {}),
-  ...(item.songAlbumSourceHref ? { songAlbumSourceHref: item.songAlbumSourceHref } : {}),
-  ...(item.songAudioSourceHref ? { songAudioSourceHref: item.songAudioSourceHref } : {}),
-  ...(item.songLyricsSourceHref ? { songLyricsSourceHref: item.songLyricsSourceHref } : {}),
-  ...(item.intentToCopyright ? { intentToCopyright: item.intentToCopyright } : {}),
-  ...(item.rightsNotice ? { rightsNotice: item.rightsNotice } : {}),
-  ...(item.bookSourceHref ? { bookSourceHref: item.bookSourceHref } : {}),
-  ...(item.manuscriptSourceHref ? { manuscriptSourceHref: item.manuscriptSourceHref } : {}),
-  ...(item.trailerSourceHref ? { trailerSourceHref: item.trailerSourceHref } : {}),
-  ...(item.episodesSourceHref ? { episodesSourceHref: item.episodesSourceHref } : {}),
-  ...(item.bookCoverImage ? { bookCoverImage: item.bookCoverImage } : {}),
-  ...(item.bookSource ? { bookSource: item.bookSource } : {}),
-  ...(item.bookCaption ? { bookCaption: item.bookCaption } : {}),
-  ...(item.manuscriptPdf ? { manuscriptPdf: item.manuscriptPdf } : {}),
-  ...(item.manuscriptSource ? { manuscriptSource: item.manuscriptSource } : {}),
-  ...(item.manuscriptCaption ? { manuscriptCaption: item.manuscriptCaption } : {}),
-  ...(item.trailerMovie ? { trailerMovie: item.trailerMovie } : {}),
-  ...(item.trailerOrientation ? { trailerOrientation: item.trailerOrientation } : {}),
-  ...(item.trailerSource ? { trailerSource: item.trailerSource } : {}),
-  ...(item.trailerCaption ? { trailerCaption: item.trailerCaption } : {}),
-  ...(item.episodesPdf ? { episodesPdf: item.episodesPdf } : {}),
-  ...(item.episodesSource ? { episodesSource: item.episodesSource } : {}),
-  ...(item.episodesCaption ? { episodesCaption: item.episodesCaption } : {}),
-  ...(item.workPdf ? { workPdf: item.workPdf } : {}),
-  ...(item.workSource ? { workSource: item.workSource } : {}),
-  ...(item.workSourceHref ? { workSourceHref: item.workSourceHref } : {}),
-  ...(item.workCaption ? { workCaption: item.workCaption } : {}),
-  ...(item.workParts ? { workParts: item.workParts } : {}),
-  ...(item.seriesMovie ? { seriesMovie: item.seriesMovie } : {}),
-  ...(item.seriesSource ? { seriesSource: item.seriesSource } : {}),
-  ...(item.seriesSourceHref ? { seriesSourceHref: item.seriesSourceHref } : {}),
-  ...(item.seriesCaption ? { seriesCaption: item.seriesCaption } : {}),
-  ...(item.seriesParts ? { seriesParts: item.seriesParts } : {}),
-  ...(item.episodeMedia ? { episodeMedia: item.episodeMedia } : {}),
-});
-
 export default function AIShenanigansPageClient() {
-  const { aiShenanigans, portfolioApps } = useResumeData();
-  const shenaniganItems = aiShenanigans.items as AIShenaniganItemWithLinks[];
+  const { aiShenanigans, portfolioApps, summary } = useResumeData();
+  const aiShenanigansRoute = getPortfolioAppRouteContract(portfolioApps, "aiShenanigans");
+  const shenaniganItems = useMemo(
+    () =>
+      normalizeAIShenaniganItems(
+        aiShenanigans.items as AIShenaniganDataItem[],
+        summary.avatarImage,
+      ),
+    [aiShenanigans.items, summary.avatarImage],
+  );
   const { mode, toggleColorMode, isReady } = useColorModePreference({
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
   });
@@ -229,8 +94,8 @@ export default function AIShenanigansPageClient() {
   };
 
   useEffect(() => {
-    setDocumentTitle(portfolioApps.aiShenanigans.documentTitle);
-  }, [portfolioApps.aiShenanigans.documentTitle, setDocumentTitle]);
+    setDocumentTitle(aiShenanigansRoute.documentTitle);
+  }, [aiShenanigansRoute.documentTitle, setDocumentTitle]);
 
   useEffect(() => {
     if (!shenaniganItems.length || typeof window === "undefined") {
@@ -331,7 +196,6 @@ export default function AIShenanigansPageClient() {
   }
 
   const currentItem = shenaniganItems[currentIndex];
-  const linkProps = buildLinkProps(currentItem);
 
   return (
     <ThemeProvider theme={theme}>
@@ -440,51 +304,7 @@ export default function AIShenanigansPageClient() {
                 },
               }}
             >
-              <AIShenanigan
-                key={currentItem.slug}
-                rank={currentIndex + 1}
-                title={currentItem.title}
-                blurb={currentItem.blurb}
-                orientation={currentItem.orientation as AIShenaniganMovieOrientation}
-                realisticImage={
-                  (currentItem.realisticImage || currentItem.songAlbumImage) as string
-                }
-                realisticSource={currentItem.realisticSource}
-                realisticCaption={currentItem.realisticCaption}
-                stylizedRendering={currentItem.stylizedRendering}
-                stylizedSource={currentItem.stylizedSource}
-                stylizedCaption={currentItem.stylizedCaption}
-                movieRendering={currentItem.movieRendering}
-                movieSource={currentItem.movieSource}
-                movieCaption={currentItem.movieCaption}
-                movieRendering2={currentItem.movieRendering2}
-                movieSource2={currentItem.movieSource2}
-                movieCaption2={currentItem.movieCaption2}
-                rawImage={currentItem.rawImage}
-                rawSource={currentItem.rawSource}
-                rawCaption={currentItem.rawCaption}
-                analyzedImage={currentItem.analyzedImage}
-                analyzedSource={currentItem.analyzedSource}
-                analyzedCaption={currentItem.analyzedCaption}
-                palmLineAnalysisImage={currentItem.palmLineAnalysisImage}
-                palmLineAnalysisSource={currentItem.palmLineAnalysisSource}
-                palmLineAnalysisCaption={currentItem.palmLineAnalysisCaption}
-                palmReadingTitle={currentItem.palmReadingTitle}
-                palmReadingText={currentItem.palmReadingText}
-                palmReadingMarkdownPath={currentItem.palmReadingMarkdownPath}
-                palmReadingSource={currentItem.palmReadingSource}
-                songAlbumImage={currentItem.songAlbumImage}
-                songAlbumSource={currentItem.songAlbumSource}
-                songAlbumCaption={currentItem.songAlbumCaption}
-                songAudio={currentItem.songAudio}
-                songAudioSource={currentItem.songAudioSource}
-                songAudioCaption={currentItem.songAudioCaption}
-                songWrittenBy={currentItem.songWrittenBy}
-                songPerformedBy={currentItem.songPerformedBy}
-                songLyricsMarkdownPath={currentItem.songLyricsMarkdownPath}
-                songLyricsSource={currentItem.songLyricsSource}
-                {...linkProps}
-              />
+              <AIShenanigan key={currentItem.slug} {...currentItem.props} />
             </Box>
           </Box>
 

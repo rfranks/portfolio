@@ -9,6 +9,7 @@ export type OpenAIChatCompletionRequest = {
   temperature?: number;
   top_p?: number;
   max_tokens?: number;
+  max_completion_tokens?: number;
 };
 
 export type OpenAIResponsesRequest = {

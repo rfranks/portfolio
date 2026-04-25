@@ -12,7 +12,6 @@ import {
   PolarRadiusAxis,
   Radar,
   RadarChart,
-  Cell,
 } from "recharts";
 
 import Grid from "@mui/material/Grid";
@@ -119,13 +118,9 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
             <Bar
               key={`${seq.description}-${index}`}
               dataKey={seq.description}
-              fill={baseToColor("A")}
+              fill={getSequenceColor(index)}
               label={"# of base pairs"}
-            >
-              {bpCounts.map((entry) => (
-                <Cell key={`${seq.description}-${entry.name}`} fill={baseToColor(entry.name)} />
-              ))}
-            </Bar>
+            />
           ))}
         </BarChart>
       </Grid>
@@ -170,7 +165,9 @@ export function BasepairHistogram(props: BasepairHistogramProps) {
               name={seq.description}
               dataKey={seq.description}
               fill={getSequenceColor(index)}
-              fillOpacity={0.5}
+              stroke={getSequenceColor(index)}
+              strokeWidth={2}
+              fillOpacity={0.32}
             />
           ))}
         </RadarChart>

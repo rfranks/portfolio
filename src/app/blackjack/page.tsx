@@ -9,7 +9,9 @@ import type { SubsectionPagerItem } from "@/components/portfolio/layout/Subsecti
 import { DemoSlide, MarkdownContent, VideoLightbox } from "@/components/shared";
 import type { MediaCyclerItem } from "@/components/shared";
 import { useResumeData } from "@/providers/ResumeDataProvider";
+import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 import { withBasePath } from "@/utils/basePath";
+import { resolveDiagramAutoFitConfig } from "@/utils/components/shared/diagramAutoFit";
 import ArchitectureDiagramsSlide from "./_components/ArchitectureDiagramsSlide";
 import BlackjackCarouselNav from "./_components/BlackjackCarouselNav";
 import BlackjackGameSlide from "./_components/BlackjackGameSlide";
@@ -76,8 +78,9 @@ const resolveDiagramVisual = (
 };
 
 export default function BlackjackPage() {
-  const { projects } = useResumeData();
-  const blackjack = useBlackjackPage();
+  const { portfolioApps, projects } = useResumeData();
+  const blackjackRoute = getPortfolioAppRouteContract(portfolioApps, "blackjack");
+  const blackjack = useBlackjackPage(blackjackRoute.documentTitle);
   const blackjackProject = projects?.find((proj) => proj?.href === "/blackjack");
   const blackjackTerminalDemo = React.useMemo(() => {
     const configured = (
@@ -133,6 +136,37 @@ export default function BlackjackPage() {
       WebkitLineClamp: { xs: 2, md: 3 },
       WebkitBoxOrient: "vertical",
       overflow: "hidden",
+    }),
+    [],
+  );
+  const terminalDemoContentSx = React.useMemo<SxProps<Theme>>(
+    () => ({
+      flex: "0 0 auto",
+      overflow: "visible",
+    }),
+    [],
+  );
+  const terminalDemoCaptionSlotSx = React.useMemo<SxProps<Theme>>(
+    () => ({
+      mt: 0.45,
+      width: "100%",
+      minHeight: 0,
+      flex: "1 1 120px",
+      alignItems: "flex-start",
+      justifyContent: "flex-start",
+      alignContent: "flex-start",
+    }),
+    [],
+  );
+  const terminalDemoCaptionTextSx = React.useMemo<SxProps<Theme>>(
+    () => ({
+      width: "100%",
+      fontSize: { xs: "0.96rem", md: "1.06rem", lg: "1.12rem" },
+      fontWeight: 500,
+      lineHeight: 1.45,
+      textAlign: "left",
+      color: (theme) => alpha(theme.palette.common.white, 0.9),
+      alignSelf: "flex-start",
     }),
     [],
   );
@@ -192,58 +226,62 @@ export default function BlackjackPage() {
   );
   const blackjackDiagramItems = React.useMemo<MediaCyclerItem[]>(
     () =>
-      normalizedBlackjackDiagrams.map((diagram) => ({
-        key: diagram.key,
-        title: "",
-        mediaLightboxTitle: diagram.title,
-        lightboxSubtitle: diagram.shortText?.trim() || undefined,
-        mediaType: "diagram",
-        mediaUrl: diagram.diagram,
-        onSelect: () => {
-          setActiveDiagramKey(diagram.key);
-        },
-        panelSx: {
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-          width: "100%",
-          minHeight: 0,
-          height: "100%",
-          flex: "1 1 auto",
-          p: 0,
-          overflow: "visible",
-          border: 0,
-          borderRadius: 0,
-          background: "transparent",
-          boxShadow: "none",
-        },
-        assetFrameSx: {
-          width: "100%",
-          minHeight: 0,
-          height: { xs: "calc(100% - 78px)", md: "calc(100% - 90px)" },
-          flex: "0 1 auto",
-          overflow: "hidden",
-        },
-        diagramProps: {
-          title: diagram.title,
-          type: diagram.type,
-          height: "100%",
-          width: "100%",
-          showToolbar: true,
-          showGridDots: true,
-          autoFitPadding: diagram.autoFitPadding ?? 14,
-          autoFitScaleMultiplier: diagram.autoFitScaleMultiplier ?? 1,
-          autoFitOffsetX: diagram.autoFitOffsetX ?? 0,
-          autoFitOffsetY: diagram.autoFitOffsetY ?? 0,
-        },
-        extraContent: diagram.description?.trim() ? (
-          <Box sx={captionSlotSx}>
-            <Typography component="div" variant="body2" sx={captionTextSx}>
-              {diagram.description.trim()}
-            </Typography>
-          </Box>
-        ) : undefined,
-      })),
+      normalizedBlackjackDiagrams.map((diagram) => {
+        const autoFit = resolveDiagramAutoFitConfig(diagram);
+        return {
+          key: diagram.key,
+          title: "",
+          mediaLightboxTitle: diagram.title,
+          lightboxSubtitle: diagram.shortText?.trim() || undefined,
+          mediaType: "diagram",
+          mediaUrl: diagram.diagram,
+          onSelect: () => {
+            setActiveDiagramKey(diagram.key);
+          },
+          panelSx: {
+            display: "flex",
+            flexDirection: "column",
+            minWidth: 0,
+            width: "100%",
+            minHeight: 0,
+            height: "100%",
+            flex: "1 1 auto",
+            p: 0,
+            overflow: "visible",
+            border: 0,
+            borderRadius: 0,
+            background: "transparent",
+            boxShadow: "none",
+          },
+          assetFrameSx: {
+            width: "100%",
+            minHeight: 0,
+            height: { xs: "calc(100% - 78px)", md: "calc(100% - 90px)" },
+            flex: "0 1 auto",
+            overflow: "hidden",
+          },
+          diagramProps: {
+            title: diagram.title,
+            type: diagram.type,
+            height: "100%",
+            width: "100%",
+            showToolbar: true,
+            showGridDots: true,
+            autoFitPadding: autoFit.padding,
+            autoFitScaleMultiplier: autoFit.scaleMultiplier,
+            autoFitVerticalAlign: autoFit.verticalAlign,
+            autoFitOffsetX: autoFit.offsetX,
+            autoFitOffsetY: autoFit.offsetY,
+          },
+          extraContent: diagram.description?.trim() ? (
+            <Box sx={captionSlotSx}>
+              <Typography component="div" variant="body2" sx={captionTextSx}>
+                {diagram.description.trim()}
+              </Typography>
+            </Box>
+          ) : undefined,
+        };
+      }),
     [captionSlotSx, captionTextSx, normalizedBlackjackDiagrams],
   );
 
@@ -275,11 +313,23 @@ export default function BlackjackPage() {
     setActiveDiagramKey(normalizedBlackjackDiagrams[0]?.key);
   }, [normalizedBlackjackDiagrams]);
 
+  const blackjackBackgroundAssetVars = React.useMemo(
+    () =>
+      ({
+        "--blackjack-bg-card-back-url": `url("${withBasePath("/assets/cards/PNG/Cards (large)/card_back.png")}")`,
+        "--blackjack-bg-card-ace-url": `url("${withBasePath("/assets/cards/PNG/Cards (large)/card_spades_A.png")}")`,
+        "--blackjack-bg-card-jack-url": `url("${withBasePath("/assets/cards/PNG/Cards (large)/card_spades_J.png")}")`,
+        "--blackjack-bg-chip-svg-url": `url("${withBasePath("/assets/boardgame/Vector/chips.svg")}")`,
+      }) as React.CSSProperties,
+    [],
+  );
+
   return (
     <main
       ref={blackjack.pageRef}
       className="blackjack-page"
       data-engine-state-ready={blackjack.engineState ? "true" : "false"}
+      style={blackjackBackgroundAssetVars}
     >
       {blackjack.blackjackConfettiPieces.length ? (
         <div className="blackjack-confetti-layer" aria-hidden="true">
@@ -329,6 +379,9 @@ export default function BlackjackPage() {
         onToggleSounds={blackjack.handleToggleSounds}
         playerStackRef={blackjack.playerStackRef}
         resultEmojis={blackjack.resultEmojis}
+        analyticsRounds={blackjack.analyticsRounds}
+        roundTimelineEntries={blackjack.roundTimelineEntries}
+        activeRoundNumber={blackjack.activeRoundNumber}
         setSlideRef={(node) => blackjack.setSlideRef("game-card", node)}
         soundsEnabled={blackjack.soundsEnabled}
         stackTickerActive={blackjack.stackTickerActive}
@@ -362,8 +415,9 @@ export default function BlackjackPage() {
         caption={blackjackTerminalDemo?.caption}
         titleClassName="blackjack-panel-title"
         subtitleClassName="blackjack-panel-subtitle"
-        captionSlotSx={captionSlotSx}
-        captionTextSx={captionTextSx}
+        contentSx={terminalDemoContentSx}
+        captionSlotSx={terminalDemoCaptionSlotSx}
+        captionTextSx={terminalDemoCaptionTextSx}
       >
         {blackjackTerminalDemo ? (
           <VideoLightbox
