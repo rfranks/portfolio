@@ -24,7 +24,7 @@ import "@fontsource/gloria-hallelujah/400.css";
 import "./page.css"; // Ensure global styles are applied
 import { hasOpenAIKey, setOpenAIKey } from "@/app/bookworm/_utils/utils";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
-import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
+import { useOpenAIAppShell } from "@/hooks/app/useOpenAIAppShell";
 import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
 import { useResumeData } from "@/providers/ResumeDataProvider";
@@ -40,13 +40,15 @@ export default function BookwormPage() {
   const defaultTheme = React.useMemo(() => createTheme(getBookwormLandingTheme(mode)), [mode]);
   const [apiKeyReady, setApiKeyReady] = React.useState(hasOpenAIKey());
   const [draftKey, setDraftKey] = React.useState("");
-  const { setDocumentTitle } = useDocumentTitle();
+  const keyInputRef = React.useRef<HTMLInputElement | null>(null);
+  const appShell = useOpenAIAppShell({
+    documentTitle: bookwormRoute.documentTitle,
+    isReady,
+    hasOpenAIKey: apiKeyReady,
+    keyInputRef,
+  });
 
-  React.useEffect(() => {
-    setDocumentTitle(bookwormRoute.documentTitle);
-  }, [bookwormRoute.documentTitle, setDocumentTitle]);
-
-  if (!isReady) {
+  if (appShell.isBooting) {
     return null;
   }
 
@@ -60,7 +62,7 @@ export default function BookwormPage() {
     }
   };
 
-  if (!apiKeyReady) {
+  if (appShell.isOpenAIKeyGateVisible) {
     return (
       <ThemeProvider theme={defaultTheme}>
         <CssBaseline enableColorScheme />
@@ -70,6 +72,7 @@ export default function BookwormPage() {
           value={draftKey}
           onChange={setDraftKey}
           onSubmit={handleSubmit}
+          inputRef={keyInputRef}
         />
       </ThemeProvider>
     );

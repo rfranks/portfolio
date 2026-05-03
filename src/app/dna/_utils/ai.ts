@@ -173,6 +173,15 @@ function extractTextContent(content: unknown): string {
   return "";
 }
 
+function toJsonSchemaName(value: string): string {
+  const sanitized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return sanitized || "sequence_analysis_output";
+}
+
 export async function runAIPrompt<
   TInputSchema extends z.ZodTypeAny,
   TOutputSchema extends z.ZodTypeAny,
@@ -187,57 +196,86 @@ export async function runAIPrompt<
   const apiKey = ensureOpenAIKey();
   const input = prompt.inputSchema.parse(rawInput);
   const outputJsonSchema = toJSONSchema(prompt.outputSchema);
-  let data;
+  const schemaName = toJsonSchemaName(prompt.id);
+  const userContentParts = [prompt.promptText(input)];
+  const inputRecord =
+    typeof input === "object" && input !== null ? (input as Record<string, unknown>) : null;
+  if (inputRecord?.mode === "compare-sequences" && Array.isArray(inputRecord.sequences)) {
+    userContentParts.push("", "Input payload:", JSON.stringify(input, null, 2));
+  }
+  const requestMessages = [
+    {
+      role: "system" as const,
+      content: [
+        "You are a careful bioinformatics assistant.",
+        "Return only valid JSON.",
+        "The JSON must satisfy the provided output schema exactly.",
+      ].join(" "),
+    },
+    {
+      role: "user" as const,
+      content: userContentParts.join("\n"),
+    },
+  ];
 
-  try {
-    data = await requestOpenAIChatCompletions(
-      apiKey,
-      {
-        model: DNA_SEQUENCE_ANALYSIS_MODEL,
-        max_completion_tokens: options?.maxTokens,
-        messages: [
-          {
-            role: "system",
-            content: [
-              "You are a careful bioinformatics assistant.",
-              "Return only valid JSON.",
-              "The JSON must satisfy the provided output schema exactly.",
-            ].join(" "),
+  const requestOpenAI = async (maxCompletionTokens: number | undefined) => {
+    try {
+      return await requestOpenAIChatCompletions(
+        apiKey,
+        {
+          model: DNA_SEQUENCE_ANALYSIS_MODEL,
+          max_completion_tokens: maxCompletionTokens,
+          reasoning_effort: "minimal",
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: schemaName,
+              strict: true,
+              schema: outputJsonSchema,
+            },
           },
-          {
-            role: "user",
-            content: [
-              prompt.promptText(input),
-              "",
-              "Input payload:",
-              JSON.stringify(input, null, 2),
-              "",
-              "Output JSON schema:",
-              JSON.stringify(outputJsonSchema, null, 2),
-            ].join("\n"),
-          },
-        ],
-      },
-      options?.requestProfileOverrides,
-    );
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.name === "TimeoutError" ||
-        error.name === "AbortError" ||
-        error.message.toLowerCase().includes("timed out"))
-    ) {
-      throw new Error(
-        "GeneBoard AI request timed out before analysis completed. Retry or reduce the analysis scope.",
+          messages: requestMessages,
+        },
+        options?.requestProfileOverrides,
       );
-    }
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.name === "TimeoutError" ||
+          error.name === "AbortError" ||
+          error.message.toLowerCase().includes("timed out"))
+      ) {
+        throw new Error(
+          "GeneBoard AI request timed out before analysis completed. Retry or reduce the analysis scope.",
+        );
+      }
 
-    throw error;
+      throw error;
+    }
+  };
+
+  const initialMaxTokens = options?.maxTokens;
+  let data = await requestOpenAI(initialMaxTokens);
+  let content = extractTextContent(data?.choices?.[0]?.message?.content);
+  const firstChoice = data?.choices?.[0];
+  if (!content && firstChoice?.finish_reason === "length") {
+    const retryMaxTokens = Math.max((initialMaxTokens ?? 1_200) * 2, 2_000);
+    data = await requestOpenAI(retryMaxTokens);
+    content = extractTextContent(data?.choices?.[0]?.message?.content);
   }
 
-  const content = extractTextContent(data?.choices?.[0]?.message?.content);
-
   if (!content) {
+    const finishReason = data?.choices?.[0]?.finish_reason;
+    const reasoningTokens = data?.usage?.completion_tokens_details?.reasoning_tokens;
+    if (finishReason === "length") {
+      const reasoningSuffix =
+        typeof reasoningTokens === "number"
+          ? ` (reasoning tokens consumed: ${reasoningTokens}).`
+          : ".";
+      throw new Error(
+        `OpenAI reached completion length before emitting JSON${reasoningSuffix} Retry, lower analysis scope, or increase completion budget.`,
+      );
+    }
     throw new Error("OpenAI returned an empty response.");
   }
 

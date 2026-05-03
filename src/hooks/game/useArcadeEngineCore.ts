@@ -33,13 +33,17 @@ type UseArcadeEngineCoreOptions = {
 };
 
 export type ArcadeProfileController = {
+  dailyChallenge: ArcadeProfile["dailyChallenge"];
+  dailyChallengeProgressPct: number;
   finishSession: (result?: ArcadeSessionResult) => ArcadeProfile;
   gameId: ArcadeGameId | null;
   gameProfile: ArcadeGameProfile | null;
   isSessionActive: boolean;
+  personalBests: ArcadeProfile["personalBests"];
   profile: ArcadeProfile;
   refreshProfile: () => ArcadeProfile;
   startSession: () => ArcadeProfile;
+  streak: ArcadeProfile["streak"];
 };
 
 type UseArcadeEngineCoreResult = {
@@ -176,6 +180,13 @@ export function useArcadeEngineCore({
   const arcadeProfile = useMemo<ArcadeProfileController>(
     () => ({
       profile,
+      dailyChallenge: profile.dailyChallenge,
+      dailyChallengeProgressPct:
+        profile.dailyChallenge.target > 0
+          ? Math.min(100, (profile.dailyChallenge.progress / profile.dailyChallenge.target) * 100)
+          : 0,
+      streak: profile.streak,
+      personalBests: profile.personalBests,
       gameId: arcadeGameId ?? null,
       gameProfile: arcadeGameId ? profile.games[arcadeGameId] : null,
       isSessionActive: activeSessionStartedAtRef.current !== null,

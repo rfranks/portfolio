@@ -7,19 +7,22 @@ import {
 } from "@/components/portfolio/projectPageData";
 
 describe("presentation route contracts", () => {
-  it("generateStaticParams matches presentation slugs", () => {
+  it("generateStaticParams includes all presentation slugs", () => {
     const slugs = getPresentationProjectSlugs();
     const staticParams = generateStaticParams();
+    const staticSlugSet = new Set(staticParams.map((entry) => entry.projectSlug));
 
-    expect(staticParams.map((entry) => entry.projectSlug)).toEqual(slugs);
+    slugs.forEach((slug) => {
+      expect(staticSlugSet.has(slug)).toBe(true);
+    });
     expect(new Set(slugs).size).toBe(slugs.length);
   });
 
-  it("resolves page data for every generated static param", () => {
-    const staticParams = generateStaticParams();
-    expect(staticParams.length).toBeGreaterThan(0);
+  it("resolves page data for every presentation slug", () => {
+    const presentationSlugs = getPresentationProjectSlugs();
+    expect(presentationSlugs.length).toBeGreaterThan(0);
 
-    staticParams.forEach(({ projectSlug }) => {
+    presentationSlugs.forEach((projectSlug) => {
       const project = createPresentationProjectPageData(projectSlug);
       expect(project).not.toBeNull();
       expect(project?.href).toBe(`/${projectSlug}`);

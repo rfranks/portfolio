@@ -8,19 +8,31 @@ import Paper from "@mui/material/Paper";
 import Slider from "@mui/material/Slider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { portfolioApps } from "@/consts/resumeData";
+import { useRouteStateSync } from "@/hooks/window/useRouteStateSync";
 import type { TimelineEventKind } from "@/types/observability/navigationTelemetry";
 import type { SessionReplayLitePayload } from "@/types/observability/sessionReplayLite";
+import { withBasePath } from "@/utils/basePath";
+import {
+  buildHealthInspectionHref,
+  parseRouteInspectionFlowSearch,
+  type RouteInspectionFlowSource,
+} from "@/utils/observability/routeInspectionFlow";
 import {
   parseSessionReplayLitePayload,
   SESSION_REPLAY_EVENT_KIND_ORDER,
 } from "@/utils/observability/sessionReplayLite";
+import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 
 const formatMs = (value: number) => `${(value / 1000).toFixed(2)}s`;
+const healthRoute = getPortfolioAppRouteContract(portfolioApps, "health");
 
 export default function SessionReplayPageClient() {
   const [payload, setPayload] = React.useState<SessionReplayLitePayload | null>(null);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [cursorMs, setCursorMs] = React.useState(0);
+  const [focusedRoute, setFocusedRoute] = React.useState<string | null>(null);
+  const [flowSource, setFlowSource] = React.useState<RouteInspectionFlowSource | null>(null);
   const [activeKinds, setActiveKinds] = React.useState<Set<TimelineEventKind>>(
     () => new Set(SESSION_REPLAY_EVENT_KIND_ORDER),
   );
@@ -32,9 +44,31 @@ export default function SessionReplayPageClient() {
       return [];
     }
     return payload.events.filter(
-      (event) => event.relativeMs <= cursorMs && activeKinds.has(event.kind),
+      (event) =>
+        event.relativeMs <= cursorMs &&
+        activeKinds.has(event.kind) &&
+        (focusedRoute == null || event.route === focusedRoute),
     );
-  }, [activeKinds, cursorMs, payload]);
+  }, [activeKinds, cursorMs, focusedRoute, payload]);
+
+  const availableRoutes = React.useMemo(() => {
+    if (!payload) {
+      return [];
+    }
+    return Array.from(new Set(payload.events.map((event) => event.route))).sort((left, right) =>
+      left.localeCompare(right),
+    );
+  }, [payload]);
+  const hasFocusedRouteEvents = focusedRoute ? availableRoutes.includes(focusedRoute) : true;
+  const inspectHealthHref = focusedRoute
+    ? withBasePath(
+        buildHealthInspectionHref({
+          healthRoute: healthRoute.route,
+          route: focusedRoute,
+          source: "health",
+        }),
+      )
+    : null;
 
   const routeEvents = React.useMemo(
     () => visibleEvents.filter((event) => event.kind === "route" || event.kind === "navigation"),
@@ -82,6 +116,18 @@ export default function SessionReplayPageClient() {
     [],
   );
 
+  useRouteStateSync({
+    listenToLocationEvents: true,
+    onLocationChange: (location) => {
+      const parsed = parseRouteInspectionFlowSearch(location.search);
+      setFocusedRoute(parsed.route);
+      setFlowSource(parsed.source);
+      setActiveKinds(
+        new Set(parsed.kinds.length > 0 ? parsed.kinds : SESSION_REPLAY_EVENT_KIND_ORDER),
+      );
+    },
+  });
+
   return (
     <Box sx={{ minHeight: "100vh", px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
       <Stack spacing={2}>
@@ -94,13 +140,24 @@ export default function SessionReplayPageClient() {
               Load exported replay JSON and scrub interaction timeline by route/media events.
             </Typography>
           </Box>
-          <Button
-            variant="outlined"
-            onClick={() => fileInputRef.current?.click()}
-            sx={{ alignSelf: { xs: "flex-start", md: "center" } }}
-          >
-            Load Replay JSON
-          </Button>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <Button
+              variant="outlined"
+              onClick={() => fileInputRef.current?.click()}
+              sx={{ alignSelf: { xs: "flex-start", md: "center" } }}
+            >
+              Load Replay JSON
+            </Button>
+            {inspectHealthHref ? (
+              <Button
+                variant="text"
+                href={inspectHealthHref}
+                sx={{ alignSelf: { xs: "flex-start", md: "center" } }}
+              >
+                Open in Health
+              </Button>
+            ) : null}
+          </Stack>
           <input
             ref={fileInputRef}
             type="file"
@@ -109,6 +166,25 @@ export default function SessionReplayPageClient() {
             onChange={onSelectReplayFile}
           />
         </Stack>
+
+        {focusedRoute ? (
+          <Paper elevation={0} sx={{ p: 1.5, border: "1px solid", borderColor: "divider" }}>
+            <Stack spacing={0.75}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                Focused route scope: {focusedRoute}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Showing only replay events for this route
+                {flowSource ? ` (opened from ${flowSource}).` : "."}
+              </Typography>
+              {!hasFocusedRouteEvents && payload ? (
+                <Typography variant="caption" color="warning.main">
+                  Loaded replay has no events for {focusedRoute}.
+                </Typography>
+              ) : null}
+            </Stack>
+          </Paper>
+        ) : null}
 
         {errorMessage ? (
           <Paper elevation={0} sx={{ p: 2, border: "1px solid", borderColor: "error.main" }}>
@@ -138,6 +214,23 @@ export default function SessionReplayPageClient() {
                       label={kind}
                       color={activeKinds.has(kind) ? "primary" : "default"}
                       onClick={() => toggleKind(kind)}
+                      size="small"
+                    />
+                  ))}
+                </Stack>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  <Chip
+                    label="all-routes"
+                    color={focusedRoute == null ? "primary" : "default"}
+                    onClick={() => setFocusedRoute(null)}
+                    size="small"
+                  />
+                  {availableRoutes.map((route) => (
+                    <Chip
+                      key={route}
+                      label={route}
+                      color={focusedRoute === route ? "primary" : "default"}
+                      onClick={() => setFocusedRoute(route)}
                       size="small"
                     />
                   ))}
@@ -205,7 +298,9 @@ export default function SessionReplayPageClient() {
         ) : (
           <Paper elevation={0} sx={{ p: 2, border: "1px solid", borderColor: "divider" }}>
             <Typography variant="body2" color="text.secondary">
-              No replay loaded yet. Export replay JSON from the telemetry overlay and load it here.
+              {focusedRoute
+                ? `No replay loaded yet. Load replay JSON to inspect ${focusedRoute}.`
+                : "No replay loaded yet. Export replay JSON from the telemetry overlay and load it here."}
             </Typography>
           </Paper>
         )}

@@ -4,7 +4,7 @@ import type {
   ResumeDataMigrationPayload,
 } from "@/types/data/migrations/resumeDataMigrations";
 
-export const LATEST_RESUME_DATA_SCHEMA_VERSION = 6;
+export const LATEST_RESUME_DATA_SCHEMA_VERSION = 8;
 
 function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -319,6 +319,7 @@ const DEFAULT_PORTFOLIO_APP_ROUTE_METADATA = {
   aiShenanigans: {
     route: "/ai-shenanigans",
     documentTitle: "AI Shenanigans",
+    commandGroup: "Apps • AI",
     metadataTitle: "AI Shenanigans",
     metadataDescription:
       "AI creative lab for stylized visuals, motion shorts, and narrative adaptation experiments from source image to story-world prototype.",
@@ -326,24 +327,29 @@ const DEFAULT_PORTFOLIO_APP_ROUTE_METADATA = {
   dna: {
     route: "/dna",
     documentTitle: "GeneBoard",
+    commandGroup: "Apps • Portfolio",
   },
   bookworm: {
     route: "/bookworm",
     documentTitle: "Bookworm",
+    commandGroup: "Apps • AI",
   },
   talentforge: {
     route: "/talentforge",
     documentTitle: "TalentForge",
+    commandGroup: "Apps • AI",
   },
   rickbert: {
     route: "/rickbert-studio",
     documentTitle: "Rickbert Studio",
+    commandGroup: "Apps • AI",
     metadataTitle: "Rickbert Studio",
     metadataDescription: "Structured comic strip generation studio for the RICKBERT series.",
   },
   pathforger: {
     route: "/pathforger",
     documentTitle: "PathForger",
+    commandGroup: "Apps • AI",
     metadataTitle: "PathForger",
     metadataDescription:
       "Interactive story-forging studio that generates A/B/C pitches, chapter packages, and parallel cinematic image outputs through staged OpenAI calls.",
@@ -351,26 +357,40 @@ const DEFAULT_PORTFOLIO_APP_ROUTE_METADATA = {
   blackjack: {
     route: "/blackjack",
     documentTitle: "Blackjack",
+    commandGroup: "Apps • Arcade",
+    coreComponent: "blackjack",
+    coreComponentTarget: "blackjack",
   },
   warbirds: {
     route: "/warbirds",
     documentTitle: "Warbirds",
+    commandGroup: "Apps • Arcade",
+    coreComponent: "arcadeCanvas",
+    coreComponentTarget: "warbirds",
   },
   zombiefish: {
     route: "/zombiefish",
     documentTitle: "ZombieFish",
+    commandGroup: "Apps • Arcade",
+    coreComponent: "arcadeCanvas",
+    coreComponentTarget: "zombiefish",
   },
   blasteroids: {
     route: "/blasteroids",
     documentTitle: "Blasteroids",
+    commandGroup: "Apps • Arcade",
+    coreComponent: "arcadeIframe",
+    coreComponentTarget: "blasteroids",
   },
   petly: {
     route: "/petly",
     documentTitle: "Petly",
+    commandGroup: "Apps • Portfolio",
   },
   health: {
     route: "/health",
     documentTitle: "Portfolio Health Dashboard",
+    commandGroup: "Apps • Portfolio",
     metadataTitle: "Portfolio Health Dashboard",
     metadataDescription:
       "Bundle budget, test and accessibility health, and resume schema validation snapshots.",
@@ -378,6 +398,7 @@ const DEFAULT_PORTFOLIO_APP_ROUTE_METADATA = {
   replay: {
     route: "/replay",
     documentTitle: "Session Replay Lite Viewer",
+    commandGroup: "Apps • Portfolio",
     metadataTitle: "Session Replay Lite Viewer",
     metadataDescription:
       "Load and inspect session replay-lite JSON exports with timeline scrubbing and event filters.",
@@ -385,6 +406,7 @@ const DEFAULT_PORTFOLIO_APP_ROUTE_METADATA = {
   capabilities: {
     route: "/capabilities",
     documentTitle: "App Capability Matrix",
+    commandGroup: "Apps • Portfolio",
     metadataTitle: "App Capability Matrix",
     metadataDescription:
       "Cross-route capability matrix with measured quality and performance coverage snapshots.",
@@ -412,12 +434,46 @@ const migrateV5ToV6: MigrationFn = (input) => {
   };
 };
 
+const migrateV6ToV7: MigrationFn = (input) => {
+  const portfolioApps = toRecord(input.portfolioApps);
+  const nextPortfolioApps = Object.fromEntries(
+    Object.entries(DEFAULT_PORTFOLIO_APP_ROUTE_METADATA).map(([appKey, defaults]) => {
+      const existing = toRecord(portfolioApps[appKey]);
+      return [appKey, { ...defaults, ...existing, route: defaults.route }];
+    }),
+  );
+
+  return {
+    ...input,
+    portfolioApps: nextPortfolioApps,
+    schemaVersion: 7,
+  };
+};
+
+const migrateV7ToV8: MigrationFn = (input) => {
+  const portfolioApps = toRecord(input.portfolioApps);
+  const nextPortfolioApps = Object.fromEntries(
+    Object.entries(DEFAULT_PORTFOLIO_APP_ROUTE_METADATA).map(([appKey, defaults]) => {
+      const existing = toRecord(portfolioApps[appKey]);
+      return [appKey, { ...defaults, ...existing, route: defaults.route }];
+    }),
+  );
+
+  return {
+    ...input,
+    portfolioApps: nextPortfolioApps,
+    schemaVersion: 8,
+  };
+};
+
 const MIGRATIONS: Record<number, MigrationFn> = {
   1: migrateV1ToV2,
   2: migrateV2ToV3,
   3: migrateV3ToV4,
   4: migrateV4ToV5,
   5: migrateV5ToV6,
+  6: migrateV6ToV7,
+  7: migrateV7ToV8,
 };
 
 export function migrateResumeData(payload: ResumeDataMigrationPayload): ResumeDataMigrationPayload {

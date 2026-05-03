@@ -1,7 +1,7 @@
-import BlackjackPage from "@/app/blackjack/page";
+import BlackjackPageClient from "@/app/blackjack/BlackjackPageClient";
 
 describe("blackjack smoke route contract", () => {
-  it("exports a renderable page component", () => {
-    expect(typeof BlackjackPage).toBe("function");
+  it("exports a renderable launcher component", () => {
+    expect(typeof BlackjackPageClient).toBe("function");
   });
 });

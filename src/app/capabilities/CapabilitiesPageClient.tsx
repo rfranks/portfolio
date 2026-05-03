@@ -9,8 +9,10 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { getAppCapabilityRegistry } from "@/components/portfolio/appCapabilityRegistry";
+import { portfolioApps } from "@/consts/resumeData";
 import { useHealthSnapshots } from "@/hooks/observability/useHealthSnapshots";
 import type { HealthStatus } from "@/types/observability/healthSnapshots";
+import { withBasePath } from "@/utils/basePath";
 import {
   healthStatusToChipColor,
   readBundleRouteMap,
@@ -18,6 +20,11 @@ import {
   resolveRouteMediaStatus,
   toHealthStatus,
 } from "@/utils/observability/healthSnapshots";
+import {
+  buildHealthInspectionHref,
+  buildReplayInspectionHref,
+} from "@/utils/observability/routeInspectionFlow";
+import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 
 const sortCapabilities = () =>
   [...getAppCapabilityRegistry()].sort((left, right) => {
@@ -30,6 +37,9 @@ const sortCapabilities = () =>
 
     return left.label.localeCompare(right.label, undefined, { sensitivity: "base" });
   });
+
+const healthRoute = getPortfolioAppRouteContract(portfolioApps, "health");
+const replayRoute = getPortfolioAppRouteContract(portfolioApps, "replay");
 
 export default function CapabilitiesPageClient() {
   const capabilities = React.useMemo(sortCapabilities, []);
@@ -112,6 +122,21 @@ export default function CapabilitiesPageClient() {
                 detail: media.detail,
               },
             ];
+            const inspectHealthHref = withBasePath(
+              buildHealthInspectionHref({
+                healthRoute: healthRoute.route,
+                route: capability.href,
+                source: "capability",
+              }),
+            );
+            const inspectReplayHref = withBasePath(
+              buildReplayInspectionHref({
+                replayRoute: replayRoute.route,
+                route: capability.href,
+                source: "capability",
+                kinds: ["route", "navigation"],
+              }),
+            );
 
             return (
               <Paper
@@ -222,6 +247,15 @@ export default function CapabilitiesPageClient() {
                       ))}
                     </Stack>
                   </Box>
+
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Button href={inspectHealthHref} size="small" variant="outlined">
+                      Inspect Health
+                    </Button>
+                    <Button href={inspectReplayHref} size="small" variant="text">
+                      Inspect Replay Events
+                    </Button>
+                  </Stack>
                 </Stack>
               </Paper>
             );

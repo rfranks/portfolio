@@ -5,6 +5,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { SubsectionPagerItem } from "@/components/portfolio/layout/SubsectionPager";
 import type { CompetencyCategory } from "@/components/portfolio/panels/CoreCompetencies";
 import type { MediaCyclerItem } from "@/components/shared";
+import { useRouteStateSync } from "@/hooks/window/useRouteStateSync";
 import type {
   ProjectData,
   ProjectPresentationSectionKey,
@@ -342,6 +343,7 @@ export function useProjectPresentationController(
   const [deepLinkInitialized, setDeepLinkInitialized] = useState(false);
   const [copyDeepLinkSucceeded, setCopyDeepLinkSucceeded] = useState(false);
   const copyDeepLinkResetTimeoutRef = useRef<number | null>(null);
+  const { replaceRoutePathIfChanged } = useRouteStateSync();
 
   const technologyCompetencyCategories = useMemo<CompetencyCategory[]>(
     () => resolveTechnologyCompetencyCategories(project.technologiesUsed),
@@ -492,123 +494,126 @@ export function useProjectPresentationController(
     [sectionCapabilitiesByKey],
   );
 
-  useEffect(() => {
-    if (deepLinkInitialized || typeof window === "undefined") {
-      return;
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const deepLinkProject = params.get("project")?.trim().toLowerCase();
-    if (deepLinkProject && deepLinkProject !== projectSlug) {
-      setDeepLinkInitialized(true);
-      return;
-    }
-
-    const sectionParam = params.get("section")?.trim() || params.get("slide")?.trim();
-    const hasSectionParam = Boolean(sectionParam);
-    const resolvedSectionKey = resolveSectionKeyFromParam(sectionParam, sections);
-    const shouldRestoreResolvedSection = resolvedSectionKey
-      ? canRestoreDeepLinkForSection(resolvedSectionKey, hasSectionParam)
-      : false;
-    const targetSectionKey =
-      resolvedSectionKey && shouldRestoreResolvedSection ? resolvedSectionKey : activeSectionKey;
-    if (resolvedSectionKey && shouldRestoreResolvedSection) {
-      setActiveSectionKey(resolvedSectionKey);
-    }
-
-    const subParam = params.get("sub")?.trim();
-    const mediaParam = params.get("media")?.trim();
-    const hasSubParam = Boolean(subParam || mediaParam);
-
-    if (
-      targetSectionKey === "diagrams" &&
-      diagramEntries.length > 0 &&
-      canRestoreDeepLinkForSection("diagrams", hasSubParam || Boolean(params.get("diagram")))
-    ) {
-      const diagramParam = subParam || params.get("diagram")?.trim() || mediaParam;
-      const resolvedDiagramKey = resolveEntryKeyFromParam(diagramParam, diagramEntries);
-      if (resolvedDiagramKey) {
-        setActiveDiagramKey(resolvedDiagramKey);
+  const syncPresentationStateFromLocation = useCallback(
+    (location: Location) => {
+      const params = new URLSearchParams(location.search);
+      const deepLinkProject = params.get("project")?.trim().toLowerCase();
+      if (deepLinkProject && deepLinkProject !== projectSlug) {
+        setDeepLinkInitialized(true);
+        return;
       }
-    }
 
-    if (
-      targetSectionKey === "overview" &&
-      overviewItems.length > 0 &&
-      canRestoreDeepLinkForSection("overview", hasSubParam)
-    ) {
-      const overviewKeys = overviewItems.map((item) => item.key);
-      const resolvedOverviewKey =
-        resolveIndexedKeyFromParam(subParam, overviewKeys) ||
-        resolveIndexedKeyFromParam(mediaParam, overviewKeys);
-      if (resolvedOverviewKey) {
-        setActiveOverviewMediaKey(resolvedOverviewKey);
+      const sectionParam = params.get("section")?.trim() || params.get("slide")?.trim();
+      const hasSectionParam = Boolean(sectionParam);
+      const resolvedSectionKey = resolveSectionKeyFromParam(sectionParam, sections);
+      const shouldRestoreResolvedSection = resolvedSectionKey
+        ? canRestoreDeepLinkForSection(resolvedSectionKey, hasSectionParam)
+        : false;
+      const targetSectionKey =
+        resolvedSectionKey && shouldRestoreResolvedSection ? resolvedSectionKey : activeSectionKey;
+      if (resolvedSectionKey && shouldRestoreResolvedSection) {
+        setActiveSectionKey(resolvedSectionKey);
       }
-    }
 
-    if (
-      targetSectionKey === "demo" &&
-      demoItems.length > 0 &&
-      canRestoreDeepLinkForSection("demo", hasSubParam)
-    ) {
-      const demoKeys = demoItems.map((item) => item.key);
-      const resolvedDemoKey =
-        resolveIndexedKeyFromParam(subParam, demoKeys) ||
-        resolveIndexedKeyFromParam(mediaParam, demoKeys);
-      if (resolvedDemoKey) {
-        setActiveDemoMediaKey(resolvedDemoKey);
+      const subParam = params.get("sub")?.trim();
+      const mediaParam = params.get("media")?.trim();
+      const hasSubParam = Boolean(subParam || mediaParam);
+
+      if (
+        targetSectionKey === "diagrams" &&
+        diagramEntries.length > 0 &&
+        canRestoreDeepLinkForSection("diagrams", hasSubParam || Boolean(params.get("diagram")))
+      ) {
+        const diagramParam = subParam || params.get("diagram")?.trim() || mediaParam;
+        const resolvedDiagramKey = resolveEntryKeyFromParam(diagramParam, diagramEntries);
+        if (resolvedDiagramKey) {
+          setActiveDiagramKey(resolvedDiagramKey);
+        }
       }
-    }
 
-    const resolvedMode = resolveAliasedParamValue(
-      params.get("diagramMode")?.trim() || params.get("mode")?.trim(),
-      DIAGRAM_DEEP_LINK_MODE_ALIASES,
-    );
-    if (
-      resolvedMode &&
-      canRestoreDeepLinkForSection(
-        "diagrams",
-        Boolean(params.get("diagramMode")?.trim() || params.get("mode")?.trim()),
-      )
-    ) {
-      setDiagramDeepLinkMode(resolvedMode);
-    }
+      if (
+        targetSectionKey === "overview" &&
+        overviewItems.length > 0 &&
+        canRestoreDeepLinkForSection("overview", hasSubParam)
+      ) {
+        const overviewKeys = overviewItems.map((item) => item.key);
+        const resolvedOverviewKey =
+          resolveIndexedKeyFromParam(subParam, overviewKeys) ||
+          resolveIndexedKeyFromParam(mediaParam, overviewKeys);
+        if (resolvedOverviewKey) {
+          setActiveOverviewMediaKey(resolvedOverviewKey);
+        }
+      }
 
-    const resolvedZoomPreset = resolveAliasedParamValue(
-      params.get("diagramZoom")?.trim() ||
-        params.get("zoomPreset")?.trim() ||
-        params.get("zoom")?.trim(),
-      DIAGRAM_DEEP_LINK_ZOOM_PRESET_ALIASES,
-    );
-    if (
-      resolvedZoomPreset &&
-      canRestoreDeepLinkForSection(
-        "diagrams",
-        Boolean(
-          params.get("diagramZoom")?.trim() ||
+      if (
+        targetSectionKey === "demo" &&
+        demoItems.length > 0 &&
+        canRestoreDeepLinkForSection("demo", hasSubParam)
+      ) {
+        const demoKeys = demoItems.map((item) => item.key);
+        const resolvedDemoKey =
+          resolveIndexedKeyFromParam(subParam, demoKeys) ||
+          resolveIndexedKeyFromParam(mediaParam, demoKeys);
+        if (resolvedDemoKey) {
+          setActiveDemoMediaKey(resolvedDemoKey);
+        }
+      }
+
+      const resolvedMode = resolveAliasedParamValue(
+        params.get("diagramMode")?.trim() || params.get("mode")?.trim(),
+        DIAGRAM_DEEP_LINK_MODE_ALIASES,
+      );
+      if (
+        resolvedMode &&
+        canRestoreDeepLinkForSection(
+          "diagrams",
+          Boolean(params.get("diagramMode")?.trim() || params.get("mode")?.trim()),
+        )
+      ) {
+        setDiagramDeepLinkMode(resolvedMode);
+      }
+
+      const resolvedZoomPreset = resolveAliasedParamValue(
+        params.get("diagramZoom")?.trim() ||
           params.get("zoomPreset")?.trim() ||
           params.get("zoom")?.trim(),
-        ),
-      )
-    ) {
-      setDiagramDeepLinkZoomPreset(resolvedZoomPreset);
-    }
+        DIAGRAM_DEEP_LINK_ZOOM_PRESET_ALIASES,
+      );
+      if (
+        resolvedZoomPreset &&
+        canRestoreDeepLinkForSection(
+          "diagrams",
+          Boolean(
+            params.get("diagramZoom")?.trim() ||
+            params.get("zoomPreset")?.trim() ||
+            params.get("zoom")?.trim(),
+          ),
+        )
+      ) {
+        setDiagramDeepLinkZoomPreset(resolvedZoomPreset);
+      }
 
-    setDeepLinkInitialized(true);
-  }, [
-    activeSectionKey,
-    deepLinkInitialized,
-    demoItems,
-    diagramEntries,
-    overviewItems,
-    projectSlug,
-    sections,
-    canRestoreDeepLinkForSection,
-    setActiveDemoMediaKey,
-    setActiveDiagramKey,
-    setActiveOverviewMediaKey,
-    setActiveSectionKey,
-  ]);
+      setDeepLinkInitialized(true);
+    },
+    [
+      activeSectionKey,
+      canRestoreDeepLinkForSection,
+      demoItems,
+      diagramEntries,
+      overviewItems,
+      projectSlug,
+      sections,
+      setActiveDemoMediaKey,
+      setActiveDiagramKey,
+      setActiveOverviewMediaKey,
+      setActiveSectionKey,
+    ],
+  );
+
+  useRouteStateSync({
+    enabled: !deepLinkInitialized,
+    onLocationChange: syncPresentationStateFromLocation,
+  });
 
   const buildPresentationDeepLinkUrl = useCallback(
     (baseHref: string) => {
@@ -679,12 +684,8 @@ export function useProjectPresentationController(
     }
 
     const nextUrl = buildPresentationDeepLinkUrl(window.location.href);
-    const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    const nextPath = `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`;
-    if (currentPath !== nextPath) {
-      window.history.replaceState(window.history.state, "", nextPath);
-    }
-  }, [buildPresentationDeepLinkUrl, deepLinkInitialized]);
+    replaceRoutePathIfChanged(nextUrl);
+  }, [buildPresentationDeepLinkUrl, deepLinkInitialized, replaceRoutePathIfChanged]);
 
   useEffect(() => {
     return () => {

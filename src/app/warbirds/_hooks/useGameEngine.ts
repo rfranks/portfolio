@@ -127,62 +127,11 @@ import { runWarbirdsPlayerCollisionStage } from "./stages/collisionStage";
 import { configureWarbirdsCanvasRenderingStage } from "./stages/renderingStage";
 import { startWarbirdsDynamicDensitySimulationStage } from "./stages/simulationStage";
 import { applyWarbirdsScoreDelta, runWarbirdsMedalAutoCollectStage } from "./stages/scoringStage";
-
-const cloneWarbirdsActivePowerups = (activePowerups: GameState["activePowerups"]) =>
-  Object.fromEntries(
-    Object.entries(activePowerups).map(([type, powerup]) => [
-      type as PowerupType,
-      { expires: powerup.expires },
-    ]),
-  ) as Record<PowerupType, { expires: number }>;
-
-const calculateWarbirdsAccuracyPct = (state: GameState): number =>
-  state.shotsFired > 0 ? (state.shotsHit / state.shotsFired) * 100 : 0;
-
-const selectWarbirdsUiSnapshot = (state: GameState): GameUIState => ({
-  score: state.score,
-  medalCount: state.medalCount,
-  duckCount: state.duckCount,
-  enemyCount: state.enemyCount,
-  ammo: state.ammo,
-  crashed: state.crashed,
-  activePowerups: cloneWarbirdsActivePowerups(state.activePowerups),
-  frameCount: state.frameCount,
-  cursor: state.cursor,
-  countdown: state.countdown,
-  phase: state.phase,
-});
-
-const isWarbirdsUiSnapshotEqual = (prev: GameUIState, next: GameUIState) => {
-  if (
-    prev.score !== next.score ||
-    prev.medalCount !== next.medalCount ||
-    prev.duckCount !== next.duckCount ||
-    prev.enemyCount !== next.enemyCount ||
-    prev.ammo !== next.ammo ||
-    prev.crashed !== next.crashed ||
-    prev.frameCount !== next.frameCount ||
-    prev.cursor !== next.cursor ||
-    prev.countdown !== next.countdown ||
-    prev.phase !== next.phase
-  ) {
-    return false;
-  }
-
-  const prevPowerupKeys = Object.keys(prev.activePowerups) as PowerupType[];
-  const nextPowerupKeys = Object.keys(next.activePowerups) as PowerupType[];
-  if (prevPowerupKeys.length !== nextPowerupKeys.length) {
-    return false;
-  }
-
-  for (const key of prevPowerupKeys) {
-    if (prev.activePowerups[key]?.expires !== next.activePowerups[key]?.expires) {
-      return false;
-    }
-  }
-
-  return true;
-};
+import {
+  calculateWarbirdsAccuracyPct,
+  isWarbirdsUiSnapshotEqual,
+  selectWarbirdsUiSnapshot,
+} from "./game-engine/uiSnapshot";
 
 export function useGameEngine() {
   // ─── REFS & STATE ─────────────────────────────────────────────────────────
@@ -206,6 +155,7 @@ export function useGameEngine() {
   const densityTimeoutRef = useRef<ScaledTimeoutHandle | null>(null);
   const sessionCompletedRef = useRef(false);
   const arcadeSessionActiveRef = useRef(arcadeProfile.isSessionActive);
+  const sessionBestStreakRef = useRef(0);
 
   const [ui, setUI] = useState<GameUIState>({
     ...state.current,
@@ -214,6 +164,10 @@ export function useGameEngine() {
   useEffect(() => {
     arcadeSessionActiveRef.current = arcadeProfile.isSessionActive;
   }, [arcadeProfile.isSessionActive]);
+
+  useEffect(() => {
+    sessionBestStreakRef.current = Math.max(sessionBestStreakRef.current, state.current.streak);
+  }, [ui.frameCount]);
 
   // --- Helper Functions ---
 
@@ -387,6 +341,17 @@ export function useGameEngine() {
     [ui.activePowerups, ui.frameCount],
   );
 
+  const resolveWarbirdsSessionStats = useCallback(
+    () => ({
+      shotsFired: state.current.shotsFired,
+      hits: state.current.shotsHit,
+      ducksCollected: state.current.duckCount,
+      enemiesDowned: state.current.enemyCount,
+      bestStreak: Math.max(sessionBestStreakRef.current, state.current.streak),
+    }),
+    [],
+  );
+
   // ─── GAME INIT + SPLASH ──────────────────────────────────────────────
   // ─── SPLASH + PRELOAD ─────────────────────────────────────────────────────
   const startSplash = useCallback(() => {
@@ -396,17 +361,13 @@ export function useGameEngine() {
         score: state.current.score,
         accuracyPct: calculateWarbirdsAccuracyPct(state.current),
         medalsCollected: state.current.medalCount,
-        stats: {
-          shotsFired: state.current.shotsFired,
-          hits: state.current.shotsHit,
-          ducksCollected: state.current.duckCount,
-          enemiesDowned: state.current.enemyCount,
-        },
+        stats: resolveWarbirdsSessionStats(),
       });
     }
     startArcadeSession();
     arcadeSessionActiveRef.current = true;
     sessionCompletedRef.current = false;
+    sessionBestStreakRef.current = 0;
 
     simulationRuntime.stopLoop();
 
@@ -519,6 +480,7 @@ export function useGameEngine() {
     finishArcadeSession,
     getImg,
     play,
+    resolveWarbirdsSessionStats,
     simulationRuntime,
     startArcadeSession,
   ]);
@@ -2606,17 +2568,14 @@ export function useGameEngine() {
       accuracyPct: calculateWarbirdsAccuracyPct(state.current),
       medalsCollected: state.current.medalCount,
       stats: {
-        shotsFired: state.current.shotsFired,
-        hits: state.current.shotsHit,
-        ducksCollected: state.current.duckCount,
-        enemiesDowned: state.current.enemyCount,
+        ...resolveWarbirdsSessionStats(),
         activePowerupCount: Object.values(state.current.activePowerups).filter(
           (powerup) => powerup.expires > state.current.frameCount,
         ).length,
       },
     });
     arcadeSessionActiveRef.current = false;
-  }, [finishArcadeSession, ui.crashed]);
+  }, [finishArcadeSession, ui.crashed, resolveWarbirdsSessionStats]);
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -2639,15 +2598,10 @@ export function useGameEngine() {
         score: state.current.score,
         accuracyPct: calculateWarbirdsAccuracyPct(state.current),
         medalsCollected: state.current.medalCount,
-        stats: {
-          shotsFired: state.current.shotsFired,
-          hits: state.current.shotsHit,
-          ducksCollected: state.current.duckCount,
-          enemiesDowned: state.current.enemyCount,
-        },
+        stats: resolveWarbirdsSessionStats(),
       });
     };
-  }, [finishArcadeSession]);
+  }, [finishArcadeSession, resolveWarbirdsSessionStats]);
 
   // ─── PUBLIC API: EXPORTED VALUES AND CALLBACKS ───────────────
   return {

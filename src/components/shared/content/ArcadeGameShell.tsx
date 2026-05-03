@@ -65,6 +65,28 @@ export default function ArcadeGameShell({
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4);
   }, [activeGameProfile]);
+  const titleOverlayChallengePct = React.useMemo(() => {
+    if (!arcadeProfile) {
+      return 0;
+    }
+    const target = arcadeProfile.dailyChallenge.target;
+    return target > 0 ? Math.min(100, (arcadeProfile.dailyChallenge.progress / target) * 100) : 0;
+  }, [arcadeProfile]);
+  const titleOverlayChallengeGameLabel = React.useMemo(() => {
+    if (!arcadeProfile) {
+      return "";
+    }
+    if (arcadeProfile.dailyChallenge.gameId === "any") {
+      return "Any Arcade App";
+    }
+    return getArcadeGameLabel(arcadeProfile.dailyChallenge.gameId);
+  }, [arcadeProfile]);
+  const shouldShowTitleProgressHud = Boolean(
+    showTitleSplash &&
+    arcadeProfile &&
+    arcadeGameId &&
+    (arcadeGameId === "warbirds" || arcadeGameId === "zombiefish"),
+  );
 
   if (showTitleSplash) {
     return (
@@ -87,6 +109,49 @@ export default function ArcadeGameShell({
           arcadeGameId: arcadeGameId ?? null,
           arcadeProfile: arcadeProfile ?? null,
         })}
+        {shouldShowTitleProgressHud ? (
+          <aside
+            aria-label="Arcade progression"
+            style={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              width: "min(290px, calc(100vw - 24px))",
+              borderRadius: 12,
+              padding: "10px 12px",
+              color: "#f8fafc",
+              border: "1px solid rgba(148, 163, 184, 0.45)",
+              background:
+                "linear-gradient(180deg, rgba(8, 14, 26, 0.86), rgba(15, 27, 50, 0.84) 72%, rgba(20, 38, 74, 0.84))",
+              boxShadow: "0 12px 26px rgba(0, 0, 0, 0.34)",
+              backdropFilter: "blur(8px)",
+              zIndex: 4,
+            }}
+          >
+            <div style={{ fontSize: 11, letterSpacing: "0.08em", opacity: 0.78 }}>
+              ARCADE PROGRESSION
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 13.5, marginTop: 2 }}>
+              Daily: {arcadeProfile?.dailyChallenge.label}
+            </div>
+            <div style={{ fontSize: 11.5, marginTop: 4, opacity: 0.9 }}>
+              {titleOverlayChallengeGameLabel} • {arcadeProfile?.dailyChallenge.description}
+            </div>
+            <div style={{ fontSize: 11.5, marginTop: 4, fontWeight: 600 }}>
+              Progress: {Math.round(arcadeProfile?.dailyChallenge.progress ?? 0).toLocaleString()} /{" "}
+              {Math.round(arcadeProfile?.dailyChallenge.target ?? 0).toLocaleString()} (
+              {Math.round(titleOverlayChallengePct)}%)
+            </div>
+            <div style={{ fontSize: 11.5, marginTop: 4 }}>
+              Streak: {arcadeProfile?.streak.currentDays ?? 0} day(s) • Best{" "}
+              {arcadeProfile?.streak.bestDays ?? 0}
+            </div>
+            <div style={{ fontSize: 11.5, marginTop: 2 }}>
+              PB (Session): +
+              {Math.round(arcadeProfile?.personalBests.bestSessionScore ?? 0).toLocaleString()}
+            </div>
+          </aside>
+        ) : null}
       </div>
     );
   }
@@ -164,7 +229,7 @@ export default function ArcadeGameShell({
                 {arcadeGameId ? getArcadeGameLabel(arcadeGameId) : "Arcade"} Profile
               </div>
               <div style={{ fontSize: 12, opacity: 0.86, marginBottom: 10 }}>
-                Shared progression across Warbirds, Zombiefish, and Blasteroids.
+                Shared progression across Warbirds, Zombiefish, Blasteroids, and Blackjack.
               </div>
               {activeGameProfile ? (
                 <div style={{ display: "grid", gap: 6, fontSize: 12, marginBottom: 12 }}>

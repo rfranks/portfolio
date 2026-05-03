@@ -8,6 +8,8 @@ export type OpenAIChatCompletionRequest = {
   messages: OpenAIChatMessage[];
   temperature?: number;
   top_p?: number;
+  response_format?: unknown;
+  reasoning_effort?: "minimal" | "low" | "medium" | "high";
   max_tokens?: number;
   max_completion_tokens?: number;
 };
@@ -22,7 +24,13 @@ export type OpenAIResponsesRequest = {
 export type OpenAIResponsesResult = Record<string, unknown>;
 
 export type OpenAIChatCompletionResult = {
+  usage?: {
+    completion_tokens_details?: {
+      reasoning_tokens?: number;
+    };
+  };
   choices?: Array<{
+    finish_reason?: string;
     message?: {
       content?: unknown;
     };

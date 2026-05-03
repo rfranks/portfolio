@@ -58,6 +58,22 @@ export const RESUME_DATA_SCHEMA_CHANGELOG: ResumeSchemaChangeLogEntry[] = [
     migration: "migrateV5ToV6",
     breakingFields: [],
   },
+  {
+    version: 7,
+    date: "2026-04-25",
+    summary:
+      "Added portfolio app launcher contract fields (`coreComponent`, `commandGroup`) so app routing and grouping can be data-driven from resumeData.",
+    migration: "migrateV6ToV7",
+    breakingFields: [],
+  },
+  {
+    version: 8,
+    date: "2026-04-25",
+    summary:
+      "Added `coreComponentTarget` launcher target contracts so app launcher component resolution is data-first and route-key agnostic.",
+    migration: "migrateV7ToV8",
+    breakingFields: [],
+  },
 ];
 
 export function assertResumeSchemaGovernance(): void {

@@ -1,22 +1,7 @@
-import * as React from "react";
-import { MarkdownDialog, type MarkdownDialogProps } from "@/components/shared";
-import { buildStandardTermsOfUseMarkdown } from "@/consts/legal/termsOfUse";
+import { LandingTermsDialog, type LandingTermsDialogProps } from "@/components/shared";
 
-const terms = buildStandardTermsOfUseMarkdown({
-  appName: "Bookworm",
-  contactEmail: "richardfranksjr@hotmail.com",
-});
-
-export type TermsDialogProps = Omit<MarkdownDialogProps, "title" | "content">;
+export type TermsDialogProps = Omit<LandingTermsDialogProps, "appName">;
 
 export default function TermsDialog({ open = false, onClose, ...dialogProps }: TermsDialogProps) {
-  return (
-    <MarkdownDialog
-      open={open}
-      onClose={onClose}
-      title="Terms of Use"
-      content={terms}
-      {...dialogProps}
-    />
-  );
+  return <LandingTermsDialog appName="Bookworm" open={open} onClose={onClose} {...dialogProps} />;
 }

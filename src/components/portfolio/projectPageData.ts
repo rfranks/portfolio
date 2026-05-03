@@ -335,11 +335,16 @@ export function createPresentationProjectPageData(
   return createProjectPageData(href, overrides);
 }
 
-const dedupeCommandPaletteActions = (actions: CommandPaletteAction[]) => {
+export const normalizeCommandPaletteActionSearchText = (action: CommandPaletteAction) =>
+  [action.label, action.subtitle ?? "", action.group ?? "", ...(action.keywords ?? [])]
+    .join(" ")
+    .toLowerCase();
+
+export const dedupeCommandPaletteActions = (actions: CommandPaletteAction[]) => {
   const seen = new Set<string>();
   const deduped: CommandPaletteAction[] = [];
   actions.forEach((action) => {
-    const key = `${action.id}::${action.label}::${action.href ?? ""}`;
+    const key = `${action.id}::${action.label}::${action.href ?? ""}::${action.group ?? ""}`;
     if (seen.has(key)) {
       return;
     }
@@ -529,4 +534,52 @@ const STATIC_SEARCH_INDEX_ACTIONS = dedupeCommandPaletteActions([
 
 export function getPortfolioStaticSearchIndexActions(): CommandPaletteAction[] {
   return STATIC_SEARCH_INDEX_ACTIONS;
+}
+
+const QUICK_OPEN_NAVIGATION_ACTION: CommandPaletteAction = {
+  id: "quick-open-capability-matrix",
+  label: "Open Capability Matrix",
+  subtitle: "Per-app features, data sources, and quality coverage",
+  group: "Apps • Portfolio",
+  href: "/capabilities",
+  keywords: ["capability", "matrix", "quality", "coverage", "registry", "apps", "projects"],
+};
+
+const QUICK_OPEN_GROUPS = new Set(["Projects", "Slides", "Diagrams", "Skills"]);
+const dedupeKeywords = (keywords: readonly string[]) => Array.from(new Set(keywords));
+
+function toQuickOpenActionFromStaticSearch(
+  action: CommandPaletteAction,
+): CommandPaletteAction | null {
+  const label = action.label.trim();
+  const group = action.group?.trim() ?? "";
+  const isAppAction = label.startsWith("App Route: ");
+  const isEligibleGroup = QUICK_OPEN_GROUPS.has(group);
+  if (!isAppAction && !isEligibleGroup) {
+    return null;
+  }
+
+  const quickOpenLabel = isAppAction
+    ? `Open App: ${label.replace(/^App Route:\s*/i, "")}`
+    : label.startsWith("Project: ")
+      ? `Open Project: ${label.replace(/^Project:\s*/i, "")}`
+      : label;
+
+  return {
+    ...action,
+    id: `quick-open-${action.id}`,
+    label: quickOpenLabel,
+    keywords: dedupeKeywords([...(action.keywords ?? []), "quick open", "open"]),
+  } satisfies CommandPaletteAction;
+}
+
+const STATIC_QUICK_OPEN_ACTIONS = dedupeCommandPaletteActions([
+  QUICK_OPEN_NAVIGATION_ACTION,
+  ...getPortfolioStaticSearchIndexActions()
+    .map(toQuickOpenActionFromStaticSearch)
+    .filter((action): action is CommandPaletteAction => Boolean(action)),
+]);
+
+export function getPortfolioQuickOpenIndexActions(): CommandPaletteAction[] {
+  return STATIC_QUICK_OPEN_ACTIONS;
 }

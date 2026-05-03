@@ -7,7 +7,7 @@ import OpenAIKeyInterstitial from "@/app/talentforge/_components/OpenAIKeyInters
 import OnboardingStepper, {
   TOTAL_ONBOARDING_STEPS,
 } from "@/app/talentforge/_components/OnboardingStepper";
-import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
+import { useOpenAIAppShell } from "@/hooks/app/useOpenAIAppShell";
 import { useOpenAIKey } from "@/contexts/OpenAIKeyContext";
 import insertMockData from "@/app/talentforge/_utils/mockData";
 import { getOnboardingStep } from "@/app/talentforge/_utils/dataStore";
@@ -17,16 +17,18 @@ import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
 export default function TalentForgePage() {
   const { portfolioApps } = useResumeData();
   const talentforgeRoute = getPortfolioAppRouteContract(portfolioApps, "talentforge");
-  const { setDocumentTitle } = useDocumentTitle();
   const [step, setStep] = React.useState(getOnboardingStep());
   const { hasKey } = useOpenAIKey();
+  const appShell = useOpenAIAppShell({
+    documentTitle: talentforgeRoute.documentTitle,
+    hasOpenAIKey: hasKey,
+  });
 
   React.useEffect(() => {
     insertMockData();
-    setDocumentTitle(talentforgeRoute.documentTitle);
-  }, [setDocumentTitle, talentforgeRoute.documentTitle]);
+  }, []);
 
-  if (!hasKey) {
+  if (appShell.isOpenAIKeyGateVisible) {
     return <OpenAIKeyInterstitial />;
   }
 

@@ -1,6 +1,19 @@
 import { z } from "zod";
 import { absoluteRoutePathSchema, nonEmptyString } from "./primitives";
 
+const appCommandGroupSchema = z.enum(["Apps • Portfolio", "Apps • AI", "Apps • Arcade"]);
+const appCoreComponentSchema = z.enum(["arcadeCanvas", "arcadeIframe", "blackjack"]);
+const appCoreComponentTargetSchema = z.enum(["warbirds", "zombiefish", "blasteroids", "blackjack"]);
+
+const APP_CORE_COMPONENT_TARGETS_BY_COMPONENT: Record<
+  z.infer<typeof appCoreComponentSchema>,
+  readonly z.infer<typeof appCoreComponentTargetSchema>[]
+> = {
+  arcadeCanvas: ["warbirds", "zombiefish"],
+  arcadeIframe: ["blasteroids"],
+  blackjack: ["blackjack"],
+};
+
 const appRouteMetadataSchema = z
   .object({
     route: absoluteRoutePathSchema,
@@ -19,6 +32,9 @@ const appRouteMetadataWithPageMetadataSchema = appRouteMetadataSchema
 
 const appChromeSchemaShape = {
   appBarSubtitle: nonEmptyString.optional(),
+  commandGroup: appCommandGroupSchema.optional(),
+  coreComponent: appCoreComponentSchema.optional(),
+  coreComponentTarget: appCoreComponentTargetSchema.optional(),
   heroEyebrow: nonEmptyString.optional(),
   interstitialAppName: nonEmptyString.optional(),
   interstitialLogoAlt: nonEmptyString.optional(),
@@ -26,6 +42,9 @@ const appChromeSchemaShape = {
 } as const;
 
 const appRouteSchema = appRouteMetadataSchema.extend(appChromeSchemaShape).strict();
+const appRouteSchemaWithPageMetadata = appRouteMetadataWithPageMetadataSchema
+  .extend(appChromeSchemaShape)
+  .strict();
 
 const siteMetadataSchema = z
   .object({
@@ -66,9 +85,9 @@ export const portfolioAppsSchema = z
     zombiefish: appRouteSchema.extend({ route: z.literal("/zombiefish") }).strict(),
     blasteroids: appRouteSchema.extend({ route: z.literal("/blasteroids") }).strict(),
     petly: appRouteSchema.extend({ route: z.literal("/petly") }).strict(),
-    health: appRouteMetadataWithPageMetadataSchema.extend({ route: z.literal("/health") }).strict(),
-    replay: appRouteMetadataWithPageMetadataSchema.extend({ route: z.literal("/replay") }).strict(),
-    capabilities: appRouteMetadataWithPageMetadataSchema
+    health: appRouteSchemaWithPageMetadata.extend({ route: z.literal("/health") }).strict(),
+    replay: appRouteSchemaWithPageMetadata.extend({ route: z.literal("/replay") }).strict(),
+    capabilities: appRouteSchemaWithPageMetadata
       .extend({ route: z.literal("/capabilities") })
       .strict(),
   })
@@ -104,5 +123,66 @@ export const portfolioAppsSchema = z
         return;
       }
       seenRouteToKey.set(route, key);
+    });
+
+    const appEntries: Array<
+      [
+        string,
+        {
+          coreComponent?: z.infer<typeof appCoreComponentSchema>;
+          coreComponentTarget?: z.infer<typeof appCoreComponentTargetSchema>;
+        },
+      ]
+    > = [
+      ["aiShenanigans", apps.aiShenanigans],
+      ["dna", apps.dna],
+      ["bookworm", apps.bookworm],
+      ["talentforge", apps.talentforge],
+      ["rickbert", apps.rickbert],
+      ["pathforger", apps.pathforger],
+      ["blackjack", apps.blackjack],
+      ["warbirds", apps.warbirds],
+      ["zombiefish", apps.zombiefish],
+      ["blasteroids", apps.blasteroids],
+      ["petly", apps.petly],
+      ["health", apps.health],
+      ["replay", apps.replay],
+      ["capabilities", apps.capabilities],
+    ];
+
+    appEntries.forEach(([key, appContract]) => {
+      const coreComponent = appContract.coreComponent;
+      const coreComponentTarget = appContract.coreComponentTarget;
+
+      if (coreComponent && !coreComponentTarget) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key, "coreComponentTarget"],
+          message:
+            "coreComponentTarget is required when coreComponent is provided in portfolio app contracts.",
+        });
+        return;
+      }
+
+      if (!coreComponent && coreComponentTarget) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key, "coreComponent"],
+          message:
+            "coreComponent is required when coreComponentTarget is provided in portfolio app contracts.",
+        });
+        return;
+      }
+
+      if (coreComponent && coreComponentTarget) {
+        const allowedTargets = APP_CORE_COMPONENT_TARGETS_BY_COMPONENT[coreComponent];
+        if (!allowedTargets.includes(coreComponentTarget)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [key, "coreComponentTarget"],
+            message: `coreComponentTarget '${coreComponentTarget}' is not compatible with coreComponent '${coreComponent}'.`,
+          });
+        }
+      }
     });
   });

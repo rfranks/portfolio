@@ -1,9 +1,9 @@
-import WarbirdsPage from "@/app/warbirds/page";
-import ZombieFishPage from "@/app/zombiefish/page";
+import WarbirdsPageClient from "@/app/warbirds/WarbirdsPageClient";
+import ZombieFishPageClient from "@/app/zombiefish/ZombieFishPageClient";
 
 describe("games smoke route contracts", () => {
-  it("exports warbirds and zombiefish page components", () => {
-    expect(typeof WarbirdsPage).toBe("function");
-    expect(typeof ZombieFishPage).toBe("function");
+  it("exports warbirds and zombiefish launcher components", () => {
+    expect(typeof WarbirdsPageClient).toBe("function");
+    expect(typeof ZombieFishPageClient).toBe("function");
   });
 });

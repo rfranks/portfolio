@@ -5,6 +5,14 @@ import {
   sanitizeArcadeProfile,
 } from "@/utils/game/arcadeProfile";
 
+const toLocalDateKey = (timeMs: number): string => {
+  const date = new Date(timeMs);
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date
+    .getDate()
+    .toString()
+    .padStart(2, "0")}`;
+};
+
 describe("arcadeProfile utilities", () => {
   it("starts sessions and unlocks first_sortie", () => {
     const profile = createDefaultArcadeProfile("2026-01-01T00:00:00.000Z");
@@ -78,6 +86,84 @@ describe("arcadeProfile utilities", () => {
     expect(next.lifetime.medalsCollected).toBe(2);
   });
 
+  it("tracks consecutive play streaks across days", () => {
+    const dayOne = new Date(2026, 3, 10, 12).getTime();
+    const dayTwo = dayOne + 24 * 60 * 60 * 1000;
+    const dayFour = dayOne + 4 * 24 * 60 * 60 * 1000;
+
+    let profile = createDefaultArcadeProfile(new Date(dayOne).toISOString());
+    profile = applyArcadeSessionStart(profile, "warbirds", dayOne);
+    profile = applyArcadeSessionStart(profile, "zombiefish", dayTwo);
+
+    expect(profile.streak.currentDays).toBe(2);
+    expect(profile.streak.bestDays).toBe(2);
+
+    profile = applyArcadeSessionStart(profile, "blackjack", dayFour);
+    expect(profile.streak.currentDays).toBe(1);
+    expect(profile.streak.bestDays).toBe(2);
+  });
+
+  it("completes session-based daily challenge progress", () => {
+    const startedAtMs = new Date(2026, 3, 15, 12).getTime();
+    const profile = createDefaultArcadeProfile(new Date(startedAtMs).toISOString());
+    const withSessionChallenge = {
+      ...profile,
+      dailyChallenge: {
+        id: "arcade_any_session" as const,
+        gameId: "any" as const,
+        metric: "sessionsPlayed" as const,
+        target: 1,
+        progress: 0,
+        label: "Warm-Up Session",
+        description: "Play any arcade game once today.",
+        completedAt: null,
+        dateKey: toLocalDateKey(startedAtMs),
+      },
+    };
+
+    const next = applyArcadeSessionStart(withSessionChallenge, "warbirds", startedAtMs);
+    expect(next.dailyChallenge.progress).toBe(1);
+    expect(next.dailyChallenge.completedAt).toBeTruthy();
+    expect(next.unlocks.daily_dedication).toBeTruthy();
+  });
+
+  it("tracks blackjack round scores and personal bests", () => {
+    const startedAtMs = new Date(2026, 3, 20, 12).getTime();
+    let profile = createDefaultArcadeProfile(new Date(startedAtMs).toISOString());
+    profile = {
+      ...profile,
+      dailyChallenge: {
+        id: "blackjack_hot_hand" as const,
+        gameId: "blackjack" as const,
+        metric: "score" as const,
+        target: 180,
+        progress: 0,
+        label: "Blackjack Hot Hand",
+        description: "Finish a Blackjack round with +180 or more net score.",
+        completedAt: null,
+        dateKey: toLocalDateKey(startedAtMs),
+      },
+    };
+
+    profile = applyArcadeSessionStart(profile, "blackjack", startedAtMs);
+    const next = applyArcadeSessionResult(profile, "blackjack", {
+      completed: true,
+      score: 360,
+      durationMs: 2500,
+      finishedAtMs: startedAtMs + 2500,
+      stats: {
+        roundWinStreak: 4,
+      },
+    });
+
+    expect(next.games.blackjack.bestScore).toBe(360);
+    expect(next.personalBests.bestSessionScore).toBe(360);
+    expect(next.personalBests.bestSessionStreak).toBe(4);
+    expect(next.dailyChallenge.progress).toBe(180);
+    expect(next.dailyChallenge.completedAt).toBeTruthy();
+    expect(next.unlocks.high_roller).toBeTruthy();
+  });
+
   it("sanitizes malformed persisted profile data", () => {
     const sanitized = sanitizeArcadeProfile({
       games: {
@@ -99,9 +185,11 @@ describe("arcadeProfile utilities", () => {
     });
 
     expect(sanitized.games.warbirds.bestScore).toBe(0);
+    expect(sanitized.games.blackjack.bestScore).toBe(0);
     expect(sanitized.games.warbirds.stats.enemiesDowned).toBe(20);
     expect(sanitized.games.warbirds.stats.badValue).toBe(0);
     expect(sanitized.lifetime.totalScore).toBe(0);
     expect(sanitized.unlocks.first_sortie).toBe("2026-03-10T00:00:00.000Z");
+    expect(typeof sanitized.dailyChallenge.id).toBe("string");
   });
 });

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Paper from "@mui/material/Paper";
 import SequenceDisplay from "./SequenceDisplay";
@@ -10,13 +9,11 @@ import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
-import Chip from "@mui/material/Chip";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Slider from "@mui/material/Slider";
-import TextField from "@mui/material/TextField";
 
 import {
   Brush,
@@ -32,23 +29,28 @@ import { BasepairHistogram, GatesChart, QiChart, RandicChart, SquiggleChart } fr
 import { Title } from "@/components/shared";
 import { ChartMethod, Sequence } from "../_types/types";
 import {
+  buildSequenceAnalysisOverlayData,
   createSequenceAnalysisReportMarkdown,
+  DNA_ANALYSIS_OVERLAY_MAX_POINTS,
+  DNA_LARGE_SEQUENCE_THRESHOLD_BP,
   runSequenceAnalysisRecipe,
   runSelectedSequenceAnalysisRecipes,
   type SequenceAnalysisBatchResult,
+  type SequenceAnalysisOverlayData,
   type SequenceAnalysisRecipeKind,
   type SequenceAnalysisRecipeResult,
 } from "../_utils/sequenceUtils";
-import SequenceCompareWorkspace from "./SequenceCompareWorkspace";
+import SequenceOverlayTracks from "./SequenceOverlayTracks";
+import SequenceAnalysisRecipesPanel from "./SequenceAnalysisRecipesPanel";
 import type {
   SequenceAnalysisPreset,
   SequenceAnalysisRecipeState,
 } from "../_types/analysisPresets";
+import { useSequenceAnalysisWorker } from "../_hooks/useSequenceAnalysisWorker";
 import {
   buildSequenceAnalysisShareUrl,
   DEFAULT_SEQUENCE_ANALYSIS_RECIPE_STATE,
   DNA_ANALYSIS_PRESET_STORAGE_KEY,
-  DNA_ANALYSIS_RECIPE_LABELS,
   DNA_ANALYSIS_RECIPE_OPTIONS,
   loadStoredSequenceAnalysisPresets,
   normalizeSequenceAnalysisRecipeState,
@@ -63,6 +65,7 @@ export type SequenceVisualizationsProps = {
   onBpRangeUpdate?: (bpRange: number[]) => void;
   chartMethod?: ChartMethod | null;
   onChartMethodUpdate?: (chartMethod: ChartMethod) => void;
+  forceWorkerAnalysis?: boolean;
 };
 
 export default function SequenceVisualizations({
@@ -71,6 +74,7 @@ export default function SequenceVisualizations({
   chartMethod = "sequence",
   onBpRangeUpdate,
   onChartMethodUpdate,
+  forceWorkerAnalysis,
 }: SequenceVisualizationsProps) {
   const minBasePair = bpRange?.[0] || 1;
   const maxBasePair = bpRange?.[1] || activeSequences?.[0]?.sequence?.length || 1;
@@ -102,9 +106,26 @@ export default function SequenceVisualizations({
   const [presetName, setPresetName] = useState("");
   const [savedPresets, setSavedPresets] = useState<SequenceAnalysisPreset[]>([]);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
+  const [analysisBusy, setAnalysisBusy] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [overlayData, setOverlayData] = useState<SequenceAnalysisOverlayData | null>(null);
+  const [overlayBusy, setOverlayBusy] = useState(false);
+  const [overlayStatus, setOverlayStatus] = useState<string | null>(null);
+  const [showMotifOverlay, setShowMotifOverlay] = useState(true);
+  const [showHotspotOverlay, setShowHotspotOverlay] = useState(true);
+  const { workerEnabled, runWorkerRequest } = useSequenceAnalysisWorker();
 
   const activeSequence = activeSequences?.[0];
+  const activeSequenceLength = activeSequence?.sequence?.length ?? 0;
+  const hasLargeSequence = activeSequenceLength >= DNA_LARGE_SEQUENCE_THRESHOLD_BP;
   const isSequenceChart = chartMethod === "sequence";
+  const useWorkerForAnalysis = (forceWorkerAnalysis ?? hasLargeSequence) && workerEnabled;
+  const showLargeSequenceOverlay = isSequenceChart && hasLargeSequence;
+  const analysisExecutionModeLabel = useWorkerForAnalysis
+    ? "web worker"
+    : hasLargeSequence
+      ? "main thread fallback"
+      : "main thread";
   const recipeState = useMemo<SequenceAnalysisRecipeState>(
     () => ({
       activeRecipeKind: recipeKind,
@@ -115,6 +136,21 @@ export default function SequenceVisualizations({
       minOrfCodons,
     }),
     [gcThresholdPct, gcWindowSize, minOrfCodons, motif, recipeKind, selectedRecipeKinds],
+  );
+
+  const resolveErrorMessage = useCallback((error: unknown, fallbackMessage: string): string => {
+    if (error instanceof Error && error.message.trim()) {
+      return error.message.trim();
+    }
+    if (typeof error === "string" && error.trim()) {
+      return error.trim();
+    }
+    return fallbackMessage;
+  }, []);
+
+  const createWorkerRequestId = useCallback(
+    () => `dna-analysis-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    [],
   );
 
   const applyRecipeState = useCallback((state: SequenceAnalysisRecipeState) => {
@@ -181,32 +217,83 @@ export default function SequenceVisualizations({
     applyRecipeState(sharedState);
   }, [applyRecipeState]);
 
-  const runAnalysisRecipe = () => {
+  const runAnalysisRecipe = useCallback(async () => {
     if (!activeSequence?.sequence?.length) {
       setAnalysisResult(null);
       setAnalysisBatchResult(null);
       return;
     }
-    setAnalysisResult(
-      runSequenceAnalysisRecipe(activeSequence.sequence, {
-        kind: recipeKind,
-        motif,
-        windowSize: gcWindowSize,
-        gcThresholdPct,
-        minOrfCodons,
-      }),
-    );
-  };
 
-  const buildRecipeConfig = (kind: SequenceAnalysisRecipeKind) => ({
-    kind,
-    motif,
-    windowSize: gcWindowSize,
+    const recipeConfig = {
+      kind: recipeKind,
+      motif,
+      windowSize: gcWindowSize,
+      gcThresholdPct,
+      minOrfCodons,
+    } as const;
+    setAnalysisError(null);
+
+    if (useWorkerForAnalysis) {
+      setAnalysisBusy(true);
+      try {
+        const response = await runWorkerRequest({
+          requestId: createWorkerRequestId(),
+          action: "run-recipe",
+          payload: {
+            sequence: activeSequence.sequence,
+            config: recipeConfig,
+          },
+        });
+        if (response.action !== "run-recipe" || !response.ok) {
+          throw new Error(
+            response.ok
+              ? "DNA analysis worker returned an unexpected response shape."
+              : response.error,
+          );
+        }
+
+        setAnalysisResult(response.result);
+        setAnalysisBatchResult(null);
+        return;
+      } catch (error) {
+        setAnalysisError(
+          `${resolveErrorMessage(
+            error,
+            "DNA analysis worker failed to run the active recipe.",
+          )} Falling back to main-thread analysis.`,
+        );
+      } finally {
+        setAnalysisBusy(false);
+      }
+    }
+
+    setAnalysisResult(runSequenceAnalysisRecipe(activeSequence.sequence, recipeConfig));
+    setAnalysisBatchResult(null);
+  }, [
+    activeSequence?.sequence,
+    createWorkerRequestId,
     gcThresholdPct,
+    gcWindowSize,
     minOrfCodons,
-  });
+    motif,
+    recipeKind,
+    resolveErrorMessage,
+    runWorkerRequest,
+    useWorkerForAnalysis,
+  ]);
 
-  const runSelectedRecipes = () => {
+  const buildRecipeConfig = useCallback(
+    (kind: SequenceAnalysisRecipeKind) => ({
+      kind,
+      motif,
+      windowSize: gcWindowSize,
+      gcThresholdPct,
+      minOrfCodons,
+    }),
+    [gcThresholdPct, gcWindowSize, minOrfCodons, motif],
+  );
+
+  const runSelectedRecipes = useCallback(async () => {
     if (!activeSequence?.sequence?.length) {
       setAnalysisResult(null);
       setAnalysisBatchResult(null);
@@ -214,14 +301,59 @@ export default function SequenceVisualizations({
     }
 
     const selectedKinds = selectedRecipeKinds.length > 0 ? selectedRecipeKinds : [recipeKind];
-    const report = runSelectedSequenceAnalysisRecipes(
-      activeSequence.sequence,
-      selectedKinds.map((kind) => buildRecipeConfig(kind)),
-    );
+    const recipeConfigs = selectedKinds.map((kind) => buildRecipeConfig(kind));
+    setAnalysisError(null);
+
+    if (useWorkerForAnalysis) {
+      setAnalysisBusy(true);
+      try {
+        const response = await runWorkerRequest({
+          requestId: createWorkerRequestId(),
+          action: "run-batch",
+          payload: {
+            sequence: activeSequence.sequence,
+            configs: recipeConfigs,
+          },
+        });
+        if (response.action !== "run-batch" || !response.ok) {
+          throw new Error(
+            response.ok
+              ? "DNA analysis worker returned an unexpected batch response."
+              : response.error,
+          );
+        }
+
+        setAnalysisBatchResult(response.result);
+        const activeRecipeResult =
+          response.result.recipes.find((recipe) => recipe.kind === recipeKind) ?? null;
+        setAnalysisResult(activeRecipeResult);
+        return;
+      } catch (error) {
+        setAnalysisError(
+          `${resolveErrorMessage(
+            error,
+            "DNA analysis worker failed to run selected recipes.",
+          )} Falling back to main-thread analysis.`,
+        );
+      } finally {
+        setAnalysisBusy(false);
+      }
+    }
+
+    const report = runSelectedSequenceAnalysisRecipes(activeSequence.sequence, recipeConfigs);
     setAnalysisBatchResult(report);
     const activeRecipeResult = report.recipes.find((recipe) => recipe.kind === recipeKind) ?? null;
     setAnalysisResult(activeRecipeResult);
-  };
+  }, [
+    activeSequence?.sequence,
+    buildRecipeConfig,
+    createWorkerRequestId,
+    recipeKind,
+    resolveErrorMessage,
+    runWorkerRequest,
+    selectedRecipeKinds,
+    useWorkerForAnalysis,
+  ]);
 
   const toggleRecipeSelection = (kind: SequenceAnalysisRecipeKind) => {
     setSelectedRecipeKinds((current) => {
@@ -320,6 +452,107 @@ export default function SequenceVisualizations({
       window.clearTimeout(timeout);
     };
   }, [shareStatus]);
+
+  useEffect(() => {
+    if (!showLargeSequenceOverlay || !activeSequence?.sequence?.length) {
+      setOverlayData(null);
+      setOverlayBusy(false);
+      setOverlayStatus(null);
+      return;
+    }
+
+    let isCancelled = false;
+    const syncOverlay = async () => {
+      setOverlayBusy(true);
+      setOverlayStatus(null);
+      const overlayConfig = {
+        motif,
+        gcWindowSize,
+        gcThresholdPct,
+        maxPoints: DNA_ANALYSIS_OVERLAY_MAX_POINTS,
+      };
+
+      if (useWorkerForAnalysis) {
+        try {
+          const response = await runWorkerRequest({
+            requestId: createWorkerRequestId(),
+            action: "build-overlay",
+            payload: {
+              sequence: activeSequence.sequence,
+              config: overlayConfig,
+            },
+          });
+          if (response.action !== "build-overlay" || !response.ok) {
+            throw new Error(
+              response.ok
+                ? "DNA analysis worker returned an unexpected overlay response."
+                : response.error,
+            );
+          }
+
+          if (!isCancelled) {
+            setOverlayData(response.result);
+          }
+          return;
+        } catch (error) {
+          if (!isCancelled) {
+            setOverlayStatus(
+              `${resolveErrorMessage(
+                error,
+                "DNA overlay worker failed for the current sequence.",
+              )} Recomputed on main thread.`,
+            );
+          }
+        }
+      }
+
+      const fallbackOverlay = buildSequenceAnalysisOverlayData(
+        activeSequence.sequence,
+        overlayConfig,
+      );
+      if (!isCancelled) {
+        setOverlayData(fallbackOverlay);
+      }
+    };
+
+    void syncOverlay().finally(() => {
+      if (!isCancelled) {
+        setOverlayBusy(false);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    activeSequence?.sequence,
+    createWorkerRequestId,
+    gcThresholdPct,
+    gcWindowSize,
+    motif,
+    resolveErrorMessage,
+    runWorkerRequest,
+    showLargeSequenceOverlay,
+    useWorkerForAnalysis,
+  ]);
+
+  const motifOverlaySummary = useMemo(() => {
+    if (!overlayData) {
+      return null;
+    }
+    return `${overlayData.motifMatches.length.toLocaleString("en-US")}/${overlayData.motifTotalCount.toLocaleString(
+      "en-US",
+    )} motif markers`;
+  }, [overlayData]);
+
+  const hotspotOverlaySummary = useMemo(() => {
+    if (!overlayData) {
+      return null;
+    }
+    return `${overlayData.gcHotspots.length.toLocaleString("en-US")}/${overlayData.gcHotspotTotalCount.toLocaleString(
+      "en-US",
+    )} GC hotspots`;
+  }, [overlayData]);
 
   const analysisRows = useMemo(() => {
     if (!analysisResult) {
@@ -565,6 +798,21 @@ export default function SequenceVisualizations({
               <Typography className="inline-block p-2 font-semibold">Type:</Typography>
               <Typography className="inline-block p-2">{activeSequence?.type}</Typography>
             </Box>
+            {showLargeSequenceOverlay ? (
+              <SequenceOverlayTracks
+                activeSequenceLength={activeSequenceLength}
+                analysisExecutionModeLabel={analysisExecutionModeLabel}
+                overlayData={overlayData}
+                overlayBusy={overlayBusy}
+                overlayStatus={overlayStatus}
+                showMotifOverlay={showMotifOverlay}
+                showHotspotOverlay={showHotspotOverlay}
+                motifOverlaySummary={motifOverlaySummary}
+                hotspotOverlaySummary={hotspotOverlaySummary}
+                onToggleMotifOverlay={() => setShowMotifOverlay((current) => !current)}
+                onToggleHotspotOverlay={() => setShowHotspotOverlay((current) => !current)}
+              />
+            ) : null}
             <Box className="flex min-h-0 min-w-0 flex-1 flex-col">
               <Divider />
               <SequenceDisplay
@@ -582,276 +830,51 @@ export default function SequenceVisualizations({
           </Box>
         )}
         {chartMethod === "analysis" && (
-          <Box sx={{ mt: 0.75, p: 1.25, display: "grid", gap: 1.25 }}>
-            <Paper variant="outlined" sx={{ p: 1.25, borderRadius: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                Active recipe setup
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-                The dropdown selects which recipe settings you are editing and what the single-run
-                button executes.
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                <FormControl size="small" sx={{ minWidth: 210 }}>
-                  <InputLabel id="recipe-select-label">Active recipe</InputLabel>
-                  <Select
-                    labelId="recipe-select-label"
-                    value={recipeKind}
-                    label="Active recipe"
-                    onChange={(event) =>
-                      setRecipeKind(event.target.value as SequenceAnalysisRecipeKind)
-                    }
-                  >
-                    {DNA_ANALYSIS_RECIPE_OPTIONS.map((recipeOption) => (
-                      <MenuItem key={`recipe-select-${recipeOption}`} value={recipeOption}>
-                        {DNA_ANALYSIS_RECIPE_LABELS[recipeOption]}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                {recipeKind === "motif-scan" ? (
-                  <TextField
-                    size="small"
-                    label="Motif"
-                    value={motif}
-                    onChange={(event) => setMotif(event.target.value)}
-                    sx={{ minWidth: 130 }}
-                  />
-                ) : null}
-                {recipeKind === "gc-anomaly-scan" ? (
-                  <>
-                    <TextField
-                      size="small"
-                      type="number"
-                      label="Window"
-                      value={gcWindowSize}
-                      onChange={(event) =>
-                        setGcWindowSize(Math.max(8, Math.floor(Number(event.target.value) || 24)))
-                      }
-                      sx={{ width: 110 }}
-                    />
-                    <TextField
-                      size="small"
-                      type="number"
-                      label="GC Δ %"
-                      value={gcThresholdPct}
-                      onChange={(event) =>
-                        setGcThresholdPct(Math.max(1, Number(event.target.value) || 15))
-                      }
-                      sx={{ width: 110 }}
-                    />
-                  </>
-                ) : null}
-                {recipeKind === "orf-scan" ? (
-                  <TextField
-                    size="small"
-                    type="number"
-                    label="Min Codons"
-                    value={minOrfCodons}
-                    onChange={(event) =>
-                      setMinOrfCodons(Math.max(5, Math.floor(Number(event.target.value) || 10)))
-                    }
-                    sx={{ width: 130 }}
-                  />
-                ) : null}
-                <Button
-                  size="small"
-                  variant="contained"
-                  onClick={runAnalysisRecipe}
-                  startIcon={<span aria-hidden="true">🧪</span>}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    bgcolor: "#0f766e",
-                    "&:hover": { bgcolor: "#115e59" },
-                  }}
-                >
-                  Run active recipe
-                </Button>
-              </Box>
-            </Paper>
-            <Paper variant="outlined" sx={{ p: 1.25, borderRadius: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                Batch recipe selection
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-                Chips choose which recipes are included when you run a multi-recipe batch.
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.75 }}>
-                {DNA_ANALYSIS_RECIPE_OPTIONS.map((recipeOption) => (
-                  <Chip
-                    key={`recipe-toggle-${recipeOption}`}
-                    size="small"
-                    color={selectedRecipeKinds.includes(recipeOption) ? "primary" : "default"}
-                    variant={selectedRecipeKinds.includes(recipeOption) ? "filled" : "outlined"}
-                    label={DNA_ANALYSIS_RECIPE_LABELS[recipeOption]}
-                    onClick={() => toggleRecipeSelection(recipeOption)}
-                  />
-                ))}
-                <Button
-                  size="small"
-                  variant="contained"
-                  color="primary"
-                  onClick={runSelectedRecipes}
-                  startIcon={<span aria-hidden="true">🚀</span>}
-                  sx={{
-                    ml: { xs: 0, sm: 1 },
-                    textTransform: "none",
-                    fontWeight: 700,
-                    bgcolor: "#1d4ed8",
-                    "&:hover": { bgcolor: "#1e40af" },
-                  }}
-                >
-                  Run selected recipes
-                </Button>
-              </Box>
-            </Paper>
-            <Paper variant="outlined" sx={{ p: 1.25, borderRadius: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                Presets and reports
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 0.5 }}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => void shareRecipeLink()}
-                  startIcon={<span aria-hidden="true">🔗</span>}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    borderColor: "#0284c7",
-                    color: "#0369a1",
-                  }}
-                >
-                  Share setup link
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={exportBatchJson}
-                  disabled={!analysisBatchResult}
-                  startIcon={<span aria-hidden="true">📦</span>}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    borderColor: "#059669",
-                    color: "#047857",
-                  }}
-                >
-                  Export JSON
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={exportBatchMarkdown}
-                  disabled={!analysisBatchResult}
-                  startIcon={<span aria-hidden="true">📝</span>}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    borderColor: "#b45309",
-                    color: "#92400e",
-                  }}
-                >
-                  Export Markdown
-                </Button>
-              </Box>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                <TextField
-                  size="small"
-                  label="Preset name"
-                  value={presetName}
-                  onChange={(event) => setPresetName(event.target.value)}
-                  sx={{ minWidth: 180 }}
-                />
-                <Button
-                  size="small"
-                  variant="contained"
-                  onClick={savePreset}
-                  startIcon={<span aria-hidden="true">💾</span>}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    bgcolor: "#4338ca",
-                    "&:hover": { bgcolor: "#3730a3" },
-                  }}
-                >
-                  Save preset
-                </Button>
-                {shareStatus ? (
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: "inline-flex", alignItems: "center", px: 0.5 }}
-                  >
-                    {shareStatus}
-                  </Typography>
-                ) : null}
-                {savedPresets.map((preset) => (
-                  <Button
-                    key={`preset-${preset.name}`}
-                    size="small"
-                    variant="text"
-                    startIcon={<span aria-hidden="true">📂</span>}
-                    sx={{ textTransform: "none", fontWeight: 600 }}
-                    onClick={() => {
-                      applyRecipeState(
-                        normalizeSequenceAnalysisRecipeState(
-                          preset.state,
-                          DEFAULT_SEQUENCE_ANALYSIS_RECIPE_STATE,
-                        ),
-                      );
-                      setShareStatus(`Loaded preset "${preset.name}".`);
-                    }}
-                  >
-                    {preset.name}
-                  </Button>
-                ))}
-              </Box>
-            </Paper>
-            <SequenceCompareWorkspace
-              activeSequences={activeSequences ?? []}
-              recipeState={recipeState}
-              savedPresets={savedPresets}
-              onApplyPresetState={(state) => {
-                applyRecipeState(state);
-                setShareStatus("Applied compare workspace preset to recipe controls.");
-              }}
-            />
-            {analysisResult ? (
-              <Paper variant="outlined" sx={{ p: 1.25, borderRadius: 2 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  Active recipe output
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  {analysisResult.summary}
-                </Typography>
-                {analysisRows.map((row) => (
-                  <Typography
-                    key={row}
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: "block" }}
-                  >
-                    {row}
-                  </Typography>
-                ))}
-              </Paper>
-            ) : null}
-            {analysisBatchResult ? (
-              <Paper variant="outlined" sx={{ p: 1.25, borderRadius: 2 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  Batch report summary
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                  {analysisBatchResult.summary}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                  Report generated at {analysisBatchResult.generatedAtIso}
-                </Typography>
-              </Paper>
-            ) : null}
-          </Box>
+          <SequenceAnalysisRecipesPanel
+            activeSequences={activeSequences ?? []}
+            recipeKind={recipeKind}
+            motif={motif}
+            gcWindowSize={gcWindowSize}
+            gcThresholdPct={gcThresholdPct}
+            minOrfCodons={minOrfCodons}
+            analysisExecutionModeLabel={analysisExecutionModeLabel}
+            analysisBusy={analysisBusy}
+            analysisError={analysisError}
+            selectedRecipeKinds={selectedRecipeKinds}
+            analysisBatchResult={analysisBatchResult}
+            presetName={presetName}
+            shareStatus={shareStatus}
+            savedPresets={savedPresets}
+            recipeState={recipeState}
+            analysisResult={analysisResult}
+            analysisRows={analysisRows}
+            onRecipeKindChange={setRecipeKind}
+            onMotifChange={setMotif}
+            onGcWindowSizeChange={setGcWindowSize}
+            onGcThresholdPctChange={setGcThresholdPct}
+            onMinOrfCodonsChange={setMinOrfCodons}
+            onRunAnalysisRecipe={() => void runAnalysisRecipe()}
+            onToggleRecipeSelection={toggleRecipeSelection}
+            onRunSelectedRecipes={() => void runSelectedRecipes()}
+            onShareRecipeLink={shareRecipeLink}
+            onExportBatchJson={exportBatchJson}
+            onExportBatchMarkdown={exportBatchMarkdown}
+            onPresetNameChange={setPresetName}
+            onSavePreset={savePreset}
+            onLoadPreset={(preset) => {
+              applyRecipeState(
+                normalizeSequenceAnalysisRecipeState(
+                  preset.state,
+                  DEFAULT_SEQUENCE_ANALYSIS_RECIPE_STATE,
+                ),
+              );
+              setShareStatus(`Loaded preset "${preset.name}".`);
+            }}
+            onApplyComparePresetState={(state) => {
+              applyRecipeState(state);
+              setShareStatus("Applied compare workspace preset to recipe controls.");
+            }}
+          />
         )}
       </Box>
     </Paper>

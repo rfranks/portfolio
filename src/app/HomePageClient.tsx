@@ -45,6 +45,7 @@ import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
 import { useDocumentTitle } from "@/hooks/window/useDocumentTitle";
+import { useRouteStateSync } from "@/hooks/window/useRouteStateSync";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import getFabricTheme from "@/themes/fabricTheme";
@@ -79,6 +80,7 @@ export default function HomePageClient() {
     deltaY: number;
   } | null>(null);
   const sectionNavSfx = useAudio("/audio/card-slide-3.ogg");
+  const { pushRoutePathIfChanged } = useRouteStateSync();
 
   const { setDocumentTitle } = useDocumentTitle();
   useEffect(() => {
@@ -97,19 +99,21 @@ export default function HomePageClient() {
     setDocumentTitle(summary.documentTitle);
   }, [setDocumentTitle, summary.documentTitle]);
 
-  const updateHashForSection = useCallback((sectionId: string) => {
-    const nextHash = `#${encodeURIComponent(sectionId)}`;
-    if (window.location.hash === nextHash) {
-      return;
-    }
+  const updateHashForSection = useCallback(
+    (sectionId: string) => {
+      const nextHash = `#${encodeURIComponent(sectionId)}`;
+      if (window.location.hash === nextHash) {
+        return;
+      }
 
-    const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
-    try {
-      window.history.pushState(null, "", nextUrl);
-    } catch {
-      window.location.hash = sectionId;
-    }
-  }, []);
+      const nextPath = `${window.location.pathname}${window.location.search}${nextHash}`;
+      const didPush = pushRoutePathIfChanged(nextPath);
+      if (!didPush) {
+        window.location.hash = sectionId;
+      }
+    },
+    [pushRoutePathIfChanged],
+  );
 
   useEffect(() => {
     if (!isReady || !activeSectionId) {
@@ -138,33 +142,19 @@ export default function HomePageClient() {
     [tocSections],
   );
 
-  useEffect(() => {
-    if (!isReady) {
-      return;
-    }
-
-    const applyHashSection = () => {
-      const sectionId = resolveSectionIdFromHash(window.location.hash);
-      if (!sectionId) {
-        return;
-      }
-      setActiveSectionId(sectionId);
-    };
-
-    applyHashSection();
-
-    const handleHashOrHistoryChange = () => {
-      applyHashSection();
-    };
-
-    window.addEventListener("hashchange", handleHashOrHistoryChange);
-    window.addEventListener("popstate", handleHashOrHistoryChange);
-
-    return () => {
-      window.removeEventListener("hashchange", handleHashOrHistoryChange);
-      window.removeEventListener("popstate", handleHashOrHistoryChange);
-    };
-  }, [isReady, resolveSectionIdFromHash]);
+  useRouteStateSync({
+    enabled: isReady,
+    listenToLocationEvents: true,
+    onLocationChange: useCallback(
+      (location: Location) => {
+        const sectionId = resolveSectionIdFromHash(location.hash);
+        if (sectionId) {
+          setActiveSectionId(sectionId);
+        }
+      },
+      [resolveSectionIdFromHash],
+    ),
+  });
 
   const toggleDrawer = () => {
     setOpen(!open);

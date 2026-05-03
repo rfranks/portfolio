@@ -8,7 +8,12 @@ import type {
   AIShenaniganType,
   AIShenaniganWorkToSeriesAdaptationProps,
 } from "../_types/aiShenanigan";
-import type { AIShenaniganDataItem, AIShenaniganPageItem } from "../_types/aiShenaniganModels";
+import type {
+  AIShenaniganDataItem,
+  AIShenaniganFilterOptionByCategory,
+  AIShenaniganFilterSelection,
+  AIShenaniganPageItem,
+} from "../_types/aiShenaniganModels";
 
 type AIShenaniganNonDefaultType = Exclude<AIShenaniganType, "default">;
 type AIShenaniganNonDefaultPropsByType = {
@@ -39,6 +44,33 @@ const KNOWN_SHENANIGAN_TYPES: readonly AIShenaniganType[] = [
   "palmylyzer-pro",
   "song-recording",
 ];
+
+const MEDIUM_LABELS: Record<string, string> = {
+  image: "Image",
+  video: "Video",
+  audio: "Audio",
+  document: "Document",
+  adaptation: "Adaptation",
+  analysis: "Analysis",
+};
+
+const STYLE_LABELS: Record<string, string> = {
+  portrait: "Portrait",
+  landscape: "Landscape",
+  stylized: "Stylized",
+  cinematic: "Cinematic",
+  storybook: "Storybook",
+  horror: "Horror",
+  music: "Music",
+  analysis: "Analytical",
+  retro: "Retro",
+};
+
+const SERIES_LABELS: Record<string, string> = {
+  "alice-in-wonderland": "Alice in Wonderland",
+  "zombie-chaos": "Zombie Chaos",
+  standalone: "Standalone",
+};
 
 const readOptionalString = (value: unknown) => {
   if (typeof value !== "string") {
@@ -102,6 +134,175 @@ const resolveAIShenaniganType = (value: unknown): AIShenaniganType => {
 
   return "default";
 };
+
+const slugifyToken = (value: string): string =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const startCaseFromToken = (value: string): string =>
+  value
+    .split("-")
+    .filter(Boolean)
+    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
+
+const hasKeywordMatch = (text: string, keywords: readonly string[]): boolean =>
+  keywords.some((keyword) => text.includes(keyword));
+
+const getItemTextBlob = (item: AIShenaniganDataItem): string =>
+  [
+    readOptionalString(item.title),
+    readOptionalString(item.shortText),
+    readOptionalString(item.blurb),
+    readOptionalString(item.realisticCaption),
+    readOptionalString(item.stylizedCaption),
+    readOptionalString(item.movieCaption),
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(" ")
+    .toLowerCase();
+
+const hasVideoMedia = (item: AIShenaniganDataItem): boolean => {
+  const itemRecord = item as Record<string, unknown>;
+
+  return Boolean(
+    readOptionalString(item.movieRendering) ||
+    readOptionalString(item.movieRendering2) ||
+    readOptionalString(item.trailerMovie) ||
+    getString(itemRecord, "seriesMovie") ||
+    (Array.isArray(item.episodeMedia) && item.episodeMedia.length > 0) ||
+    (Array.isArray(itemRecord.seriesParts) && itemRecord.seriesParts.length > 0),
+  );
+};
+
+const resolveMediumTags = (item: AIShenaniganDataItem, shenaniganType: AIShenaniganType) => {
+  const tags = new Set<string>(["image"]);
+  const itemRecord = item as Record<string, unknown>;
+
+  if (hasVideoMedia(item)) {
+    tags.add("video");
+  }
+  if (readOptionalString(item.songAudio)) {
+    tags.add("audio");
+  }
+  if (
+    readOptionalString(item.manuscriptPdf) ||
+    readOptionalString(item.episodesPdf) ||
+    (Array.isArray(itemRecord.workParts) && itemRecord.workParts.length > 0)
+  ) {
+    tags.add("document");
+  }
+  if (
+    shenaniganType === "book-to-limited-series" ||
+    shenaniganType === "work-to-series-adaptation"
+  ) {
+    tags.add("adaptation");
+  }
+  if (shenaniganType === "palmylyzer-pro") {
+    tags.add("analysis");
+  }
+
+  return Array.from(tags);
+};
+
+const resolveStyleTags = (item: AIShenaniganDataItem, shenaniganType: AIShenaniganType) => {
+  const tags = new Set<string>();
+  const itemText = getItemTextBlob(item);
+  const orientation = normalizeOrientation(item.orientation);
+
+  if (orientation) {
+    tags.add(orientation);
+  }
+  if (readOptionalString(item.stylizedRendering)) {
+    tags.add("stylized");
+  }
+  if (hasVideoMedia(item)) {
+    tags.add("cinematic");
+  }
+  if (shenaniganType === "song-recording") {
+    tags.add("music");
+  }
+  if (shenaniganType === "palmylyzer-pro") {
+    tags.add("analysis");
+  }
+  if (hasKeywordMatch(itemText, ["wonderland", "storybook", "fairytale"])) {
+    tags.add("storybook");
+  }
+  if (hasKeywordMatch(itemText, ["zombie", "monster", "cryptid", "horror", "undead"])) {
+    tags.add("horror");
+  }
+  if (hasKeywordMatch(itemText, ["retro", "arcade", "victorian"])) {
+    tags.add("retro");
+  }
+
+  if (tags.size === 0) {
+    tags.add("stylized");
+  }
+
+  return Array.from(tags);
+};
+
+const resolveSeriesTag = (
+  item: AIShenaniganDataItem,
+  shenaniganType: AIShenaniganType,
+  sequelFamilyCounts: Map<string, number>,
+) => {
+  const itemRecord = item as Record<string, unknown>;
+  const explicitSeries = getString(itemRecord, "series");
+  if (explicitSeries) {
+    return slugifyToken(explicitSeries);
+  }
+
+  const slug = readOptionalString(item.slug) ?? "";
+  const itemText = getItemTextBlob(item);
+
+  if (
+    shenaniganType === "book-to-limited-series" ||
+    shenaniganType === "work-to-series-adaptation"
+  ) {
+    return slugifyToken(slug || item.title);
+  }
+
+  if (slug.startsWith("zombie-chaos")) {
+    return "zombie-chaos";
+  }
+
+  if (
+    hasKeywordMatch(itemText, [
+      "wonderland",
+      "white rabbit",
+      "cheshire",
+      "mad hatter",
+      "king of hearts",
+      "tweedle",
+      "walrus",
+      "caterpillar",
+    ])
+  ) {
+    return "alice-in-wonderland";
+  }
+
+  const sequelFamilySlug = slug.replace(/-\d+$/, "");
+  if (sequelFamilySlug && (sequelFamilyCounts.get(sequelFamilySlug) ?? 0) > 1) {
+    return sequelFamilySlug;
+  }
+
+  return "standalone";
+};
+
+const buildOptionList = (counts: Map<string, number>, labels: Record<string, string>) =>
+  Array.from(counts.entries())
+    .map(([value, count]) => ({
+      value,
+      label: labels[value] ?? startCaseFromToken(value),
+      count,
+    }))
+    .sort((left, right) =>
+      left.label.localeCompare(right.label, undefined, { sensitivity: "base" }),
+    );
 
 const buildCommonBaseProps = (item: AIShenaniganDataItem, rank: number): AIShenaniganCommonBase => {
   return {
@@ -300,8 +501,17 @@ const getPagerPreviewImage = (
 export const normalizeAIShenaniganItems = (
   items: AIShenaniganDataItem[],
   fallbackImage: string,
-): AIShenaniganPageItem[] =>
-  items.map((item, index) => {
+): AIShenaniganPageItem[] => {
+  const sequelFamilyCounts = items.reduce((acc, item) => {
+    const slug = readOptionalString(item.slug) ?? "";
+    const familySlug = slug.replace(/-\d+$/, "");
+    if (familySlug) {
+      acc.set(familySlug, (acc.get(familySlug) ?? 0) + 1);
+    }
+    return acc;
+  }, new Map<string, number>());
+
+  return items.map((item, index) => {
     const props = buildAIShenaniganProps(item, index + 1);
     const shenaniganType = resolveAIShenaniganType(item.type);
 
@@ -311,6 +521,46 @@ export const normalizeAIShenaniganItems = (
       blurb: readOptionalString(item.blurb) ?? "",
       shortText: readOptionalString(item.shortText),
       previewImage: getPagerPreviewImage(item, shenaniganType, fallbackImage),
+      mediumTags: resolveMediumTags(item, shenaniganType),
+      styleTags: resolveStyleTags(item, shenaniganType),
+      seriesTag: resolveSeriesTag(item, shenaniganType, sequelFamilyCounts),
       props,
     };
+  });
+};
+
+export const resolveAIShenaniganFilterOptions = (
+  items: AIShenaniganPageItem[],
+): AIShenaniganFilterOptionByCategory => {
+  const mediumCounts = new Map<string, number>();
+  const styleCounts = new Map<string, number>();
+  const seriesCounts = new Map<string, number>();
+
+  items.forEach((item) => {
+    item.mediumTags.forEach((tag) => {
+      mediumCounts.set(tag, (mediumCounts.get(tag) ?? 0) + 1);
+    });
+    item.styleTags.forEach((tag) => {
+      styleCounts.set(tag, (styleCounts.get(tag) ?? 0) + 1);
+    });
+    seriesCounts.set(item.seriesTag, (seriesCounts.get(item.seriesTag) ?? 0) + 1);
+  });
+
+  return {
+    medium: buildOptionList(mediumCounts, MEDIUM_LABELS),
+    style: buildOptionList(styleCounts, STYLE_LABELS),
+    series: buildOptionList(seriesCounts, SERIES_LABELS),
+  };
+};
+
+export const filterAIShenaniganItems = (
+  items: AIShenaniganPageItem[],
+  filters: AIShenaniganFilterSelection,
+): AIShenaniganPageItem[] =>
+  items.filter((item) => {
+    const matchesMedium = filters.medium ? item.mediumTags.includes(filters.medium) : true;
+    const matchesStyle = filters.style ? item.styleTags.includes(filters.style) : true;
+    const matchesSeries = filters.series ? item.seriesTag === filters.series : true;
+
+    return matchesMedium && matchesStyle && matchesSeries;
   });

@@ -21,7 +21,9 @@ import Search from "@mui/icons-material/Search";
 import { usePathname, useSearchParams } from "next/navigation";
 import { projects } from "@/consts/resumeData";
 import {
+  dedupeCommandPaletteActions,
   getPortfolioStaticSearchIndexActions,
+  normalizeCommandPaletteActionSearchText,
   getPresentationProjectContractBySlug,
   getPresentationSectionTitle,
 } from "@/components/portfolio/projectPageData";
@@ -84,26 +86,6 @@ const StyledAppBar = styled(MuiAppBar, {
     }),
   }),
 }));
-
-function normalizeActionSearchText(action: CommandPaletteAction) {
-  return [action.label, action.subtitle ?? "", action.group ?? "", ...(action.keywords ?? [])]
-    .join(" ")
-    .toLowerCase();
-}
-
-function dedupeActions(actions: CommandPaletteAction[]) {
-  const seen = new Set<string>();
-  const deduped: CommandPaletteAction[] = [];
-  for (const action of actions) {
-    const dedupeKey = `${action.id}::${action.label}`;
-    if (seen.has(dedupeKey)) {
-      continue;
-    }
-    seen.add(dedupeKey);
-    deduped.push(action);
-  }
-  return deduped;
-}
 
 function normalizeStaticSearchActions(payload: unknown): CommandPaletteAction[] | null {
   if (!payload || typeof payload !== "object") {
@@ -292,7 +274,7 @@ export default function AppBar({
 
   const allActions = useMemo(
     () =>
-      dedupeActions([
+      dedupeCommandPaletteActions([
         homeAction,
         ...staticSearchIndexActions,
         ...commandPaletteActions,
@@ -308,7 +290,7 @@ export default function AppBar({
     }
 
     return allActions.filter((action) =>
-      normalizeActionSearchText(action).includes(normalizedQuery),
+      normalizeCommandPaletteActionSearchText(action).includes(normalizedQuery),
     );
   }, [allActions, commandQuery]);
 

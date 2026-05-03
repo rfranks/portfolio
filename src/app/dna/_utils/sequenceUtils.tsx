@@ -16,6 +16,7 @@ import {
 } from "@mui/material/colors";
 import { Base, CodingCodon, ParsedSequenceResult, Sequence } from "../_types/types";
 import { CODONS_TO_AMINO_ACIDS } from "../_consts/consts";
+export { createSequenceAnalysisReportMarkdown } from "./sequenceAnalysisReportMarkdown";
 
 // Map each nucleotide base to a representative color for display purposes.
 // A -> lightblue, T -> lightyellow, G -> lightgreen, C -> lightpink, U -> violet.
@@ -71,30 +72,11 @@ export type BPCount = {
 };
 
 export function getBasepairCounts(seq: string): BPCount[] {
-  const A = {
-    name: "A",
-    count: 0,
-  };
-
-  const C = {
-    name: "C",
-    count: 0,
-  };
-
-  const G = {
-    name: "G",
-    count: 0,
-  };
-
-  const T = {
-    name: "T",
-    count: 0,
-  };
-
-  const U = {
-    name: "U",
-    count: 0,
-  };
+  const A = { name: "A", count: 0 };
+  const C = { name: "C", count: 0 };
+  const G = { name: "G", count: 0 };
+  const T = { name: "T", count: 0 };
+  const U = { name: "U", count: 0 };
 
   const counts = {
     A: 0,
@@ -327,6 +309,10 @@ export function isMaxBase(sequence: string, base: Base): boolean {
 
 export type SequenceAnalysisRecipeKind = "motif-scan" | "gc-anomaly-scan" | "orf-scan";
 
+export const DNA_LARGE_SEQUENCE_THRESHOLD_BP = 12_000;
+export const DNA_ANALYSIS_OVERLAY_MAX_POINTS = 180;
+export const DNA_SEQUENCE_ANALYSIS_WORKER_TIMEOUT_MS = 25_000;
+
 export type SequenceAnalysisRecipeConfig = {
   kind: SequenceAnalysisRecipeKind;
   motif?: string;
@@ -370,6 +356,76 @@ export type SequenceAnalysisBatchResult = {
   recipes: SequenceAnalysisRecipeResult[];
   summary: string;
 };
+
+export type SequenceAnalysisOverlayData = {
+  generatedAtIso: string;
+  sequenceLength: number;
+  motifMatches: SequenceMotifMatch[];
+  gcHotspots: SequenceGcAnomaly[];
+  motifTotalCount: number;
+  gcHotspotTotalCount: number;
+  motifTruncated: boolean;
+  gcHotspotTruncated: boolean;
+};
+
+export type SequenceAnalysisOverlayRequest = {
+  motif?: string;
+  gcWindowSize?: number;
+  gcThresholdPct?: number;
+  maxPoints?: number;
+};
+
+export type SequenceAnalysisWorkerRequest =
+  | {
+      requestId: string;
+      action: "run-recipe";
+      payload: {
+        sequence: string;
+        config: SequenceAnalysisRecipeConfig;
+      };
+    }
+  | {
+      requestId: string;
+      action: "run-batch";
+      payload: {
+        sequence: string;
+        configs: SequenceAnalysisRecipeConfig[];
+      };
+    }
+  | {
+      requestId: string;
+      action: "build-overlay";
+      payload: {
+        sequence: string;
+        config: SequenceAnalysisOverlayRequest;
+      };
+    };
+
+export type SequenceAnalysisWorkerResponse =
+  | {
+      requestId: string;
+      action: "run-recipe";
+      ok: true;
+      result: SequenceAnalysisRecipeResult;
+    }
+  | {
+      requestId: string;
+      action: "run-batch";
+      ok: true;
+      result: SequenceAnalysisBatchResult;
+    }
+  | {
+      requestId: string;
+      action: "build-overlay";
+      ok: true;
+      result: SequenceAnalysisOverlayData;
+    }
+  | {
+      requestId: string;
+      action: SequenceAnalysisWorkerRequest["action"];
+      ok: false;
+      error: string;
+    };
 
 export type SequenceCompareHeatmapRecipeCell = {
   kind: SequenceAnalysisRecipeKind;
@@ -465,6 +521,23 @@ const toCsvCell = (value: string | number): string => {
   const escaped = value.replaceAll('"', '""');
   return `"${escaped}"`;
 };
+
+function downsampleBySpread<T>(items: T[], maxCount: number): T[] {
+  if (items.length <= maxCount) {
+    return items;
+  }
+
+  const safeMaxCount = Math.max(2, Math.floor(maxCount));
+  const selectedIndices = new Set<number>([0, items.length - 1]);
+  const spreadStep = (items.length - 1) / (safeMaxCount - 1);
+  for (let sampleIndex = 1; sampleIndex < safeMaxCount - 1; sampleIndex += 1) {
+    selectedIndices.add(Math.round(sampleIndex * spreadStep));
+  }
+
+  return Array.from(selectedIndices)
+    .sort((left, right) => left - right)
+    .map((index) => items[index]);
+}
 
 export function runSequenceAnalysisRecipe(
   sequence: string,
@@ -615,6 +688,38 @@ export function runSelectedSequenceAnalysisRecipes(
     sequenceLength: normalizedSequence.length,
     recipes,
     summary,
+  };
+}
+
+export function buildSequenceAnalysisOverlayData(
+  sequence: string,
+  config: SequenceAnalysisOverlayRequest,
+): SequenceAnalysisOverlayData {
+  const normalizedSequence = normalizeInputSequence(sequence);
+  const maxPoints = Math.max(8, Math.floor(config.maxPoints ?? DNA_ANALYSIS_OVERLAY_MAX_POINTS));
+  const motifResult = runSequenceAnalysisRecipe(normalizedSequence, {
+    kind: "motif-scan",
+    motif: config.motif,
+  });
+  const gcAnomalyResult = runSequenceAnalysisRecipe(normalizedSequence, {
+    kind: "gc-anomaly-scan",
+    windowSize: config.gcWindowSize,
+    gcThresholdPct: config.gcThresholdPct,
+  });
+  const motifMatches = motifResult.motifMatches ?? [];
+  const gcHotspots = gcAnomalyResult.gcAnomalies ?? [];
+  const sampledMotifMatches = downsampleBySpread(motifMatches, maxPoints);
+  const sampledGcHotspots = downsampleBySpread(gcHotspots, maxPoints);
+
+  return {
+    generatedAtIso: new Date().toISOString(),
+    sequenceLength: normalizedSequence.length,
+    motifMatches: sampledMotifMatches,
+    gcHotspots: sampledGcHotspots,
+    motifTotalCount: motifMatches.length,
+    gcHotspotTotalCount: gcHotspots.length,
+    motifTruncated: sampledMotifMatches.length < motifMatches.length,
+    gcHotspotTruncated: sampledGcHotspots.length < gcHotspots.length,
   };
 }
 
@@ -782,54 +887,4 @@ export function createSequenceCompareDiffCsv(report: SequenceCompareDiffReport):
   });
 
   return lines.join("\n");
-}
-
-export function createSequenceAnalysisReportMarkdown(report: SequenceAnalysisBatchResult): string {
-  const sections: string[] = [
-    "# DNA Analysis Report",
-    "",
-    `Generated: ${report.generatedAtIso}`,
-    `Sequence Length: ${report.sequenceLength.toLocaleString("en-US")} basepairs`,
-    "",
-    report.summary,
-    "",
-  ];
-
-  report.recipes.forEach((recipe, index) => {
-    sections.push(`## ${index + 1}. ${recipe.kind}`);
-    sections.push("");
-    sections.push(recipe.summary);
-    sections.push("");
-
-    if (recipe.kind === "motif-scan" && recipe.motifMatches?.length) {
-      sections.push("| Motif | Start | End |");
-      sections.push("| --- | ---: | ---: |");
-      recipe.motifMatches.forEach((match) => {
-        sections.push(`| ${match.motif} | ${match.start} | ${match.end} |`);
-      });
-      sections.push("");
-    }
-
-    if (recipe.kind === "gc-anomaly-scan" && recipe.gcAnomalies?.length) {
-      sections.push("| Window Start | Window End | GC % | Deviation % |");
-      sections.push("| ---: | ---: | ---: | ---: |");
-      recipe.gcAnomalies.forEach((anomaly) => {
-        sections.push(
-          `| ${anomaly.windowStart} | ${anomaly.windowEnd} | ${anomaly.gcPct.toFixed(2)} | ${anomaly.deviationPct.toFixed(2)} |`,
-        );
-      });
-      sections.push("");
-    }
-
-    if (recipe.kind === "orf-scan" && recipe.orfs?.length) {
-      sections.push("| Frame | Start | End | Codons |");
-      sections.push("| ---: | ---: | ---: | ---: |");
-      recipe.orfs.forEach((orf) => {
-        sections.push(`| ${orf.frame} | ${orf.start} | ${orf.end} | ${orf.codons} |`);
-      });
-      sections.push("");
-    }
-  });
-
-  return sections.join("\n").trimEnd();
 }

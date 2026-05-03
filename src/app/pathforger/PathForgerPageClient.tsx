@@ -14,10 +14,10 @@ import {
 import { ArrowBack, AutoStories, SaveOutlined } from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material/styles";
 import { OpenAIKeyInterstitialContent } from "@/components/shared";
+import { useOpenAIAppShell } from "@/hooks/app/useOpenAIAppShell";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
-import { requestOpenAIModels } from "@/utils/openai/client";
 import PathForgerDialogController from "@/app/pathforger/_components/PathForgerDialogController";
 import PathForgerPipelineRunInspector from "@/app/pathforger/_components/PathForgerPipelineRunInspector";
 import PathForgerPanelController from "@/app/pathforger/_components/PathForgerPanelController";
@@ -34,8 +34,15 @@ import { usePathForgerPitchChapterActions } from "@/app/pathforger/_hooks/usePat
 import { useStatusMessageQueue } from "@/app/pathforger/_hooks/useStatusMessageQueue";
 import { appTheme, kenBurnsImageSx } from "@/app/pathforger/_theme/theme";
 import type { BranchRevealState, BranchRevealTickState } from "@/app/pathforger/_types/persistence";
-import { sortModelIds } from "@/app/pathforger/_utils/modelOptions";
 import { isOpenAIAuthFailureMessage } from "@/app/pathforger/_utils/pageClientHelpers";
+import {
+  loadPathForgerModelOptions,
+  readFileAsDataUrl,
+  resolvePathForgerActiveStoryTitle,
+  setAllPathForgerImageTypes,
+  togglePathForgerImageType,
+  validatePathForgerSelfieFile,
+} from "@/app/pathforger/_utils/pageClientUi";
 import {
   DEFAULT_IMAGE_MODEL_ID,
   DEFAULT_ONE_OFF_MODEL_ID,
@@ -72,6 +79,12 @@ export default function PathForgerPageClient() {
   const [draftKey, setDraftKey] = React.useState("");
   const [keyError, setKeyError] = React.useState("");
   const keyInputRef = React.useRef<HTMLInputElement | null>(null);
+  const appShell = useOpenAIAppShell({
+    documentTitle: pathforgerRoute.documentTitle,
+    isReady: ready,
+    hasOpenAIKey: apiKeyReady,
+    keyInputRef,
+  });
   const {
     genre,
     setGenre,
@@ -318,26 +331,12 @@ export default function PathForgerPageClient() {
     lastForgedLedgerTransition,
   });
   const activeStoryTitle = React.useMemo(() => {
-    const chapterTitle = chapterModalPitchTitle.trim();
-    if (chapterTitle) {
-      return chapterTitle;
-    }
-
-    const modalPitchTitle = activePitchForModal?.title?.trim();
-    if (modalPitchTitle) {
-      return modalPitchTitle;
-    }
-
-    if (visiblePitches) {
-      const selectedPitchId = visibleSelectedPitch || visiblePitches.recommendedPitch;
-      const selectedPitchTitle =
-        visiblePitches.pitches.find((pitch) => pitch.id === selectedPitchId)?.title?.trim() || "";
-      if (selectedPitchTitle) {
-        return selectedPitchTitle;
-      }
-    }
-
-    return "Story Cover";
+    return resolvePathForgerActiveStoryTitle({
+      chapterModalPitchTitle,
+      activePitchTitle: activePitchForModal?.title,
+      visiblePitches,
+      visibleSelectedPitch,
+    });
   }, [activePitchForModal?.title, chapterModalPitchTitle, visiblePitches, visibleSelectedPitch]);
   const getImagePromptForType = React.useCallback(
     (type: PathForgerImageType) => {
@@ -401,26 +400,15 @@ export default function PathForgerPageClient() {
 
     setLoadingModelOptions(true);
     try {
-      const payload = (await requestOpenAIModels(apiKey, {
-        retries: 1,
-      })) as {
-        data?: Array<{ id?: unknown }>;
-      };
-
-      const ids = Array.isArray(payload.data)
-        ? payload.data
-            .map((item) => (typeof item?.id === "string" ? item.id : ""))
-            .filter((id) => id.trim().length > 0)
-        : [];
-
-      const nextOptions =
-        ids.length > 0 ? sortModelIds([...ids, ...defaultModelOptions]) : defaultModelOptions;
-      setModelOptions(nextOptions);
-      setLoadedModelOptions(true);
-    } catch {
-      setModelOptions(defaultModelOptions);
-      setLoadedModelOptions(false);
-      setErrorMessage("Could not load exhaustive model list from OpenAI.");
+      const { options, loaded, failed } = await loadPathForgerModelOptions(
+        apiKey,
+        defaultModelOptions,
+      );
+      setModelOptions(options);
+      setLoadedModelOptions(loaded);
+      if (failed) {
+        setErrorMessage("Could not load exhaustive model list from OpenAI.");
+      }
     } finally {
       setLoadingModelOptions(false);
     }
@@ -553,15 +541,6 @@ export default function PathForgerPageClient() {
     clearPitchCacheAndState();
   }, [clearPitchCacheAndState, createStoryInputSignature, pitchInputSignature, pitchOnlyResult]);
   React.useEffect(() => {
-    document.title = pathforgerRoute.documentTitle;
-  }, [pathforgerRoute.documentTitle]);
-  React.useEffect(() => {
-    if (ready && !apiKeyReady) {
-      keyInputRef.current?.focus();
-    }
-  }, [apiKeyReady, ready]);
-
-  React.useEffect(() => {
     if (!controlsModalOpen) {
       return;
     }
@@ -589,23 +568,13 @@ export default function PathForgerPageClient() {
 
   const handleToggleImageType = (type: PathForgerImageType) => {
     setRenderImages(
-      (prev: Record<PathForgerImageType, boolean>): Record<PathForgerImageType, boolean> => ({
-        ...prev,
-        [type]: !prev[type],
-      }),
+      (prev: Record<PathForgerImageType, boolean>): Record<PathForgerImageType, boolean> =>
+        togglePathForgerImageType(prev, type),
     );
   };
 
   const handleSetAllImageTypes = (enabled: boolean) => {
-    setRenderImages(
-      imageTypeOrder.reduce<Record<PathForgerImageType, boolean>>(
-        (acc, type) => {
-          acc[type as PathForgerImageType] = enabled;
-          return acc;
-        },
-        {} as Record<PathForgerImageType, boolean>,
-      ),
-    );
+    setRenderImages(setAllPathForgerImageTypes(enabled, imageTypeOrder));
   };
 
   const handleOpenImagePromptEditor = (type: PathForgerImageType) => {
@@ -626,31 +595,15 @@ export default function PathForgerPageClient() {
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
-      setErrorMessage("Please choose an image file for the protagonist reference.");
-      return;
-    }
-
-    if (file.size > 6 * 1024 * 1024) {
-      setErrorMessage("Reference image is too large. Please use a file under 6MB.");
+    const validationError = validatePathForgerSelfieFile(file);
+    if (validationError) {
+      setErrorMessage(validationError);
       return;
     }
 
     setErrorMessage("");
 
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result);
-          return;
-        }
-
-        reject(new Error("Unable to load image."));
-      };
-      reader.onerror = () => reject(new Error("Unable to load image."));
-      reader.readAsDataURL(file);
-    }).catch((error) => {
+    const dataUrl = await readFileAsDataUrl(file).catch((error) => {
       setErrorMessage(error instanceof Error ? error.message : "Unable to load image.");
       return "";
     });
@@ -1342,11 +1295,11 @@ export default function PathForgerPageClient() {
   const createStoryPanelHidden =
     (hideCreateStoryPanel && !showCreateStoryPanelForPlayback) || !showCreateStoryPanel;
 
-  if (!ready) {
+  if (appShell.isBooting) {
     return null;
   }
 
-  if (!apiKeyReady) {
+  if (appShell.isOpenAIKeyGateVisible) {
     return (
       <ThemeProvider theme={appTheme}>
         <CssBaseline enableColorScheme />

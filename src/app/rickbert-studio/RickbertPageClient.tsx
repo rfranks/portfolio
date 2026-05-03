@@ -7,6 +7,7 @@ import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import RickbertStudioApp from "@/app/rickbert-studio/_app/RickbertStudioApp";
 import { useRickbertStudioStore } from "@/app/rickbert-studio/_store";
 import { getRickbertOpenAIKey, setRickbertOpenAIKey } from "@/app/rickbert-studio/_utils/openAIKey";
+import { useOpenAIAppShell } from "@/hooks/app/useOpenAIAppShell";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
@@ -25,6 +26,12 @@ export default function RickbertPageClient() {
   const [apiKeyReady, setApiKeyReady] = React.useState(false);
   const [draftKey, setDraftKey] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const appShell = useOpenAIAppShell({
+    documentTitle: rickbertRoute.documentTitle,
+    isReady: ready,
+    hasOpenAIKey: apiKeyReady,
+    keyInputRef: inputRef,
+  });
 
   React.useEffect(() => {
     const key = getRickbertOpenAIKey();
@@ -33,16 +40,6 @@ export default function RickbertPageClient() {
     setApiKeyReady(key.length > 0);
     setReady(true);
   }, [setOpenAIKey]);
-
-  React.useEffect(() => {
-    document.title = rickbertRoute.documentTitle;
-  }, [rickbertRoute.documentTitle]);
-
-  React.useEffect(() => {
-    if (ready && !apiKeyReady) {
-      inputRef.current?.focus();
-    }
-  }, [apiKeyReady, ready]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -57,11 +54,11 @@ export default function RickbertPageClient() {
     setDraftKey(key);
   };
 
-  if (!ready) {
+  if (appShell.isBooting) {
     return null;
   }
 
-  if (!apiKeyReady) {
+  if (appShell.isOpenAIKeyGateVisible) {
     return (
       <ThemeProvider theme={defaultTheme}>
         <CssBaseline enableColorScheme />

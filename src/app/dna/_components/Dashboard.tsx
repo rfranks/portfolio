@@ -4,6 +4,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
 import Divider from "@mui/material/Divider";
 import Dialog from "@mui/material/Dialog";
@@ -40,6 +41,7 @@ import AddSequenceCard from "./AddSequenceCard";
 import SequenceAI from "./SequenceAI";
 import { ChartMethod, Sequence } from "../_types/types";
 import { useSequencePlaybackLoop } from "../_hooks/useSequencePlaybackLoop";
+import { DNA_LARGE_SEQUENCE_THRESHOLD_BP } from "../_utils/sequenceUtils";
 import { withBasePath } from "@/utils/basePath";
 import AppBar from "@/components/portfolio/layout/AppBar";
 import Drawer from "@/components/portfolio/layout/Drawer";
@@ -62,6 +64,8 @@ export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardP
   const [sequences, setSequences] = useState<Record<string, Sequence>>({});
 
   const firstActiveSequence = activeSequences?.[0];
+  const firstActiveSequenceLength = firstActiveSequence?.sequence.length ?? 0;
+  const useWorkerAnalysis = firstActiveSequenceLength >= DNA_LARGE_SEQUENCE_THRESHOLD_BP;
   const maxBasePair = bpRange?.[1] || firstActiveSequence?.sequence.length || 1;
   const activeSequenceTitle = activeSequences.map((seq) => seq?.description).join(", ");
   const truncatedActiveSequenceTitle =
@@ -430,6 +434,18 @@ export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardP
               <Tab label="Visualization" value="visualization" />
               <Tab label="AI" value="ai" />
             </Tabs>
+            {firstActiveSequence ? (
+              <Chip
+                size="small"
+                color={useWorkerAnalysis ? "primary" : "default"}
+                variant={useWorkerAnalysis ? "filled" : "outlined"}
+                label={
+                  useWorkerAnalysis
+                    ? "Large sequence mode: worker analysis"
+                    : "Main-thread analysis mode"
+                }
+              />
+            ) : null}
             <Button
               variant="contained"
               startIcon={<AddCircleOutline />}
@@ -485,6 +501,7 @@ export default function Dashboard({ mode = "dark", toggleColorMode }: DashboardP
                     bpRange={bpRange}
                     onBpRangeUpdate={(bpRange) => setBpRange(bpRange)}
                     chartMethod={chartMethod}
+                    forceWorkerAnalysis={useWorkerAnalysis}
                     onChartMethodUpdate={function (chartMethod) {
                       setChartMethod(chartMethod);
                       setBpRange([1, firstActiveSequence?.sequence?.length]);

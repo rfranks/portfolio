@@ -1,5 +1,6 @@
 export { default as ArcadeGamePage } from "./ArcadeGamePage";
 export type { ArcadeGamePageProps } from "./ArcadeGamePage";
+export { default as AppLauncherPageClient } from "./AppLauncherPageClient";
 export { default as ArcadeGameShell } from "./ArcadeGameShell";
 export type { ArcadeGameShellProps } from "./ArcadeGameShell";
 export { default as ArchitectureDiagramsSlide } from "./ArchitectureDiagramsSlide";
@@ -15,6 +16,7 @@ export {
   type VirtualizedPanelListProps,
 } from "./GridCloudNavigationSlide";
 export { default as ImageContent } from "./ImageContent";
+export * from "./landing";
 export { default as LogoCollection } from "./LogoCollection";
 export { default as MarkdownDialog } from "./MarkdownDialog";
 export type { MarkdownDialogProps } from "./MarkdownDialog";

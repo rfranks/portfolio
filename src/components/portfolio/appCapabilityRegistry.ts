@@ -1,5 +1,10 @@
-import { navigation, projects } from "@/consts/resumeData";
+import { navigation, portfolioApps, projects } from "@/consts/resumeData";
 import type { ProjectData } from "@/types/components/portfolio";
+import {
+  getPortfolioAppRouteEntries,
+  type PortfolioAppRouteContract,
+  type PortfolioAppRouteKey,
+} from "@/utils/portfolio/routeContracts";
 
 export type AppCapabilityKind = "app" | "project";
 
@@ -21,20 +26,51 @@ const normalizeFeature = (value: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-");
 
-function resolveCommandGroup(href: string, kind: AppCapabilityKind): string {
+function resolveCommandGroup(
+  href: string,
+  kind: AppCapabilityKind,
+  routeContract?: PortfolioAppRouteContract,
+): string {
   if (kind === "project") {
     return "Projects";
   }
 
-  if (["/blackjack", "/warbirds", "/zombiefish", "/blasteroids"].includes(href)) {
-    return "Apps • Arcade";
-  }
-
-  if (["/bookworm", "/talentforge", "/pathforger", "/rickbert-studio"].includes(href)) {
-    return "Apps • AI";
+  const commandGroup =
+    routeContract && "commandGroup" in routeContract
+      ? (routeContract.commandGroup ?? undefined)
+      : undefined;
+  if (typeof commandGroup === "string" && commandGroup.trim()) {
+    return commandGroup;
   }
 
   return "Apps • Portfolio";
+}
+
+const toStartCaseLabel = (value: string): string => {
+  const words = value
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean);
+  if (words.length === 0) {
+    return value;
+  }
+  return words.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(" ");
+};
+
+function resolveCapabilityLabel({
+  routeKey,
+  routeContract,
+  drawerLabelByHref,
+}: {
+  routeKey: PortfolioAppRouteKey;
+  routeContract: PortfolioAppRouteContract;
+  drawerLabelByHref: ReadonlyMap<string, string>;
+}): string {
+  const drawerLabel = drawerLabelByHref.get(routeContract.route);
+  if (drawerLabel) {
+    return drawerLabel;
+  }
+  return toStartCaseLabel(routeKey);
 }
 
 type CapabilityProjectRecord = {
@@ -129,24 +165,65 @@ const toQualityCoverage = (kind: AppCapabilityKind, isPresentationProject: boole
 
 export function getAppCapabilityRegistry(): AppCapability[] {
   const capabilities: AppCapability[] = [];
+  const drawerLabelByHref = new Map(
+    navigation.drawerItems
+      .filter(
+        (item) =>
+          typeof item.href === "string" &&
+          typeof item.label === "string" &&
+          item.href.trim().startsWith("/") &&
+          item.href.trim().length > 0 &&
+          item.label.trim().length > 0,
+      )
+      .map((item) => [item.href.trim(), item.label.trim()] as const),
+  );
 
-  navigation.drawerItems
-    .filter(
-      (item) => item.href?.trim() && item.href.trim().startsWith("/") && item.href.trim() !== "/",
-    )
-    .forEach((item) => {
-      capabilities.push({
-        id: `app:${item.href.trim()}`,
-        href: item.href.trim(),
-        label: item.label.trim(),
-        kind: "app",
-        commandGroup: resolveCommandGroup(item.href.trim(), "app"),
-        isPresentationProject: false,
-        features: ["launchable-app"],
-        dataSources: ["resume-data.navigation", "app-local-state", "app-local-assets"],
-        qualityCoverage: toQualityCoverage("app", false),
-      });
+  getPortfolioAppRouteEntries(portfolioApps).forEach(([routeKey, routeContract]) => {
+    const href = routeContract.route.trim();
+    const isInDrawer = drawerLabelByHref.has(href);
+    const coreComponent =
+      "coreComponent" in routeContract ? (routeContract.coreComponent ?? undefined) : undefined;
+    const coreComponentTarget =
+      "coreComponentTarget" in routeContract
+        ? (routeContract.coreComponentTarget ?? undefined)
+        : undefined;
+
+    const features = new Set<string>([
+      "launchable-app",
+      isInDrawer ? "drawer-visible" : "drawer-hidden",
+    ]);
+    if (typeof coreComponent === "string" && coreComponent.trim()) {
+      features.add(`core-component-${normalizeFeature(coreComponent)}`);
+    }
+    if (typeof coreComponentTarget === "string" && coreComponentTarget.trim()) {
+      features.add(`core-target-${normalizeFeature(coreComponentTarget)}`);
+    }
+
+    const dataSources = new Set<string>([
+      "resume-data.portfolioApps",
+      "app-local-state",
+      "app-local-assets",
+    ]);
+    if (isInDrawer) {
+      dataSources.add("resume-data.navigation.drawerItems");
+    }
+
+    capabilities.push({
+      id: `app:${href}`,
+      href,
+      label: resolveCapabilityLabel({
+        routeKey,
+        routeContract,
+        drawerLabelByHref,
+      }),
+      kind: "app",
+      commandGroup: resolveCommandGroup(href, "app", routeContract),
+      isPresentationProject: false,
+      features: Array.from(features),
+      dataSources: Array.from(dataSources),
+      qualityCoverage: toQualityCoverage("app", false),
     });
+  });
 
   projects
     .map(toCapabilityProjectRecord)

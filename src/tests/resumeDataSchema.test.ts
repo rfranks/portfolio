@@ -131,6 +131,22 @@ describe("resumeDataSchema hardening and edge cases", () => {
     }, /portfolioApps\.capabilities\.metadataDescription/i);
   });
 
+  it("requires coreComponentTarget when coreComponent is set in portfolio app contracts", () => {
+    expectSchemaFailureOnCurrentVersion((input) => {
+      const portfolioApps = input.portfolioApps as Record<string, unknown>;
+      const warbirds = portfolioApps.warbirds as Record<string, unknown>;
+      delete warbirds.coreComponentTarget;
+    }, /portfolioApps\.warbirds\.coreComponentTarget/i);
+  });
+
+  it("rejects incompatible coreComponentTarget values for coreComponent contracts", () => {
+    expectSchemaFailureOnCurrentVersion((input) => {
+      const portfolioApps = input.portfolioApps as Record<string, unknown>;
+      const warbirds = portfolioApps.warbirds as Record<string, unknown>;
+      warbirds.coreComponentTarget = "blackjack";
+    }, /portfolioApps\.warbirds\.coreComponentTarget/i);
+  });
+
   it("rejects unknown top-level keys because schema is strict", () => {
     expectSchemaFailure((input) => {
       input.unexpectedTopLevelKey = true;

@@ -31,27 +31,9 @@ import {
   spawnZombiefishFishStage,
 } from "./stages/simulation/fishStage";
 import { startZombiefishSpawnSimulationStage } from "./stages/simulationStage";
+import { isZombiefishUiSnapshotEqual, selectZombiefishUiSnapshot } from "./game-engine/uiSnapshot";
 
 /* eslint-disable react-hooks/exhaustive-deps */
-
-const selectZombiefishUiSnapshot = (state: GameState): GameUIState => ({
-  phase: state.phase,
-  timer: state.timer,
-  shots: state.shots,
-  hits: state.hits,
-  score: state.score,
-  accuracy: state.accuracy,
-  cursor: state.cursor,
-});
-
-const isZombiefishUiSnapshotEqual = (prev: GameUIState, next: GameUIState) =>
-  prev.phase === next.phase &&
-  prev.timer === next.timer &&
-  prev.shots === next.shots &&
-  prev.hits === next.hits &&
-  prev.score === next.score &&
-  prev.accuracy === next.accuracy &&
-  prev.cursor === next.cursor;
 
 export default function useGameEngine() {
   const { arcadeProfile, canvasRef, screenDims, dims, simulationRuntime } = useArcadeEngineCore({
@@ -210,6 +192,17 @@ export default function useGameEngine() {
     [regenerateBackground],
   );
 
+  const resolveZombiefishSessionStats = useCallback(
+    (cur: GameState = state.current) => ({
+      shotsFired: cur.shots,
+      hits: cur.hits,
+      conversions: cur.conversions,
+      fishTagged: Object.values(cur.hitCounts).reduce((total, count) => total + count, 0),
+      bestStreak: cur.conversions,
+    }),
+    [],
+  );
+
   const updateDigitLabel = useCallback(
     (label: TextLabel | null, value: number, pad = 0, suffix = "") => {
       if (!label) return;
@@ -339,12 +332,7 @@ export default function useGameEngine() {
               completed: true,
               score: cur.score,
               accuracyPct: finalAccuracy.current,
-              stats: {
-                shotsFired: cur.shots,
-                hits: cur.hits,
-                conversions: cur.conversions,
-                fishTagged: Object.values(cur.hitCounts).reduce((total, count) => total + count, 0),
-              },
+              stats: resolveZombiefishSessionStats(cur),
             });
             arcadeSessionActiveRef.current = false;
           }
@@ -618,6 +606,7 @@ export default function useGameEngine() {
       arcadeProfile.profile,
       audio,
       finishArcadeSession,
+      resolveZombiefishSessionStats,
     ],
   );
 
@@ -628,11 +617,7 @@ export default function useGameEngine() {
         completed: false,
         score: state.current.score,
         accuracyPct: state.current.accuracy,
-        stats: {
-          shotsFired: state.current.shots,
-          hits: state.current.hits,
-          conversions: state.current.conversions,
-        },
+        stats: resolveZombiefishSessionStats(),
       });
     }
     startArcadeSession();
@@ -743,6 +728,7 @@ export default function useGameEngine() {
     startArcadeSession,
     updateDigitLabel,
     simulationRuntime,
+    resolveZombiefishSessionStats,
   ]);
 
   // reset back to title screen
@@ -754,11 +740,7 @@ export default function useGameEngine() {
         completed: false,
         score: cur.score,
         accuracyPct: cur.accuracy,
-        stats: {
-          shotsFired: cur.shots,
-          hits: cur.hits,
-          conversions: cur.conversions,
-        },
+        stats: resolveZombiefishSessionStats(cur),
       });
       sessionCompletedRef.current = true;
       arcadeSessionActiveRef.current = false;
@@ -808,7 +790,7 @@ export default function useGameEngine() {
     simulationRuntime.stopLoop();
     simulationRuntime.clearTimeout(cursorTimeoutRef);
     audio.pauseAll();
-  }, [finishArcadeSession, simulationRuntime, audio]);
+  }, [finishArcadeSession, simulationRuntime, audio, resolveZombiefishSessionStats]);
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -838,14 +820,10 @@ export default function useGameEngine() {
         completed: false,
         score: state.current.score,
         accuracyPct: state.current.accuracy,
-        stats: {
-          shotsFired: state.current.shots,
-          hits: state.current.hits,
-          conversions: state.current.conversions,
-        },
+        stats: resolveZombiefishSessionStats(),
       });
     };
-  }, [finishArcadeSession]);
+  }, [finishArcadeSession, resolveZombiefishSessionStats]);
 
   const spawnFish = useCallback(
     (kind: string, count: number): Fish[] =>

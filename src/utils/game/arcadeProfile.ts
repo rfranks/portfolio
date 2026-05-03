@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  ARCADE_DAILY_CHALLENGE_DEFINITIONS,
+  ARCADE_DAILY_CHALLENGE_ROTATION,
   ARCADE_GAME_LABELS,
   ARCADE_PROFILE_STORAGE_KEY,
   ARCADE_PROFILE_VERSION,
@@ -9,12 +11,18 @@ import {
 } from "@/consts/game/arcadeProfile";
 import {
   ARCADE_GAME_IDS,
+  type ArcadeDailyChallenge,
+  type ArcadeDailyChallengeId,
   type ArcadeGameId,
   type ArcadeGameProfile,
+  type ArcadePersonalBests,
+  type ArcadePlayStreak,
   type ArcadeProfile,
   type ArcadeSessionResult,
   type ArcadeStatMap,
 } from "@/types/game/arcadeProfile";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const EMPTY_GAME_PROFILE: ArcadeGameProfile = {
   bestScore: 0,
@@ -28,19 +36,57 @@ const EMPTY_GAME_PROFILE: ArcadeGameProfile = {
   totalScore: 0,
 };
 
+const EMPTY_PLAY_STREAK: ArcadePlayStreak = {
+  bestDays: 0,
+  currentDays: 0,
+  lastPlayedDateKey: null,
+};
+
+const EMPTY_PERSONAL_BESTS: ArcadePersonalBests = {
+  bestSessionAccuracyPct: 0,
+  bestSessionMedals: 0,
+  bestSessionScore: 0,
+  bestSessionStreak: 0,
+  longestSessionMs: 0,
+};
+
+const TRIPLE_THREAT_GAME_IDS: ArcadeGameId[] = ["warbirds", "zombiefish", "blasteroids"];
+
 const cloneGameProfile = (gameProfile: ArcadeGameProfile): ArcadeGameProfile => ({
   ...gameProfile,
   stats: { ...gameProfile.stats },
 });
 
+const cloneGames = (
+  games: Record<ArcadeGameId, ArcadeGameProfile>,
+): Record<ArcadeGameId, ArcadeGameProfile> =>
+  ARCADE_GAME_IDS.reduce(
+    (acc, gameId) => {
+      acc[gameId] = cloneGameProfile(games[gameId]);
+      return acc;
+    },
+    {} as Record<ArcadeGameId, ArcadeGameProfile>,
+  );
+
+const cloneDailyChallenge = (dailyChallenge: ArcadeDailyChallenge): ArcadeDailyChallenge => ({
+  ...dailyChallenge,
+});
+
+const clonePlayStreak = (streak: ArcadePlayStreak): ArcadePlayStreak => ({
+  ...streak,
+});
+
+const clonePersonalBests = (personalBests: ArcadePersonalBests): ArcadePersonalBests => ({
+  ...personalBests,
+});
+
 const cloneProfile = (profile: ArcadeProfile): ArcadeProfile => ({
   ...profile,
-  games: {
-    warbirds: cloneGameProfile(profile.games.warbirds),
-    zombiefish: cloneGameProfile(profile.games.zombiefish),
-    blasteroids: cloneGameProfile(profile.games.blasteroids),
-  },
+  games: cloneGames(profile.games),
   lifetime: { ...profile.lifetime },
+  dailyChallenge: cloneDailyChallenge(profile.dailyChallenge),
+  streak: clonePlayStreak(profile.streak),
+  personalBests: clonePersonalBests(profile.personalBests),
   unlocks: { ...profile.unlocks },
 });
 
@@ -52,6 +98,130 @@ const toFiniteNonNegative = (value: unknown): number => {
     return 0;
   }
   return Math.max(0, value);
+};
+
+const toBoundedPct = (value: unknown): number => Math.min(100, toFiniteNonNegative(value));
+
+const formatDatePart = (value: number): string => value.toString().padStart(2, "0");
+
+const toLocalDateKeyFromMs = (timeMs: number): string => {
+  const date = new Date(timeMs);
+  return `${date.getFullYear()}-${formatDatePart(date.getMonth() + 1)}-${formatDatePart(date.getDate())}`;
+};
+
+const parseDateKeyToMs = (dateKey: string): number | null => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey.trim());
+  if (!match) {
+    return null;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return null;
+  }
+  return new Date(year, month - 1, day).getTime();
+};
+
+const getDateKeyDiffDays = (fromDateKey: string, toDateKey: string): number | null => {
+  const fromMs = parseDateKeyToMs(fromDateKey);
+  const toMs = parseDateKeyToMs(toDateKey);
+  if (fromMs === null || toMs === null) {
+    return null;
+  }
+  return Math.round((toMs - fromMs) / DAY_MS);
+};
+
+const getChallengeRotationSeed = (dateKey: string): number =>
+  dateKey.split("").reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
+
+const resolveDailyChallengeIdForDate = (dateKey: string): ArcadeDailyChallengeId => {
+  const seed = getChallengeRotationSeed(dateKey);
+  return ARCADE_DAILY_CHALLENGE_ROTATION[seed % ARCADE_DAILY_CHALLENGE_ROTATION.length];
+};
+
+const createDailyChallengeForDate = (dateKey: string): ArcadeDailyChallenge => {
+  const challengeId = resolveDailyChallengeIdForDate(dateKey);
+  const challengeDefinition = ARCADE_DAILY_CHALLENGE_DEFINITIONS[challengeId];
+  return {
+    ...challengeDefinition,
+    dateKey,
+    progress: 0,
+    completedAt: null,
+  };
+};
+
+const createEmptyArcadeGames = (): Record<ArcadeGameId, ArcadeGameProfile> =>
+  ARCADE_GAME_IDS.reduce(
+    (acc, gameId) => {
+      acc[gameId] = cloneGameProfile(EMPTY_GAME_PROFILE);
+      return acc;
+    },
+    {} as Record<ArcadeGameId, ArcadeGameProfile>,
+  );
+
+const sanitizePlayStreak = (value: unknown): ArcadePlayStreak => {
+  if (!value || typeof value !== "object") {
+    return clonePlayStreak(EMPTY_PLAY_STREAK);
+  }
+  const candidate = value as Partial<ArcadePlayStreak>;
+  return {
+    currentDays: Math.floor(toFiniteNonNegative(candidate.currentDays)),
+    bestDays: Math.floor(toFiniteNonNegative(candidate.bestDays)),
+    lastPlayedDateKey:
+      typeof candidate.lastPlayedDateKey === "string" &&
+      parseDateKeyToMs(candidate.lastPlayedDateKey) !== null
+        ? candidate.lastPlayedDateKey
+        : null,
+  };
+};
+
+const sanitizePersonalBests = (value: unknown): ArcadePersonalBests => {
+  if (!value || typeof value !== "object") {
+    return clonePersonalBests(EMPTY_PERSONAL_BESTS);
+  }
+  const candidate = value as Partial<ArcadePersonalBests>;
+  return {
+    bestSessionScore: toFiniteNonNegative(candidate.bestSessionScore),
+    bestSessionAccuracyPct: toBoundedPct(candidate.bestSessionAccuracyPct),
+    bestSessionMedals: toFiniteNonNegative(candidate.bestSessionMedals),
+    longestSessionMs: toFiniteNonNegative(candidate.longestSessionMs),
+    bestSessionStreak: toFiniteNonNegative(candidate.bestSessionStreak),
+  };
+};
+
+const sanitizeDailyChallenge = (value: unknown, nowDateKey: string): ArcadeDailyChallenge => {
+  const fallback = createDailyChallengeForDate(nowDateKey);
+  if (!value || typeof value !== "object") {
+    return fallback;
+  }
+
+  const candidate = value as Partial<ArcadeDailyChallenge>;
+  const candidateDateKey = typeof candidate.dateKey === "string" ? candidate.dateKey : nowDateKey;
+  if (candidateDateKey !== nowDateKey) {
+    return fallback;
+  }
+
+  const candidateId =
+    typeof candidate.id === "string" &&
+    Object.hasOwn(ARCADE_DAILY_CHALLENGE_DEFINITIONS, candidate.id)
+      ? (candidate.id as ArcadeDailyChallengeId)
+      : resolveDailyChallengeIdForDate(nowDateKey);
+  const definition = ARCADE_DAILY_CHALLENGE_DEFINITIONS[candidateId];
+  const progress = toFiniteNonNegative(candidate.progress);
+  const target = toFiniteNonNegative(definition.target);
+  const completedAt =
+    typeof candidate.completedAt === "string" && candidate.completedAt.trim()
+      ? candidate.completedAt
+      : null;
+  const normalizedProgress = Math.min(progress, target);
+
+  return {
+    ...definition,
+    dateKey: nowDateKey,
+    progress: normalizedProgress,
+    completedAt: normalizedProgress >= target ? (completedAt ?? new Date().toISOString()) : null,
+  };
 };
 
 const sanitizeStats = (value: unknown): ArcadeStatMap => {
@@ -85,7 +255,7 @@ const mergeStats = (base: ArcadeStatMap, updates?: ArcadeStatMap): ArcadeStatMap
 
 const resolveAccuracyPct = (result: ArcadeSessionResult): number => {
   if (typeof result.accuracyPct === "number" && Number.isFinite(result.accuracyPct)) {
-    return Math.min(100, toFiniteNonNegative(result.accuracyPct));
+    return toBoundedPct(result.accuracyPct);
   }
 
   const shotsFired = toFiniteNonNegative(result.stats?.shotsFired);
@@ -104,7 +274,7 @@ const sanitizeGameProfile = (value: unknown): ArcadeGameProfile => {
   const candidate = value as Partial<ArcadeGameProfile>;
   return {
     bestScore: toFiniteNonNegative(candidate.bestScore),
-    highestAccuracyPct: Math.min(100, toFiniteNonNegative(candidate.highestAccuracyPct)),
+    highestAccuracyPct: toBoundedPct(candidate.highestAccuracyPct),
     lastPlayedAt: typeof candidate.lastPlayedAt === "string" ? candidate.lastPlayedAt : null,
     medalsCollected: toFiniteNonNegative(candidate.medalsCollected),
     sessionsCompleted: toFiniteNonNegative(candidate.sessionsCompleted),
@@ -115,23 +285,26 @@ const sanitizeGameProfile = (value: unknown): ArcadeGameProfile => {
   };
 };
 
-export const createDefaultArcadeProfile = (nowIso = new Date().toISOString()): ArcadeProfile => ({
-  version: ARCADE_PROFILE_VERSION,
-  updatedAt: nowIso,
-  unlocks: {},
-  lifetime: {
-    sessionsPlayed: 0,
-    sessionsCompleted: 0,
-    totalPlayMs: 0,
-    totalScore: 0,
-    medalsCollected: 0,
-  },
-  games: {
-    warbirds: cloneGameProfile(EMPTY_GAME_PROFILE),
-    zombiefish: cloneGameProfile(EMPTY_GAME_PROFILE),
-    blasteroids: cloneGameProfile(EMPTY_GAME_PROFILE),
-  },
-});
+export const createDefaultArcadeProfile = (nowIso = new Date().toISOString()): ArcadeProfile => {
+  const nowMs = Number.isFinite(Date.parse(nowIso)) ? Date.parse(nowIso) : Date.now();
+  const dateKey = toLocalDateKeyFromMs(nowMs);
+  return {
+    version: ARCADE_PROFILE_VERSION,
+    updatedAt: nowIso,
+    unlocks: {},
+    dailyChallenge: createDailyChallengeForDate(dateKey),
+    streak: clonePlayStreak(EMPTY_PLAY_STREAK),
+    personalBests: clonePersonalBests(EMPTY_PERSONAL_BESTS),
+    lifetime: {
+      sessionsPlayed: 0,
+      sessionsCompleted: 0,
+      totalPlayMs: 0,
+      totalScore: 0,
+      medalsCollected: 0,
+    },
+    games: createEmptyArcadeGames(),
+  };
+};
 
 const resolveSessionMedals = (
   gameId: ArcadeGameId,
@@ -155,6 +328,135 @@ const resolveSessionMedals = (
   return 0;
 };
 
+const resolveBestStreak = (result: ArcadeSessionResult): number =>
+  toFiniteNonNegative(
+    result.stats?.bestStreak ??
+      result.stats?.streakPeak ??
+      result.stats?.streak ??
+      result.stats?.roundWinStreak,
+  );
+
+const ensureDailyChallengeForDate = (profile: ArcadeProfile, atMs: number): void => {
+  const dateKey = toLocalDateKeyFromMs(atMs);
+  profile.dailyChallenge = sanitizeDailyChallenge(profile.dailyChallenge, dateKey);
+};
+
+const applyPlayStreakForDate = (streak: ArcadePlayStreak, dateKey: string): ArcadePlayStreak => {
+  if (!streak.lastPlayedDateKey) {
+    return {
+      currentDays: 1,
+      bestDays: Math.max(streak.bestDays, 1),
+      lastPlayedDateKey: dateKey,
+    };
+  }
+
+  const diffDays = getDateKeyDiffDays(streak.lastPlayedDateKey, dateKey);
+  if (diffDays === null || diffDays < 0) {
+    return {
+      currentDays: streak.currentDays,
+      bestDays: streak.bestDays,
+      lastPlayedDateKey: streak.lastPlayedDateKey,
+    };
+  }
+
+  if (diffDays === 0) {
+    return streak;
+  }
+
+  const currentDays = diffDays === 1 ? streak.currentDays + 1 : 1;
+  return {
+    currentDays,
+    bestDays: Math.max(streak.bestDays, currentDays),
+    lastPlayedDateKey: dateKey,
+  };
+};
+
+const applyDailyChallengeProgress = (
+  profile: ArcadeProfile,
+  options: {
+    accuracyPct: number;
+    atIso: string;
+    bestStreak: number;
+    gameId: ArcadeGameId;
+    medalsCollected: number;
+    score: number;
+    sessionsPlayed: number;
+  },
+): void => {
+  const challenge = profile.dailyChallenge;
+  if (challenge.completedAt) {
+    return;
+  }
+
+  if (challenge.gameId !== "any" && challenge.gameId !== options.gameId) {
+    return;
+  }
+
+  let nextProgress = challenge.progress;
+  switch (challenge.metric) {
+    case "sessionsPlayed": {
+      nextProgress += toFiniteNonNegative(options.sessionsPlayed);
+      break;
+    }
+    case "medalsCollected": {
+      nextProgress += toFiniteNonNegative(options.medalsCollected);
+      break;
+    }
+    case "score": {
+      nextProgress = Math.max(nextProgress, toFiniteNonNegative(options.score));
+      break;
+    }
+    case "accuracyPct": {
+      nextProgress = Math.max(nextProgress, toBoundedPct(options.accuracyPct));
+      break;
+    }
+    case "bestStreak": {
+      nextProgress = Math.max(nextProgress, toFiniteNonNegative(options.bestStreak));
+      break;
+    }
+    default: {
+      nextProgress = challenge.progress;
+    }
+  }
+
+  challenge.progress = Math.min(toFiniteNonNegative(nextProgress), challenge.target);
+  if (challenge.progress >= challenge.target) {
+    challenge.completedAt = options.atIso;
+  }
+};
+
+const applyPersonalBests = (
+  profile: ArcadeProfile,
+  result: {
+    accuracyPct: number;
+    bestStreak: number;
+    durationMs: number;
+    medalsCollected: number;
+    score: number;
+  },
+): void => {
+  profile.personalBests.bestSessionScore = Math.max(
+    profile.personalBests.bestSessionScore,
+    toFiniteNonNegative(result.score),
+  );
+  profile.personalBests.bestSessionAccuracyPct = Math.max(
+    profile.personalBests.bestSessionAccuracyPct,
+    toBoundedPct(result.accuracyPct),
+  );
+  profile.personalBests.bestSessionMedals = Math.max(
+    profile.personalBests.bestSessionMedals,
+    toFiniteNonNegative(result.medalsCollected),
+  );
+  profile.personalBests.longestSessionMs = Math.max(
+    profile.personalBests.longestSessionMs,
+    toFiniteNonNegative(result.durationMs),
+  );
+  profile.personalBests.bestSessionStreak = Math.max(
+    profile.personalBests.bestSessionStreak,
+    toFiniteNonNegative(result.bestStreak),
+  );
+};
+
 const applyUnlocks = (profile: ArcadeProfile, nowIso: string): void => {
   const unlock = (id: keyof ArcadeProfile["unlocks"], shouldUnlock: boolean) => {
     if (!shouldUnlock || profile.unlocks[id]) {
@@ -166,18 +468,28 @@ const applyUnlocks = (profile: ArcadeProfile, nowIso: string): void => {
   const hasPlayedAllGames = ARCADE_GAME_IDS.every(
     (gameId) => profile.games[gameId].sessionsPlayed > 0,
   );
+  const hasPlayedTripleThreat = TRIPLE_THREAT_GAME_IDS.every(
+    (gameId) => profile.games[gameId].sessionsPlayed > 0,
+  );
 
   unlock("first_sortie", profile.lifetime.sessionsPlayed > 0);
-  unlock("triple_threat", hasPlayedAllGames);
+  unlock("triple_threat", hasPlayedTripleThreat);
+  unlock("arcade_polyglot", hasPlayedAllGames);
   unlock("medal_hunter", profile.lifetime.medalsCollected >= 25);
   unlock("score_chaser", profile.lifetime.totalScore >= 25_000);
   unlock("marathon_mode", profile.lifetime.totalPlayMs >= 30 * 60 * 1000);
   unlock("ace_pilot", profile.games.warbirds.bestScore >= 7_500);
   unlock("skeletal_sniper", profile.games.zombiefish.highestAccuracyPct >= 75);
   unlock("asteroid_vanguard", profile.games.blasteroids.bestScore >= 4_000);
+  unlock("high_roller", profile.games.blackjack.bestScore >= 300);
+  unlock("daily_dedication", Boolean(profile.dailyChallenge.completedAt));
+  unlock("streak_apprentice", profile.streak.bestDays >= 3);
+  unlock("streak_veteran", profile.streak.bestDays >= 7);
 };
 
 export const sanitizeArcadeProfile = (value: unknown): ArcadeProfile => {
+  const nowMs = Date.now();
+  const nowDateKey = toLocalDateKeyFromMs(nowMs);
   const fallback = createDefaultArcadeProfile();
   if (!value || typeof value !== "object") {
     return fallback;
@@ -195,6 +507,9 @@ export const sanitizeArcadeProfile = (value: unknown): ArcadeProfile => {
     version: ARCADE_PROFILE_VERSION,
     updatedAt: typeof candidate.updatedAt === "string" ? candidate.updatedAt : fallback.updatedAt,
     unlocks: {},
+    dailyChallenge: sanitizeDailyChallenge(candidate.dailyChallenge, nowDateKey),
+    streak: sanitizePlayStreak(candidate.streak),
+    personalBests: sanitizePersonalBests(candidate.personalBests),
     lifetime: {
       sessionsPlayed: toFiniteNonNegative(lifetime?.sessionsPlayed),
       sessionsCompleted: toFiniteNonNegative(lifetime?.sessionsCompleted),
@@ -206,6 +521,7 @@ export const sanitizeArcadeProfile = (value: unknown): ArcadeProfile => {
       warbirds: sanitizeGameProfile(games?.warbirds),
       zombiefish: sanitizeGameProfile(games?.zombiefish),
       blasteroids: sanitizeGameProfile(games?.blasteroids),
+      blackjack: sanitizeGameProfile(games?.blackjack),
     },
   };
 
@@ -217,6 +533,8 @@ export const sanitizeArcadeProfile = (value: unknown): ArcadeProfile => {
       profile.unlocks[key as keyof ArcadeProfile["unlocks"]] = unlockedAt;
     }
   });
+
+  profile.streak.bestDays = Math.max(profile.streak.bestDays, profile.streak.currentDays);
 
   return profile;
 };
@@ -262,11 +580,23 @@ export const applyArcadeSessionStart = (
 ): ArcadeProfile => {
   const next = cloneProfile(profile);
   const startedAtIso = new Date(startedAtMs).toISOString();
+  const startedDateKey = toLocalDateKeyFromMs(startedAtMs);
   const game = next.games[gameId];
 
+  ensureDailyChallengeForDate(next, startedAtMs);
   game.sessionsPlayed += 1;
   game.lastPlayedAt = startedAtIso;
   next.lifetime.sessionsPlayed += 1;
+  next.streak = applyPlayStreakForDate(next.streak, startedDateKey);
+  applyDailyChallengeProgress(next, {
+    gameId,
+    sessionsPlayed: 1,
+    medalsCollected: 0,
+    score: 0,
+    accuracyPct: 0,
+    bestStreak: 0,
+    atIso: startedAtIso,
+  });
   next.updatedAt = startedAtIso;
 
   applyUnlocks(next, startedAtIso);
@@ -286,7 +616,10 @@ export const applyArcadeSessionResult = (
   const durationMs = toFiniteNonNegative(result.durationMs);
   const accuracyPct = resolveAccuracyPct(result);
   const medalsCollected = resolveSessionMedals(gameId, score, result.medalsCollected);
+  const bestStreak = resolveBestStreak(result);
   const completed = result.completed ?? true;
+
+  ensureDailyChallengeForDate(next, finishedAtMs);
 
   if (completed) {
     game.sessionsCompleted += 1;
@@ -304,6 +637,22 @@ export const applyArcadeSessionResult = (
   next.lifetime.totalPlayMs += durationMs;
   next.lifetime.totalScore += score;
   next.lifetime.medalsCollected += medalsCollected;
+  applyDailyChallengeProgress(next, {
+    gameId,
+    sessionsPlayed: 0,
+    medalsCollected,
+    score,
+    accuracyPct,
+    bestStreak,
+    atIso: finishedAtIso,
+  });
+  applyPersonalBests(next, {
+    score,
+    accuracyPct,
+    medalsCollected,
+    durationMs,
+    bestStreak,
+  });
   next.updatedAt = finishedAtIso;
 
   applyUnlocks(next, finishedAtIso);
