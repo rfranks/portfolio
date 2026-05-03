@@ -423,6 +423,7 @@ export default function AIShenanigansPageClient() {
               direction={{ xs: "column", sm: "row" }}
               spacing={1}
               alignItems={{ xs: "stretch", sm: "center" }}
+              sx={{ display: { xs: "none", md: "flex" } }}
             >
               <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 168 } }}>
                 <InputLabel id="ai-shenanigans-medium-filter-label">Medium</InputLabel>
