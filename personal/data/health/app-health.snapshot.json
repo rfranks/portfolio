@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-03T17:19:00.277Z",
+  "generatedAt": "2026-05-03T17:58:30.450Z",
   "overallStatus": "warn",
   "checks": {
     "fileBudgets": "pass",
@@ -10,7 +10,7 @@
     "fileBudgets": {
       "key": "fileBudgets",
       "status": "pass",
-      "generatedAt": "2026-05-03T17:18:08.431Z",
+      "generatedAt": "2026-05-03T17:57:20.998Z",
       "summary": "File budget check passed.",
       "details": {
         "totals": {
@@ -53,7 +53,7 @@
     "schemaValidation": {
       "key": "schemaValidation",
       "status": "warn",
-      "generatedAt": "2026-05-03T17:18:08.980Z",
+      "generatedAt": "2026-05-03T17:57:21.770Z",
       "summary": "resumeData validation passed with 4 warning(s).",
       "details": {
         "strictAssets": true,
@@ -148,7 +148,7 @@
     "testRunner": {
       "key": "testRunner",
       "status": "pass",
-      "generatedAt": "2026-05-03T17:19:00.277Z",
+      "generatedAt": "2026-05-03T17:58:30.450Z",
       "summary": "unit test runner passed for lane portfolio.",
       "details": {
         "suite": "unit",

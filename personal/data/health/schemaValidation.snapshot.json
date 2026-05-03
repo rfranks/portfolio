@@ -1,7 +1,7 @@
 {
   "key": "schemaValidation",
   "status": "warn",
-  "generatedAt": "2026-05-03T17:18:08.980Z",
+  "generatedAt": "2026-05-03T17:57:21.770Z",
   "summary": "resumeData validation passed with 4 warning(s).",
   "details": {
     "strictAssets": true,
