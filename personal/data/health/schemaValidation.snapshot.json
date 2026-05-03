@@ -1,7 +1,7 @@
 {
   "key": "schemaValidation",
   "status": "warn",
-  "generatedAt": "2026-05-03T16:56:15.163Z",
+  "generatedAt": "2026-05-03T17:18:08.980Z",
   "summary": "resumeData validation passed with 4 warning(s).",
   "details": {
     "strictAssets": true,
@@ -77,10 +77,10 @@
       "recognitionSnippetCount": 4,
       "recognitionRecommendationCount": 17,
       "recognitionGithubAchievementCount": 4,
-      "aiShenaniganCount": 27,
+      "aiShenaniganCount": 31,
       "hobbyCount": 6,
-      "assetReferenceCount": 162,
-      "uniqueAssetReferenceCount": 134,
+      "assetReferenceCount": 174,
+      "uniqueAssetReferenceCount": 146,
       "missingAssetCount": 0,
       "missingOptionalEnrichmentsCount": 0,
       "missingOptionalEnrichments": [],
