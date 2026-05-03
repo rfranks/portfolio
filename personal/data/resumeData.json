@@ -39,21 +39,25 @@
       "metadataTitle": "AI Shenanigans",
       "metadataDescription": "AI creative lab for stylized visuals, motion shorts, and narrative adaptation experiments from source image to story-world prototype.",
       "appBarSubtitle": "Visual experiments and narrative adaptation using AI",
-      "heroEyebrow": "Portfolio experiment"
+      "heroEyebrow": "Portfolio experiment",
+      "commandGroup": "Apps • AI"
     },
     "dna": {
       "route": "/dna",
-      "documentTitle": "GeneBoard"
+      "documentTitle": "GeneBoard",
+      "commandGroup": "Apps • Portfolio"
     },
     "bookworm": {
       "route": "/bookworm",
       "documentTitle": "Bookworm",
       "interstitialAppName": "Bookworm",
-      "interstitialLogoAlt": "Bookworm logo"
+      "interstitialLogoAlt": "Bookworm logo",
+      "commandGroup": "Apps • AI"
     },
     "talentforge": {
       "route": "/talentforge",
-      "documentTitle": "TalentForge"
+      "documentTitle": "TalentForge",
+      "commandGroup": "Apps • AI"
     },
     "rickbert": {
       "route": "/rickbert-studio",
@@ -62,7 +66,8 @@
       "metadataDescription": "Structured comic strip generation studio for the RICKBERT series.",
       "interstitialAppName": "Rickbert Studio",
       "interstitialLogoAlt": "Rickbert Studio logo",
-      "interstitialLogoSrc": "/personal/images/projects/rickbert-studio.png"
+      "interstitialLogoSrc": "/personal/images/projects/rickbert-studio.png",
+      "commandGroup": "Apps • AI"
     },
     "pathforger": {
       "route": "/pathforger",
@@ -71,45 +76,62 @@
       "metadataDescription": "Interactive story-forging studio that generates A/B/C pitches, chapter packages, and parallel cinematic image outputs through staged OpenAI calls.",
       "interstitialAppName": "PathForger",
       "interstitialLogoAlt": "PathForger logo",
-      "interstitialLogoSrc": "/personal/images/projects/pathforger.svg"
+      "interstitialLogoSrc": "/personal/images/projects/pathforger.svg",
+      "commandGroup": "Apps • AI"
     },
     "blackjack": {
       "route": "/blackjack",
-      "documentTitle": "Blackjack"
+      "documentTitle": "Blackjack",
+      "commandGroup": "Apps • Arcade",
+      "coreComponent": "blackjack",
+      "coreComponentTarget": "blackjack"
     },
     "warbirds": {
       "route": "/warbirds",
-      "documentTitle": "Warbirds"
+      "documentTitle": "Warbirds",
+      "commandGroup": "Apps • Arcade",
+      "coreComponent": "arcadeCanvas",
+      "coreComponentTarget": "warbirds"
     },
     "zombiefish": {
       "route": "/zombiefish",
-      "documentTitle": "ZombieFish"
+      "documentTitle": "ZombieFish",
+      "commandGroup": "Apps • Arcade",
+      "coreComponent": "arcadeCanvas",
+      "coreComponentTarget": "zombiefish"
     },
     "blasteroids": {
       "route": "/blasteroids",
-      "documentTitle": "Blasteroids"
+      "documentTitle": "Blasteroids",
+      "commandGroup": "Apps • Arcade",
+      "coreComponent": "arcadeIframe",
+      "coreComponentTarget": "blasteroids"
     },
     "petly": {
       "route": "/petly",
-      "documentTitle": "Petly"
+      "documentTitle": "Petly",
+      "commandGroup": "Apps • Portfolio"
     },
     "health": {
       "route": "/health",
       "documentTitle": "Portfolio Health Dashboard",
       "metadataTitle": "Portfolio Health Dashboard",
-      "metadataDescription": "Bundle budget, test and accessibility health, and resume schema validation snapshots."
+      "metadataDescription": "Bundle budget, test and accessibility health, and resume schema validation snapshots.",
+      "commandGroup": "Apps • Portfolio"
     },
     "replay": {
       "route": "/replay",
       "documentTitle": "Session Replay Lite Viewer",
       "metadataTitle": "Session Replay Lite Viewer",
-      "metadataDescription": "Load and inspect session replay-lite JSON exports with timeline scrubbing and event filters."
+      "metadataDescription": "Load and inspect session replay-lite JSON exports with timeline scrubbing and event filters.",
+      "commandGroup": "Apps • Portfolio"
     },
     "capabilities": {
       "route": "/capabilities",
       "documentTitle": "App Capability Matrix",
       "metadataTitle": "App Capability Matrix",
-      "metadataDescription": "Cross-route capability matrix with measured quality and performance coverage snapshots."
+      "metadataDescription": "Cross-route capability matrix with measured quality and performance coverage snapshots.",
+      "commandGroup": "Apps • Portfolio"
     }
   },
   "navigation": {
@@ -2722,5 +2744,5 @@
       }
     ]
   },
-  "schemaVersion": 2
+  "schemaVersion": 8
 }

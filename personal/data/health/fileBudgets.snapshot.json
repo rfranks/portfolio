@@ -1,21 +1,31 @@
 {
   "key": "fileBudgets",
   "status": "pass",
-  "generatedAt": "2026-04-25T12:07:07.584Z",
+  "generatedAt": "2026-05-03T16:56:14.457Z",
   "summary": "File budget check passed.",
   "details": {
     "totals": {
-      "scannedFileCount": 706,
-      "codeFileCount": 679,
-      "violationCount": 0
+      "scannedFileCount": 741,
+      "codeFileCount": 712,
+      "violationCount": 0,
+      "missingExactBudgetViolationCount": 0,
+      "exactBudgetUnderuseViolationCount": 0,
+      "staleExactBudgetViolationCount": 0
     },
     "budget": {
       "defaultBudget": 900,
-      "exactBudgetOverrideCount": 23
+      "exactBudgetOverrideCount": 20
+    },
+    "autofix": {
+      "enabled": false,
+      "applied": false,
+      "removedMissingOverrides": 0,
+      "removedBelowDefaultOverrides": 0,
+      "tightenedOverrides": 0
     },
     "testHealth": {
       "status": "pass",
-      "totalTestFiles": 27,
+      "totalTestFiles": 29,
       "violatingTestFiles": 0
     },
     "a11yHealth": {
@@ -26,6 +36,8 @@
     "schemaValidation": {
       "schemaTestFileCount": 1
     },
-    "topViolations": []
+    "topViolations": [],
+    "exactBudgetUnderuseViolations": [],
+    "missingExactBudgetViolations": []
   }
 }

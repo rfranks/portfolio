@@ -1,26 +1,43 @@
 {
   "key": "schemaValidation",
-  "status": "pass",
-  "generatedAt": "2026-04-25T12:07:08.203Z",
-  "summary": "resumeData validation passed with no warnings.",
+  "status": "warn",
+  "generatedAt": "2026-05-03T16:56:15.163Z",
+  "summary": "resumeData validation passed with 4 warning(s).",
   "details": {
     "strictAssets": true,
     "issueCounts": {
       "errors": 0,
-      "warnings": 0
+      "warnings": 4
     },
-    "issues": [],
+    "issues": [
+      {
+        "severity": "warning",
+        "message": "[presentation.section-capabilities-missing] projects.9.presentation.sectionCapabilities is missing. Add explicit section capability policy for availability/pager/audio/deep-link rules."
+      },
+      {
+        "severity": "warning",
+        "message": "[presentation.section-capabilities-missing] projects.10.presentation.sectionCapabilities is missing. Add explicit section capability policy for availability/pager/audio/deep-link rules."
+      },
+      {
+        "severity": "warning",
+        "message": "[presentation.section-capabilities-missing] projects.11.presentation.sectionCapabilities is missing. Add explicit section capability policy for availability/pager/audio/deep-link rules."
+      },
+      {
+        "severity": "warning",
+        "message": "[presentation.section-capabilities-missing] projects.12.presentation.sectionCapabilities is missing. Add explicit section capability policy for availability/pager/audio/deep-link rules."
+      }
+    ],
     "stats": {
       "resumeDataPath": "public/personal/data/resumeData.json",
       "strictAssets": true,
       "runningInCi": true,
-      "schemaVersion": 6,
-      "schemaMigrationVersion": 6,
-      "schemaChangelogEntryCount": 6,
-      "schemaChangelogLatestVersion": 6,
-      "schemaChangelogLatestDate": "2026-04-24",
-      "schemaChangelogLatestSummary": "Normalized portfolioApps into explicit per-route metadata contracts and added non-presentation app route coverage.",
-      "schemaChangelogLatestMigration": "migrateV5ToV6",
+      "schemaVersion": 8,
+      "schemaMigrationVersion": 8,
+      "schemaChangelogEntryCount": 8,
+      "schemaChangelogLatestVersion": 8,
+      "schemaChangelogLatestDate": "2026-04-25",
+      "schemaChangelogLatestSummary": "Added `coreComponentTarget` launcher target contracts so app launcher component resolution is data-first and route-key agnostic.",
+      "schemaChangelogLatestMigration": "migrateV7ToV8",
       "schemaChangelogLatestBreakingFieldCount": 0,
       "schemaBreakingFieldsGuardApproved": false,
       "schemaBreakingFieldsGuardEnvVar": "ALLOW_RESUME_SCHEMA_BREAKING_FIELDS",
@@ -71,7 +88,7 @@
       "actualDeepLinkCount": 36,
       "deepLinkCoveragePct": 100,
       "migrationWarningCount": 0,
-      "contentLintWarningCount": 0,
+      "contentLintWarningCount": 4,
       "contentLintErrorCount": 0
     }
   }
