@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Loop from "@mui/icons-material/Loop";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
@@ -12,16 +11,16 @@ import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import AIShenaniganPanel from "./AIShenaniganPanel";
+import AIShenaniganRevealNavigator from "./AIShenaniganRevealNavigator";
 import {
   ARROW_REVEAL_MS,
-  buildCondensedChronologyIndices,
   buildRevealLabels,
   getEpisodeChronologyLabel,
-  resolveCurrentRevealIndex,
   type RevealStage,
 } from "../_utils/aiShenaniganAdaptationUtils";
 import { useRevealScrollStabilizer } from "../_hooks/useRevealScrollStabilizer";
 import type { AIShenaniganAdaptationProps } from "../_types/aiShenaniganAdaptation";
+import type { RevealViewMode } from "../_types/revealStateEngine";
 import {
   mediaControlSx,
   mediaPanelSx,
@@ -62,6 +61,7 @@ export default function AIShenaniganAdaptation({
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const isSmDown = useMediaQuery(theme.breakpoints.down("md"));
   const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
+  const [revealMode, setRevealMode] = useState<RevealViewMode>("chips");
   const [stage, setStage] = useState<RevealStage>("intro");
   const [bookVisible, setBookVisible] = useState(false);
   const [bookCoverLoaded, setBookCoverLoaded] = useState(false);
@@ -520,73 +520,6 @@ export default function AIShenaniganAdaptation({
     });
   };
 
-  const renderChronologyChips = (scope: "main" | "panel") => {
-    const visibleLabels = revealLabels;
-    const useCondensedChronology = visibleLabels.length > 3;
-    const currentIndex = resolveCurrentRevealIndex(visibleLabels);
-    const displayedIndices = useCondensedChronology
-      ? buildCondensedChronologyIndices({
-          labelCount: visibleLabels.length,
-          currentIndex,
-        })
-      : visibleLabels.map((_, index) => index);
-
-    return displayedIndices.map((index, chipPosition) => {
-      const item = visibleLabels[index];
-      if (!item) {
-        return null;
-      }
-
-      const hasNextChip = chipPosition < displayedIndices.length - 1;
-
-      return (
-        <Box key={`${scope}-${item.key}`} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Chip
-            label={item.label}
-            color={item.active ? "primary" : "default"}
-            variant={item.active ? "filled" : "outlined"}
-            size="small"
-            clickable={item.reached}
-            onClick={item.reached ? () => handleChronologySelect(item.key) : undefined}
-            sx={
-              item.reached
-                ? undefined
-                : {
-                    borderStyle: "dashed",
-                    borderColor: "rgba(148,163,184,0.55)",
-                    color: "rgba(148,163,184,0.88)",
-                    backgroundColor: "rgba(148,163,184,0.06)",
-                    "& .MuiChip-label": {
-                      fontStyle: "italic",
-                    },
-                  }
-            }
-          />
-          {hasNextChip && (
-            <Typography
-              aria-hidden="true"
-              sx={{
-                fontSize: "1rem",
-                fontWeight: 800,
-                lineHeight: 1,
-                color: useCondensedChronology
-                  ? "text.disabled"
-                  : item.active
-                    ? "primary.main"
-                    : "text.disabled",
-                transform: "translateY(-1px)",
-                transition: "color 180ms ease",
-                userSelect: "none",
-              }}
-            >
-              {useCondensedChronology ? "..." : "→"}
-            </Typography>
-          )}
-        </Box>
-      );
-    });
-  };
-
   useEffect(() => {
     if (!isSmallScreen) {
       setIsInfoPanelMinimized(false);
@@ -897,22 +830,23 @@ export default function AIShenaniganAdaptation({
                       {blurb}
                     </Typography>
                     {!isSmallScreen && (
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        useFlexGap
-                        flexWrap="wrap"
+                      <Box
                         sx={{
                           mt: 2.5,
-                          alignItems: "center",
                           display: {
                             xs: stage === "intro" ? "flex" : "none",
                             md: "flex",
                           },
                         }}
                       >
-                        {renderChronologyChips("main")}
-                      </Stack>
+                        <AIShenaniganRevealNavigator
+                          items={revealLabels}
+                          mode={revealMode}
+                          onModeChange={setRevealMode}
+                          onSelect={handleChronologySelect}
+                          scope="main"
+                        />
+                      </Box>
                     )}
                     <Box
                       sx={{

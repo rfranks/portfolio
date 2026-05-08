@@ -14,6 +14,11 @@ import {
   setAppOpenAIKey,
 } from "@/utils/openAIKeyStorage";
 
+export type OpenAIKeyGateSnapshot = {
+  key: string;
+  hasKey: boolean;
+};
+
 function getStorageConfig(appId: OpenAIKeyAppId): AppOpenAIKeyStorageConfig {
   return OPENAI_KEY_STORAGE_CONFIG_BY_APP[appId];
 }
@@ -57,4 +62,15 @@ export function ensureOpenAIKeyForApp(
     throw new Error("OpenAI API key is not set");
   }
   return key;
+}
+
+export function getOpenAIKeyGateSnapshotForApp(
+  appId: OpenAIKeyAppId,
+  options?: AppOpenAIKeyReadOptions,
+): OpenAIKeyGateSnapshot {
+  const key = getOpenAIKeyForApp(appId, options).trim();
+  return {
+    key,
+    hasKey: key.length > 0,
+  };
 }

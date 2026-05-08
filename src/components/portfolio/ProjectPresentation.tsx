@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, useMemo } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import SubsectionPager from "@/components/portfolio/layout/SubsectionPager";
@@ -42,7 +42,27 @@ interface ProjectPresentationProps {
 }
 
 export default function ProjectPresentation({ project }: ProjectPresentationProps) {
-  const controller = useProjectPresentationController(project);
+  const normalizedProject = useMemo<ProjectData>(() => {
+    const rawTechnologiesUsed =
+      "technologiesUsed" in project && Array.isArray(project.technologiesUsed)
+        ? project.technologiesUsed
+        : [];
+    const rawSpecifications =
+      "specifications" in project &&
+      project.specifications &&
+      typeof project.specifications === "object" &&
+      !Array.isArray(project.specifications)
+        ? project.specifications
+        : {};
+
+    return {
+      ...project,
+      technologiesUsed: rawTechnologiesUsed,
+      specifications: rawSpecifications,
+    };
+  }, [project]);
+
+  const controller = useProjectPresentationController(normalizedProject);
 
   useEffect(() => {
     if (
@@ -123,7 +143,7 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
           />
         );
       case "why":
-        return <WhyThisInterestsSection content={project.interestsMeWhy ?? ""} />;
+        return <WhyThisInterestsSection content={normalizedProject.interestsMeWhy ?? ""} />;
       case "demo":
         return (
           <DemoSection
@@ -144,14 +164,14 @@ export default function ProjectPresentation({ project }: ProjectPresentationProp
       case "technologies":
         return (
           <TechnologiesSection
-            menuIdPrefix={project.project.toLowerCase().replace(/[^a-z0-9]+/g, "-")}
+            menuIdPrefix={normalizedProject.project.toLowerCase().replace(/[^a-z0-9]+/g, "-")}
             categories={controller.technologyCompetencyCategories}
           />
         );
       case "specifications":
         return (
           <SpecificationsSection
-            specifications={project.specifications}
+            specifications={normalizedProject.specifications}
             useSharedDemoSlide={controller.useSharedDemoSlide}
           />
         );

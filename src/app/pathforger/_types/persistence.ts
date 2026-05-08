@@ -209,10 +209,8 @@ export type UsePathForgerPersistenceArgs = {
     } | null>
   >;
   setResult: React.Dispatch<React.SetStateAction<PathForgerPipelineResult | null>>;
-  setCreateStoryPanelOpen: (value: boolean) => void;
-  setChapterModalOpen: (value: boolean) => void;
-  setContinueModalOpen: (value: boolean) => void;
-  setChapterOutcomeModalOpen: (value: boolean) => void;
+  openHydratedChapterFlow: () => void;
+  openCreateStoryFlow: () => void;
   setGenre: (value: string) => void;
   setTone: (value: string) => void;
   setDangerLevel: (value: "Forgiving" | "Risky" | "Deadly") => void;

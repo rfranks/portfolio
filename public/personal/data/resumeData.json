@@ -752,6 +752,22 @@
         "movieCaption": "A cinematic rooftop sequence blending stealth and motion, culminating in a controlled leap from the skyline into the unknown below."
       },
       {
+        "slug": "stay-puffy",
+        "title": "Stay-Puffy!",
+        "orientation": "landscape",
+        "realisticImage": "/personal/images/ai-shenanigans/stay-puffy/realistic.jpeg",
+        "realisticSource": "Professional headshot",
+        "realisticCaption": "It starts with a clean professional headshot before ballooning into full monster-movie destruction.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/stay-puffy/stylistic.png",
+        "stylizedSource": "ChatGPT image generation",
+        "stylizedCaption": "The portrait transforms into a hulking marshmallow-monster version of me, stomping through a ruined city in a gritty 80s cinematic frame with sailor gear, scorched fluff, and total urban mayhem.",
+        "movieRendering": "/personal/images/ai-shenanigans/stay-puffy/movie.mp4",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "What begins as a normal headshot erupts into a full-blown giant-monster rampage as I become Stay-Puffy, a roaring marshmallow menace hell bent on crushing the city in a smoky, apocalyptic burst of cinematic chaos.",
+        "blurb": "Stay-Puffy! takes a polished professional headshot and mutates it into a giant marshmallow-monster shenanigan straight out of an apocalyptic 80s creature feature. The result is a city-smashing version of me, reimagined as a sailor-capped puff-beast hell bent on destruction, roaring through smoke, fire, and collapsing streets with giant-monster energy and just the right amount of absurdity.",
+        "shortText": "Headshot mutates into marshmallow-monster city destruction."
+      },
+      {
         "slug": "budweiser-pacman",
         "title": "Budweiser Pac-Man",
         "orientation": "portrait",
@@ -2514,13 +2530,87 @@
       "showcaseHeading": "Petly",
       "showcaseSubtitle": "Pet-owner portal blending social UX with veterinary record access.",
       "wowFactor": "Reframed legacy portal experiences into an approachable product surface while preserving access to clinically important records.",
+      "demoCaption": "Walkthrough of the owner portal experience: approachable social-style activity surfaces paired with high-signal vaccination, imaging, and billing context.",
+      "demoVideoUrl": "/personal/demovideos/petly.mov",
+      "technologiesUsed": [
+        {
+          "name": "Liferay Portal",
+          "emoji": "🧱"
+        },
+        {
+          "name": "Java",
+          "emoji": "☕"
+        },
+        {
+          "name": "Spring MVC",
+          "emoji": "🌱"
+        },
+        {
+          "name": "REST APIs",
+          "emoji": "🔌"
+        },
+        {
+          "name": "JavaScript",
+          "emoji": "🟨"
+        },
+        {
+          "name": "Sass/CSS",
+          "emoji": "🎨"
+        }
+      ],
+      "specifications": {
+        "Portal UX Modernization": {
+          "Goal": "Transform rigid widget-based portal pages into a cohesive, approachable owner experience.",
+          "Highlights": [
+            "Reworked information hierarchy to prioritize pet status, upcoming care, and recent activity.",
+            "Introduced notebook-inspired visual composition (cards, notes, and imagery) without breaking portal constraints.",
+            "Aligned interactions with mobile-first browsing patterns used by pet owners."
+          ],
+          "Outcome": "Owners could scan critical context faster while still feeling like they were in a consumer product."
+        },
+        "Veterinary Record Continuity": {
+          "Clinical artifacts surfaced": [
+            "Vaccination history and due dates",
+            "Imaging and x-ray previews",
+            "Visit summaries and provider notes",
+            "Invoice and billing history"
+          ],
+          "Contract strategy": [
+            "Kept portal API surfaces additive to reduce downstream coupling risk.",
+            "Normalized record labels and timestamps so cross-module views remained consistent."
+          ],
+          "Reliability focus": "Preserved trusted access to medical context while improving readability and navigation."
+        },
+        "Operational Quality": {
+          "Performance": "Reduced visual churn and excessive widget reload patterns on high-traffic account pages.",
+          "Observability": "Tracked owner navigation hotspots to prioritize iterative UX improvements.",
+          "Delivery model": "Shipped incrementally within a legacy portal framework while maintaining existing business workflows."
+        }
+      },
+      "diagrams": [
+        {
+          "title": "Petly Experience Flow",
+          "shortText": "How social UX and clinical data surfaces align.",
+          "description": "Illustrates the path from owner login through social-style activity and into clinically important records, including the backend services that hydrate those views.",
+          "type": "flowchart",
+          "diagram": "flowchart LR\n  Owner[Pet Owner] --> Portal[Liferay Portal Shell]\n  Portal --> Feed[Activity & Notebook UI]\n  Portal --> Records[Medical Records View]\n  Feed --> Records\n  Records --> Vaccines[Vaccination History]\n  Records --> Imaging[Imaging & X-Ray]\n  Records --> Visits[Visit Notes]\n  Records --> Billing[Invoices & Billing]\n  Portal --> Api[Portal REST Layer]\n  Api --> Clinical[Clinical Record Services]\n  Api --> Account[Account & Billing Services]\n  Clinical --> Data[(Vet Data Stores)]\n  Account --> Data",
+          "selectorOptionVisual": {
+            "type": "emoji",
+            "icon": "🐾"
+          },
+          "selectorSelectedVisual": {
+            "type": "emoji",
+            "icon": "🩺"
+          }
+        }
+      ],
       "terminalDemo": {
-        "mediaType": "image",
-        "mediaUrl": "/personal/images/employers/dressagemarket.jpg",
-        "caption": "Petly owner portal experience preview.",
-        "title": "Petly Demo Preview",
-        "subtitle": "Pet-owner engagement platform",
-        "mediaAlt": "Petly preview"
+        "mediaType": "video",
+        "mediaUrl": "/personal/demovideos/petly.mov",
+        "caption": "Petly owner portal walkthrough highlighting social engagement surfaces and veterinary record continuity.",
+        "title": "Petly Demo",
+        "subtitle": "Owner engagement + care record visibility",
+        "mediaAlt": "Petly owner portal walkthrough video"
       }
     }
   ],

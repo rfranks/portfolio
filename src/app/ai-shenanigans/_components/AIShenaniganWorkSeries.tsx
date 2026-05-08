@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Loop from "@mui/icons-material/Loop";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
@@ -12,15 +11,13 @@ import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import AIShenaniganPanel from "./AIShenaniganPanel";
+import AIShenaniganRevealNavigator from "./AIShenaniganRevealNavigator";
 import { EmojiGlyph, MediaCycler } from "@/components/shared";
 import { useAudio } from "@/hooks/audio/useAudio";
 import { rewindAndPlayAudio } from "@/utils/audio";
 import { withBasePath } from "@/utils/basePath";
-import {
-  buildCondensedChronologyIndices,
-  resolveCurrentRevealIndex,
-} from "../_utils/chronologyUtils";
 import { useRevealScrollStabilizer } from "../_hooks/useRevealScrollStabilizer";
+import type { RevealViewMode } from "../_types/revealStateEngine";
 import type {
   AIShenaniganWorkSeriesProps,
   RevealStep,
@@ -65,6 +62,7 @@ export default function AIShenaniganWorkSeries({
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
   const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
+  const [revealMode, setRevealMode] = useState<RevealViewMode>("chips");
   const [revealedWorkCount, setRevealedWorkCount] = useState(0);
   const [revealedSeriesCount, setRevealedSeriesCount] = useState(0);
   const [transitioning, setTransitioning] = useState<RevealStep | null>(null);
@@ -395,72 +393,6 @@ export default function AIShenaniganWorkSeries({
       scrollRevealIntoView(
         seriesCardRefs.current[target.index] || seriesSectionRef.current,
         seriesFooterRefs.current[target.index],
-      );
-    });
-  };
-
-  const renderChronologyChips = (scope: "main" | "panel") => {
-    const useCondensedChronology = chronologySteps.length > 3;
-    const currentIndex = resolveCurrentRevealIndex(chronologySteps);
-    const displayedIndices = useCondensedChronology
-      ? buildCondensedChronologyIndices({
-          labelCount: chronologySteps.length,
-          currentIndex,
-        })
-      : chronologySteps.map((_, index) => index);
-
-    return displayedIndices.map((index, chipPosition) => {
-      const item = chronologySteps[index];
-      if (!item) {
-        return null;
-      }
-
-      const hasNextChip = chipPosition < displayedIndices.length - 1;
-
-      return (
-        <Box key={`${scope}-${item.key}`} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Chip
-            label={item.label}
-            color={item.active ? "primary" : "default"}
-            variant={item.active ? "filled" : "outlined"}
-            size="small"
-            clickable={item.reached}
-            onClick={item.reached ? () => rewindToStep(item.step) : undefined}
-            sx={
-              item.reached
-                ? undefined
-                : {
-                    borderStyle: "dashed",
-                    borderColor: "rgba(148,163,184,0.55)",
-                    color: "rgba(148,163,184,0.88)",
-                    backgroundColor: "rgba(148,163,184,0.06)",
-                    "& .MuiChip-label": {
-                      fontStyle: "italic",
-                    },
-                  }
-            }
-          />
-          {hasNextChip && (
-            <Typography
-              aria-hidden="true"
-              sx={{
-                fontSize: "1rem",
-                fontWeight: 800,
-                lineHeight: 1,
-                color: useCondensedChronology
-                  ? "text.disabled"
-                  : item.active
-                    ? "primary.main"
-                    : "text.disabled",
-                transform: "translateY(-1px)",
-                transition: "color 180ms ease",
-                userSelect: "none",
-              }}
-            >
-              {useCondensedChronology ? "..." : "→"}
-            </Typography>
-          )}
-        </Box>
       );
     });
   };
@@ -900,22 +832,29 @@ export default function AIShenaniganWorkSeries({
                       {blurb}
                     </Typography>
                     {!isSmallScreen && (
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        useFlexGap
-                        flexWrap="wrap"
+                      <Box
                         sx={{
                           mt: 2.5,
-                          alignItems: "center",
                           display: {
                             xs: current ? "none" : "flex",
                             md: "flex",
                           },
                         }}
                       >
-                        {renderChronologyChips("main")}
-                      </Stack>
+                        <AIShenaniganRevealNavigator
+                          items={chronologySteps}
+                          mode={revealMode}
+                          onModeChange={setRevealMode}
+                          onSelect={(key) => {
+                            const target = chronologySteps.find((item) => item.key === key);
+                            if (!target?.reached) {
+                              return;
+                            }
+                            rewindToStep(target.step);
+                          }}
+                          scope="main"
+                        />
+                      </Box>
                     )}
                     <Box
                       sx={{

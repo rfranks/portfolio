@@ -1,24 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Loop from "@mui/icons-material/Loop";
-import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
-import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { alpha, useTheme } from "@mui/material/styles";
-import { EmojiGlyph } from "@/components/shared";
-import { MarkdownContent } from "@/components/shared";
-import { ImageLightbox } from "@/components/shared";
+import { EmojiGlyph, MarkdownContent, MediaCycler } from "@/components/shared";
+import type { MediaCyclerItem } from "@/components/shared";
 import AIShenaniganPanel from "./AIShenaniganPanel";
+import AIShenaniganRevealNavigator from "./AIShenaniganRevealNavigator";
 import { withBasePath } from "@/utils/basePath";
+import type { RevealTimelineItem, RevealViewMode } from "../_types/revealStateEngine";
 
 type RevealStage = "intro" | "raw" | "analyzed" | "lines" | "reading";
+type PalmRevealStage = Exclude<RevealStage, "intro">;
 
 type AIShenaniganPalmReadingProps = {
   rank: number;
@@ -45,7 +44,12 @@ type AIShenaniganPalmReadingProps = {
   palmReadingSourceHref?: string;
 };
 
-const STAGE_ORDER: RevealStage[] = ["intro", "raw", "analyzed", "lines", "reading"];
+const STAGE_LABELS: Record<PalmRevealStage, string> = {
+  raw: "Raw",
+  analyzed: "Analyzed",
+  lines: "Palm Lines",
+  reading: "Reading",
+};
 
 export default function AIShenaniganPalmReading({
   rank,
@@ -74,25 +78,19 @@ export default function AIShenaniganPalmReading({
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
   const [isInfoPanelMinimized, setIsInfoPanelMinimized] = useState(false);
+  const [revealMode, setRevealMode] = useState<RevealViewMode>("chips");
   const [stage, setStage] = useState<RevealStage>("intro");
   const [markdownContent, setMarkdownContent] = useState<string | null>(null);
   const [isMarkdownLoading, setIsMarkdownLoading] = useState(false);
   const [hasMarkdownLoadError, setHasMarkdownLoadError] = useState(false);
-  const [rawMediaLoaded, setRawMediaLoaded] = useState(false);
-  const [analyzedMediaLoaded, setAnalyzedMediaLoaded] = useState(false);
-  const [linesMediaLoaded, setLinesMediaLoaded] = useState(false);
-  const [pendingScrollStage, setPendingScrollStage] = useState<Exclude<
-    RevealStage,
-    "intro"
-  > | null>(null);
-  const rawPanelRef = useRef<HTMLDivElement | null>(null);
-  const analyzedPanelRef = useRef<HTMLDivElement | null>(null);
-  const linesPanelRef = useRef<HTMLDivElement | null>(null);
-  const readingPanelRef = useRef<HTMLDivElement | null>(null);
+
   const formattedRank = `#${String(rank).padStart(2, "0")}`;
   const rightsLabel = rightsNotice || "Intent to Copyright";
   const rightsStampAngle = ((rank * 7) % 17) - 8;
   const hasVisibleMedia = stage !== "intro";
+  const hasAnalyzedImage = Boolean(analyzedImage);
+  const hasLineImage = Boolean(palmLineAnalysisImage);
+
   const panelChromeSx = {
     borderRadius: "24px",
     border: "1px solid",
@@ -102,10 +100,7 @@ export default function AIShenaniganPalmReading({
     boxShadow: "inset 0 1px 0 var(--fabric-inner-glow)",
     backdropFilter: "blur(var(--fabric-blur-sm))",
   } as const;
-  const mediaPanelSx = {
-    ...panelChromeSx,
-    p: 2.5,
-  } as const;
+
   const mediaControlSx = (currentTheme: typeof theme) => ({
     color: currentTheme.palette.common.black,
     borderColor: currentTheme.palette.common.black,
@@ -119,44 +114,11 @@ export default function AIShenaniganPalmReading({
       bgcolor: alpha(currentTheme.palette.common.white, 0.8),
     },
   });
+
   const restartActionSx = (currentTheme: typeof theme) => ({
     border: "1px solid",
     ...mediaControlSx(currentTheme),
   });
-
-  const stageIndex = STAGE_ORDER.indexOf(stage);
-  const isStageVisible = (candidate: Exclude<RevealStage, "intro">) =>
-    STAGE_ORDER.indexOf(candidate) <= stageIndex;
-
-  const nextStage = useMemo<RevealStage | null>(() => {
-    switch (stage) {
-      case "intro":
-        return "raw";
-      case "raw":
-        return "analyzed";
-      case "analyzed":
-        return "lines";
-      case "lines":
-        return "reading";
-      default:
-        return null;
-    }
-  }, [stage]);
-
-  const nextAction = useMemo<{ label: string; glyph: string } | null>(() => {
-    switch (nextStage) {
-      case "raw":
-        return { label: "Reveal Raw Image", glyph: "🖐️" };
-      case "analyzed":
-        return { label: "Reveal Analyzed Image", glyph: "🔎" };
-      case "lines":
-        return { label: "Reveal Palm Line Analysis", glyph: "🧬" };
-      case "reading":
-        return { label: "Reveal Palm Reading", glyph: "🔮" };
-      default:
-        return null;
-    }
-  }, [nextStage]);
 
   useEffect(() => {
     if (!isSmallScreen) {
@@ -207,117 +169,321 @@ export default function AIShenaniganPalmReading({
     };
   }, [palmReadingMarkdownPath]);
 
-  const effectiveReadingContent = markdownContent ?? palmReadingText ?? "";
-  const isChatGptGptLink = (href?: string) => Boolean(href && href.includes("chatgpt.com/g/"));
-  const isStageReadyForScroll = useCallback(
-    (candidate: Exclude<RevealStage, "intro">): boolean => {
-      if (candidate === "raw") {
-        return rawMediaLoaded;
-      }
-      if (candidate === "analyzed") {
-        return !analyzedImage || analyzedMediaLoaded;
-      }
-      if (candidate === "lines") {
-        return !palmLineAnalysisImage || linesMediaLoaded;
-      }
-      return !isMarkdownLoading;
-    },
-    [
-      rawMediaLoaded,
-      analyzedImage,
-      analyzedMediaLoaded,
-      palmLineAnalysisImage,
-      linesMediaLoaded,
-      isMarkdownLoading,
-    ],
-  );
-  const getStageRef = useCallback((candidate: Exclude<RevealStage, "intro">) => {
-    if (candidate === "raw") {
-      return rawPanelRef;
+  const stageSequence = useMemo<PalmRevealStage[]>(() => {
+    const sequence: PalmRevealStage[] = ["raw"];
+    if (hasAnalyzedImage) {
+      sequence.push("analyzed");
     }
-    if (candidate === "analyzed") {
-      return analyzedPanelRef;
+    if (hasLineImage) {
+      sequence.push("lines");
     }
-    if (candidate === "lines") {
-      return linesPanelRef;
+    sequence.push("reading");
+    return sequence;
+  }, [hasAnalyzedImage, hasLineImage]);
+
+  const stageIndex = stage === "intro" ? -1 : stageSequence.indexOf(stage);
+
+  const revealTimelineItems = useMemo<RevealTimelineItem<PalmRevealStage>[]>(() => {
+    return stageSequence.map((stageKey, index) => ({
+      label: STAGE_LABELS[stageKey],
+      key: stageKey,
+      active: stage === stageKey,
+      reached: index <= stageIndex,
+    }));
+  }, [stage, stageIndex, stageSequence]);
+
+  const nextStage = useMemo<RevealStage | null>(() => {
+    if (stage === "intro") {
+      return stageSequence[0] ?? null;
     }
-    return readingPanelRef;
-  }, []);
-  const navigateToStage = (nextStage: RevealStage) => {
-    if (nextStage === "intro") {
-      setPendingScrollStage(null);
-      setStage(nextStage);
+    if (stageIndex >= 0 && stageIndex < stageSequence.length - 1) {
+      return stageSequence[stageIndex + 1];
+    }
+    return null;
+  }, [stage, stageIndex, stageSequence]);
+
+  const nextAction = useMemo<{ label: string; glyph: string } | null>(() => {
+    switch (nextStage) {
+      case "raw":
+        return { label: "Reveal Raw Image", glyph: "🖐️" };
+      case "analyzed":
+        return { label: "Reveal Analyzed Image", glyph: "🔎" };
+      case "lines":
+        return { label: "Reveal Palm Line Analysis", glyph: "🧬" };
+      case "reading":
+        return { label: "Reveal Palm Reading", glyph: "🔮" };
+      default:
+        return null;
+    }
+  }, [nextStage]);
+
+  const navigateToStage = (next: RevealStage) => {
+    if (next === "intro") {
+      setStage("intro");
       return;
     }
-    setPendingScrollStage(nextStage);
-    setStage(nextStage);
+    if (stageSequence.includes(next)) {
+      setStage(next);
+    }
   };
 
-  useEffect(() => {
-    if (!pendingScrollStage || stage !== pendingScrollStage) {
-      return;
-    }
-    if (!isStageReadyForScroll(pendingScrollStage)) {
-      return;
-    }
+  const effectiveReadingContent = markdownContent ?? palmReadingText ?? "";
+  const isChatGptGptLink = (href?: string) => Boolean(href && href.includes("chatgpt.com/g/"));
 
-    const targetRef = getStageRef(pendingScrollStage);
-    if (!targetRef.current) {
-      return;
-    }
-
-    const rafId = window.requestAnimationFrame(() => {
-      targetRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-      setPendingScrollStage(null);
-    });
-
-    return () => {
-      window.cancelAnimationFrame(rafId);
-    };
-  }, [
-    stage,
-    pendingScrollStage,
-    rawMediaLoaded,
-    analyzedMediaLoaded,
-    linesMediaLoaded,
-    isMarkdownLoading,
-    isStageReadyForScroll,
-    getStageRef,
-  ]);
-
-  const renderSource = (label?: string, href?: string) => {
-    if (!label) {
-      return null;
-    }
-
-    return (
-      <Box sx={{ mt: 1.5 }}>
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-          Source:{" "}
-          {href ? (
-            <Link
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
-              color="primary.main"
-            >
-              {label}
-            </Link>
-          ) : (
-            label
-          )}
+  const renderProNote = useCallback(
+    (href?: string) =>
+      isChatGptGptLink(href) ? (
+        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
+          Requires ChatGPT Pro subscription.
         </Typography>
-        {isChatGptGptLink(href) && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
-            Requires ChatGPT Pro subscription.
+      ) : null,
+    [],
+  );
+
+  const readingBody = useMemo(
+    () => (
+      <Box
+        sx={{
+          p: 2,
+          borderRadius: "16px",
+          border: "1px solid",
+          borderColor: "var(--fabric-surface-border)",
+          backgroundColor: (currentTheme) => alpha(currentTheme.palette.background.paper, 0.4),
+          overflowY: "auto",
+        }}
+      >
+        {effectiveReadingContent ? (
+          <MarkdownContent
+            content={effectiveReadingContent}
+            sx={{
+              "& h1, & h2, & h3, & h4, & h5, & h6": {
+                mt: 1.5,
+                mb: 0.75,
+                fontWeight: 700,
+                lineHeight: 1.25,
+                color: "text.primary",
+              },
+              "& h1": { fontSize: "1.22rem" },
+              "& h2": { fontSize: "1.1rem" },
+              "& h3": { fontSize: "1rem" },
+              "& p": {
+                mb: 1.2,
+                lineHeight: 1.7,
+              },
+              "& ul, & ol": {
+                mb: 1.2,
+              },
+            }}
+          />
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            {isMarkdownLoading
+              ? "Loading reading..."
+              : hasMarkdownLoadError
+                ? "Reading text is unavailable."
+                : "No reading text provided."}
           </Typography>
         )}
       </Box>
-    );
+    ),
+    [effectiveReadingContent, hasMarkdownLoadError, isMarkdownLoading],
+  );
+
+  const mediaItems = useMemo<MediaCyclerItem[]>(() => {
+    const commonImagePanelSx = {
+      height: "100%",
+      minHeight: 0,
+      display: "flex",
+      flexDirection: "column",
+      backgroundColor: "transparent",
+      backgroundImage: "none",
+      boxShadow: "none",
+      backdropFilter: "none",
+    } as const;
+
+    const commonImageFrameSx = {
+      mt: 0.2,
+      mb: 0.1,
+      width: "100%",
+      flex: "1 1 auto",
+      minHeight: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
+    } as const;
+
+    const items: MediaCyclerItem[] = [
+      {
+        key: "raw",
+        title: "Raw image",
+        mediaType: "image",
+        mediaUrl: rawImage,
+        mediaAlt: `${title} raw image`,
+        mediaLightboxTitle: `${title} — Raw Image`,
+        lightboxCaption: rawCaption || rawSource,
+        mediaCaption: rawCaption,
+        mediaSource: rawSource,
+        mediaSourceHref: rawSourceHref,
+        panelSx: commonImagePanelSx,
+        assetFrameSx: commonImageFrameSx,
+        imageWidth: 1200,
+        imageHeight: 900,
+        imageClassName: "h-auto w-full rounded-[22px] bg-black/10 object-contain",
+        imageStyle: {
+          aspectRatio: "4 / 3",
+          marginInline: "auto",
+        },
+        extraContent: renderProNote(rawSourceHref),
+      },
+    ];
+
+    if (hasAnalyzedImage) {
+      items.push({
+        key: "analyzed",
+        title: "Analyzed image",
+        mediaType: "image",
+        mediaUrl: analyzedImage,
+        mediaAlt: `${title} analyzed image`,
+        mediaLightboxTitle: `${title} — Analyzed Image`,
+        lightboxCaption: analyzedCaption || analyzedSource,
+        mediaCaption: analyzedCaption,
+        mediaSource: analyzedSource,
+        mediaSourceHref: analyzedSourceHref,
+        panelSx: commonImagePanelSx,
+        assetFrameSx: commonImageFrameSx,
+        imageWidth: 1200,
+        imageHeight: 900,
+        imageClassName: "h-auto w-full rounded-[22px] bg-black/10 object-contain",
+        imageStyle: {
+          aspectRatio: "4 / 3",
+          marginInline: "auto",
+        },
+        extraContent: renderProNote(analyzedSourceHref),
+      });
+    }
+
+    if (hasLineImage) {
+      items.push({
+        key: "lines",
+        title: "Palm line analysis image",
+        mediaType: "image",
+        mediaUrl: palmLineAnalysisImage,
+        mediaAlt: `${title} palm line analysis image`,
+        mediaLightboxTitle: `${title} — Palm Line Analysis`,
+        lightboxCaption: palmLineAnalysisCaption || palmLineAnalysisSource,
+        mediaCaption: palmLineAnalysisCaption,
+        mediaSource: palmLineAnalysisSource,
+        mediaSourceHref: palmLineAnalysisSourceHref,
+        panelSx: commonImagePanelSx,
+        assetFrameSx: commonImageFrameSx,
+        imageWidth: 1200,
+        imageHeight: 900,
+        imageClassName: "h-auto w-full rounded-[22px] bg-black/10 object-contain",
+        imageStyle: {
+          aspectRatio: "4 / 3",
+          marginInline: "auto",
+        },
+        extraContent: renderProNote(palmLineAnalysisSourceHref),
+      });
+    }
+
+    items.push({
+      key: "reading",
+      title: palmReadingTitle || "Palm reading text",
+      mediaType: "custom",
+      mediaUrl: "",
+      mediaSource: palmReadingSource,
+      mediaSourceHref: palmReadingSourceHref,
+      panelSx: {
+        height: "100%",
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+      },
+      assetFrameSx: {
+        mt: 0.2,
+        mb: 0.1,
+        width: "100%",
+        flex: "1 1 auto",
+        minHeight: 0,
+        display: "flex",
+      },
+      customContentSx: {
+        width: "100%",
+        height: "100%",
+        minHeight: 0,
+      },
+      customContent: readingBody,
+      extraContent: renderProNote(palmReadingSourceHref),
+    });
+
+    return items;
+  }, [
+    analyzedCaption,
+    analyzedImage,
+    analyzedSource,
+    analyzedSourceHref,
+    hasAnalyzedImage,
+    hasLineImage,
+    palmLineAnalysisCaption,
+    palmLineAnalysisImage,
+    palmLineAnalysisSource,
+    palmLineAnalysisSourceHref,
+    palmReadingSource,
+    palmReadingSourceHref,
+    palmReadingTitle,
+    rawCaption,
+    rawImage,
+    rawSource,
+    rawSourceHref,
+    renderProNote,
+    readingBody,
+    title,
+  ]);
+
+  const revealedItems = useMemo<MediaCyclerItem[]>(() => {
+    if (stageIndex < 0) {
+      return [];
+    }
+    return mediaItems.filter((item) => {
+      const itemIndex = stageSequence.indexOf(item.key as PalmRevealStage);
+      return itemIndex >= 0 && itemIndex <= stageIndex;
+    });
+  }, [mediaItems, stageIndex, stageSequence]);
+
+  const activeMediaKey = stage === "intro" ? undefined : stage;
+  const activeMediaIndex =
+    activeMediaKey == null ? -1 : revealedItems.findIndex((item) => item.key === activeMediaKey);
+  const hasPreviousMedia = activeMediaIndex > 0;
+  const hasNextRevealedMedia = activeMediaIndex >= 0 && activeMediaIndex < revealedItems.length - 1;
+  const canRevealNextFromCurrent = Boolean(nextStage);
+  const showLoopNavigation =
+    activeMediaIndex >= 0 &&
+    activeMediaIndex === revealedItems.length - 1 &&
+    !canRevealNextFromCurrent;
+
+  const handleChevronPrevious = () => {
+    if (!hasPreviousMedia) {
+      return;
+    }
+    const previousMedia = revealedItems[activeMediaIndex - 1];
+    if (previousMedia && stageSequence.includes(previousMedia.key as PalmRevealStage)) {
+      setStage(previousMedia.key as PalmRevealStage);
+    }
+  };
+
+  const handleChevronNext = () => {
+    if (hasNextRevealedMedia) {
+      const nextRevealedMedia = revealedItems[activeMediaIndex + 1];
+      if (nextRevealedMedia && stageSequence.includes(nextRevealedMedia.key as PalmRevealStage)) {
+        setStage(nextRevealedMedia.key as PalmRevealStage);
+      }
+      return;
+    }
+    if (nextStage && nextStage !== "intro") {
+      setStage(nextStage);
+    }
   };
 
   const renderRightsStamp = () => {
@@ -428,67 +594,20 @@ export default function AIShenaniganPalmReading({
                 <Typography variant="h4" sx={{ mt: 1, mb: 2 }}>
                   {title}
                 </Typography>
-                {/* <Button
-                  size="small"
-                  variant="text"
-                  onClick={() =>
-                    setIsInfoPanelMinimized((currentValue) => !currentValue)
-                  }
-                  endIcon={
-                    <EmojiGlyph
-                      glyph={isInfoPanelMinimized ? "🔽" : "🔼"}
-                      slot="end"
-                      size="0.95rem"
-                    />
-                  }
-                  sx={{
-                    mt: 0.25,
-                    mb: 1,
-                    display: { xs: "inline-flex", md: "none" },
-                    alignSelf: "flex-start",
-                  }}
-                >
-                  {isInfoPanelMinimized ? "Expand Panel" : "Minimize Panel"}
-                </Button> */}
                 {!(isSmallScreen && isInfoPanelMinimized) && (
                   <>
                     <Typography color="text.secondary" className="leading-7">
                       {blurb}
                     </Typography>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      useFlexGap
-                      flexWrap="wrap"
-                      sx={{ mt: 2.5, alignItems: "center" }}
-                    >
-                      {[
-                        { label: "Raw", key: "raw" as const },
-                        { label: "Analyzed", key: "analyzed" as const },
-                        { label: "Palm Lines", key: "lines" as const },
-                        { label: "Reading", key: "reading" as const },
-                      ].map((item) => {
-                        const reached = isStageVisible(item.key);
-                        const active = stage === item.key;
-                        return (
-                          <Chip
-                            key={item.key}
-                            label={item.label}
-                            color={active ? "primary" : "default"}
-                            variant={active ? "filled" : "outlined"}
-                            size="small"
-                            clickable={reached}
-                            onClick={
-                              reached
-                                ? () => {
-                                    navigateToStage(item.key);
-                                  }
-                                : undefined
-                            }
-                          />
-                        );
-                      })}
-                    </Stack>
+                    <Box sx={{ mt: 2.5 }}>
+                      <AIShenaniganRevealNavigator
+                        items={revealTimelineItems}
+                        mode={revealMode}
+                        onModeChange={setRevealMode}
+                        onSelect={navigateToStage}
+                        scope="main"
+                      />
+                    </Box>
                     <Box
                       sx={{
                         mt: 3,
@@ -538,8 +657,7 @@ export default function AIShenaniganPalmReading({
             </Box>
           </Box>
 
-          <Stack
-            spacing={2}
+          <Box
             sx={{
               minWidth: 0,
               flex: "1 1 auto",
@@ -560,162 +678,44 @@ export default function AIShenaniganPalmReading({
                 "opacity 320ms ease, transform 560ms cubic-bezier(.2,.8,.2,1), flex-basis 560ms cubic-bezier(.2,.8,.2,1), max-width 560ms cubic-bezier(.2,.8,.2,1)",
             }}
           >
-            {isStageVisible("raw") && (
-              <Box sx={mediaPanelSx} ref={rawPanelRef}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Raw image
-                </Typography>
-                <ImageLightbox
-                  src={withBasePath(rawImage)}
-                  alt={`${title} raw image`}
-                  title={`${title} — Raw Image`}
-                  caption={rawCaption || rawSource}
-                >
-                  <Image
-                    src={withBasePath(rawImage)}
-                    alt={`${title} raw image`}
-                    width={1200}
-                    height={900}
-                    className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                    style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
-                    onLoad={() => setRawMediaLoaded(true)}
-                    onError={() => setRawMediaLoaded(true)}
-                  />
-                </ImageLightbox>
-                {renderSource(rawSource, rawSourceHref)}
-                {rawCaption && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: rawSource ? 0.75 : 1.5 }}
-                  >
-                    {rawCaption}
-                  </Typography>
-                )}
-              </Box>
-            )}
-
-            {isStageVisible("analyzed") && analyzedImage && (
-              <Box sx={mediaPanelSx} ref={analyzedPanelRef}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Analyzed image
-                </Typography>
-                <ImageLightbox
-                  src={withBasePath(analyzedImage)}
-                  alt={`${title} analyzed image`}
-                  title={`${title} — Analyzed Image`}
-                  caption={analyzedCaption || analyzedSource}
-                >
-                  <Image
-                    src={withBasePath(analyzedImage)}
-                    alt={`${title} analyzed image`}
-                    width={1200}
-                    height={900}
-                    className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                    style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
-                    onLoad={() => setAnalyzedMediaLoaded(true)}
-                    onError={() => setAnalyzedMediaLoaded(true)}
-                  />
-                </ImageLightbox>
-                {renderSource(analyzedSource, analyzedSourceHref)}
-                {analyzedCaption && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: analyzedSource ? 0.75 : 1.5 }}
-                  >
-                    {analyzedCaption}
-                  </Typography>
-                )}
-              </Box>
-            )}
-
-            {isStageVisible("lines") && palmLineAnalysisImage && (
-              <Box sx={mediaPanelSx} ref={linesPanelRef}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Palm line analysis image
-                </Typography>
-                <ImageLightbox
-                  src={withBasePath(palmLineAnalysisImage)}
-                  alt={`${title} palm line analysis image`}
-                  title={`${title} — Palm Line Analysis`}
-                  caption={palmLineAnalysisCaption || palmLineAnalysisSource}
-                >
-                  <Image
-                    src={withBasePath(palmLineAnalysisImage)}
-                    alt={`${title} palm line analysis image`}
-                    width={1200}
-                    height={900}
-                    className="h-auto w-full rounded-[22px] bg-black/10 object-contain"
-                    style={{ aspectRatio: "4 / 3", marginInline: "auto" }}
-                    onLoad={() => setLinesMediaLoaded(true)}
-                    onError={() => setLinesMediaLoaded(true)}
-                  />
-                </ImageLightbox>
-                {renderSource(palmLineAnalysisSource, palmLineAnalysisSourceHref)}
-                {palmLineAnalysisCaption && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: palmLineAnalysisSource ? 0.75 : 1.5 }}
-                  >
-                    {palmLineAnalysisCaption}
-                  </Typography>
-                )}
-              </Box>
-            )}
-
-            {isStageVisible("reading") && (
-              <Box sx={mediaPanelSx} ref={readingPanelRef}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  {palmReadingTitle || "Palm reading text"}
-                </Typography>
-                <Box
-                  sx={{
-                    p: 2,
-                    borderRadius: "16px",
-                    border: "1px solid",
-                    borderColor: "var(--fabric-surface-border)",
-                    backgroundColor: (theme) => alpha(theme.palette.background.paper, 0.4),
+            {hasVisibleMedia && revealedItems.length > 0 ? (
+              <Box
+                sx={{
+                  ...panelChromeSx,
+                  p: 2.5,
+                  height: "100%",
+                  minHeight: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <MediaCycler
+                  spacing={0}
+                  singlePanel
+                  singlePanelActiveKey={activeMediaKey}
+                  transitionMs={260}
+                  showChevronNavigation
+                  showCompactInfoButton={false}
+                  navigationControlSx={mediaControlSx(theme)}
+                  expandControlSx={mediaControlSx(theme)}
+                  disableChevronPrevious={!hasPreviousMedia}
+                  disableChevronNext={!hasNextRevealedMedia && !canRevealNextFromCurrent}
+                  onChevronPrevious={handleChevronPrevious}
+                  onChevronNext={handleChevronNext}
+                  loopNavigation={showLoopNavigation}
+                  onLoopNavigation={() => navigateToStage("intro")}
+                  loopNavigationLabel="Restart palm reveal"
+                  stackSx={{
+                    height: "100%",
+                    minHeight: 0,
+                    display: "flex",
+                    overflow: "hidden",
                   }}
-                >
-                  {effectiveReadingContent ? (
-                    <MarkdownContent
-                      content={effectiveReadingContent}
-                      sx={{
-                        "& h1, & h2, & h3, & h4, & h5, & h6": {
-                          mt: 1.5,
-                          mb: 0.75,
-                          fontWeight: 700,
-                          lineHeight: 1.25,
-                          color: "text.primary",
-                        },
-                        "& h1": { fontSize: "1.22rem" },
-                        "& h2": { fontSize: "1.1rem" },
-                        "& h3": { fontSize: "1rem" },
-                        "& p": {
-                          mb: 1.2,
-                          lineHeight: 1.7,
-                        },
-                        "& ul, & ol": {
-                          mb: 1.2,
-                        },
-                      }}
-                    />
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      {isMarkdownLoading
-                        ? "Loading reading..."
-                        : hasMarkdownLoadError
-                          ? "Reading text is unavailable."
-                          : "No reading text provided."}
-                    </Typography>
-                  )}
-                </Box>
-                {renderSource(palmReadingSource, palmReadingSourceHref)}
+                  items={revealedItems}
+                />
               </Box>
-            )}
-          </Stack>
+            ) : null}
+          </Box>
         </Stack>
       </Stack>
     </AIShenaniganPanel>

@@ -14,7 +14,7 @@ import {
 import { ArrowBack, AutoStories, SaveOutlined } from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material/styles";
 import { OpenAIKeyInterstitialContent } from "@/components/shared";
-import { useOpenAIAppShell } from "@/hooks/app/useOpenAIAppShell";
+import { useOpenAIKeyGateAppShell } from "@/hooks/app/useOpenAIAppShell";
 import { useResumeData } from "@/providers/ResumeDataProvider";
 import { withBasePath } from "@/utils/basePath";
 import { getPortfolioAppRouteContract } from "@/utils/portfolio/routeContracts";
@@ -31,6 +31,7 @@ import { usePathForgerNextChapterLedgerPlayback } from "@/app/pathforger/_hooks/
 import { usePathForgerPageUiState } from "@/app/pathforger/_hooks/usePathForgerPageUiState";
 import { usePathForgerPersistence } from "@/app/pathforger/_hooks/usePathForgerPersistence";
 import { usePathForgerPitchChapterActions } from "@/app/pathforger/_hooks/usePathForgerPitchChapterActions";
+import { usePathForgerViewFlowController } from "@/app/pathforger/_hooks/usePathForgerViewFlowController";
 import { useStatusMessageQueue } from "@/app/pathforger/_hooks/useStatusMessageQueue";
 import { appTheme, kenBurnsImageSx } from "@/app/pathforger/_theme/theme";
 import type { BranchRevealState, BranchRevealTickState } from "@/app/pathforger/_types/persistence";
@@ -58,7 +59,6 @@ import {
 import {
   getPathForgerOpenAIKey,
   getPathForgerOpenAIKeyForInterstitial,
-  setPathForgerOpenAIKey,
 } from "@/app/pathforger/_utils/openAIKey";
 import {
   runPathForgerOutcomeImageStage,
@@ -75,16 +75,7 @@ export default function PathForgerPageClient() {
   const { portfolioApps } = useResumeData();
   const pathforgerRoute = getPortfolioAppRouteContract(portfolioApps, "pathforger");
   const [ready, setReady] = React.useState(false);
-  const [apiKeyReady, setApiKeyReady] = React.useState(false);
-  const [draftKey, setDraftKey] = React.useState("");
-  const [keyError, setKeyError] = React.useState("");
   const keyInputRef = React.useRef<HTMLInputElement | null>(null);
-  const appShell = useOpenAIAppShell({
-    documentTitle: pathforgerRoute.documentTitle,
-    isReady: ready,
-    hasOpenAIKey: apiKeyReady,
-    keyInputRef,
-  });
   const {
     genre,
     setGenre,
@@ -163,31 +154,50 @@ export default function PathForgerPageClient() {
     setImagePromptEditorValue,
     createStoryInputSignature,
   } = usePathForgerFormState();
+  const keyGate = useOpenAIKeyGateAppShell({
+    documentTitle: pathforgerRoute.documentTitle,
+    appId: "pathforger",
+    isReady: ready,
+    keyInputRef,
+    autoHydrate: false,
+    readStoredKey: getPathForgerOpenAIKeyForInterstitial,
+    onValidKeySubmit: () => {
+      setLoadedModelOptions(false);
+      setModelOptions(defaultModelOptions);
+    },
+  });
+  const apiKeyReady = keyGate.hasOpenAIKey;
+  const setApiKeyReady = keyGate.setHasOpenAIKey;
+  const draftKey = keyGate.draftKey;
+  const setDraftKey = keyGate.setDraftKey;
+  const keyError = keyGate.keyError;
+  const setKeyError = keyGate.setKeyError;
+  const hydrateStoredKey = keyGate.hydrateStoredKey;
   const {
     pitchModalOpen,
-    setPitchModalOpen,
+    setPitchModalOpen: setPitchModalOpenRaw,
     controlsModalOpen,
-    setControlsModalOpen,
+    setControlsModalOpen: setControlsModalOpenRaw,
     settingsModalOpen,
-    setSettingsModalOpen,
+    setSettingsModalOpen: setSettingsModalOpenRaw,
     renderImageCallsModalOpen,
-    setRenderImageCallsModalOpen,
+    setRenderImageCallsModalOpen: setRenderImageCallsModalOpenRaw,
     chapterModalOpen,
-    setChapterModalOpen,
+    setChapterModalOpen: setChapterModalOpenRaw,
     continueModalOpen,
-    setContinueModalOpen,
+    setContinueModalOpen: setContinueModalOpenRaw,
     chapterOutcomeModalOpen,
-    setChapterOutcomeModalOpen,
+    setChapterOutcomeModalOpen: setChapterOutcomeModalOpenRaw,
     createStoryPanelOpen,
-    setCreateStoryPanelOpen,
+    setCreateStoryPanelOpen: setCreateStoryPanelOpenRaw,
     hasCreateStoryFormBeenShown,
     setHasCreateStoryFormBeenShown,
     pathLedgerModalOpen,
-    setPathLedgerModalOpen,
+    setPathLedgerModalOpen: setPathLedgerModalOpenRaw,
     journeyTabValue,
-    setJourneyTabValue,
+    setJourneyTabValue: setJourneyTabValueRaw,
     persistenceDialogOpen,
-    setPersistenceDialogOpen,
+    setPersistenceDialogOpen: setPersistenceDialogOpenRaw,
     chapterModalReachedEnd,
     setChapterModalReachedEnd,
     isRunning,
@@ -215,6 +225,35 @@ export default function PathForgerPageClient() {
     pipelineRunDiagnostics,
     pushPipelineRunDiagnostics,
   } = usePathForgerPageUiState();
+  const viewFlow = usePathForgerViewFlowController({
+    createStoryPanelOpen,
+    chapterModalOpen,
+    continueModalOpen,
+    chapterOutcomeModalOpen,
+    pathLedgerModalOpen,
+    setCreateStoryPanelOpen: setCreateStoryPanelOpenRaw,
+    setChapterModalOpen: setChapterModalOpenRaw,
+    setContinueModalOpen: setContinueModalOpenRaw,
+    setChapterOutcomeModalOpen: setChapterOutcomeModalOpenRaw,
+    setPathLedgerModalOpen: setPathLedgerModalOpenRaw,
+  });
+  const setCreateStoryPanelOpen = viewFlow.setCreateStoryPanelOpen;
+  const setChapterModalOpen = viewFlow.setChapterModalOpen;
+  const setContinueModalOpen = viewFlow.setContinueModalOpen;
+  const setChapterOutcomeModalOpen = viewFlow.setChapterOutcomeModalOpen;
+  const setPathLedgerModalOpen = viewFlow.setPathLedgerModalOpen;
+  const setPitchModalOpen = setPitchModalOpenRaw;
+  const setControlsModalOpen = setControlsModalOpenRaw;
+  const setSettingsModalOpen = setSettingsModalOpenRaw;
+  const setRenderImageCallsModalOpen = setRenderImageCallsModalOpenRaw;
+  const setJourneyTabValue = setJourneyTabValueRaw;
+  const setPersistenceDialogOpen = setPersistenceDialogOpenRaw;
+  const openHydratedChapterFlow = viewFlow.openHydratedChapterFlow;
+  const openCreateStoryFlow = viewFlow.openCreateStoryFlow;
+  const openContinueFlow = viewFlow.openContinueFlow;
+  const openOutcomeFlow = viewFlow.openOutcomeFlow;
+  const closePrimaryFlow = viewFlow.closePrimaryFlow;
+  const toggleChapterFlow = viewFlow.toggleChapterFlow;
 
   const chapterImageGenerationRunIdRef = React.useRef(0);
   const coverImageGenerationRunIdRef = React.useRef(0);
@@ -314,9 +353,8 @@ export default function PathForgerPageClient() {
     setJourneyTabValue,
   });
   const openChapterModal = React.useCallback(() => {
-    setCreateStoryPanelOpen(false);
-    setChapterModalOpen(true);
-  }, [setChapterModalOpen, setCreateStoryPanelOpen]);
+    openHydratedChapterFlow();
+  }, [openHydratedChapterFlow]);
   const {
     nextChapterLedgerPlayback,
     beginNextChapterLedgerPlayback,
@@ -496,14 +534,23 @@ export default function PathForgerPageClient() {
       return;
     }
 
-    setApiKeyReady(false);
     setKeyError(
       "OpenAI API key is missing or invalid. Please enter a valid key to continue PathForger.",
     );
-    setDraftKey(getPathForgerOpenAIKeyForInterstitial().trim());
+    const restoredKey = hydrateStoredKey();
+    setDraftKey(restoredKey);
+    setApiKeyReady(false);
     setLoadedModelOptions(false);
     setModelOptions(defaultModelOptions);
-  }, [errorMessage, setLoadedModelOptions, setModelOptions]);
+  }, [
+    errorMessage,
+    hydrateStoredKey,
+    setApiKeyReady,
+    setDraftKey,
+    setLoadedModelOptions,
+    setModelOptions,
+    setKeyError,
+  ]);
 
   React.useEffect(() => {
     if (!createStoryPanelOpen || chapterModalOpen || continueModalOpen || chapterOutcomeModalOpen) {
@@ -549,22 +596,6 @@ export default function PathForgerPageClient() {
     }
     void loadOpenAIModelOptions();
   }, [controlsModalOpen, loadOpenAIModelOptions, loadedModelOptions]);
-
-  const handleKeySubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const trimmed = draftKey.trim();
-
-    if (!trimmed) {
-      setKeyError("OpenAI API key is required.");
-      return;
-    }
-
-    setPathForgerOpenAIKey(trimmed);
-    setLoadedModelOptions(false);
-    setModelOptions(defaultModelOptions);
-    setApiKeyReady(true);
-    setKeyError("");
-  };
 
   const handleToggleImageType = (type: PathForgerImageType) => {
     setRenderImages(
@@ -718,10 +749,8 @@ export default function PathForgerPageClient() {
     setJourneyTabValue,
     setLastForgedLedgerTransition,
     setResult,
-    setCreateStoryPanelOpen,
-    setChapterModalOpen,
-    setContinueModalOpen,
-    setChapterOutcomeModalOpen,
+    openHydratedChapterFlow,
+    openCreateStoryFlow,
     setGenre,
     setTone,
     setDangerLevel,
@@ -1029,14 +1058,7 @@ export default function PathForgerPageClient() {
   ]);
 
   const handleToggleChapterModal = () => {
-    if (!visibleChapter) {
-      return;
-    }
-
-    if (!chapterModalOpen) {
-      setCreateStoryPanelOpen(false);
-    }
-    setChapterModalOpen((prev) => !prev);
+    toggleChapterFlow(Boolean(visibleChapter));
   };
 
   const handleChapterModalBodyScroll = (event: React.UIEvent<HTMLDivElement, UIEvent>) => {
@@ -1051,11 +1073,7 @@ export default function PathForgerPageClient() {
     if (!visibleChapter || !chapterModalReachedEnd) {
       return;
     }
-
-    setCreateStoryPanelOpen(false);
-    setChapterModalOpen(false);
-    setChapterOutcomeModalOpen(false);
-    setContinueModalOpen(true);
+    openContinueFlow();
   };
 
   const scrollContinueOptionPanelIntoView = React.useCallback((branch: PathForgerBranchChoice) => {
@@ -1256,8 +1274,7 @@ export default function PathForgerPageClient() {
       });
 
       playUiSound(forgeSuccessAudioRef);
-      setContinueModalOpen(false);
-      setChapterOutcomeModalOpen(true);
+      openOutcomeFlow();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Forge my path failed.");
     } finally {
@@ -1268,9 +1285,7 @@ export default function PathForgerPageClient() {
   };
 
   const handleGenerateNextChapterWithJourneyPlayback = React.useCallback(() => {
-    setChapterModalOpen(false);
-    setContinueModalOpen(false);
-    setChapterOutcomeModalOpen(false);
+    closePrimaryFlow();
 
     const armed = beginNextChapterLedgerPlayback();
     if (!armed) {
@@ -1278,13 +1293,7 @@ export default function PathForgerPageClient() {
     }
 
     void handleGenerateNextChapter();
-  }, [
-    beginNextChapterLedgerPlayback,
-    handleGenerateNextChapter,
-    setChapterModalOpen,
-    setChapterOutcomeModalOpen,
-    setContinueModalOpen,
-  ]);
+  }, [beginNextChapterLedgerPlayback, handleGenerateNextChapter, closePrimaryFlow]);
 
   const hasVisibleForgedOutcome =
     Boolean(activeOptionBranch) && Boolean(forgedOutcomes[activeOptionBranch || "A"]?.trim());
@@ -1295,11 +1304,11 @@ export default function PathForgerPageClient() {
   const createStoryPanelHidden =
     (hideCreateStoryPanel && !showCreateStoryPanelForPlayback) || !showCreateStoryPanel;
 
-  if (appShell.isBooting) {
+  if (keyGate.isBooting) {
     return null;
   }
 
-  if (appShell.isOpenAIKeyGateVisible) {
+  if (keyGate.isOpenAIKeyGateVisible) {
     return (
       <ThemeProvider theme={appTheme}>
         <CssBaseline enableColorScheme />
@@ -1309,7 +1318,7 @@ export default function PathForgerPageClient() {
           logoSrc={withBasePath(pathforgerRoute.interstitialLogoSrc)}
           value={draftKey}
           onChange={setDraftKey}
-          onSubmit={handleKeySubmit}
+          onSubmit={keyGate.handleKeySubmit}
           inputRef={keyInputRef}
           buttonLabel="Enter PathForger"
           textFieldName="pathforgerApiKey"

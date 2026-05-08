@@ -22,9 +22,8 @@ import "@fontsource/roboto/700.css";
 import "@fontsource/gloria-hallelujah/400.css";
 
 import "./page.css"; // Ensure global styles are applied
-import { hasOpenAIKey, setOpenAIKey } from "@/app/bookworm/_utils/utils";
 import { useColorModePreference } from "@/hooks/useColorModePreference";
-import { useOpenAIAppShell } from "@/hooks/app/useOpenAIAppShell";
+import { useOpenAIKeyGateAppShell } from "@/hooks/app/useOpenAIAppShell";
 import { OpenAIKeyInterstitialContent } from "@/components/shared";
 import { GLOBAL_COLOR_MODE_STORAGE_KEY } from "@/consts/colorMode";
 import { useResumeData } from "@/providers/ResumeDataProvider";
@@ -38,41 +37,29 @@ export default function BookwormPage() {
     storageKey: GLOBAL_COLOR_MODE_STORAGE_KEY,
   });
   const defaultTheme = React.useMemo(() => createTheme(getBookwormLandingTheme(mode)), [mode]);
-  const [apiKeyReady, setApiKeyReady] = React.useState(hasOpenAIKey());
-  const [draftKey, setDraftKey] = React.useState("");
   const keyInputRef = React.useRef<HTMLInputElement | null>(null);
-  const appShell = useOpenAIAppShell({
+  const keyGate = useOpenAIKeyGateAppShell({
     documentTitle: bookwormRoute.documentTitle,
+    appId: "bookworm",
     isReady,
-    hasOpenAIKey: apiKeyReady,
     keyInputRef,
   });
 
-  if (appShell.isBooting) {
+  if (keyGate.isBooting) {
     return null;
   }
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const key = draftKey.trim();
-    if (key) {
-      setOpenAIKey(key);
-      setApiKeyReady(true);
-      setDraftKey(key);
-    }
-  };
-
-  if (appShell.isOpenAIKeyGateVisible) {
+  if (keyGate.isOpenAIKeyGateVisible) {
     return (
       <ThemeProvider theme={defaultTheme}>
         <CssBaseline enableColorScheme />
         <OpenAIKeyInterstitialContent
           appName={bookwormRoute.interstitialAppName}
           logoAlt={bookwormRoute.interstitialLogoAlt}
-          value={draftKey}
-          onChange={setDraftKey}
-          onSubmit={handleSubmit}
+          value={keyGate.draftKey}
+          onChange={keyGate.setDraftKey}
+          onSubmit={keyGate.handleKeySubmit}
           inputRef={keyInputRef}
+          errorText={keyGate.keyError || undefined}
         />
       </ThemeProvider>
     );

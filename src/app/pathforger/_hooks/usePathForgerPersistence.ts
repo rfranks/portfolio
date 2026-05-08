@@ -120,10 +120,8 @@ export function usePathForgerPersistence(
     setJourneyTabValue,
     setLastForgedLedgerTransition,
     setResult,
-    setCreateStoryPanelOpen,
-    setChapterModalOpen,
-    setContinueModalOpen,
-    setChapterOutcomeModalOpen,
+    openHydratedChapterFlow,
+    openCreateStoryFlow,
     setGenre,
     setTone,
     setDangerLevel,
@@ -455,10 +453,7 @@ export function usePathForgerPersistence(
               }
 
               if (hasValidChapterResult) {
-                setCreateStoryPanelOpen(false);
-                setChapterModalOpen(true);
-                setContinueModalOpen(false);
-                setChapterOutcomeModalOpen(false);
+                openHydratedChapterFlow();
               }
             }
           }
@@ -468,7 +463,7 @@ export function usePathForgerPersistence(
       }
 
       if (shouldAutoShowCreateStoryPanel) {
-        setCreateStoryPanelOpen(true);
+        openCreateStoryFlow();
       }
 
       didHydratePersistedStateRef.current = true;
@@ -488,10 +483,7 @@ export function usePathForgerPersistence(
     setAgeRating,
     setPersonalizedImages,
     setAllowPermanentDeath,
-    setChapterModalOpen,
     setChapterOnlyResult,
-    setContinueModalOpen,
-    setCreateStoryPanelOpen,
     setDangerLevel,
     setDefaultModel,
     setGenre,
@@ -518,7 +510,8 @@ export function usePathForgerPersistence(
     setVisualStyle,
     setForgedOutcomes,
     setProtagonistPreference,
-    setChapterOutcomeModalOpen,
+    openCreateStoryFlow,
+    openHydratedChapterFlow,
     setReady,
     setApiKeyReady,
     setDraftKey,
