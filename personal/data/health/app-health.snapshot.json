@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-08T16:14:45.106Z",
+  "generatedAt": "2026-07-11T10:55:51.030Z",
   "overallStatus": "warn",
   "checks": {
     "fileBudgets": "pass",
@@ -10,12 +10,12 @@
     "fileBudgets": {
       "key": "fileBudgets",
       "status": "pass",
-      "generatedAt": "2026-07-08T16:13:34.262Z",
+      "generatedAt": "2026-07-11T10:54:45.499Z",
       "summary": "File budget check passed.",
       "details": {
         "totals": {
-          "scannedFileCount": 745,
-          "codeFileCount": 716,
+          "scannedFileCount": 746,
+          "codeFileCount": 717,
           "violationCount": 0,
           "missingExactBudgetViolationCount": 0,
           "exactBudgetUnderuseViolationCount": 0,
@@ -53,7 +53,7 @@
     "schemaValidation": {
       "key": "schemaValidation",
       "status": "warn",
-      "generatedAt": "2026-07-08T16:13:35.116Z",
+      "generatedAt": "2026-07-11T10:54:46.329Z",
       "summary": "resumeData validation passed with 4 warning(s).",
       "details": {
         "strictAssets": true,
@@ -129,10 +129,10 @@
           "recognitionSnippetCount": 4,
           "recognitionRecommendationCount": 17,
           "recognitionGithubAchievementCount": 4,
-          "aiShenaniganCount": 32,
+          "aiShenaniganCount": 34,
           "hobbyCount": 6,
-          "assetReferenceCount": 178,
-          "uniqueAssetReferenceCount": 150,
+          "assetReferenceCount": 184,
+          "uniqueAssetReferenceCount": 156,
           "missingAssetCount": 0,
           "missingOptionalEnrichmentsCount": 0,
           "missingOptionalEnrichments": [],
@@ -148,7 +148,7 @@
     "testRunner": {
       "key": "testRunner",
       "status": "pass",
-      "generatedAt": "2026-07-08T16:14:45.106Z",
+      "generatedAt": "2026-07-11T10:55:51.030Z",
       "summary": "unit test runner passed for lane portfolio.",
       "details": {
         "suite": "unit",
