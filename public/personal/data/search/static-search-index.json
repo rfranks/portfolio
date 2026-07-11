@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-04-24T13:34:01.007Z",
-  "actionCount": 206,
+  "generatedAt": "2026-07-11T10:22:05.690Z",
+  "actionCount": 218,
   "actions": [
     {
       "id": "search-app-route--ai-shenanigans",
@@ -9,7 +9,7 @@
       "previewTitle": "AI Shenanigans • App Route",
       "previewBody": "Open AI Shenanigans and jump directly into its app surface.",
       "previewMeta": "/ai-shenanigans",
-      "group": "Apps • Portfolio",
+      "group": "Apps • AI",
       "href": "/ai-shenanigans",
       "keywords": [
         "app",
@@ -18,9 +18,11 @@
         "AI Shenanigans",
         "/ai-shenanigans",
         "launchable-app",
-        "resume-data.navigation",
+        "drawer-visible",
+        "resume-data.portfolioApps",
         "app-local-state",
-        "app-local-assets"
+        "app-local-assets",
+        "resume-data.navigation.drawerItems"
       ]
     },
     {
@@ -39,9 +41,38 @@
         "Blackjack",
         "/blackjack",
         "launchable-app",
-        "resume-data.navigation",
+        "drawer-visible",
+        "core-component-blackjack",
+        "core-target-blackjack",
+        "resume-data.portfolioApps",
         "app-local-state",
-        "app-local-assets"
+        "app-local-assets",
+        "resume-data.navigation.drawerItems"
+      ]
+    },
+    {
+      "id": "search-app-route--blasteroids",
+      "label": "App Route: Blasteroids",
+      "subtitle": "/blasteroids",
+      "previewTitle": "Blasteroids • App Route",
+      "previewBody": "Open Blasteroids and jump directly into its app surface.",
+      "previewMeta": "/blasteroids",
+      "group": "Apps • Arcade",
+      "href": "/blasteroids",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "Blasteroids",
+        "/blasteroids",
+        "launchable-app",
+        "drawer-visible",
+        "core-component-arcadeiframe",
+        "core-target-blasteroids",
+        "resume-data.portfolioApps",
+        "app-local-state",
+        "app-local-assets",
+        "resume-data.navigation.drawerItems"
       ]
     },
     {
@@ -60,7 +91,31 @@
         "Bookworm",
         "/bookworm",
         "launchable-app",
-        "resume-data.navigation",
+        "drawer-visible",
+        "resume-data.portfolioApps",
+        "app-local-state",
+        "app-local-assets",
+        "resume-data.navigation.drawerItems"
+      ]
+    },
+    {
+      "id": "search-app-route--capabilities",
+      "label": "App Route: Capabilities",
+      "subtitle": "/capabilities",
+      "previewTitle": "Capabilities • App Route",
+      "previewBody": "Open Capabilities and jump directly into its app surface.",
+      "previewMeta": "/capabilities",
+      "group": "Apps • Portfolio",
+      "href": "/capabilities",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "Capabilities",
+        "/capabilities",
+        "launchable-app",
+        "drawer-hidden",
+        "resume-data.portfolioApps",
         "app-local-state",
         "app-local-assets"
       ]
@@ -81,7 +136,31 @@
         "GeneBoard",
         "/dna",
         "launchable-app",
-        "resume-data.navigation",
+        "drawer-visible",
+        "resume-data.portfolioApps",
+        "app-local-state",
+        "app-local-assets",
+        "resume-data.navigation.drawerItems"
+      ]
+    },
+    {
+      "id": "search-app-route--health",
+      "label": "App Route: Health",
+      "subtitle": "/health",
+      "previewTitle": "Health • App Route",
+      "previewBody": "Open Health and jump directly into its app surface.",
+      "previewMeta": "/health",
+      "group": "Apps • Portfolio",
+      "href": "/health",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "Health",
+        "/health",
+        "launchable-app",
+        "drawer-hidden",
+        "resume-data.portfolioApps",
         "app-local-state",
         "app-local-assets"
       ]
@@ -102,7 +181,53 @@
         "PathForger",
         "/pathforger",
         "launchable-app",
-        "resume-data.navigation",
+        "drawer-visible",
+        "resume-data.portfolioApps",
+        "app-local-state",
+        "app-local-assets",
+        "resume-data.navigation.drawerItems"
+      ]
+    },
+    {
+      "id": "search-app-route--petly",
+      "label": "App Route: Petly",
+      "subtitle": "/petly",
+      "previewTitle": "Petly • App Route",
+      "previewBody": "Open Petly and jump directly into its app surface.",
+      "previewMeta": "/petly",
+      "group": "Apps • Portfolio",
+      "href": "/petly",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "Petly",
+        "/petly",
+        "launchable-app",
+        "drawer-hidden",
+        "resume-data.portfolioApps",
+        "app-local-state",
+        "app-local-assets"
+      ]
+    },
+    {
+      "id": "search-app-route--replay",
+      "label": "App Route: Replay",
+      "subtitle": "/replay",
+      "previewTitle": "Replay • App Route",
+      "previewBody": "Open Replay and jump directly into its app surface.",
+      "previewMeta": "/replay",
+      "group": "Apps • Portfolio",
+      "href": "/replay",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "Replay",
+        "/replay",
+        "launchable-app",
+        "drawer-hidden",
+        "resume-data.portfolioApps",
         "app-local-state",
         "app-local-assets"
       ]
@@ -123,9 +248,11 @@
         "Rickbert Studio",
         "/rickbert-studio",
         "launchable-app",
-        "resume-data.navigation",
+        "drawer-visible",
+        "resume-data.portfolioApps",
         "app-local-state",
-        "app-local-assets"
+        "app-local-assets",
+        "resume-data.navigation.drawerItems"
       ]
     },
     {
@@ -144,9 +271,11 @@
         "TalentForge",
         "/talentforge",
         "launchable-app",
-        "resume-data.navigation",
+        "drawer-visible",
+        "resume-data.portfolioApps",
         "app-local-state",
-        "app-local-assets"
+        "app-local-assets",
+        "resume-data.navigation.drawerItems"
       ]
     },
     {
@@ -165,7 +294,35 @@
         "Warbirds",
         "/warbirds",
         "launchable-app",
-        "resume-data.navigation",
+        "drawer-visible",
+        "core-component-arcadecanvas",
+        "core-target-warbirds",
+        "resume-data.portfolioApps",
+        "app-local-state",
+        "app-local-assets",
+        "resume-data.navigation.drawerItems"
+      ]
+    },
+    {
+      "id": "search-app-route--zombiefish",
+      "label": "App Route: Zombiefish",
+      "subtitle": "/zombiefish",
+      "previewTitle": "Zombiefish • App Route",
+      "previewBody": "Open Zombiefish and jump directly into its app surface.",
+      "previewMeta": "/zombiefish",
+      "group": "Apps • Arcade",
+      "href": "/zombiefish",
+      "keywords": [
+        "app",
+        "route",
+        "open",
+        "Zombiefish",
+        "/zombiefish",
+        "launchable-app",
+        "drawer-hidden",
+        "core-component-arcadecanvas",
+        "core-target-zombiefish",
+        "resume-data.portfolioApps",
         "app-local-state",
         "app-local-assets"
       ]
@@ -422,9 +579,8 @@
       "keywords": [
         "project",
         "AI Patient List Podcasts",
-        "AI Patient List Podcasts",
+        "Concise clinical audio updates",
         "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
-        "",
         "presentation",
         "/patientlistpodcasts"
       ]
@@ -441,9 +597,8 @@
       "keywords": [
         "project",
         "AI Shenanigans",
-        "AI Shenanigans",
+        "Mixed-media lab for stylization, motion, and creative AI workflows.",
         "AI Shenanigans is a mixed-media experimentation platform for turning source concepts into stylized image, narrative, and adaptation workflows. Instead of isolated prompt experiments, it treats creation as a pipeline: capture source intent, iterate visual direction, test motion or adaptation branches, and compare outputs in a structured interface. The project emphasizes orchestration and repeatability so creative exploration can be revisited, audited, and extended into product-ready artifacts. It showcases how playful AI work still benefits from contracts, staged processing, and coherent tooling architecture.",
-        "",
         "personal",
         "/ai-shenanigans"
       ]
@@ -460,9 +615,8 @@
       "keywords": [
         "project",
         "AI-Driven Clinical Copilot",
-        "AI-Driven Clinical Copilot",
-        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
         "Physician-facing RAG copilot for concise, citation-backed clinical summaries and Q&A.",
+        "AI Clinical Copilot is a physician-facing workflow built for real clinical pace. Instead of forcing providers to manually sift through fragmented chart history, it assembles patient context into concise, citation-backed answers that can be validated quickly at the point of care.\n\nThe frontend is delivered in Next.js/React with a strong emphasis on interaction speed, progressive disclosure, and context retention across follow-up questions. Behind that UI, Python and Azure Functions coordinate retrieval, prompt orchestration, and answer generation over structured and unstructured EHR artifacts.\n\nThe core pattern is retrieval-augmented generation (RAG) with explicit grounding: prompts are enriched with relevant chart evidence, response parts are returned with citations, and audit-oriented scoring/guardrail pathways can trigger retries when quality is below threshold. This keeps output useful in practice, not just plausible in a demo.\n\nFrom a systems perspective, the project combines low-latency UX, typed API contracts, and operational resilience in one loop. The result is a copilot that helps physicians spend less time scrolling and more time deciding, while maintaining the transparency needed for clinical trust.",
         "presentation",
         "/aisummary"
       ]
@@ -479,9 +633,8 @@
       "keywords": [
         "project",
         "Blackjack",
-        "Blackjack",
+        "Shared rules engine across terminal and WebAssembly clients.",
         "Blackjack is a production-style twenty-one implementation where a shared Go rules core powers web and terminal experiences through the same decision logic. The architecture uses a React UI, a postMessage contract boundary, and a Go WASM adapter so state transitions, dealer rules, side-bets, and payouts stay deterministic across clients. Render DTO assembly isolates presentation concerns from domain logic, while diagrammed component, sequence, and state views make behavior traceable for debugging and interviews. It is a practical example of contract-driven integration, state machine modeling, and cross-runtime consistency in a game domain.",
-        "",
         "personal",
         "/blackjack"
       ]
@@ -498,9 +651,8 @@
       "keywords": [
         "project",
         "Blasteroids",
-        "Blasteroids",
+        "Modernized Asteroids gameplay with precise browser controls.",
         "Blasteroids reinterprets classic Asteroids with a modernized browser architecture focused on deterministic controls and reliable collision behavior. The implementation couples responsive keyboard input, projectile and asteroid update loops, and score/life state transitions into a clear gameplay pipeline that feels crisp on desktop and mobile. Rather than relying on external engines, the project uses core web primitives to prove that disciplined state updates, timing, and feedback loops can deliver polished arcade play. It is a compact showcase of input orchestration, collision tuning, and UX pacing in pure web runtime code.",
-        "",
         "personal",
         "/blasteroids"
       ]
@@ -517,9 +669,8 @@
       "keywords": [
         "project",
         "Bookworm",
-        "Bookworm",
+        "AI-assisted PDF companion for chat and extraction workflows.",
         "Bookworm is an AI-assisted PDF companion focused on turning dense documents into navigable conversational workflows. It combines file ingestion, document parsing, and prompt orchestration so users can ask targeted questions while staying grounded in source context. The experience prioritizes fast retrieval loops, clear response framing, and predictable interaction patterns that reduce cognitive overhead for long-form reading. As a product pattern, it demonstrates how LLM features are more useful when ingestion pipeline reliability, context management, and UI feedback are designed together.",
-        "",
         "personal",
         "/bookworm"
       ]
@@ -536,9 +687,8 @@
       "keywords": [
         "project",
         "GeneBoard",
-        "GeneBoard",
+        "Interactive DNA analysis and sequence exploration workspace.",
         "GeneBoard is an interactive DNA analysis workspace designed to make sequence exploration fast, visual, and approachable. The app combines sequence ingestion, composition statistics, and visualization-oriented analysis into a single client workflow, with charts and comparative views that surface structure and pattern changes quickly. Its architecture emphasizes a clear data pipeline and schema-aware transformations so users can move from raw sequence text to actionable interpretation without context switching. The project demonstrates how scientific interfaces benefit from strong interaction design, incremental rendering, and transparent analysis contracts.",
-        "",
         "personal",
         "/dna"
       ]
@@ -555,9 +705,8 @@
       "keywords": [
         "project",
         "PathForger",
-        "PathForger",
+        "Branching story engine with staged AI orchestration.",
         "PathForger is an interactive storytelling system built around a staged orchestration pipeline instead of one-shot prompting. It begins with structured A/B/C pitch generation, then advances through chapter drafting, branching choice construction, Risk HUD synthesis, and parallel image generation so text and visuals can complete independently. The design emphasizes schema-first prompt contracts, deterministic stage boundaries, and checkpoint-friendly state so retries and cancellation do not corrupt narrative continuity. In practice, it demonstrates how LLM features become more reliable when pipeline orchestration, guardrails, and UI progress telemetry are treated as first-class product concerns.",
-        "",
         "personal",
         "/pathforger"
       ]
@@ -574,9 +723,8 @@
       "keywords": [
         "project",
         "Patient Assignment List Project",
-        "Patient Assignment List Project",
+        "Operational assignment control for clinical teams",
         "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
-        "",
         "presentation",
         "/assignmentlist"
       ]
@@ -593,9 +741,8 @@
       "keywords": [
         "project",
         "Patient List Project",
-        "Patient List Project",
+        "Configurable visit intelligence at point of care",
         "Patient List is a physician-facing workflow designed for high-volume clinical rounding, where speed and precision matter more than ornamental UI. Instead of forcing providers to scan scattered views, it consolidates visit context into a configurable list surface with reliable filtering, sorting, and pagination tuned for real-world throughput. The frontend uses Backbone.js and Handlebars with a router-driven state model that keeps list criteria, paging, and sort behavior stable as clinicians move through workflows. Shared pk-common-ui components provide consistent controls for search, filters, and table interactions so the experience remains predictable even as requirements evolve. On the backend, Spring Web MVC and Spring Boot expose versioned REST endpoints backed by a facade-oriented service layer. That separation lets DTO contracts stay stable while domain and DAO logic can evolve independently, reducing churn in the UI and enabling incremental backend improvements without breaking physician workflows. The system is engineered for operational reliability as much as usability: server-side query optimization, robust pagination semantics, authorization checks at service boundaries, and observability telemetry around route/filter activity and query latency. The result is a patient-list application that helps clinicians find the right patients and act faster, while preserving trust in both data quality and response behavior.",
-        "",
         "presentation",
         "/patientlist"
       ]
@@ -612,9 +759,8 @@
       "keywords": [
         "project",
         "Petly",
-        "Petly",
+        "Pet-owner portal blending social UX with veterinary record access.",
         "Petly is a pet-owner portal experience that combines consumer-friendly engagement with clinically important veterinary records, including vaccinations, imaging, visit notes, and billing history. The product focus is continuity: owners should be able to move from everyday pet interactions to high-signal medical context without hunting through fragmented screens. Within a Liferay-based environment, the work emphasized UI modernization, clearer information hierarchy, and stronger API contract alignment between portal surfaces and underlying data integrations. It demonstrates how healthcare-adjacent products can improve trust and usability by pairing approachable design language with reliable record visibility, operational telemetry, and workflow clarity.",
-        "",
         "work",
         "/petly"
       ]
@@ -631,9 +777,8 @@
       "keywords": [
         "project",
         "Rickbert Studio",
-        "Rickbert Studio",
+        "Comic-production workflow with parser-safe panel rendering.",
         "Rickbert Studio is a comic-production workspace that converts narrative input into consistent multi-panel outputs through a typed rendering pipeline. The flow separates parsing, validation, and rendering: script input is normalized, preflight rules validate reading order and panel constraints, and React-Konva composition produces export-ready artwork. Instead of ad hoc generation, the app uses explicit contracts between parser, layout engine, and renderer so revisions are predictable and reusable. This project highlights orchestration discipline for creative tooling where repeatability, visual consistency, and fast iteration matter as much as raw generation quality.",
-        "",
         "personal",
         "/rickbert-studio"
       ]
@@ -650,9 +795,8 @@
       "keywords": [
         "project",
         "TalentForge",
-        "TalentForge",
+        "AI-assisted career strategy workspace for job and offer planning.",
         "TalentForge is an AI-assisted career operations platform that centralizes application tracking, offer analysis, and negotiation preparation in one workflow. The system integrates structured data views with prompt-driven assistance so resume iteration, outreach, and decision support share the same operational context instead of fragmented tools. Its architecture emphasizes reusable contracts, a staged orchestration pipeline, and persistence boundaries between panel state and assistant interactions, enabling consistent behavior across high-variance user journeys. The result is a practical model where workflow clarity, decision quality, and execution speed improve together while telemetry and auditability remain intact.",
-        "",
         "personal",
         "/talentforge"
       ]
@@ -669,9 +813,8 @@
       "keywords": [
         "project",
         "Warbirds",
-        "Warbirds",
+        "Canvas dogfight arcade with layered enemy behavior.",
         "Warbirds is a browser arcade dogfight engineered around a reusable 2D game loop with shared collision and spawn primitives. The gameplay layer combines responsive input handling, projectile and collision updates, dynamic spawn pacing, and power-up state transitions to keep rounds readable under high action density. Asset loading, fallback behavior, and audio feedback are coordinated as part of the runtime loop so the experience remains stable across device classes. Beyond arcade feel, the project demonstrates state machine thinking, deterministic frame updates, and practical performance tuning for real-time canvas gameplay.",
-        "",
         "personal",
         "/warbirds"
       ]
@@ -2827,6 +2970,25 @@
       ]
     },
     {
+      "id": "search-technology-petly-java",
+      "label": "Technology: Java",
+      "subtitle": "Petly",
+      "previewTitle": "Java • Petly",
+      "previewBody": "Used in Petly.",
+      "previewMeta": "/petly",
+      "group": "Technologies",
+      "href": "/petly",
+      "keywords": [
+        "technology",
+        "tech",
+        "Java",
+        "Petly",
+        "Petly is a pet-owner portal experience that combines consumer-friendly engagement with clinically important veterinary records, including vaccinations, imaging, visit notes, and billing history. The product focus is continuity: owners should be able to move from everyday pet interactions to high-signal medical context without hunting through fragmented screens. Within a Liferay-based environment, the work emphasized UI modernization, clearer information hierarchy, and stronger API contract alignment between portal surfaces and underlying data integrations. It demonstrates how healthcare-adjacent products can improve trust and usability by pairing approachable design language with reliable record visibility, operational telemetry, and workflow clarity.",
+        "work",
+        "/petly"
+      ]
+    },
+    {
       "id": "search-technology-patient-list-project-java-maven",
       "label": "Technology: Java / Maven",
       "subtitle": "Patient List Project",
@@ -2862,6 +3024,25 @@
         "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-petly-javascript",
+      "label": "Technology: JavaScript",
+      "subtitle": "Petly",
+      "previewTitle": "JavaScript • Petly",
+      "previewBody": "Used in Petly.",
+      "previewMeta": "/petly",
+      "group": "Technologies",
+      "href": "/petly",
+      "keywords": [
+        "technology",
+        "tech",
+        "JavaScript",
+        "Petly",
+        "Petly is a pet-owner portal experience that combines consumer-friendly engagement with clinically important veterinary records, including vaccinations, imaging, visit notes, and billing history. The product focus is continuity: owners should be able to move from everyday pet interactions to high-signal medical context without hunting through fragmented screens. Within a Liferay-based environment, the work emphasized UI modernization, clearer information hierarchy, and stronger API contract alignment between portal surfaces and underlying data integrations. It demonstrates how healthcare-adjacent products can improve trust and usability by pairing approachable design language with reliable record visibility, operational telemetry, and workflow clarity.",
+        "work",
+        "/petly"
       ]
     },
     {
@@ -2938,6 +3119,25 @@
         "AI Patient List Podcasts is a clinician-facing workflow that turns the last 12 hours of patient activity into concise, playable audio briefings. Instead of requiring physicians to scan multiple dashboard views and chart fragments before rounds, the experience packages high-signal events into per-patient podcast items that can be consumed quickly while context-switching between tasks.\n\nThe frontend is a Next.js/React application that starts a PromptJob from a physician prompt and then incrementally renders progress as outputs become available. Under the hood, a Flask-based LangChain orchestration layer coordinates tool calls that fetch time-bounded events, draft scripts, synthesize speech, and persist artifacts. Azure Functions provide the typed API boundary for jobs and podcast items, Cosmos DB stores operational and content state, and Azure Blob Storage serves generated audio via secure URLs.\n\nThe design emphasizes production reliability as much as generation quality: idempotent job creation, per-patient retries, partial completion visibility, and traceable request IDs across stages. The UI polls job and item endpoints to surface progress without blocking the entire workflow, so one slow patient script does not stall the rest of the list. This makes the system resilient to noisy clinical data, variable generation latency, and transient downstream failures.\n\nFrom a product perspective, the goal is not novelty for novelty’s sake; it is decision support in a format that matches real clinical pacing. By combining summarization, event filtering, and text-to-speech in a bounded time window, the project explores how AI can reduce cognitive load while preserving relevance, timeliness, and operational transparency.",
         "presentation",
         "/patientlistpodcasts?project=patientlistpodcasts&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-petly-liferay-portal",
+      "label": "Technology: Liferay Portal",
+      "subtitle": "Petly",
+      "previewTitle": "Liferay Portal • Petly",
+      "previewBody": "Used in Petly.",
+      "previewMeta": "/petly",
+      "group": "Technologies",
+      "href": "/petly",
+      "keywords": [
+        "technology",
+        "tech",
+        "Liferay Portal",
+        "Petly",
+        "Petly is a pet-owner portal experience that combines consumer-friendly engagement with clinically important veterinary records, including vaccinations, imaging, visit notes, and billing history. The product focus is continuity: owners should be able to move from everyday pet interactions to high-signal medical context without hunting through fragmented screens. Within a Liferay-based environment, the work emphasized UI modernization, clearer information hierarchy, and stronger API contract alignment between portal surfaces and underlying data integrations. It demonstrates how healthcare-adjacent products can improve trust and usability by pairing approachable design language with reliable record visibility, operational telemetry, and workflow clarity.",
+        "work",
+        "/petly"
       ]
     },
     {
@@ -3226,6 +3426,44 @@
       ]
     },
     {
+      "id": "search-technology-petly-rest-apis",
+      "label": "Technology: REST APIs",
+      "subtitle": "Petly",
+      "previewTitle": "REST APIs • Petly",
+      "previewBody": "Used in Petly.",
+      "previewMeta": "/petly",
+      "group": "Technologies",
+      "href": "/petly",
+      "keywords": [
+        "technology",
+        "tech",
+        "REST APIs",
+        "Petly",
+        "Petly is a pet-owner portal experience that combines consumer-friendly engagement with clinically important veterinary records, including vaccinations, imaging, visit notes, and billing history. The product focus is continuity: owners should be able to move from everyday pet interactions to high-signal medical context without hunting through fragmented screens. Within a Liferay-based environment, the work emphasized UI modernization, clearer information hierarchy, and stronger API contract alignment between portal surfaces and underlying data integrations. It demonstrates how healthcare-adjacent products can improve trust and usability by pairing approachable design language with reliable record visibility, operational telemetry, and workflow clarity.",
+        "work",
+        "/petly"
+      ]
+    },
+    {
+      "id": "search-technology-petly-sass-css",
+      "label": "Technology: Sass/CSS",
+      "subtitle": "Petly",
+      "previewTitle": "Sass/CSS • Petly",
+      "previewBody": "Used in Petly.",
+      "previewMeta": "/petly",
+      "group": "Technologies",
+      "href": "/petly",
+      "keywords": [
+        "technology",
+        "tech",
+        "Sass/CSS",
+        "Petly",
+        "Petly is a pet-owner portal experience that combines consumer-friendly engagement with clinically important veterinary records, including vaccinations, imaging, visit notes, and billing history. The product focus is continuity: owners should be able to move from everyday pet interactions to high-signal medical context without hunting through fragmented screens. Within a Liferay-based environment, the work emphasized UI modernization, clearer information hierarchy, and stronger API contract alignment between portal surfaces and underlying data integrations. It demonstrates how healthcare-adjacent products can improve trust and usability by pairing approachable design language with reliable record visibility, operational telemetry, and workflow clarity.",
+        "work",
+        "/petly"
+      ]
+    },
+    {
       "id": "search-technology-patient-list-project-spring-boot",
       "label": "Technology: Spring Boot",
       "subtitle": "Patient List Project",
@@ -3261,6 +3499,25 @@
         "Patient Assignment List is a clinician operations workflow built for high-change environments where ownership, queue visibility, and handoff clarity must stay accurate in real time. Instead of static roster views, it gives teams a manageable assignment surface with drag-and-drop interaction, role-aware filtering, and time-based population criteria designed for shift-driven care. The frontend is implemented with Backbone.js and Handlebars, using AssignmentList and nested VisitList composition so users can move between assignment-level and patient-level context without losing state. Shared pk-common-ui controls keep filtering, paging, and bulk actions consistent while the interaction model remains fast under heavy use. On the backend, Spring MVC and Spring Boot expose versioned REST contracts over facade-driven service boundaries. That separation allows assignment and visit DTO contracts to remain stable while business rules, mappers, and DAO queries evolve behind the facade layer, reducing UI churn and making incremental backend changes safer. The implementation emphasizes reliability and predictability: debounced query flows, server-side pagination and filter semantics, authorization checks scoped to assignment context, and observability telemetry around assignee changes, filter behavior, and query latency. The result is a workflow that helps clinical teams rebalance patient ownership quickly while preserving trust in system state.",
         "presentation",
         "/assignmentlist?project=assignmentlist&slide=technologies"
+      ]
+    },
+    {
+      "id": "search-technology-petly-spring-mvc",
+      "label": "Technology: Spring MVC",
+      "subtitle": "Petly",
+      "previewTitle": "Spring MVC • Petly",
+      "previewBody": "Used in Petly.",
+      "previewMeta": "/petly",
+      "group": "Technologies",
+      "href": "/petly",
+      "keywords": [
+        "technology",
+        "tech",
+        "Spring MVC",
+        "Petly",
+        "Petly is a pet-owner portal experience that combines consumer-friendly engagement with clinically important veterinary records, including vaccinations, imaging, visit notes, and billing history. The product focus is continuity: owners should be able to move from everyday pet interactions to high-signal medical context without hunting through fragmented screens. Within a Liferay-based environment, the work emphasized UI modernization, clearer information hierarchy, and stronger API contract alignment between portal surfaces and underlying data integrations. It demonstrates how healthcare-adjacent products can improve trust and usability by pairing approachable design language with reliable record visibility, operational telemetry, and workflow clarity.",
+        "work",
+        "/petly"
       ]
     },
     {

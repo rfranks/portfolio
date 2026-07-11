@@ -692,6 +692,36 @@
         "blurb": "Sumner in Summer! takes a real jet-ski photo and turns it into a breezy, high-energy AI shenanigan built around sunshine, speed, and pure warm-weather fun. The whole piece leans into the thrill of the ride, transforming a great summer snapshot into a stylized action moment that feels like a vacation memory turned into its own little adventure."
       },
       {
+        "slug": "emerald-legion",
+        "title": "Emerald Legion",
+        "orientation": "landscape",
+        "blurb": "An ancient sorcerer commands a silent emerald legion beneath the shattered arches of a forgotten kingdom. Rather than chaos, the focus is on discipline, ceremony, and overwhelming supernatural presence as glowing arcane energy ripples through an army awaiting a single command.",
+        "shortText": "The legion awaits.",
+        "realisticImage": "/personal/images/ai-shenanigans/emerald-legion/realistic.jpeg",
+        "realisticSource": "Photo (professional headshot)",
+        "realisticCaption": "A dark fantasy portrait depicting an emerald-cloaked sorcerer wielding an ancient rune-covered staff while commanding an immense formation of glowing skeletal sentinels beneath moonlit gothic ruins.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/emerald-legion/stylized.png",
+        "stylizedSource": "ChatGPT DALL-E image generation",
+        "movieRendering": "/personal/images/ai-shenanigans/emerald-legion/movie.mov",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "A cinematic continuation beginning with an ancient emerald staff awakening with arcane energy before revealing the sorcerer and his assembled legion. Emerald light spreads across forgotten ruins as disciplined skeletal sentinels march in perfect unison beneath swirling mist, culminating in an epic wide shot of an army awaiting its master's command."
+      },
+      {
+        "slug": "gatecrasher",
+        "title": "Gatecrasher",
+        "orientation": "portrait",
+        "blurb": "Standing atop the battlements as thunder rolls overhead, a lone castle defender faces the instant the fortress is breached. Rather than retreat, he braces against the chaos with unwavering resolve, capturing a cinematic moment where courage is measured not by victory, but by refusing to yield.",
+        "shortText": "Hold the line.",
+        "realisticImage": "/personal/images/ai-shenanigans/gatecrasher/realistic.jpeg",
+        "realisticSource": "Photo (professional headshot)",
+        "realisticCaption": "A medieval fortress defender grips a battle-worn poleaxe as the castle gate explodes behind him amid rain, lightning, and flying debris, creating a dramatic portrait of determination under siege.",
+        "stylizedRendering": "/personal/images/ai-shenanigans/gatecrasher/stylistic.png",
+        "stylizedSource": "ChatGPT DALL-E image generation",
+        "movieRendering": "/personal/images/ai-shenanigans/gatecrasher/movie.mov",
+        "movieSource": "KlingAI video generation",
+        "movieCaption": "A cinematic siege unfolds in driving rain as lightning illuminates the battlements. The fortress gate erupts behind a steadfast defender who turns to confront the breach, holding his ground while the storm and collapsing walls frame a heroic final stand."
+      },
+      {
         "slug": "gollum",
         "title": "Cavebound Obsession",
         "orientation": "landscape",

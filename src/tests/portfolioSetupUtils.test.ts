@@ -4,6 +4,7 @@ import {
   parsePortfolioSetupArgs,
   validateProjectsOrThrow,
 } from "../../scripts/portfolio-setup-utils";
+import { buildNavigationDrawerItems } from "@/utils/portfolio/navigationDrawerItems";
 
 describe("portfolio-setup-utils", () => {
   describe("parsePortfolioSetupArgs", () => {
@@ -50,6 +51,23 @@ describe("portfolio-setup-utils", () => {
           { name: "B", href: "/same" },
         ]),
       ).toThrow("Duplicate project href detected: /same");
+    });
+  });
+
+  describe("buildNavigationDrawerItems", () => {
+    it("emits schema-valid drawer items with iconType values", () => {
+      const items = buildNavigationDrawerItems([{ label: "Example App", href: "/example-app" }]);
+
+      expect(items).toEqual([
+        { label: "Home", href: "/", iconType: "material", icon: "home" },
+        { label: "Example App", href: "/example-app", iconType: "material", icon: "apps" },
+        {
+          label: "AI Shenanigans",
+          href: "/ai-shenanigans",
+          iconType: "material",
+          icon: "autoFixHigh",
+        },
+      ]);
     });
   });
 

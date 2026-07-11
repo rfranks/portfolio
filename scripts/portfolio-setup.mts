@@ -6,8 +6,9 @@ import process from "node:process";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
-import { parseResumeDataWithSchema } from "../src/consts/resumeDataSchema";
+import * as resumeDataSchemaModule from "../src/consts/resumeDataSchema";
 import * as resumeDataMigrationsModule from "../src/utils/data/migrations/resumeDataMigrations";
+import * as navigationDrawerItemsModule from "../src/utils/portfolio/navigationDrawerItems";
 import {
   buildSingleHunkDiffPreview,
   normalizeProjectEntry,
@@ -144,6 +145,12 @@ function resolveModuleExport<T>(moduleNamespace: unknown, name: string): T {
 const migrateResumeData = resolveModuleExport<
   (payload: Record<string, unknown>) => Record<string, unknown>
 >(resumeDataMigrationsModule, "migrateResumeData");
+const parseResumeDataWithSchema = resolveModuleExport<
+  (input: unknown, source?: string) => ResumeData
+>(resumeDataSchemaModule, "parseResumeDataWithSchema");
+const buildNavigationDrawerItems = resolveModuleExport<
+  (projectRoutes: NavigationRoute[]) => Array<Record<string, unknown>>
+>(navigationDrawerItemsModule, "buildNavigationDrawerItems");
 const LATEST_RESUME_DATA_SCHEMA_VERSION = resolveModuleExport<number>(
   resumeDataMigrationsModule,
   "LATEST_RESUME_DATA_SCHEMA_VERSION",
@@ -440,21 +447,10 @@ function upsertShenanigan(items: ShenaniganEntry[], shenanigan: ShenaniganEntry)
 
 function ensureNavigationItems(resumeData: JsonRecord, projectRoutes: NavigationRoute[]): void {
   const existingNavigation = isPlainObject(resumeData.navigation) ? resumeData.navigation : {};
-  const base = [{ label: "Home", href: "/", icon: "home" }];
-  const shenanigans = {
-    label: "AI Shenanigans",
-    href: "/ai-shenanigans",
-    icon: "autoFixHigh",
-  };
-  const projectItems = projectRoutes.map((route) => ({
-    label: route.label,
-    href: route.href,
-    icon: "apps",
-  }));
 
   resumeData.navigation = {
     ...existingNavigation,
-    drawerItems: [...base, ...projectItems, shenanigans],
+    drawerItems: buildNavigationDrawerItems(projectRoutes),
   };
 }
 
@@ -1566,9 +1562,10 @@ async function runUpdateMode(runtimeOptions: PortfolioSetupRuntimeOptions): Prom
     const projects: ProjectEntry[] = Array.isArray(resumeData.projects)
       ? (resumeData.projects as ProjectEntry[])
       : [];
-    const shenanigans: ShenaniganEntry[] = Array.isArray(resumeData.aiShenanigans?.items)
+    const existingShenanigans: ShenaniganEntry[] = Array.isArray(resumeData.aiShenanigans?.items)
       ? resumeData.aiShenanigans.items
       : [];
+    const shenanigans: ShenaniganEntry[] = [...existingShenanigans];
     const experience: ExperienceEntry[] = Array.isArray(resumeData.experience)
       ? (resumeData.experience as ExperienceEntry[])
       : [];
@@ -1608,7 +1605,7 @@ async function runUpdateMode(runtimeOptions: PortfolioSetupRuntimeOptions): Prom
             description: "Creates app folders and optional route skeleton.",
           },
           {
-            label: "Add or replace an AI shenanigan",
+            label: "AI shenanigans (sync/reset)",
             value: "shenanigan",
             description: "Uses type-aware prompts and scoped media paths.",
           },
@@ -1670,9 +1667,62 @@ async function runUpdateMode(runtimeOptions: PortfolioSetupRuntimeOptions): Prom
       }
 
       if (action.value === "shenanigan") {
-        const shenanigan = await promptShenanigan(rl);
-        upsertShenanigan(shenanigans, shenanigan);
-        writeSuccess(`Saved shenanigan ${shenanigan.title}.`);
+        const nextAction = await chooseOne(
+          rl,
+          "AI shenanigan action",
+          [
+            {
+              label: "Sync entire AI shenanigan list",
+              value: "sync",
+              description: "Restore the full working list from existing resumeData items.",
+            },
+            { label: "Add or replace one shenanigan", value: "upsert" },
+            {
+              label: "Replace all AI shenanigans",
+              value: "replace-all",
+              description: "Start fresh and save a new first shenanigan.",
+            },
+            {
+              label: "Clear all AI shenanigans",
+              value: "clear-all",
+              description: "Remove every existing AI shenanigan from resumeData.",
+            },
+            { label: "Back", value: "back" },
+          ],
+          0,
+        );
+
+        if (nextAction.value === "sync") {
+          shenanigans.splice(0, shenanigans.length, ...existingShenanigans);
+          writeSuccess(`Resynced ${shenanigans.length} AI shenanigan entries.`);
+        }
+
+        if (nextAction.value === "upsert") {
+          const shenanigan = await promptShenanigan(rl);
+          upsertShenanigan(shenanigans, shenanigan);
+          writeSuccess(`Saved shenanigan ${shenanigan.title}.`);
+        }
+
+        if (nextAction.value === "replace-all") {
+          const confirmed = await askYesNo(
+            rl,
+            "Replace all existing AI shenanigans with a new list?",
+            false,
+          );
+          if (confirmed) {
+            const shenanigan = await promptShenanigan(rl);
+            shenanigans.splice(0, shenanigans.length, shenanigan);
+            writeSuccess(`Replaced AI shenanigans with ${shenanigan.title}.`);
+          }
+        }
+
+        if (nextAction.value === "clear-all") {
+          const confirmed = await askYesNo(rl, "Clear all existing AI shenanigans?", false);
+          if (confirmed) {
+            shenanigans.splice(0, shenanigans.length);
+            writeSuccess("Cleared all AI shenanigans.");
+          }
+        }
       }
 
       if (action.value === "experience") {

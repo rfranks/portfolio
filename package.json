@@ -92,7 +92,7 @@
     "@types/jest-axe": "^3.5.9",
     "@types/lodash": "^4.17.20",
     "@types/matter-js": "^0.20.0",
-    "@types/node": "^20",
+    "@types/node": "^20.19.43",
     "@types/pdfjs-dist": "^2.10.377",
     "@types/react": "^19",
     "@types/react-dom": "^19",
